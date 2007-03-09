@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site>
+   <description url="http://caltrop.sourceforge.net/eclipse">
+      Eclipse download site for CAL
+   </description>
+   <feature url="features/net.sf.caltrop.eclipse.plugin.calfeature_1.0.3.jar" id="net.sf.caltrop.eclipse.plugin.calfeature" version="1.0.3">
+      <category name="caltrop"/>
+   </feature>
+   <category-def name="caltrop" label="CAL Editor Plug-in"/>
+</site>

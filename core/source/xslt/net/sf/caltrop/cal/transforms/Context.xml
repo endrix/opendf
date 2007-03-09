@@ -1,0 +1,38 @@
+
+<Context name="Default">
+    <Profile name="Ptolemy"/>
+
+    <UnaryOp name="#" function="$size"/>
+    <UnaryOp name="-" function="$negate"/>
+    <UnaryOp name="dom" function="$domain"/>
+    <UnaryOp name="rng" function="$range"/>
+    <UnaryOp name="not" function="$not"/>
+
+    <BinaryOp name="or" precedence= "1" function="$or"/>
+
+    <BinaryOp name="and" precedence= "2" function="$and"/>
+
+    <BinaryOp name="=" precedence= "3" function="$eq"/>
+    <BinaryOp name="&lt;" precedence= "3" function="$lt"/>
+    <BinaryOp name="&lt;=" precedence= "3" function="$le"/>
+    <BinaryOp name="&gt;" precedence= "3" function="$gt"/>
+    <BinaryOp name="&gt;=" precedence= "3" function="$ge"/>
+    <BinaryOp name="!=" precedence= "3" function="$ne"/>
+
+    <BinaryOp name="+" precedence= "4" function="$add"/>
+    <BinaryOp name="-" precedence= "4" function="$sub"/>
+
+    <BinaryOp name="*" precedence= "5" function="$mul"/>
+    <BinaryOp name="/" precedence= "5" function="$div"/>
+    <BinaryOp name="div" precedence= "5" function="$idiv"/>
+    <BinaryOp name="mod" precedence= "5" function="$mod"/>
+
+    <Function name="create-list" function="$createList"/>
+    <Function name="create-map" function="$createMap"/>
+    <Function name="create-set" function="$createSet"/>
+    <Function name="if-function" function="$ifFunction"/>
+
+    <Procedure name="if-procedure" procedure="$ifProcedure"/>
+    <Procedure name="iterate" procedure="$iterate"/>
+    <Procedure name="while-procedure" procedure="$whileProcedure"/>
+</Context>
