@@ -37,7 +37,11 @@ cproot = $(CALTROP_CLASSDIR)/net/sf/caltrop
 
 .PHONY = create_dir
 
-$(CALTROP_CLASSDIR): create_dir $(cproot)/util $(cproot)/cal $(cproot)/nl $(cproot)/hades $(cproot)/cli $(CALTROP_CLASSDIR)/ptolemy
+$(CALTROP_CLASSDIR): create_dir $(cproot)/util $(cproot)/cal $(cproot)/nl $(cproot)/hades $(cproot)/cli $(CALTROP_CLASSDIR)/ptolemy xslt
+
+xslt:
+	mkdir -p $(CALTROP_CLASSDIR)/net/sf/caltrop/cal/transforms
+	cp -p $(CALTROP_HOME)/source/xslt/net/sf/caltrop/cal/transforms/* $(CALTROP_CLASSDIR)/net/sf/caltrop/cal/transforms
 
 create_dir:
 	mkdir -p $(CALTROP_CLASSDIR)
