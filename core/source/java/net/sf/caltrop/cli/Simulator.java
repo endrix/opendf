@@ -208,8 +208,9 @@ public class Simulator {
 				
             DiscreteEventComponent dec = loadDEC(actorClass, paramValues, classLoader);
             
-            InputStream is = inFile == null ? new NullInputStream():new FileInputStream(inFile);
-            OutputStream os = outFile == null ? new NullOutputStream():new FileOutputStream(outFile);
+            InputStream is = inFile == null ? new NullInputStream() : new FileInputStream(inFile);
+            OutputStream os = outFile == null ? new NullOutputStream() : 
+            	                        (".".equals(outFile) ? System.out : new FileOutputStream(outFile));
             SequentialSimulatorCallback callback = interpretStimulus ? new EvaluatedStreamCallback(is, os, platform):new StreamIOCallback(is, os);
             SequentialSimulator sim = new SequentialSimulator(dec, callback);
             
