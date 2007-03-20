@@ -86,7 +86,7 @@ public class SimulationClassLoader extends ClassLoader {
 
                 c = mcf.createClass(name, this.topLevelClassLoader, s);
 				this.loadedClasses.put(name, c);
-                Logging.user().info("Loaded " + resName + " for simulation");
+                Logging.user().config("Loaded " + resName + " for simulation");
 				return c;
 			}
 		}

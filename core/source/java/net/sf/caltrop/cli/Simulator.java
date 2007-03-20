@@ -167,6 +167,8 @@ public class Simulator {
 		if (actorClass == null) {
 			usage();
 		}
+		
+		Logging.user().info(NameString);
 
         try
         {
@@ -307,5 +309,6 @@ public class Simulator {
 	private static final String optPath = "path";
 	private static final String optModel = "model";
 	
+	private static final String NameString = "Open Dataflow Engine";
 }
 

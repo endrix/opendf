@@ -68,7 +68,7 @@ public class VersionInfo
         os.println(buildVersion());
     }
 
-    private static String buildVersion ()
+    public static String buildVersion ()
     {
         StringBuffer version = new StringBuffer();
         version.append("Version: ");
