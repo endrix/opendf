@@ -107,7 +107,7 @@ public class StmtEvaluator extends ExprEvaluator implements StatementVisitor {
     public void visitStmtBlock(StmtBlock s) {
         Environment env = this.getEnvironment();
         if (s.hasLocalDecls()) {
-            Environment local = env.newFrame();
+            Environment local = getContext().newEnvironmentFrame(env);
             Decl [] decls = s.getDecls();
             for (int i = 0; i < decls.length; i++) {
                 Expression e = decls[i].getInitialValue();

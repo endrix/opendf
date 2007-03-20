@@ -80,7 +80,7 @@ public class ActorInterpreter {
 		env = null;
 		envAction = null;
 		
-		final Environment local = actorEnv.newFrame();
+		final Environment local = context.newEnvironmentFrame(actorEnv);
 		
 		final InputPattern[] inputPatterns = action.getInputPatterns();
 		for (int i = 0; i < inputPatterns.length; i++) {

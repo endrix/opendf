@@ -58,7 +58,7 @@ public class ProcProcedure extends StmtEvaluator
         if (params.length != args.length)
             throw new InterpreterException("Illegal number of arguments. Got "
                                           + args.length + ", expected " + params.length + ".");
-        Environment e = getEnvironment().newFrame();
+        Environment e = getContext().newEnvironmentFrame(getEnvironment());
         for (int i = 0; i < args.length; i++) {
             e.bind(params[i], args[i]);
         }

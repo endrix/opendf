@@ -254,7 +254,7 @@ public class ExprEvaluator implements ExpressionVisitor {
     }
 
     public void visitExprLet(ExprLet e) {
-        Environment env = getEnvironment().newFrame();
+        Environment env = context.newEnvironmentFrame(getEnvironment());
         Decl [] decls = e.getDecls();
         for (int i = 0; i < decls.length; i++) {
             Decl d = decls[i];

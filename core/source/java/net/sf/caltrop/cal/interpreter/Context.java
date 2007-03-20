@@ -46,6 +46,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import net.sf.caltrop.cal.interpreter.environment.Environment;
+
 /**
  * This interface provides the key abstraction of the context an
  * interpreter (whether for expressions, statements, or other
@@ -257,6 +259,12 @@ public interface Context extends net.sf.caltrop.cal.interpreter.environment.Data
 
     Class    getJavaClassOfObject(Object o);
 
+
+    //////////////////////////////////////////////////////////
+    ////    Environment
+    //////////////////////////////////////////////////////////
+
+    Environment  newEnvironmentFrame(Environment env);
 
 
     //////////////////////////////////////////////////////////

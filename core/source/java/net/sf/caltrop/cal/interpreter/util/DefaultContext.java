@@ -53,6 +53,8 @@ import net.sf.caltrop.cal.interpreter.InterpreterException;
 import net.sf.caltrop.cal.interpreter.Procedure;
 import net.sf.caltrop.cal.interpreter.Context.Thunk;
 import net.sf.caltrop.cal.interpreter.environment.DataStructureManipulator;
+import net.sf.caltrop.cal.interpreter.environment.Environment;
+import net.sf.caltrop.cal.interpreter.environment.HashEnvironment;
 import net.sf.caltrop.cal.interpreter.java.ClassObject;
 import net.sf.caltrop.cal.interpreter.java.MethodObject;
 
@@ -274,6 +276,13 @@ public class DefaultContext implements Context {
     	} else {
     		return o.getClass();
     	}
+    }
+
+
+    ////////////  Environment
+    
+    public Environment  newEnvironmentFrame(Environment env) {
+    	return new HashEnvironment(env, this);
     }
 
 
