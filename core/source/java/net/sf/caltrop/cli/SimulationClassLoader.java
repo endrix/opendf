@@ -102,11 +102,19 @@ public class SimulationClassLoader extends ClassLoader {
 	//
 	
 	public SimulationClassLoader(ClassLoader parent) {
-		this (parent, null);
+		this (parent, new String [] {"."}, null);
 	}
 	
 	public SimulationClassLoader(ClassLoader parent, String cachePath) {
+		this (parent, new String [] {"."}, cachePath);
+	}
+	
+	public SimulationClassLoader(ClassLoader parent, String [] modelPath) {
+		this (parent, modelPath, null);
+	}
 		
+	public SimulationClassLoader(ClassLoader parent, String [] modelPath, String cachePath) {
+			
 		super(parent);
 		
 		this.topLevelClassLoader = this;
@@ -117,8 +125,10 @@ public class SimulationClassLoader extends ClassLoader {
 		addModelClassFactory("nl", new NLClassFactory());
 		addModelClassFactory("xnl", new XNLClassFactory());
 		addModelClassFactory("xdf", new XDFClassFactory());		
-		
-		locators.add(new DirectoryModelClassLocator("."));
+
+		for (String s : modelPath) {
+			locators.add(new DirectoryModelClassLocator(s));
+		}
 		locators.add(new ClassLoaderModelClassLocator(this));
 	}
 	
