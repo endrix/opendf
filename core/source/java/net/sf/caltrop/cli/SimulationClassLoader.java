@@ -49,6 +49,7 @@ import java.util.Map;
 import net.sf.caltrop.cli.lib.CalActorClassFactory;
 import net.sf.caltrop.cli.lib.CalMLActorClassFactory;
 import net.sf.caltrop.cli.lib.ClassLoaderModelClassLocator;
+import net.sf.caltrop.cli.lib.DirectoryModelClassLocator;
 import net.sf.caltrop.cli.lib.NLClassFactory;
 import net.sf.caltrop.cli.lib.PCalMLActorClassFactory;
 import net.sf.caltrop.cli.lib.XDFClassFactory;
