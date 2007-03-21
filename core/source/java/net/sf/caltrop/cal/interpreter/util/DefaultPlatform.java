@@ -287,6 +287,20 @@ public class DefaultPlatform implements Platform {
                     return 2;
                 }
             }));
+        
+        env.bind("toInt", context().createFunction(new Function() {
+            public Object apply(Object[] args) {
+                try {
+                    return context().createInteger(context().intValue(args[0]));
+                } catch (Exception ex) {
+                    throw new InterpreterException("Function 'toInt': Cannot apply.", ex);
+                }
+            }
+
+            public int arity() {
+                return 1;
+            }
+        }));
 
         env.bind("$domain", context().createFunction(new Function() {
             public Object apply(Object[] args) {

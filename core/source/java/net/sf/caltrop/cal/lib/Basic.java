@@ -467,7 +467,7 @@ public class Basic implements EnvironmentFactory {
                                 return new Double(((double)va) / ((double)vb));
                             }
                             long res = va / vb;
-                            return new Long(res);
+                            return new Integer((int)res);
                         } else {
                             double va = ((Number)a).doubleValue();
                             double vb = ((Number)b).doubleValue();

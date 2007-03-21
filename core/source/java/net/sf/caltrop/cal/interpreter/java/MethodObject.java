@@ -85,8 +85,17 @@ public class MethodObject implements Function, Procedure {
             }
         }
         if (m == null) {
-            throw new InterpreterException("Couldn't find method " + _methodName +
-                    " belonging to " + _thisInstance.toString());
+        	String msg = "Couldn't find method " + _methodName + "(";
+        	boolean first = true;
+    		for (Class c : classes) {
+    			if (!first) {
+    				msg += ", ";
+    			}
+    			msg += c.getName() + "  ";
+    			first = false;
+    		}        	
+        	msg += ") belonging to " + _thisInstance.toString();
+            throw new InterpreterException(msg);
         }
         try {
             return _context.fromJavaObject(m.invoke(_thisInstance, newargs));
