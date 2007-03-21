@@ -48,6 +48,7 @@ import java.util.Map;
 
 import net.sf.caltrop.cli.lib.CalActorClassFactory;
 import net.sf.caltrop.cli.lib.CalMLActorClassFactory;
+import net.sf.caltrop.cli.lib.ClassLoaderModelClassLocator;
 import net.sf.caltrop.cli.lib.NLClassFactory;
 import net.sf.caltrop.cli.lib.PCalMLActorClassFactory;
 import net.sf.caltrop.cli.lib.XDFClassFactory;
@@ -78,7 +79,7 @@ public class SimulationClassLoader extends ClassLoader {
 		
 		for (String suffix : modelClassExtensions) {
 			String resName = baseName + "." + suffix;
-			InputStream s = this.getResourceAsStream(resName);
+			InputStream s = this.getModelClassAsStream(resName);
 			if (s != null) {
 				Logging.dbg().info("SimulationClassLoader:: Found class " + name + " at resource " + resName);
 
@@ -115,6 +116,18 @@ public class SimulationClassLoader extends ClassLoader {
 		addModelClassFactory("nl", new NLClassFactory());
 		addModelClassFactory("xnl", new XNLClassFactory());
 		addModelClassFactory("xdf", new XDFClassFactory());		
+		
+		locators.add(new DirectoryModelClassLocator("."));
+		locators.add(new ClassLoaderModelClassLocator(this));
+	}
+	
+	private InputStream  getModelClassAsStream(String name) {
+		for (ModelClassLocator mcl : locators) {
+			InputStream s = mcl.getAsStream(name);
+			if (s != null)
+				return s;
+		}
+		return null;
 	}
 		
 	private ClassLoader topLevelClassLoader;	
@@ -131,5 +144,6 @@ public class SimulationClassLoader extends ClassLoader {
 		modelClassFactories.put(ext, mcf);
 	}
 		
+	private List<ModelClassLocator>  locators = new ArrayList<ModelClassLocator>();
 	
 }
