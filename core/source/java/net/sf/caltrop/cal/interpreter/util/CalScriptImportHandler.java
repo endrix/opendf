@@ -70,7 +70,7 @@ public class CalScriptImportHandler extends AbstractImportHandler {
 		Map m = loadShellScript(getPlatform(), packagePrefix);
 		if (m == null)
 			return null;
-		Environment v = new HashEnvironment(env, getPlatform().context());
+		Environment v = getPlatform().context().newEnvironmentFrame(env);
 		for (Iterator i = m.keySet().iterator(); i.hasNext(); ) {
 			Object var = i.next();
 			v.bind(var, m.get(var));

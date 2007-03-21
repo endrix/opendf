@@ -136,8 +136,8 @@ public class DefaultPlatform implements Platform {
     
     public Environment createGlobalEnvironment(Environment parent) {
 
-        Environment env = new HashEnvironment(parent, context());
-
+        Environment env = context().newEnvironmentFrame(parent);
+        
         /*
          * socketGetToken("x.x.x.x", socket, numBytes)
          * Returns the specified number of bytes read from the stream

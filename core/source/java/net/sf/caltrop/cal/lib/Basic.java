@@ -70,7 +70,7 @@ public class Basic implements EnvironmentFactory {
 
 	public Environment createEnvironment(Environment parent, Context envContext) {
 
-        Environment env = new HashEnvironment(parent, DefaultContext.theContext);
+        Environment env = DefaultContext.theContext.newEnvironmentFrame(parent);
         final Context context = envContext;
 
         env.bind("println", context.createProcedure(new Procedure() {

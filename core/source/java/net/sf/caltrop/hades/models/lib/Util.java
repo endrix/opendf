@@ -223,7 +223,7 @@ public class Util {
 	
 	private  static net.sf.caltrop.cal.interpreter.environment.Environment  createEnvironment(NodeList decls, Map env, Platform platform) {
 		net.sf.caltrop.cal.interpreter.environment.Environment wrappedEnv = new EnvironmentWrapper(env, platform.createGlobalEnvironment(), platform.context());
-		net.sf.caltrop.cal.interpreter.environment.Environment localEnv = new net.sf.caltrop.cal.interpreter.environment.HashEnvironment(wrappedEnv, platform.context());
+		net.sf.caltrop.cal.interpreter.environment.Environment localEnv = platform.context().newEnvironmentFrame(wrappedEnv);
 		
 		// FIXME: handle imports
 		

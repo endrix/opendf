@@ -161,7 +161,7 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 		outsideEnv = new EnvironmentWrapper(this.parentEnv, newEnv, myContext);
 		
 		Decl[] decls = actor.getStateVars();
-		Environment constantEnv = new HashEnvironment(outsideEnv, myContext);
+		Environment constantEnv = myContext.newEnvironmentFrame(outsideEnv);
 		// disallow writing to cached environment
 		Environment cachedEnv = new CacheEnvironment(constantEnv, false, myContext);
 		this.actorEnv = createActorStateEnvironment(cachedEnv, myContext);
@@ -214,7 +214,7 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 	}
 
 	protected  Environment  createActorStateEnvironment(Environment parent, Context context) {
-		return new HashEnvironment(parent, context);
+		return context.newEnvironmentFrame(parent);
 	}
 	
 	private void executeInitializer() {

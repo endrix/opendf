@@ -53,7 +53,7 @@ public class BitOps implements EnvironmentFactory {
 
 	public Environment createEnvironment(Environment parent, Context _context) {
 		
-		Environment env = new HashEnvironment(parent, _context);
+		Environment env = _context.newEnvironmentFrame(parent);
 		final Context context = _context;
 		
         env.bind("bitor", context.createFunction(new Function() {

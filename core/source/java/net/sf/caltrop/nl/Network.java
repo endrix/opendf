@@ -227,7 +227,7 @@ public class Network {
 		//
 		
 		NodeList vars = xpathEvalNodes("/Network/Decl[@kind='Variable']", nldoc);
-		Environment localEnv = new HashEnvironment(env, context);
+		Environment localEnv = context.newEnvironmentFrame(env);
 		ExprEvaluator eval = new ExprEvaluator(context, localEnv);
 		for (int i = 0; i < vars.getLength(); i++) {
 			Element v = (Element)vars.item(i);
@@ -447,7 +447,7 @@ public class Network {
 		Platform platform = net.sf.caltrop.cal.interpreter.util.DefaultPlatform.thePlatform;
 		Context context =  platform.context(); // FIXME: make this parametric
 
-		Environment env = new HashEnvironment(platform.createGlobalEnvironment(), context);
+		Environment env = context.newEnvironmentFrame(platform.createGlobalEnvironment());
 		ExprEvaluator evaluator = new ExprEvaluator(platform.context(), env);
 		for (String v : params.keySet()) {
 			Object value = evaluator.evaluate(SourceReader.readExpr(new StringReader((String)params.get(v))));

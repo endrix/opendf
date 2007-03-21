@@ -38,7 +38,6 @@ ENDCOPYRIGHT
 
 package net.sf.caltrop.cli;
 
-
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
@@ -67,8 +66,6 @@ import net.sf.caltrop.hades.simulation.StreamIOCallback;
 import net.sf.caltrop.hades.util.NullInputStream;
 import net.sf.caltrop.hades.util.NullOutputStream;
 import net.sf.caltrop.util.Logging;
-
-
 
 public class Simulator {
 	
@@ -143,6 +140,8 @@ public class Simulator {
                     // NOT further relax to the WARNING level
                     Logging.setUserLevel(Level.WARNING);
                 }
+            } else if (args[i].equals("-v")) {
+                Logging.user().setLevel(Level.ALL);                
             } else if (args[i].equals("-debug")) {
                 Logging.user().setLevel(Level.ALL);
             } else if (args[i].equals("-debug0")) {
@@ -189,7 +188,7 @@ public class Simulator {
 		
             System.setProperty("CalPlatform", platform.getClass().getName());
 
-            Environment env = new HashEnvironment(platform.createGlobalEnvironment(), platform.context());
+            Environment env = platform.context().newEnvironmentFrame(platform.createGlobalEnvironment());
             env.bind("__ClassLoader", platform.context().fromJavaObject(classLoader));
             ExprEvaluator evaluator = new ExprEvaluator(platform.context(), env);
 		
@@ -256,6 +255,7 @@ public class Simulator {
         System.out.println("  -P <platform class> defines the platform to use for CAL code interpretation");
         System.out.println("  -D <param def>      allows specification of parameter defs");
         System.out.println("  -q                  run quietly");
+        System.out.println("  -v                  run verbosely");        
         System.out.println("  -bq <##>            produces a warning if an input queue everbecomes bigger than the specified value");
         System.out.println("  -cache <path>       the path to use for caching precompiled models");        
         System.out.println("                      If none is specified, caching is turned off.");        
