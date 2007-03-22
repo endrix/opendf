@@ -24,7 +24,7 @@ public class DirectoryModelClassLocator implements ModelClassLocator {
 	}
 	
 	public DirectoryModelClassLocator(String dirpath) {
-		this.dirpath = dirpath + "/";
+		this.dirpath = dirpath + File.separator;
 	}
 
 	private String dirpath;
