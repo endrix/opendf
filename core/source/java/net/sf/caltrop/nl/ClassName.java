@@ -47,4 +47,12 @@ public class ClassName {
 		this.name = name;
 		this.packageName = packageName;
 	}
+	
+	public String toString() {
+		String res = "";
+		for (String s : packageName) {
+			res += s + ".";
+		}
+		return res + name;
+	}
 }

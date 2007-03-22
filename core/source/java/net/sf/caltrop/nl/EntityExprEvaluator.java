@@ -64,6 +64,7 @@ import net.sf.caltrop.cal.interpreter.util.ASTFactory;
 import net.sf.caltrop.nl.util.DOMFactory;
 import net.sf.caltrop.nl.util.IDGenerator;
 import net.sf.caltrop.util.CascadedMap;
+import net.sf.caltrop.util.Logging;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -77,6 +78,7 @@ public class EntityExprEvaluator {
 			String name = expr.getAttribute(attrName);
 			ClassName cn = entityClassMap.get(name);
 			if (cn == null) {  // NOTE: should we do this??
+				Logging.dbg().info("Entity '" + name + "' defaults to top-level package.");
 				cn = new ClassName(name, new String [] {});
 			}
 			

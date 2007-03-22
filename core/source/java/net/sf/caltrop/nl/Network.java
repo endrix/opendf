@@ -183,6 +183,7 @@ public class Network {
 	private Document  network;
 	private int       instanceID;
 	
+	private static final String  attrAlias = "alias";
 	private static final String  attrDst = "dst";
 	private static final String  attrDstPort = "dst-port";
 	private static final String  attrID = "id";
@@ -201,6 +202,7 @@ public class Network {
 	
 	private static final String  valInput = "Input";
 	private static final String  valOutput = "Output";
+	private static final String  valSingle = "single";
 	
 	
 	public static Document  translate(Document nldoc, Environment env, Context context) {
@@ -244,7 +246,17 @@ public class Network {
 		//
 		
         Map<String, ClassName> entityEnv = new HashMap<String, ClassName>();
-        // FIXME: setup entity environment
+        List<Element> entityImports = xpathEvalElements("/Network/Import[@namespace='Entity']", nldoc);
+        for (Element e : entityImports) {
+        	if (!valSingle.equals(e.getAttribute(attrKind))) {
+        		throw new RuntimeException("No support for package imports of entities.");
+        	}
+        	ClassName cn = qid2ClassName(xpathEvalElement("QID", e));
+        	String alias = e.getAttribute(attrAlias);
+        	if (alias == null || "".equals(alias))
+        		alias = cn.name;
+        	entityEnv.put(alias, cn);
+        }
 		
 		Map<String, Object> entityNames = new HashMap<String, Object>();
  		NodeList entityDecls = xpathEvalNodes("/Network/EntityDecl", nldoc);
@@ -277,6 +289,19 @@ public class Network {
 		eDecl.appendChild(n.importNode(expr));
 		
 		n.addNetworkElement(eDecl);
+	}
+	
+	private static ClassName qid2ClassName(Element qid) {
+		List<Element> ids = xpathEvalElements("ID", qid);
+		
+		assert ids.size() > 0;
+		
+		String [] packageName = new String [ids.size() - 1];
+		for (int i = 0; i < ids.size() - 1; i++) {
+			packageName[i] = ids.get(i).getAttribute(attrName);
+		}
+		ClassName cn = new ClassName(ids.get(ids.size() - 1).getAttribute(attrName), packageName);
+		return cn;
 	}
 	
 	private static void  addInstanceToNetwork(String idString, String className, String [] packageName, Map<String, Element> parameters, Network n, List<Element> attributes) {
