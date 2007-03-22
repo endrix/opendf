@@ -38,6 +38,7 @@ ENDCOPYRIGHT
 
 package net.sf.caltrop.cli;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
@@ -47,8 +48,12 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 
@@ -75,6 +80,7 @@ public class Simulator {
 		String outFile = null;
 		double time = -1;
 		long nSteps = -1;
+		String [] modelPath = null;
 		String actorClass = null;
 		String platformName = null;
 		String cachePath = null;
@@ -150,7 +156,12 @@ public class Simulator {
 				if (cachePath != null) usage();
 				i += 1;
 				if (i >= args.length) usage();
-				cachePath = args[i];
+				cachePath = args[i];				
+			} else if (args[i].equals("-mp")) {
+				if (modelPath != null) usage();
+				i += 1;
+				if (i >= args.length) usage();
+				modelPath = extractPath(args[i]);
             } else if (args[i].equals("--version")) {
                 VersionInfo.printVersion();
                 System.exit(0);
@@ -170,8 +181,12 @@ public class Simulator {
 		Logging.user().info(NameString);
 
         try
-        {
-            ClassLoader classLoader = new SimulationClassLoader(Simulator.class.getClassLoader(), cachePath);
+        {        	
+        	if (modelPath == null) {
+        		modelPath = new String [] {"."};
+        	}
+        	Logging.user().info("Model Path: " + Arrays.asList(modelPath));
+            ClassLoader classLoader = new SimulationClassLoader(Simulator.class.getClassLoader(), modelPath, cachePath);
             
             Platform platform = null;
             try
@@ -245,6 +260,28 @@ public class Simulator {
         Logging.setUserLevel(userVerbosity); // Re-set the verbosity
 	}
 	
+	private static String []  extractPath(String p) {
+		List<String> paths = new ArrayList<String>();
+		boolean done = false;
+		String r = p;
+		while (!done) {
+			String s = null;
+			int n = r.indexOf(File.pathSeparatorChar);
+			if (n < 0) {
+				s = r;
+				done = true;
+			} else {
+				s = r.substring(0, n);
+				r = (r.length() > n) ? r.substring(n + 1) : "";
+			}
+			s = s.trim();
+			if (!"".equals(s)) {
+				paths.add(s);
+			}
+		}
+		return paths.toArray(new String [paths.size()]);
+	}
+	
 	private static void usage() {
 		System.out.println("Usage: Simulator [options] actor-class");
         System.out.println("  -ea                 enables assertion checking during simulation");
@@ -257,6 +294,7 @@ public class Simulator {
         System.out.println("  -q                  run quietly");
         System.out.println("  -v                  run verbosely");        
         System.out.println("  -bq <##>            produces a warning if an input queue everbecomes bigger than the specified value");
+        System.out.println("  -mp <paths>         specifies the search paths for model files");        
         System.out.println("  -cache <path>       the path to use for caching precompiled models");        
         System.out.println("                      If none is specified, caching is turned off.");        
         System.out.println("  --version           Display Version information and quit");
