@@ -233,6 +233,7 @@ public class Simulator {
             long stepCount = 0;
             double currentTime = 0;
             double lastTime = 0;
+            long beginWallclockTime = System.currentTimeMillis();
             while (sim.hasEvent() && 
                 (nSteps < 0 || stepCount < nSteps) &&
                 (time < 0 || currentTime <= time)) {
@@ -241,8 +242,12 @@ public class Simulator {
                 lastTime = currentTime;
                 currentTime = sim.currentTime();
             }
+            long endWallclockTime = System.currentTimeMillis();
+            long wcTime = endWallclockTime - beginWallclockTime;
             
             Logging.user().info("Done after " + stepCount + " steps. Last step at time " + lastTime + ".");
+            Logging.user().info("Execution time: " + wcTime + "ms."
+            		            + (wcTime > 0 ? " (" + (1000.0 * (double)stepCount / (double)wcTime) + " steps/s)" : ""));
             Logging.user().info("The network is " + (sim.hasEvent() ? "live" : "dead")+ ".");
 
         }
