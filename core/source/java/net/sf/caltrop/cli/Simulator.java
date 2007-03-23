@@ -233,6 +233,7 @@ public class Simulator {
             long stepCount = 0;
             double currentTime = 0;
             double lastTime = 0;
+            Logging.user().info("Running...");
             long beginWallclockTime = System.currentTimeMillis();
             while (sim.hasEvent() && 
                 (nSteps < 0 || stepCount < nSteps) &&

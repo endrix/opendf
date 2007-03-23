@@ -192,6 +192,9 @@ public class StructureStmtEvaluator {
 			
 			String eName = er.getAttribute(attrName);
 			Object val = entityEnv.get(eName);
+			if (val == null) {
+				throw new RuntimeException("Undefined entity ref: '" + eName + "'.");
+			}
 			List<Element> indexExprs = xpathEvalElements("Expr", er);
 			for (Element indexExpr : indexExprs) {
 				int i = context.intValue(evaluateExpr(indexExpr));

@@ -46,6 +46,7 @@ var
 	filterLength = 10;
 	
 	taps = [1.0 / filterLength : for i in Integers(1, filterLength)];
+	//taps = [-.040609, -.001628, .17853, .37665, .37665, .17853, -.001628, -.040609]
 
 entities
 	r = Random();
