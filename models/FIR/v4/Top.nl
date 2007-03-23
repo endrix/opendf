@@ -42,10 +42,8 @@ network Top () ==> :
 import entity net.sf.caltrop.actors.Plotter;
 
 var
-	noise = .5;
-	filterLength = 10;
-	
-	taps = [1.0 / filterLength : for i in Integers(1, filterLength)];
+	noise = .1;
+	taps = [-.040609, -.001628, .17853, .37665, .37665, .17853, -.001628, -.040609];
 
 entities
 	r = Random();
@@ -55,10 +53,11 @@ entities
 	p = Plotter(autoredraw:: 50);
 	clk = Clock(dt:: 1);
 	
-	tagOrig = Tag(tag:: "Original");
-	tagFIR = Tag(tag:: "FIR");
-	
-	fir = FIR(taps:: taps, nUnits:: 3);
+	tagFIRgolden = Tag(tag:: "FIR golden");
+	tagFIRfolded = Tag(tag:: "FIR folded");
+
+	firGolden = FIRgolden(taps:: taps);	
+	firFolded = FIR(taps:: taps, nUnits:: 3);
 	
 structure
 	clk.Out --> r.Trigger;
@@ -67,11 +66,12 @@ structure
 	r.Out --> mul.In;
 	mul.Out --> add.A;
 	s.Out --> add.B;
-	add.Out --> tagOrig.In;
 	
-	add.Out --> fir.In;
-	fir.Out --> tagFIR.In;
+	add.Out --> firGolden.In;
+	firGolden.Out --> tagFIRgolden.In;
+	tagFIRgolden.Out --> p.Data;
 	
-	tagOrig.Out --> p.Data;	
-	tagFIR.Out --> p.Data;
+	add.Out --> firFolded.In;
+	firFolded.Out --> tagFIRfolded.In;
+	tagFIRfolded.Out --> p.Data;	
 end		

@@ -52,8 +52,8 @@ actor FIR (taps) In ==> Out :
 
     action [a] ==> [b]
     var
-        b = collect(0, Add, combine(Multiply, taps, data))
+        b = accumulate(lambda (x, y) : x + y end, 0, [taps[i] * data[i] : for i in Integers(0, n - 1)])
     do
-        data := [data[i] : for Integer i in Integers(1, n - 1)] + [a];
+        data := [data[i] : for i in Integers(1, n - 1)] + [a];
     end
 end

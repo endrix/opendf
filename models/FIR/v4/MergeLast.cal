@@ -41,17 +41,16 @@ actor MergeLast (n) A, B ==> Out:
 
 	k := 1;
 	
-	A:	action B: [a] ==> [a]
-		do
-			k := k + 1;
-		end
-		
-	B : action A: [a] ==> [a]
-		guard k = n
-		do
-			k := 1;
-		end
-		
-	priority B > A; end;
+	action B: [a] ==> [a]
+	guard k < n
+	do
+		k := k + 1;
+	end
+	
+	action A: [a] ==> [a]
+	guard k = n
+	do
+		k := 1;
+	end
 end
 

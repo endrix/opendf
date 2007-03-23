@@ -36,23 +36,20 @@ BEGINCOPYRIGHT X
 ENDCOPYRIGHT
 */
 
-
 network FIRcell (taps) Sample, AccLineIn ==> AccLineOut :
 
 var
 	nTaps = #taps;
 	
-	function reverse (a) : [a[#a - i] : for i in Integers(1, #a)] end
-	
 entities
 	up = Upsample(n:: nTaps);
 	merge = MergeLast(n:: nTaps);
 	split = SplitFirst(n:: nTaps);
-	consts = Constants(constants:: reverse(taps));
+	consts = Constants(constants:: taps);
 	z = Z(tokens:: [0 : for i in taps]);
 	mul = Multiply();
 	add = Add();
-	
+
 structure
 	Sample --> up.In;
 	up.Out --> mul.A;

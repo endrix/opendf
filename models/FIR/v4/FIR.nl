@@ -36,12 +36,13 @@ BEGINCOPYRIGHT X
 ENDCOPYRIGHT
 */
 
-
 network FIR (taps, nUnits) In ==> Out :
 
 var
 	nTaps = #taps;
 	
+	function reverse (a) : [a[#a - i] : for i in Integers(1, #a)] end
+
 	function max (a, b) : if a > b then a else b end end
  	
 	function fold (a, n)
@@ -55,11 +56,11 @@ var
 		]
 	end
 	
-	tapSegments = fold(taps, nUnits);
+	tapSegments = fold(reverse(taps), nUnits);
 	nSegs = #tapSegments;
 		
 entities
-	c = [FIRcell(taps:: segment) : for segment in tapSegments];
+	c = [FIRcell(taps:: segment) : for segment in reverse(tapSegments)];
 	zeros = Constants(constants:: [0]);
 	
 structure
@@ -74,6 +75,4 @@ structure
 	In --> zeros.Trigger;
 	c[nSegs - 1].AccLineOut --> Out;
 end
-		
-
-
+	

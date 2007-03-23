@@ -41,19 +41,18 @@ actor SplitFirst (n) In ==> X, Y :
 
 	k := 0;
 	
-	A:	action [a] ==> X: [a]
-		guard k = 0
-		do
-			incrK();
-		end
-		
-	B:	action [a] ==> Y: [a]
-		do
-			incrK();
-		end
-		
-	priority A > B; end
+	action [a] ==> X: [a]
+	guard k = 0
+	do
+		incrK();
+	end
 	
+	action [a] ==> Y: [a]
+	guard k > 0
+	do
+		incrK();
+	end
+		
 	procedure incrK() 
 	begin
 		k := k + 1;

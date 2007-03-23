@@ -35,8 +35,25 @@ BEGINCOPYRIGHT X
 	
 ENDCOPYRIGHT
 */
+/**
+ * This actor implements an FIR filter.
+ * 
+ * @author JWJ
+*/
 
-actor ConstantMultiply (c) In ==> Out :
+actor FIR (taps) In ==> Out :
 
-	action [a] ==> [c * a] end
+    invariant
+        n > 0
+    end
+
+    n = #taps;
+    data := [0 : for i in Integers(1, n)];
+
+    action [a] ==> [b]
+    var
+        b = collect(0, Add, combine(Multiply, taps, data))
+    do
+        data := [data[i] : for Integer i in Integers(1, n - 1)] + [a];
+    end
 end
