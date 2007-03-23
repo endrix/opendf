@@ -165,7 +165,7 @@ parser code {:
     //  Return a document containing the parsed lexer source, describing the source as 'fileName' in diagnostics.
     //
     public Document parseNetwork(String filename, boolean doDebug) throws java.lang.Exception {
-        caltrop.xml.Util.setDefaultDBFI();
+        net.sf.caltrop.util.Util.setDefaultDBFI();
         DOMImplementation domImpl = DocumentBuilderFactory.newInstance().newDocumentBuilder().getDOMImplementation();
         document = domImpl.createDocument("", "Network", null);
         file = filename;
@@ -762,6 +762,7 @@ entity_expr ::=
       {:
           Element e = createElement("EntityExpr", "If");
           appendChild(e, cond, e1, e2);
+          RESULT = e;
       :}
     | LBRACK entity_exprs:l colon_generators_opt:g RBRACK
       {:  

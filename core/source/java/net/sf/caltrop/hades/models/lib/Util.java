@@ -157,13 +157,12 @@ public class Util {
 					        eConnection.getAttribute(attrSrcPort),
 					        (DiscreteEventComponent)instanceMap.get(eConnection.getAttribute(attrDst)),
 					        eConnection.getAttribute(attrDstPort));
-
-
+			
 			DiscreteEventComponent dst = (DiscreteEventComponent)instanceMap.get(eConnection.getAttribute(attrDst));
 			if (dst != null) {
 				MessageListener port = dst.getInputConnectors().getConnector(eConnection.getAttribute(attrDstPort));
 				if (port != null && port instanceof Attributable) {
-					NodeList nlAttrs = xpathEvalNodes("Attribute", eConnection);
+					NodeList nlAttrs = xpathEvalNodes("Attribute[@name != 'connectionMonitor']", eConnection);
 					for (int j = 0; j < nlAttrs.getLength(); j++) {
 						Element eAttr = (Element)nlAttrs.item(j);
 						Element eVal = xpathEvalElement("Expr", eAttr);
@@ -177,13 +176,16 @@ public class Util {
 						((Attributable)port).set(eAttr.getAttribute(attrName), val);
 					}
 				} else {
-					NodeList nlAttrs = xpathEvalNodes("Attribute", eConnection);
+					NodeList nlAttrs = xpathEvalNodes("Attribute[@name != 'connectionMonitor']", eConnection);
 					if (nlAttrs != null && nlAttrs.getLength() > 0) {
 						Logging.dbg().warning("WARNING:: Found attributes for non-attributable port (" + eConnection.getAttribute(attrDstPort) + ")");
 					}
 				}
 			}
-			// FIXME: add size attribute
+			Element monitorAttr= (Element)xpathEvalElement("Attribute[@name = 'connectionMonitor']", eConnection);
+			if (monitorAttr != null) {
+				// FIXME: add monitor code here
+			}
 		}
 
 	}

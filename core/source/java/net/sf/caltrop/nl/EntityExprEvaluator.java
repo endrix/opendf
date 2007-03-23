@@ -51,6 +51,7 @@ import java.util.List;
 import java.util.Map;
 
 import net.sf.caltrop.cal.interpreter.Context;
+import net.sf.caltrop.cal.interpreter.ExprEvaluator;
 import net.sf.caltrop.cal.interpreter.ast.Decl;
 import net.sf.caltrop.cal.interpreter.ast.Expression;
 import net.sf.caltrop.cal.interpreter.ast.GeneratorFilter;
@@ -132,6 +133,14 @@ public class EntityExprEvaluator {
 				}
 				return res;
 			}
+		} else if(valIf.equals(kind)) {
+			Expression cond = ASTFactory.buildExpression(xpathEvalElement("Expr", expr));
+			ExprEvaluator evaluator = new ExprEvaluator(context, env);
+			boolean b = context.booleanValue(evaluator.evaluate(cond));
+			List<Element> branches = xpathEvalElements("EntityExpr", expr);
+			assert branches.size() == 2;
+			
+			return this.evaluate(branches.get(b ? 0 : 1));
 		} else {
 			throw new RuntimeException("Cannot evaluate entity expression kind '" + kind + "'.");
 		}
@@ -171,6 +180,7 @@ public class EntityExprEvaluator {
 	private static final String attrName = "name";
 	private static final String attrValue = "value";
 	
+	private final static String valIf = "If";
 	private final static String valIndexer = "Indexer";
 	private static final String valInstantiation = "Instantiation";
 	private static final String valInteger = "Integer";
