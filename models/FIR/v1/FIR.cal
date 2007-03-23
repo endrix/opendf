@@ -41,7 +41,7 @@ ENDCOPYRIGHT
  * @author JWJ
 */
 
-actor FIRsimple (taps) In ==> Out :
+actor FIR (taps) In ==> Out :
 
     invariant
         n > 0
