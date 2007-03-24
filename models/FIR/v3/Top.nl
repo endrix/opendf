@@ -36,34 +36,42 @@ BEGINCOPYRIGHT X
 ENDCOPYRIGHT
 */
 
-network FIRcell (taps) Sample, AccLineIn ==> AccLineOut :
+
+network Top () ==> :
+
+import entity net.sf.caltrop.actors.Plotter;
 
 var
-	nTaps = #taps;
-	
-entities
-	up = Upsample(n:: nTaps);
-	merge = MergeLast(n:: nTaps);
-	split = SplitFirst(n:: nTaps);
-	consts = Constants(constants:: taps);
-	z = Z(tokens:: [0 : for i in taps]);
-	mul = Multiply();
-	add = Add();
+	noise = .1;
+	taps = [-.040609, -.001628, .17853, .37665, .37665, .17853, -.001628, -.040609];
 
+entities
+	r = Random();
+	mul = ConstantMultiply(c:: noise);
+	add = Add();
+	s = Sine(d:: .01);
+	p = Plotter(autoredraw:: 50);
+	clk = Clock(dt:: 1);
+	
+	tagFIRgolden = Tag(tag:: "FIR golden");
+	tagFIRfolded = Tag(tag:: "FIR folded");
+
+	firGolden = FIRgolden(taps:: taps);	
+	firFolded = FIR(taps:: taps, nUnits:: 3);
+	
 structure
-	Sample --> up.In;
-	up.Out --> mul.A;
-	up.Out --> consts.Trigger;
-	consts.Out --> mul.B;
+	clk.Out --> r.Trigger;
+	clk.Out --> s.Trigger;
 	
+	r.Out --> mul.In;
 	mul.Out --> add.A;
+	s.Out --> add.B;
 	
-	AccLineIn --> merge.A;
-	merge.Out --> z.In;
-	z.Out --> add.B;
-	add.Out --> split.In;
-	split.Y --> merge.B;
+	add.Out --> firGolden.In;
+	firGolden.Out --> tagFIRgolden.In;
+	tagFIRgolden.Out --> p.Data;
 	
-	split.X --> AccLineOut;
-end
-		
+	add.Out --> firFolded.In;
+	firFolded.Out --> tagFIRfolded.In;
+	tagFIRfolded.Out --> p.Data;	
+end		

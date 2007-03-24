@@ -36,34 +36,30 @@ BEGINCOPYRIGHT X
 ENDCOPYRIGHT
 */
 
-network FIRcell (taps) Sample, AccLineIn ==> AccLineOut :
 
-var
-	nTaps = #taps;
-	
-entities
-	up = Upsample(n:: nTaps);
-	merge = MergeLast(n:: nTaps);
-	split = SplitFirst(n:: nTaps);
-	consts = Constants(constants:: taps);
-	z = Z(tokens:: [0 : for i in taps]);
-	mul = Multiply();
-	add = Add();
+actor SplitFirst (n) In ==> X, Y :
 
-structure
-	Sample --> up.In;
-	up.Out --> mul.A;
-	up.Out --> consts.Trigger;
-	consts.Out --> mul.B;
+	k := 0;
 	
-	mul.Out --> add.A;
+	action [a] ==> X: [a]
+	guard k = 0
+	do
+		incrK();
+	end
 	
-	AccLineIn --> merge.A;
-	merge.Out --> z.In;
-	z.Out --> add.B;
-	add.Out --> split.In;
-	split.Y --> merge.B;
-	
-	split.X --> AccLineOut;
-end
+	action [a] ==> Y: [a]
+	guard k > 0
+	do
+		incrK();
+	end
 		
+	procedure incrK() 
+	begin
+		k := k + 1;
+		if k >= n then
+			k := 0;
+		end
+	end
+end
+
+

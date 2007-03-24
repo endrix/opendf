@@ -36,34 +36,17 @@ BEGINCOPYRIGHT X
 ENDCOPYRIGHT
 */
 
-network FIRcell (taps) Sample, AccLineIn ==> AccLineOut :
 
-var
-	nTaps = #taps;
-	
-entities
-	up = Upsample(n:: nTaps);
-	merge = MergeLast(n:: nTaps);
-	split = SplitFirst(n:: nTaps);
-	consts = Constants(constants:: taps);
-	z = Z(tokens:: [0 : for i in taps]);
-	mul = Multiply();
-	add = Add();
+import java.lang.Math;
 
-structure
-	Sample --> up.In;
-	up.Out --> mul.A;
-	up.Out --> consts.Trigger;
-	consts.Out --> mul.B;
+actor Sine (d) Trigger ==> Out: 
+
+	x := 0.0;
 	
-	mul.Out --> add.A;
-	
-	AccLineIn --> merge.A;
-	merge.Out --> z.In;
-	z.Out --> add.B;
-	add.Out --> split.In;
-	split.Y --> merge.B;
-	
-	split.X --> AccLineOut;
+	action [_] ==> [Math.sin(old x)]
+	do
+		x := x + d;
+	end
 end
-		
+
+

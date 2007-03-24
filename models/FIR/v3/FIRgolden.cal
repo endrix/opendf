@@ -35,35 +35,25 @@ BEGINCOPYRIGHT X
 	
 ENDCOPYRIGHT
 */
+/**
+ * This actor implements an FIR filter.
+ * 
+ * @author JWJ
+*/
 
-network FIRcell (taps) Sample, AccLineIn ==> AccLineOut :
+actor FIRgolden (taps) In ==> Out :
 
-var
-	nTaps = #taps;
-	
-entities
-	up = Upsample(n:: nTaps);
-	merge = MergeLast(n:: nTaps);
-	split = SplitFirst(n:: nTaps);
-	consts = Constants(constants:: taps);
-	z = Z(tokens:: [0 : for i in taps]);
-	mul = Multiply();
-	add = Add();
+    invariant
+        n > 0
+    end
 
-structure
-	Sample --> up.In;
-	up.Out --> mul.A;
-	up.Out --> consts.Trigger;
-	consts.Out --> mul.B;
-	
-	mul.Out --> add.A;
-	
-	AccLineIn --> merge.A;
-	merge.Out --> z.In;
-	z.Out --> add.B;
-	add.Out --> split.In;
-	split.Y --> merge.B;
-	
-	split.X --> AccLineOut;
+    n = #taps;
+    data := [0 : for i in Integers(1, n)];
+
+    action [a] ==> [b]
+    var
+        b = accumulate(lambda (x, y) : x + y end, 0, [taps[i] * data[i] : for i in Integers(0, n - 1)])
+    do
+        data := [data[i] : for i in Integers(1, n - 1)] + [a];
+    end
 end
-		

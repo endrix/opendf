@@ -36,34 +36,43 @@ BEGINCOPYRIGHT X
 ENDCOPYRIGHT
 */
 
-network FIRcell (taps) Sample, AccLineIn ==> AccLineOut :
+network FIR (taps, nUnits) In ==> Out :
 
 var
 	nTaps = #taps;
 	
-entities
-	up = Upsample(n:: nTaps);
-	merge = MergeLast(n:: nTaps);
-	split = SplitFirst(n:: nTaps);
-	consts = Constants(constants:: taps);
-	z = Z(tokens:: [0 : for i in taps]);
-	mul = Multiply();
-	add = Add();
+	function reverse (a) : [a[#a - i] : for i in Integers(1, #a)] end
 
-structure
-	Sample --> up.In;
-	up.Out --> mul.A;
-	up.Out --> consts.Trigger;
-	consts.Out --> mul.B;
+	function max (a, b) : if a > b then a else b end end
+ 	
+	function fold (a, n)
+	var
+		k = (#a + n - 1) / n 
+	:
+		[
+			[taps[k * i + j] : for j in Integers(0, k - 1), (k * i + j) < nTaps]
+		: 
+			for i in Integers(0, n - 1)
+		]
+	end
 	
-	mul.Out --> add.A;
-	
-	AccLineIn --> merge.A;
-	merge.Out --> z.In;
-	z.Out --> add.B;
-	add.Out --> split.In;
-	split.Y --> merge.B;
-	
-	split.X --> AccLineOut;
-end
+	tapSegments = fold(reverse(taps), nUnits);
+	nSegs = #tapSegments;
 		
+entities
+	c = [FIRcell(taps:: segment) : for segment in reverse(tapSegments)];
+	zeros = Constants(constants:: [0]);
+	
+structure
+	foreach i in Integers(0, nSegs - 1) do
+		In --> c[i].Sample;
+		if i = 0 then
+			zeros.Out --> c[i].AccLineIn;
+		else
+			c[i - 1].AccLineOut --> c[i].AccLineIn;
+		end
+	end
+	In --> zeros.Trigger;
+	c[nSegs - 1].AccLineOut --> Out;
+end
+	

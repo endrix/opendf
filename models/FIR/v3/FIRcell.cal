@@ -1,0 +1,16 @@
+
+actor FIRcell1 (taps) Sample, AccLineIn ==> AccLineOut :
+
+	n = #taps;
+	data := [0 : for t in taps];
+	
+	
+	action [s], [a] ==> [sums [0]]
+	var 
+		prod = [t * s : for t in taps],
+		sums = [data[i] + prod[i] : for i in Integers(0, n - 1)]
+	do
+		data := [sums[i] : for i in Integers(1, n - 1)] + [a];
+	end
+end
+

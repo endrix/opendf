@@ -36,34 +36,15 @@ BEGINCOPYRIGHT X
 ENDCOPYRIGHT
 */
 
-network FIRcell (taps) Sample, AccLineIn ==> AccLineOut :
+actor Z (tokens) In ==> Out :
 
-var
-	nTaps = #taps;
-	
-entities
-	up = Upsample(n:: nTaps);
-	merge = MergeLast(n:: nTaps);
-	split = SplitFirst(n:: nTaps);
-	consts = Constants(constants:: taps);
-	z = Z(tokens:: [0 : for i in taps]);
-	mul = Multiply();
-	add = Add();
+    A:  action ==> [tokens] repeat #tokens end
 
-structure
-	Sample --> up.In;
-	up.Out --> mul.A;
-	up.Out --> consts.Trigger;
-	consts.Out --> mul.B;
-	
-	mul.Out --> add.A;
-	
-	AccLineIn --> merge.A;
-	merge.Out --> z.In;
-	z.Out --> add.B;
-	add.Out --> split.In;
-	split.Y --> merge.B;
-	
-	split.X --> AccLineOut;
-end
-		
+    B:  action [a] ==> [a] end
+
+    schedule fsm s0 :
+ 		s0 (A) --> s1;
+ 		s1 (B) --> s1;
+ 	end
+ end
+        
