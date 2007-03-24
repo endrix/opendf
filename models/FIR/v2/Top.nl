@@ -36,17 +36,20 @@ BEGINCOPYRIGHT X
 ENDCOPYRIGHT
 */
 
+/**
+	FIR v2 illustrates the construction of a simple transposed parallel FIR filter.
+	
+	The Top testbed instantiates the parallel FIR filter and a golden reference version
+	(which is FIR v1), and plots their output on the same noisy sine wave.
+*/
 
 network Top () ==> :
 
 import entity net.sf.caltrop.actors.Plotter;
 
 var
-	noise = .5;
-	filterLength = 10;
-	
-	taps = [1.0 / filterLength : for i in Integers(1, filterLength)];
-	//taps = [-.040609, -.001628, .17853, .37665, .37665, .17853, -.001628, -.040609]
+	noise = .1;
+	taps = [-.040609, -.001628, .17853, .37665, .37665, .17853, -.001628, -.040609];
 
 entities
 	r = Random();
@@ -56,22 +59,25 @@ entities
 	p = Plotter(autoredraw:: 50);
 	clk = Clock(dt:: 1);
 	
-	tagOrig = Tag(tag:: "Original");
-	tagFIR = Tag(tag:: "FIR");
-	
-	fir = FIR(taps:: taps);
+	tagFIRgolden = Tag(tag:: "FIR golden");
+	tagFIRparallel = Tag(tag:: "FIR parallel");
 
+	firGolden = FIRgolden(taps:: taps);	
+	firParallel = FIR(taps:: taps);
+	
 structure
 	clk.Out --> r.Trigger;
-	clk.Out --> s.Trigger;	
+	clk.Out --> s.Trigger;
+	
 	r.Out --> mul.In;
 	mul.Out --> add.A;
 	s.Out --> add.B;
-	add.Out --> tagOrig.In;
 	
-	add.Out --> fir.In;
-	fir.Out --> tagFIR.In;
+	add.Out --> firGolden.In;
+	firGolden.Out --> tagFIRgolden.In;
+	tagFIRgolden.Out --> p.Data;
 	
-	tagOrig.Out --> p.Data;	
-	tagFIR.Out --> p.Data;
+	add.Out --> firParallel.In;
+	firParallel.Out --> tagFIRparallel.In;
+	tagFIRparallel.Out --> p.Data;	
 end		

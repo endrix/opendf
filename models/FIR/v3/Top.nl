@@ -36,6 +36,13 @@ BEGINCOPYRIGHT X
 ENDCOPYRIGHT
 */
 
+/**
+	FIR v3 illustrates the folding of an FIR filter onto a specified
+	number of execution units.
+
+	The Top testbed instatiates the folded semi-parallel implementation and a
+	golden reference (FIR v1), and plots their output on the same noisy sine wave.
+*/
 
 network Top () ==> :
 

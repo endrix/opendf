@@ -36,6 +36,15 @@ BEGINCOPYRIGHT X
 ENDCOPYRIGHT
 */
 
+/**
+	FIR v4 increases the granularity of FIR v3 by realizing a single execution
+	unit (FIRcell) as a network of very simple actors, rather than a single
+	atomic actor.
+	
+	The Top testbed instantiates the FIR along with a golden reference (FIR v1)
+	and plots their output to the same noisy sine wave.
+*/ 
+
 
 network Top () ==> :
 

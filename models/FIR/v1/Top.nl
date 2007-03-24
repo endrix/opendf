@@ -36,6 +36,12 @@ BEGINCOPYRIGHT X
 ENDCOPYRIGHT
 */
 
+/**
+	FIR v1 illustrates the construction of a simple FIR filter in CAL.
+	
+	The Top testbed generates a noisy sine wave and instantiates the FIR filter
+	to filter it. It plots the comparison between the input and the output signal.
+*/
 
 network Top () ==> :
 
