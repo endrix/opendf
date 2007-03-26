@@ -41,6 +41,11 @@ actor SplitFirst (n) In ==> X, Y :
 
 	k := 0;
 	
+	invariant
+		k >= 0,
+		k < n
+	end
+	
 	action [a] ==> X: [a]
 	guard k = 0
 	do

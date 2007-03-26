@@ -44,7 +44,7 @@ ENDCOPYRIGHT
 actor FIRgolden (taps) In ==> Out :
 
     invariant
-        n > 0
+        #taps = #data
     end
 
     n = #taps;

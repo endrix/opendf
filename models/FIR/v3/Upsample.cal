@@ -39,6 +39,10 @@ ENDCOPYRIGHT
 
 actor Upsample (n) In ==> Out:
 
+	invariant 
+		n > 0
+	end
+
 	action [a] ==> [[a : for i in Integers(1, n)]] repeat n end
 end
 

@@ -41,6 +41,11 @@ actor MergeLast (n) A, B ==> Out:
 
 	k := 1;
 	
+	invariant
+		k > 0,
+		k <= n
+	end
+	
 	action B: [a] ==> [a]
 	guard k < n
 	do
