@@ -144,8 +144,8 @@
 (defconst keywords-paired-with-end
   ;; action-match plus:
   ;; initialize-match plus:
-  ;; "actor" "if" "function" "while" "procedure" "schedule" "priority" "foreach"
-  (concat "\\<\\(actor\\|function\\|if\\|while\\|procedure\\|schedule\\|priority\\|foreach\\|" action-match "\\|" initialize-match "\\)\\>")
+  ;; "actor" "if" "function" "while" "procedure" "schedule" "priority" "foreach" "let"
+  (concat "\\<\\(actor\\|function\\|if\\|while\\|procedure\\|schedule\\|priority\\|foreach\\|let\\|" action-match "\\|" initialize-match "\\)\\>")
   )
 (defconst keywords-paired-with-end-rooted (concat "[ \t]*" keywords-paired-with-end) )
 
@@ -160,10 +160,13 @@
   "\\<\\(var\\|guard\\|do\\|begin\\)\\>")
 (defconst indent-relative-to-actor-level-element-rooted (concat "[ \t]*" indent-relative-to-actor-level-element) )
 
+
 (defconst keywords-requiring-next-line-indent
-  ;; "action" "actor" "var" "do" "guard" "if" "then" "else" "function" "while" "begin" "schedule" "priority" "foreach"
+  ;;(regexp-opt '("action" "actor" "var" "do" "guard" "if" "then" "else" "function" "while" "begin" "schedule" "priority" "foreach" "let") t)
   ;;"\\<\\(act\\(?:ion\\|or\\)\\|do\\|if\\|else\\|function\\|guard\\|then\\|var\\|while\\)\\>"
-  (concat "\\<\\(actor\\|do\\|else\\|function\\|guard\\|then\\|var\\|while\\|begin\\|schedule\\|priority\\|foreach\\|" action-match "\\|" initialize-match "\\)\\>" )
+  ;;"\\<\\(act\\(?:ion\\|or\\)\\|begin\\|do\\|else\\|f\\(?:oreach\\|unction\\)\\|guard\\|if\\|let\\|priority\\|schedule\\|then\\|var\\|while\\)\\>"
+  ;;(concat "\\<\\(actor\\|do\\|else\\|function\\|guard\\|then\\|var\\|while\\|begin\\|schedule\\|priority\\|foreach\\|" action-match "\\|" initialize-match "\\)\\>" )
+  (concat "\\<\\(action\\|actor\\|var\\|do\\|guard\\|if\\|then\\|else\\|function\\|while\\|begin\\|schedule\\|priority\\|foreach\\|let\\|" action-match "\\|" initialize-match "\\)\\>" )
   )
 (defconst keywords-requiring-next-line-indent-rooted (concat "[ \t]*" keywords-requiring-next-line-indent) )
 (defun cal-indent-line ()
