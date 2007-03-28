@@ -50,12 +50,7 @@ import java.net.URL;
 
 import javax.xml.XMLConstants;
 import javax.xml.namespace.QName;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Source;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.URIResolver;
+import javax.xml.transform.*;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
@@ -234,16 +229,12 @@ public class Util {
     
     public static Transformer createTransformer(String fileName) throws Exception {
         File file = new File(fileName);
-//         TransformerFactory xff = TransformerFactory.newInstance();
-//         xff.setURIResolver(new ClasspathURIResolver(Util.class.getClassLoader(), xff.getURIResolver()));
         TransformerFactory xff = createTransformerFactory();
         Transformer xf = xff.newTransformer(new StreamSource(file));
         return xf;
     }
 
     public static Transformer createTransformer(InputStream is) throws Exception {
-//         TransformerFactory xff = TransformerFactory.newInstance();
-//         xff.setURIResolver(new ClasspathURIResolver(Util.class.getClassLoader(), xff.getURIResolver()));
         TransformerFactory xff = createTransformerFactory();
         Transformer xf = xff.newTransformer(new StreamSource(is));
         is.close();
@@ -295,17 +286,28 @@ public class Util {
         validator.validate(new DOMSource(document));
     }
     
-    public static String createXML(Node doc) throws Exception {
+    public static String createXML(Node doc) throws TransformerException
+    {
         TransformerFactory xff = TransformerFactory.newInstance();
-        Transformer serializer = xff.newTransformer();
+        Transformer serializer = null;
+        try {
+            serializer = xff.newTransformer();
+        } catch (TransformerConfigurationException te) {
+            throw new RuntimeException("Could not create transformer. " + te.getMessage());
+        }
+        
         serializer.setOutputProperty(OutputKeys.INDENT, "yes");
         serializer.setOutputProperty(
                 "{http://saxon.sf.net/}indent-spaces", "4");
         serializer.setOutputProperty(OutputKeys.METHOD, "xml");
         OutputStream os = new ByteArrayOutputStream();
-        serializer.transform(new DOMSource(doc),
-                new StreamResult(os));
-        os.close();
+        serializer.transform(new DOMSource(doc), new StreamResult(os));
+        try {
+            os.close();
+        } catch (IOException ioe) {
+            throw new RuntimeException("Could not close stream " + ioe.getMessage());
+        }
+        
         return os.toString();
     }
 

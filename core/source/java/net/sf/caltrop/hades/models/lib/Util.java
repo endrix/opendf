@@ -193,7 +193,11 @@ public class Util {
 	public static Class loadClassFromElement(Element e, ClassLoader loader) {
 		try {
 			Logging.dbg().warning("LoadClassFromElement 1:: " + net.sf.caltrop.util.Util.createXML(e));
-			} catch (Exception exc) { throw new RuntimeException(); }
+        } catch (Exception exc) {
+            System.out.println(exc);
+            exc.printStackTrace();
+            throw new RuntimeException();
+        }
 		String unqualifiedClassName = e.getAttribute(attrName);
 		Logging.dbg().warning("LoadClassFromElement 2:: " + unqualifiedClassName);
 		NodeList nlId = xpathEvalNodes("QID/ID", e);

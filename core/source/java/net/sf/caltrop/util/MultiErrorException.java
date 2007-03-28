@@ -1,7 +1,8 @@
 /* 
-BEGINCOPYRIGHT X
+BEGINCOPYRIGHT X,UC
 	
 	Copyright (c) 2007, Xilinx Inc.
+	Copyright (c) 2003, The Regents of the University of California
 	All rights reserved.
 	
 	Redistribution and use in source and binary forms, 
@@ -14,8 +15,8 @@ BEGINCOPYRIGHT X
 	  above copyright notice, this list of conditions and 
 	  the following disclaimer in the documentation and/or 
 	  other materials provided with the distribution.
-	- Neither the name of the copyright holder nor the names 
-	  of its contributors may be used to endorse or promote 
+	- Neither the names of the copyright holders nor the names 
+	  of contributors may be used to endorse or promote 
 	  products derived from this software without specific 
 	  prior written permission.
 	
@@ -36,23 +37,39 @@ BEGINCOPYRIGHT X
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.nl;
+package net.sf.caltrop.util;
 
-public class ClassName {
-	
-	public String  		name;
-	public String []	packageName;
-	
-	public ClassName(String name, String [] packageName) {
-		this.name = name;
-		this.packageName = packageName;
-	}
-	
-	public String toString() {
-		String res = "";
-		for (String s : packageName) {
-			res += s + ".";
-		}
-		return res + name;
-	}
+import java.util.*;
+import java.util.logging.Logger;
+
+/**
+ * This exception class is used by the parsers to report on all
+ * found/generated errors during the parse.  A single exception is
+ * thrown which contains the accumulated errors.
+ */
+public class MultiErrorException extends Exception implements MultiErrorContainer
+{
+    private List<GenericError>errors;
+    
+    public MultiErrorException (String message, List<GenericError> errs)
+    {
+        super(message);
+        this.errors = errs;
+    }
+    
+    public List<GenericError> getErrors ()
+    {
+        return Collections.unmodifiableList(errors);
+    }
+    
+    public void logTo (Logger logger)
+    {
+        String s = "";
+        for (GenericError err : this.errors)
+        {
+            s += "\n\t" + err.toString();
+        }
+        logger.severe(s);
+    }
+
 }

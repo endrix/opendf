@@ -57,6 +57,8 @@ import net.sf.caltrop.cal.parser.CalStatementParser;
 import net.sf.caltrop.cal.parser.Lexer;
 import net.sf.caltrop.cal.parser.Parser;
 
+import net.sf.caltrop.util.MultiErrorException;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
@@ -65,33 +67,34 @@ import org.xml.sax.SAXException;
  *  @author Jörn W. Janneck <janneck@eecs.berkeley.edu>
  */
 
-public class SourceReader {
+public class SourceReader
+{
 	
-	public static Document  parseActor(Reader s) {
+	public static Document parseActor(Reader s) throws MultiErrorException
+    {
 		Lexer calLexer = new Lexer(s);
 		Parser calParser = new Parser(calLexer);
-		try {
-			return calParser.parseActor();
-		}
-		catch (Exception exc) {
-			throw new RuntimeException("Cannot parse actor.", exc);
-		}
+        return calParser.parseActor();
 	}
 	
-	public static Document  parseActor(String s) {
+	public static Document parseActor(String s) throws MultiErrorException
+    {
 		return parseActor(new StringReader(s));
 	}
 
-	public static Actor  readActor(Reader s) {
+	public static Actor readActor(Reader s) throws MultiErrorException
+    {
 		return ASTFactory.buildActor(parseActor(s));
 	}
 	
-	public static Actor  readActor(String s) {
+	public static Actor readActor(String s) throws MultiErrorException
+    {
 		return readActor(new StringReader(s));
 	}
 	
-	public static Actor  readActorML(InputStream s) {
-		try {
+	public static Actor readActorML(InputStream s) {
+		try
+        {
 			Document  doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(s);
 			return ASTFactory.buildActor(doc);
 		} catch (Exception e) {

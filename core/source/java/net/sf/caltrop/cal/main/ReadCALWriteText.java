@@ -42,50 +42,78 @@ package net.sf.caltrop.cal.main;
 
 import net.sf.caltrop.cal.parser.Lexer;
 import net.sf.caltrop.cal.parser.Parser;
-import net.sf.caltrop.util.Util;
+import net.sf.caltrop.util.*;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.OutputStream;
-import java.io.PrintWriter;
+import java.io.*;
 
 public class ReadCALWriteText {
 
-    public static void main (String [] args) throws Exception {
+    public static void main (String [] args)
+    {
 
         if (args.length < 2) {
             printUsage();
             return;
         }
-        FileInputStream inputStream = new FileInputStream(args[0]);
-        Lexer calLexer = new Lexer(inputStream);
-        Parser calParser = new Parser(calLexer);
-        Node doc;
-        try {
+        Node doc = null;
+        
+        try
+        {
+            FileInputStream inputStream = new FileInputStream(args[0]);
+            Lexer calLexer = new Lexer(inputStream);
+            Parser calParser = new Parser(calLexer);
             doc = calParser.parseActor(args[0]);
         }
-        catch (Exception e) {
-            throw new Exception(e.toString());  // Throw a new exception to lose the back trace.
+        catch (IOException ioe)
+        {
+            System.err.println(ioe.getMessage());
+            System.exit(-1);
         }
+        catch (MultiErrorException mee)
+        {
+            for(GenericError err : mee.getErrors())
+            {
+                System.out.println(err.toString());
+            }
+            System.exit(-1);
+        }
+
         Util.setSAXON();
 
         String [] xfs = new String [args.length - 3];
         for (int i = 0; i < xfs.length; i++)
             xfs[i] = args[i + 2];
 
-        doc = Util.applyTransforms(doc, xfs);
-
-        String result = Util.createTXT(Util.createTransformer(args[args.length -1]), doc);
+        String result = "";
+        try
+        {
+            doc = Util.applyTransforms(doc, xfs);
+            result = Util.createTXT(Util.createTransformer(args[args.length -1]), doc);
+        }
+        catch (Exception e)
+        {
+            System.err.println(e.getMessage());
+            System.exit(-1);
+        }
 
         OutputStream os = null;
         boolean closeStream = false;
         if (".".equals(args[1])) {
             os = System.out;
         } else {
-            os = new FileOutputStream(args[1]);
+            try
+            {
+                os = new FileOutputStream(args[1]);
+            }
+            catch (FileNotFoundException fnfe)
+            {
+                System.err.println(fnfe.getMessage());
+                System.exit(-1);
+            }
+            
             closeStream = true;
         }
         PrintWriter pw = new PrintWriter(os);

@@ -39,16 +39,11 @@ ENDCOPYRIGHT
 
 package net.sf.caltrop.cal.main;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.OutputStream;
-import java.io.PrintWriter;
+import java.io.*;
+import javax.xml.transform.TransformerException;
 
-import net.sf.caltrop.cal.parser.Lexer;
-import net.sf.caltrop.cal.parser.Parser;
-import net.sf.caltrop.util.Logging;
-import net.sf.caltrop.util.Util;
+import net.sf.caltrop.cal.parser.*;
+import net.sf.caltrop.util.*;
 
 import org.w3c.dom.Document;
 
@@ -84,7 +79,7 @@ public class Cal2CalML {
 		}
 	}
 
-    public static File compileSource (String fileName) throws Exception
+    public static File compileSource (String fileName) throws MultiErrorException, FileNotFoundException
     {
         FileInputStream inputStream = new FileInputStream(fileName);
         Lexer calLexer = new Lexer(inputStream);
@@ -92,13 +87,21 @@ public class Cal2CalML {
         Document doc;
         doc = calParser.parseActor(fileName);
         
-        String result = Util.createXML(doc);
+        String result = "";
+        try
+        {
+            Util.createXML(doc);
+        }
+        catch (TransformerException te)
+        {
+            throw new CALMLCompileException("Could not convert result to XML ", te);
+        }
+        
         File outputFile = new File(fileName+"ml");
         OutputStream os = new FileOutputStream(outputFile);
         PrintWriter pw = new PrintWriter(os);
         pw.print(result);
         pw.close();
-        
         return outputFile;
     }
     
@@ -106,4 +109,12 @@ public class Cal2CalML {
 	static private void printUsage() {
 		System.out.println("Cal2CalML <source> ...");
 	}
+
+    public static class CALMLCompileException extends RuntimeException
+    {
+        CALMLCompileException (String msg, Throwable cause)
+        {
+            super(msg, cause);
+        }
+    }
 }

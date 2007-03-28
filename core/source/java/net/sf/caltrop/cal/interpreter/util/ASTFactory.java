@@ -83,21 +83,10 @@ public class ASTFactory {
      * @param doc The CalML/DOM tree.
      * @return The corresponding actor.
      */
-    public static Actor buildActor(Document doc) {
-
-        Node canonicalDoc = canonicalizeActor(doc);
-
-        Element e = null;
-        if (canonicalDoc instanceof Element) {
-        	e = (Element) canonicalDoc;
-        } else if (canonicalDoc instanceof Document) {
-        	e = ((Document)canonicalDoc).getDocumentElement();
-        } else {
-        	throw new RuntimeException("Cannot build actor from this object: " + canonicalDoc);
-        }
-
-        return createActor(e);
-     }
+    public static Actor buildActor(Document doc)
+    {
+        return buildPreprocessedActor(preprocessActor(doc));
+    }
 
     /**
      * Compute the AST corresponding to the Document, which is a DOM tree representing the

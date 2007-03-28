@@ -45,6 +45,7 @@ import net.sf.caltrop.hades.models.ModelInterface;
 import net.sf.caltrop.hades.models.lib.XNLModelInterface;
 import net.sf.caltrop.nl.parser.Lexer;
 import net.sf.caltrop.nl.parser.Parser;
+import net.sf.caltrop.util.*;
 
 import org.w3c.dom.Document;
 
@@ -53,17 +54,12 @@ import org.w3c.dom.Document;
 public class NLClassFactory extends AbstractGenericInterpreterModelClassFactory {
 
 	@Override
-	protected Object readModel(InputStream modelSource) throws IOException {
-		try {
-			Lexer lexer = new Lexer(modelSource);
-			Parser parser = new Parser(lexer);
-			Document doc = parser.parseNetwork();
-			return doc;
-		}
-		catch (Exception exc) {
-			throw new RuntimeException("Error parsing NL model.", exc);
-		}
-		
+	protected Object readModel(InputStream modelSource) throws MultiErrorException
+    {
+        Lexer lexer = new Lexer(modelSource);
+        Parser parser = new Parser(lexer);
+        Document doc = parser.parseNetwork();
+        return doc;
 	}
 
 	protected ModelInterface getModelInterface() {

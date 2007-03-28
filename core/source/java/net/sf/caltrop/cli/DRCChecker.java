@@ -42,7 +42,7 @@ import java.util.*;
 import java.io.*;
 
 import net.sf.caltrop.cal.main.Cal2CalML;
-import net.sf.caltrop.util.Logging;
+import net.sf.caltrop.util.*;
 
 /**
  * DRCChecker is a front end to the SystemBuilder tool which simply
@@ -59,7 +59,7 @@ public class DRCChecker extends XSLTTransformRunner
     private static final String CALMLEXT = ".calml";
     private static final String CALEXT = ".cal";
     
-    private static String[] calmlCheckers = {"calmlChecks.xslt"};
+    private static String[] calmlCheckers = {"net/sf/caltrop/cal/checks/calmlChecks.xslt"};
     private static String[] simCheckers = {}; // TBD
     private static String[] synthCheckers = {}; // TBD
 
@@ -153,7 +153,7 @@ public class DRCChecker extends XSLTTransformRunner
             drc = new DRCChecker(args);
             drc.runTransforms();
         }
-        catch (Exception e)
+        catch (Exception e) // in 'main'
         {
             Logging.dbg().warning(e.getMessage());
             Logging.user().fine(e.getMessage());
@@ -192,7 +192,19 @@ public class DRCChecker extends XSLTTransformRunner
                 final File calml = Cal2CalML.compileSource(this.inputFile.getAbsolutePath());
                 calml.deleteOnExit(); // if we created it... we need to delete it
                 this.inputFile = calml;
-            }catch (Exception e) { // Cal2CalML throws generic exception.  Re-type it here
+            }
+            catch (IOException ioe)
+            {
+                Logging.user().severe(ioe.getMessage());
+                throw new SubProcessException("Could not compile CAL source to CALML." + ioe.getMessage());
+            }
+            catch (MultiErrorException mee)
+            {
+                mee.logTo(Logging.user());
+                this.passed = false;
+                throw new SubProcessException("Could not compile CAL source to CALML." + mee.getMessage());
+            }
+            catch (Cal2CalML.CALMLCompileException e) {
                 this.passed = false;
                 throw new SubProcessException("Could not compile CAL source to CALML." + e.getMessage());
             }
@@ -255,7 +267,47 @@ public class DRCChecker extends XSLTTransformRunner
         
         this.setPreserveFiles(preserve);
     }
-    
+
+    /*
+    public static void checkDocument (Document calmldoc)
+    {
+        final List<String> checkList = new ArrayList();
+        if ((level & BASELINE) != 0)
+            for (int i=0; i < calmlCheckers.length; i++) checkList.add(calmlCheckers[i]);
+        if ((level & SIMULATION) != 0)
+            for (int i=0; i < simCheckers.length; i++) checkList.add(simCheckers[i]);
+        if ((level & SYNTHESIS) != 0)
+            for (int i=0; i < synthCheckers.length; i++) checkList.add(synthCheckers[i]);
+        String[] checks = new String[checkList.size()];
+        checks = checkList.toArray(checks);
+
+        try
+        {
+            final Document result = Util.applyTransformsAsResources(calmldoc, checks);
+            // No need to print result doc.
+        } catch (SubProcessException se)
+        {
+            Throwable throwable = se;
+            while(throwable != null)
+            {
+                if (throwable instanceof net.sf.saxon.instruct.TerminationException)
+                {
+                    Logging.user().severe("File " + this.inputFile.getName() + " contains errors.  Please fix these errors and recompile");
+                    this.passed = false;
+                    break;
+                }
+                throwable = throwable.getCause();
+            }
+            // If we didn't find the reason we were looking for,
+            // re-throw the sub process exception.  Its truly an error 
+            if (throwable == null) 
+            {
+                throw se;
+            }
+        }
+        
+    }
+    */    
     private static void usage (PrintStream ps)
     {
         ps.println("Usage: java DRCChecker [options] file."+CALMLEXT);

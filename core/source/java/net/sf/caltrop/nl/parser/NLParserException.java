@@ -37,45 +37,16 @@ BEGINCOPYRIGHT X,UC
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.cal.parser;
+package net.sf.caltrop.nl.parser;
 
-public class ParserException extends RuntimeException { 
-	
-	public boolean  hasLocation() {
-		return hasLocation;
+/**
+ * A lightweight wrapper around RuntimeException to provide greater
+ * fidelity in handling exceptions where they are caught.
+ */
+public class NLParserException extends RuntimeException
+{ 
+	public NLParserException(String message)
+    {
+        super(message);
 	}
-	
-	public int lineNumber() {
-		return locLine;
-	}
-	
-	public int colNumber() {
-		return locCol;
-	}
-	
-	public ParserException(String message) {
-		super(message);
-		hasLocation = false;
-		locLine = 0;
-		locCol = 0;
-	}
-	
-	public ParserException(String message, String construct, int locLine, int locCol) {
-		super(message);
-		hasLocation = true;
-		this.locLine = locLine;
-		this.locCol = locCol;
-	}
-	
-	public String  toString() {
-		if (hasLocation) {
-			return  "Error at <" + locLine + ":" + locCol + ">: " + this.getMessage();
-		} else {
-			return  "Error: " + this.getMessage();
-		}
-	}
-	
-	private boolean hasLocation;
-	private int     locLine;
-	private int     locCol;
 }

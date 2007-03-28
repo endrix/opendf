@@ -43,19 +43,18 @@ package net.sf.caltrop.cal.main;
 import net.sf.caltrop.cal.parser.Lexer;
 import net.sf.caltrop.cal.parser.Parser;
 import net.sf.caltrop.util.Logging;
-import net.sf.caltrop.util.Util;
+import net.sf.caltrop.util.*;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.OutputStream;
-import java.io.PrintWriter;
+import javax.xml.transform.TransformerException;
+import java.io.*;
 
 public class ReadCALWriteXML {
 
-    public static void main (String [] args) throws Exception {
+    public static void main (String [] args)
+    {
 
         int argNo = 0;
         boolean niceInput = false;
@@ -82,28 +81,75 @@ public class ReadCALWriteXML {
             return;
         }
         
-        FileInputStream inputStream = new FileInputStream(args[argNo + 0]);
-        Lexer calLexer = new Lexer(inputStream);
-        Parser calParser = new Parser(calLexer);
-        Node doc;
-        doc = calParser.parseActor(args[argNo + 0]);
+        Node doc = null;
+        try
+        {
+            FileInputStream inputStream = new FileInputStream(args[argNo + 0]);
+            Lexer calLexer = new Lexer(inputStream);
+            Parser calParser = new Parser(calLexer);
+            doc = calParser.parseActor(args[argNo + 0]);
+        }
+        catch (FileNotFoundException fnfe)
+        {
+            System.err.println(fnfe.getMessage());
+            System.exit(-1);
+        }
+        catch (MultiErrorException ge)
+        {
+            if (!quiet)
+            {
+                for (GenericError err : ge.getErrors())
+                {
+                    System.out.println(err.toString());
+                }
+            }
+            System.err.println("Parsing failed");
+            System.exit(-1);
+        }
 
         String [] xfs = new String [args.length - argNo - 2];
         for (int i = 0; i < xfs.length; i++)
             xfs[i] = args[argNo + i + 2];
 
-        if (xformsAreResource)
-            doc = Util.applyTransformsAsResources(doc, xfs);
-        else
-            doc = Util.applyTransforms(doc, xfs);
+        try
+        {
+            if (xformsAreResource)
+                doc = Util.applyTransformsAsResources(doc, xfs);
+            else
+                doc = Util.applyTransforms(doc, xfs);
+        }
+        catch (Exception e)
+        {
+            System.err.println("Could not apply transforms: " + e.getMessage());
+            System.exit(-1);
+        }
+        
 
-        String result = Util.createXML(doc);
+        String result = "";
+        try
+        {
+            Util.createXML(doc);
+        }
+        catch (TransformerException te)
+        {
+            System.err.println("Could not create XML document " + te.getMessage());
+            System.exit(-1);
+        }
+        
         OutputStream os = null;
         boolean closeStream = false;
         if (".".equals(args[argNo + 1])) {
             os = System.out;
         } else {
-            os = new FileOutputStream(args[argNo + 1]);
+            try
+            {
+                os = new FileOutputStream(args[argNo + 1]);
+            }
+            catch (FileNotFoundException fnfe)
+            {
+                System.err.println(fnfe.getMessage());
+                System.exit(-1);
+            }
             closeStream = true;
         }
         PrintWriter pw = new PrintWriter(os);

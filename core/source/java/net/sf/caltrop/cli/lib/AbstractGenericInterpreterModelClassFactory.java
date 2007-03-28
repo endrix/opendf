@@ -38,15 +38,13 @@ ENDCOPYRIGHT
 
 package net.sf.caltrop.cli.lib;
 
-import java.io.DataInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.SequenceInputStream;
+import java.io.*;
+import java.util.*;
 
 import net.sf.caltrop.cli.ModelClassFactory;
 import net.sf.caltrop.hades.models.ModelInterface;
-import net.sf.caltrop.util.Logging;
+import net.sf.caltrop.util.*;
+import net.sf.caltrop.cli.*;
 
 /**
  * This class builds a model class from a generic interpreter, which is loaded by the {@link GenericInterpreterClassLoader},
@@ -70,7 +68,7 @@ public abstract class AbstractGenericInterpreterModelClassFactory implements Mod
 	 * @return An object representing the model.
 	 * @throws IOException
 	 */
-	abstract protected Object  readModel(InputStream modelSource) throws IOException;
+	abstract protected Object  readModel(InputStream modelSource) throws IOException, MultiErrorException;
 
 	/**
 	 * Return the model interface corresponding to the models read by this factory.
@@ -79,22 +77,32 @@ public abstract class AbstractGenericInterpreterModelClassFactory implements Mod
 	 */
 	abstract protected ModelInterface  getModelInterface();
 
-	public Class createClass(String name, ClassLoader topLevelLoader, InputStream source) throws ClassNotFoundException {
-		
-		try {
-			Logging.dbg().fine("AGIModelClassFactory:: Reading class " + name + "...");
-			Object model = readModel(source);
-			GenericInterpreterClassLoader cl = new GenericInterpreterClassLoader(topLevelLoader, name, this.getModelInterface(), 
-					null, model);
-			Class c = cl.getModelInterpreterClass();
-			Logging.dbg().fine("AGIModelClassFactory:: Class " + name + " loaded.");
-			return c;
-		}
-		catch (Exception exc) {
-			exc.printStackTrace();
-			Logging.dbg().severe("AGIModelClassFactory:: ERROR loading class " + name + ".");
-			throw new ClassNotFoundException("Could not create class '" + name +  "'.", exc);
-		}
+	public Class createClass(String name, ClassLoader topLevelLoader, InputStream source) throws ClassNotFoundException
+    {
+        Logging.dbg().fine("AGIModelClassFactory:: Reading class " + name + "...");
+        Object model = null;
+        try
+        {
+            model = readModel(source);
+        }
+        catch (IOException ioe)
+        {
+            throw new LoadingErrorException(ioe.getMessage(),
+                new MultiErrorException(ioe.getMessage(), Collections.singletonList(
+                                            new GenericError(ioe.getMessage(), "", -1, -1))
+                ));
+        }
+        catch (MultiErrorException ge)
+        {
+            Logging.dbg().throwing("ASGImcf","createClass",ge);
+            throw new LoadingErrorException("Errors found in " + name + ": " + ge.getMessage(), ge);
+        }
+        
+        GenericInterpreterClassLoader cl = new GenericInterpreterClassLoader(topLevelLoader, name, this.getModelInterface(), 
+            null, model);
+        Class c = cl.getModelInterpreterClass();
+        Logging.dbg().fine("AGIModelClassFactory:: Class " + name + " loaded.");
+        return c;
 	}
-	
+
 }

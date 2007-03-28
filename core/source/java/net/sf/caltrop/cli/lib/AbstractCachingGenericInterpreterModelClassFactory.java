@@ -49,7 +49,7 @@ import java.security.DigestInputStream;
 import java.security.MessageDigest;
 
 import net.sf.caltrop.util.BufferingInputStream;
-import net.sf.caltrop.util.Logging;
+import net.sf.caltrop.util.*;
 
 abstract public class AbstractCachingGenericInterpreterModelClassFactory extends AbstractGenericInterpreterModelClassFactory {
 	
@@ -60,7 +60,7 @@ abstract public class AbstractCachingGenericInterpreterModelClassFactory extends
 	 * @param os The output stream to which the cached data is to be written.
 	 * @return The object representing the model.
 	 */
-	abstract protected Object     	readModelWhileCaching(InputStream is, OutputStream os);
+	abstract protected Object     	readModelWhileCaching(InputStream is, OutputStream os) throws MultiErrorException;
 
 	/**
 	 * Construct the model from the cached data.

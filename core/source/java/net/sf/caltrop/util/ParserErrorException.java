@@ -1,7 +1,8 @@
 /* 
-BEGINCOPYRIGHT X
+BEGINCOPYRIGHT X,UC
 	
 	Copyright (c) 2007, Xilinx Inc.
+	Copyright (c) 2003, The Regents of the University of California
 	All rights reserved.
 	
 	Redistribution and use in source and binary forms, 
@@ -14,8 +15,8 @@ BEGINCOPYRIGHT X
 	  above copyright notice, this list of conditions and 
 	  the following disclaimer in the documentation and/or 
 	  other materials provided with the distribution.
-	- Neither the name of the copyright holder nor the names 
-	  of its contributors may be used to endorse or promote 
+	- Neither the names of the copyright holders nor the names 
+	  of contributors may be used to endorse or promote 
 	  products derived from this software without specific 
 	  prior written permission.
 	
@@ -36,23 +37,17 @@ BEGINCOPYRIGHT X
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.nl;
+package net.sf.caltrop.util;
 
-public class ClassName {
-	
-	public String  		name;
-	public String []	packageName;
-	
-	public ClassName(String name, String [] packageName) {
-		this.name = name;
-		this.packageName = packageName;
-	}
-	
-	public String toString() {
-		String res = "";
-		for (String s : packageName) {
-			res += s + ".";
-		}
-		return res + name;
-	}
+import java.util.*;
+
+/**
+ * A subclass of MultiErrorException specifically used by the parsers.
+ */
+public class ParserErrorException extends MultiErrorException
+{
+	public ParserErrorException (String message, List<GenericError>errors)
+    {
+        super(message, errors);
+    }
 }

@@ -43,6 +43,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import javax.xml.transform.TransformerException;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.DocumentFragment;
@@ -53,7 +54,7 @@ import net.sf.caltrop.cal.interpreter.util.ASTFactory;
 import net.sf.caltrop.cal.interpreter.util.SourceReader;
 import net.sf.caltrop.hades.models.ModelInterface;
 import net.sf.caltrop.hades.models.lib.CalModelInterface;
-import net.sf.caltrop.util.Util;
+import net.sf.caltrop.util.*;
 
 
 public class CalActorClassFactory extends AbstractCachingGenericInterpreterModelClassFactory {
@@ -65,7 +66,8 @@ public class CalActorClassFactory extends AbstractCachingGenericInterpreterModel
 	}
 
 	@Override
-	protected Object readModel(InputStream modelSource) {
+	protected Object readModel(InputStream modelSource) throws MultiErrorException
+    {
 		return SourceReader.readActor(new InputStreamReader(modelSource));
 	}
 
@@ -75,23 +77,29 @@ public class CalActorClassFactory extends AbstractCachingGenericInterpreterModel
 	}
 
 	@Override
-	protected Object readModelWhileCaching(InputStream is, OutputStream os) {
-
-		try {
-			Document doc = SourceReader.parseActor(new InputStreamReader(is));
-			Node a = ASTFactory.preprocessActor(doc);
-
-			String result = Util.createXML(a);
-			PrintWriter pw = new PrintWriter(os);
-			pw.println(result);
-			pw.flush();
-			
-			Actor actor = ASTFactory.buildPreprocessedActor(a);
-			return actor;
-		}
-		catch (Exception exc) {
-			throw new RuntimeException("Could not read and cache model.", exc);
-		}
+	protected Object readModelWhileCaching(InputStream is, OutputStream os) throws MultiErrorException
+    {
+        Document doc = SourceReader.parseActor(new InputStreamReader(is));
+        Node a = ASTFactory.preprocessActor(doc);
+        
+        try
+        {
+            String result = Util.createXML(a);
+            PrintWriter pw = new PrintWriter(os);
+            pw.println(result);
+            pw.flush();
+        }
+        catch (TransformerException te)
+        {
+            // Compilation succeeded which is all that is necessary
+            // for runtime.  If this exception occurs, warn the user
+            // and bail out of writing.
+            Logging.user().severe("Could not cache actor: " + te.getMessage());
+            Logging.user().severe("Processing will continue, but no cache file was written");
+        }
+        
+        Actor actor = ASTFactory.buildPreprocessedActor(a);
+        return actor;
 	}
 	
 

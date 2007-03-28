@@ -63,7 +63,8 @@ public class SimulationClassLoader extends ClassLoader {
 	//  ClassLoader
 	//
 	
-	protected Class findClass(String name) throws ClassNotFoundException {
+	protected Class findClass(String name) throws ClassNotFoundException
+    {
 		
 		Logging.dbg().fine("SimulationClassLoader:: searching: " + name);
 		Class c = (Class) loadedClasses.get(name);

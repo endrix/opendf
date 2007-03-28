@@ -180,88 +180,86 @@ public class Simulator {
 		
 		Logging.user().info(NameString);
 
-        try
-        {        	
-        	if (modelPath == null) {
-        		modelPath = new String [] {"."};
-        	}
-        	Logging.user().info("Model Path: " + Arrays.asList(modelPath));
-            ClassLoader classLoader = new SimulationClassLoader(Simulator.class.getClassLoader(), modelPath, cachePath);
-            
-            Platform platform = null;
-            try
-            {
-                platform = (platformName == null) ? DefaultPlatform.thePlatform
-                : (Platform)classLoader.loadClass(platformName).newInstance();
-            }
-            catch (ClassNotFoundException cnfe)
-            {
-                Logging.dbg().throwing("Simulator", "main", cnfe);
-                Logging.user().severe("Could not load specified platform: '" + platformName + "'");
-                System.exit(-1);
-            }
-		
-            System.setProperty("CalPlatform", platform.getClass().getName());
-
-            Environment env = platform.context().newEnvironmentFrame(platform.createGlobalEnvironment());
-            env.bind("__ClassLoader", platform.context().fromJavaObject(classLoader));
-            ExprEvaluator evaluator = new ExprEvaluator(platform.context(), env);
-		
-            Map paramValues = new HashMap();
-            paramValues.put("__ClassLoader", classLoader);
-            for (Iterator i = params.keySet().iterator(); i.hasNext(); ) {
-                String var = (String)i.next();
-			
-//                 Lexer calLexer = new Lexer(new StringReader((String)params.get(var)));
-//                 CalExpressionParser parser = new CalExpressionParser(calLexer);
-//                 Document exprDom = parser.doParse();
-//                 Expression exprAst = ASTFactory.buildExpression(exprDom);
-//                 Object value = evaluator.evaluate(exprAst);
-                Object value = evaluator.evaluate(SourceReader.readExpr(new StringReader((String)params.get(var))));
-                
-                paramValues.put(var, value);
-            }
-				
-            DiscreteEventComponent dec = loadDEC(actorClass, paramValues, classLoader);
-            
-            InputStream is = inFile == null ? new NullInputStream() : new FileInputStream(inFile);
-            OutputStream os = outFile == null ? new NullOutputStream() : 
-            	                        (".".equals(outFile) ? System.out : new FileOutputStream(outFile));
-            SequentialSimulatorCallback callback = interpretStimulus ? new EvaluatedStreamCallback(is, os, platform):new StreamIOCallback(is, os);
-            SequentialSimulator sim = new SequentialSimulator(dec, callback);
-            
-            long stepCount = 0;
-            double currentTime = 0;
-            double lastTime = 0;
-            Logging.user().info("Running...");
-            long beginWallclockTime = System.currentTimeMillis();
-            while (sim.hasEvent() && 
-                (nSteps < 0 || stepCount < nSteps) &&
-                (time < 0 || currentTime <= time)) {
-                sim.step();
-                stepCount += 1;
-                lastTime = currentTime;
-                currentTime = sim.currentTime();
-            }
-            long endWallclockTime = System.currentTimeMillis();
-            long wcTime = endWallclockTime - beginWallclockTime;
-            
-            Logging.user().info("Done after " + stepCount + " steps. Last step at time " + lastTime + ".");
-            Logging.user().info("Execution time: " + wcTime + "ms."
-            		            + (wcTime > 0 ? " (" + (1000.0 * (double)stepCount / (double)wcTime) + " steps/s)" : ""));
-            Logging.user().info("The network is " + (sim.hasEvent() ? "live" : "dead")+ ".");
-
+        if (modelPath == null) {
+            modelPath = new String [] {"."};
         }
-        catch (Exception e)
+        Logging.user().info("Model Path: " + Arrays.asList(modelPath));
+        ClassLoader classLoader = new SimulationClassLoader(Simulator.class.getClassLoader(), modelPath, cachePath);
+        
+        Platform platform = null;
+        try
         {
-            Logging.dbg().throwing("Simulator", "main", e);
-            Logging.dbg().warning(e.getMessage());
-            StringWriter s = new StringWriter();
-            e.printStackTrace(new PrintWriter(s));
-            Logging.user().finest(s.toString());
-            Logging.user().fine(e.getMessage());
+            platform = (platformName == null) ? DefaultPlatform.thePlatform
+            : (Platform)classLoader.loadClass(platformName).newInstance();
+        }
+        catch (ClassNotFoundException cnfe)
+        {
+            Logging.dbg().throwing("Simulator", "main", cnfe);
+            Logging.user().severe("Could not load specified platform: '" + platformName + "'");
+            System.exit(-1);
+        }
+		
+        System.setProperty("CalPlatform", platform.getClass().getName());
+
+        Environment env = platform.context().newEnvironmentFrame(platform.createGlobalEnvironment());
+        env.bind("__ClassLoader", platform.context().fromJavaObject(classLoader));
+        ExprEvaluator evaluator = new ExprEvaluator(platform.context(), env);
+		
+        Map paramValues = new HashMap();
+        paramValues.put("__ClassLoader", classLoader);
+        for (Iterator i = params.keySet().iterator(); i.hasNext(); ) {
+            String var = (String)i.next();
+			
+            Object value = evaluator.evaluate(SourceReader.readExpr(new StringReader((String)params.get(var))));
+                
+            paramValues.put(var, value);
+        }
+				
+        DiscreteEventComponent dec = null;
+        try
+        {
+            dec = loadDEC(actorClass, paramValues, classLoader);
+        }
+        catch (LoadingErrorException lee)
+        {
+            Logging.user().severe(lee.getMessage());
+            lee.getErrorContainer().logTo(Logging.user());
+            System.exit(-1);
             Logging.user().severe("An error has occurred.  Exiting abnormally.\n");
         }
+        catch (DECLoadException dle)
+        {
+            Logging.user().severe("Could not load simulation model." + dle.getMessage());
+            System.exit(-1);
+        }
+        
+            
+        InputStream is = inFile == null ? new NullInputStream() : new FileInputStream(inFile);
+        OutputStream os = outFile == null ? new NullOutputStream() : 
+        (".".equals(outFile) ? System.out : new FileOutputStream(outFile));
+        SequentialSimulatorCallback callback = interpretStimulus ? new EvaluatedStreamCallback(is, os, platform):new StreamIOCallback(is, os);
+        SequentialSimulator sim = new SequentialSimulator(dec, callback);
+            
+        long stepCount = 0;
+        double currentTime = 0;
+        double lastTime = 0;
+        Logging.user().info("Running...");
+        long beginWallclockTime = System.currentTimeMillis();
+        while (sim.hasEvent() && 
+            (nSteps < 0 || stepCount < nSteps) &&
+            (time < 0 || currentTime <= time)) {
+            sim.step();
+            stepCount += 1;
+            lastTime = currentTime;
+            currentTime = sim.currentTime();
+        }
+        long endWallclockTime = System.currentTimeMillis();
+        long wcTime = endWallclockTime - beginWallclockTime;
+            
+        Logging.user().info("Done after " + stepCount + " steps. Last step at time " + lastTime + ".");
+        Logging.user().info("Execution time: " + wcTime + "ms."
+            + (wcTime > 0 ? " (" + (1000.0 * (double)stepCount / (double)wcTime) + " steps/s)" : ""));
+        Logging.user().info("The network is " + (sim.hasEvent() ? "live" : "dead")+ ".");
 
         Logging.setUserLevel(userVerbosity); // Re-set the verbosity
 	}
@@ -308,15 +306,16 @@ public class Simulator {
 	}
 		
 	
-	static DiscreteEventComponent  loadDEC(String className, Map decParams, ClassLoader classLoader) throws Exception {
+	static DiscreteEventComponent loadDEC(String className, Map decParams, ClassLoader classLoader) throws ClassNotFoundException, DECLoadException
+    {
 
 		Class cl = classLoader.loadClass(className);
 		
 		DiscreteEventComponent dec = null;
 		// instantiate component
-		Constructor ctor = cl.getConstructor(new Class [] {Object.class});
         try
         {
+            Constructor ctor = cl.getConstructor(new Class [] {Object.class});
             if (ctor == null) {
                 // no constructor for parameters -> use parameterless constructor
                 ctor = cl.getConstructor(new Class [] {});
@@ -330,23 +329,11 @@ public class Simulator {
                 dec = (DiscreteEventComponent) ctor.newInstance(parArray);
             }
         }
-        catch (InvocationTargetException ite)
-        {
-            Logging.dbg().warning(ite.toString());
-            // Find the root cause of the error in the hopes that it
-            // is meaningful to the user.  It would be nice if there
-            // were a better error handling framework across
-            // systembuilder, xcal and moses.
-            Throwable t = ite;
-            while (t.getCause() != null)
-            {
-                Logging.dbg().warning(t.getCause().toString());
-                t = t.getCause();
-            }
-            Logging.user().warning("Could not load simulation element \'" + className + "\' due to: \n" + t.getMessage());
-            throw ite;
-        }
-        
+        catch (NoSuchMethodException nsme) { throw new DECLoadException(nsme.getMessage()); }
+        catch (InstantiationException ie) { throw new DECLoadException(ie.getMessage()); }
+        catch (IllegalAccessException iae) { throw new DECLoadException(iae.getMessage()); }
+        catch (InvocationTargetException ite) { throw new DECLoadException(ite.getMessage()); }
+
 		return dec;
 	}	
 	
@@ -354,5 +341,11 @@ public class Simulator {
 	private static final String optModel = "model";
 	
 	private static final String NameString = "Open Dataflow Engine";
+
+    private static final class DECLoadException extends Exception
+    {
+        public DECLoadException (String msg) { super(msg); }
+    }
+    
 }
 

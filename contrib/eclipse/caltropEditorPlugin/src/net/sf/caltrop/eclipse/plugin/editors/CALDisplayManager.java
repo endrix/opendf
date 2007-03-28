@@ -39,8 +39,7 @@ ENDCOPYRIGHT
 package net.sf.caltrop.eclipse.plugin.editors;
 
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
@@ -49,6 +48,7 @@ import org.eclipse.core.runtime.CoreException;
 
 import net.sf.caltrop.cal.interpreter.util.SourceReader;
 import net.sf.caltrop.cal.parser.*;
+import net.sf.caltrop.util.*;
 import net.sf.caltrop.eclipse.plugin.CALPlugin;
 import org.eclipse.jface.text.*;
 import org.eclipse.ui.texteditor.MarkerUtilities;
@@ -101,42 +101,30 @@ public class CALDisplayManager implements Runnable
   		setActor( dom );
   		parseSucceeded = true;
   	}
-  	catch( Exception exc )
-  	{
-  		Throwable e = exc;
-  		
-  		while( e != null )
-  		{
-  	  		if( e instanceof ParserException ) 
-  	  		{
-  	  			ParserException pe = (ParserException) e;
-  	  			
-  	  			if( pe.hasLocation() )
-  	  			{ errorLine = pe.lineNumber();
-  	  			  errorColumn = pe.colNumber();
-  	   		  	}
-  	 			 	
-  	  			errorMessage = "Syntax error";
-  	  			break;
-  	  		} 
-  			e = e.getCause();
-  		}
-  	  	
-  	  	if( errorMessage == null )
-  	  	{
-  	  		StringWriter sw = new StringWriter();
-  	  		exc.printStackTrace( new PrintWriter( sw ) );
-  	  		errorMessage = "Unknown parsing problem (check character constants?)";
-  	  	}
-  	  	
-  	  	if( errorLine < 0 )
-  	  	{
+    catch (ParserErrorException pe)
+    {
+        GenericError error = pe.getErrors().get(0);
+        // A bit of a hack, but the parser does not give line number
+        // for EOF.
+        if (error.getReason().indexOf("\"EOF\"") >= 0)
+        {
   	  		errorMessage = "Incomplete actor";
   	  	    errorLine = document.getNumberOfLines();
   	  	    errorColumn = 1;
-  	  	}
-  	}
-  
+        }
+        else
+        {
+            errorMessage = error.getReason() + error.getLineNumber() + " " + error.getColumnNumber();
+            errorLine = error.getLineNumber();
+            errorColumn = error.getColumnNumber();
+        }
+    }
+    catch (Exception e)
+    {
+        StringWriter sw = new StringWriter();
+        e.printStackTrace( new PrintWriter( sw ) );
+        errorMessage = "Unknown parsing problem (check character constants?)" + e.toString();
+    }
   }
   
   private boolean updateDone;

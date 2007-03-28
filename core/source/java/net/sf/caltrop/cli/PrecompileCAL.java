@@ -38,23 +38,18 @@ ENDCOPYRIGHT
 
 package net.sf.caltrop.cli;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.List;
+import java.io.*;
+import java.util.*;
 
-import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.*;
+import javax.xml.transform.TransformerException;
+import org.xml.sax.*;
 
 import net.sf.caltrop.cal.interpreter.util.ASTFactory;
 import net.sf.caltrop.cal.interpreter.util.SourceReader;
 import net.sf.caltrop.cal.parser.Lexer;
 import net.sf.caltrop.cal.parser.Parser;
-import net.sf.caltrop.util.Util;
+import net.sf.caltrop.util.*;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -62,21 +57,37 @@ import org.w3c.dom.Node;
 
 public class PrecompileCAL {
 
-	public static void main(String [] args) throws Exception {
-		for (int i = 0; i < args.length; i++) {
+	public static void main (String [] args)
+    {
+
+		for (int i = 0; i < args.length; i++)
+        {
 			files.add(args[i]);
 		}
-		doCompiling();
+        
+        try
+        {
+            doCompiling();
+        }
+        catch (MultiErrorException mee)
+        {
+            mee.logTo(Logging.user());
+        }
+        catch (Exception e) // in 'main'
+        {
+            Logging.user().severe(e.getMessage());
+        }
 	}
 		
-	static private void doCompiling() throws Exception {
+	private static void doCompiling () throws MultiErrorException, IOException, ParserConfigurationException, SAXException, TransformerException
+    {
 		for (String s : files) {
 			String fn = s.trim();
 			String baseName = fn;
 			File inFile = new File(fn);
 			boolean isCal = false;
 			
-			System.out.print("Compiling " + fn + ": ");
+			Logging.user().info("Compiling " + fn + ": ");
 			
 			if (fn.endsWith(suffixCAL)) {	
 				isCal = true;
@@ -97,7 +108,7 @@ public class PrecompileCAL {
 				}
 			}
 			
-			System.out.print("read ");
+			Logging.user().fine("read ");
 			Document doc;
 			InputStream is = new FileInputStream(inFile);
 			if (isCal) {
@@ -107,16 +118,16 @@ public class PrecompileCAL {
 			}
 			is.close();
 
-			System.out.print("transform ");
+			Logging.user().fine("transform ");
 			Node a = ASTFactory.preprocessActor(doc);
 			String result = Util.createXML(a);
 			
-			System.out.print("write ");
+			Logging.user().fine("write ");
 			OutputStream os = new FileOutputStream(baseName + suffixPCalML);
 			PrintWriter pw = new PrintWriter(os);
 			pw.println(result);
 			pw.close();
-			System.out.println("done.");
+			Logging.user().info("done.");
 		}		
 	}
 

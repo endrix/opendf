@@ -20,8 +20,12 @@ CALTROP_NL_SOURCES = $(shell find $(CALTROP_HOME)/source/java/net/sf/caltrop/nl 
 CALTROP_HADES_SOURCES = $(shell find $(CALTROP_HOME)/source/java/net/sf/caltrop/hades -name "*.java")
 CALTROP_CLI_SOURCES = $(shell find $(CALTROP_HOME)/source/java/net/sf/caltrop/cli -name "*.java")
 
+CONTRIB_DIR = $(CALTROP_HOME)/../contrib/actorlib
+CONTRIB_SOURCES = $(shell find $(CONTRIB_DIR) -name "*.java")
+
 jar: $(CALTROP_CLASSDIR)
-	cd $(CALTROP_CLASSDIR) ; jar -cvf ../$(JAR_NAME) *
+	cd $(CALTROP_CLASSDIR) ; $(JAR) -xvf ../../contrib/actorlib/lib/PtPlot.jar
+	cd $(CALTROP_CLASSDIR) ; $(JAR) -cvf ../$(JAR_NAME) *
 
 clean:
 	rm -rf $(CALTROP_CLASSDIR)
@@ -37,11 +41,8 @@ cproot = $(CALTROP_CLASSDIR)/net/sf/caltrop
 
 .PHONY = create_dir
 
-$(CALTROP_CLASSDIR): create_dir $(cproot)/util $(cproot)/cal $(cproot)/nl $(cproot)/hades $(cproot)/cli $(CALTROP_CLASSDIR)/ptolemy xslt
+$(CALTROP_CLASSDIR): create_dir $(cproot)/util $(cproot)/cal $(cproot)/nl $(cproot)/hades $(cproot)/cli $(CALTROP_CLASSDIR)/ptolemy xslt contrib
 
-xslt:
-	mkdir -p $(CALTROP_CLASSDIR)/net/sf/caltrop/cal/transforms
-	cp -p $(CALTROP_HOME)/source/xslt/net/sf/caltrop/cal/transforms/* $(CALTROP_CLASSDIR)/net/sf/caltrop/cal/transforms
 
 create_dir:
 	mkdir -p $(CALTROP_CLASSDIR)
@@ -67,3 +68,12 @@ $(cproot)/hades: $(cproot)/util $(cproot)/cal $(cproot)/nl
 $(cproot)/cli: $(cproot)/util $(cproot)/cal $(cproot)/nl $(cproot)/hades $(CALTROP_CLASSDIR)/java_cup
 	$(JAVAC) -classpath $(CALTROP_CLASSDIR)$(CPS)$(CALTROP_HOME)/lib/saxon8.jar -d $(CALTROP_CLASSDIR) $(CALTROP_CLI_SOURCES)
 
+xslt:
+	mkdir -p $(CALTROP_CLASSDIR)/net/sf/caltrop/cal/transforms
+	cp -p $(CALTROP_HOME)/source/xslt/net/sf/caltrop/cal/transforms/* $(CALTROP_CLASSDIR)/net/sf/caltrop/cal/transforms
+	mkdir -p $(CALTROP_CLASSDIR)/net/sf/caltrop/cal/checks
+	cp -p $(CALTROP_HOME)/source/xslt/net/sf/caltrop/cal/checks/* $(CALTROP_CLASSDIR)/net/sf/caltrop/cal/checks
+
+contrib:
+	mkdir -p $(CALTROP_CLASSDIR)
+	$(JAVAC) -d $(CALTROP_CLASSDIR) -classpath $(CALTROP_CLASSDIR)$(CPS)$(CONTRIB_DIR)/lib/PtPlot.jar $(CONTRIB_SOURCES)
