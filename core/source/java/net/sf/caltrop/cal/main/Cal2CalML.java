@@ -90,7 +90,7 @@ public class Cal2CalML {
         String result = "";
         try
         {
-            Util.createXML(doc);
+            result = Util.createXML(doc);
         }
         catch (TransformerException te)
         {
