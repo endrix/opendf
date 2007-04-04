@@ -43,79 +43,94 @@ ENDCOPYRIGHT
 */
 
 
-actor RegisterFile () rfCmd Op, reg R1, reg R2, data D1, data D2, data D3, data D4 ==> data MemBase, data MemData, data PcAddr, data A, data B, boolean Test:
+actor RegisterFile () rfCmd Op, reg R1, reg R2, data D1, data D2, data D3, data D4, data D5
+                  ==> data MemBase, data MemData, data PcAddr, data A, data B, boolean Test,
+                  	  data SendVal :
 
-  list(type: data, size=32) R := [0 : for i in Integers(1, 32)];
-
-
-  action Op: [op] ==> 
-  guard
-    op = 0  // RESET
-  do
-    R := [0 : for i in Integers(1, 32)];
-  end
-
-  action Op: [op], R1: [a], D1: [b] ==> A: [R[a]], B: [b]
-  guard
-    op = 1   // READ-A
-  end
-
-  action Op: [op], R1: [a], R2: [b] ==> A: [R[a]], B: [R[b]]
-  guard
-    op = 2   // READ-AB
-  end
-
-  action Op: [op], R1: [a] ==> Test: [R[a] = 0]
-  guard
-    op = 3   // TEST
-  end
-
-  action Op: [op], R1: [a] ==> MemBase: [R[a]]
-  guard
-    op = 4   // SENDMEM
-  end
-
-  action Op: [op], R1: [a], R2: [b] ==> MemBase: [R[a]], MemData: [R[b]]
-  guard
-    op = 5   // SENDMEMDATA
-  end
-
-  action Op: [op], R1: [a] ==> PcAddr: [R[a]]
-  guard
-    op = 6  // SENDPCADDR
-  end
-
-
-
-
-  action Op: [op], R1: [a], D1: [d] ==> 
-  guard
-    op = 8  // STORE1
-  do
-    R[a] := d;
-  end
-
-  action Op: [op], R1: [a], D2: [d] ==> 
-  guard
-    op = 9  // STORE2
-  do
-    R[a] := d;
-  end
-
-  action Op: [op], R1: [a], D3: [d] ==> 
-  guard
-    op = 10  // STORE3
-  do
-    R[a] := d;
-  end
-
-  action Op: [op], R1: [a], D4: [d] ==> 
-  guard
-    op = 11  // STORE4
-  do
-    R[a] := d;
-  end
-
+	list(type: data, size=32) R := [0 : for i in Integers(1, 32)];
+		  	
+	Op.RESET: 		action Op: [op] ==> 
+					guard
+						op = 0  // RESET
+					do
+						R := [0 : for i in Integers(1, 32)];
+					end
+					
+	Op.READA:		action Op: [op], R1: [a], D1: [b] ==> A: [R[a]], B: [b]
+					guard
+						op = 1   // READ-A
+					end
+					
+	Op.READAB:		action Op: [op], R1: [a], R2: [b] ==> A: [R[a]], B: [R[b]]
+					guard
+						op = 2   // READ-AB
+					end
+					
+	Op.TEST:		action Op: [op], R1: [a] ==> Test: [R[a] = 0]
+					guard
+						op = 3   // TEST
+					end
+					
+	Op.SENDMEM:		action Op: [op], R1: [a] ==> MemBase: [R[a]]
+					guard
+						op = 4   // SENDMEM
+					end
+					
+	Op.SENDMEMDATA:	action Op: [op], R1: [a], R2: [b] ==> MemBase: [R[a]], MemData: [R[b]]
+					guard
+						op = 5   // SENDMEMDATA
+					end
+					
+	Op.SENDPCADDR:	action Op: [op], R1: [a] ==> PcAddr: [R[a]]
+					guard
+						op = 6  // SENDPCADDR
+					end
+					
+					
+					
+					
+	Op.STORE1:		action Op: [op], R1: [a], D1: [d] ==> 
+					guard
+						op = 8  // STORE1
+					do
+						R[a] := d;
+					end
+					
+	Op.STORE2:		action Op: [op], R1: [a], D2: [d] ==> 
+					guard
+						op = 9  // STORE2
+					do
+						R[a] := d;
+					end
+					
+	Op.STORE3:		action Op: [op], R1: [a], D3: [d] ==> 
+					guard
+						op = 10  // STORE3
+					do
+						R[a] := d;
+					end
+					
+	Op.STORE4:		action Op: [op], R1: [a], D4: [d] ==> 
+					guard
+						op = 11  // STORE4
+					do
+						R[a] := d;
+					end
+					  
+	Op.STORE5:		action Op: [op], R1: [a], D5: [d] ==> 
+					guard
+						op = 12  // STORE5
+					do
+						R[a] := d;
+					end
+					  
+					  
+					  
+	Op.SEND:		action Op: [op], R1: [a] ==> SendVal: [R[a]] 
+					guard
+						op = 15  // SEND
+					end
+					  	
 end
 
   

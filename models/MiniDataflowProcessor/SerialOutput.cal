@@ -37,31 +37,63 @@ ENDCOPYRIGHT
 */
 
 /**
-	Generic MDP-based system with RAM, ROM, and a processor.
+	Serial output interface for MDP
 	
 	@author JWJ
 */
 
-network System (program, memorySize, initialMemory) ==> :
-
-entities
-
-	rom = ROM(contents:: program);
-			
-	memory = Memory(size:: memorySize, initialValues:: initialMemory, defaultValue:: 0);
+actor SerialOutput () 
+					soutCmd Op, channel C0, channel C1, data D
+				==>
+					data O0, data O1, data O2, data O3:
 	
-	cpu = MDP();
-	
-structure
-	
-	rom.Data --> cpu.I;
+	action Op: [op], C0: [c], D: [d] ==> O0: [d]
+	guard 
+		op = 0x00,	// SEND0
+		c = 0
+	end
+  
+	action Op: [op], C0: [c], D: [d] ==> O1: [d]
+	guard 
+		op = 0x00,	// SEND0
+		c = 1
+	end
+  
+	action Op: [op], C0: [c], D: [d] ==> O2: [d]
+	guard 
+		op = 0x00,	// SEND0
+		c = 2
+	end
 
-	cpu.IAddr --> rom.Addr;
-	cpu.Dout --> memory.DataIn;
-	cpu.MemW --> memory.W;
-	cpu.DAddr --> memory.Addr;
-	
-	memory.DataOut --> cpu.Din;
+	action Op: [op], C0: [c], D: [d] ==> O3: [d]
+	guard 
+		op = 0x00,	// SEND0
+		c = 3
+	end
+  
 
+	action Op: [op], C1: [c], D: [d] ==> O0: [d]
+	guard 
+		op = 0x01,	// SEND1
+		c = 0
+	end
+  
+	action Op: [op], C1: [c], D: [d] ==> O1: [d]
+	guard 
+		op = 0x01,	// SEND1
+		c = 1
+	end
+  
+	action Op: [op], C1: [c], D: [d] ==> O2: [d]
+	guard 
+		op = 0x01,	// SEND1
+		c = 2
+	end
+
+	action Op: [op], C1: [c], D: [d] ==> O3: [d]
+	guard 
+		op = 0x01,	// SEND1
+		c = 3
+	end
+  
 end
-	

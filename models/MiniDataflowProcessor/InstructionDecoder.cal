@@ -49,14 +49,16 @@ actor InstructionDecoder ()
   boolean W, data Offset, 
   pcCmd PcOp, data PcVal,
   aluCmd AluOp,
-  rfCmd RfOp, reg R1, reg R2, data RfVal:
+  rfCmd RfOp, reg R1, reg R2, data RfVal,
+  sinCmd SinOp, channel SinChn,
+  soutCmd SoutOp, channel SoutChn:
 
 
   Init: action ==> RfOp: [0], PcOp: [0] end
 
   Reset: action Reset: [_] ==> RfOp: [0], PcOp: [0] end
 
-  // STOP
+  // STOP -- I
   Stop: action I: [op] ==> 
         guard
           opcode1(op) = 0x3f
@@ -73,7 +75,7 @@ actor InstructionDecoder ()
         oc1 = opcode1(op), oc2 = opcode2(op)
       end
 
-  // ADDI
+  // ADDI -- I
   Op.ADDI: action I: [op] ==> PcOp: [1],   // NEXT
                               AluOp: [1],  // ADD
                               RfOp: [1, 9], // READ-A, STORE2
@@ -85,7 +87,7 @@ actor InstructionDecoder ()
         n = extend16to32(immediate(op))
       end
 
-  // SUB
+  // SUB -- R
   Op.SUB: action I: [op] ==> PcOp: [1],   // NEXT
                              AluOp: [2],  // SUB
                              RfOp: [2, 9],  // READ-AB, STORE2
@@ -96,7 +98,7 @@ actor InstructionDecoder ()
         oc1 = opcode1(op), oc2 = opcode2(op)
       end
 
-  // SUBI
+  // SUBI -- I
   Op.SUBI: action I: [op] ==> PcOp: [1],   // NEXT
                               AluOp: [2],  // SUB
                               RfOp: [1, 9], // READ-A, STORE2
@@ -108,7 +110,7 @@ actor InstructionDecoder ()
         n = extend16to32(immediate(op))
       end
 
-  // AND
+  // AND -- R
   Op.AND: action I: [op] ==> PcOp: [1],   // NEXT
                              AluOp: [3],  // AND
                              RfOp: [2, 9],  // READ-AB, STORE2
@@ -119,7 +121,7 @@ actor InstructionDecoder ()
         oc1 = opcode1(op), oc2 = opcode2(op)
       end
 
-  // ANDI
+  // ANDI -- I
   Op.ANDI: action I: [op] ==> PcOp: [1],   // NEXT
                               AluOp: [3],  // AND
                               RfOp: [1, 9], // READ-A, STORE2
@@ -131,7 +133,7 @@ actor InstructionDecoder ()
         n = extend16to32(immediate(op))
       end
 
-  // SW
+  // SW -- I
   Op.SW: action I: [op] ==> PcOp: [1],   // NEXT
                             RfOp: [5], // SENDMEMDATA
                             Offset: [n],
@@ -144,7 +146,7 @@ actor InstructionDecoder ()
         n = extend16to32(immediate(op))
       end
 
-  // LW
+  // LW -- I
   Op.LW: action I: [op] ==> PcOp: [1],   // NEXT
                             RfOp: [4, 10], // SENDMEM, STORE3
                             Offset: [n],
@@ -156,8 +158,8 @@ actor InstructionDecoder ()
         n = extend16to32(immediate(op))
       end
 
-  // BEQZ
-  Op.BEQZ:  action I:[op] ==> PcOp: [6],  // B-TRUE
+  // BEQZ -- I
+  Op.BEQZ:  action I:[op] ==> PcOp: [6],  // B0-TRUE
                               RfOp: [3], // TEST
                               R1: [r1(op)],
                               PcVal: [n]
@@ -167,8 +169,8 @@ actor InstructionDecoder ()
         n = extend16to32(immediate(op))
       end
 
-  // BNEZ
-  Op.BNEZ:  action I:[op] ==> PcOp: [7],  // B-FALSE
+  // BNEZ -- I
+  Op.BNEZ:  action I:[op] ==> PcOp: [7],  // B0-FALSE
                               RfOp: [3], // TEST
                               R1: [r1(op)],
                               PcVal: [n]
@@ -178,7 +180,7 @@ actor InstructionDecoder ()
         n = extend16to32(immediate(op))
       end
 
-  // J
+  // J -- J
   Op.J: action I:[op] ==> PcOp: [2],  // JUMP
                           PcVal: [n]
       guard oc1 = 0x02   // J
@@ -186,6 +188,46 @@ actor InstructionDecoder ()
         oc1 = opcode1(op),
         n = extend24to32(jvalue(op))
       end
+      
+	
+
+  // BAVAIL -- I
+  Op.BAVAIL: action I: [op] ==> PcOp: [8],   // B1-TRUE
+                                SinOp: [2],  // TEST0
+                                SinChn: [channel(r1(op))],
+                                PcVal: [n]
+      guard oc1 = 0x2f   // BAVAIL -- FIXME??? is that opcode free?
+      var 
+        oc1 = opcode1(op),
+        n = extend16to32(immediate(op))
+      end
+
+  // RCV -- R
+  
+  Op.RCV: action I: [op] ==> PcOp: [1],   // NEXT
+                             SinOp: [0],  // RCV0
+                             SinChn: [channel(r1(op))],
+                             
+                             RfOp: [12],  // STORE5
+                             R1: [rd(op)]
+      guard oc1 = 0 and oc2 = 0x30   // RCV -- FIXME??? is that opcode free?
+      var 
+        oc1 = opcode1(op), oc2 = opcode2(op)
+      end
+
+  // SND -- R
+
+  Op.SND: action I: [op] ==> PcOp: [1],   // NEXT
+                             SoutOp: [0],  // SND0
+                             SoutChn: [channel(r1(op))],
+                             
+                             RfOp: [15],  // SEND
+                             R1: [rd(op)]
+      guard oc1 = 0 and oc2 = 0x31   // SND -- FIXME??? is that opcode free?
+      var 
+        oc1 = opcode1(op), oc2 = opcode2(op)
+      end
+
 
 
 
@@ -221,6 +263,10 @@ actor InstructionDecoder ()
 
   function immediate(n) :
     bitand(n, 0xffff)
+  end
+
+  function channel(n) :
+    bitand(n, 0x3)
   end
 
   function jvalue(n) :

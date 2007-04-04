@@ -42,7 +42,7 @@ ENDCOPYRIGHT
 	@author JWJ
 */
 
-actor PC () pcCmd Op, data Val, data Reg, boolean Test ==> data Addr, data Link :
+actor PC () pcCmd Op, data Val, data Reg, boolean Test0, boolean Test1 ==> data Addr, data Link :
 
   data pc := 0;
 
@@ -88,9 +88,9 @@ actor PC () pcCmd Op, data Val, data Reg, boolean Test ==> data Addr, data Link 
     pc := reg;
   end 
 
-  action Op: [op], Test: [test], Val: [val] ==> Addr: [pc]
+  action Op: [op], Test0: [test], Val: [val] ==> Addr: [pc]
   guard
-    op = 6   // B-TRUE
+    op = 6   // B0-TRUE
   do
     if test then
       pc := pc + val;
@@ -99,9 +99,31 @@ actor PC () pcCmd Op, data Val, data Reg, boolean Test ==> data Addr, data Link 
     end
   end 
 
-  action Op: [op], Test: [test], Val: [val] ==> Addr: [pc]
+  action Op: [op], Test0: [test], Val: [val] ==> Addr: [pc]
   guard
-    op = 7   // B-FALSE
+    op = 7   // B0-FALSE
+  do
+    if test then
+      pc := pc + 1;
+    else
+      pc := pc + val;
+    end
+  end 
+
+  action Op: [op], Test1: [test], Val: [val] ==> Addr: [pc]
+  guard
+    op = 8   // B1-TRUE
+  do
+    if test then
+      pc := pc + val;
+    else
+      pc := pc + 1;
+    end
+  end 
+
+  action Op: [op], Test1: [test], Val: [val] ==> Addr: [pc]
+  guard
+    op = 9   // B1-FALSE
   do
     if test then
       pc := pc + 1;

@@ -37,79 +37,85 @@ ENDCOPYRIGHT
 */
 
 /**
-	Mini Dataflow Processor
-	
-	This is the assembly of the various components of the MDP.
+	Serial input interface for MDP.
 	
 	@author JWJ
 */
 
+actor SerialInput () 
+				sinCmd Op, channel C0, channel C1, 
+				data I0, data I1, data I2, data I3 
+			==>
+				data D, boolean Test :
+				
+	
+	list(type: boolean, size = 4)  avail = [false : for i in Integers(1, 4)];
 
-network MDP () I, Din, Reset, I0, I1, I2, I3 
-           ==> IAddr, DAddr, Dout, MemW, O0, O1, O2, O3 :
+	list(type: boolean, size = 4)  d = [false : for i in Integers(1, 4)];
 
-entities
-	decoder = InstructionDecoder();
-	rf = RegisterFile();
-	alu = ALU();
-	pc = PC();
-	addrGen = MemoryAddressGenerator();
-	cache = Cache0();
-	sin = SerialInput();
-	sout = SerialOutput();
+
+
+	Op.Rcv0:	action Op: [op], C0: [c] ==> D: [d[c]]
+				guard
+					op = 0x00,	// RVC0
+					avail[c]
+				do
+					avail[c] := false;
+				end
+		
+	Op.Rcv1:	action Op: [op], C1: [c] ==> D: [d[c]]
+				guard
+					op = 0x01,	// RVC1
+					avail[c]
+				do
+					avail[c] := false;
+				end
+				
+	Op.Test0:	action Op: [op], C0: [c] ==> Test: [avail[c]]
+				guard
+					op = 0x02	// TEST0
+				end
+		
+	Op.Test1:	action Op: [op], C1: [c] ==> Test: [avail[c]]
+				guard
+					op = 0x01	// TEST1
+				end
+				
 	
-structure
-	I --> decoder.I;
-	Reset --> decoder.Reset;
-	Din --> cache.MemDataOut;
+	//
+	//
+	//
 	
-	decoder.AluOp --> alu.Op;
-	decoder.RfOp --> rf.Op;
-	decoder.R1 --> rf.R1;
-	decoder.R2--> rf.R2;
-	decoder.RfVal --> rf.D1;
-	decoder.PcOp --> pc.Op;
-	decoder.PcVal --> pc.Val;
-	decoder.W --> cache.W;
-	decoder.Offset --> addrGen.Offset;
-	decoder.SinOp --> sin.Op;
-	decoder.SinChn --> sin.C0;
-	decoder.SoutOp --> sout.Op;
-	decoder.SoutChn --> sout.C0;
-	
-	alu.Res --> rf.D2;
-	
-	rf.A --> alu.A;
-	rf.B --> alu.B;
-	rf.PcAddr --> pc.Reg;
-	rf.Test --> pc.Test0;
-	rf.MemBase --> addrGen.Base;
-	rf.MemData --> cache.DataIn;
-	rf.SendVal --> sout.D;
-	
-	pc.Link --> rf.D4;
-	pc.Addr --> IAddr;
-	
-	addrGen.Addr --> cache.Addr;
-	
-	cache.MemDataIn --> Dout;
-	cache.MemAddr --> DAddr;
-	cache.MemW --> MemW;
-	cache.DataOut --> rf.D3;
-	
-	sin.D --> rf.D5;
-	sin.Test --> pc.Test1;	
-	
-	I0 --> sin.I0;
-	I1 --> sin.I1;
-	I2 --> sin.I2;
-	I3 --> sin.I3;
-	
-	sout.O0 --> O0;
-	sout.O1 --> O1;
-	sout.O2 --> O2;
-	sout.O3 --> O3;
-	
-end
-	
-	
+	Read.I0:	action I0: [a] ==>
+				guard not avail[0]
+				do
+					ir[0] := a;
+					avail[0] := true;
+				end
+				
+	Read.I1:	action I1: [a] ==>
+				guard not avail[1]
+				do
+					ir[1] := a;
+					avail[1] := true;
+				end
+				
+	Read.I2:	action I2: [a] ==>
+				guard not avail[2]
+				do
+					ir[2] := a;
+					avail[2] := true;
+				end
+				
+	Read.I3:	action I3: [a] ==>
+				guard not avail[3]
+				do
+					ir[3] := a;
+					avail[3] := true;
+				end
+				
+	priority Read > Op; end
+end	
+					
+
+

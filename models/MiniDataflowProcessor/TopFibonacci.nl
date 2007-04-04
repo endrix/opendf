@@ -45,6 +45,8 @@ ENDCOPYRIGHT
 
 network TopFibonacci () ==> :
 
+import entity net.sf.caltrop.actors.Plotter;
+
 var
 	function Rop (op, r1, r2, rd) : (((r1 * 32) + r2) * 32 + rd) * 2048 + op end
 
@@ -67,17 +69,28 @@ var
 				Iop(35, 2, 4, 1),         //  LW (r2 + 1) -> r4
 				Rop(32, 3, 4, 3),         //  ADD r3, r4 -> r3
 				Iop(43, 2, 3, 2),         //  SW (r2 + 2) <- r3
+				Rop(0x31, 0, 0, 3),       //  SEND r3 -> #0
    
 				Iop(8, 2, 2, 1),          //  ADDI r2, 1, r2
 				Iop(10, 1, 1, 1),         //  SUBI r1, 1, r1
 
-				Iop(5, 1, 0, n16(-6)),    //  BNEZ r2, -6
+				Iop(5, 1, 0, n16(-7)),    //  BNEZ r2, -7
 				Iop(63, 0, 0, 0)          //  STOP
 			];
 
 entities
 
-	system = System(program:: program, memorySize:: 1000, initialMemory:: []);
+	cpu = CPU(program:: program, memorySize:: 1000, initialMemory:: []);
 
+	p = Plotter(autoredraw:: 1, 
+	            time:: false,
+	            connected:: false,
+	            marks:: "dots", 
+	            title:: "MDP generates Fibonacci", 
+	            legend:: false);
+	
+structure 
+
+	cpu.O0 --> p.Data;
 
 end

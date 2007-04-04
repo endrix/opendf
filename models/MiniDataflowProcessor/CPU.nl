@@ -37,79 +37,41 @@ ENDCOPYRIGHT
 */
 
 /**
-	Mini Dataflow Processor
-	
-	This is the assembly of the various components of the MDP.
+	Generic MDP-based system with RAM, ROM, and a processor.
 	
 	@author JWJ
 */
 
-
-network MDP () I, Din, Reset, I0, I1, I2, I3 
-           ==> IAddr, DAddr, Dout, MemW, O0, O1, O2, O3 :
+network CPU (program, memorySize, initialMemory) I0, I1, I2, I3 ==> O0, O1, O2, O3:
 
 entities
-	decoder = InstructionDecoder();
-	rf = RegisterFile();
-	alu = ALU();
-	pc = PC();
-	addrGen = MemoryAddressGenerator();
-	cache = Cache0();
-	sin = SerialInput();
-	sout = SerialOutput();
+
+	rom = ROM(contents:: program);
+			
+	memory = Memory(size:: memorySize, initialValues:: initialMemory, defaultValue:: 0);
+	
+	processor = MDP();
 	
 structure
-	I --> decoder.I;
-	Reset --> decoder.Reset;
-	Din --> cache.MemDataOut;
 	
-	decoder.AluOp --> alu.Op;
-	decoder.RfOp --> rf.Op;
-	decoder.R1 --> rf.R1;
-	decoder.R2--> rf.R2;
-	decoder.RfVal --> rf.D1;
-	decoder.PcOp --> pc.Op;
-	decoder.PcVal --> pc.Val;
-	decoder.W --> cache.W;
-	decoder.Offset --> addrGen.Offset;
-	decoder.SinOp --> sin.Op;
-	decoder.SinChn --> sin.C0;
-	decoder.SoutOp --> sout.Op;
-	decoder.SoutChn --> sout.C0;
+	rom.Data --> processor.I;
+
+	processor.IAddr --> rom.Addr;
+	processor.Dout --> memory.DataIn;
+	processor.MemW --> memory.W;
+	processor.DAddr --> memory.Addr;
 	
-	alu.Res --> rf.D2;
+	memory.DataOut --> processor.Din;
 	
-	rf.A --> alu.A;
-	rf.B --> alu.B;
-	rf.PcAddr --> pc.Reg;
-	rf.Test --> pc.Test0;
-	rf.MemBase --> addrGen.Base;
-	rf.MemData --> cache.DataIn;
-	rf.SendVal --> sout.D;
+	I0 --> processor.I0;
+	I1 --> processor.I1;
+	I2 --> processor.I2;
+	I3 --> processor.I3;
 	
-	pc.Link --> rf.D4;
-	pc.Addr --> IAddr;
-	
-	addrGen.Addr --> cache.Addr;
-	
-	cache.MemDataIn --> Dout;
-	cache.MemAddr --> DAddr;
-	cache.MemW --> MemW;
-	cache.DataOut --> rf.D3;
-	
-	sin.D --> rf.D5;
-	sin.Test --> pc.Test1;	
-	
-	I0 --> sin.I0;
-	I1 --> sin.I1;
-	I2 --> sin.I2;
-	I3 --> sin.I3;
-	
-	sout.O0 --> O0;
-	sout.O1 --> O1;
-	sout.O2 --> O2;
-	sout.O3 --> O3;
-	
+	processor.O0 --> O0;
+	processor.O1 --> O1;
+	processor.O2 --> O2;
+	processor.O3 --> O3;
+
 end
-	
 	
