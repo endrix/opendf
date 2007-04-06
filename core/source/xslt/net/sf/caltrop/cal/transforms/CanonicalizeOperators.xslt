@@ -57,11 +57,11 @@
         <!-- First compute the lowest precedence of all operators. -->
         <xsl:variable name="minPrec" select="min($ops/@precedence)"/>
 
-        <!-- Now compute the index of its first occurrence. Count the number of nodes which do not have a
+        <!-- Now compute the index of its last occurrence. Count the number of nodes which do not have a
              minPrec node as one of their preceding siblings.
         -->
-        <xsl:variable name="pos" select="count($oplist/Ops/Op[@precedence = $minPrec][1]/preceding-sibling::*) + 1"/>
-
+        <xsl:variable name="pos" select="count($oplist/Ops/Op[some $x in following-sibling::Op satisfies $x/@precedence = $minPrec]) + 1"/>
+        
         <!-- If no operator, just process the (single) expression. Otherwise, split operator and operand lists,
              and create an application of the appropriate function with the left and the right subexpressions as its
              arguments.
