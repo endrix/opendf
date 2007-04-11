@@ -36,7 +36,7 @@ BEGINCOPYRIGHT X
 ENDCOPYRIGHT
 */
 
-network TopMandelbrot (W, H, maxIter) ==> :
+network TopMandelbrot (W, H, maxIter, satLevels) ==> :
 
 	
 entities
@@ -50,7 +50,7 @@ entities
 										dy:: 2.0 / H,
 										h:: H);
 	kernel = MandelbrotKernel(maxIter:: maxIter);
-	colorer = SampleColorer(maxIter:: maxIter);
+	colorer = SampleColorer(maxIter:: maxIter, satLevels:: satLevels);
 	
 structure
 
