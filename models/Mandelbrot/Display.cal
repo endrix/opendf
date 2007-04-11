@@ -39,11 +39,13 @@ ENDCOPYRIGHT
 import ptolemy.media.Picture;
 import javax.swing.JFrame;
 
-actor Display (string title, int width, int height) 
-			  X, Y, R, G, B ==>  : 
+actor Display (string title, int width, int height, int autoUpdate) 
+			  X, Y, R, G, B, Repaint ==>  : 
 
 	picture = Picture( width, height);
 	frame = JFrame( title );
+	
+	n := 0;
 
 	initialize ==>
   	do
@@ -53,10 +55,22 @@ actor Display (string title, int width, int height)
     	picture.displayImage();
   	end
 
-  	action [x], [y], [r], [g], [b] ==>
-  	do
-    	picture.setPixel(y, x, r, g, b);
-    	picture.displayImage();
-    end
+	A: 	action X: [x], Y: [y], R: [r], G: [g], B: [b] ==>
+	  	do
+	    	picture.setPixel(y, x, r, g, b);
+	    	n := n + 1;
+	    	if autoUpdate > 0 and n >= autoUpdate then
+		    	picture.displayImage();
+		    	n := 0;
+		    end
+	    end
+    
+	B:  action Repaint: [_] ==> 
+	    do
+			picture.displayImage();
+			n := 0;
+	    end
+	    
+	priority A > B; end
 end
 

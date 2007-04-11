@@ -36,23 +36,19 @@ BEGINCOPYRIGHT X
 ENDCOPYRIGHT
 */
 
-network TopMandelbrot () ==> :
+network TopMandelbrot (W, H, maxIter) ==> :
 
-var
-	w = 600;
-	h = 400;
-	maxIter = 1000;
 	
 entities
 
 	clk = Clock();
-	display = Display(title:: "Mandelbrot", width:: w, height:: h);
+	display = Display(title:: "Mandelbrot", width:: W, height:: H, autoUpdate:: 100);
 	mcg = MandelbrotCoordinateGenerator(startX:: -2.0, 
 										startY:: -1.0,
-										dx:: 3.0 / w,
-										w:: w,
-										dy:: 2.0 / h,
-										h:: h);
+										dx:: 3.0 / W,
+										w:: W,
+										dy:: 2.0 / H,
+										h:: H);
 	kernel = MandelbrotKernel(maxIter:: maxIter);
 	colorer = SampleColorer(maxIter:: maxIter);
 	

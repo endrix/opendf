@@ -40,8 +40,26 @@ actor SampleColorer (maxIter) N ==> R, G, B:
 
 	action [n] ==> [r], [g], [b]
 	var
-		r = if n >= maxIter then 0 else 255 end,
-		g = if n >= maxIter then 0 else 255 end,
-		b = if n >= maxIter then 0 else 255 end
+		color = if n >= maxIter then mbColor else colors[n mod #colors] end,
+		r = color[0],
+		g = color[1],
+		b = color[2]
 	end
+	
+	colors = [
+		[255, 255, 255],
+		[255, 0, 0],
+		[255, 255, 0],
+		[255, 128, 128],
+		[255, 0, 255],
+		[128, 128, 255],
+		[0, 255, 255],
+		[0, 255, 128],
+		[0, 255, 0],
+		[0, 128, 128],
+		[0, 128, 255],
+		[0, 0, 255]
+	];
+	
+	mbColor = [0, 0, 0];
 end
