@@ -49,6 +49,7 @@ actor ProgressWindow(title, N) Tick ==> :
 
 	initialize ==>
   	do
+  		progress.setStringPainted(true);
     	frame.getContentPane().add(progress);
     	frame.pack();
     	frame.setVisible(true);

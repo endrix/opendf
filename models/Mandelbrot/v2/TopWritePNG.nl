@@ -47,11 +47,13 @@ entities
 	colorer = SampleColorer(maxIter:: maxIter, satLevels:: satLevels);
 	writer = WriteImage(fileName:: imageFile, format:: "PNG", W:: W, H:: H);
 	b2w = B2W(bigEndian:: true);
+	progress = ProgressWindow(title:: "Writing image file " + imageFile, N:: W * H);
 	
 structure
 
 	reader.D --> b2w.In;
 	b2w.Out --> colorer.N;
+	b2w.Out --> progress.Tick;
 		
 	colorer.R --> writer.R;
 	colorer.G --> writer.G;
