@@ -58,6 +58,8 @@ entities
 
 	w2b = W2B(bigEndian:: true);
 	writer = WriteFile(fname:: fileName);
+	progress = ProgressWindow(title:: "Computing Mandelbrot set into file: " + fileName, 
+	                          N:: W * H);
 	
 structure
 
@@ -69,6 +71,7 @@ structure
 	mcg.DONE --> writer.Done;
 	
 	kernel.N --> w2b.In;
+	kernel.N --> progress.Tick;
 	
 	w2b.Out --> writer.D;
 	

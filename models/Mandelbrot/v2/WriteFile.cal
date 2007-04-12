@@ -36,11 +36,6 @@ BEGINCOPYRIGHT X
 ENDCOPYRIGHT
 */
 
-// ReadFile.cal
-//
-// Author: David B. Parlour (dave.parlour@xilinx.com)
-//
-
 actor WriteFile( string fname ) int D, Done ==> :
 	
 	fd = createFile(fname);
