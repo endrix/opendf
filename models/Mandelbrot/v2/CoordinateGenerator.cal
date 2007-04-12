@@ -1,0 +1,22 @@
+
+
+actor CoordinateGenerator (W, H) In ==> X, Y, N :
+
+	x := 0;
+	y := 0;
+	
+	action [n] ==> [old x], [old y], [n]
+	do
+		x := x + 1;
+		if x >= W then
+			x := 0;
+			y := y + 1;
+			if y >= H then
+				y := 0;
+			end
+		end
+	end
+		
+end	
+	
+	 

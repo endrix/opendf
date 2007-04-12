@@ -33,9 +33,18 @@ package ptolemy.media;
 import java.awt.Canvas;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.GraphicsConfiguration;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
+import java.awt.HeadlessException;
 import java.awt.Image;
+import java.awt.Transparency;
+import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
 import java.awt.image.MemoryImageSource;
+import java.awt.image.PixelGrabber;
+
+import javax.swing.ImageIcon;
 
 //////////////////////////////////////////////////////////////////////////
 //// Picture
@@ -202,6 +211,17 @@ public class Picture extends Canvas {
     public void update(Graphics graphics) {
         paint(graphics);
     }
+    
+    public BufferedImage  toBufferedImage() {
+    	BufferedImage bi = new BufferedImage(_width, _height, BufferedImage.TYPE_INT_RGB);
+    	for (int j = 0; j < _height; j++) {
+    		for (int i = 0; i < _width; i++) {
+    			bi.setRGB(i, j, _pixels[j * _width + i]);
+    		}
+    	}
+    	return bi;
+    }
+    
 
     ///////////////////////////////////////////////////////////////////
     ////                         private variables                 ////

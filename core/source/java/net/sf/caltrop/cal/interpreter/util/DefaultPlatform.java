@@ -41,6 +41,7 @@ package net.sf.caltrop.cal.interpreter.util;
 
 
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -1014,7 +1015,7 @@ public class DefaultPlatform implements Platform {
         env.bind("readByte", context().createFunction(new Function () {
         	public Object apply(Object[] args) {
         		try {
-        			InputStream s = (InputStream)args[0];
+        			InputStream s = (InputStream)context().toJavaObject(args[0]);
         			return context().createInteger(s.read());
         		} catch (Exception ex) {
         			throw new InterpreterException("Function 'readByte': Cannot apply.", ex);
@@ -1026,11 +1027,27 @@ public class DefaultPlatform implements Platform {
         	}
         }));
         
+        env.bind("writeByte", context().createProcedure(new Procedure () {
+        	public void call(Object[] args) {
+        		try {
+        			OutputStream s = (OutputStream)context().toJavaObject(args[0]);
+        			int b = context().intValue(args[1]);
+        			s.write(b);
+        		} catch (Exception ex) {
+        			throw new InterpreterException("Function 'readByte': Cannot apply.", ex);
+        		}
+        	}
+
+        	public int arity() {
+        		return 2;
+        	}
+        }));
+        
         env.bind("openFile", context().createFunction(new Function () {
         	public Object apply(Object[] args) {
                 String a = null;
         		try {
-                    a = (String) args[0];
+                    a = context().stringValue(args[0]);
         			return new FileInputStream(a);
         		} catch (Exception ex) {
         			throw new InterpreterException("Function 'openFile': Cannot apply to \'"+a+"\'", ex);
@@ -1041,6 +1058,54 @@ public class DefaultPlatform implements Platform {
         		return 1;
         	}
         }));
+
+        env.bind("createFile", context().createFunction(new Function () {
+        	public Object apply(Object[] args) {
+                String a = null;
+        		try {
+                    a = context().stringValue(args[0]);
+                    return new FileOutputStream(a);
+        		} catch (Exception ex) {
+        			throw new InterpreterException("Function 'createFile': Cannot apply to \'"+a+"\'", ex);
+        		}
+        	}
+
+        	public int arity() {
+        		return 1;
+        	}
+        }));
+        
+        env.bind("closeInputStream", context().createProcedure(new Procedure () {
+        	public void call(Object[] args) {
+        		try {
+        			InputStream s = (InputStream)context().toJavaObject(args[0]);
+        			s.close();
+        		} catch (Exception ex) {
+        			throw new InterpreterException("Function 'readByte': Cannot apply.", ex);
+        		}
+        	}
+
+        	public int arity() {
+        		return 1;
+        	}
+        }));
+        
+        env.bind("closeOutputStream", context().createProcedure(new Procedure () {
+        	public void call(Object[] args) {
+        		try {
+        			OutputStream s = (OutputStream)context().toJavaObject(args[0]);
+        			s.close();
+        		} catch (Exception ex) {
+        			throw new InterpreterException("Function 'readByte': Cannot apply.", ex);
+        		}
+        	}
+
+        	public int arity() {
+        		return 1;
+        	}
+        }));
+        
+        
 
         env.bind("currentSystemTime", context().createFunction(new Function () {
         	public Object apply(Object[] args) {

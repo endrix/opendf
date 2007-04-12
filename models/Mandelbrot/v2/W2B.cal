@@ -1,0 +1,14 @@
+
+import all caltrop.lib.BitOps;
+
+actor W2B (boolean bigEndian) In ==> Out: 
+
+	action [w] ==> [if bigEndian then b1 else b2 end, 
+	                if bigEndian then b2 else b1 end]
+	var
+		b1 = bitand(w / 256, 0xff),
+		b2 = bitand(w, 0xff)
+	end
+end
+		
+		
