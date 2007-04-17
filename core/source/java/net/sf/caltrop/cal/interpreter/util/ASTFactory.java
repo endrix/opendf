@@ -739,6 +739,8 @@ public class ASTFactory {
                 return new ExprLiteral(ExprLiteral.litFalse);
         } else if (litkind.equals(valString))
             return new ExprLiteral(ExprLiteral.litString, litvalue);
+        else if (litkind.equals(valCharacter))
+            return new ExprLiteral(ExprLiteral.litChar, litvalue);
         else if (litkind.equals(valNull))
         	return new ExprLiteral(ExprLiteral.litNull);
         else throw new InterpreterException("Unknown literal type: " + litkind);
@@ -995,6 +997,7 @@ public class ASTFactory {
     final static String valBlock = "Block";
     final static String valBoolean = "Boolean";
     final static String valCall = "Call";
+    final static String valCharacter = "Character";
     final static String valEntry = "Entry";
     final static String valFreeVar = "freeVar";
     final static String valFsm = "fsm";

@@ -215,7 +215,7 @@ public class Util {
 				c = loader.loadClass(className);
 				Logging.dbg().warning("Loaded '" + className + "' with '" + loader.getClass().getName() + "'");
 			} catch (Exception exc) {
-				Logging.dbg().warning("Default loader for '" + className + "'");
+				Logging.dbg().warning("Default loader for '" + className + "' because an exception was thrown: " + exc.getMessage());
 				c = Class.forName(className);
 			}
 			
