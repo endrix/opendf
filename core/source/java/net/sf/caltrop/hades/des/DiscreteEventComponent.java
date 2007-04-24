@@ -70,6 +70,8 @@ public interface DiscreteEventComponent extends DiscreteEventEntity {
   public void disconnect();
 
   public String getName();
+  
+  public void  setName(String name);
 }
 
 

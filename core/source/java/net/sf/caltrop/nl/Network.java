@@ -67,6 +67,7 @@ import net.sf.caltrop.cal.interpreter.environment.HashEnvironment;
 import net.sf.caltrop.cal.interpreter.util.ASTFactory;
 import net.sf.caltrop.cal.interpreter.util.Platform;
 import net.sf.caltrop.cal.interpreter.util.SourceReader;
+import net.sf.caltrop.hades.des.DiscreteEventComponent;
 import net.sf.caltrop.nl.parser.Lexer;
 import net.sf.caltrop.nl.parser.Parser;
 import net.sf.caltrop.nl.util.DOMFactory;
@@ -267,7 +268,10 @@ public class Network {
  			Element e = (Element)entityDecls.item(i);
  			Object res = entityEval.evaluate(xpathEvalElement("EntityExpr", e));
  			 			
- 			entityNames.put(e.getAttribute("name"), res);
+ 			String entityVarName = e.getAttribute("name");
+ 			entityNames.put(entityVarName, res);
+
+ 			addLocalNamesToDEC(entityVarName, res, );
  		}
  		
  		NodeList structureStmts = xpathEvalNodes("/Network/StructureStmt", nldoc);
@@ -302,6 +306,12 @@ public class Network {
 		}
 		ClassName cn = new ClassName(ids.get(ids.size() - 1).getAttribute(attrName), packageName);
 		return cn;
+	}
+	
+	private void addLocalNamesToDEC(String prefix, Object entities) {
+		if (entities instanceof DiscreteEventComponent) {
+			
+		}
 	}
 	
 	private static void  addInstanceToNetwork(String idString, String className, String [] packageName, Map<String, Element> parameters, Network n, List<Element> attributes) {

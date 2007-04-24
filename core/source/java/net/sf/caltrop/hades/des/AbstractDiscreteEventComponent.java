@@ -65,9 +65,16 @@ public abstract class AbstractDiscreteEventComponent implements DiscreteEventCom
   public AbstractDiscreteEventComponent() {
     inputs = new InputConnectors();
     outputs = new OutputConnectors();
+    name = this.toString();
   }
 
   public String getName() {
     return toString();
   }
+  
+  public void  setName(String name) {
+	  this.name = name;
+  }
+  
+  private String name;
 }
