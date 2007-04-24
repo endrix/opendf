@@ -270,8 +270,6 @@ public class Network {
  			 			
  			String entityVarName = e.getAttribute("name");
  			entityNames.put(entityVarName, res);
-
- 			addLocalNamesToDEC(entityVarName, res, );
  		}
  		
  		NodeList structureStmts = xpathEvalNodes("/Network/StructureStmt", nldoc);
@@ -307,13 +305,7 @@ public class Network {
 		ClassName cn = new ClassName(ids.get(ids.size() - 1).getAttribute(attrName), packageName);
 		return cn;
 	}
-	
-	private void addLocalNamesToDEC(String prefix, Object entities) {
-		if (entities instanceof DiscreteEventComponent) {
-			
-		}
-	}
-	
+		
 	private static void  addInstanceToNetwork(String idString, String className, String [] packageName, Map<String, Element> parameters, Network n, List<Element> attributes) {
 		
 		
