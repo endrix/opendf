@@ -38,11 +38,11 @@ ENDCOPYRIGHT
 
 package net.sf.caltrop.nl;
 
+import static net.sf.caltrop.nl.util.Lib.renderObject;
 import static net.sf.caltrop.util.Util.xpathEvalElement;
 import static net.sf.caltrop.util.Util.xpathEvalElements;
 import static net.sf.caltrop.util.Util.xpathEvalNode;
 import static net.sf.caltrop.util.Util.xpathEvalNodes;
-import static net.sf.caltrop.nl.util.Lib.renderObject;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -50,11 +50,9 @@ import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.StringReader;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 
@@ -63,11 +61,9 @@ import net.sf.caltrop.cal.interpreter.ExprEvaluator;
 import net.sf.caltrop.cal.interpreter.SimpleThunk;
 import net.sf.caltrop.cal.interpreter.ast.Expression;
 import net.sf.caltrop.cal.interpreter.environment.Environment;
-import net.sf.caltrop.cal.interpreter.environment.HashEnvironment;
 import net.sf.caltrop.cal.interpreter.util.ASTFactory;
 import net.sf.caltrop.cal.interpreter.util.Platform;
 import net.sf.caltrop.cal.interpreter.util.SourceReader;
-import net.sf.caltrop.hades.des.DiscreteEventComponent;
 import net.sf.caltrop.nl.parser.Lexer;
 import net.sf.caltrop.nl.parser.Parser;
 import net.sf.caltrop.nl.util.DOMFactory;
