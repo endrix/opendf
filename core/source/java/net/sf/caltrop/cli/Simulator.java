@@ -115,6 +115,8 @@ public class Simulator {
                 interpretStimulus = false;
 			} else if (args[i].equals("-ea")) {
 				System.setProperty("EnableAssertions", "true");
+			} else if (args[i].equals("-tc")) {
+				System.setProperty("EnableTypeChecking", "true");
 			} else if (args[i].equals("-P")) {
 				if (platformName != null) usage();
 				i += 1;

@@ -58,10 +58,13 @@ import javax.xml.transform.Transformer;
 import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import static net.sf.caltrop.util.Util.xpathEvalElement;
+import static net.sf.caltrop.util.Util.xpathEvalElements;
 import static net.sf.caltrop.util.Util.xpathEvalNodes;
 
 /**
@@ -407,12 +410,35 @@ public class ASTFactory {
         assert predType.test(e);
 
         String typeName = e.getAttribute(attrName);
-        List typeParameters = net.sf.caltrop.util.Util.listElements(e, predType);
-        TypeExpr [] typeExprs = new TypeExpr[typeParameters.size()];
-        for (int i = 0; i < typeExprs.length; i++) {
-            typeExprs[i] = createTypeExpr((Element) typeParameters.get(i));
+        
+        List<Element> typeParameters = xpathEvalElements("Type", e);
+        if (typeParameters.size() > 0) {
+            TypeExpr [] typeExprs = new TypeExpr[typeParameters.size()];
+            for (int i = 0; i < typeExprs.length; i++) {
+                typeExprs[i] = createTypeExpr((Element) typeParameters.get(i));
+            }
+            return new TypeExpr(typeName, typeExprs);
+        } else {
+        	typeParameters = xpathEvalElements("Entry[@kind='Type']", e);
+        	List<Element> valueParameters = xpathEvalElements("Entry[@kind='Expr']", e);
+        	if (typeParameters.size() > 0 || valueParameters.size() > 0) {
+        		Map tPars = new HashMap();
+        		Map vPars = new HashMap();
+        		for (Element e1 : typeParameters) {
+        			Element t = xpathEvalElement("Type", e1);
+        			tPars.put(e1.getAttribute(attrName), createTypeExpr(t));
+        		}
+        		
+        		for (Element e1 : valueParameters) {
+        			Element v = xpathEvalElement("Expr", e1);
+        			vPars.put(e1.getAttribute(attrName), createExpression(v));
+        		}
+        		
+        		return new TypeExpr(typeName, tPars, vPars);
+        	} else {
+        		return new TypeExpr(typeName);
+        	}
         }
-        return new TypeExpr(typeName, typeExprs);
     }
 
     private static Decl [] createDecls(Element e, ElementPredicate pred) {

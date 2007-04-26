@@ -130,7 +130,8 @@ public class DefaultContext implements Context {
 	}
 
 	public int getMinimalIntegerLength(Object o) {
-		return 32;
+		BigInteger b = asBigInteger(o);
+		return b.bitLength() + 1;
 	}
 
 	public boolean isSignedInteger(Object o) {

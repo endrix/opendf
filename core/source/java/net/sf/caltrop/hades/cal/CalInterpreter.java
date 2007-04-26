@@ -65,6 +65,7 @@ import net.sf.caltrop.cal.interpreter.ast.Expression;
 import net.sf.caltrop.cal.interpreter.ast.PortDecl;
 import net.sf.caltrop.cal.interpreter.ast.QID;
 import net.sf.caltrop.cal.interpreter.ast.Transition;
+import net.sf.caltrop.cal.interpreter.ast.TypeExpr;
 import net.sf.caltrop.cal.interpreter.environment.CacheEnvironment;
 import net.sf.caltrop.cal.interpreter.environment.Environment;
 import net.sf.caltrop.cal.interpreter.environment.HashEnvironment;
@@ -77,6 +78,7 @@ import net.sf.caltrop.cal.interpreter.util.ImportMapper;
 import net.sf.caltrop.cal.interpreter.util.ImportUtil;
 import net.sf.caltrop.cal.interpreter.util.Platform;
 import net.sf.caltrop.cal.interpreter.util.PriorityUtil;
+import net.sf.caltrop.cal.interpreter.util.Types;
 import net.sf.caltrop.hades.des.AbstractDiscreteEventComponent;
 import net.sf.caltrop.hades.des.AbstractMessageListener;
 import net.sf.caltrop.hades.des.BasicMessageProducer;
@@ -128,6 +130,8 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 		scheduler = s;
 		
 		setupAssertionHandling();
+		
+		setupPortTypeChecking();
 		
 		warnBigBuffers = -1;
 		String bufferSizeWarning = System.getProperty("CalBufferWarning");
@@ -709,6 +713,70 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 		return false;
 	}
 	
+	private void  setupPortTypeChecking() {
+		final String actorName = actor.getName();
+		
+		String typeChecking = System.getProperty("EnableTypeChecking");
+		if (typeChecking != null) {
+			typeChecking = typeChecking.trim().toLowerCase();
+		}
+		
+		boolean checkTypes = "true".equals(typeChecking) || "on".equals(typeChecking);
+
+		for (PortDecl pd : actor.getInputPorts()) {
+			final String portName = pd.getName();
+			final TypeExpr te = pd.getType();
+			TokenListener tl = null;
+			if (checkTypes && te != null) {
+				tl = new TokenListener () {
+					public void notify(Object token) {
+						Types.TypeCheckResult tcr = Types.checkType(te, token, myContext, actorEnv);
+						switch (tcr) {
+						case NO: 
+							Logging.user().severe("Type check failed on input port '" + portName 
+								                + "' of actor '" + actorName + "'. Value: " + token);
+							break;
+						case UNDECIDED: 
+							Logging.user().warning("Type check inconclusive on input port '" + portName 
+			                                    + "' of actor '" + actorName + "'. Value: " + token);
+							break;
+						default:
+							break;
+						}
+					}
+				};
+			}
+			inputPortMap.get(portName).setTokenListener(tl);
+		}
+
+		for (PortDecl pd : actor.getOutputPorts()) {
+			final String portName = pd.getName();
+			final TypeExpr te = pd.getType();
+			TokenListener tl = null;
+			if (checkTypes && te != null) {
+				tl = new TokenListener () {
+					public void notify(Object token) {
+						Types.TypeCheckResult tcr = Types.checkType(te, token, myContext, actorEnv);
+						switch (tcr) {
+						case NO: 
+							Logging.user().severe("Type check failed on output port '" + portName 
+								                + "' of actor '" + actorName + "'. Value: " + token);
+							break;
+						case UNDECIDED: 
+							Logging.user().warning("Type check inconclusive on output port '" + portName 
+			                                    + "' of actor '" + actorName + "'. Value: " + token);
+							break;
+						default:
+							break;
+						}
+					}
+				};
+			}
+			outputPortMap.get(portName).setTokenListener(tl);
+		}
+
+	}
+	
 	private void  setupAssertionHandling() {
 		String assertions = System.getProperty("EnableAssertions");
 		if (assertions != null) {
@@ -853,8 +921,8 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 	protected Set   []   ndaStateSets;	// not used in simulation, but might be 
 	// useful when animating
 	
-	protected Map inputPortMap;
-	protected Map outputPortMap;
+	protected Map<String, MosesInputChannel> inputPortMap;
+	protected Map<String, MosesOutputChannel> outputPortMap;
 	
 	private int tokensQueued;
 	private int  nVoidFirings = 0;
@@ -1069,6 +1137,11 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 		
 	    public void	message(MessageEvent evt) {
 			tokens.add(evt.value);
+			try {
+				if (listener != null) {
+					listener.notify(evt.value);
+				}
+			} catch (Exception e) {e.printStackTrace(); System.out.println("Uh-oh");}
 			tokensQueued += 1;
 			scheduleActor();
 			animationPostfireHandler.modifiedAnimationState();
@@ -1089,6 +1162,7 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 			tokens = new MyArrayList();
 			callbacks = new MyArrayList();
 			bufferSize = -1;
+			listener = null;
 		}
 		
 		public List  getTokenList() {
@@ -1097,6 +1171,10 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 		
 		protected boolean bufferFull() {
 			return bufferSize > 0 && tokensQueued >= bufferSize;
+		}
+		
+		public void  setTokenListener(TokenListener tl) {
+			listener = tl;
 		}
 		
 		//
@@ -1108,6 +1186,8 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 		protected int tokensRead;
 		protected String name;
 		protected int  bufferSize;
+		
+		protected TokenListener listener;
 		
 		private final String attrSize = "size";
 
@@ -1161,6 +1241,11 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 		//
 		
 		public void put(Object a) {
+			try {
+				if (listener != null) {
+					listener.notify(a);
+				}
+			} catch (Exception e) {}
 			tokens.add(a);
 		}
 		
@@ -1182,15 +1267,25 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 			tokens.deleteRange(0, n);
 			return blocked;
 		}
+		
+		public void  setTokenListener(TokenListener tl) {
+			listener = tl;
+		}
 				
 		public MosesOutputChannel(String name) {
 			this.name = name;
 			this.blocked = false;
+			listener = null;
 		}
 		
+		protected TokenListener  listener;
 		protected String name;
 		protected boolean  blocked;
 		protected MyArrayList tokens = new MyArrayList();
+	}
+	
+	interface TokenListener {
+		void notify(Object token);
 	}
 	
 	/**
