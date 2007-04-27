@@ -525,7 +525,11 @@ public class Shell {
             printUsage();
             return;
         }
-
+        
+        if (verbose) {
+        	System.out.println("Using platform '" + defaultPlatform.getClass().getName() + "'.");
+        }
+        
         Map bindings = loadFiles();
 
         new Shell(defaultPlatform, bindings, System.in, System.out, System.err, true).executeAll();

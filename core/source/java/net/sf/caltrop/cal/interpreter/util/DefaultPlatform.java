@@ -144,6 +144,8 @@ public class DefaultPlatform implements Platform {
          * Returns the specified number of bytes read from the stream
          * in an integer.  The last byte received is in the LSB.  
          */
+        env.bind("__PlatformName", this.getClass().getName());
+
         env.bind("socketGetToken", context().createFunction(new Function() {
                 public Object apply (Object[] args) 
                 {
