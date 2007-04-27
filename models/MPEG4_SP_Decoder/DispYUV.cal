@@ -104,7 +104,6 @@ actor DispYUV [int] (string title,string file, int width,
     frame.getContentPane().add(picture);
     frame.pack();
     frame.setVisible(true);
-    picture.displayImage();
     readFrame();
     lastTime :=  currentSystemTime();
   end

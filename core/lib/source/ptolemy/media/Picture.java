@@ -33,18 +33,10 @@ package ptolemy.media;
 import java.awt.Canvas;
 import java.awt.Dimension;
 import java.awt.Graphics;
-import java.awt.GraphicsConfiguration;
-import java.awt.GraphicsDevice;
-import java.awt.GraphicsEnvironment;
-import java.awt.HeadlessException;
 import java.awt.Image;
-import java.awt.Transparency;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
 import java.awt.image.MemoryImageSource;
-import java.awt.image.PixelGrabber;
-
-import javax.swing.ImageIcon;
 
 //////////////////////////////////////////////////////////////////////////
 //// Picture
@@ -69,6 +61,7 @@ public class Picture extends Canvas {
         _height = height;
         _pixels = new int[_width * _height];
         setSize(width, height);
+        displayImage();
     }
 
     /** Return the preferred size.

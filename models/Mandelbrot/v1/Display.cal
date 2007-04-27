@@ -53,7 +53,6 @@ actor Display (string title, int width, int height, int autoUpdate)
     	frame.getContentPane().add(picture);
     	frame.pack();
     	frame.setVisible(true);
-    	picture.displayImage();
   	end
 
 	A: 	action X: [x], Y: [y], R: [r], G: [g], B: [b] ==>
