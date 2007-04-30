@@ -100,28 +100,28 @@ public class Network extends AbstractDiscreteEventComponent {
 		if (src == null) {
 			NetworkInput in = (NetworkInput) inputs.getConnector(srcConnector);
 			if (in == null) {
-				throw new RuntimeException("Undefined network input port: " + srcConnector);
+				throw new RuntimeException("Undefined network input port: " + srcConnector + "(network '" + this.getName() + "')");
 			}
 			producer = in.getProducer();
 		} else {
 			producer = src.getOutputConnectors().getConnector(srcConnector);
 			if (producer == null) {
 				throw new RuntimeException("Undefined output port '" + srcConnector 
-						                 + "' of class '" + src.getClass().getName() + "'");
+						                 + "' of actor '" + src.getName() + "'");
 			}
 		}
 		
 		if (dst == null) {
 			NetworkOutput out = (NetworkOutput) outputs.getConnector(dstConnector);
 			if (out == null) {
-				throw new RuntimeException("Undefined network output port: " + dstConnector);
+				throw new RuntimeException("Undefined network output port: " + dstConnector + "(network '" + this.getName() + "')");
 			}
 			listener = out.getListener();
 		} else {
 			listener = dst.getInputConnectors().getConnector(dstConnector);
 			if (listener == null) {
 				throw new RuntimeException("Undefined input port '" + dstConnector 
-						                 + "' of class '" + dst.getClass().getName() + "'");
+						                 + "' of actor '" + dst.getName() + "'");
 			}
 		}
 		
