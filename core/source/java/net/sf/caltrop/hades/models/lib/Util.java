@@ -56,6 +56,7 @@ import net.sf.caltrop.cal.interpreter.util.DefaultPlatform;
 import net.sf.caltrop.cal.interpreter.util.ImportHandler;
 import net.sf.caltrop.cal.interpreter.util.ImportMapper;
 import net.sf.caltrop.cal.interpreter.util.Platform;
+import net.sf.caltrop.cal.interpreter.util.SourceReader;
 import net.sf.caltrop.hades.cal.EnvironmentWrapper;
 import net.sf.caltrop.hades.des.DiscreteEventComponent;
 import net.sf.caltrop.hades.des.MessageListener;
@@ -99,7 +100,7 @@ public class Util {
 		ImportMapper [] importMappers = platform.getImportMappers();
 		Environment localEnv = handleImportList(platform.createGlobalEnvironment(), importHandlers, imports, importMappers);
 
-		localEnv = createEnvironment(xpathEvalNodes("/XDF/Decl", source), env, platform);
+		localEnv = createEnvironment(xpathEvalNodes("/XDF/Decl[@kind='Var']", source), env, platform);
 		Context context = platform.context();
 
 		//
@@ -165,13 +166,17 @@ public class Util {
 					NodeList nlAttrs = xpathEvalNodes("Attribute[@name != 'connectionMonitor']", eConnection);
 					for (int j = 0; j < nlAttrs.getLength(); j++) {
 						Element eAttr = (Element)nlAttrs.item(j);
-						Element eVal = xpathEvalElement("Expr", eAttr);
-						Object val;
+						String value = eAttr.getAttribute(attrValue);
+						Element eVal = null;
+						if (value != null && !"".equals(value)) {
+							eVal = SourceReader.readExprDOM(value);
+						} else {
+							eVal = xpathEvalElement("Expr", eAttr);
+						}
+						Object val = null;
 						if (eVal != null) {
 							net.sf.caltrop.cal.interpreter.ast.Expression expr = ASTFactory.buildExpression(eVal);
 							val = evaluator.evaluate(expr);
-						} else {
-							val = null;
 						}
 						((Attributable)port).set(eAttr.getAttribute(attrName), val);
 					}
@@ -256,6 +261,7 @@ public class Util {
 	private final static String attrName = "name";
 	private final static String attrSrc = "src";
 	private final static String attrSrcPort = "src-port";
+	private final static String attrValue = "value";
 	
 	private final static String valInput = "Input";
 	

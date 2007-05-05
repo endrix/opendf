@@ -60,8 +60,12 @@ import net.sf.caltrop.cal.parser.Parser;
 import net.sf.caltrop.util.MultiErrorException;
 
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
+
+import static net.sf.caltrop.util.Util.xpathEvalElement;
+
 
 /**
  *  @author Jörn W. Janneck <janneck@eecs.berkeley.edu>
@@ -109,6 +113,22 @@ public class SourceReader
 		} catch (Exception e) {
 			throw new RuntimeException("Cannot create actor AST.", e);
 		}
+	}
+	
+	public static Element  readExprDOM(String s) {
+		try {
+			return readExprDOM(new StringReader(s));
+		}
+		catch (Exception exc) {
+			throw new RuntimeException("Cannot parse expression: " + s, exc);
+		}
+	}
+
+	public static Element  readExprDOM(Reader s) throws Exception {
+		Lexer calLexer = new Lexer(s);
+		CalExpressionParser calParser = new CalExpressionParser(calLexer);
+		Document doc = calParser.doParse();
+		return doc.getDocumentElement();
 	}
 	
 	public static Expression  readExpr(String s) {

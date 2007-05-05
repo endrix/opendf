@@ -68,11 +68,7 @@ import net.sf.caltrop.cal.interpreter.ast.Transition;
 import net.sf.caltrop.cal.interpreter.ast.TypeExpr;
 import net.sf.caltrop.cal.interpreter.environment.CacheEnvironment;
 import net.sf.caltrop.cal.interpreter.environment.Environment;
-import net.sf.caltrop.cal.interpreter.environment.HashEnvironment;
-import net.sf.caltrop.cal.interpreter.util.CalScriptImportHandler;
-import net.sf.caltrop.cal.interpreter.util.ClassLoadingImportHandler;
 import net.sf.caltrop.cal.interpreter.util.DefaultPlatform;
-import net.sf.caltrop.cal.interpreter.util.EnvironmentFactoryImportHandler;
 import net.sf.caltrop.cal.interpreter.util.ImportHandler;
 import net.sf.caltrop.cal.interpreter.util.ImportMapper;
 import net.sf.caltrop.cal.interpreter.util.ImportUtil;
@@ -1124,7 +1120,7 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 		//
 		
 		public boolean  set(Object name, Object value) {
-			if (attrSize.equals(name) && value instanceof Integer) {
+			if (attrBufferSize.equals(name) && value instanceof Integer) {
 				bufferSize = ((Integer)value).intValue();
 				return true;
 			}
@@ -1189,7 +1185,7 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 		
 		protected TokenListener listener;
 		
-		private final String attrSize = "size";
+		private final String attrBufferSize = "bufferSize";
 
 		protected final ControlEvent CE_BLOCK = new ControlEvent(this, ControlEvent.BLOCK);
 		protected final ControlEvent CE_UNBLOCK = new ControlEvent(this, ControlEvent.UNBLOCK);
