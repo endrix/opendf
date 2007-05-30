@@ -68,6 +68,7 @@ import net.sf.caltrop.nl.parser.Lexer;
 import net.sf.caltrop.nl.parser.Parser;
 import net.sf.caltrop.nl.util.DOMFactory;
 import net.sf.caltrop.nl.util.IDGenerator;
+import net.sf.caltrop.nl.util.Lib;
 import net.sf.caltrop.util.Logging;
 import net.sf.caltrop.util.Util;
 
@@ -463,9 +464,7 @@ public class Network {
 			basename = fileName.substring(0, fileName.length() - suffixNL.length());
 		}			
 		FileInputStream inputStream = new FileInputStream(fileName);
-		Lexer lexer = new Lexer(inputStream);
-		Parser parser = new Parser(lexer);
-		Document doc = parser.parseNetwork(fileName);
+		Document doc = Lib.readNL(fileName);
 
 		Platform platform = net.sf.caltrop.cal.interpreter.util.DefaultPlatform.thePlatform;
 		Context context =  platform.context(); // FIXME: make this parametric
