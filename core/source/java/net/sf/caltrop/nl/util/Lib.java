@@ -38,6 +38,9 @@ ENDCOPYRIGHT
 
 package net.sf.caltrop.nl.util;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -47,7 +50,10 @@ import java.util.Map;
 import java.util.Set;
 
 import net.sf.caltrop.cal.interpreter.Context;
+import net.sf.caltrop.nl.parser.Lexer;
+import net.sf.caltrop.nl.parser.Parser;
 import net.sf.caltrop.util.CascadedMap;
+import net.sf.caltrop.util.ParserErrorException;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -58,6 +64,29 @@ import org.w3c.dom.NodeList;
 import static net.sf.caltrop.util.Util.xpathEvalElement;
 
 public class Lib {
+	
+	public static Document  readNL(String fileName) {
+		try {
+			return readNL(new FileInputStream(fileName), fileName);
+		} catch (FileNotFoundException e) {
+			throw new RuntimeException("Could not find NL file '" + fileName + "'.", e);
+		}
+	}
+	
+	public static Document  readNL(InputStream s) {
+		return readNL(s, "<unknown>");
+	}
+	
+	private static Document  readNL(InputStream s, String fileName) {
+		try {
+			Lexer lexer = new Lexer(s);
+			Parser parser = new Parser(lexer);
+			return parser.parseNetwork(fileName);			
+		} 
+		catch (ParserErrorException exc) {
+			throw new RuntimeException("Error parsing NL.", exc);
+		}
+	}
 
 	public static Element  substituteExpression(Element expr, Map<String, String> s, DOMFactory dom) {
 		Set<String> vars = (s == null) ? Collections.EMPTY_SET : s.keySet();

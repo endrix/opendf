@@ -46,6 +46,7 @@ import java.io.PrintWriter;
 
 import net.sf.caltrop.nl.parser.Lexer;
 import net.sf.caltrop.nl.parser.Parser;
+import net.sf.caltrop.nl.util.Lib;
 import net.sf.caltrop.util.Logging;
 import net.sf.caltrop.util.Util;
 
@@ -90,9 +91,7 @@ public class NL2XNL {
 			basename = fileName.substring(0, fileName.length() - suffixNL.length());
 		}			
 		FileInputStream inputStream = new FileInputStream(fileName);
-		Lexer lexer = new Lexer(inputStream);
-		Parser parser = new Parser(lexer);
-		Document doc = parser.parseNetwork(fileName);
+		Document doc = Lib.readNL(fileName);
 		
 		String result = Util.createXML(doc);
 		File outputFile = new File(basename + suffixXNL);
