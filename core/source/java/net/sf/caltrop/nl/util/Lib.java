@@ -41,6 +41,8 @@ package net.sf.caltrop.nl.util;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -77,9 +79,24 @@ public class Lib {
 		return readNL(s, "<unknown>");
 	}
 	
-	private static Document  readNL(InputStream s, String fileName) {
+	public static Document  readNL(Reader r) {
 		try {
-			Lexer lexer = new Lexer(s);
+			Lexer lexer = new Lexer(r);
+			Parser parser = new Parser(lexer);
+			return parser.parseNetwork("<unknown>");			
+		} 
+		catch (ParserErrorException exc) {
+			throw new RuntimeException("Error parsing NL.", exc);
+		}
+	}
+	
+	private static Document  readNL(InputStream s, String fileName) {
+		return readNL(new InputStreamReader(s), fileName);
+	}
+
+	private static Document  readNL(Reader r, String fileName) {
+		try {
+			Lexer lexer = new Lexer(r);
 			Parser parser = new Parser(lexer);
 			return parser.parseNetwork(fileName);			
 		} 
