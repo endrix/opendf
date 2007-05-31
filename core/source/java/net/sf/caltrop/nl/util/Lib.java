@@ -80,14 +80,7 @@ public class Lib {
 	}
 	
 	public static Document  readNL(Reader r) {
-		try {
-			Lexer lexer = new Lexer(r);
-			Parser parser = new Parser(lexer);
-			return parser.parseNetwork("<unknown>");			
-		} 
-		catch (ParserErrorException exc) {
-			throw new RuntimeException("Error parsing NL.", exc);
-		}
+		return readNL(r, "<unknown>");
 	}
 	
 	private static Document  readNL(InputStream s, String fileName) {
