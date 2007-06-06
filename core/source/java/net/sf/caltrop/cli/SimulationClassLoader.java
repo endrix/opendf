@@ -120,7 +120,7 @@ public class SimulationClassLoader extends ClassLoader {
 		
 		this.topLevelClassLoader = this;
 
-		addModelClassFactory("pcalml", new PCalMLActorClassFactory());
+//		addModelClassFactory("pcalml", new PCalMLActorClassFactory());
 		addModelClassFactory("cal", new CalActorClassFactory(cachePath));
 		addModelClassFactory("calml", new CalMLActorClassFactory()); 
 		addModelClassFactory("nl", new NLClassFactory());
