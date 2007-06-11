@@ -226,12 +226,13 @@ public class Simulator {
         {
             Logging.user().severe(lee.getMessage());
             lee.getErrorContainer().logTo(Logging.user());
-            System.exit(-1);
             Logging.user().severe("An error has occurred.  Exiting abnormally.\n");
+            System.exit(-1);
         }
         catch (DECLoadException dle)
         {
             Logging.user().severe("Could not load simulation model." + dle.getMessage());
+            Logging.user().severe("An error has occurred.  Exiting abnormally.\n");
             System.exit(-1);
         }
         
@@ -240,21 +241,44 @@ public class Simulator {
         OutputStream os = outFile == null ? new NullOutputStream() : 
         (".".equals(outFile) ? System.out : new FileOutputStream(outFile));
         SequentialSimulatorCallback callback = interpretStimulus ? new EvaluatedStreamCallback(is, os, platform):new StreamIOCallback(is, os);
-        SequentialSimulator sim = new SequentialSimulator(dec, callback);
+
+        SequentialSimulator sim = null;
+        try
+        {
+            sim = new SequentialSimulator(dec, callback);
+        }
+        catch (Exception e)
+        {
+            Logging.dbg().throwing("Simulator", "main", e);
+            Logging.user().severe(e.toString());
+            Logging.user().severe("Could not initialize simulator.\nAn error has occurred.  Exiting abnormally.\n");
+            System.exit(-1);
+        }
             
         long stepCount = 0;
         double currentTime = 0;
         double lastTime = 0;
         Logging.user().info("Running...");
         long beginWallclockTime = System.currentTimeMillis();
-        while (sim.hasEvent() && 
-            (nSteps < 0 || stepCount < nSteps) &&
-            (time < 0 || currentTime <= time)) {
-            sim.step();
-            stepCount += 1;
-            lastTime = currentTime;
-            currentTime = sim.currentTime();
+        try
+        {
+            while (sim.hasEvent() && 
+                (nSteps < 0 || stepCount < nSteps) &&
+                (time < 0 || currentTime <= time)) {
+                sim.step();
+                stepCount += 1;
+                lastTime = currentTime;
+                currentTime = sim.currentTime();
+            }
         }
+        catch (Exception e)
+        {
+            Logging.dbg().throwing("Simulator", "main", e);
+            Logging.user().severe(e.toString());
+            Logging.user().severe("Error during simulation.\nAn error has occurred.  Exiting abnormally.\n");
+            System.exit(-1);
+        }
+        
         long endWallclockTime = System.currentTimeMillis();
         long wcTime = endWallclockTime - beginWallclockTime;
             

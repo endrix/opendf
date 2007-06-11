@@ -43,6 +43,7 @@ import net.sf.caltrop.cal.interpreter.Context;
 import net.sf.caltrop.cal.interpreter.environment.Environment;
 import net.sf.caltrop.cal.interpreter.environment.PackageEnvironment;
 import net.sf.caltrop.cal.interpreter.environment.SingleEntryEnvironment;
+import net.sf.caltrop.util.Logging;
 
 /**
  * 
@@ -63,11 +64,12 @@ public class ClassLoadingImportHandler extends AbstractImportHandler {
 			Class c = classLoader.loadClass(packagePrefix + "." + className);
 			return new SingleEntryEnvironment(env, context, alias, context.createClass(c));
 		} catch (Exception ex) {
+            Logging.user().warning("Could not resolve import '" + packagePrefix + "." + alias + "'");
 			return null;
 		}
 		
 	}
-	
+
 	/**
 	 * This constructor uses the class loader of this class for loading the
 	 * classes to be put into the environments it creates.
@@ -85,4 +87,5 @@ public class ClassLoadingImportHandler extends AbstractImportHandler {
 	
 	private ClassLoader classLoader;
 
+    
 }
