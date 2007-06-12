@@ -138,6 +138,12 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 			catch (Exception exc) {}
 		}
 		
+		ignoreBufferBounds = false;
+		String ignoreBufferBoundString = System.getProperty("CalBufferIgnoreBounds");
+		if (ignoreBufferBoundString != null && ignoreBufferBoundString.trim().toLowerCase().equals("true")) {
+			ignoreBufferBounds = true;
+		}
+		
 		String platformName = System.getProperty("CalPlatform");
 		if (platformName == null) {
 			myPlatform = defaultPlatform;
@@ -878,6 +884,7 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 	private   boolean     hasTraceVar;
 	private   boolean     hasNDTrackerVar;
 	private   int         warnBigBuffers;
+	private   boolean     ignoreBufferBounds;
 	private final static String traceVarName = "_CAL_traceOutput";
 	private final static String nondeterminismTrackerVarName = "_CAL_trackND";
 	private final static String FINALIZE_PROCEDURE = "__CAL_Finalize";
@@ -1166,6 +1173,8 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 		}
 		
 		protected boolean bufferFull() {
+			if (ignoreBufferBounds)
+				return false;
 			return bufferSize > 0 && tokensQueued >= bufferSize;
 		}
 		
