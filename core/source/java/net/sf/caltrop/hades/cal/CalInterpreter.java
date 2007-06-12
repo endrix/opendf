@@ -42,6 +42,7 @@ package net.sf.caltrop.hades.cal;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -86,6 +87,7 @@ import net.sf.caltrop.hades.des.schedule.Scheduler;
 import net.sf.caltrop.hades.des.schedule.SimulationFinalizer;
 import net.sf.caltrop.hades.des.util.Attributable;
 import net.sf.caltrop.hades.des.util.LocationMap;
+import net.sf.caltrop.hades.des.util.OutputBlockRecord;
 import net.sf.caltrop.hades.des.util.StateChangeEvent;
 import net.sf.caltrop.hades.des.util.StateChangeListener;
 import net.sf.caltrop.hades.des.util.StateChangeProvider;
@@ -144,6 +146,12 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 			ignoreBufferBounds = true;
 		}
 		
+		bufferBlockRecord = false;
+		String bufferBlockRecordString = System.getProperty("CalBufferBlockRecord");
+		if (bufferBlockRecordString != null && bufferBlockRecordString.trim().toLowerCase().equals("true")) {
+			bufferBlockRecord = true;
+		}
+		
 		String platformName = System.getProperty("CalPlatform");
 		if (platformName == null) {
 			myPlatform = defaultPlatform;
@@ -168,6 +176,7 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 		
 		Decl[] decls = actor.getStateVars();
 		Environment constantEnv = myContext.newEnvironmentFrame(outsideEnv);
+		constantEnv.bind("this", this);
 		// disallow writing to cached environment
 		Environment cachedEnv = new CacheEnvironment(constantEnv, false, myContext);
 		this.actorEnv = createActorStateEnvironment(cachedEnv, myContext);
@@ -443,7 +452,32 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 		}
 		blockedOutputChannels = stillBlocked;
 	}
+	
+	protected void blockActor() {
+		if (!bufferBlockRecord)
+			return;
+
+		Collection<OutputBlockRecord> obr = getOBR();
+		if (!obr.contains(myOBR))
+			obr.add(myOBR);
+	}
+	
+	protected void unblockActor() {
+		if (!bufferBlockRecord)
+			return;
 		
+		Collection<OutputBlockRecord> obr = getOBR();
+		obr.remove(myOBR);
+	}
+	
+	private Collection<OutputBlockRecord> getOBR() {
+		Collection<OutputBlockRecord> obr = (Collection<OutputBlockRecord>)scheduler.getProperty("OutputBlockRecords"); 
+		if (obr == null) {
+			obr = new HashSet<OutputBlockRecord>();
+			scheduler.setProperty("OutputBlockRecords", obr);
+		}
+		return obr;
+	}
 	
 	//
 	//  CalInterpreter
@@ -538,6 +572,10 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 	
 	public long  getFiringCount() {
 		return firingCount;
+	}
+	
+	public String  getName() {
+		return actor.getName() + "@" + this.hashCode();
 	}
 	
 	//
@@ -885,11 +923,26 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 	private   boolean     hasNDTrackerVar;
 	private   int         warnBigBuffers;
 	private   boolean     ignoreBufferBounds;
+	private   boolean     bufferBlockRecord;
 	private final static String traceVarName = "_CAL_traceOutput";
 	private final static String nondeterminismTrackerVarName = "_CAL_trackND";
 	private final static String FINALIZE_PROCEDURE = "__CAL_Finalize";
 	protected Scheduler scheduler;
 	protected ActorInterpreter ai;
+	
+	private OutputBlockRecord myOBR = new OutputBlockRecord() {
+		public String getComponentName() {
+			return getName();
+		}
+		
+		public Collection<String> getBlockedOutputConnectors() {
+			List<String> ports = new ArrayList<String>();
+			for (MosesOutputChannel moc : blockedOutputChannels) {
+				ports.add(moc.getName());
+			}
+			return ports;
+		}
+	};
 	
 	protected AnimationPostfireHandler animationPostfireHandler = new AnimationPostfireHandler();
 	
@@ -898,7 +951,7 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 	 */
 	
 	protected boolean delayOutput = false;
-	protected Set blockedOutputChannels = new HashSet();
+	protected Set<MosesOutputChannel> blockedOutputChannels = new HashSet<MosesOutputChannel>();
 	
 	/**
 	 * The current scheduler state in the NDA. Each state represents a (non-empty) set 
@@ -1129,6 +1182,8 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 		public boolean  set(Object name, Object value) {
 			if (attrBufferSize.equals(name) && value instanceof Integer) {
 				bufferSize = ((Integer)value).intValue();
+				if (bufferSize == 0)
+					bufferSize = 1;
 				return true;
 			}
 			return false;
@@ -1209,9 +1264,11 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 		public void  control(ControlEvent ce) {
 			if (ce.data == ControlEvent.BLOCK) {
 				blocked = true;
+				blockActor();
 			} else if (ce.data == ControlEvent.UNBLOCK) {
 				if (blocked) {
 					blocked = false;
+					unblockActor();
 					scheduleActorForOutputFlushing();
 				}
 			} else
@@ -1369,7 +1426,10 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 			Logging.user().warning(s);
 		}
 	}
+	
+	
 		
 	
 	static public final String  CAL_PLATFORM = "CalPlatform";
+
 }

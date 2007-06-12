@@ -146,6 +146,9 @@ public class SequentialSimulator {
 		return scheduler.setProperty(key, value);
 	}
 	
+	public  Object  getProperty(Object key) {
+		return scheduler.getProperty(key);
+	}
 	
 //	
 //	aux
