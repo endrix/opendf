@@ -50,6 +50,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -65,6 +66,7 @@ import net.sf.caltrop.cal.interpreter.util.Platform;
 import net.sf.caltrop.cal.interpreter.util.SourceReader;
 import net.sf.caltrop.cli.lib.EvaluatedStreamCallback;
 import net.sf.caltrop.hades.des.DiscreteEventComponent;
+import net.sf.caltrop.hades.des.util.OutputBlockRecord;
 import net.sf.caltrop.hades.simulation.SequentialSimulator;
 import net.sf.caltrop.hades.simulation.SequentialSimulatorCallback;
 import net.sf.caltrop.hades.simulation.StreamIOCallback;
@@ -87,6 +89,7 @@ public class Simulator {
         Level userVerbosity = Logging.user().getLevel();
 		boolean debug = false;
         boolean interpretStimulus = true;
+        boolean bufferBlockRecord = false;
 		
 		Map params = new HashMap();
 		
@@ -122,12 +125,14 @@ public class Simulator {
 				i += 1;
 				if (i >= args.length) usage();
 				platformName = args[i];
+			} else if (args[i].equals("-bbr")) {
+				System.setProperty("CalBufferBlockRecord", "true");
+				bufferBlockRecord = true;
 			} else if (args[i].equals("-bq")) {
 				i += 1;
 				if (i >= args.length) usage();
 				System.setProperty("CalBufferWarning", args[i]);
 			} else if (args[i].equals("-bi")) {
-				if (i >= args.length) usage();
 				System.setProperty("CalBufferIgnoreBounds", "true");
 			} else if (args[i].equals("-D")) {
 				i += 1;
@@ -289,6 +294,24 @@ public class Simulator {
         Logging.user().info("Execution time: " + wcTime + "ms."
             + (wcTime > 0 ? " (" + (1000.0 * (double)stepCount / (double)wcTime) + " steps/s)" : ""));
         Logging.user().info("The network is " + (sim.hasEvent() ? "live" : "dead")+ ".");
+        if (bufferBlockRecord && !sim.hasEvent()) {
+        	Collection<OutputBlockRecord> obrs = (Collection<OutputBlockRecord>)sim.getProperty("OutputBlockRecords");
+        	int n = 0;
+        	for (OutputBlockRecord obr : obrs) {
+        		StringBuffer msg = new StringBuffer("Blocked: ");
+        		msg.append(obr.getComponentName() + " (");
+        		boolean first = true;
+        		for (String p : obr.getBlockedOutputConnectors()) {
+        			if (!first) msg.append(", ");
+        			msg.append(p);
+        			first = false;
+        		}
+        		msg.append(")");
+        		Logging.user().info(msg.toString());
+        		n += 1;
+        	}
+        	Logging.user().info("" + n + " actors blocked.");
+        }
 
         Logging.setUserLevel(userVerbosity); // Re-set the verbosity
 	}
@@ -325,7 +348,9 @@ public class Simulator {
         System.out.println("  -P <platform class> defines the platform to use for CAL code interpretation");
         System.out.println("  -D <param def>      allows specification of parameter defs");
         System.out.println("  -q                  run quietly");
-        System.out.println("  -v                  run verbosely");        
+        System.out.println("  -v                  run verbosely");
+        System.out.println("  -bbr                detect and report output-blocked actors on deadlock");
+        System.out.println("  -bi                 ignore buffer bounds (all buffers are unbounded)");
         System.out.println("  -bq <##>            produces a warning if an input queue everbecomes bigger than the specified value");
         System.out.println("  -mp <paths>         specifies the search paths for model files");        
         System.out.println("  -cache <path>       the path to use for caching precompiled models");        
