@@ -126,6 +126,9 @@ public class Simulator {
 				i += 1;
 				if (i >= args.length) usage();
 				System.setProperty("CalBufferWarning", args[i]);
+			} else if (args[i].equals("-bi")) {
+				if (i >= args.length) usage();
+				System.setProperty("CalBufferIgnoreBounds", "true");
 			} else if (args[i].equals("-D")) {
 				i += 1;
 				if (i >= args.length) usage();
