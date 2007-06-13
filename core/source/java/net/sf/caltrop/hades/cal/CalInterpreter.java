@@ -468,6 +468,8 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 		if (!bufferBlockRecord)
 			return;
 
+		blockedStep = scheduler.currentEventCount();
+		blockedTime = scheduler.currentTime();
 		Collection<OutputBlockRecord> obr = getOBR();
 		if (!obr.contains(myOBR))
 			obr.add(myOBR);
@@ -964,6 +966,14 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 			}
 			return ports;
 		}
+		
+		public long getStepNumber() {
+			return blockedStep;
+		}
+		
+		public double getTime() {
+			return blockedTime;
+		}
 	};
 	
 	protected AnimationPostfireHandler animationPostfireHandler = new AnimationPostfireHandler();
@@ -974,6 +984,8 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 	
 	protected boolean delayOutput = false;
 	protected Set<MosesOutputChannel> blockedOutputChannels = new HashSet<MosesOutputChannel>();
+	protected long blockedStep;
+	protected double blockedTime;
 	
 	/**
 	 * The current scheduler state in the NDA. Each state represents a (non-empty) set 

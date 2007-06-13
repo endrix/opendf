@@ -7,4 +7,8 @@ public interface OutputBlockRecord {
 	String  			getComponentName();
 
 	Collection<String>	getBlockedOutputConnectors();
+	
+	long				getStepNumber();
+	
+	double				getTime();
 }
