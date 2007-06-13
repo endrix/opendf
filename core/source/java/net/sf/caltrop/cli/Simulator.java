@@ -306,7 +306,7 @@ public class Simulator {
         			msg.append(p);
         			first = false;
         		}
-        		msg.append(")");
+        		msg.append(") at step " + obr.getStepNumber() + ", time " + obr.getTime());
         		Logging.user().info(msg.toString());
         		n += 1;
         	}
