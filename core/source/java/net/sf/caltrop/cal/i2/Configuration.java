@@ -1,0 +1,36 @@
+package net.sf.caltrop.cal.i2;
+
+import net.sf.caltrop.cal.interpreter.ast.ExprIf;
+import net.sf.caltrop.cal.interpreter.ast.ExprLiteral;
+import net.sf.caltrop.cal.interpreter.ast.ExprVariable;
+import net.sf.caltrop.cal.interpreter.ast.StmtAssignment;
+
+public interface Configuration {
+	
+	Object 	createLiteralValue(ExprLiteral literal);
+	
+	Object  createEmptyList();
+	void	addListElement(Object list, Object element);
+	
+	Object  createEmptySet();
+	void	addSetElement(Object set, Object element);
+	
+	Object  createEmptyMap();
+	void    addMapping(Object map, Object key, Object value);
+	
+	Object	selectField(Object a, String fieldName);
+	void    indexInto(Object structure, int nIndices, OperandStack stack);
+	
+	boolean booleanValue(Object v);
+	
+	Object  cond(Evaluator evaluator, ExprIf expr);
+	
+	Object  lookupVariable(Environment env, ExprVariable expr);
+	
+	void  	assign(Object value, Environment env, StmtAssignment stmt);
+	void	assign(Object value, Environment env, StmtAssignment stmt, int nIndices, OperandStack stack);
+	void	assignField(Object value, Environment env, StmtAssignment stmt, String field);
+
+
+	Object  createClassObject(Class c);	
+}

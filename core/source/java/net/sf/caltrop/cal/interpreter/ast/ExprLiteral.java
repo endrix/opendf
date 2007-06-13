@@ -39,6 +39,8 @@ ENDCOPYRIGHT
 
 package net.sf.caltrop.cal.interpreter.ast;
 
+import net.sf.caltrop.cal.i2.OperandStack;
+import net.sf.caltrop.cal.i2.Configuration;
 import net.sf.caltrop.cal.interpreter.Context;
 import net.sf.caltrop.cal.interpreter.InterpreterException;
 
@@ -56,6 +58,16 @@ public class ExprLiteral extends Expression {
     public ExprLiteral(int kind, String text) {
         this.kind = kind;
         this.text = text;
+    }
+    
+    public void  pushValue(Configuration conf, OperandStack s) {
+    	if (conf == lastConfiguration) {
+    		s.push(lastCachedValue);
+    	} else {
+    		lastConfiguration = conf;
+    		lastCachedValue = conf.createLiteralValue(this);
+    		s.push(lastCachedValue);
+    	}
     }
 
     public Object value(Context context) {
@@ -116,6 +128,9 @@ public class ExprLiteral extends Expression {
     private String       text;
     private Context      lastContext = null;
     private transient Object       cachedValue = null;
+    
+    private Configuration  lastConfiguration = null;
+    private Object      lastCachedValue = null;
 
     public String toString() {
         String text;
