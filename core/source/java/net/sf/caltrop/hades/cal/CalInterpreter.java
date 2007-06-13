@@ -453,7 +453,18 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 		blockedOutputChannels = stillBlocked;
 	}
 	
-	protected void blockActor() {
+	protected void blockActor(String port) {
+		if (hasTraceVar) {
+			Object v = this.actorEnv.get(traceVarName);
+			if (myContext.isBoolean(v) && myContext.booleanValue(v)) {
+				Logging.user().info("<block actor='" 
+						           + actor.getName() 
+						           + "' port='"
+						           + port
+						           + "'/>");
+			}
+		}
+
 		if (!bufferBlockRecord)
 			return;
 
@@ -462,7 +473,18 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 			obr.add(myOBR);
 	}
 	
-	protected void unblockActor() {
+	protected void unblockActor(String port) {
+		if (hasTraceVar) {
+			Object v = this.actorEnv.get(traceVarName);
+			if (myContext.isBoolean(v) && myContext.booleanValue(v)) {
+				Logging.user().info("<unblock actor='" 
+						           + actor.getName() 
+						           + "' port='"
+						           + port
+						           + "'/>");
+			}
+		}
+
 		if (!bufferBlockRecord)
 			return;
 		
@@ -1264,11 +1286,11 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 		public void  control(ControlEvent ce) {
 			if (ce.data == ControlEvent.BLOCK) {
 				blocked = true;
-				blockActor();
+				blockActor(getName());
 			} else if (ce.data == ControlEvent.UNBLOCK) {
 				if (blocked) {
 					blocked = false;
-					unblockActor();
+					unblockActor(getName());
 					scheduleActorForOutputFlushing();
 				}
 			} else
