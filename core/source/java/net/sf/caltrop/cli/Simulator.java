@@ -52,6 +52,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -297,7 +298,9 @@ public class Simulator {
         if (bufferBlockRecord && !sim.hasEvent()) {
         	Collection<OutputBlockRecord> obrs = (Collection<OutputBlockRecord>)sim.getProperty("OutputBlockRecords");
         	int n = 0;
-        	for (OutputBlockRecord obr : obrs) {
+        	List<OutputBlockRecord> sortedObrs = new ArrayList<OutputBlockRecord>(obrs);
+        	Collections.sort(sortedObrs, obrComparator);
+        	for (OutputBlockRecord obr : sortedObrs) {
         		StringBuffer msg = new StringBuffer("Blocked: ");
         		msg.append(obr.getComponentName() + " (");
         		boolean first = true;
@@ -400,6 +403,16 @@ public class Simulator {
     {
         public DECLoadException (String msg) { super(msg); }
     }
-    
+   
+    private static Comparator<OutputBlockRecord>  obrComparator = new Comparator<OutputBlockRecord> () {
+    	public int compare(OutputBlockRecord o1, OutputBlockRecord o2) {
+    		long d = o1.getStepNumber() - o2.getStepNumber();
+    		if (d < 0)
+    			return -1;
+    		if (d > 0)
+    			return 1;
+    		return 0;
+    	}    	
+    };
 }
 

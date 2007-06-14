@@ -43,6 +43,8 @@ package net.sf.caltrop.hades.des;
 
 import java.util.*;
 
+import net.sf.caltrop.util.Logging;
+
 /**
  *   An AML handles the registration protocol, but leaves the actual message handling unspecified.
  */
@@ -53,6 +55,8 @@ public abstract class AbstractMessageListener implements MessageListener {
 	
 	public void	notifyAddProducer(MessageProducer mp) {
 		messageProducers.addElement(mp);
+		if (messageProducers.size() > 1)
+			Logging.user().warning("FAN-IN");
 	}
 	
 	public void	notifyRemoveProducer(MessageProducer mp) {

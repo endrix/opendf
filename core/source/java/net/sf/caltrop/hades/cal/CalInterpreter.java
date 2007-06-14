@@ -1304,6 +1304,8 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 					blocked = false;
 					unblockActor(getName());
 					scheduleActorForOutputFlushing();
+				} else {
+					Logging.dbg().warning(CalInterpreter.this.getName() + "." + this.getName() + ": Received unblocking event without blocking event.");
 				}
 			} else
 				Logging.dbg().warning("Received unidentified control event.");
