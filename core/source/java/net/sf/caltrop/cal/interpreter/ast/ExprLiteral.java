@@ -49,6 +49,14 @@ public class ExprLiteral extends Expression {
     public void accept(ExpressionVisitor visitor) {
         visitor.visitExprLiteral(this);
     }
+    
+    public int getKind() {
+		return kind;
+	}
+    
+    public String getText() {
+		return text;
+	}
 
     public ExprLiteral(int kind) {
         this(kind, "");

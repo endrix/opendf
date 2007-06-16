@@ -629,11 +629,11 @@ public abstract class lr_parser {
     {
       if (stack == null)
 	{
-	  debug_message("# Stack dump requested, but stack is null");
+	  debug_message("# OperandStack dump requested, but stack is null");
 	  return;
 	}
 
-      debug_message("============ Parse Stack Dump ============");
+      debug_message("============ Parse OperandStack Dump ============");
 
       /* dump the stack */
       for (int i=0; i<stack.size(); i++)

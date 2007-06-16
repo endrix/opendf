@@ -159,17 +159,16 @@ public class Evaluator implements ExpressionVisitor, OperandStack, ObjectSink {
     }
 
     public void visitExprVariable(ExprVariable e) {
-    	configuration.lookupVariable(env, e);
+    	push(configuration.lookupVariable(env, e));
     }
 
     public void visitExprApplication(ExprApplication e) {
-    	evaluate(e.getFunction());
-    	Function f = (Function)tosValue();
-    	pop();
+    	Function f = (Function)valueOf(e.getFunction());
 
     	Expression [] argExprs = e.getArgs();
     	for (int i = argExprs.length - 1; i >= 0; i--) {
     		evaluate(argExprs[i], env);
+    		System.out.println(" arg: " + i + " :: " + tosValue());
     	}
     	f.apply(argExprs.length, this);
     }
