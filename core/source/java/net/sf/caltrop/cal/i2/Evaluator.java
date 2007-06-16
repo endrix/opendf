@@ -168,7 +168,6 @@ public class Evaluator implements ExpressionVisitor, OperandStack, ObjectSink {
     	Expression [] argExprs = e.getArgs();
     	for (int i = argExprs.length - 1; i >= 0; i--) {
     		evaluate(argExprs[i], env);
-    		System.out.println(" arg: " + i + " :: " + tosValue());
     	}
     	f.apply(argExprs.length, this);
     }

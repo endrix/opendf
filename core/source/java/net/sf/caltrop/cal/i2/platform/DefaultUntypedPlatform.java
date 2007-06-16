@@ -57,7 +57,6 @@ public class DefaultUntypedPlatform implements Platform {
 					throw new InterpreterException("+ operator: Expected two arguments, received " + n + ".");
 				Object a = evaluator.getValue(0);
 				Object b = evaluator.getValue(1);
-				System.out.println("a: " + a + ", b: " + b);
 				if (a instanceof BigInteger && b instanceof BigInteger) {
 					evaluator.replaceWithResult(2, ((BigInteger)a).add((BigInteger)b));
 				} else {
