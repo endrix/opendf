@@ -109,7 +109,7 @@ public class Evaluator implements ExpressionVisitor, OperandStack, ObjectSink {
     		Environment env = g.next();
     		while (env != null) {
     	        for (int i = 0; i < mappings.length; i++) {
-                    configuration.addMapping(m, valueOf(mappings[i][0]), valueOf(mappings[i][1]));
+                    configuration.addMapping(m, valueOf(mappings[i][0], env), valueOf(mappings[i][1], env));
     	        }
     			env = g.next();
     		}
@@ -231,7 +231,7 @@ public class Evaluator implements ExpressionVisitor, OperandStack, ObjectSink {
     		Environment env = g.next();
     		while (env != null) {
     			for (Expression expr : exprs) {
-    				configuration.addListElement(al, valueOf(expr));
+    				configuration.addListElement(al, valueOf(expr, env));
     			}
     			env = g.next();
     		}
@@ -263,6 +263,10 @@ public class Evaluator implements ExpressionVisitor, OperandStack, ObjectSink {
     
     public void replaceWithResult(int n, Object v) {
     	stack.replaceWithResult(n, v);
+    }
+    
+    public int size() {
+    	return stack.size();
     }
     
 	//

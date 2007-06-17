@@ -11,5 +11,7 @@ public interface OperandStack {
 	void  replaceWithResult(int n, Object v);
 
 	Object getValue(int n);
+	
+	int size();
 }
 

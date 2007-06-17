@@ -60,6 +60,10 @@ public class BasicOperandStack implements OperandStack {
 		return values.get(tos - n);
 	}
 	
+	public int size() {
+		return tos + 1;
+	}
+	
 	
 	public BasicOperandStack() {
         values = new ArrayList<Object>();

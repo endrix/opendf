@@ -78,7 +78,7 @@ public class AutoBindEnvironment extends DynamicEnvironmentFrame {
 						return pres;
 					}
 				}
-				catch (UndefinedVariableException exc) {
+				catch (Exception exc) {
 					return makePos(0, bind(var, value, null));
 				}
 			default:
