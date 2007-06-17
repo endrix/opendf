@@ -49,6 +49,10 @@ public class DefaultUntypedConfiguration implements Configuration {
 	public boolean booleanValue(Object v) {
 		return ((Boolean)v).booleanValue();
 	}
+	
+	public int intValue(Object v) {
+		return ((Number)v).intValue();
+	}
 
 	public Object cond(Evaluator evaluator, ExprIf expr) {
 		if (booleanValue(evaluator.valueOf(expr.getCondition()))) {
@@ -72,6 +76,14 @@ public class DefaultUntypedConfiguration implements Configuration {
 
 	public Object createEmptySet() {
 		return new HashSet();
+	}
+	
+	public Object createList(List list) {
+		return list;
+	}
+	
+	public List getList(Object v) {
+		return (List)v;
 	}
 
 	public Object createLiteralValue(ExprLiteral literal) {

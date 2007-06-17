@@ -1,5 +1,7 @@
 package net.sf.caltrop.cal.i2;
 
+import java.util.List;
+
 import net.sf.caltrop.cal.interpreter.ast.ExprIf;
 import net.sf.caltrop.cal.interpreter.ast.ExprLiteral;
 import net.sf.caltrop.cal.interpreter.ast.ExprVariable;
@@ -9,6 +11,7 @@ public interface Configuration {
 	
 	Object 	createLiteralValue(ExprLiteral literal);
 	
+	Object  createList(List list);
 	Object  createEmptyList();
 	void	addListElement(Object list, Object element);
 	
@@ -22,6 +25,8 @@ public interface Configuration {
 	void    indexInto(Object structure, int nIndices, OperandStack stack);
 	
 	boolean booleanValue(Object v);
+	int     intValue(Object v);
+	List    getList(Object v);
 	
 	Object  cond(Evaluator evaluator, ExprIf expr);
 	

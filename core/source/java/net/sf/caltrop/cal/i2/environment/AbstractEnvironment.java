@@ -154,7 +154,7 @@ abstract public class AbstractEnvironment implements Environment {
 
 	protected Environment  parent;
 	
-	final static int UNDEFINED = -11;
+	final protected static int UNDEFINED = -11;
 	
 	protected final static int  posFrame(long pos) {
 		return (int)(pos >> 32);

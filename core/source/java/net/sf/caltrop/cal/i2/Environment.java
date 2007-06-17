@@ -118,6 +118,6 @@ public interface Environment {
     
 
 
-	final long NOPOS = -1;
-	final long CONSTANT = -2;
+	final public long NOPOS = -1;
+	final public long CONSTANT = -2;
 }

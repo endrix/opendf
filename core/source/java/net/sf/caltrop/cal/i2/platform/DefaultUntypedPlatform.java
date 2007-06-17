@@ -46,6 +46,9 @@ import net.sf.caltrop.cal.i2.util.ProcedureOf4;
 import net.sf.caltrop.cal.i2.util.ReplacePrefixImportMapper;
 import net.sf.caltrop.cal.i2.Procedure;
 import net.sf.caltrop.cal.i2.util.IntegerList;
+import net.sf.caltrop.cal.i2.util.CalScriptImportHandler;
+import net.sf.caltrop.cal.i2.util.ClassLoadingImportHandler;
+import net.sf.caltrop.cal.i2.util.EnvironmentFactoryImportHandler;
 
 public class DefaultUntypedPlatform implements Platform {
 
@@ -65,8 +68,11 @@ public class DefaultUntypedPlatform implements Platform {
 	}
 
 	public ImportHandler[] getImportHandlers(ClassLoader loader) {
-		// TODO Auto-generated method stub
-		return null;
+		return new ImportHandler [] {
+				new EnvironmentFactoryImportHandler(this),
+				new CalScriptImportHandler(this),
+				new ClassLoadingImportHandler(this, loader)
+		};
 	}
 
 	public ImportMapper []  getImportMappers() {

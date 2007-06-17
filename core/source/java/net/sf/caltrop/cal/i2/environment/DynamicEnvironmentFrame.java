@@ -1,7 +1,9 @@
 package net.sf.caltrop.cal.i2.environment;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import net.sf.caltrop.cal.i2.Environment;
 import net.sf.caltrop.cal.i2.InterpreterException;
@@ -74,6 +76,14 @@ public class DynamicEnvironmentFrame extends AbstractEnvironment {
 		values.add(value);
 		types.add(type);
 		return vars.size() - 1;
+	}
+	
+	public Map	localBindings() {
+		Map m = new HashMap();
+		for (int i = 0; i < vars.size(); i++) {
+			m.put(vars.get(i), values.get(i));
+		}
+		return m;
 	}
 	
 	
