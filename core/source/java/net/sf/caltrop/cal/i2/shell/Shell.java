@@ -277,7 +277,11 @@ public class Shell {
         Executor exec = new Executor(configuration, loggingEnv);
         for (int j = 0; j < s.length; j++) {
             try {
+            	int ss = exec.size();
                 exec.execute(s[j]);
+                if (ss != exec.size()) {
+                	errorWriter.println("WARNING: Inconsistent stack. (From " + ss + " to " + exec.size() + ".)");
+                }
             } catch (Exception e) {
                 errorWriter.println("error at [" + j + "]: " + e.getMessage());
                 if (shellDebug)
@@ -391,8 +395,12 @@ public class Shell {
                 Evaluator eval = new Evaluator(shellStateEnv, configuration);
                 Expression e = SourceReader.readExpr(s);
 
+                int ss = eval.size();
                 Object value = eval.valueOf(e);
                 outputWriter.println("result: " + value);
+                if (ss != eval.size()) {
+                	errorWriter.println("WARNING: Inconsistent stack. (From " + ss + " to " + eval.size() + ".)");
+                }
             }
         });
 
