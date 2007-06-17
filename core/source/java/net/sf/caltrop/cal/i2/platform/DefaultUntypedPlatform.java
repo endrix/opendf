@@ -1,6 +1,7 @@
 package net.sf.caltrop.cal.i2.platform;
 
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -28,13 +29,20 @@ import net.sf.caltrop.cal.i2.Function;
 import net.sf.caltrop.cal.i2.InterpreterException;
 import net.sf.caltrop.cal.i2.configuration.DefaultUntypedConfiguration;
 import net.sf.caltrop.cal.i2.environment.DynamicEnvironmentFrame;
+import net.sf.caltrop.cal.i2.util.FunctionOf0;
 import net.sf.caltrop.cal.i2.util.FunctionOf1;
 import net.sf.caltrop.cal.i2.util.FunctionOf2;
+import net.sf.caltrop.cal.i2.util.FunctionOf2Eval;
 import net.sf.caltrop.cal.i2.util.FunctionOf3;
+import net.sf.caltrop.cal.i2.util.FunctionOf3Eval;
 import net.sf.caltrop.cal.i2.util.ImportHandler;
 import net.sf.caltrop.cal.i2.util.ImportMapper;
 import net.sf.caltrop.cal.i2.util.IntegerFactory;
 import net.sf.caltrop.cal.i2.util.Platform;
+import net.sf.caltrop.cal.i2.util.ProcedureOf1;
+import net.sf.caltrop.cal.i2.util.ProcedureOf2;
+import net.sf.caltrop.cal.i2.util.ProcedureOf2Eval;
+import net.sf.caltrop.cal.i2.util.ProcedureOf4;
 import net.sf.caltrop.cal.i2.util.ReplacePrefixImportMapper;
 import net.sf.caltrop.cal.i2.Procedure;
 import net.sf.caltrop.cal.i2.util.IntegerList;
@@ -84,18 +92,6 @@ public class DefaultUntypedPlatform implements Platform {
 		
 		env.bind("PI", Double.valueOf(Math.PI), null);   // TYPEFIXME
 		
-		env.bind("$add", new FunctionOf2 () {
-
-			@Override
-			public Object f(Object a, Object b) {
-				if (a instanceof BigInteger && b instanceof BigInteger) {
-					return ((BigInteger)a).add((BigInteger)b);
-				} else {
-					throw new InterpreterException("+ operator: Cannot handle arguments. (" + a + ", " + b+ ")");
-				}
-			}			
-		}, null);
-		
 		env.bind("__PlatformName", DefaultUntypedPlatform.class.getName(), null);
 
 		env.bind("socketGetToken", new FunctionOf3() {
@@ -119,15 +115,12 @@ public class DefaultUntypedPlatform implements Platform {
 	        }	        
 	    }, null);
 
-		env.bind("socketPutToken", new Procedure() {
-
-			public void call(int n, Executor executor) {
-				assert n == 4;
-				
-	            String address = (String)executor.getValue(0);
-	            int socketNum = intValueOf(executor.getValue(1));
-	            int bytes = intValueOf(executor.getValue(2));
-	            int value = intValueOf(executor.getValue(3));
+		env.bind("socketPutToken", new ProcedureOf4() {
+			public void p(Object a, Object b, Object c, Object d) {
+	            String address = (String)a;
+	            int socketNum = intValueOf(b);
+	            int bytes = intValueOf(c);
+	            int value = intValueOf(d);
 	            Socket socket = getSocket(address, socketNum);
 	            if (bytes < 1 || bytes > 4)
 	                throw new IllegalArgumentException("socketPutToken must send 1-4 bytes.  "+bytes+" requested");
@@ -145,27 +138,18 @@ public class DefaultUntypedPlatform implements Platform {
 	            } catch (IOException ioe) {
 	                throw new IllegalArgumentException("IO Exception writing to stream " + address + ":" + socketNum +".  Exception writing to socket " + ioe.getMessage());
 	            }
-	            executor.pop(n);
 	        }
 	    }, null);
 
-		env.bind("print", new Procedure() {
-
-			public void call(int n, Executor executor) {
-				assert n == 1;
-
-				System.out.print(executor.getValue(0));
-		        executor.pop(n);
+		env.bind("print", new ProcedureOf1() {
+			public void p(Object a) {
+				System.out.print(a);
 		    }
 		}, null);
 
-		env.bind("println", new Procedure() {
-
-			public void call(int n, Executor executor) {			
-				assert n == 1;
-
-				System.out.println(executor.getValue(0));
-		        executor.pop(n);
+		env.bind("println", new ProcedureOf1() {
+			public void p(Object a) {
+				System.out.println(a);
 		    }
 		}, null);
 
@@ -276,428 +260,521 @@ public class DefaultUntypedPlatform implements Platform {
 				if (a instanceof BigInteger && b instanceof BigInteger) {
 					return booleanValueOf(((BigInteger)a).compareTo((BigInteger)b) < 0);
 				} else if (a instanceof Number && b instanceof Number) {
-					return booleanValueOf(((Number)a).)
-		                if (a instanceof Integer && b instanceof Integer) {
-		                    return context().createBoolean(a.compareTo(b) < 0);                        	
-		                } else if (a instanceof Number && b instanceof Number) {
-		                	return context().createBoolean(((Number)a).doubleValue() < ((Number)b).doubleValue());
-		                } else
-		                	return context().createBoolean(a.compareTo(b) < 0);
-		            } catch (Exception ex) {
-		                throw new InterpreterException("Function '$lt': Cannot apply (to " + args[0] + " and " + args[1] + ").", ex);
-		            }
-		        }
+					return booleanValueOf(((Number)a).doubleValue() < ((Number)b).doubleValue());
+				} else if (a instanceof Comparable && b instanceof Comparable) {
+					return booleanValueOf(((Comparable)a).compareTo(b) < 0);
+				} else {
+					throw new InterpreterException("< operator: Cannot be used with these arguments. (" + a + ", " + b + ")");
+				}
+			}
+		}, null);
 
-		        public int arity() {
-		            return 2;
-		        }
-		    }));
+		env.bind("$le", new FunctionOf2() {
+			@Override
+			public Object f(Object a, Object b) {
+				if (a instanceof BigInteger && b instanceof BigInteger) {
+					return booleanValueOf(((BigInteger)a).compareTo((BigInteger)b) <= 0);
+				} else if (a instanceof Number && b instanceof Number) {
+					return booleanValueOf(((Number)a).doubleValue() <= ((Number)b).doubleValue());
+				} else if (a instanceof Comparable && b instanceof Comparable) {
+					return booleanValueOf(((Comparable)a).compareTo(b) <= 0);
+				} else {
+					throw new InterpreterException("<= operator: Cannot be used with these arguments. (" + a + ", " + b + ")");
+				}
+			}
+		}, null);
 
-		env.bind("$le", context().createFunction(new Function() {
-		        public Object apply(Object[] args) {
-		            try {
-		                Comparable a = (Comparable)args[0];
-		                Comparable b = (Comparable)args[1];
-		                if (a instanceof Integer && b instanceof Integer) {
-		                    return context().createBoolean(a.compareTo(b) <= 0);                        	
-		                } else if (a instanceof Number && b instanceof Number) {
-		                	return context().createBoolean(((Number)a).doubleValue() <= ((Number)b).doubleValue());
-		                } else
-		                	return context().createBoolean(a.compareTo(b) <= 0);
-		            } catch (Exception ex) {
-		                throw new InterpreterException("Function '$le': Cannot apply (to " + args[0] + " and " + args[1] + ").", ex);
-		            }
-		        }
+		env.bind("$gt", new FunctionOf2() {
+			@Override
+			public Object f(Object a, Object b) {
+				if (a instanceof BigInteger && b instanceof BigInteger) {
+					return booleanValueOf(((BigInteger)a).compareTo((BigInteger)b) > 0);
+				} else if (a instanceof Number && b instanceof Number) {
+					return booleanValueOf(((Number)a).doubleValue() > ((Number)b).doubleValue());
+				} else if (a instanceof Comparable && b instanceof Comparable) {
+					return booleanValueOf(((Comparable)a).compareTo(b) > 0);
+				} else {
+					throw new InterpreterException("> operator: Cannot be used with these arguments. (" + a + ", " + b + ")");
+				}
+			}
+		}, null);
 
-		        public int arity() {
-		            return 2;
-		        }
-		    }));
+		env.bind("$ge", new FunctionOf2() {
+			@Override
+			public Object f(Object a, Object b) {
+				if (a instanceof BigInteger && b instanceof BigInteger) {
+					return booleanValueOf(((BigInteger)a).compareTo((BigInteger)b) >= 0);
+				} else if (a instanceof Number && b instanceof Number) {
+					return booleanValueOf(((Number)a).doubleValue() >= ((Number)b).doubleValue());
+				} else if (a instanceof Comparable && b instanceof Comparable) {
+					return booleanValueOf(((Comparable)a).compareTo(b) >= 0);
+				} else {
+					throw new InterpreterException(">= operator: Cannot be used with these arguments. (" + a + ", " + b + ")");
+				}
+			}
+		}, null);
 
-		env.bind("$gt", context().createFunction(new Function() {
-		        public Object apply(Object[] args) {
-		            try {
-		                Comparable a = (Comparable)args[0];
-		                Comparable b = (Comparable)args[1];
-		                if (a instanceof Integer && b instanceof Integer) {
-		                    return context().createBoolean(a.compareTo(b) > 0);                        	
-		                } else if (a instanceof Number && b instanceof Number) {
-		                	return context().createBoolean(((Number)a).doubleValue() > ((Number)b).doubleValue());
-		                } else
-		                	return context().createBoolean(a.compareTo(b) > 0);
-		            } catch (Exception ex) {
-		                throw new InterpreterException("Function '$gt': Cannot apply (to " + args[0] + " and " + args[1] + ").", ex);
-		            }
-		        }
+		env.bind("$negate", new FunctionOf1() {
+			@Override
+			public Object f(Object a) {
+				if (! (a instanceof Number))
+					throw new InterpreterException("- operator: Argument not a number. (" + a + ")");
+				Number n = (Number)a;
+				if (n instanceof BigInteger)
+					return ((BigInteger)n).negate();
+				else if (n instanceof Integer)
+					return new Integer(-n.intValue());
+				else if (n instanceof Double)
+					return new Double(-n.doubleValue());
+				else if (n instanceof Float)
+					return new Float(-n.floatValue());
+				else if (n instanceof Long)
+					return new Long(-n.longValue());
+				else if (n instanceof Short)
+					return new Integer(-n.shortValue());
+				else if (n instanceof BigDecimal)
+					return ((BigDecimal)n).negate();
+				else
+					throw new InterpreterException("- operator: Argument aot a scalar. (" + n + ")");
+			}
+		}, null);
 
-		        public int arity() {
-		            return 2;
-		        }
-		    }));
+		env.bind("$add", new FunctionOf2 () {
+			@Override
+			public Object f(Object a, Object b) {
+				if (a instanceof String || b instanceof String) {
+					return "" + a + b;
+				} else if (a instanceof Number) {
+					if (! (b instanceof Number))
+						throw new InterpreterException("+ operator: Cannot add to number: " + b);
 
-		env.bind("$ge", context().createFunction(new Function() {
-		        public Object apply(Object[] args) {
-		            try {
-		                Comparable a = (Comparable)args[0];
-		                Comparable b = (Comparable)args[1];
-		                if (a instanceof Integer && b instanceof Integer) {
-		                    return context().createBoolean(a.compareTo(b) >= 0);                        	
-		                } else if (a instanceof Number && b instanceof Number) {
-		                	return context().createBoolean(((Number)a).doubleValue() >= ((Number)b).doubleValue());
-		                } else
-		                	return context().createBoolean(a.compareTo(b) >= 0);
-		            } catch (Exception ex) {
-		                throw new InterpreterException("Function '$ge': Cannot apply (to " + args[0] + " and " + args[1] + ").", ex);
-		            }
-		        }
+					if (a instanceof Double || a instanceof Float || b instanceof Double || b instanceof Float) {
+						return new Double(((Number)a).doubleValue() + ((Number)b).doubleValue());
+					}
 
-		        public int arity() {
-		            return 2;
-		        }
-		    }));
+					if (a instanceof BigInteger) {
+						if (b instanceof BigInteger) {
+							return ((BigInteger)a).add((BigInteger)b);
+						} else if (b instanceof Short || b instanceof Integer || b instanceof Long || b instanceof Byte) {
+							return ((BigInteger)a).add(BigInteger.valueOf(((Number)b).longValue()));
+						}
+					}
 
-		env.bind("$negate", context().createFunction(new Function() {
-		        public Object apply(Object[] args) {
-		            try {
-		                Number n = (Number)args[0];
-		                if (n instanceof Integer)
-		                    return new Integer(-n.intValue());
-		                else if (n instanceof Double)
-		                    return new Double(-n.doubleValue());
-		                else if (n instanceof Float)
-		                    return new Float(-n.floatValue());
-		                else if (n instanceof Long)
-		                    return new Long(-n.longValue());
-		                else if (n instanceof Short)
-		                    return new Integer(-n.shortValue());
-		                else if (n instanceof BigInteger)
-		                    return ((BigInteger)n).negate();
-		                else if (n instanceof BigDecimal)
-		                    return ((BigDecimal)n).negate();
-		                else
-		                    throw new RuntimeException("Not a scalar: " + n);
-		            } catch (Exception ex) {
-		                throw new InterpreterException("Function '$negate': Cannot apply.", ex);
-		            }
-		        }
+					return BigInteger.valueOf(((Number)a).longValue()).add(BigInteger.valueOf(((Number)b).longValue()));
+				} else if (a instanceof List) {
+					if (b instanceof List) {
+						List res = new ArrayList((List)a);
+						res.addAll((List)b);
+						return res;
+					} else if (b instanceof Collection) {
+						Set res = new HashSet((List)a);
+						res.addAll((Collection)b);
+						return res;
+					} else
+						throw new RuntimeException("+ operator: Cannot add to list: " + b);
+				} else if (a instanceof Collection) {
+					if (b instanceof Collection) {
+						Set res = new HashSet((List)a);
+						res.addAll((Collection)b);
+						return res;
+					} else
+						throw new RuntimeException("+ operator: Cannot add to collection: " + b);
+				} else if (a instanceof Map) {
+					if (b instanceof Map) {
+						Map res = new HashMap((Map)a);
+						res.putAll((Map)b);
+						return res;
+					} else
+						throw new RuntimeException("+ operator: Cannot add to map: " + b);
+				} else {
+					throw new RuntimeException("+ operator: Cannot add. (" + a + ", " + b + ")");
+				}
+			}
+		}, null);
 
-		        public int arity() {
-		            return 1;
-		        }
-		    }));
+		env.bind("$mul", new FunctionOf2() {
+			@Override
+			public Object f(Object a, Object b) {
+				if (a instanceof Number) {
+					if (! (b instanceof Number))
+						throw new InterpreterException("* operator: Cannot multiply with number: " + b);
 
-		env.bind("$add", context().createFunction(new Function() {
-		        public Object apply(Object[] args) {
-		            try {
-		                Object a = args[0];
-		                Object b = args[1];
-		                if (a instanceof String || b instanceof String) {
-		                    return "" + a + b;
-		                } else if (a instanceof Number) {
-		                    if (! (b instanceof Number))
-		                        throw new RuntimeException("Cannot add to number: " + b);
+					if (a instanceof Double || a instanceof Float || b instanceof Double || b instanceof Float) {
+						return new Double(((Number)a).doubleValue() * ((Number)b).doubleValue());
+					}
 
-		                    // FIXME: handle big integers
-		                    if ( (a instanceof Short || a instanceof Integer || a instanceof Long)
-		                         && (b instanceof Short || b instanceof Integer || b instanceof Long)) {
+					if (a instanceof BigInteger) {
+						if (b instanceof BigInteger) {
+							return ((BigInteger)a).multiply((BigInteger)b);
+						} else if (b instanceof Short || b instanceof Integer || b instanceof Long || b instanceof Byte) {
+							return ((BigInteger)a).multiply(BigInteger.valueOf(((Number)b).longValue()));
+						}
+					}
 
-		                        int va = ((Number)a).intValue();
-		                        int vb = ((Number)b).intValue();
-		                        int res = va + vb;
-		                        return new Integer(res);
-		                    } else {                            	
-		                        double va = ((Number)a).doubleValue();
-		                        double vb = ((Number)b).doubleValue();
-		                        return new Double(va + vb);
-		                    }
-		                } else if (a instanceof List) {
-		                    if (b instanceof List) {
-		                        List res = new ArrayList((List)a);
-		                        res.addAll((List)b);
-		                        return res;
-		                    } else if (b instanceof Collection) {
-		                        Set res = new HashSet((List)a);
-		                        res.addAll((Collection)b);
-		                        return res;
-		                    } else
-		                        throw new RuntimeException("Cannot add to list: " + b);
-		                } else if (a instanceof Collection) {
-		                    if (b instanceof Collection) {
-		                        Set res = new HashSet((List)a);
-		                        res.addAll((Collection)b);
-		                        return res;
-		                    } else
-		                        throw new RuntimeException("Cannot add to collection: " + b);
-		                } else if (a instanceof Map) {
-		                    if (b instanceof Map) {
-		                        Map res = new HashMap((Map)a);
-		                        res.putAll((Map)b);
-		                        return res;
-		                    } else
-		                        throw new RuntimeException("Cannot add to map: " + b);
-		                } else {
-		                    throw new RuntimeException("Cannot add to: " + a);
-		                }
-		            } catch (Exception ex) {
-		                throw new InterpreterException("Function '$add': Cannot apply (to " + args[0] + " and " + args[1] + ").", ex);
-		            }
-		        }
+					return BigInteger.valueOf(((Number)a).longValue()).multiply(BigInteger.valueOf(((Number)b).longValue()));
+				} else if (a instanceof Collection) {
+					if (b instanceof Collection) {
+						Set res = new HashSet((Collection)a);
+						res.retainAll((Collection)b);
+						return res;
+					} else
+						throw new InterpreterException("* operator: Cannot multiply with collection: " + b);
+				} else if (a instanceof Map) {
+					if (b instanceof Map) {
+						Map m1 = (Map)a;
+						Map m2 = (Map)b;
+						Map res = new HashMap();
 
-		        public int arity() {
-		            return 2;
-		        }
-		    }));
+						for(Iterator i = m1.keySet().iterator(); i.hasNext(); ) {
+							Object k = i.next();
+							Object v1 = m1.get(k);
+							Object v2 = m2.get(v1);
+							res.put(k, v2);
+						}
+						return res;
+					} else
+						throw new InterpreterException("* operator: Cannot multiply with map: " + b);
+				} else {
+					throw new InterpreterException("* operator: Cannot multiply. (" + a + ", " + b + ")");
+				}
+			}
+		}, null);
 
-		env.bind("$mul", context().createFunction(new Function() {
-		    public Object apply(Object[] args) {
-		        try {
-		            Object a = args[0];
-		            Object b = args[1];
-		            if (a instanceof Number) {
-		                if (! (b instanceof Number))
-		                    throw new RuntimeException("Cannot multiply with number: " + b);
+		env.bind("$sub", new FunctionOf2() {
+			@Override
+			public Object f(Object a, Object b) {
+				if (a instanceof Number) {
+					if (! (b instanceof Number))
+						throw new InterpreterException("- operator: Cannot subtract from number: " + b);
 
-		                // FIXME: handle big integers
-		                if ( (a instanceof Short || a instanceof Integer || a instanceof Long)
-		                        && (b instanceof Short || b instanceof Integer || b instanceof Long)) {
+					if (a instanceof Double || a instanceof Float || b instanceof Double || b instanceof Float) {
+						return new Double(((Number)a).doubleValue() - ((Number)b).doubleValue());
+					}
 
-		                    int va = ((Number)a).intValue();
-		                    int vb = ((Number)b).intValue();
-		                    int res = va * vb;
+					if (a instanceof BigInteger) {
+						if (b instanceof BigInteger) {
+							return ((BigInteger)a).subtract((BigInteger)b);
+						} else if (b instanceof Short || b instanceof Integer || b instanceof Long || b instanceof Byte) {
+							return ((BigInteger)a).subtract(BigInteger.valueOf(((Number)b).longValue()));
+						}
+					}
 
-		                    return new Integer(res);
-		                } else {
-		                    double va = ((Number)a).doubleValue();
-		                    double vb = ((Number)b).doubleValue();
-		                    return new Double(va * vb);
-		                }
-		            } else if (a instanceof Collection) {
-		                if (b instanceof Collection) {
-		                    Set res = new HashSet((Collection)a);
-		                    res.retainAll((Collection)b);
-		                    return res;
-		                } else
-		                    throw new RuntimeException("Cannot multiply with collection: " + b);
-		            } else if (a instanceof Map) {
-		                if (b instanceof Map) {
-		                    Map m1 = (Map)a;
-		                    Map m2 = (Map)b;
-		                    Map res = new HashMap();
+					return BigInteger.valueOf(((Number)a).longValue()).subtract(BigInteger.valueOf(((Number)b).longValue()));
+				} else if (a instanceof Collection) {
+					if (b instanceof Collection) {
+						Set res = new HashSet((Collection)a);
+						res.removeAll((Collection)b);
+						return res;
+					} else
+						throw new InterpreterException("- operator: Cannot subtract from collection: " + b);
+				} else if (a instanceof Map) {
+					if (b instanceof Collection) {
+						Map res = new HashMap((Map)a);
+						for (Iterator i = ((Collection)b).iterator(); i.hasNext(); ) {
+							Object k = i.next();
+							res.remove(k);
+						}
+						return res;
+					} else
+						throw new InterpreterException("- operator: Cannot subtract from map: " + b);
+				} else {
+					throw new InterpreterException("- operator: Cannot subtract. (" + a + ", " + b + ")");
+				}
+			}
+		}, null);
 
-		                    for(Iterator i = m1.keySet().iterator(); i.hasNext(); ) {
-		                        Object k = i.next();
-		                        Object v1 = m1.get(k);
-		                        Object v2 = m2.get(v1);
-		                        res.put(k, v2);
-		                    }
-		                   return res;
-		                } else if (b instanceof Function) {
-		                    Map m1 = (Map)a;
-		                    Function f = (Function)b;
-		                    Map res = new HashMap();
+		env.bind("$div", new FunctionOf2() {
+			@Override
+			public Object f(Object a, Object b) {
+				if (a instanceof Number) {
+					if (! (b instanceof Number))
+						throw new InterpreterException("/ operator: Cannot divide number: " + b);
 
-		                    Object [] arg = new Object [1];
-		                    for(Iterator i = m1.keySet().iterator(); i.hasNext(); ) {
-		                        Object k = i.next();
-		                        arg[0] = m1.get(k);
-		                        Object v = f.apply(arg);
-		                        res.put(k, v);
-		                    }
-		                   return res;
-		                } else
-		                    throw new RuntimeException("Cannot multiply with map: " + b);
-		            } else if (a instanceof Function) {
-		                if (b instanceof Function) {
-		                    return new FunctionComposition ((Function)a, (Function)b);
-		                } else
-		                    throw new RuntimeException("Cannot multiply with function: " + b);
-		            }  else {
-		                throw new RuntimeException("Cannot multiply: " + a);
-		            }
-		        } catch (Exception ex) {
-		            throw new InterpreterException("Function '$mul': Cannot apply.", ex);
+					if (a instanceof Double || a instanceof Float || b instanceof Double || b instanceof Float) {
+						return new Double(((Number)a).doubleValue() / ((Number)b).doubleValue());
+					}
+
+					if (a instanceof BigInteger) {
+						if (b instanceof BigInteger) {
+							return ((BigInteger)a).divide((BigInteger)b);
+						} else if (b instanceof Short || b instanceof Integer || b instanceof Long || b instanceof Byte) {
+							return ((BigInteger)a).divide(BigInteger.valueOf(((Number)b).longValue()));
+						}
+					}
+
+					return BigInteger.valueOf(((Number)a).longValue()).divide(BigInteger.valueOf(((Number)b).longValue()));
+				} else if (a instanceof Map) {
+					if (b instanceof Collection) {
+						Map res = new HashMap((Map)a);
+						for (Iterator i = ((Map)a).keySet().iterator(); i.hasNext(); ) {
+							Object k = i.next();
+							if (! ((Collection)b).contains(k))
+								res.remove(k);
+						}
+						return res;
+					} else
+						throw new InterpreterException("/ operator: Cannot constrain map: " + b);
+				} else {
+					throw new InterpreterException("/ operator: Cannot apply. (" + a + ", " + b + ")");
+				}
+		    }
+		}, null);
+
+		env.bind("$mod", new FunctionOf2() {
+			@Override
+			public Object f(Object a, Object b) {
+				if (a instanceof BigInteger) {
+					if (b instanceof BigInteger) {
+						return ((BigInteger)a).remainder((BigInteger)b);
+					} else if (b instanceof Short || b instanceof Integer || b instanceof Long || b instanceof Byte) {
+						return ((BigInteger)a).remainder(BigInteger.valueOf(((Number)b).longValue()));
+					} else {
+						throw new InterpreterException("mod operator: Cannot apply. (" + a + ", " + b + ")");						
+					}
+				} else if (a instanceof Short || a instanceof Integer || a instanceof Long || a instanceof Byte) {
+					if (b instanceof Short || b instanceof Integer || b instanceof Long || b instanceof Byte) {
+						return ((BigInteger)a).remainder(BigInteger.valueOf(((Number)b).longValue()));
+					} else {
+						throw new InterpreterException("mod operator: Cannot apply. (" + a + ", " + b + ")");						
+					}
+				} else {
+					throw new InterpreterException("mod operator: Cannot apply. (" + a + ", " + b + ")");						
 		        }
 		    }
+		}, null);
 
-		    public int arity() {
-		        return 2;
+		env.bind("$size", new FunctionOf1() {
+			@Override
+		    public Object f(Object a) {
+				if (a instanceof Collection) {
+					return intValueOf(((Collection)a).size());
+				} else if (a instanceof Map) {
+					return intValueOf(((Map)a).size());
+				} else
+					throw new RuntimeException("# operator: Required map or collection. (" + a +")");
+			}
+		}, null);
+
+		env.bind("$createList", new FunctionOf2Eval() {
+			public Object f(Object a, Object b, Evaluator evaluator) {
+				Collection c = (Collection)a;
+	            Function f = (Function)b;
+	            List res = new ArrayList();
+	            for (Object x : c) {
+	            	evaluator.push(x);
+	            	f.apply(1, evaluator);
+	            	Collection val = (Collection)evaluator.pop();
+		            res.addAll(val);
+	            }
+	            return res;
+			}
+		}, null);
+
+		env.bind("$createSet", new FunctionOf2Eval() {
+			public Object f(Object a, Object b, Evaluator evaluator) {
+				Collection c = (Collection)a;
+	            Function f = (Function)b;
+	            Set res = new HashSet();
+	            for (Object x : c) {
+	            	evaluator.push(x);
+	            	f.apply(1, evaluator);
+	            	Collection val = (Collection)evaluator.pop();
+		            res.addAll(val);
+	            }
+	            return res;
+			}
+		}, null);
+
+		env.bind("$createMap", new FunctionOf2Eval() {
+			public Object f(Object a, Object b, Evaluator evaluator) {
+				Collection c = (Collection)a;
+	            Function f = (Function)b;
+	            Map res = new HashMap();
+	            for (Object x : c) {
+	            	evaluator.push(x);
+	            	f.apply(1, evaluator);
+	            	Map val = (Map)evaluator.pop();
+		            res.putAll(val);
+	            }
+	            return res;
+			}
+		}, null);
+
+		env.bind("$iterate", new ProcedureOf2Eval() {
+			public void p(Object a, Object b, Executor executor) {
+				Collection c = (Collection)a;
+				Procedure proc = (Procedure)b;
+				for (Object x : c) {
+					executor.push(x);
+					proc.call(1, executor);
+				}
+			}
+		}, null);
+
+		env.bind("iterate", env.getByName("$iterate"), null);
+
+		env.bind("accumulate", new FunctionOf3Eval() {
+			public Object f(Object a, Object b, Object c, Evaluator evaluator) {
+				Function f = (Function)a;
+				Object v = b;
+
+				for (Object k : (Collection)c) {
+					evaluator.push(k);
+					evaluator.push(v);
+					f.apply(2, evaluator);
+					v = evaluator.pop();
+				}
+				return v;
 		    }
+		}, null);
 
-		}));
+		env.bind("zip", new FunctionOf3Eval() {
+			public Object f(Object a, Object b, Object c, Evaluator evaluator) {
+				Function f = (Function)a;
+				Collection c1 = (Collection)b;
+				Collection c2 = (Collection)c;
 
-		env.bind("$sub", context().createFunction(new Function() {
-		    public Object apply(Object[] args) {
-		        try {
-		            Object a = args[0];
-		            Object b = args[1];
-		            if (a instanceof Number) {
-		                if (! (b instanceof Number))
-		                    throw new RuntimeException("Cannot subtract from number: " + b);
+				Iterator i1 = c1.iterator();
+				Iterator i2 = c2.iterator();
+				List res = new ArrayList();
+				while (i1.hasNext() && i2.hasNext()) {
+					evaluator.push(i2.next());
+					evaluator.push(i1.next());
+					f.apply(2, evaluator);
+					Object v = evaluator.pop();
+					res.add(v);
+				}
+				return res;
+			}
+		}, null);
 
-		                // FIXME: handle big integers
-		                if ( (a instanceof Short || a instanceof Integer || a instanceof Long)
-		                     && (b instanceof Short || b instanceof Integer || b instanceof Long)) {
+		env.bind("selectf", new FunctionOf3Eval() {
+			public Object f(Object a, Object b, Object c, Evaluator evaluator) {
+				Function f = (Function)a;
+				Collection s = (Collection)b;
 
-		                    int va = ((Number)a).intValue();
-		                    int vb = ((Number)b).intValue();
-		                    int res = va - vb;
-		                    return new Integer(res);
-		                } else {
-		                    double va = ((Number)a).doubleValue();
-		                    double vb = ((Number)b).doubleValue();
-		                    return new Double(va - vb);
-		                }
-		            } else if (a instanceof Collection) {
-		                if (b instanceof Collection) {
-		                    Set res = new HashSet((Collection)a);
-		                    res.removeAll((Collection)b);
-		                    return res;
-		                } else
-		                    throw new RuntimeException("Cannot subtract from collection: " + b);
-		            } else if (a instanceof Map) {
-		                if (b instanceof Collection) {
-		                    Map res = new HashMap((Map)a);
-		                    for (Iterator i = ((Collection)b).iterator(); i.hasNext(); ) {
-		                        Object k = i.next();
-		                        res.remove(k);
-		                    }
-		                    return res;
-		                } else
-		                    throw new RuntimeException("Cannot subtract from map: " + b);
-		            } else {
-		                throw new RuntimeException("Cannot subtract from: " + a);
-		            }
-		        } catch (Exception ex) {
-		            throw new InterpreterException("Function '$sub': Cannot apply.", ex);
-		        }
-		    }
+				if (s.size() == 0)
+					return c;
+				else {
+					Iterator i = s.iterator();
+					assert i.hasNext();
+					
+					Object x = i.next();
+					
+					Collection rst = (s instanceof List) ? new ArrayList() : new HashSet();
+					while (i.hasNext())
+						rst.add(i.next());
 
-		    public int arity() {
-		        return 2;
-		    }
-		}));
+					evaluator.push(rst);
+					evaluator.push(x);
+					
+					f.apply(2, evaluator);
+					return evaluator.pop();
+				}
+			}
+		}, null);
 
-		env.bind("$div", context().createFunction(new Function() {
-		    public Object apply(Object[] args) {
-		        try {
-		            Object a = args[0];
-		            Object b = args[1];
-		            if (a instanceof Number) {
-		                if (! (b instanceof Number))
-		                    throw new RuntimeException("Cannot divide number: " + b);
+		env.bind("selectp", new ProcedureOf2Eval() {
+			@Override
+			public void p(Object a, Object b, Executor executor) {
+				Procedure p = (Procedure)a;
+				Collection s = (Collection)b;
 
-		                // FIXME: handle big integers
-		                if ( (a instanceof Short || a instanceof Integer || a instanceof Long)
-		                     && (b instanceof Short || b instanceof Integer || b instanceof Long)) {
+				if (s.size() == 0)
+					return;
 
-		                    int va = ((Number)a).intValue();
-		                    int vb = ((Number)b).intValue();
-		                    if (! (va % vb == 0)) {
-//		                      FIXME: behave like the div operator for testing
-//		                        return new Double(((double)va) / ((double)vb));
-		                    	return new Integer(va/vb);
-		                    }
-		                    int res = va / vb;
-		                    return new Integer(res);
-		                } else {
-		                    double va = ((Number)a).doubleValue();
-		                    double vb = ((Number)b).doubleValue();
-		                    return new Double(va / vb);
-		                }
-		            } else if (a instanceof Map) {
-		                if (b instanceof Collection) {
-		                    Map res = new HashMap((Map)a);
-		                    for (Iterator i = ((Map)a).keySet().iterator(); i.hasNext(); ) {
-		                        Object k = i.next();
-		                        if (! ((Collection)b).contains(k))
-		                            res.remove(k);
-		                    }
-		                    return res;
-		                } else
-		                    throw new RuntimeException("Cannot constrain map: " + b);
-		            } else {
-		                throw new RuntimeException("Cannot be divided/constrained: " + a);
-		            }
-		        } catch (Exception ex) {
-		            throw new InterpreterException("Function '$div': Cannot apply.", ex);
-		        }
-		    }
+				Iterator i = s.iterator();
+				assert i.hasNext();
 
-		    public int arity() {
-		        return 2;
-		    }
-		}));
+				Object x = i.next();
+				
+				Collection rst = (s instanceof List) ? new ArrayList() : new HashSet();
+				while (i.hasNext())
+					rst.add(i.next());
+				
+				executor.push(rst);
+				executor.push(x);
+				p.call(2, executor);
+			}
+		}, null);
 
-		env.bind("$mod", context().createFunction(new Function() {
-		    public Object apply(Object[] args) {
-		        try {
-		            Object a = args[0];
-		            Object b = args[1];
-		            // FIXME: handle big integers
-		            if ( (a instanceof Short || a instanceof Integer || a instanceof Long)
-		                    && (b instanceof Short || b instanceof Integer || b instanceof Long)) {
+		env.bind("readByte", new FunctionOf1 () {
+			@Override
+			public Object f(Object a) {
+				InputStream s = (InputStream)a;
+				try {
+					return intValueOf(s.read());
+				} catch (IOException e) {
+					throw new InterpreterException("I/O exception.", e);
+				}
+			}
+		}, null);
 
-		                int va = ((Number)a).intValue();
-		                int vb = ((Number)b).intValue();
-		                int res = va % vb;
+		env.bind("writeByte", new ProcedureOf2 () {
+			@Override
+			public void p(Object a, Object b) {
+				OutputStream s = (OutputStream)a;
+				int bb = ((Number)b).intValue();
+				try {
+					s.write(bb);
+				} catch (IOException e) {
+					throw new InterpreterException("I/O exception.", e);
+				}
+			}
+		}, null);
 
-		                return new Integer(res);
-		            } else
-		                throw new RuntimeException("Arguments to mod need be integral scalars.");
-		        } catch (Exception ex) {
-		            throw new InterpreterException("Function '$mod': Cannot apply.", ex);
-		        }
-		    }
+		env.bind("openFile", new FunctionOf1 () {
+			@Override
+			public Object f(Object a) {
+				String fname = (String)a;
+				try {
+					return new FileInputStream(fname);
+				} catch (FileNotFoundException e) {
+					throw new InterpreterException("I/O exception.", e);
+				}
+			}
+		}, null);
 
-		    public int arity() {
-		        return 2;
-		    }
-		}));
+		env.bind("createFile", new FunctionOf1 () {
+			@Override
+			public Object f(Object a) {
+				String fname = (String)a;
+				try {
+					return new FileOutputStream(fname);
+				} catch (FileNotFoundException e) {
+					throw new InterpreterException("I/O exception.", e);
+				}
+			}
+		}, null);
 
-		env.bind("$size", context().createFunction(new Function() {
-		    public Object apply(Object[] args) {
-		        try {
-		            Object s = args[0];
-		            if (s instanceof Collection) {
-		                return context().createInteger(((Collection)s).size());
-		            } else if (s instanceof Map) {
-		                return context().createInteger(((Map)s).size());
-		            } else
-		                throw new RuntimeException("Required map or collection: " + s);
-		        } catch (Exception ex) {
-		            throw new InterpreterException("Function '$size': Cannot apply.", ex);
-		        }
-		    }
+		env.bind("closeInputStream", new ProcedureOf1 () {
+			@Override
+			public void p(Object a) {
+				try {
+					((InputStream)a).close();
+				} catch (IOException e) {
+					throw new InterpreterException("I/O exception.", e);
+				}
+			}
+		}, null);
 
-		    public int arity() {
-		        return 1;
-		    }
-		}));
+		env.bind("closeOutputStream", new ProcedureOf1 () {
+			@Override
+			public void p(Object a) {
+				try {
+					((OutputStream)a).close();
+				} catch (IOException e) {
+					throw new InterpreterException("I/O exception.", e);
+				}
+			}
+		}, null);
 
-		env.bind("$createList", context().createFunction(new Function() {
-		    public Object apply(Object[] args) {
-		        try {
-		            Collection c = context().getCollection(args[0]);
-		            Function f = (Function) args[1];
-		            Object [] argument = new Object [1];
-		            List res = new ArrayList();
-		            for (Iterator i = c.iterator(); i.hasNext(); ) {
-		                argument[0] = i.next();
-		                Object listFragment = context().applyFunction(f, argument);
-		                res.addAll(context().getCollection(listFragment));
-		            }
-		            return context().createList(res);
-		        }
-		        catch (Exception ex) {
-		            throw new InterpreterException("Cannot create list.", ex);
-		        }
-		    }
-
-		    public int arity() {
-		        return 2;
-		    }
-		}));
-
+		env.bind("currentSystemTime", new FunctionOf0 () {
+			@Override
+			public Object f() {
+				return intValueOf(System.currentTimeMillis());
+			}
+		}, null);
 		
 	}
 	
@@ -748,352 +825,3 @@ public class DefaultUntypedPlatform implements Platform {
     }
     private static Map allocatedSockets = new HashMap();
 }
-
-
-
-
-/*
-
-
-
-
-env.bind("$createSet", context().createFunction(new Function() {
-        public Object apply(Object[] args) {
-            try {
-                Collection c = context().getCollection(args[0]);
-                Function f = (Function) args[1];
-                Object [] argument = new Object [1];
-                Set res = new HashSet();
-                for (Iterator i = c.iterator(); i.hasNext(); ) {
-                    argument[0] = i.next();
-                    Object setFragment = context().applyFunction(f, argument);
-                    res.addAll(context().getCollection(setFragment));
-                }
-                return context().createSet(res);
-            }
-            catch (Exception ex) {
-                throw new InterpreterException("Cannot create set.", ex);
-            }
-        }
-
-        public int arity() {
-            return 2;
-        }
-    }));
-
-env.bind("$createMap", context().createFunction(new Function() {
-        public Object apply(Object[] args) {
-            try {
-                Collection c = context().getCollection(args[0]);
-                Function f = (Function) args[1];
-                Object [] argument = new Object [1];
-                Map res = new HashMap();
-                for (Iterator i = c.iterator(); i.hasNext(); ) {
-                    argument[0] = i.next();
-                    Object mapFragment = context().applyFunction(f, argument);
-                    res.putAll(context().getMap(mapFragment));
-                }
-                return context().createMap(res);
-            }
-            catch (Exception ex) {
-                throw new InterpreterException("Cannot create map.", ex);
-            }
-        }
-
-        public int arity() {
-            return 2;
-        }
-    }));
-
-env.bind("$iterate", context().createProcedure(new Procedure() {
-        public void call(Object[] args) {
-            try {
-                Collection c = context().getCollection(args[0]);
-                Object proc = args[1];
-                Object [] argument = new Object [1];
-                for (Iterator i = c.iterator(); i.hasNext(); ) {
-                    argument[0] = i.next();
-                    context().callProcedure(proc, argument);
-                }
-            }
-            catch (Exception ex) {
-                throw new InterpreterException("Cannot iterate.", ex);
-            }
-        }
-
-        public int arity() {
-            return 2;
-        }
-    }));
-
-env.bind("iterate", env.get("$iterate"));
-
-env.bind("accumulate", context().createFunction(new Function() {
-    public Object apply(Object[] args) {
-        try {
-            Function f = (Function)args[0];
-            Object v = args[1];
-            Collection c = (Collection)args[2];
-
-            Object [] a = new Object [2];
-            for (Iterator i = c.iterator(); i.hasNext(); ) {
-                Object k = i.next();
-                a[0] = v;
-                a[1] = k;
-                v = f.apply(a);
-            }
-
-            return v;
-        }
-        catch (Exception ex) {
-            throw new InterpreterException("Cannot accumulate.", ex);
-        }
-    }
-
-    public int arity() {
-        return 3;
-    }
-}));
-
-env.bind("zip", context().createFunction(new Function() {
-        public Object apply(Object[] args) {
-            try {
-                Function f = (Function)args[0];
-                Collection c1 = (Collection)args[1];
-                Collection c2 = (Collection)args[2];
-
-                Object [] a = new Object [2];
-                Iterator i1 = c1.iterator();
-                Iterator i2 = c2.iterator();
-                List res = new ArrayList();
-                while (i1.hasNext() && i2.hasNext()) {
-                	a[0] = i1.next();
-                	a[1] = i2.next();
-                    Object v = f.apply(a);
-                	res.add(v);
-                }
-                return context().createList(res);
-            }
-            catch (Exception ex) {
-                throw new InterpreterException("Cannot accumulate.", ex);
-            }
-        }
-
-        public int arity() {
-            return 3;
-        }
-    }));
-
-env.bind("selectf", context().createFunction(new Function() {
-        public Object apply(Object[] args) {
-            try {
-                Object f = args[0];
-                Collection c = context().getCollection(args[1]);
-
-                if (c.size() == 0)
-                    return args[2];
-                else {
-                    Iterator i = c.iterator();
-                    assert i.hasNext();
-
-                    Object [] a = new Object [2];
-                    a[0] = i.next();
-                    Collection s = (c instanceof List) ? (Collection)new ArrayList() : (Collection)new HashSet();
-                    while (i.hasNext())
-                        s.add(i.next());
-                    a[1] = (c instanceof List) ? context().createList((List)s) : context().createSet((Set)s);
-                    return context().applyFunction(f, a);
-                }
-            }
-            catch (Exception ex) {
-                throw new InterpreterException("Cannot apply selectf function.", ex);
-            }
-        }
-
-        public int arity() {
-            return 3;
-        }
-    }));
-
-env.bind("selectp", context().createProcedure(new Procedure() {
-        public void call(Object[] args) {
-            try {
-                Object p = args[0];
-                Collection c = context().getCollection(args[1]);
-
-                if (c.size() == 0)
-                    return;
-
-                Iterator i = c.iterator();
-                assert i.hasNext();
-
-                Object [] a = new Object [2];
-                a[0] = i.next();
-                Collection s = (c instanceof List) ? (Collection)new ArrayList() : (Collection)new HashSet();
-                while (i.hasNext())
-                    s.add(i.next());
-                a[1] = (c instanceof List) ? context().createList((List)s) : context().createSet((Set)s);
-                context().callProcedure(p, a);
-            }
-            catch (Exception ex) {
-                throw new InterpreterException("Cannot call selectp procedure.", ex);
-            }
-        }
-
-        public int arity() {
-            return 2;
-        }
-    }));
-
-env.bind("readByte", context().createFunction(new Function () {
-	public Object apply(Object[] args) {
-		try {
-			InputStream s = (InputStream)context().toJavaObject(args[0]);
-			return context().createInteger(s.read());
-		} catch (Exception ex) {
-			throw new InterpreterException("Function 'readByte': Cannot apply.", ex);
-		}
-	}
-
-	public int arity() {
-		return 1;
-	}
-}));
-
-env.bind("writeByte", context().createProcedure(new Procedure () {
-	public void call(Object[] args) {
-		try {
-			OutputStream s = (OutputStream)context().toJavaObject(args[0]);
-			int b = context().intValue(args[1]);
-			s.write(b);
-		} catch (Exception ex) {
-			throw new InterpreterException("Function 'readByte': Cannot apply.", ex);
-		}
-	}
-
-	public int arity() {
-		return 2;
-	}
-}));
-
-env.bind("openFile", context().createFunction(new Function () {
-	public Object apply(Object[] args) {
-        String a = null;
-		try {
-            a = context().stringValue(args[0]);
-			return new FileInputStream(a);
-		} catch (Exception ex) {
-			throw new InterpreterException("Function 'openFile': Cannot apply to \'"+a+"\'", ex);
-		}
-	}
-
-	public int arity() {
-		return 1;
-	}
-}));
-
-env.bind("createFile", context().createFunction(new Function () {
-	public Object apply(Object[] args) {
-        String a = null;
-		try {
-            a = context().stringValue(args[0]);
-            return new FileOutputStream(a);
-		} catch (Exception ex) {
-			throw new InterpreterException("Function 'createFile': Cannot apply to \'"+a+"\'", ex);
-		}
-	}
-
-	public int arity() {
-		return 1;
-	}
-}));
-
-env.bind("closeInputStream", context().createProcedure(new Procedure () {
-	public void call(Object[] args) {
-		try {
-			InputStream s = (InputStream)context().toJavaObject(args[0]);
-			s.close();
-		} catch (Exception ex) {
-			throw new InterpreterException("Function 'readByte': Cannot apply.", ex);
-		}
-	}
-
-	public int arity() {
-		return 1;
-	}
-}));
-
-env.bind("closeOutputStream", context().createProcedure(new Procedure () {
-	public void call(Object[] args) {
-		try {
-			OutputStream s = (OutputStream)context().toJavaObject(args[0]);
-			s.close();
-		} catch (Exception ex) {
-			throw new InterpreterException("Function 'readByte': Cannot apply.", ex);
-		}
-	}
-
-	public int arity() {
-		return 1;
-	}
-}));
-
-
-
-env.bind("currentSystemTime", context().createFunction(new Function () {
-	public Object apply(Object[] args) {
-		try {
-			return new Long(System.currentTimeMillis());
-		} catch (Exception ex) {
-			throw new InterpreterException("Function 'currentTime': Cannot apply.", ex);
-		}
-	}
-
-	public int arity() {
-		return 0;
-	}
-}));
-
-return env;
-}
-
-public static class FunctionComposition implements Function {
-public Object apply(Object[] args) {
-
-    assert f2.arity() > 0;
-    assert args.length == this.arity();
-
-    if (f2.arity() == 1) {
-        Object [] v = new Object [] {f1.apply(args)};
-        return f2.apply(v);
-    } else {
-        Object [] a = new Object [f2.arity()];
-        Object [] b = new Object [f1.arity()];
-        for (int i = 0; i < a.length; i++) {
-            for (int j = 0; j < b.length; j++) {
-                b[j] = args[i * b.length + j];
-            }
-            a[i] = f1.apply(b);
-        }
-        return f2.apply(a);
-    }
-}
-
-public int arity() {
-    return f1.arity() * f2.arity();
-}
-
-public FunctionComposition (Function f1, Function f2) {
-
-    assert f2.arity() > 0;
-
-    this.f1 = f1;
-    this.f2 = f2;
-}
-
-private Function f1;
-private Function f2;
-}
-*/
-
-
