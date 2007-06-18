@@ -47,7 +47,7 @@ import java.util.Set;
 
 import net.sf.caltrop.cal.i2.Environment;
 import net.sf.caltrop.cal.i2.ObjectSink;
-import net.sf.caltrop.cal.i2.Type;
+import net.sf.caltrop.cal.i2.types.Type;
 
 /**
  * This environment can be used to log all accesses to variables, which it delegates to its parent

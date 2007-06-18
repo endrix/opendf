@@ -41,9 +41,9 @@ package net.sf.caltrop.cal.i2.generator;
 import net.sf.caltrop.cal.i2.Evaluator;
 import net.sf.caltrop.cal.i2.ObjectSink;
 import net.sf.caltrop.cal.i2.Configuration;
-import net.sf.caltrop.cal.i2.Type;
 import net.sf.caltrop.cal.interpreter.ast.Expression;
 import net.sf.caltrop.cal.i2.Environment;
+import net.sf.caltrop.cal.i2.types.Type;
 
 public class Filter implements Generator {
 

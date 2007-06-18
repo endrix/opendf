@@ -42,8 +42,8 @@ import net.sf.caltrop.cal.interpreter.ast.Expression;
 import net.sf.caltrop.cal.i2.Evaluator;
 import net.sf.caltrop.cal.i2.Environment;
 import net.sf.caltrop.cal.i2.Configuration;
-import net.sf.caltrop.cal.i2.Type;
 import net.sf.caltrop.cal.i2.environment.SingleEntryEnvironment;
+import net.sf.caltrop.cal.i2.types.Type;
 
 public class CollectionGenerator implements Generator {
 

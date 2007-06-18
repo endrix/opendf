@@ -44,8 +44,8 @@ import java.util.Iterator;
 import net.sf.caltrop.cal.i2.Environment;
 import net.sf.caltrop.cal.i2.ObjectSink;
 import net.sf.caltrop.cal.i2.Configuration;
-import net.sf.caltrop.cal.i2.Type;
 import net.sf.caltrop.cal.i2.environment.SingleEntryEnvironment;
+import net.sf.caltrop.cal.i2.types.Type;
 
 
 public class VariableGenerator implements Generator {

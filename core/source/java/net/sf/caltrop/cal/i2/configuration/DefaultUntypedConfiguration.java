@@ -61,7 +61,20 @@ public class DefaultUntypedConfiguration implements Configuration {
 	public void assign(Object value, Environment env, StmtAssignment stmt,
 			int nIndices, OperandStack stack) {
 		
-		Object structure = env.getByName(stmt.getVar());  //FIXME: cache
+		Object structure;
+		try {
+			long loc = stmt.getVariableLocation();
+			if (loc < 0) {
+				loc = env.lookupByName(stmt.getVar(), tmpSink);
+				stmt.setVariableLocation(loc);
+				structure = tmp;
+			} else {
+				structure = env.getByPosition(loc);
+			}
+		}
+		catch (Exception e) {
+			throw new UndefinedVariableException(stmt.getVar(), e);
+		}
 
 		if (structure instanceof Map) {
             if (nIndices != 1)
@@ -203,7 +216,6 @@ public class DefaultUntypedConfiguration implements Configuration {
 			}
 		}
 		catch (Exception e) {
-			e.printStackTrace();
 			throw new UndefinedVariableException(expr.getName(), e);
 		}
 	}

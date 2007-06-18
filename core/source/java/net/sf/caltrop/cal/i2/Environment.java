@@ -1,5 +1,7 @@
 package net.sf.caltrop.cal.i2;
 
+import net.sf.caltrop.cal.i2.types.Type;
+
 
 public interface Environment {
 	

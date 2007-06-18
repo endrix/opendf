@@ -51,9 +51,9 @@ import net.sf.caltrop.cal.i2.Configuration;
 import net.sf.caltrop.cal.i2.Environment;
 import net.sf.caltrop.cal.i2.ObjectSink;
 import net.sf.caltrop.cal.i2.InterpreterException;
-import net.sf.caltrop.cal.i2.Type;
 import net.sf.caltrop.cal.i2.UndefinedInterpreterException;
 import net.sf.caltrop.cal.i2.UndefinedVariableException;
+import net.sf.caltrop.cal.i2.types.Type;
 import net.sf.caltrop.cal.interpreter.util.SequentialMap;
 
 /**

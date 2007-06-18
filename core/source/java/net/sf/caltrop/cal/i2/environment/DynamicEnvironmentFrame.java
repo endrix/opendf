@@ -8,7 +8,7 @@ import java.util.Map;
 import net.sf.caltrop.cal.i2.Environment;
 import net.sf.caltrop.cal.i2.InterpreterException;
 import net.sf.caltrop.cal.i2.ObjectSink;
-import net.sf.caltrop.cal.i2.Type;
+import net.sf.caltrop.cal.i2.types.Type;
 
 public class DynamicEnvironmentFrame extends AbstractEnvironment {
 	

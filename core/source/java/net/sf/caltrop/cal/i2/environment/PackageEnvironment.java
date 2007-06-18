@@ -50,8 +50,8 @@ import net.sf.caltrop.cal.i2.Configuration;
 import net.sf.caltrop.cal.i2.Environment;
 import net.sf.caltrop.cal.i2.InterpreterException;
 import net.sf.caltrop.cal.i2.ObjectSink;
-import net.sf.caltrop.cal.i2.Type;
 import net.sf.caltrop.cal.i2.UndefinedVariableException;
+import net.sf.caltrop.cal.i2.types.Type;
 
 /**
  * A package environment represents an imported Java package. It maps all class names in that package to the
