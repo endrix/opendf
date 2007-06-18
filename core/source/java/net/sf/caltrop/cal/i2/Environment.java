@@ -30,10 +30,16 @@ public interface Environment {
 	 */
 	
 	void 	lookupByPosition(int frame, int varPos, ObjectSink s);
+
+	Object  getByPosition(long pos);
+
+	Object  getByPosition(int frame, int posVar);
 	
 	
 	long    setByName(Object var, Object value);
 	
+	void    setByPosition(long pos, Object value);
+
 	void    setByPosition(int frame, int varPos, Object value);
 
 	Object  getVariableName(int frame, int varPos);

@@ -94,25 +94,25 @@ public class Util {
 	
 
 	public static void  buildNetworkFromXDF(Network n, Object source, Platform platform, Map env, ClassLoader loader) {
-		
+
 		Import [] imports = ASTFactory.buildImports(xpathEvalNodes("/XDF/Import", source));
 		ImportHandler [] importHandlers = platform.getImportHandlers(loader);
 		ImportMapper [] importMappers = platform.getImportMappers();
 		Environment localEnv = handleImportList(platform.createGlobalEnvironment(), importHandlers, imports, importMappers);
 
-		localEnv = createEnvironment(xpathEvalNodes("/XDF/Decl[@kind='Var']", source), env, platform);
+		localEnv = createEnvironment(xpathEvalNodes("/XDF/Decl[@kind='Variable']", source), env, platform);
 		Context context = platform.context();
 
 		//
 		//		add processes
 		//
-	
+
 		ExprEvaluator evaluator = new ExprEvaluator(context, localEnv);
-		
+
 		Map instanceMap = new HashMap();
 
 		NodeList nlInstances = xpathEvalNodes("/XDF/Instance", source);
-		
+
 		for (int i = 0; i < nlInstances.getLength(); i++) {
 			Element inst = (Element)nlInstances.item(i);
 			Element classElement = xpathEvalElement("Class", inst);
@@ -133,7 +133,7 @@ public class Util {
 				Object val = evaluator.evaluate(expr);
 				pars.put(name, val);
 			}
-			
+
 			try {
 				Constructor constructor = c.getConstructor(new Class [] {Object.class});
 				DiscreteEventComponent dec = (DiscreteEventComponent)constructor.newInstance(new Object[] {pars});
@@ -144,21 +144,21 @@ public class Util {
 				throw new RuntimeException("Cannot instantiate model class '" + c.getName() + "'.", exc);
 			}
 		}
-		
-		
+
+
 		//
 		//			add connections
 		//
 
 		NodeList nlConnections = xpathEvalNodes("XDF/Connection", source);
-		
+
 		for (int i = 0; i < nlConnections.getLength(); i++) {
 			Element eConnection = (Element)nlConnections.item(i);
 			n.addConnection((DiscreteEventComponent)instanceMap.get(eConnection.getAttribute(attrSrc)),
-					        eConnection.getAttribute(attrSrcPort),
-					        (DiscreteEventComponent)instanceMap.get(eConnection.getAttribute(attrDst)),
-					        eConnection.getAttribute(attrDstPort));
-			
+					eConnection.getAttribute(attrSrcPort),
+					(DiscreteEventComponent)instanceMap.get(eConnection.getAttribute(attrDst)),
+					eConnection.getAttribute(attrDstPort));
+
 			DiscreteEventComponent dst = (DiscreteEventComponent)instanceMap.get(eConnection.getAttribute(attrDst));
 			if (dst != null) {
 				MessageListener port = dst.getInputConnectors().getConnector(eConnection.getAttribute(attrDstPort));
@@ -192,7 +192,6 @@ public class Util {
 				// FIXME: add monitor code here
 			}
 		}
-
 	}
 	
 	public static Class loadClassFromElement(Element e, ClassLoader loader) {

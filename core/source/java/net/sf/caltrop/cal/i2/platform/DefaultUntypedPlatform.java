@@ -78,7 +78,7 @@ public class DefaultUntypedPlatform implements Platform {
 	public ImportMapper []  getImportMappers() {
 		return new ImportMapper [] {
 				new ReplacePrefixImportMapper(new String [] {"caltrop", "lib"}, 
-											  new String [] {"net", "sf", "caltrop", "cal", "lib"})
+											  new String [] {"net", "sf", "caltrop", "cal", "lib_i2"})
 		};
     }
 
@@ -241,22 +241,14 @@ public class DefaultUntypedPlatform implements Platform {
 		env.bind("$eq", new FunctionOf2() {
 			@Override
 			public Object f(Object a, Object b) {
-				if (a == null) {
-					return booleanValueOf(b == null);
-				} else {
-					return booleanValueOf(a.equals(b));
-				}
+				return booleanValueOf(equality(a, b));
 			}
 		}, null);
 		
 		env.bind("$ne", new FunctionOf2() {
 			@Override
 			public Object f(Object a, Object b) {
-				if (a == null) {
-					return booleanValueOf(b != null);
-				} else {
-					return booleanValueOf(!a.equals(b));
-				}
+				return booleanValueOf(!equality(a, b));
 			}
 		}, null);
 		
@@ -782,6 +774,61 @@ public class DefaultUntypedPlatform implements Platform {
 			}
 		}, null);
 		
+	}
+	
+	private static boolean  equality(Object a, Object b) {
+		if (a == null) {
+			return booleanValueOf(b == null);
+		} else {
+			if (a instanceof BigInteger) {
+				if (b instanceof BigInteger) {
+					return a.equals(b);
+				}
+				if (b instanceof Long || b instanceof Integer || b instanceof Short || b instanceof Byte) {
+					return a.equals(BigInteger.valueOf(((Number)b).longValue()));
+				}
+				if (b instanceof Double || b instanceof Float) {
+					return ((Number)a).doubleValue() == ((Number)b).doubleValue();
+				}
+				return false;
+			}
+			
+			assert ! (a instanceof BigInteger);
+			
+			if (b instanceof BigInteger) {
+				if (a instanceof Long || a instanceof Integer || a instanceof Short || a instanceof Byte) {
+					return b.equals(BigInteger.valueOf(((Number)a).longValue()));
+				}
+				if (a instanceof Double || a instanceof Float) {
+					return ((Number)a).doubleValue() == ((Number)b).doubleValue();
+				}
+				
+				return false;
+			}
+			
+			assert ! (b instanceof BigInteger);
+			
+			if (a instanceof Long || a instanceof Integer || a instanceof Short || a instanceof Byte) {
+				if (b instanceof Long || b instanceof Integer || b instanceof Short || b instanceof Byte) {
+					return ((Number)a).longValue() == ((Number)b).longValue();
+				}
+				if (b instanceof Double || b instanceof Float) {
+					return ((Number)a).doubleValue() == ((Number)b).doubleValue();
+				}
+				
+				return false;
+			}
+			
+			if (a instanceof Double || a instanceof Float) {
+				if (b instanceof Double || b instanceof Float) {
+					return ((Number)a).doubleValue() == ((Number)b).doubleValue();
+				}
+				
+				return false;				
+			}
+			
+			return a.equals(b);
+		}
 	}
 	
 	private static BigInteger  createInteger(int n) {

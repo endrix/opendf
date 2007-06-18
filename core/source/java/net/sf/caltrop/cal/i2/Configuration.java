@@ -9,6 +9,8 @@ import net.sf.caltrop.cal.interpreter.ast.StmtAssignment;
 
 public interface Configuration {
 	
+	Object  createInteger(int n);
+	
 	Object 	createLiteralValue(ExprLiteral literal);
 	
 	Object  createList(List list);
@@ -38,4 +40,7 @@ public interface Configuration {
 
 
 	Object  createClassObject(Class c);	
+	
+	boolean isAssignableToJavaType(Object v, Class c);
+	Object  convertToJavaType(Object v, Class c);
 }

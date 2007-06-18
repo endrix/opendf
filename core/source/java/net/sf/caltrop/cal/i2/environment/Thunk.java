@@ -74,6 +74,8 @@ public class Thunk implements Environment.VariableContainer, ObjectSink {
     
     public Thunk(final Expression expr, final Evaluator evaluator, final Environment env) {
         this.expr = expr;
+        this.evaluator = evaluator;
+        this.env = env;
         value = this;
         type = null;
     }

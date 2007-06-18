@@ -41,11 +41,10 @@ package net.sf.caltrop.hades.models.lib;
 import java.util.*;
 
 import net.sf.caltrop.cal.interpreter.ast.*;
-import net.sf.caltrop.hades.cal.*;
+import net.sf.caltrop.hades.cal_i2.*;
 import net.sf.caltrop.hades.des.*;
 import net.sf.caltrop.hades.des.components.*;
 import net.sf.caltrop.hades.models.ModelInterface;
-import net.sf.caltrop.hades.models.*;
 
 
 /**

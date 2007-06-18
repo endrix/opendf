@@ -86,4 +86,17 @@ public class StmtAssignment extends Statement {
     private Expression  val;
     private Expression [] location;
     private String field;
+    
+    
+    public long  getVariableLocation() {
+    	return variableLocation;
+    }
+    
+    public void  setVariableLocation(long location) {
+    	variableLocation = location;
+    }
+    
+    private long variableLocation = -1;
+
+
 }

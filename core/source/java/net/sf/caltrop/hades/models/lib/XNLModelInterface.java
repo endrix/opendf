@@ -161,7 +161,7 @@ public class XNLModelInterface implements ModelInterface {
 			Document xdfModel = net.sf.caltrop.nl.Network.translate((Document)modelSource, 
 					                                                          thisEnv, 
 					                                                          myPlatform.context());
-			
+
 			buildNetworkFromXDF(n, xdfModel, myPlatform, env, myLoader);
 		}
 		

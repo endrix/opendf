@@ -85,6 +85,7 @@ public class ProcProcedure implements Procedure {
 
     public ProcProcedure(Environment env, ExprProc proc) {
         this.proc = proc;
+        this.env = env;
         
     }
 

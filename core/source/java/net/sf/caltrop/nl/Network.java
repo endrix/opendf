@@ -64,8 +64,6 @@ import net.sf.caltrop.cal.interpreter.environment.Environment;
 import net.sf.caltrop.cal.interpreter.util.ASTFactory;
 import net.sf.caltrop.cal.interpreter.util.Platform;
 import net.sf.caltrop.cal.interpreter.util.SourceReader;
-import net.sf.caltrop.nl.parser.Lexer;
-import net.sf.caltrop.nl.parser.Parser;
 import net.sf.caltrop.nl.util.DOMFactory;
 import net.sf.caltrop.nl.util.IDGenerator;
 import net.sf.caltrop.nl.util.Lib;
@@ -206,6 +204,7 @@ public class Network {
 	public static Document  translate(Document nldoc, Environment env, Context context) {
 		Network n = new Network();
 		
+		n.setName(xpathEvalElement("/Network", nldoc).getAttribute(attrName));
 		NodeList ports = xpathEvalNodes("/Network/Port", nldoc);
 		for (int i = 0; i < ports.getLength(); i++) {
 			Element p = (Element)ports.item(i);
@@ -236,7 +235,8 @@ public class Network {
 
 			// NOTE: In order to allow out-of-order declaration of variables, we need to lazily evaluate
 			//       them. Therefore, thunks are used in building the local environment.
-			localEnv.bind(v.getAttribute("name"), new SimpleThunk(expr, context, localEnv));
+			String nm = v.getAttribute("name");
+			localEnv.bind(nm, new SimpleThunk(expr, context, localEnv));
 		}
 				
 		//

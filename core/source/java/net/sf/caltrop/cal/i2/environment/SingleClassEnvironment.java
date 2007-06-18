@@ -65,14 +65,14 @@ public class SingleClassEnvironment extends SingleEntryEnvironment {
 	
 	@Override
 	protected int localGet(Object var, ObjectSink s) {
-        if (variableName.equals(var)) {
+        if (this.var.equals(var)) {
         	if (!loaded) {
                 try {
                     Class c = classLoader.loadClass(packagePrefix + "." + className);
                     Object classObject = configuration.createClassObject(c);
                     super.localSetByPos(0, classObject);
                 } catch (ClassNotFoundException e) {
-                    throw new InterpreterException("Cannot find class '" + (packagePrefix + className) + "' for variable '" + variableName + "'.", e);
+                    throw new InterpreterException("Cannot find class '" + (packagePrefix + className) + "' for variable '" + this.var + "'.", e);
                 }
         	}
         	return super.localGet(var, s);
@@ -83,7 +83,7 @@ public class SingleClassEnvironment extends SingleEntryEnvironment {
 
 	@Override
 	protected int localSet(Object var, Object value) {
-		if (variableName.equals(var))
+		if (this.var.equals(var))
 			throw new InterpreterException("Cannot set variable '" + var + "' in SingleClassEnvironment.");
 		else
 			return UNDEFINED;
@@ -91,7 +91,7 @@ public class SingleClassEnvironment extends SingleEntryEnvironment {
 	
 	@Override
 	protected void localSetByPos(int varPos, Object value) {
-		throw new InterpreterException("Cannot set variable '" + variableName + "' in SingleClassEnvironment.");
+		throw new InterpreterException("Cannot set variable '" + this.var + "' in SingleClassEnvironment.");
 	}
 	
     //
@@ -131,7 +131,6 @@ public class SingleClassEnvironment extends SingleEntryEnvironment {
     private ClassLoader     classLoader;
     private String          packagePrefix;
     private String          className;
-    private String 			variableName;
 
     private boolean			loaded;
 }

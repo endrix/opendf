@@ -76,7 +76,7 @@ public class SingleEntryEnvironment extends AbstractEnvironment {
 		this.type = type;
 	}
 	
-	private Object var;
+	protected Object var;
 	private Object value;
 	private Type type;
 }

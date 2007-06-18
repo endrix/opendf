@@ -1,5 +1,6 @@
 package net.sf.caltrop.cal.i2.configuration;
 
+import java.lang.reflect.Field;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -11,14 +12,23 @@ import java.util.Set;
 import net.sf.caltrop.cal.i2.Configuration;
 import net.sf.caltrop.cal.i2.Environment;
 import net.sf.caltrop.cal.i2.Evaluator;
+import net.sf.caltrop.cal.i2.ObjectSink;
 import net.sf.caltrop.cal.i2.OperandStack;
 import net.sf.caltrop.cal.i2.UndefinedInterpreterException;
+import net.sf.caltrop.cal.i2.UndefinedVariableException;
+import net.sf.caltrop.cal.interpreter.InterpreterException;
 import net.sf.caltrop.cal.interpreter.ast.ExprIf;
 import net.sf.caltrop.cal.interpreter.ast.ExprLiteral;
 import net.sf.caltrop.cal.interpreter.ast.ExprVariable;
 import net.sf.caltrop.cal.interpreter.ast.StmtAssignment;
+import net.sf.caltrop.cal.i2.java.ClassObject;
+import net.sf.caltrop.cal.i2.java.MethodObject;
 
 public class DefaultUntypedConfiguration implements Configuration {
+	
+	public Object createInteger(int n) {
+		return BigInteger.valueOf(n);
+	}
 
 	public void addListElement(Object list, Object element) {
 		((List)list).add(element);
@@ -33,12 +43,51 @@ public class DefaultUntypedConfiguration implements Configuration {
 	}
 
 	public void assign(Object value, Environment env, StmtAssignment stmt) {
-		env.setByName(stmt.getVar(), value);
+		
+		try {
+			long loc = stmt.getVariableLocation();
+			if (loc < 0) {
+				loc = env.setByName(stmt.getVar(), value);
+				stmt.setVariableLocation(loc);
+			} else {
+				env.setByPosition(loc, value);
+			}
+		}
+		catch (Exception e) {
+			throw new UndefinedVariableException(stmt.getVar(), e);
+		}
 	}
 
 	public void assign(Object value, Environment env, StmtAssignment stmt,
 			int nIndices, OperandStack stack) {
-		throw new RuntimeException("Indexed assignment NYI.");
+		
+		Object structure = env.getByName(stmt.getVar());  //FIXME: cache
+
+		if (structure instanceof Map) {
+            if (nIndices != 1)
+                throw new IllegalArgumentException("Maps expect 1 index, got: " + nIndices + ".");
+            ((Map)structure).put(stack.getValue(0), value);
+            stack.pop();
+        } else if (structure instanceof List) {
+        	Object a = structure;
+        	for (int i = 0; i < nIndices - 1; i ++) {
+        		if (!(a instanceof List))
+        			throw new IllegalArgumentException("Expected " + nIndices + "-dimensional list structure: " + structure);
+        		Object index = stack.getValue(i);
+        		try {
+        			int idx = intValue(index);
+            		
+            		a = ((List)a).get(idx);
+        		}
+        		catch (Exception e) {
+        			throw new IllegalArgumentException("List indices must all be integers: " + index, e);        			
+        		}
+        	}
+            ((List)a).set(intValue(stack.getValue(nIndices - 1)), value);
+            stack.pop(nIndices);
+        } else {
+            throw new RuntimeException("Unknown data structure: " + structure);
+        }
 	}
 
 	public void assignField(Object value, Environment env, StmtAssignment stmt,
@@ -63,7 +112,7 @@ public class DefaultUntypedConfiguration implements Configuration {
 	}
 
 	public Object createClassObject(Class c) {
-		throw new RuntimeException("Class objects NYI.");
+		return new ClassObject(c, this);
 	}
 
 	public Object createEmptyList() {
@@ -116,16 +165,178 @@ public class DefaultUntypedConfiguration implements Configuration {
 	}
 
 	public void indexInto(Object structure, int nIndices, OperandStack stack) {
-		throw new RuntimeException("Indexing NYI.");
+        if (structure instanceof Map) {
+            if (nIndices != 1)
+                throw new IllegalArgumentException("Maps expect 1 index, got: " + nIndices + ".");
+            stack.replaceWithResult(1, ((Map)structure).get(stack.getValue(0)));
+        } else if (structure instanceof List) {
+        	Object a = structure;
+        	for (int i = 0; i < nIndices; i ++) {
+        		if (!(a instanceof List))
+        			throw new IllegalArgumentException("Expected " + nIndices + "-dimensional list structure: " + structure);
+        		Object index = stack.getValue(i);
+        		try {
+        			int idx = intValue(index);
+            		
+            		a = ((List)a).get(idx);
+        		}
+        		catch (Exception e) {
+        			throw new IllegalArgumentException("List indices must all be integers: " + index, e);        			
+        		}
+        	}
+        	stack.replaceWithResult(nIndices, a);
+        } else {
+            throw new RuntimeException("Unknown data structure: " + structure);
+        }
 	}
 
 	public Object lookupVariable(Environment env, ExprVariable expr) {
-		return env.getByName(expr.getName());
+		
+		try {
+			long loc = expr.getVariableLocation();
+			if (loc < 0) {
+				loc = env.lookupByName(expr.getName(), tmpSink);
+				expr.setVariableLocation(loc);
+				return tmp;
+			} else {
+				return env.getByPosition(loc);
+			}
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			throw new UndefinedVariableException(expr.getName(), e);
+		}
 	}
 
-	public Object selectField(Object a, String fieldName) {
-		// TODO Auto-generated method stub
-		return null;
+	public Object selectField(Object composite, String fieldName) {
+		// check if the name of e is a Field in the enclosingObject. if so, return that value. otherwise,
+		// assume it's a method.
+		Class c = composite.getClass();
+		Field f;
+		try {
+			f = c.getField(fieldName);
+			return f.get(composite);
+		} catch (NoSuchFieldException nsfe1) {
+			// maybe the enclosing object is a Class?
+			if (composite instanceof Class) {
+				Class javaClass = (Class) composite;
+				try {
+					f = javaClass.getField(fieldName);
+					return f.get(composite);
+				} catch (NoSuchFieldException nsfe2) {
+					// assume it's a method.
+					return new MethodObject(composite, fieldName, this);
+				} catch (IllegalAccessException iae) {
+					throw new InterpreterException("Tried to access field " + fieldName +
+							" in " + composite.toString(), iae);
+				}
+			}
+			// assume it's a method.
+			return new MethodObject(composite, fieldName, this);
+		} catch (IllegalAccessException iae) {
+			throw new InterpreterException("Tried to access field " + fieldName + " in " + composite, iae);
+		}
 	}
+
+	public void  assignField(Object composite, String fieldName, Object value) {
+		// check if the name of e is a Field in the enclosingObject. if so, return that value. otherwise,
+		// assume it's a method.
+		Class c = composite.getClass();
+		Field f;
+		try {
+			f = c.getField(fieldName);
+			f.set(composite, value);
+		} catch (NoSuchFieldException nsfe1) {
+			// maybe the enclosing object is a Class?
+			if (composite instanceof Class) {
+				Class javaClass = (Class) composite;
+				try {
+					f = javaClass.getField(fieldName);
+					f.set(composite, value);
+				} catch (NoSuchFieldException nsfe2) {
+					throw new InterpreterException("Tried to access field " + fieldName +
+							" in " + composite.toString() + ": field does not exist.", nsfe2);
+				} catch (IllegalAccessException iae) {
+					throw new InterpreterException("Tried to access field " + fieldName +
+							" in " + composite.toString() + ": access denied.", iae);
+				}
+			}
+		} catch (IllegalAccessException iae) {
+			throw new InterpreterException("Tried to access field " + fieldName + " in " + composite, iae);
+		}
+
+	}
+	
+	public  boolean  isAssignableToJavaType(Object v, Class c) {
+		if (v == null)
+			return !c.isPrimitive();
+		
+		assert v != null;
+		
+		Class vc = v.getClass();
+		if (c.isPrimitive()) {
+			Class cobj = getObjectType(c);
+			if (cobj.isAssignableFrom(vc))
+				return true;
+			if (vc == BigInteger.class) {
+				return cobj == Integer.class || cobj == Long.class;
+			} else {
+				return false;
+			}
+		} else {
+			return c.isAssignableFrom(vc);
+		}
+	}
+	
+	public Object convertToJavaType(Object v, Class c) {
+		if (v == null)
+			return v;
+		
+		assert v != null;
+		
+		Class vc = v.getClass();
+		if (c.isPrimitive()) {
+			Class cobj = getObjectType(c);
+			if (cobj.isAssignableFrom(vc))
+				return v;
+
+			if (v instanceof BigInteger) {
+				if (cobj == Long.class)
+					return new Long(((BigInteger)v).longValue());
+				if (cobj == Integer.class)
+					return new Integer(((BigInteger)v).intValue());
+				throw new UndefinedInterpreterException("Cannot convert from " + vc + " to " + c + ".");
+			}
+			throw new UndefinedInterpreterException("Cannot convert from " + vc + " to " + c + ".");
+		} else {
+			return v;
+		}
+	}
+	
+    private static boolean isAssignableFrom(Class c1, Class c2) {
+        return getObjectType(c1).isAssignableFrom(getObjectType(c2));
+    }
+
+    private static Class getObjectType(Class c) {
+
+        if (c == Boolean.TYPE) return Boolean.class;
+        if (c == Character.TYPE) return Character.class;
+        if (c == Byte.TYPE) return Byte.class;
+        if (c == Short.TYPE) return Short.class;
+        if (c == Integer.TYPE) return Integer.class;
+        if (c == Long.TYPE) return Long.class;
+        if (c == Float.TYPE) return Float.class;
+        if (c == Double.TYPE) return Double.class;
+
+        return c;
+    }
+    
+    private ObjectSink  tmpSink = new ObjectSink () {
+    	public void putObject(Object value) {
+    		tmp = value;
+    	}
+    };
+    
+    private Object tmp;
 
 }

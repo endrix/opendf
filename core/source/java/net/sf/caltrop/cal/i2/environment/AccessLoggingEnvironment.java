@@ -78,6 +78,22 @@ public class AccessLoggingEnvironment implements Environment {
 		return value;
 	}
 	
+	public Object getByPosition(int frame, int varPos) {
+		Object value = parent.getByPosition(frame, varPos);
+
+		logReference(parent.getVariableName(frame, varPos));
+
+		return value;
+	}	
+	
+	public Object getByPosition(long pos) {
+		Object value = parent.getByPosition(pos);
+
+		logReference(parent.getVariableName(AbstractEnvironment.posFrame(pos), AbstractEnvironment.posVar(pos)));
+
+		return value;
+	}
+	
 	public long lookupByName(Object var, ObjectSink s) {
 		
 		long res = parent.lookupByName(var, s);
@@ -106,6 +122,11 @@ public class AccessLoggingEnvironment implements Environment {
     	
     	parent.setByPosition(frame, varPos, value);
     	logReference(parent.getVariableName(frame, varPos));
+    }
+    
+    public void setByPosition(long pos, Object value) {
+    	
+    	setByPosition(AbstractEnvironment.posFrame(pos), AbstractEnvironment.posVar(pos), value);
     }
     
     public Object getVariableName(int frame, int varPos) {

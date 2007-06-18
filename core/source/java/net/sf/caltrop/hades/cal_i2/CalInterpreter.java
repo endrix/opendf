@@ -53,21 +53,8 @@ import java.util.Random;
 import java.util.Set;
 
 import net.sf.caltrop.cal.i2.Configuration;
-import net.sf.caltrop.cal.i2.Evaluator;
 import net.sf.caltrop.cal.i2.Executor;
-import net.sf.caltrop.cal.interpreter.InputChannel;
-import net.sf.caltrop.cal.interpreter.InputPort;
-import net.sf.caltrop.cal.interpreter.OutputChannel;
-import net.sf.caltrop.cal.interpreter.OutputPort;
 import net.sf.caltrop.cal.i2.Procedure;
-import net.sf.caltrop.cal.interpreter.ast.Action;
-import net.sf.caltrop.cal.interpreter.ast.Actor;
-import net.sf.caltrop.cal.interpreter.ast.Decl;
-import net.sf.caltrop.cal.interpreter.ast.Expression;
-import net.sf.caltrop.cal.interpreter.ast.PortDecl;
-import net.sf.caltrop.cal.interpreter.ast.QID;
-import net.sf.caltrop.cal.interpreter.ast.Transition;
-import net.sf.caltrop.cal.interpreter.ast.TypeExpr;
 import net.sf.caltrop.cal.i2.environment.CacheEnvironment;
 import net.sf.caltrop.cal.i2.environment.DynamicEnvironmentFrame;
 import net.sf.caltrop.cal.i2.Environment;
@@ -76,6 +63,19 @@ import net.sf.caltrop.cal.i2.util.ImportHandler;
 import net.sf.caltrop.cal.i2.util.ImportMapper;
 import net.sf.caltrop.cal.i2.util.ImportUtil;
 import net.sf.caltrop.cal.i2.util.Platform;
+
+import net.sf.caltrop.cal.interpreter.InputChannel;
+import net.sf.caltrop.cal.interpreter.InputPort;
+import net.sf.caltrop.cal.interpreter.OutputChannel;
+import net.sf.caltrop.cal.interpreter.OutputPort;
+import net.sf.caltrop.cal.interpreter.ast.Action;
+import net.sf.caltrop.cal.interpreter.ast.Actor;
+import net.sf.caltrop.cal.interpreter.ast.Decl;
+import net.sf.caltrop.cal.interpreter.ast.Expression;
+import net.sf.caltrop.cal.interpreter.ast.PortDecl;
+import net.sf.caltrop.cal.interpreter.ast.QID;
+import net.sf.caltrop.cal.interpreter.ast.Transition;
+import net.sf.caltrop.cal.interpreter.ast.TypeExpr;
 import net.sf.caltrop.cal.interpreter.util.PriorityUtil;
 //import net.sf.caltrop.cal.interpreter.util.Types;
 import net.sf.caltrop.hades.des.AbstractDiscreteEventComponent;
@@ -162,7 +162,7 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 				myPlatform = (Platform)this.getClass().getClassLoader().loadClass(platformName).newInstance();
 			}
 			catch (Exception exc) {
-				throw new RuntimeException("Cannot load platform class: " + platformName, exc);
+				myPlatform = DefaultUntypedPlatform.thePlatform;
 			}
 		}
 

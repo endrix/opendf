@@ -56,11 +56,23 @@ public class ExprVariable extends Expression {
     public String getName() {
         return name;
     }
+    
+    public long  getVariableLocation() {
+    	return cachedLocation;
+    }
+    
+    public void  setVariableLocation(long location) {
+    	cachedLocation = location;
+    }
 
 
     private String      name;
+    
+    private long        cachedLocation = -1;
 
     public String toString() {
         return "Variable: " + this.name;
     }
+    
+    
 }

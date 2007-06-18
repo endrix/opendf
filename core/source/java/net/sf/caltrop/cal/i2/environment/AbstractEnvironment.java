@@ -13,6 +13,27 @@ abstract public class AbstractEnvironment implements Environment {
 		lookupByName(var, tmpSink);
 		return tmp;
 	}
+	
+	public Object getByPosition(long pos) {
+		return getByPosition(posFrame(pos), posVar(pos));
+	}
+	
+	public Object getByPosition(int frame, int varPos) {
+		assert frame >= 0;
+		assert varPos >= 0;
+		
+		if (frame == 0) {
+			localGetByPos(varPos, tmpSink);
+			return tmp;
+		} else  {
+			assert parent != null;
+
+			parent.lookupByPosition(frame - 1, varPos, tmpSink);
+			return tmp;
+		}
+	}
+	
+	
 
 	public long lookupByName(Object var, ObjectSink s) {
 		int res = localGet(var, s);
@@ -75,6 +96,10 @@ abstract public class AbstractEnvironment implements Environment {
  				throw new UndefinedInterpreterException("Bad return value from localSet: " + res);
 			}
 		}
+	}
+	
+	public void setByPosition(long pos, Object value) {
+		setByPosition(posFrame(pos), posVar(pos), value);
 	}
 	
 	public void setByPosition(int frame, int varPos, Object value) {
@@ -156,15 +181,15 @@ abstract public class AbstractEnvironment implements Environment {
 	
 	final protected static int UNDEFINED = -11;
 	
-	protected final static int  posFrame(long pos) {
+	public final static int  posFrame(long pos) {
 		return (int)(pos >> 32);
 	}
 	
-	protected final static int  posVar(long pos) {
+	public final static int  posVar(long pos) {
 		return (int)pos;
 	}
 	
-	protected final static long  makePos(int frame, int var) {
+	public final static long  makePos(int frame, int var) {
 		return (((long)frame) << 32) | (long)var; 
 	}
 	

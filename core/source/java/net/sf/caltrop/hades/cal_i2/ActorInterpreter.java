@@ -298,7 +298,10 @@ public class ActorInterpreter {
 		final Action action = envAction;
 		final Statement[] body = action.getBody();
 		for (int i = 0; i < body.length; i++) {
+			int oldStackSize = interpreter.size();
 			interpreter.execute(body[i], env);
+			
+			assert interpreter.size() == oldStackSize;
 		}
 	}
 	

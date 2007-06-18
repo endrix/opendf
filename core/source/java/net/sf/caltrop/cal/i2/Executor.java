@@ -136,7 +136,7 @@ public class Executor extends Evaluator implements StatementVisitor {
     public void visitStmtCall(StmtCall s) {
         Procedure procedure = (Procedure)valueOf(s.getProcedure());
         Object [] args = new Object [s.getArgs().length];
-        for (int i = args.length; i >= 0; i--) {
+        for (int i = args.length - 1; i >= 0; i--) {
             evaluate(s.getArgs()[i]);
         }
         procedure.call(args.length, this);
