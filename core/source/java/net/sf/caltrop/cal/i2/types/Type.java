@@ -40,7 +40,7 @@ public interface Type {
 	/**
 	 * Determine whether the object can be converted to this type. Instances 
 	 * of a type are always convertable to it, i.e. {@link #contains(Object) contains} 
-	 * implies {@link #convertable(Object) convertable}.
+	 * implies {@link #convertible(Object) convertable}.
 	 * 
 	 * @param v The object.
 	 * @return True, if the object is convertable to an instance of this type.
@@ -48,11 +48,11 @@ public interface Type {
 	 * @see #convert(Object)
 	 */
 	
-	boolean  convertable(Object v);
+	boolean  convertible(Object v);
 	
 	/**
 	 * Convert object to an instance of this type. If {@link #contains(Object)} returns true 
-	 * for this object, then the object itself should be returned. If {@link #convertable(Object)} 
+	 * for this object, then the object itself should be returned. If {@link #convertible(Object)} 
 	 * returns false, the result of this method is undefined, and it may throw an exception.
 	 * 
 	 * The object returned from this method must be an instance of this type, i.e. {@link #contains(Object)} 
@@ -61,7 +61,7 @@ public interface Type {
 	 * @param v The object.
 	 * @return An instance of this type resulting from converting the parameter object.
 	 * @see #contains(Object)
-	 * @see #convertable(Object)
+	 * @see #convertible(Object)
 	 */
 	
 	Object   convert(Object v);
@@ -78,7 +78,7 @@ public interface Type {
 	
 	/**
 	 * Determine whether this type is assignable to the argument type. If it is, then any instance of this type 
-	 * is convertable to the argument type.
+	 * is convertible to the argument type.
 	 * 
 	 * @param t A type.
 	 * @return True, if this type is assignable to t.
