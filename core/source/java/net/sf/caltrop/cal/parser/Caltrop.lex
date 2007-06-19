@@ -241,7 +241,7 @@ OctalLiteral = (0[0-7]*)
 Integer = ({DecimalLiteral}|{HexLiteral}|{OctalLiteral})
 
 Exponent = ([eE][+-]?[0-9]+)
-Real = (([0-9]+"."[0-9]*{Exponent}?[fFdD]?) | ("."[0-9]+{Exponent}?[fFdD]?) | ([0-9]+{Exponent}[fFdD]?) | ([0-9]+{Exponent}?[fFdD]))
+Real = (([0-9]+"."[0-9]+{Exponent}?[fFdD]?) | ("."[0-9]+{Exponent}?[fFdD]?) | ([0-9]+{Exponent}[fFdD]?) | ([0-9]+{Exponent}?[fFdD]))
 
 //EscapeChar = ("\\"[ntbrf\\'\"]|([0-7][0-7]?)|([0-3][0-7][0-7]))
 EscapeChar = ("\\"( [ntbrf\\'\"] | ([0-7][0-7]?)|([0-3][0-7][0-7])))
