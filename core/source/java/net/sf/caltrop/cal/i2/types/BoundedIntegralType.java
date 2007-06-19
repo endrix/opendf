@@ -1,59 +1,24 @@
 package net.sf.caltrop.cal.i2.types;
 
+import java.math.BigInteger;
 import java.util.Map;
 
-public class BoundedIntegralType extends IntegralType implements Type {
+/**
+ * An instance of BoundedIntegralType types is a representation of an integral number. The maximal number of 
+ * bits available for representing an instance of this type is bounded. Consequently, operations
+ * closed over these types may produce arithmetically incorrect results when the number of bits required to 
+ * represent the arithmetically correct result exceeds that number.
+ * 
+ * Note that the maximal number of bits may include a sign bit if the instances of this type are signed.
+ * 
+ * @author jornj
+ *
+ */
 
-	@Override
-	public double doubleValue(Object v) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
+public interface BoundedIntegralType extends IntegralType {
 
-	@Override
-	public boolean isSigned() {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	public boolean contains(Object v) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	public Object convert(Object v) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public boolean convertible(Object v) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	public String getName() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public Map<String, Type> getTypeParameters() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public Map<String, Object> getValueParameters() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public boolean isConvertibleTo(Type t) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	public boolean isSubtypeOf(Type t) {
-		// TODO Auto-generated method stub
-		return false;
-	}
+	abstract public int  		maximalBitSize();
+	abstract public BigInteger	maxValue();
+	abstract public BigInteger  minValue();
 
 }

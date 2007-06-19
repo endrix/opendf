@@ -7,9 +7,9 @@ package net.sf.caltrop.cal.i2.types;
  *
  */
 
-public abstract class RealType extends NumericType implements Type {
+public interface RealType extends NumericType {
 	
-	public abstract boolean isSigned();
+	public boolean isSigned();
 
-	public abstract double  doubleValue(Object v);
+	public double  doubleValue(Object v);
 }

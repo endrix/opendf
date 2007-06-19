@@ -9,7 +9,7 @@ import java.util.Map;
  *
  */
 
-public abstract class FloatingPointType extends RealType implements Type {
+public interface FloatingPointType extends RealType {
 	
 	abstract public int  mantissaLength();
 	abstract public int  exponentLength();
