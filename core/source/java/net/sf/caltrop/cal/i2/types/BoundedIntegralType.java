@@ -46,7 +46,7 @@ public class BoundedIntegralType extends IntegralType implements Type {
 		return null;
 	}
 
-	public boolean isAssignableTo(Type t) {
+	public boolean isConvertibleTo(Type t) {
 		// TODO Auto-generated method stub
 		return false;
 	}

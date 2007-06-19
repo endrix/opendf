@@ -2,6 +2,14 @@ package net.sf.caltrop.cal.i2.types;
 
 import java.util.Map;
 
+/**
+ * A Type object represents a collection of CAL data objects. It provides operations that relate 
+ * it to other types, and to objects.
+ * 
+ * @author jornj
+ *
+ */
+
 public interface Type {
 	
 	/**
@@ -77,11 +85,11 @@ public interface Type {
 	boolean  isSubtypeOf(Type t);
 	
 	/**
-	 * Determine whether this type is assignable to the argument type. If it is, then any instance of this type 
+	 * Determine whether this type is convertible to the argument type. If it is, then any instance of this type 
 	 * is convertible to the argument type.
 	 * 
 	 * @param t A type.
-	 * @return True, if this type is assignable to t.
+	 * @return True, if this type is convertible to t.
 	 */
-	boolean  isAssignableTo(Type t);
+	boolean  isConvertibleTo(Type t);
 }

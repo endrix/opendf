@@ -2,6 +2,14 @@ package net.sf.caltrop.cal.i2.types;
 
 import java.util.Map;
 
+/**
+ * Instances of UnboundedIntegralType types are representations of integers. These types
+ * allow integers of arbitrary size to be represented.
+ * 
+ * @author jornj
+ *
+ */
+
 public class UnboundedIntegralType extends IntegralType implements Type {
 
 	@Override
@@ -46,7 +54,7 @@ public class UnboundedIntegralType extends IntegralType implements Type {
 		return null;
 	}
 
-	public boolean isAssignableTo(Type t) {
+	public boolean isConvertibleTo(Type t) {
 		// TODO Auto-generated method stub
 		return false;
 	}
