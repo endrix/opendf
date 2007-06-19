@@ -448,6 +448,7 @@ terminal String COMMA;
 terminal String DASH_DASH_GT;
 terminal String DASH_GT;
 terminal String DOT;
+terminal String DOTDOT;
 terminal String EQUALS;
 terminal String EQUALS_EQUALS_GT;
 terminal String GT;
@@ -1721,6 +1722,7 @@ expression_op_name ::=
     |   AND:k {: RESULT = k; :}
     |   DIV:k {: RESULT = k; :}
     |   DOM:k {: RESULT = k; :}
+    |   DOTDOT:k {: RESULT = k; :}
     |   MOD:k {: RESULT = k; :}
     |   NOT:k {: RESULT = k; :}
     |   OR:k {: RESULT = k; :}

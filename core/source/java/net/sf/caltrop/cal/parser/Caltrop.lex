@@ -134,6 +134,7 @@ This JFlex lexer supports the CUP Parser via the java_cup.runtime.Scanner interf
     public final String opDashDashGt = new String("-->");
     public final String opDashGt = new String("->");
     public final String opDot = new String(".");
+    public final String opDotDot = new String("..");
     public final String opEquals = new String("=");
     public final String opEqualsEqualsGt = new String("==>");
     public final String opGt = new String(">");
@@ -161,6 +162,7 @@ This JFlex lexer supports the CUP Parser via the java_cup.runtime.Scanner interf
         int iMax = s.length();
         StringBuffer result = new StringBuffer(iMax);
         for (int i = 0; i < iMax; ) {
+        
             char c = s.charAt(i);           // FIXME: where did the 16 bit Unicode characters go ?
             if (c != '\\') {
                 result.append(c);
@@ -349,6 +351,7 @@ Op = ({OpLetter}+)
 "-->" { return new Symbol(Terminal.DASH_DASH_GT, yyline+1, yycolumn+1, opDashDashGt); }
 "->" { return new Symbol(Terminal.DASH_GT, yyline+1, yycolumn+1, opDashGt); }
 "." { return new Symbol(Terminal.DOT, yyline+1, yycolumn+1, opDot); }
+".." { return new Symbol(Terminal.DOTDOT, yyline+1, yycolumn+1, opDotDot); }
 "=" { return new Symbol(Terminal.EQUALS, yyline+1, yycolumn+1, opEquals); }
 "==>" { return new Symbol(Terminal.EQUALS_EQUALS_GT, yyline+1, yycolumn+1, opEqualsEqualsGt); }
 "#" { return new Symbol(Terminal.HASH, yyline+1, yycolumn+1, opHash); }

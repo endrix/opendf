@@ -19,6 +19,8 @@
     <BinaryOp name="&gt;=" precedence= "3" function="$ge"/>
     <BinaryOp name="!=" precedence= "3" function="$ne"/>
 
+    <BinaryOp name=".." precedence= "3" function="Integers"/>
+
     <BinaryOp name="+" precedence= "4" function="$add"/>
     <BinaryOp name="-" precedence= "4" function="$sub"/>
 

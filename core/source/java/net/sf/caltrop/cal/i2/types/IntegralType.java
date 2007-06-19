@@ -7,6 +7,24 @@ package net.sf.caltrop.cal.i2.types;
  *
  */
 
-public interface IntegralType extends RealType  {
+public interface IntegralType extends RealType {
+	
+	/**
+	 * Determine whether this type has a size limit for representations of 
+	 * its values.
+	 * 
+	 * @return True, if the values represented by this type are limited in size.
+	 */
+
+	boolean  hasSize();
+	
+	/**
+	 * Return the size limit for integer representations, in bits. The behavior 
+	 * of this method is undefined if (@link #hasSize} returns false for this type.
+	 * 
+	 * @return The size limit.
+	 */
+	
+	int      size();
 
 }
