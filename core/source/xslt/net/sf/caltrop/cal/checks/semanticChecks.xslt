@@ -32,44 +32,6 @@
             <xsl:copy-of select="*"/>
          </xsl:copy>
       </xsl:for-each>
-      <xsl:for-each select="$contents/Note">
-         <xsl:variable name="body">
-            <xsl:value-of select="text()"/>
-         </xsl:variable>
-         <xsl:message>
-            <xsl:value-of select="@severity"/>
-            <xsl:text>: </xsl:text>
-            <xsl:value-of select="normalize-space($body)"/>
-            <xsl:text> [id </xsl:text>
-            <xsl:value-of select="@id"/>
-            <xsl:text>]</xsl:text>
-         </xsl:message>
-         <xsl:message>
-            <xsl:text/>
-            <xsl:value-of select="@subject"/>
-         </xsl:message>
-         <xsl:message/>
-      </xsl:for-each>
-      <xsl:if test="$contents/Note[@severity='Warning']">
-         <xsl:message>
-            <xsl:value-of select="count( $contents/Note[@severity='Warning'] )"/>
-            <xsl:text> warning</xsl:text>
-            <xsl:if test="count( $contents/Note[@severity='Warning'] ) &gt; 1">
-               <xsl:text>s</xsl:text>
-            </xsl:if>
-         </xsl:message>
-      </xsl:if>
-      <xsl:if test="$contents/Note[@severity='Error']">
-         <xsl:message terminate="yes">
-            <xsl:value-of select="count( $contents/Note[@severity='Error'] )"/>
-            <xsl:text> error</xsl:text>
-            <xsl:if test="count( $contents/Note[@severity='Error'] ) &gt; 1">
-               <xsl:text>s</xsl:text>
-            </xsl:if>
-            <xsl:text> [processing terminated]
-</xsl:text>
-         </xsl:message>
-      </xsl:if>
    </xsl:template>
   
   
@@ -171,7 +133,7 @@
     
     <xsl:template match="Expr[@kind='BinOpSeq']" priority="3994" mode="M1">
       <xsl:choose>
-         <xsl:when test="contains( ' and or = != &lt; &lt;= &gt; &gt;= in + - div mod * / ^  ', concat(' ',Op/@name,' ') )"/>
+         <xsl:when test="contains( ' and or = != &lt; &lt;= &gt; &gt;= in + - div mod * / ^ .. &gt;&gt; &lt;&lt; | &amp; ^ ',                 concat(' ',Op/@name,' ') )"/>
          <xsl:otherwise>
             <Note kind="Report" severity="Error" id="variableChecks.binaryOperator.undefined"
                   subject="">
@@ -185,7 +147,7 @@
     
     <xsl:template match="Expr[@kind='UnaryOp']" priority="3993" mode="M1">
       <xsl:choose>
-         <xsl:when test="contains( ' not # dom rng - ', concat(' ',Op/@name,' ') )"/>
+         <xsl:when test="contains( ' not # dom rng - ~ ', concat(' ',Op/@name,' ') )"/>
          <xsl:otherwise>
             <Note kind="Report" severity="Error" id="variableChecks.unaryOperator.undefined"
                   subject="">
