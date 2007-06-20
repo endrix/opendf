@@ -41,31 +41,31 @@ cproot = $(CALTROP_CLASSDIR)/net/sf/caltrop
 
 .PHONY = create_dir
 
-$(CALTROP_CLASSDIR): create_dir $(cproot)/util $(cproot)/cal $(cproot)/nl $(cproot)/hades $(cproot)/cli $(CALTROP_CLASSDIR)/ptolemy xslt contrib
+$(CALTROP_CLASSDIR): create_dir util cal nl hades cli ptolemy xslt contrib
 
 
 create_dir:
 	mkdir -p $(CALTROP_CLASSDIR)
 
-$(CALTROP_CLASSDIR)/java_cup:
+java_cup:
 	$(JAVAC) -d $(CALTROP_CLASSDIR) $(JAVA_CUP_SOURCES)
 
-$(CALTROP_CLASSDIR)/ptolemy:
+ptolemy:
 	$(JAVAC) -d $(CALTROP_CLASSDIR) $(PTOLEMY_SOURCES)
 
-$(cproot)/util:
+util:
 	$(JAVAC) -d $(CALTROP_CLASSDIR) $(CALTROP_UTIL_SOURCES)
 
-$(cproot)/cal: $(cproot)/util $(CALTROP_CLASSDIR)/java_cup
+cal: util java_cup
 	$(JAVAC) -classpath $(CALTROP_CLASSDIR) -d $(CALTROP_CLASSDIR) $(CALTROP_CAL_SOURCES)
 
-$(cproot)/nl: $(cproot)/util $(cproot)/cal $(CALTROP_CLASSDIR)/java_cup
+nl: util cal java_cup
 	$(JAVAC) -classpath $(CALTROP_CLASSDIR) -d $(CALTROP_CLASSDIR) $(CALTROP_NL_SOURCES)
 
-$(cproot)/hades: $(cproot)/util $(cproot)/cal $(cproot)/nl
+hades: util cal nl
 	$(JAVAC) -classpath $(CALTROP_CLASSDIR) -d $(CALTROP_CLASSDIR) $(CALTROP_HADES_SOURCES)
 
-$(cproot)/cli: $(cproot)/util $(cproot)/cal $(cproot)/nl $(cproot)/hades $(CALTROP_CLASSDIR)/java_cup
+cli: util cal nl hades java_cup
 	$(JAVAC) -classpath $(CALTROP_CLASSDIR)$(CPS)$(CALTROP_HOME)/lib/saxon8.jar -d $(CALTROP_CLASSDIR) $(CALTROP_CLI_SOURCES)
 
 xslt:
