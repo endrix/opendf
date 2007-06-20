@@ -1,13 +1,15 @@
-# This makefile is generally called by the one in the parent directory.  These vars
-# will be set by the parent makefile.
-# Linux environment
+# This makefile is generally called by the one in the parent directory. 
+# These vars will be set by the parent makefile.
+
 JAVAC = javac
 JAR = jar
+
+# OS-dependent classpath separator
+ifeq "$(OS)" "Windows_NT"
+CPS = ;
+else
 CPS = :
-# Windows environment
-#JAVAC = /cygdrive/c/Program\ Files/Java/jdk1.5.0_06/bin/javac
-#JAVAC = /cygdrive/c/Program\ Files/Java/jdk1.5.0_06/bin/jar
-#CPS = ;
+endif
 
 CALTROP_HOME = ../..
 JAR_NAME = caltrop.jar
