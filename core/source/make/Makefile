@@ -76,4 +76,4 @@ xslt:
 
 contrib:
 	mkdir -p $(CALTROP_CLASSDIR)
-	$(JAVAC) -d $(CALTROP_CLASSDIR) -classpath $(CALTROP_CLASSDIR)$(CPS)$(CONTRIB_DIR)/lib/PtPlot.jar $(CONTRIB_SOURCES)
+	$(JAVAC) -d $(CALTROP_CLASSDIR) -classpath "$(CALTROP_CLASSDIR)$(CPS)$(CONTRIB_DIR)/lib/PtPlot.jar" $(CONTRIB_SOURCES)
