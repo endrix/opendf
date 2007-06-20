@@ -1409,7 +1409,7 @@ stmt_choose ::=
         CHOOSE generators:g var_decl_variables_opt:v DO statements:s end_choose
             {:  Element statement = createElement("Stmt", "Choose");
                 appendChildren(statement, g);
-                Element body = createElement("Body");
+                Element body = createElement("Stmt", "Block");
                 appendChildren(body, v);
                 appendChildren(body, s);
                 RESULT = appendChild(statement, body); :}
@@ -1444,7 +1444,7 @@ stmt_foreach ::=
         generators:g var_decl_variables_opt:v DO statements:s end_foreach   // FIXME: par/seq
             {:  Element statement = createElement("Stmt", "Foreach");
                 appendChildren(statement, g);
-                Element body = createElement("Body");
+                Element body = createElement("Stmt", "Block");
                 appendChildren(body, v);
                 appendChildren(body, s);
                 RESULT = appendChild(statement, body); :}

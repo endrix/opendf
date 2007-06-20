@@ -46,6 +46,7 @@ import net.sf.caltrop.cal.interpreter.ast.StatementVisitor;
 import net.sf.caltrop.cal.interpreter.ast.StmtAssignment;
 import net.sf.caltrop.cal.interpreter.ast.StmtBlock;
 import net.sf.caltrop.cal.interpreter.ast.StmtCall;
+import net.sf.caltrop.cal.interpreter.ast.StmtForeach;
 import net.sf.caltrop.cal.interpreter.ast.StmtIf;
 import net.sf.caltrop.cal.interpreter.ast.StmtWhile;
 import net.sf.caltrop.cal.interpreter.environment.Environment;
@@ -54,6 +55,8 @@ import net.sf.caltrop.cal.interpreter.environment.Environment;
  * The statement evaluator interprets statements and potentially modifies the assignment of values to variables
  * in the environment. It extends the expression evaluator, which it uses to interpret expressions occurring
  * inside the statements.
+ *
+ * @deprecated Replacing this class with new interpreter.
  *
  * @author Jörn W. Janneck <janneck@eecs.berkeley.edu>
  * @see Statement
@@ -151,6 +154,10 @@ public class StmtEvaluator extends ExprEvaluator implements StatementVisitor {
             val = evaluate(condition);
         }
     }
+
+    public void visitStmtForeach(StmtForeach s) {
+    	// THIS CLASS IS DEPRECATED
+	}
 
 
 

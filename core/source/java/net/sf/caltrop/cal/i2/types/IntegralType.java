@@ -1,5 +1,7 @@
 package net.sf.caltrop.cal.i2.types;
 
+import java.math.BigInteger;
+
 /**
  * Instances of IntegralType types are representations of integers.
  * 
@@ -26,5 +28,9 @@ public interface IntegralType extends RealType {
 	 */
 	
 	int      size();
+
+	BigInteger	maxValue();
+
+	BigInteger  minValue();
 
 }

@@ -13,12 +13,12 @@ import java.util.Map;
 public interface Type {
 	
 	/**
-	 * Get the type name of this type.
+	 * Get the type class of this type.
 	 * 
-	 * @return The type name.
+	 * @return The type class of this type.
 	 */
 
-	String  getName();
+	TypeClass  getTypeClass();
 	
 	/**
 	 * Get the value parameters of this type.

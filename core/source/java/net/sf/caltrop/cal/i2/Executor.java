@@ -41,15 +41,22 @@ package net.sf.caltrop.cal.i2;
 
 import net.sf.caltrop.cal.interpreter.ast.Decl;
 import net.sf.caltrop.cal.interpreter.ast.Expression;
+import net.sf.caltrop.cal.interpreter.ast.GeneratorFilter;
 import net.sf.caltrop.cal.interpreter.ast.Statement;
 import net.sf.caltrop.cal.interpreter.ast.StatementVisitor;
 import net.sf.caltrop.cal.interpreter.ast.StmtAssignment;
 import net.sf.caltrop.cal.interpreter.ast.StmtBlock;
 import net.sf.caltrop.cal.interpreter.ast.StmtCall;
+import net.sf.caltrop.cal.interpreter.ast.StmtForeach;
 import net.sf.caltrop.cal.interpreter.ast.StmtIf;
 import net.sf.caltrop.cal.interpreter.ast.StmtWhile;
 import net.sf.caltrop.cal.i2.Environment;
 import net.sf.caltrop.cal.i2.environment.LazyEnvironmentFrame;
+import net.sf.caltrop.cal.i2.generator.CollectionGenerator;
+import net.sf.caltrop.cal.i2.generator.Filter;
+import net.sf.caltrop.cal.i2.generator.Generator;
+import net.sf.caltrop.cal.i2.generator.Seed;
+import net.sf.caltrop.cal.i2.generator.VariableGenerator;
 
 /**
  * The statement evaluator interprets statements and potentially modifies the assignment of values to variables
@@ -151,4 +158,31 @@ public class Executor extends Evaluator implements StatementVisitor {
             val = valueOf(condition);
         }
     }
+
+    public void visitStmtForeach(StmtForeach s) {
+    	GeneratorFilter [] gs = s.getGenerators();
+		Generator g = new Seed(env);
+		for (int i = 0; i < gs.length; i++) {
+			g = new CollectionGenerator(g, gs[i].getCollectionExpr(), configuration, GeneratorCollectionVar);
+			Decl [] ds = gs[i].getVariables();
+			for (int j = 0; j < ds.length; j++) {
+ 				g = new VariableGenerator(g, ds[j].getName(), GeneratorCollectionVar);
+			}
+			Expression [] filters = gs[i].getFilters();
+			if (filters != null) {
+    			for (int j = 0; j < filters.length; j++) {
+    				g = new Filter(g, filters[j], configuration);
+    			}    				
+			}
+		}
+		Statement body = s.getBody();
+		Environment env = g.next();
+		while (env != null) {
+			execute(body, env);
+			env = g.next();
+		}
+	}
+
+    private final static String GeneratorCollectionVar = "$generator$collection$";
+
 }

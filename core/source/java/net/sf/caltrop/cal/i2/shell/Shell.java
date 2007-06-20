@@ -376,6 +376,7 @@ public class Shell {
     private BufferedReader inputReader;
 
     private boolean      shellDebug = false;
+    private boolean      shellDebug0 = false;
     private boolean      interactive;
 
 
@@ -512,9 +513,15 @@ public class Shell {
 
         });
 
+        shellCommands.put("debug0", new Command() {
+
+            public void execute(String s) { shellDebug = true; shellDebug0 = true; }
+
+        });
+
         shellCommands.put("nodebug", new Command() {
 
-            public void execute(String s) { shellDebug = false; }
+            public void execute(String s) { shellDebug = false; shellDebug0 = false; }
 
         });
 

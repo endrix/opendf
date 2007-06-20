@@ -245,6 +245,8 @@ public class ASTFactory {
             return createStmtIf(e);
         } else if (kind.equals(valWhile)) {
             return createStmtWhile(e);
+        } else if (kind.equals(valForeach)) {
+            return createStmtForeach(e);
         } else {
             throw new InterpreterException("Unknown statement type: '" + kind + "'.");
         }
@@ -584,6 +586,17 @@ public class ASTFactory {
             Statement body = createStmtBlock(net.sf.caltrop.util.Util.uniqueElement(e, predStmtBlock));
 
             return new StmtWhile(condition, body);
+    }
+
+    private static StmtForeach createStmtForeach(Element e) {
+        assert predStmtForeach.test(e);
+
+        NodeList genList = xpathEvalNodes("Generator", e);
+        assert genList.getLength() > 0;
+       	GeneratorFilter [] gens = createGenerators(genList);
+        Statement body = createStmtBlock(net.sf.caltrop.util.Util.uniqueElement(e, predStmtBlock));
+
+        return new StmtForeach(gens, body);
     }
 
     private static Expression createExprEntry(Element e) {
@@ -1025,6 +1038,7 @@ public class ASTFactory {
     final static String valCall = "Call";
     final static String valCharacter = "Character";
     final static String valEntry = "Entry";
+    final static String valForeach = "Foreach";
     final static String valFreeVar = "freeVar";
     final static String valFsm = "fsm";
     final static String valIf = "If";
@@ -1081,6 +1095,7 @@ public class ASTFactory {
     final static ElementPredicate predStmtAssign = new TagNameAttributeValuePredicate(tagStmt, attrKind, valAssign);
     final static ElementPredicate predStmtBlock = new TagNameAttributeValuePredicate(tagStmt, attrKind, valBlock);
     final static ElementPredicate predStmtCall = new TagNameAttributeValuePredicate(tagStmt, attrKind, valCall);
+    final static ElementPredicate predStmtForeach = new TagNameAttributeValuePredicate(tagStmt, attrKind, valForeach);
     final static ElementPredicate predStmtIf = new TagNameAttributeValuePredicate(tagStmt, attrKind, valIf);
     final static ElementPredicate predStmtWhile = new TagNameAttributeValuePredicate(tagStmt, attrKind, valWhile);
     final static ElementPredicate predTransition = new TagNamePredicate(tagTransition);
@@ -1128,7 +1143,7 @@ public class ASTFactory {
         "net/sf/caltrop/cal/transforms/CanonicalizePortTags.xslt",
         "net/sf/caltrop/cal/transforms/ReplaceOld.xslt",
         //"net/sf/caltrop/cal/transforms/ReplaceGenerators.xslt",
-        "net/sf/caltrop/cal/transforms/ReplaceStmtGenerators.xslt",
+        //"net/sf/caltrop/cal/transforms/ReplaceStmtGenerators.xslt",
         "net/sf/caltrop/cal/transforms/AddID.xslt",
         "net/sf/caltrop/cal/transforms/VariableAnnotator.xslt",
         "net/sf/caltrop/cal/transforms/ContextInfoAnnotator.xslt",
@@ -1172,7 +1187,7 @@ public class ASTFactory {
 
     private static String [] exprTransformationPaths = {
         //"net/sf/caltrop/cal/transforms/ReplaceGenerators.xslt",
-        "net/sf/caltrop/cal/transforms/ReplaceStmtGenerators.xslt",
+        //"net/sf/caltrop/cal/transforms/ReplaceStmtGenerators.xslt",
         "net/sf/caltrop/cal/transforms/AddID.xslt",
         "net/sf/caltrop/cal/transforms/VariableAnnotator.xslt",
         "net/sf/caltrop/cal/transforms/ContextInfoAnnotator.xslt",

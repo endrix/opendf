@@ -49,4 +49,5 @@ public interface StatementVisitor {
     void visitStmtIf(StmtIf s);
     void visitStmtCall(StmtCall s);
     void visitStmtWhile(StmtWhile s);
+    void visitStmtForeach(StmtForeach s);
 }

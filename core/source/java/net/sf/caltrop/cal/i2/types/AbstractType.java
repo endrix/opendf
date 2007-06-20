@@ -14,8 +14,8 @@ public abstract class AbstractType implements Type {
 
 	public abstract boolean isSubtypeOf(Type t);
 
-	public String getName() {
-		return name;
+	public TypeClass getTypeClass() {
+		return typeClass;
 	}
 
 	public Map<String, Type> getTypeParameters() {
@@ -26,14 +26,14 @@ public abstract class AbstractType implements Type {
 		return valueParameters;
 	}
 	
-	public AbstractType(String name, Map<String, Type> typeParameters, Map<String, Object> valueParameters) {
-		this.name = name;
+	public AbstractType(TypeClass typeClass, Map<String, Type> typeParameters, Map<String, Object> valueParameters) {
+		this.typeClass = typeClass;
 		this.typeParameters = typeParameters;
 		this.valueParameters = valueParameters;
 	}
 
-	
-	private String  			name;
+
+	private TypeClass			typeClass;
 	private Map<String, Type>	typeParameters;
 	private Map<String, Object>	valueParameters;
 }
