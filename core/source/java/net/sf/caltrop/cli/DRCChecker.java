@@ -59,7 +59,7 @@ public class DRCChecker extends XSLTTransformRunner
     private static final String CALMLEXT = ".calml";
     private static final String CALEXT = ".cal";
     
-    private static String[] calmlCheckers = {"net/sf/caltrop/cal/checks/calmlChecks.xslt"};
+    private static String[] calmlCheckers = {"net/sf/caltrop/cal/checks/semanticChecks.xslt"};
     private static String[] simCheckers = {}; // TBD
     private static String[] synthCheckers = {}; // TBD
 
