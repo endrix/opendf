@@ -66,7 +66,7 @@ hades: util cal nl
 	$(JAVAC) -classpath $(CALTROP_CLASSDIR) -d $(CALTROP_CLASSDIR) $(CALTROP_HADES_SOURCES)
 
 cli: util cal nl hades java_cup
-	$(JAVAC) -classpath $(CALTROP_CLASSDIR)$(CPS)$(CALTROP_HOME)/lib/saxon8.jar -d $(CALTROP_CLASSDIR) $(CALTROP_CLI_SOURCES)
+	$(JAVAC) -classpath "$(CALTROP_CLASSDIR)$(CPS)$(CALTROP_HOME)/lib/saxon8.jar" -d $(CALTROP_CLASSDIR) $(CALTROP_CLI_SOURCES)
 
 xslt:
 	mkdir -p $(CALTROP_CLASSDIR)/net/sf/caltrop/cal/transforms
