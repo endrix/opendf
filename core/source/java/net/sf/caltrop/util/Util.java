@@ -183,16 +183,16 @@ public class Util {
 
     public static Node applyTransforms(Node document, Transformer [] xfs) throws Exception {
         Node doc = document;
-        for (int i = 0; i < xfs.length; i++) {
-            DOMResult res = new DOMResult();
-            try {
-                xfs[i].transform(new DOMSource(doc), res);
-                doc = (Node)res.getNode();
-            } catch (Throwable e) {
-                throw new TransformFailedException("Could not apply compiled transformation #" + i + ".", e);
-            }
+        for (Transformer xf : xfs) {
+        	doc = applyTransform(doc, xf);
         }
         return doc;
+    }
+
+    public static Node applyTransform(Node document, Transformer xf) throws Exception {
+    	DOMResult res = new DOMResult();
+    	xf.transform(new DOMSource(document), res);
+    	return res.getNode();
     }
 
     public static Node applyTransformsAsResources(Node document, String [] resNames) throws Exception {
