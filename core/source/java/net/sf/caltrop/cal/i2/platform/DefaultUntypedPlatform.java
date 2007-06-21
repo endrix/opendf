@@ -93,7 +93,7 @@ public class DefaultUntypedPlatform implements Platform {
 			return BigInteger.valueOf(v);
 		}
 	};
-
+	
 	private static void populateGlobalEnvironment(DynamicEnvironmentFrame env) {
 		
 		env.bind("PI", Double.valueOf(Math.PI), null);   // TYPEFIXME
@@ -179,7 +179,10 @@ public class DefaultUntypedPlatform implements Platform {
 
 			@Override
 			public Object f(Object a) {
-				return intValueOf(a);
+				if (a instanceof String) {
+					return new BigInteger((String)a);
+				}
+				return createInteger(intValueOf(a));
 		    }
 		}, null);
 
@@ -545,9 +548,9 @@ public class DefaultUntypedPlatform implements Platform {
 			@Override
 		    public Object f(Object a) {
 				if (a instanceof Collection) {
-					return intValueOf(((Collection)a).size());
+					return createInteger(((Collection)a).size());
 				} else if (a instanceof Map) {
-					return intValueOf(((Map)a).size());
+					return createInteger(((Map)a).size());
 				} else
 					throw new RuntimeException("# operator: Required map or collection. (" + a +")");
 			}
@@ -701,7 +704,7 @@ public class DefaultUntypedPlatform implements Platform {
 			public Object f(Object a) {
 				InputStream s = (InputStream)a;
 				try {
-					return intValueOf(s.read());
+					return createInteger(s.read());
 				} catch (IOException e) {
 					throw new InterpreterException("I/O exception.", e);
 				}
@@ -770,9 +773,72 @@ public class DefaultUntypedPlatform implements Platform {
 		env.bind("currentSystemTime", new FunctionOf0 () {
 			@Override
 			public Object f() {
-				return intValueOf(System.currentTimeMillis());
+				return createInteger(System.currentTimeMillis());
 			}
 		}, null);
+		
+        env.bind("bitor", new FunctionOf2() {
+        	@Override
+        	public Object f(Object a, Object b) {
+                int aa = intValueOf(a);
+                int bb = intValueOf(b);
+                return createInteger(aa | bb);
+            }
+        }, null);
+
+        env.bind("bitand", new FunctionOf2() {
+        	@Override
+        	public Object f(Object a, Object b) {
+                int aa = intValueOf(a);
+                int bb = intValueOf(b);
+                return createInteger(aa & bb);
+            }
+        }, null);
+
+        env.bind("bitxor", new FunctionOf2() {
+        	@Override
+        	public Object f(Object a, Object b) {
+                int aa = intValueOf(a);
+                int bb = intValueOf(b);
+                return createInteger(aa ^ bb);
+            }
+        }, null);
+        
+        env.bind("bitnot", new FunctionOf1() {
+        	@Override
+        	public Object f(Object a) {
+                int aa = intValueOf(a);
+                return createInteger(~aa);
+        	}
+        }, null);
+        
+        env.bind("rshift", new FunctionOf2() {
+        	@Override
+        	public Object f(Object a, Object b) {
+                int aa = intValueOf(a);
+                int bb = intValueOf(b);
+                return createInteger(aa >> bb);
+            }
+        }, null);
+
+        env.bind("urshift", new FunctionOf2() {
+        	@Override
+        	public Object f(Object a, Object b) {
+                int aa = intValueOf(a);
+                int bb = intValueOf(b);
+                return createInteger(aa >>> bb);
+            }
+        }, null);
+
+        env.bind("lshift", new FunctionOf2() {
+        	@Override
+        	public Object f(Object a, Object b) {
+                int aa = intValueOf(a);
+                int bb = intValueOf(b);
+                return createInteger(aa << bb);
+            }
+        }, null);
+
 		
 	}
 	
@@ -831,7 +897,7 @@ public class DefaultUntypedPlatform implements Platform {
 		}
 	}
 	
-	private static BigInteger  createInteger(int n) {
+	private static BigInteger  createInteger(long n) {
 		return BigInteger.valueOf(n);
 	}
 	

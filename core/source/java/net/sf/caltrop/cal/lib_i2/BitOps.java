@@ -49,6 +49,8 @@ import net.sf.caltrop.cal.i2.util.FunctionOf2;
 
 /**
  * 
+ * @deprecated
+ * 
  * @author jornj
  */
 public class BitOps implements EnvironmentFactory {

@@ -47,6 +47,8 @@ import net.sf.caltrop.cal.interpreter.environment.HashEnvironment;
 
 /**
  * 
+ * @deprecated
+ * 
  * @author jornj
  */
 public class BitOps implements EnvironmentFactory {
