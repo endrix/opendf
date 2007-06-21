@@ -63,11 +63,13 @@ var
 	MOTION = 8;
 	QUANT_SZ = 6;
 	
+	scs = 8;
+	
 entities
 	serialize = byte2bit();
 
 	parser = parser(
-		SAMPLE_COUNT_SZ:: SAMPLE_COUNT_SZ,
+		SAMPLE_COUNT_SZ:: scs, // SAMPLE_COUNT_SZ,
 		SAMPLE_SZ:: SAMPLE_SZ,
 		MAXW_IN_MB:: MAXW_IN_MB,
 		MB_COORD_SZ:: MB_COORD_SZ,

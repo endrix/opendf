@@ -41,7 +41,7 @@ network FIR (taps, nUnits) In ==> Out :
 var
 	nTaps = #taps;
 	
-	function reverse (a) : [a[#a - i] : for i in Integers(1, #a)] end
+	function reverse (a) : [a[#a - i] : for i in 1 .. #a] end
 
 	function max (a, b) : if a > b then a else b end end
  	
@@ -50,9 +50,9 @@ var
 		k = (#a + n - 1) / n 
 	:
 		[
-			[taps[k * i + j] : for j in Integers(0, k - 1), (k * i + j) < nTaps]
+			[taps[k * i + j] : for j in 0 .. k - 1, (k * i + j) < nTaps]
 		: 
-			for i in Integers(0, n - 1)
+			for i in 0 .. n -1
 		]
 	end
 	
@@ -64,7 +64,7 @@ entities
 	zeros = Constants(constants:: [0]);
 	
 structure
-	foreach i in Integers(0, nSegs - 1) do
+	foreach i in 0 .. nSegs - 1 do
 		In --> c[i].Sample;
 		if i = 0 then
 			zeros.Out --> c[i].AccLineIn;

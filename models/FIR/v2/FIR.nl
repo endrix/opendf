@@ -44,11 +44,11 @@ var
 	
 entities
 	m = [ConstantMultiply(c:: t) : for t in taps];
-	a = [Add() : for i in Integers(0, n - 2)];
+	a = [Add() : for i in 0 .. n - 2];
 	z = [Z(tokens:: [0]) : for _1 in taps];
 	
 structure
-	foreach i in Integers(0, n - 1) do
+	foreach i in 0 .. n - 1 do
 		In --> m[i].In;
 		if i > 0 then
 			m[i].Out --> a[i - 1].A;
