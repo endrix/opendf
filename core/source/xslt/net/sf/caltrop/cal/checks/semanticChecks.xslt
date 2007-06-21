@@ -4,7 +4,7 @@
                 xmlns:sch="http://www.ascc.net/xml/schematron"
                 version="2.0">
    <xsl:output method="xml" indent="yes"/>
-   <xsl:include href="reportOffenders.xslt"/>
+   <xsl:include href="net/sf/caltrop/cal/checks/reportOffenders.xslt"/>
    <xsl:template match="*|@*" mode="schematron-get-full-path">
       <xsl:apply-templates select="parent::*" mode="schematron-get-full-path"/>
       <xsl:text>/</xsl:text>

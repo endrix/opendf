@@ -120,18 +120,18 @@ public class ASTFactory {
     		int nErrors = (reps.errors == null) ? 0 : reps.errors.size();
     		int nWarnings = (reps.warnings == null) ? 0 : reps.warnings.size();
     		if (nErrors > 0) {
-    			Logging.user().severe("There have been " + nErrors + " errors and " + nWarnings + "warnings.");    			
+    			Logging.user().severe("There have been " + nErrors + " errors and " + nWarnings + " warnings.");    			
     		} else {
-    			Logging.user().info("There have been " + nErrors + " errors and " + nWarnings + "warnings.");
+    			Logging.user().info("There have been " + nErrors + " errors and " + nWarnings + " warnings.");
     		}
     		if (nErrors > 0) {
         		for (CheckReport r : reps.errors) {
-        			Logging.user().severe("ERROR: " + r.message);
+        			Logging.user().severe(r.message);
         		}
     		}
     		if (nWarnings > 0) {
     			for (CheckReport r : reps.warnings) {
-        			Logging.user().warning("WARNING: " + r.message);
+        			Logging.user().warning(r.message);
     			}
     		}
     		if (nErrors > 0)
@@ -1150,7 +1150,7 @@ public class ASTFactory {
     		List<Element> e = xpathEvalElements("//Note[@kind='Report'][@severity='Error']", actor);
     		errors = createReports(e, CheckReport.ERROR);
     		List<Element> w = xpathEvalElements("//Note[@kind='Report'][@severity='Warning']", actor);
-    		errors = createReports(w, CheckReport.WARNING);
+    		warnings = createReports(w, CheckReport.WARNING);
     	} catch (Exception e) {
     		throw new RuntimeException("Cannot check actor.", e);
     	}
