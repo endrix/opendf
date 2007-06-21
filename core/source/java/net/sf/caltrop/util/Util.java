@@ -163,7 +163,7 @@ public class Util {
             DOMResult res = new DOMResult();
             res.setSystemId(baseInputURI);
             xf.transform(new DOMSource(doc, baseOutputURI), res);
-            doc = (Document)res.getNode();
+            doc = res.getNode();
         }
         return doc;
     }
