@@ -57,6 +57,8 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.Transformer;
 import java.io.File;
 import java.io.InputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -1171,6 +1173,9 @@ public class ASTFactory {
                     try {
                         actorTransformations[i] = Util.createTransformer(is);
                     } catch (Throwable e) {
+                    	StringWriter sw = new StringWriter();
+                    	e.printStackTrace(new PrintWriter(sw, true));
+                    	Logging.dbg().info("Exception loading actor transformations: " + sw.toString());
                         throw new RuntimeException("Could not create transformer '" + actorTransformationPaths[i] + "'.", e);
                     } finally {
                         is.close();
@@ -1179,6 +1184,9 @@ public class ASTFactory {
                 }
             }
         } catch (Exception e) {
+        	StringWriter sw = new StringWriter();
+        	e.printStackTrace(new PrintWriter(sw, true));
+        	Logging.dbg().info("Exception loading actor transformations: " + sw.toString());
             throw new RuntimeException("Cannot create transformations.", e);
         }
 
@@ -1188,6 +1196,9 @@ public class ASTFactory {
             // System.out.println(Util.createXML(actor));
             return actor;
         } catch (Exception e) {
+        	StringWriter sw = new StringWriter();
+        	e.printStackTrace(new PrintWriter(sw, true));
+        	Logging.dbg().info("Exception applying actor transformations: " + sw.toString());
             throw new RuntimeException("Cannot canonicalize actor.", e);
         }
     }
@@ -1231,6 +1242,9 @@ public class ASTFactory {
                     try {
                         exprTransformations[i] = Util.createTransformer(is);
                     } catch (Throwable e) {
+                    	StringWriter sw = new StringWriter();
+                    	e.printStackTrace(new PrintWriter(sw, true));
+                    	Logging.dbg().info("Exception loading transformations: " + sw.toString());
                         throw new RuntimeException("Could not create transformer '" + exprTransformationPaths[i] + "'.", e);
                     } finally {
                         is.close();
@@ -1239,6 +1253,9 @@ public class ASTFactory {
                 }
             }
         } catch (Exception e) {
+        	StringWriter sw = new StringWriter();
+        	e.printStackTrace(new PrintWriter(sw, true));
+        	Logging.dbg().info("Exception loading transformations: " + sw.toString());
             throw new RuntimeException("Cannot create transformations.", e);
         }
 
@@ -1247,6 +1264,9 @@ public class ASTFactory {
             Node actor = Util.applyTransforms(doc, exprTransformations);
             return actor;
         } catch (Exception e) {
+        	StringWriter sw = new StringWriter();
+        	e.printStackTrace(new PrintWriter(sw, true));
+        	Logging.dbg().info("Exception applying transformations: " + sw.toString());
             throw new RuntimeException("Cannot canonicalize expression.", e);
         }
     }

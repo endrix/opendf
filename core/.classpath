@@ -2,8 +2,9 @@
 <classpath>
 	<classpathentry kind="src" path="lib/source"/>
 	<classpathentry kind="src" path="source/java"/>
-	<classpathentry kind="src" path="source/xslt"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="lib/saxon8-dom.jar"/>
 	<classpathentry kind="lib" path="lib/saxon8.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="source/xslt"/>
 	<classpathentry kind="output" path="classes"/>
 </classpath>
