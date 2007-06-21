@@ -283,7 +283,7 @@ public class Network {
 	
 	private static void  addDeclarationToNetwork(String var, Element expr, Network n) {
 		Element eDecl = n.createElement("Decl");
-		eDecl.setAttribute("kind", "Var");
+		eDecl.setAttribute("kind", "Variable");
 		eDecl.setAttribute("name", var);
 		eDecl.appendChild(n.importNode(expr));
 		

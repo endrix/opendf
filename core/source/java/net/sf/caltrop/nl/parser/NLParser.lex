@@ -145,6 +145,7 @@ This JFlex lexer supports the CUP Parser via the java_cup.runtime.Scanner interf
     public final String opDashDashGt = new String("-->");
     public final String opDashGt = new String("->");
     public final String opDot = new String(".");
+    public final String opDotDot = new String("..");
     public final String opEquals = new String("=");
     public final String opEqualsEqualsGt = new String("==>");
     public final String opGt = new String(">");
@@ -250,7 +251,7 @@ OctalLiteral = (0[0-7]*)
 Integer = ({DecimalLiteral}|{HexLiteral}|{OctalLiteral})
 
 Exponent = ([eE][+-]?[0-9]+)
-Real = (([0-9]+"."[0-9]*{Exponent}?[fFdD]?) | ("."[0-9]+{Exponent}?[fFdD]?) | ([0-9]+{Exponent}[fFdD]?) | ([0-9]+{Exponent}?[fFdD]))
+Real = (([0-9]+"."[0-9]+{Exponent}?[fFdD]?) | ("."[0-9]+{Exponent}?[fFdD]?) | ([0-9]+{Exponent}[fFdD]?) | ([0-9]+{Exponent}?[fFdD]))
 
 EscapeChar = ("\\"[ntbrf\\'\"]|([0-7][0-7]?)|([0-3][0-7][0-7]))
 Character = ("'"([^'\\\n\r]|{EscapeChar})"'")
@@ -355,6 +356,7 @@ Op = ({OpLetter}+)
 "==>" { return new Symbol(Terminal.EQUALS_EQUALS_GT, yyline+1, yycolumn+1, opEqualsEqualsGt); }
 "->" { return new Symbol(Terminal.DASH_GT, yyline+1, yycolumn+1, opDashGt); }
 "." { return new Symbol(Terminal.DOT, yyline+1, yycolumn+1, opDot); }
+".." { return new Symbol(Terminal.DOTDOT, yyline+1, yycolumn+1, opDotDot); }
 "=" { return new Symbol(Terminal.EQUALS, yyline+1, yycolumn+1, opEquals); }
 "#" { return new Symbol(Terminal.HASH, yyline+1, yycolumn+1, opHash); }
 "{" { return new Symbol(Terminal.LBRACE, yyline+1, yycolumn+1, opLBrace); }

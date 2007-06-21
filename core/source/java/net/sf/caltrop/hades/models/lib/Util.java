@@ -94,6 +94,16 @@ public class Util {
 	
 
 	public static void  buildNetworkFromXDF(Network n, Object source, Platform platform, Map env, ClassLoader loader) {
+		
+		Logging.dbg().info("BEGIN NETWORK XDF");
+		try {
+			String xml = net.sf.caltrop.util.Util.createXML(xpathEvalElement("/XDF", source));
+			Logging.dbg().info(xml);
+		}
+		catch (Exception e) {
+			Logging.dbg().info("  ERROR creating network XDF: " + e.getMessage());
+		}
+		Logging.dbg().info("END NETWORK XDF");
 
 		Import [] imports = ASTFactory.buildImports(xpathEvalNodes("/XDF/Import", source));
 		ImportHandler [] importHandlers = platform.getImportHandlers(loader);
@@ -112,7 +122,7 @@ public class Util {
 		Map instanceMap = new HashMap();
 
 		NodeList nlInstances = xpathEvalNodes("/XDF/Instance", source);
-
+		
 		for (int i = 0; i < nlInstances.getLength(); i++) {
 			Element inst = (Element)nlInstances.item(i);
 			Element classElement = xpathEvalElement("Class", inst);

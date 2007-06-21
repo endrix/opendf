@@ -1199,7 +1199,7 @@ public class ASTFactory {
     }
     
     private static String [] actorCheckPaths = {
-    	"net/sf/caltrop/cal/checks/semanticChecks.xslt"
+//    	"net/sf/caltrop/cal/checks/semanticChecks.xslt"
     };
     
     private static Transformer [] actorChecks = null;
