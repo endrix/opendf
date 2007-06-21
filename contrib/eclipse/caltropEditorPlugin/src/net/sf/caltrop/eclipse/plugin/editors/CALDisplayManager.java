@@ -54,9 +54,12 @@ import org.eclipse.jface.text.*;
 import org.eclipse.ui.texteditor.MarkerUtilities;
 
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 import java.io.*;
 import net.sf.caltrop.eclipse.plugin.editors.outline.*;
 import org.eclipse.swt.widgets.Display;
+import javax.xml.transform.*;
 
 public class CALDisplayManager implements Runnable
 {
@@ -64,6 +67,9 @@ public class CALDisplayManager implements Runnable
 
   private IDocument document;
   private IFile file;
+  
+  private static Transformer checker = null;
+  private static boolean transformerFailed = false;
   
   public CALDisplayManager( IFile f, IDocument d )
   {
@@ -78,7 +84,7 @@ public class CALDisplayManager implements Runnable
   private Document actor;
 
   // Reading or writing the actor is synchronized because
-  // the outliner update happens in a different trhead.
+  // the outliner update happens in a different thread.
   private synchronized Document getActor()
   {
 	  return actor;
@@ -177,7 +183,7 @@ public class CALDisplayManager implements Runnable
 				  if( end >= document.getLength() ) end = document.getLength() - 1;
 				  MarkerUtilities.setCharStart( map, start );
 				  MarkerUtilities.setCharEnd( map, end );
-				  CALPlugin.printLog("Line " + errorLine + " = offset " + start + " to " + end );
+				  // CALPlugin.printLog("Line " + errorLine + " = offset " + start + " to " + end );
 			  }
 			  catch( BadLocationException e)
 			  {
@@ -191,7 +197,7 @@ public class CALDisplayManager implements Runnable
 			  map.put( IMarker.LOCATION, "unknown" );		  
 		  }
 		  
-		  MarkerUtilities.createMarker( file, map, PROBLEM_MARKER_ID );;
+		  MarkerUtilities.createMarker( file, map, PROBLEM_MARKER_ID );
 
 	    }
 	    catch( CoreException e )
@@ -199,25 +205,77 @@ public class CALDisplayManager implements Runnable
 		  // Unexpected condition
 	    }
 	  }
-	  else if( op != null )
-	  {		  
-		  // Update the outliner in the UI thread
-		  setOutlinePage( op );
-		  clearDone();
-		  Display.getDefault().asyncExec( this );
-		  
-		  while( ! testDone() )
+	  else  
+	  {
+		  // Put in markers for semantic checks
+		  if( checker == null && !transformerFailed )
 		  {
-			  // Stall the parsing thread until the outliner has redrawn
+			  String checkFile = "net/sf/caltrop/cal/checks/semanticChecks.xslt";
+			  
 			  try
 			  {
-				  Thread.sleep( 250 );
+				  InputStream is = CALPlugin.getDefault().getClass().getClassLoader().getResourceAsStream( checkFile );
+				  checker = Util.createTransformer( is );
 			  }
-			  catch( InterruptedException e )
+			  catch( Exception e )
 			  {
-				  
+				  transformerFailed = true;
+				  CALPlugin.printLog("Failed to construct semantic checker" );
 			  }
 		  }
+		  
+		  if( checker != null )
+			  try
+		      {
+				  Node result = Util.applyTransform( (Node) actor, checker );
+				  for( Node n = result.getFirstChild(); n != null; n = n.getNextSibling() )
+				  {
+					  if( ! n.getNodeName().equals("Note") ) continue;
+				      if( ! ((Element)n).getAttribute( "kind" ).equals( "Report" ) ) continue;
+				      
+					  Map<String, Object> map = new HashMap<String, Object>();
+					  
+					  String severity = ((Element)n).getAttribute( "severity" );
+					  String location = ((Element)n).getAttribute( "subject" );
+					  String message = ((Element)n).getTextContent().trim();
+					  
+					  int isev = IMarker.SEVERITY_INFO;
+					  if( severity.equals("Error") ) isev = IMarker.SEVERITY_ERROR;
+					  else if (severity.equals("Warning") ) isev = IMarker.SEVERITY_WARNING;
+					  
+					  map.put( IMarker.SEVERITY, new Integer( isev ) );
+					  MarkerUtilities.setMessage( map, message );
+					  map.put( IMarker.LOCATION, location );		  
+
+					  MarkerUtilities.createMarker( file, map, PROBLEM_MARKER_ID );
+				  }
+
+			  }
+		      catch( Exception e )
+		      {
+		    	  // Oh well, nice try
+		      }
+		  
+		  if( op != null )
+	      {		  
+		      // Update the outliner in the UI thread
+		      setOutlinePage( op );
+		      clearDone();
+		      Display.getDefault().asyncExec( this );
+		  
+		      while( ! testDone() )
+		      {
+			      // Stall the parsing thread until the outliner has redrawn
+			      try
+			      {
+				      Thread.sleep( 250 );
+			      }
+			      catch( InterruptedException e )
+			      {
+			 	  
+			      }
+		      }
+	      }
 	  }
   }
   
