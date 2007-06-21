@@ -115,6 +115,28 @@ public class ASTFactory {
      }
     
     public static Node  preprocessActor(Document doc) {
+    	CheckReports reps = actorCheck(doc);
+    	if (reps != null) {
+    		int nErrors = (reps.errors == null) ? 0 : reps.errors.size();
+    		int nWarnings = (reps.warnings == null) ? 0 : reps.warnings.size();
+    		if (nErrors > 0) {
+    			Logging.user().severe("There have been " + nErrors + " errors and " + nWarnings + "warnings.");    			
+    		} else {
+    			Logging.user().info("There have been " + nErrors + " errors and " + nWarnings + "warnings.");
+    		}
+    		if (nErrors > 0) {
+        		for (CheckReport r : reps.errors) {
+        			Logging.user().severe("ERROR: " + r.message);
+        		}
+    		}
+    		if (nWarnings > 0) {
+    			for (CheckReport r : reps.warnings) {
+        			Logging.user().warning("WARNING: " + r.message);
+    			}
+    		}
+    		if (nErrors > 0)
+    			throw new RuntimeException("There were errors in the actor. Loading terminated.");
+    	}
     	return canonicalizeActor(doc);
     }
 
@@ -1100,6 +1122,44 @@ public class ASTFactory {
     final static ElementPredicate predStmtWhile = new TagNameAttributeValuePredicate(tagStmt, attrKind, valWhile);
     final static ElementPredicate predTransition = new TagNamePredicate(tagTransition);
     final static ElementPredicate predType = new TagNamePredicate(tagType);
+    
+    private static CheckReports actorCheck(Node doc) {
+    	try {
+    		if (actorChecks == null) {
+    			actorChecks = new Transformer [actorCheckPaths.length];
+    			for (int i = 0; i < actorChecks.length; i++) {
+    				InputStream is = Util.class.getClassLoader().getResourceAsStream(actorCheckPaths[i]);
+    				try {
+    					actorChecks[i] = Util.createTransformer(is);
+    				} catch (Throwable e) {
+    					throw new RuntimeException("Could not create checking transformer '" + actorCheckPaths[i] + "'.", e);
+    				} finally {
+    					is.close();
+    				}
+
+    			}
+    		}
+    	} catch (Exception e) {
+    		throw new RuntimeException("Cannot create transformations.", e);
+    	}
+
+    	List<CheckReport>  errors = null;
+    	List<CheckReport>  warnings = null;
+    	try {
+    		Node actor = Util.applyTransforms(doc, actorChecks);
+    		List<Element> e = xpathEvalElements("//Note[@kind='Report'][@severity='Error']", actor);
+    		errors = createReports(e, CheckReport.ERROR);
+    		List<Element> w = xpathEvalElements("//Note[@kind='Report'][@severity='Warning']", actor);
+    		errors = createReports(w, CheckReport.WARNING);
+    	} catch (Exception e) {
+    		throw new RuntimeException("Cannot check actor.", e);
+    	}
+    	if (errors == null && warnings == null) {
+    		return null;
+    	} else {
+    		return new CheckReports(errors, warnings);
+    	}
+    }
 
     private static Node   canonicalizeActor(Node doc)  { 
 
@@ -1137,6 +1197,12 @@ public class ASTFactory {
         Util.setSAXON();
         // System.out.println("properties = " + System.getProperties());
     }
+    
+    private static String [] actorCheckPaths = {
+    	"net/sf/caltrop/cal/checks/semanticChecks.xslt"
+    };
+    
+    private static Transformer [] actorChecks = null;
 
     private static String [] actorTransformationPaths = {
         "net/sf/caltrop/cal/transforms/BuildProductSchedule.xslt",
@@ -1205,6 +1271,52 @@ public class ASTFactory {
 //    private static String [] xsltEngine = {
 //        null, null, null, dbfiSaxon, dbfiSaxon, dbfiSaxon
 //    };
+    
+    static class CheckReports {
+    	public List<CheckReport>  errors;
+    	public List<CheckReport>  warnings;
+    	
+    	public CheckReports(List<CheckReport> errors, List<CheckReport> warnings) {
+    		this.errors = errors;
+    		this.warnings = warnings;
+		}
+    	
+    }
+    
+    static class CheckReport {
+    	
+    	public int		severity;
+    	public String 	id;
+    	public String	subject;
+    	public String 	message;
+
+    	public CheckReport(int severity, String id, String subject, String message) {
+    		this.severity = severity;
+    		this.id = id;
+    		this.subject = subject;
+    		this.message = message;
+		}
+    	
+    	final static int ERROR = 0;
+    	final static int WARNING = 1;    	
+    }
+    
+    private static List<CheckReport>  createReports(List<Element> reps, int severity) {
+    	if (reps.size() == 0)
+    		return null;
+    	
+    	List<CheckReport> crs = new ArrayList<CheckReport>();    	
+    	for (Element r : reps) {
+    		String subject = r.getAttribute(attrSubject);
+    		String id = r.getAttribute(attrID);
+    		String message = r.getTextContent();
+    		crs.add(new CheckReport(severity, id, subject, message));
+    	}
+    	return crs;
+    }
+
+    final static String attrID = "id";
+    final static String attrSubject = "subject";
 
 }
 

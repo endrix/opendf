@@ -66,16 +66,16 @@ public class ClassObject implements Function {
 	public void apply(int n, Evaluator evaluator) {
 		
         // find constructor in _classObject
-        try {
             Constructor ctor = findConstructor(_configuration, _classObject, _classObject.getName(), n, evaluator);
             Object [] newargs = new Object[n];
             Class [] argTypes = ctor.getParameterTypes();
             for (int i = 0; i < newargs.length; i++) {
                 newargs[i] = _configuration.convertToJavaType(evaluator.getValue(i), argTypes[i]);
             }
+        try {
             evaluator.replaceWithResult(n, ctor.newInstance(newargs));
         } catch (Exception e) {
-            throw new InterpreterException("Couldn't apply constructor of class " + _classObject.getName(), e);
+            throw new InterpreterException("Couldn't apply constructor of class " + _classObject.getName() + ": " + e.getMessage(), e);
         }
     }
 
