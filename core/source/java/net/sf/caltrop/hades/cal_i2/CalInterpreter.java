@@ -56,6 +56,7 @@ import net.sf.caltrop.cal.i2.Configuration;
 import net.sf.caltrop.cal.i2.Executor;
 import net.sf.caltrop.cal.i2.Procedure;
 import net.sf.caltrop.cal.i2.environment.CacheEnvironment;
+import net.sf.caltrop.cal.i2.environment.ConstantEnvironment;
 import net.sf.caltrop.cal.i2.environment.DynamicEnvironmentFrame;
 import net.sf.caltrop.cal.i2.Environment;
 import net.sf.caltrop.cal.i2.platform.DefaultUntypedPlatform;
@@ -153,36 +154,21 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 		if (bufferBlockRecordString != null && bufferBlockRecordString.trim().toLowerCase().equals("true")) {
 			bufferBlockRecord = true;
 		}
+	
+		//
+		//  build environment
+		//
 		
-		String platformName = System.getProperty("CalPlatform");
-		if (platformName == null) {
-			myPlatform = defaultPlatform;
-		} else {
-			try {
-				myPlatform = (Platform)this.getClass().getClassLoader().loadClass(platformName).newInstance();
-			}
-			catch (Exception exc) {
-				myPlatform = DefaultUntypedPlatform.thePlatform;
-			}
-		}
-
-		myConfiguration = myPlatform.configuration();
+		setupConstantEnvironment();
 		
-		ImportHandler [] importHandlers = myPlatform.getImportHandlers(CalInterpreter.class.getClassLoader());
-		ImportMapper [] importMappers = myPlatform.getImportMappers();
-				
-		Environment newEnv = ImportUtil.handleImportList(myPlatform.createGlobalEnvironment(),
-				importHandlers,
-				actor.getImports(), importMappers);
-		outsideEnv = new EnvironmentWrapper(this.parentEnv, newEnv);
+		outsideEnv = new EnvironmentWrapper(this.instantiationEnv, constantEnv);
 		
 		Decl[] decls = actor.getStateVars();
 		DynamicEnvironmentFrame constantEnv = new DynamicEnvironmentFrame(outsideEnv);
 		constantEnv.bind("this", this, null);  // TYPEFIXME
 		// disallow writing to cached environment
-		Environment cachedEnv = new CacheEnvironment(constantEnv);
-		this.actorEnv = createActorStateEnvironment(cachedEnv);
-		this.myInterpreter = new Executor(myConfiguration, this.actorEnv);
+		this.actorEnv = createActorStateEnvironment(constantEnv);
+		this.myInterpreter = new Executor(theConfiguration, this.actorEnv);
 		
 		hasTraceVar = false;
 		hasNDTrackerVar = false;
@@ -209,7 +195,7 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 			}
 		}
 		
-		ai = new ActorInterpreter(actor, myConfiguration,
+		ai = new ActorInterpreter(actor, theConfiguration,
 				this.actorEnv, inputPortMap, outputPortMap);
 		
 		executeInitializer();
@@ -349,7 +335,7 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 					firingCount += 1;
 					if (hasTraceVar) {
 						Object v = this.actorEnv.getByName(traceVarName);
-						if (myConfiguration.booleanValue(v)) {
+						if (theConfiguration.booleanValue(v)) {
 							Logging.user().info("<trace actor='" 
 									           + actor.getName() 
 									           + "' action='"
@@ -465,7 +451,7 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 	protected void blockActor(String port) {
 		if (hasTraceVar) {
 			Object v = this.actorEnv.getByName(traceVarName);
-			if (myConfiguration.booleanValue(v)) {
+			if (theConfiguration.booleanValue(v)) {
 				Logging.user().info("<block actor='" 
 						           + actor.getName() 
 						           + "' port='"
@@ -487,7 +473,7 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 	protected void unblockActor(String port) {
 		if (hasTraceVar) {
 			Object v = this.actorEnv.getByName(traceVarName);
-			if (myConfiguration.booleanValue(v)) {
+			if (theConfiguration.booleanValue(v)) {
 				Logging.user().info("<unblock actor='" 
 						           + actor.getName() 
 						           + "' port='"
@@ -520,7 +506,7 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 		
 		actor = a;
 		
-		this.parentEnv = outsideEnv;
+		this.instantiationEnv = outsideEnv;
 		
 		PortDecl[] pd = actor.getInputPorts();
 		inputPortMap = new HashMap();
@@ -875,7 +861,7 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 			return;
 		for (int i = 0; i < invariants.length; i++) {
 			Object res = myInterpreter.valueOf(invariants[i]);
-			if (!myConfiguration.booleanValue(res)) {
+			if (!theConfiguration.booleanValue(res)) {
 				reportAssertionFailure("Invariant #" + i, "Failed invariant.");
 			}
 		}
@@ -890,7 +876,7 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 			return;
 		for (int i = 0; i < pc.length; i++) {
 			Object res = ai.evaluateExpression(pc[i]);
-			if (!myConfiguration.booleanValue(res)) {
+			if (!theConfiguration.booleanValue(res)) {
 				reportAssertionFailure("Action precondition " + a.getID() + "." + i, "Failed precondition.");
 			}
 		}
@@ -906,7 +892,7 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 			return;
 		for (int i = 0; i < pc.length; i++) {
 			Object res = ai.evaluateExpression(pc[i]);
-			if (!myConfiguration.booleanValue(res)) {
+			if (!theConfiguration.booleanValue(res)) {
 				reportAssertionFailure("Action postcondition " + a.getID() + "." + i, "Failed postcondition.");
 			}
 		}
@@ -921,6 +907,19 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 		ah.assertionFailed(this, assertionLocus, getFiringCount(), null, message);
 	}
 	
+	private void  setupConstantEnvironment() {
+		if (constantEnv == null) {
+			ImportHandler [] importHandlers = thePlatform.getImportHandlers(CalInterpreter.class.getClassLoader());
+			ImportMapper [] importMappers = thePlatform.getImportMappers();
+					
+			Environment env = ImportUtil.handleImportList(thePlatform.createGlobalEnvironment(),
+					importHandlers,
+					actor.getImports(), importMappers);
+			
+			constantEnv = new ConstantEnvironment(env);
+		}
+	}
+	
 	//
 	//  data
 	//
@@ -933,7 +932,23 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 	protected boolean checkAssertions = false;
 	protected AssertionHandler assertionHandler = null;
 	
-	private Map parentEnv;
+
+	protected final static Platform thePlatform = DefaultUntypedPlatform.thePlatform;
+	protected final static Configuration  theConfiguration  = thePlatform.configuration();
+	
+	/**
+	 * This environment contains the global constants surrounding this actor, including
+	 * those resulting from the import clauses.
+	 */
+	
+	private ConstantEnvironment constantEnv;
+	
+	/**
+	 * The instantiationEnv map contains the parameters passed into this actor
+	 * upon instantiation.
+	 */
+	
+	private Map instantiationEnv;
 	
 	/**
 	 * This environment contains all variables defined outside the actor, including the 
@@ -951,11 +966,16 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 	 * the actor state variables.
 	 */
 	protected DynamicEnvironmentFrame actorEnv;
+
+	
+	
+	
 	private   boolean     hasTraceVar;
 	private   boolean     hasNDTrackerVar;
 	private   int         warnBigBuffers;
 	private   boolean     ignoreBufferBounds;
 	private   boolean     bufferBlockRecord;
+	
 	private final static String traceVarName = "_CAL_traceOutput";
 	private final static String nondeterminismTrackerVarName = "_CAL_trackND";
 	private final static String FINALIZE_PROCEDURE = "__CAL_Finalize";
@@ -1026,12 +1046,6 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 	private int tokensQueued;
 	private int  nVoidFirings = 0;
 	private long firingCount = 0;
-	
-	protected Platform myPlatform = null;
-	protected Configuration myConfiguration = null;
-	
-	protected final static Platform defaultPlatform = DefaultUntypedPlatform.thePlatform;
-	protected final static Configuration  defaultConfiguration  = defaultPlatform.configuration();
 	
 	
 	//
@@ -1475,6 +1489,4 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 	
 		
 	
-	static public final String  CAL_PLATFORM = "CalPlatform";
-
 }

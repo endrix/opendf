@@ -85,7 +85,6 @@ public class Simulator {
 		long nSteps = -1;
 		String [] modelPath = null;
 		String actorClass = null;
-		String platformName = null;
 		String cachePath = null;
         Level userVerbosity = Logging.user().getLevel();
 		boolean debug = false;
@@ -121,11 +120,6 @@ public class Simulator {
 				System.setProperty("EnableAssertions", "true");
 			} else if (args[i].equals("-tc")) {
 				System.setProperty("EnableTypeChecking", "true");
-			} else if (args[i].equals("-P")) {
-				if (platformName != null) usage();
-				i += 1;
-				if (i >= args.length) usage();
-				platformName = args[i];
 			} else if (args[i].equals("-bbr")) {
 				System.setProperty("CalBufferBlockRecord", "true");
 				bufferBlockRecord = true;
@@ -197,20 +191,7 @@ public class Simulator {
         Logging.user().info("Model Path: " + Arrays.asList(modelPath));
         ClassLoader classLoader = new SimulationClassLoader(Simulator.class.getClassLoader(), modelPath, cachePath);
         
-        Platform platform = null;
-        try
-        {
-            platform = (platformName == null) ? DefaultPlatform.thePlatform
-            : (Platform)classLoader.loadClass(platformName).newInstance();
-        }
-        catch (ClassNotFoundException cnfe)
-        {
-            Logging.dbg().throwing("Simulator", "main", cnfe);
-            Logging.user().severe("Could not load specified platform: '" + platformName + "'");
-            System.exit(-1);
-        }
-		
-        System.setProperty("CalPlatform", platform.getClass().getName());
+        Platform platform = DefaultPlatform.thePlatform;
 
         Environment env = platform.context().newEnvironmentFrame(platform.createGlobalEnvironment());
         env.bind("__ClassLoader", platform.context().fromJavaObject(classLoader));
@@ -348,7 +329,6 @@ public class Simulator {
         System.out.println("  -t <##>             defines an upper bound for the simulation time");
         System.out.println("  -i <file>           identifies the input stimuli (vector) file");
         System.out.println("  -o <file>           defines the output vectors");
-        System.out.println("  -P <platform class> defines the platform to use for CAL code interpretation");
         System.out.println("  -D <param def>      allows specification of parameter defs");
         System.out.println("  -q                  run quietly");
         System.out.println("  -v                  run verbosely");

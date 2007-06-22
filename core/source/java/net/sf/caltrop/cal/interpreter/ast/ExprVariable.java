@@ -39,6 +39,8 @@ ENDCOPYRIGHT
 
 package net.sf.caltrop.cal.interpreter.ast;
 
+import net.sf.caltrop.cal.i2.Environment;
+
 
 
 public class ExprVariable extends Expression {
@@ -65,10 +67,18 @@ public class ExprVariable extends Expression {
     	cachedLocation = location;
     }
 
+    public Object getCachedValue() {
+		return cachedValue;
+	}
+    
+    public void setCachedValue(Object cachedValue) {
+		this.cachedValue = cachedValue;
+	}
 
     private String      name;
     
-    private long        cachedLocation = -1;
+    private long        cachedLocation = Environment.NOPOS;
+    private Object      cachedValue = null;
 
     public String toString() {
         return "Variable: " + this.name;

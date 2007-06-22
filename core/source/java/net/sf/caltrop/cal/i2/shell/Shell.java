@@ -65,6 +65,7 @@ import net.sf.caltrop.cal.i2.Environment;
 import net.sf.caltrop.cal.i2.environment.AccessLoggingEnvironment;
 import net.sf.caltrop.cal.i2.environment.AutoBindEnvironment;
 import net.sf.caltrop.cal.i2.environment.CacheEnvironment;
+import net.sf.caltrop.cal.i2.environment.ConstantEnvironment;
 import net.sf.caltrop.cal.i2.environment.ImportEnvironment;
 
 import net.sf.caltrop.cal.i2.platform.DefaultUntypedPlatform;
@@ -310,8 +311,7 @@ public class Shell {
         configuration = platform.configuration();
 
         importEnv = new ImportEnvironment(configuration, Shell.class.getClassLoader());
-        cacheEnv = new CacheEnvironment(importEnv);
-        globalEnv = platform.createGlobalEnvironment(cacheEnv);
+        globalEnv = new ConstantEnvironment(platform.createGlobalEnvironment(importEnv));
         shellStateEnv = new AutoBindEnvironment(globalEnv);
         loggingEnv = new AccessLoggingEnvironment(shellStateEnv);
     }

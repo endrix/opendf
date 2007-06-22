@@ -205,19 +205,22 @@ public class DefaultUntypedConfiguration implements Configuration {
 
 	public Object lookupVariable(Environment env, ExprVariable expr) {
 		
-		try {
-			long loc = expr.getVariableLocation();
-			if (loc < 0) {
-				loc = env.lookupByName(expr.getName(), tmpSink);
-				expr.setVariableLocation(loc);
-				return tmp;
-			} else {
-				return env.getByPosition(loc);
-			}
+		long loc = expr.getVariableLocation();
+		Object res;
+		if (loc >= 0) {
+			res = env.getByPosition(loc);
+		} else if (loc == Environment.CONSTANT) {
+			res = expr.getCachedValue();
+		} else if (loc == Environment.NOPOS) {
+			loc = env.lookupByName(expr.getName(), tmpSink);
+			res = tmp;
+			expr.setVariableLocation(loc);
+			if (loc == Environment.CONSTANT)
+				expr.setCachedValue(res);
+		} else {
+			throw new UndefinedInterpreterException("Undefined variable location: " + loc);
 		}
-		catch (Exception e) {
-			throw new UndefinedVariableException(expr.getName(), e);
-		}
+		return res;
 	}
 
 	public Object selectField(Object composite, String fieldName) {
