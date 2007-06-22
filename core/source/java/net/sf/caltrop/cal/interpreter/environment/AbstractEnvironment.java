@@ -72,8 +72,8 @@ public abstract class AbstractEnvironment implements Environment {
                 parent.set(variable, location, value);
             else
             {
-                Logging.user().warning("Undefined variable: '" + variable + "' in environment");
-                Logging.dbg().info(this.toString());
+                // Logging.user().warning("Undefined variable: '" + variable + "' in environment");
+                // Logging.dbg().info(this.toString());
                 throw new InterpreterException("Undefined variable: '" + variable + "' in environment.");
             }
         }

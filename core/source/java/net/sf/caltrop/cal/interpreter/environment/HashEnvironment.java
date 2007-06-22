@@ -71,8 +71,8 @@ public class HashEnvironment extends AbstractEnvironment implements Environment 
                 return parent.get(variable);
             else
             {
-                Logging.user().warning("Undefined variable: '" + variable + "' in environment");
-                Logging.dbg().info(this.toString());
+                // Logging.user().warning("Undefined variable: '" + variable + "' in environment");
+                // Logging.dbg().info(this.toString());
                 throw new InterpreterException("Undefined variable: '" + variable + "' in environment.");
             }
         }
