@@ -39,6 +39,8 @@ ENDCOPYRIGHT
 package net.sf.caltrop.eclipse.plugin.editors;
 
 
+import static net.sf.caltrop.util.Util.xpathEvalElements;
+
 import java.util.*;
 
 import org.eclipse.core.resources.IFile;
@@ -169,109 +171,16 @@ public class CALDisplayManager implements Runnable
 	  { 
 		// Unexpected condition
 	  }
-
+ 
 	  if( ! parseSucceeded )
 	  {
 	    // Add a problem marker
-	    try
-	    {		  
-		  Map<String, Object> map = new HashMap<String, Object>();
-		  MarkerUtilities.setLineNumber( map, errorLine );
-		  map.put( IMarker.SEVERITY, new Integer( IMarker.SEVERITY_ERROR ) );
-		  MarkerUtilities.setMessage( map, errorMessage );
-		  
-		  if( errorLine > 0 )
-		  {
-			  try
-			  {
-				  IRegion r = document.getLineInformation( errorLine - 1 );
-				  int start = r.getOffset();
-				  if( errorColumn > 0 && errorColumn <= r.getLength() )
-					  start += errorColumn - 1;
-				  int end = start + 1;
-				  if( end >= document.getLength() ) end = document.getLength() - 1;
-				  MarkerUtilities.setCharStart( map, start );
-				  MarkerUtilities.setCharEnd( map, end );
-				  // CALPlugin.printLog("Line " + errorLine + " = offset " + start + " to " + end );
-			  }
-			  catch( BadLocationException e)
-			  {
-				  // Forget about position?
-			  }
-			  
-			  map.put( IMarker.LOCATION, "line " + errorLine + " col " + errorColumn );
-		  }
-		  else
-		  {
-			  map.put( IMarker.LOCATION, "unknown" );		  
-		  }
-		  
-		  MarkerUtilities.createMarker( file, map, PROBLEM_MARKER_ID );
-
-	    }
-	    catch( CoreException e )
-	    { 
-		  // Unexpected condition
-	    }
+		createMarker( errorMessage, null, IMarker.SEVERITY_ERROR, errorLine, errorColumn );
 	  }
 	  else  
 	  {
-		  // Put in markers for semantic checks
-		  if( checker == null && !transformerFailed )
-		  {
-			  String checkFile = "net/sf/caltrop/cal/checks/semanticChecks.xslt";
-			  
-			  try
-			  {
-				  InputStream is = CALPlugin.getDefault().getClass().getClassLoader().getResourceAsStream( checkFile );
-				  checker = Util.createTransformer( is );
-			  }
-			  catch( Exception e )
-			  {
-				  transformerFailed = true;
-				  checker = null;
-				  CALPlugin.printLog("Failed to construct semantic checker" );
-			  }
-		  }
-		  
-		  if( checker != null )
-			  try
-		      {
-				  Document result = (Document) Util.applyTransform( (Node) actor, checker );
-							  
-				  for( Node n = result.getDocumentElement().getFirstChild(); n != null; n = n.getNextSibling() )
-				  {
-					  if( ! n.getNodeName().equals("Note") ) continue;
-				      if( ! ((Element)n).getAttribute( "kind" ).equals( "Report" ) ) continue;
-				      
-					  Map<String, Object> map = new HashMap<String, Object>();
-					  
-					  String severity = ((Element)n).getAttribute( "severity" );
-					  String location = ((Element)n).getAttribute( "subject" );
-					  String message = ((Element)n).getTextContent().trim();
-					  
-					  int isev = IMarker.SEVERITY_INFO;
-					  if( severity.equals("Error") ) isev = IMarker.SEVERITY_ERROR;
-					  else if (severity.equals("Warning") ) isev = IMarker.SEVERITY_WARNING;
-					  
-					  map.put( IMarker.SEVERITY, new Integer( isev ) );
-					  MarkerUtilities.setMessage( map, message );
-					  map.put( IMarker.LOCATION, location );		  
+		  checkAndReport();
 
-					  MarkerUtilities.setCharStart( map, 0 );
-					  MarkerUtilities.setCharEnd( map, 0 );
-					  
-					  MarkerUtilities.createMarker( file, map, PROBLEM_MARKER_ID );
-				  }
-
-			  }
-		      catch( Exception e )
-		      {
-		    	  // Oh well, nice try
-		    	  e.printStackTrace();
-				  
-		      }
-		  
 		  if( kind.equals("Actor") && op != null )
 	      {		  
 		      // Update the outliner in the UI thread
@@ -313,6 +222,133 @@ public class CALDisplayManager implements Runnable
   {
 	  getOutlinePage().update( getActor() );
 	  setDone();
+  }
+  
+  private void createMarker( String message, String location, int severity, int line, int col )
+  {
+	    try
+	    {		  
+		  Map<String, Object> map = new HashMap<String, Object>();
+		  MarkerUtilities.setLineNumber( map, line );
+		  map.put( IMarker.SEVERITY, new Integer( severity ) );
+		  MarkerUtilities.setMessage( map, message );
+		  
+		  try
+		  {
+			  IRegion r = document.getLineInformation( line - 1 );
+			  int start = r.getOffset();
+			  if( col > 0 && col <= r.getLength() )
+				  start += col - 1;
+			  int end = start + 1;
+			  if( end >= document.getLength() ) end = document.getLength() - 1;
+			  MarkerUtilities.setCharStart( map, start );
+			  MarkerUtilities.setCharEnd( map, end );
+		  }
+		  catch( BadLocationException e )
+		  {
+			  MarkerUtilities.setCharStart( map, 0 );
+			  MarkerUtilities.setCharEnd( map, 0 );
+		  }
+			  
+		  String loc = location;
+		  
+		  if( location == null )
+		  {
+			if( line > 0 )
+			{
+				loc = "line " + line;
+				if( col > 0 )
+					loc += loc + " col " + col;
+			}
+			else loc = "unknown";
+		  }
+		  
+		  map.put( IMarker.LOCATION, loc );
+
+		  MarkerUtilities.createMarker( file, map, PROBLEM_MARKER_ID );
+
+	    }
+	    catch( CoreException e )
+	    { 
+		  // forget the marker
+	    }
+  }
+  
+  private void initializeChecker()
+  {
+	  // Put in markers for semantic checks
+	  if( checker == null && !transformerFailed )
+	  {
+		  String checkFile = "net/sf/caltrop/cal/checks/semanticChecks.xslt";
+		  
+		  try
+		  {
+			  InputStream is = CALPlugin.getDefault().getClass().getClassLoader().getResourceAsStream( checkFile );
+			  checker = Util.createTransformer( is );
+		  }
+		  catch( Exception e )
+		  {
+			  transformerFailed = true;
+			  checker = null;
+			  CALPlugin.printLog("Failed to construct semantic checker" );
+		  }
+	  }
+  }
+  
+  private void checkAndReport()
+  {
+	  initializeChecker();
+	  
+	  if( checker == null ) return;
+	  
+	  
+	  try
+      {
+		  Node result = Util.applyTransform( (Node) actor, checker );
+  		  List<Element> e = xpathEvalElements("//Note[@kind='Report'][@severity='Error']", result );
+          reportList( e, IMarker.SEVERITY_ERROR );
+          
+          e = xpathEvalElements( "/*/Note[@kind='Report'][@severity='Warning']", result );
+          reportList( e, IMarker.SEVERITY_WARNING );
+		  
+          e = xpathEvalElements( "/*/Note[@kind='Report'][not( @severity='Error' ) ][not( @severity='Warning' ) ]", result );
+          reportList( e, IMarker.SEVERITY_INFO );
+		  
+      }
+      catch( Exception e )
+      {
+    	  // Oh well, nice try		  
+      }
+  }
+  
+  static final String attrLine = "text-begin-line";
+  static final String attrCol  = "text-begin-col";
+  static final String attrLoc  = "subject";
+  
+  private void reportList( List<Element> list, int severity )
+  {
+		  for( int i = 0; i < list.size(); i++ )
+		  {
+			  Element e = list.get( i );
+			  List<Element> location = xpathEvalElements( "Note[@kind='report-location'][1]", (Node) e );
+			  
+			  int line = 1;
+			  int col  = 1;
+			  
+			  if( location.size() > 0 )
+			  {
+				  Element loc = location.get( 0 );
+				  
+				  if( loc.hasAttribute( attrLine ) )
+					  line = Integer.parseInt( loc.getAttribute( attrLine ) );
+
+				  if( loc.hasAttribute( attrCol ) )
+					  col = Integer.parseInt( loc.getAttribute( attrCol ) );
+			  }
+			  
+			  createMarker( e.getTextContent().trim(), e.getAttribute( attrLoc ), severity, line, col );
+
+		  }	  
   }
 
 }

@@ -83,7 +83,7 @@ public class CALEditor extends TextEditor
 			super.doSetInput( input );
 			
 			String kind = "Actor";
-			if( input.getName().contains(".nl") ) kind = "Network";
+			if( input.getName().endsWith(".nl") ) kind = "Network";
 		
 			// Now we can start a listener since we have the associated input
 			IDocument document = documentProvider.getDocument( input );
