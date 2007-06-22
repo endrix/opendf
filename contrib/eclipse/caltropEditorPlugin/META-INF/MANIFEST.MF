@@ -1,6 +1,6 @@
 Bundle-Name: CAL Plug-in
 Bundle-SymbolicName: net.sf.caltrop.eclipse.plugin.caleditor;singleton:=true
-Bundle-Version: 1.0.3
+Bundle-Version: 1.0.4
 Bundle-Activator: net.sf.caltrop.eclipse.plugin.CALPlugin
 Bundle-Vendor: Caltrop
 Bundle-Localization: plugin
@@ -24,4 +24,6 @@ Provide-Package: net.sf.caltrop.eclipse.plugin,
  net.sf.caltrop.eclipse.plugin.editors.rules,
  net.sf.caltrop.eclipse.plugin.editors.scanners
 Bundle-ClassPath: cal.jar,
- lib/caltrop.jar
+ lib/caltrop.jar,
+ lib/saxon8.jar,
+ lib/saxon8-dom.jar

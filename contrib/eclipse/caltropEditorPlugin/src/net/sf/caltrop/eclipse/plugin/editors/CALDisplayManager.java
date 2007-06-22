@@ -60,6 +60,7 @@ import java.io.*;
 import net.sf.caltrop.eclipse.plugin.editors.outline.*;
 import org.eclipse.swt.widgets.Display;
 import javax.xml.transform.*;
+import net.sf.caltrop.nl.util.Lib;
 
 public class CALDisplayManager implements Runnable
 {
@@ -67,14 +68,16 @@ public class CALDisplayManager implements Runnable
 
   private IDocument document;
   private IFile file;
+  private String kind;
   
   private static Transformer checker = null;
   private static boolean transformerFailed = false;
   
-  public CALDisplayManager( IFile f, IDocument d )
+  public CALDisplayManager( IFile f, IDocument d, String k )
   {
 	  document = d;
 	  file = f;
+	  kind = k;
   }
   
   private boolean parseSucceeded;
@@ -103,12 +106,16 @@ public class CALDisplayManager implements Runnable
   
   	try
   	{
-  		Document dom = SourceReader.parseActor( document.get() );
+  		Document dom;
+  		
+  		if( kind.equals("Actor") ) dom = SourceReader.parseActor( document.get() );
+  		else dom = Lib.parseNetwork( new StringReader( document.get() ) );
+  			
   		setActor( dom );
   		parseSucceeded = true;
   	}
     catch (ParserErrorException pe)
-    {
+    {		
         GenericError error = pe.getErrors().get(0);
         // A bit of a hack, but the parser does not give line number
         // for EOF.
@@ -127,6 +134,8 @@ public class CALDisplayManager implements Runnable
     }
     catch (Exception e)
     {
+    	e.printStackTrace();
+    	
         StringWriter sw = new StringWriter();
         e.printStackTrace( new PrintWriter( sw ) );
         errorMessage = "Unknown parsing problem (check character constants?)" + e.toString();
@@ -220,6 +229,7 @@ public class CALDisplayManager implements Runnable
 			  catch( Exception e )
 			  {
 				  transformerFailed = true;
+				  checker = null;
 				  CALPlugin.printLog("Failed to construct semantic checker" );
 			  }
 		  }
@@ -227,8 +237,9 @@ public class CALDisplayManager implements Runnable
 		  if( checker != null )
 			  try
 		      {
-				  Node result = Util.applyTransform( (Node) actor, checker );
-				  for( Node n = result.getFirstChild(); n != null; n = n.getNextSibling() )
+				  Document result = (Document) Util.applyTransform( (Node) actor, checker );
+							  
+				  for( Node n = result.getDocumentElement().getFirstChild(); n != null; n = n.getNextSibling() )
 				  {
 					  if( ! n.getNodeName().equals("Note") ) continue;
 				      if( ! ((Element)n).getAttribute( "kind" ).equals( "Report" ) ) continue;
@@ -247,6 +258,9 @@ public class CALDisplayManager implements Runnable
 					  MarkerUtilities.setMessage( map, message );
 					  map.put( IMarker.LOCATION, location );		  
 
+					  MarkerUtilities.setCharStart( map, 0 );
+					  MarkerUtilities.setCharEnd( map, 0 );
+					  
 					  MarkerUtilities.createMarker( file, map, PROBLEM_MARKER_ID );
 				  }
 
@@ -254,9 +268,11 @@ public class CALDisplayManager implements Runnable
 		      catch( Exception e )
 		      {
 		    	  // Oh well, nice try
+		    	  e.printStackTrace();
+				  
 		      }
 		  
-		  if( op != null )
+		  if( kind.equals("Actor") && op != null )
 	      {		  
 		      // Update the outliner in the UI thread
 		      setOutlinePage( op );

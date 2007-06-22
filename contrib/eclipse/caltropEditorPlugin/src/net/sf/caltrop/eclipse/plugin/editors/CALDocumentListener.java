@@ -51,13 +51,15 @@ public class CALDocumentListener implements IDocumentListener, Runnable {
 	private boolean die;
 	private CALDisplayManager displayManager;
 	private CALContentOutlinePage outlinePage;
+	private String kind;
 	
-	public CALDocumentListener( IFile file, IDocument doc )
+	public CALDocumentListener( IFile file, IDocument doc, String k )
 	{
 		document = doc;
+		kind = k;
 		die = false;
 
-		displayManager = new CALDisplayManager( file, document );
+		displayManager = new CALDisplayManager( file, document, kind );
 		
         // Start looking for document changes
 		parser = new Thread( this );

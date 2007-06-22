@@ -4,7 +4,7 @@
          point="org.eclipse.ui.editors">
       <editor
             name="CAL Editor"
-            extensions="cal"
+            extensions="cal, nl"
             icon="icons/caltropsmall.gif"
             contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
             class="net.sf.caltrop.eclipse.plugin.editors.CALEditor"

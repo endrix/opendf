@@ -81,10 +81,13 @@ public class CALEditor extends TextEditor
 		try
 		{
 			super.doSetInput( input );
+			
+			String kind = "Actor";
+			if( input.getName().contains(".nl") ) kind = "Network";
 		
 			// Now we can start a listener since we have the associated input
 			IDocument document = documentProvider.getDocument( input );
-			listener = new CALDocumentListener( ((IFileEditorInput) input).getFile(), document );
+			listener = new CALDocumentListener( ((IFileEditorInput) input).getFile(), document, kind );
 			if( outlinePage != null )
 				listener.setOutliner( outlinePage );
 			
