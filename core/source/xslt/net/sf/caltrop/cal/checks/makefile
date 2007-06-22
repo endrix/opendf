@@ -14,7 +14,7 @@ CLASSPATH = $(CORE)/classes$(CPS)$(CORE)/lib/saxon8.jar$(CPS)$(CORE)/lib/saxon8-
 
 # Processing commands
 JAVA = java
-XSLT = $(JAVA) -classpath "$(CLASSPATH)" net.sf.saxon.Transform
+XSLT = $(JAVA) -classpath "$(CLASSPATH)" net.sf.caltrop.cal.main.ReadXMLWriteXML
 PARSECAL = $(JAVA) -classpath "$(CLASSPATH)" net.sf.caltrop.cal.main.Cal2CalML
 PARSENL  = $(JAVA) -classpath "$(CLASSPATH)" net.sf.caltrop.nl.NL2XNL
 
@@ -37,7 +37,7 @@ caltests: rules $(CALTESTS:.cal=.calml)
 			echo "**"; \
 			echo "** Applying check $$check to test file $$test"; \
 			echo "**"; \
-			$(XSLT) -o $$test.out.calml $$test $$check; \
+			$(XSLT) $$test $$test.out.calml $$check; \
 		done; \
 	done ;
 
@@ -47,12 +47,12 @@ nltests: rules $(NLTESTS:.nl=.xnl)
 			echo "**"; \
 			echo "** Applying check $$check to test file $$test"; \
 			echo "**"; \
-			$(XSLT) -o $$test.out.xnl $$test $$check; \
+			$(XSLT) $$test $$test.out.xnl $$check; \
 		done; \
 	done ;
 
 %.xslt: %.xml schematron-xml.xsl reportOffenders.xslt
-	$(XSLT) -o $*.xslt $*.xml schematron-xml.xsl
+	$(XSLT) $*.xml $*.xslt schematron-xml.xsl
 
 %.calml: %.cal
 	$(PARSECAL) $<

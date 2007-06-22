@@ -36,6 +36,7 @@
         <xsl:attribute name="subject">
           <xsl:apply-templates select="." mode="report-offender"/>
         </xsl:attribute>
+        <xsl:apply-templates select="." mode="annotate-location"/>
         Duplicate declarations in the same scope
       </sch:assert>
       
@@ -50,7 +51,8 @@
         <xsl:attribute name="subject">
           <xsl:apply-templates select="." mode="report-offender"/>
         </xsl:attribute>
-        A declaration shadows another declaration in a containing scope
+        <xsl:apply-templates select="." mode="annotate-location"/>
+          A declaration shadows another declaration in a containing scope
       </sch:report>
       
     </sch:rule>
@@ -68,7 +70,8 @@
         <xsl:attribute name="subject">
           <xsl:apply-templates select="." mode="report-offender"/>
         </xsl:attribute>
-        Undefined variable reference
+        <xsl:apply-templates select="." mode="annotate-location"/>
+          Undefined variable reference
       </sch:assert>
     </sch:rule>
     
@@ -79,7 +82,8 @@
         <xsl:attribute name="subject">
           <xsl:apply-templates select="." mode="report-offender"/>
         </xsl:attribute>
-        Function or procedure recursion detected
+        <xsl:apply-templates select="." mode="annotate-location"/>
+          Function or procedure recursion detected
       </sch:report>
     </sch:rule>
 
@@ -90,7 +94,8 @@
         <xsl:attribute name="subject">
           <xsl:apply-templates select="." mode="report-offender"/>
         </xsl:attribute>     
-        Self reference in a variable declaration
+        <xsl:apply-templates select="." mode="annotate-location"/>
+          Self reference in a variable declaration
       </sch:assert>
     </sch:rule>
 
@@ -111,7 +116,8 @@
         <xsl:attribute name="subject">
           <xsl:apply-templates select="." mode="report-offender"/>
         </xsl:attribute>
-        Undefined binary operator
+        <xsl:apply-templates select="." mode="annotate-location"/>
+          Undefined binary operator
       </sch:assert>
     </sch:rule>
     
@@ -121,7 +127,8 @@
         <xsl:attribute name="subject">
           <xsl:apply-templates select="." mode="report-offender"/>
         </xsl:attribute>
-        Undefined unary operator
+        <xsl:apply-templates select="." mode="annotate-location"/>
+          Undefined unary operator
       </sch:assert>
     </sch:rule>
     
@@ -136,7 +143,8 @@
         <xsl:attribute name="subject">
           <xsl:apply-templates select="." mode="report-offender"/>
         </xsl:attribute>
-        Reference to non-existent input port
+        <xsl:apply-templates select="." mode="annotate-location"/>
+          Reference to non-existent input port
       </sch:assert>
       
       <sch:assert role="Error" id="output"
@@ -144,7 +152,8 @@
         <xsl:attribute name="subject">
           <xsl:apply-templates select="." mode="report-offender"/>
         </xsl:attribute>
-        Attempt to read output port
+        <xsl:apply-templates select="." mode="annotate-location"/>
+          Attempt to read output port
       </sch:assert>
 
       <sch:assert role="Error" id="multiple"
@@ -152,7 +161,8 @@
         <xsl:attribute name="subject">
           <xsl:apply-templates select="." mode="report-offender"/>
         </xsl:attribute>
-        Multiple reads from same input port - use multi-token read syntax instead
+        <xsl:apply-templates select="." mode="annotate-location"/>
+          Multiple reads from same input port - use multi-token read syntax instead
       </sch:assert>
       
     </sch:rule>
@@ -164,7 +174,8 @@
         <xsl:attribute name="subject">
           <xsl:apply-templates select="." mode="report-offender"/>
         </xsl:attribute>
-        Reference to non-existent output port
+        <xsl:apply-templates select="." mode="annotate-location"/>
+          Reference to non-existent output port
       </sch:assert>
       
       <sch:assert role="Error" id="input"
@@ -172,7 +183,8 @@
         <xsl:attribute name="subject">
           <xsl:apply-templates select="." mode="report-offender"/>
         </xsl:attribute>
-        Attempt to write to input port
+        <xsl:apply-templates select="." mode="annotate-location"/>
+          Attempt to write to input port
       </sch:assert>
 
       <sch:assert role="Error" id="multiple"
@@ -180,7 +192,8 @@
         <xsl:attribute name="subject">
           <xsl:apply-templates select="." mode="report-offender"/>
         </xsl:attribute>
-        Multiple writes to same output port - use multi-token write syntax instead
+        <xsl:apply-templates select="." mode="annotate-location"/>
+          Multiple writes to same output port - use multi-token write syntax instead
       </sch:assert>
             
     </sch:rule>
@@ -197,7 +210,8 @@
          <xsl:attribute name="subject">
            <xsl:apply-templates select="." mode="report-offender"/>
          </xsl:attribute>
-         QID in a priority relationship does not match any action
+         <xsl:apply-templates select="." mode="annotate-location"/>
+           QID in a priority relationship does not match any action
        </sch:assert>
 
        <sch:report role="Warning" id="timingDependent"
@@ -216,10 +230,9 @@
            <xsl:text>, lower-</xsl:text>
            <xsl:apply-templates select="./following-sibling::QID[1]" mode="report-offender"/>
          </xsl:attribute>
-         Priority relationship may introduce timing-dependent behavior because an
-         action reads input port(s) not read by all lower priority action(s). (Reorder
-         priorities, or ensure that the combination of state machine and guard expressions
-         cannot produce this behavior - unless is is intended)
+         <xsl:apply-templates select="." mode="annotate-location"/>
+           Priority relationship may introduce timing-dependent behavior because an
+         action reads input port(s) not read by all lower priority action(s).
        </sch:report>
 
        
@@ -235,14 +248,16 @@
         <xsl:attribute name="subject">
           <xsl:apply-templates select="." mode="report-offender"/>
         </xsl:attribute>
-        Only FSM schedules are fully supported
+        <xsl:apply-templates select="." mode="annotate-location"/>
+          Only FSM schedules are fully supported
       </sch:report>
 
       <sch:report role="Warning" id="multiple" test="preceding-sibling::Schedule">
         <xsl:attribute name="subject">
           <xsl:apply-templates select="." mode="report-offender"/>
         </xsl:attribute>
-        Multiple schedules are declared
+        <xsl:apply-templates select="." mode="annotate-location"/>
+          Multiple schedules are declared
       </sch:report>
 
       <sch:assert role="Error" id="undefinedStart"
@@ -250,14 +265,16 @@
         <xsl:attribute name="subject">
           <xsl:apply-templates select="." mode="report-offender"/>
         </xsl:attribute>
-        Starting state '<xsl:value-of select="current()/@initial-state"/>' has no exit transitions
+        <xsl:apply-templates select="." mode="annotate-location"/>
+          Starting state '<xsl:value-of select="current()/@initial-state"/>' has no exit transitions
       </sch:assert>
       
       <sch:report role="Warning" id="freeRunning" test="../Action[ not( QID ) ]">
         <xsl:attribute name="subject">
           <xsl:apply-templates select="." mode="report-offender"/>
         </xsl:attribute>
-        Unnamed actions will run independently of the declared fsm schedule
+        <xsl:apply-templates select="." mode="annotate-location"/>
+          Unnamed actions will run independently of the declared fsm schedule
       </sch:report>
       
     </sch:rule>
@@ -269,7 +286,8 @@
         <xsl:attribute name="subject">
           <xsl:apply-templates select=".." mode="report-offender"/>
         </xsl:attribute>
-        Detected transition from '<xsl:value-of select="@from"/>' to dead-end state '<xsl:value-of select="@to"/>'
+        <xsl:apply-templates select="." mode="annotate-location"/>
+          Detected transition from '<xsl:value-of select="@from"/>' to dead-end state '<xsl:value-of select="@to"/>'
       </sch:assert>
       
       <sch:assert role="Warning" id="unreachable" 
@@ -278,7 +296,8 @@
         <xsl:attribute name="subject">
           <xsl:apply-templates select=".." mode="report-offender"/>
         </xsl:attribute>
-        Detected unreachable state '<xsl:value-of select="@from"/>'
+        <xsl:apply-templates select="." mode="annotate-location"/>
+          Detected unreachable state '<xsl:value-of select="@from"/>'
       </sch:assert>  
    </sch:rule>
     
@@ -289,7 +308,8 @@
         <xsl:attribute name="subject">
           <xsl:apply-templates select="../../.." mode="report-offender"/>
         </xsl:attribute>
-        No actions match QID '<xsl:value-of select="@name"/>' in transition from '<xsl:value-of select="../../@from"/>' to '<xsl:value-of select="../../@to"/>'
+        <xsl:apply-templates select="." mode="annotate-location"/>
+          No actions match QID '<xsl:value-of select="@name"/>' in transition from '<xsl:value-of select="../../@from"/>' to '<xsl:value-of select="../../@to"/>'
       </sch:assert>
     </sch:rule>
             

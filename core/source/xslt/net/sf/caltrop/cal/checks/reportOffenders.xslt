@@ -218,23 +218,24 @@
       <xsl:when test="@text-begin-line or @text-end-line or @text-begin-col or @text-end-col">
         <Note kind="report-location">
           <xsl:if test="@text-begin-line">
-            <xsl:attribute name="text-begin-line"><xsl:value-of select="."/></xsl:attribute>
+            <xsl:attribute name="text-begin-line"><xsl:value-of select="@text-begin-line"/></xsl:attribute>
           </xsl:if>
           <xsl:if test="@text-end-line">
-            <xsl:attribute name="text-end-line"><xsl:value-of select="."/></xsl:attribute>
+            <xsl:attribute name="text-end-line"><xsl:value-of select="@text-end-line"/></xsl:attribute>
           </xsl:if>
           <xsl:if test="@text-begin-col">
-            <xsl:attribute name="text-begin-col"><xsl:value-of select="."/></xsl:attribute>
+            <xsl:attribute name="text-begin-col"><xsl:value-of select="@text-begin-col"/></xsl:attribute>
           </xsl:if>
           <xsl:if test="@text-end-col">
-            <xsl:attribute name="text-end-col"><xsl:value-of select="."/></xsl:attribute>
+            <xsl:attribute name="text-end-col"><xsl:value-of select="@text-end-col"/></xsl:attribute>
           </xsl:if>
         </Note>
       </xsl:when>
-      <xsl:otherwise>
-        <xsl:apply-templates select="parent::node()" mode="annotate-location"/>
-      </xsl:otherwise>
+      <xsl:when test="parent::*">
+        <xsl:apply-templates select="parent::*" mode="annotate-location"/>
+      </xsl:when>
     </xsl:choose>
+
   </xsl:template>
   
 </xsl:stylesheet>
