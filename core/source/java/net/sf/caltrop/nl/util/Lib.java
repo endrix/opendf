@@ -74,6 +74,13 @@ public class Lib {
 			throw new RuntimeException("Could not find NL file '" + fileName + "'.", e);
 		}
 	}
+
+	// DBP: created version that throws usefule parse error info for GUI feedback
+	public static Document  parseNetwork( Reader r ) throws ParserErrorException {
+		Lexer lexer = new Lexer(r);
+		Parser parser = new Parser(lexer);
+		return parser.parseNetwork("<unknown>");
+	}
 	
 	public static Document  readNL(InputStream s) {
 		return readNL(s, "<unknown>");
