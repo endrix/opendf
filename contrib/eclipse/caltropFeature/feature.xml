@@ -2,15 +2,15 @@
 <feature
       id="net.sf.caltrop.eclipse.plugin.calfeature"
       label="Caltrop Editor"
-      version="1.0.3"
+      version="1.0.4"
       provider-name="net.sf.caltrop">
 
    <description>
       CAL plug-in for Eclipse.
 Latest Features:
-* syntax coloring
-* interactive syntax checking
-* outliner with action highlighting
+* Added support for network language
+* Error reporting expanded to include semantic checks
+
 Known Issues:
 * most features unavailable when editing outside a project
    </description>
