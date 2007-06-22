@@ -127,29 +127,25 @@ public class CALNumberRule implements IRule
 	
 	private boolean getFloat( ICharacterScanner s )
 	{
-	  // Detect single zero followed by decimal point
-	  if( getZero( s ) )
-	  {
-		if( !getDecimalPoint( s ) )
-	    { 
-		  s.unread( );
-		  return false;
-		}
-		
-	  }
-	  else
-	  {   // Detect any other set of digits followed by decimal point
-		  int n = getDecimalDigits( s );
-		  if( n == 0 ) return false;
-		  if( !getDecimalPoint(s) )
-		  {
-			  unread( s, n );
-			  return false;
-		  }
-	  }
 	  
+	  int n = getDecimalDigits( s );
+	  if( n == 0 ) return false;
+	  
+	  if( !getDecimalPoint(s) )
+	  {
+		unread( s, n );
+		return false;
+
+	  }
+
+	  int m = getDecimalDigits( s );
+	  if( m == 0 )
+	  {
+		  unread( s, n + 1 );
+		  return false;
+	  }
+
 	  // The rest is optional
-	  getDecimalDigits( s );
 	  getExponent( s );
 	  
 	  return true;

@@ -50,13 +50,17 @@ public class CALWordRule implements IRule
 
     private final static String[] keywords =
     {
+    	// cal keywords
     	"action", "actor", "all",  "any", "at", "begin", "choose", "const",
 		"delay", "do", "else", "end", "endaction", "endactor", "endchoose", "endforeach",
 	    "endfunction", "endif", "endinitialize", "endlambda", "endlet", "endpriority", "endproc", "endprocedure",
 	    "endschedule", "endwhile", "for", "foreach", "fsm", "function", "guard", "if", "import",
 	    "in", "initialize", "lambda", "let", "map", "multi", "mutable", "old",
 	    "or", "priority", "proc", "procedure", "regexp", "repeat", "schedule", "then",
-	    "time", "var", "while"
+	    "time", "var", "while",
+	    
+	    // nl keywords
+	    "network", "entities", "structure"
 	};
 		
 	private final static String[] wordOperators =
