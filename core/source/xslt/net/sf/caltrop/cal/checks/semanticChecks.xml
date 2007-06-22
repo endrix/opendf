@@ -1,0 +1,298 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- 
+    semanticChecks.xml
+    Static semantic checks
+-->
+
+<sch:schema
+   xmlns:sch="http://www.ascc.net/xml/schematron"
+   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+   xmlns:cal="java:net.sf.caltrop.xslt.cal.CalmlEvaluator"
+   defaultPhase="general" >
+  
+  <sch:phase id="general">
+    <sch:active pattern="variableChecks"/>
+    <sch:active pattern="portChecks"/>
+    <sch:active pattern="priorityChecks"/>
+    <sch:active pattern="FSMChecks"/>
+  </sch:phase> 
+ 
+  <sch:pattern id="variableChecks">
+    
+    <!-- A note on scoping: the enclosing scope for a generator variable
+     declaration or an input token declaration is the grandparent -->
+    
+    <sch:rule context="Decl" id="declaration">
+      
+      <!-- Look for duplicates -->
+      <sch:assert role="Error" id="duplicate"
+        test="not( some $decl in
+        ( parent::Generator/preceding-sibling::* |
+        parent::Input/preceding-sibling::* |
+        preceding-sibling::* )
+        /(self::Decl | self::Input/Decl | self::Generator/Decl)
+        satisfies $decl/@name = current()/@name )" >
+        <xsl:attribute name="subject">
+          <xsl:apply-templates select="." mode="report-offender"/>
+        </xsl:attribute>
+        Duplicate declarations in the same scope
+      </sch:assert>
+      
+      <!-- Look for shadowing. We have already weeded out duplicates in the same
+         scope, so look at least one scope higher. If the Decl is in an Input
+         or Generator then the next highest scope is at least 2 levels up.  -->
+      <sch:report role="Warning" id="shadows"
+        test="some $decl in ( 
+        ancestor::*[ position() > (if (current()/parent::Input or current()/parent::Generator) then 2 else 1) ] )
+        /(Decl | Input/Decl | Generator/Decl)
+        satisfies $decl/@name = current()/@name" >
+        <xsl:attribute name="subject">
+          <xsl:apply-templates select="." mode="report-offender"/>
+        </xsl:attribute>
+        A declaration shadows another declaration in a containing scope
+      </sch:report>
+      
+    </sch:rule>
+    
+    <sch:rule abstract="true" id="name">
+      <xsl:variable name="env">
+        <Env>
+          <xsl:copy-of select="ancestor::Actor[1]/Import"/>
+        </Env>
+      </xsl:variable>
+      <sch:assert role="Error" id="undefined"
+        test="(some $decl in ancestor::*/(Decl | Input/Decl | Generator/Decl)
+        satisfies $decl/@name = current()/@name )
+        or cal:isDefined(@name, $env/Env) ">
+        <xsl:attribute name="subject">
+          <xsl:apply-templates select="." mode="report-offender"/>
+        </xsl:attribute>
+        Undefined variable reference
+      </sch:assert>
+    </sch:rule>
+    
+    <sch:rule abstract="true" id="recursion">
+      <sch:report role="Warning"
+        test="some $decl in ancestor::Decl satisfies ( $decl/@name = current/@name
+        and ($decl/Type/@kind='Procedure' or $decl/Type/@kind='Function') )" >
+        <xsl:attribute name="subject">
+          <xsl:apply-templates select="." mode="report-offender"/>
+        </xsl:attribute>
+        Function or procedure recursion detected
+      </sch:report>
+    </sch:rule>
+
+    <sch:rule abstract="true" id="selfReference">
+      <sch:assert role="Error"
+        test="not( some $decl in ancestor::Decl satisfies ( $decl/@name = current/@name
+        and not($decl/Type/@kind='Procedure') and not($decl/Type/@kind='Function') ) )" >
+        <xsl:attribute name="subject">
+          <xsl:apply-templates select="." mode="report-offender"/>
+        </xsl:attribute>     
+        Self reference in a variable declaration
+      </sch:assert>
+    </sch:rule>
+
+    <sch:rule context="Stmt[@kind='Assign']" id="assignment">
+      <sch:extends rule="name"/>
+    </sch:rule>
+    
+    <sch:rule context="Expr[@kind='Var']" id="reference">
+      <sch:extends rule="name"/>
+      <sch:extends rule="recursion"/>
+      <sch:extends rule="selfReference"/>
+    </sch:rule>
+    
+    <sch:rule context="Expr[@kind='BinOpSeq']" id="binaryOperator">
+      <sch:assert role="Error" id="undefined"
+        test="contains( ' and or = != &lt; &lt;= > >= in + - div mod * / ^ .. >> &lt;&lt; | &amp; ^ ',
+                concat(' ',Op/@name,' ') )">
+        <xsl:attribute name="subject">
+          <xsl:apply-templates select="." mode="report-offender"/>
+        </xsl:attribute>
+        Undefined binary operator
+      </sch:assert>
+    </sch:rule>
+    
+    <sch:rule context="Expr[@kind='UnaryOp']" id="unaryOperator">
+      <sch:assert role="Error" id="undefined"
+        test="contains( ' not # dom rng - ~ ', concat(' ',Op/@name,' ') )">
+        <xsl:attribute name="subject">
+          <xsl:apply-templates select="." mode="report-offender"/>
+        </xsl:attribute>
+        Undefined unary operator
+      </sch:assert>
+    </sch:rule>
+    
+  </sch:pattern>
+  
+  <sch:pattern id="portChecks">
+     
+    <sch:rule context="Input" id="portRead">
+      
+      <sch:assert role="Error" id="undefined"
+        test="some $port in ../../Port satisfies $port/@name = current()/@port" >
+        <xsl:attribute name="subject">
+          <xsl:apply-templates select="." mode="report-offender"/>
+        </xsl:attribute>
+        Reference to non-existent input port
+      </sch:assert>
+      
+      <sch:assert role="Error" id="output"
+        test="not( some $port in ../../Port[@kind='Output'] satisfies $port/@name = current()/@port )" >
+        <xsl:attribute name="subject">
+          <xsl:apply-templates select="." mode="report-offender"/>
+        </xsl:attribute>
+        Attempt to read output port
+      </sch:assert>
+
+      <sch:assert role="Error" id="multiple"
+        test="not( following-sibling::Input[@port = current()/@port ] )" >
+        <xsl:attribute name="subject">
+          <xsl:apply-templates select="." mode="report-offender"/>
+        </xsl:attribute>
+        Multiple reads from same input port - use multi-token read syntax instead
+      </sch:assert>
+      
+    </sch:rule>
+    
+    <sch:rule context="Output" id="portWrite">
+      
+      <sch:assert role="Error" id="undefined"
+        test="some $port in ../../Port satisfies $port/@name = current()/@port" >
+        <xsl:attribute name="subject">
+          <xsl:apply-templates select="." mode="report-offender"/>
+        </xsl:attribute>
+        Reference to non-existent output port
+      </sch:assert>
+      
+      <sch:assert role="Error" id="input"
+        test="not( some $port in ../../Port[@kind='Input'] satisfies $port/@name = current()/@port )" >
+        <xsl:attribute name="subject">
+          <xsl:apply-templates select="." mode="report-offender"/>
+        </xsl:attribute>
+        Attempt to write to input port
+      </sch:assert>
+
+      <sch:assert role="Error" id="multiple"
+        test="not( following-sibling::Output[@port = current()/@port ] )" >
+        <xsl:attribute name="subject">
+          <xsl:apply-templates select="." mode="report-offender"/>
+        </xsl:attribute>
+        Multiple writes to same output port - use multi-token write syntax instead
+      </sch:assert>
+            
+    </sch:rule>
+        
+  </sch:pattern>
+
+  <sch:pattern id="priorityChecks">
+
+     <sch:rule context="QID[ parent::Priority ]" id="priorityQID">
+      
+       <sch:assert role="Error" id="undefined"
+         test="some $action in ../../Action satisfies $action/QID/@name = current()/@name 
+         or starts-with( $action/QID/@name, concat(current()/@name, '.'))" >
+         <xsl:attribute name="subject">
+           <xsl:apply-templates select="." mode="report-offender"/>
+         </xsl:attribute>
+         QID in a priority relationship does not match any action
+       </sch:assert>
+
+       <sch:report role="Warning" id="timingDependent"
+         
+         test="for $high-QID in . return
+                 for $low-QID in $high-QID/following-sibling::QID[1] return
+                   some $high-action in $high-QID/../../Action[ QID/@name = $high-QID/@name 
+                                        or starts-with( QID/@name, concat( $high-QID/@name, '.' ) ) ] satisfies
+                     some $low-action in $low-QID/../../Action[ QID/@name = $low-QID/@name 
+                                         or starts-with( QID/@name, concat( $low-QID/@name, '.' ) ) ] satisfies
+                       some $high-port in $high-action/Input/@port satisfies
+                         not( $low-action/Input[ @port = $high-port ] ) ">
+         <xsl:attribute name="subject">
+           <xsl:text>higher-</xsl:text>
+           <xsl:apply-templates select="." mode="report-offender"/>
+           <xsl:text>, lower-</xsl:text>
+           <xsl:apply-templates select="./following-sibling::QID[1]" mode="report-offender"/>
+         </xsl:attribute>
+         Priority relationship may introduce timing-dependent behavior because an
+         action reads input port(s) not read by all lower priority action(s). (Reorder
+         priorities, or ensure that the combination of state machine and guard expressions
+         cannot produce this behavior - unless is is intended)
+       </sch:report>
+
+       
+    </sch:rule>
+    
+  </sch:pattern>
+  
+  <sch:pattern id="FSMChecks">
+
+    <sch:rule context="Schedule" id="schedule">
+      
+      <sch:report role="Warning" id="noFSM" test="@kind != 'fsm'">
+        <xsl:attribute name="subject">
+          <xsl:apply-templates select="." mode="report-offender"/>
+        </xsl:attribute>
+        Only FSM schedules are fully supported
+      </sch:report>
+
+      <sch:report role="Warning" id="multiple" test="preceding-sibling::Schedule">
+        <xsl:attribute name="subject">
+          <xsl:apply-templates select="." mode="report-offender"/>
+        </xsl:attribute>
+        Multiple schedules are declared
+      </sch:report>
+
+      <sch:assert role="Error" id="undefinedStart"
+        test="Transition[ @from = current()/@initial-state ]" >
+        <xsl:attribute name="subject">
+          <xsl:apply-templates select="." mode="report-offender"/>
+        </xsl:attribute>
+        Starting state '<xsl:value-of select="current()/@initial-state"/>' has no exit transitions
+      </sch:assert>
+      
+      <sch:report role="Warning" id="freeRunning" test="../Action[ not( QID ) ]">
+        <xsl:attribute name="subject">
+          <xsl:apply-templates select="." mode="report-offender"/>
+        </xsl:attribute>
+        Unnamed actions will run independently of the declared fsm schedule
+      </sch:report>
+      
+    </sch:rule>
+    
+    <sch:rule context="Transition" id="states">
+      <sch:assert role="Warning" id="deadEnd" 
+         test="for $this in . return
+                 some $arc in $this/../Transition satisfies $arc/@from = $this/@to">
+        <xsl:attribute name="subject">
+          <xsl:apply-templates select=".." mode="report-offender"/>
+        </xsl:attribute>
+        Detected transition from '<xsl:value-of select="@from"/>' to dead-end state '<xsl:value-of select="@to"/>'
+      </sch:assert>
+      
+      <sch:assert role="Warning" id="unreachable" 
+        test="for $this in . return
+                some $arc in $this/../Transition satisfies $arc/@to = $this/@from">
+        <xsl:attribute name="subject">
+          <xsl:apply-templates select=".." mode="report-offender"/>
+        </xsl:attribute>
+        Detected unreachable state '<xsl:value-of select="@from"/>'
+      </sch:assert>  
+   </sch:rule>
+    
+    <sch:rule context="QID[ parent::ActionTags ]" id="actions">
+      <sch:assert role="Error" id="undefined" 
+        test="for $this in . return some $action in ../../../../Action satisfies 
+        $action/QID/@name = $this/@name or starts-with( $action/QID/@name, concat( $this/@name, '.' ) )">
+        <xsl:attribute name="subject">
+          <xsl:apply-templates select="../../.." mode="report-offender"/>
+        </xsl:attribute>
+        No actions match QID '<xsl:value-of select="@name"/>' in transition from '<xsl:value-of select="../../@from"/>' to '<xsl:value-of select="../../@to"/>'
+      </sch:assert>
+    </sch:rule>
+            
+  </sch:pattern>
+  
+</sch:schema>

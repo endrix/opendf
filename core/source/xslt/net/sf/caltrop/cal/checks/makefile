@@ -1,0 +1,62 @@
+#
+# Build error checking transformations, apply tests
+#
+
+# OS-dependent setup
+ifeq "$(OS)" "Windows_NT"
+CPS = ;
+else
+CPS = :
+endif
+
+CORE = ../../../../../../..
+CLASSPATH = $(CORE)/classes$(CPS)$(CORE)/lib/saxon8.jar$(CPS)$(CORE)/lib/saxon8-dom.jar$(CPS)$(CORE)/source/xslt
+
+# Processing commands
+JAVA = java
+XSLT = $(JAVA) -classpath "$(CLASSPATH)" net.sf.saxon.Transform
+PARSECAL = $(JAVA) -classpath "$(CLASSPATH)" net.sf.caltrop.cal.main.Cal2CalML
+PARSENL  = $(JAVA) -classpath "$(CLASSPATH)" net.sf.caltrop.nl.NL2XNL
+
+CHECKS = semanticChecks.xslt
+
+CALTESTS = tests/variableChecks.cal \
+           tests/portChecks.cal \
+           tests/priorityChecks.cal \
+           tests/FSMChecks.cal
+
+NLTESTS =  tests/variableChecks.nl
+
+all: rules caltests nltests
+
+rules: $(CHECKS)
+
+caltests: rules $(CALTESTS:.cal=.calml)
+	@for test in $(CALTESTS:.cal=.calml); do \
+		for check in $(CHECKS); do \
+			echo "**"; \
+			echo "** Applying check $$check to test file $$test"; \
+			echo "**"; \
+			$(XSLT) -o $$test.out.calml $$test $$check; \
+		done; \
+	done ;
+
+nltests: rules $(NLTESTS:.nl=.xnl)
+	@for test in $(NLTESTS:.nl=.xnl); do \
+		for check in $(CHECKS); do \
+			echo "**"; \
+			echo "** Applying check $$check to test file $$test"; \
+			echo "**"; \
+			$(XSLT) -o $$test.out.xnl $$test $$check; \
+		done; \
+	done ;
+
+%.xslt: %.xml schematron-xml.xsl reportOffenders.xslt
+	$(XSLT) -o $*.xslt $*.xml schematron-xml.xsl
+
+%.calml: %.cal
+	$(PARSECAL) $<
+
+%.xnl: %.nl
+	$(PARSENL) $<
+	

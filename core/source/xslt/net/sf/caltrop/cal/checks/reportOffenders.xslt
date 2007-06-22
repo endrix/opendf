@@ -212,5 +212,29 @@
   <xsl:template match="*" mode="report-offender-context">
     <xsl:apply-templates select="parent::*" mode="report-offender-context"/>
   </xsl:template>
+ 
+  <xsl:template match="*" mode="annotate-location">
+    <xsl:choose>
+      <xsl:when test="@text-begin-line or @text-end-line or @text-begin-col or @text-end-col">
+        <Note kind="report-location">
+          <xsl:if test="@text-begin-line">
+            <xsl:attribute name="text-begin-line"><xsl:value-of select="."/></xsl:attribute>
+          </xsl:if>
+          <xsl:if test="@text-end-line">
+            <xsl:attribute name="text-end-line"><xsl:value-of select="."/></xsl:attribute>
+          </xsl:if>
+          <xsl:if test="@text-begin-col">
+            <xsl:attribute name="text-begin-col"><xsl:value-of select="."/></xsl:attribute>
+          </xsl:if>
+          <xsl:if test="@text-end-col">
+            <xsl:attribute name="text-end-col"><xsl:value-of select="."/></xsl:attribute>
+          </xsl:if>
+        </Note>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:apply-templates select="parent::node()" mode="annotate-location"/>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
   
 </xsl:stylesheet>
