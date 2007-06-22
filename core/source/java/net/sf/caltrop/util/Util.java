@@ -387,37 +387,6 @@ public class Util {
         private EntityResolver _resolver;
     }
 
-    static class ClasspathURIResolver implements URIResolver {
-
-        public Source resolve(String href, String base) throws TransformerException
-        {
-            InputStream s = loader.getResourceAsStream(href);
-         
-            if (s == null) {
-                if (resolver != null)
-                    return resolver.resolve(href, base);
-                else {
-                    return null;
-                }
-            } else {
-                return new StreamSource(s);
-            }
-        }
-
-        URL getLocation (String href)
-        {
-            return loader.getResource(href);
-        }
-
-        public ClasspathURIResolver(ClassLoader loader, URIResolver resolver) {
-            this.loader = loader;
-            this.resolver = resolver;
-        }
-
-        private ClassLoader loader;
-        private URIResolver resolver;
-    }
-
     public static class TransformFailedException extends RuntimeException
     {
         // This class of exception MUST have a cause as we use the
