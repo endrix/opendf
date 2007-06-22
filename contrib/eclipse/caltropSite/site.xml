@@ -6,5 +6,8 @@
    <feature url="features/net.sf.caltrop.eclipse.plugin.calfeature_1.0.3.jar" id="net.sf.caltrop.eclipse.plugin.calfeature" version="1.0.3">
       <category name="caltrop"/>
    </feature>
+   <feature url="features/net.sf.caltrop.eclipse.plugin.calfeature_1.0.4.jar" id="net.sf.caltrop.eclipse.plugin.calfeature" version="1.0.4">
+      <category name="caltrop"/>
+   </feature>
    <category-def name="caltrop" label="CAL Editor Plug-in"/>
 </site>
