@@ -72,9 +72,9 @@ cli: util cal nl hades java_cup
 
 xslt:
 	mkdir -p $(CALTROP_CLASSDIR)/net/sf/caltrop/cal/transforms
-	cp -p $(CALTROP_HOME)/source/xslt/net/sf/caltrop/cal/transforms/* $(CALTROP_CLASSDIR)/net/sf/caltrop/cal/transforms
+	cp -p $(CALTROP_HOME)/source/xslt/net/sf/caltrop/cal/transforms/*.xslt $(CALTROP_CLASSDIR)/net/sf/caltrop/cal/transforms
 	mkdir -p $(CALTROP_CLASSDIR)/net/sf/caltrop/cal/checks
-	cp -p $(CALTROP_HOME)/source/xslt/net/sf/caltrop/cal/checks/* $(CALTROP_CLASSDIR)/net/sf/caltrop/cal/checks
+	cp -p $(CALTROP_HOME)/source/xslt/net/sf/caltrop/cal/checks/*.xslt $(CALTROP_CLASSDIR)/net/sf/caltrop/cal/checks
 
 contrib:
 	mkdir -p $(CALTROP_CLASSDIR)
