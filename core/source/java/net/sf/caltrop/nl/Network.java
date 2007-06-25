@@ -201,7 +201,7 @@ public class Network {
 	private static final String  valSingle = "single";
 	
 	
-	public static Document  translate(Document nldoc, Environment env, Context context) {
+	public static Document  translate(Node nldoc, Environment env, Context context) {
 		Network n = new Network();
 		
 		n.setName(xpathEvalElement("/Network", nldoc).getAttribute(attrName));

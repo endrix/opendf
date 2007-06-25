@@ -44,12 +44,14 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.StringBufferInputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.net.URL;
 
 import javax.xml.XMLConstants;
 import javax.xml.namespace.QName;
+import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.*;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
@@ -116,6 +118,7 @@ public class Util {
 			return xpath.evaluate(expr, e, type);
 		}
 		catch (Exception exc) {
+			Logging.dbg().info("xpathEval: Error evaluating expression '" + expr + "' on node " + createXML((Node)e));
 			throw new RuntimeException("Cannot evaluate xpath expression.", exc);
 		}
 	}
@@ -286,7 +289,31 @@ public class Util {
         validator.validate(new DOMSource(document));
     }
     
-    public static String createXML(Node doc) throws TransformerException
+    public static Node  saxonify(Node n) {
+    	try {
+    		DocumentBuilderFactory dbf = new net.sf.saxon.dom.DocumentBuilderFactoryImpl();
+    		String xml = createXML(n);
+    		InputStream sis = new StringBufferInputStream(xml);
+    		return dbf.newDocumentBuilder().parse(sis);
+    	}
+    	catch (Exception exc) {
+    		throw new RuntimeException("Could not saxonify node.", exc);
+    	}
+    }
+    
+    public static Node  xercify(Node n) {
+    	try {
+    		DocumentBuilderFactory dbf = javax.xml.parsers.DocumentBuilderFactory.newInstance();
+    		String xml = createXML(n);
+    		InputStream sis = new StringBufferInputStream(xml);
+    		return dbf.newDocumentBuilder().parse(sis);
+    	}
+    	catch (Exception exc) {
+    		throw new RuntimeException("Could not saxonify node.", exc);
+    	}
+    }
+    
+    public static String createXML(Node doc)
     {
         TransformerFactory xff = TransformerFactory.newInstance();
         Transformer serializer = null;
@@ -301,11 +328,11 @@ public class Util {
                 "{http://saxon.sf.net/}indent-spaces", "4");
         serializer.setOutputProperty(OutputKeys.METHOD, "xml");
         OutputStream os = new ByteArrayOutputStream();
-        serializer.transform(new DOMSource(doc), new StreamResult(os));
         try {
+            serializer.transform(new DOMSource(doc), new StreamResult(os));
             os.close();
-        } catch (IOException ioe) {
-            throw new RuntimeException("Could not close stream " + ioe.getMessage());
+        } catch (Exception e) {
+            throw new RuntimeException("Could not create transformer.", e);
         }
         
         return os.toString();

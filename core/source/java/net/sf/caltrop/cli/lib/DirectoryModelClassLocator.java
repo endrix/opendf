@@ -14,11 +14,11 @@ public class DirectoryModelClassLocator implements ModelClassLocator {
 		try {
 			InputStream is = new FileInputStream(f);
 			
-			Logging.dbg().info("ModelClassLocate: " + dirpath + "::" + name + " -- " + ((is == null) ? "failed" : "succeeded") + ". (user.dir='" + System.getProperty("user.dir") + ")");
+			Logging.dbg().info("DirectoryModelClassLocator: " + dirpath + "::" + name + " -- " + ((is == null) ? "failed" : "succeeded") + ".");
 			return is;
 		}
 		catch (Exception e) {
-			Logging.dbg().info("ModelClassLocate: " + dirpath + "::" + name + " -- failed! (user.dir='" + System.getProperty("user.dir") + ")");
+			Logging.dbg().info("DirectoryModelClassLocator: " + dirpath + "::" + name + " -- failed.");
 			return null;
 		}
 	}
