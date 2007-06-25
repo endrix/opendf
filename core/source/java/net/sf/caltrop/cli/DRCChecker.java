@@ -51,7 +51,7 @@ import net.sf.caltrop.util.Logging;
 import net.sf.caltrop.util.MultiErrorException;
 
 /**
- * DRCChecker is a front end to the SystemBuilder tool which simply
+ * DRCChecker is a front end tools that process CAL which simply
  * runs the appropriate Design Rule Checks on the input source file
  * based on the type and/or command line arguments.
  *
