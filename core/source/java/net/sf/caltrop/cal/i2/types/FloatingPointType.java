@@ -1,6 +1,5 @@
 package net.sf.caltrop.cal.i2.types;
 
-import java.util.Map;
 
 /**
  * Instances of FloatingPointType types are floating-point representations of real numbers.

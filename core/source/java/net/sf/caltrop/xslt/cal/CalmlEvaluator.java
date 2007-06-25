@@ -4,31 +4,16 @@
 
 package net.sf.caltrop.xslt.cal;
 
-import net.sf.saxon.dom.DocumentBuilderFactoryImpl;
-import net.sf.saxon.tree.DocumentImpl;
-
-import org.w3c.dom.*;
-import org.w3c.dom.bootstrap.DOMImplementationRegistry;
-
-import net.sf.caltrop.cal.interpreter.ast.Expression;
-import net.sf.caltrop.cal.interpreter.ast.Import;
-import net.sf.caltrop.cal.interpreter.ast.PackageImport;
-import net.sf.caltrop.cal.interpreter.ast.SingleImport;
-import net.sf.caltrop.cal.interpreter.ast.TypeExpr;
-import net.sf.caltrop.cal.interpreter.InterpreterException;
-import net.sf.caltrop.cal.interpreter.environment.Environment;
-import net.sf.caltrop.cal.interpreter.environment.HashEnvironment;
-import net.sf.caltrop.cal.interpreter.util.ASTFactory;
-import net.sf.caltrop.cal.interpreter.util.CalScriptImportHandler;
-import net.sf.caltrop.cal.interpreter.util.ClassLoadingImportHandler;
-import net.sf.caltrop.cal.interpreter.util.EnvironmentFactoryImportHandler;
-import net.sf.caltrop.cal.interpreter.util.ImportUtil;
-import net.sf.caltrop.cal.interpreter.util.Platform;
-import net.sf.caltrop.cal.interpreter.Context;
-import net.sf.caltrop.cal.interpreter.ExprEvaluator;
-import net.sf.caltrop.util.ElementPredicate;
-import net.sf.caltrop.util.TagNamePredicate;
-import net.sf.caltrop.util.Util;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.StringReader;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.Transformer;
@@ -37,20 +22,27 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.StringReader;
-import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
+import net.sf.caltrop.cal.interpreter.Context;
+import net.sf.caltrop.cal.interpreter.ExprEvaluator;
+import net.sf.caltrop.cal.interpreter.InterpreterException;
+import net.sf.caltrop.cal.interpreter.ast.Expression;
+import net.sf.caltrop.cal.interpreter.ast.Import;
+import net.sf.caltrop.cal.interpreter.ast.PackageImport;
+import net.sf.caltrop.cal.interpreter.ast.SingleImport;
+import net.sf.caltrop.cal.interpreter.environment.Environment;
+import net.sf.caltrop.cal.interpreter.util.ASTFactory;
+import net.sf.caltrop.cal.interpreter.util.ImportUtil;
+import net.sf.caltrop.cal.interpreter.util.Platform;
+import net.sf.caltrop.util.ElementPredicate;
 import net.sf.caltrop.util.Logging;
+import net.sf.caltrop.util.TagNamePredicate;
+import net.sf.caltrop.util.Util;
+import net.sf.saxon.dom.DocumentBuilderFactoryImpl;
+
+import org.w3c.dom.DOMImplementation;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
 public class CalmlEvaluator
 {

@@ -40,10 +40,17 @@ ENDCOPYRIGHT
 
 package net.sf.caltrop.hades.simulation;
 
-import java.io.*;
-import java.util.*;
+import java.io.PrintWriter;
+import java.io.Writer;
+import java.util.Iterator;
 
-import net.sf.caltrop.hades.des.*;
+import net.sf.caltrop.hades.des.AbstractMessageListener;
+import net.sf.caltrop.hades.des.DiscreteEventComponent;
+import net.sf.caltrop.hades.des.InputConnectors;
+import net.sf.caltrop.hades.des.MessageEvent;
+import net.sf.caltrop.hades.des.MessageListener;
+import net.sf.caltrop.hades.des.MessageProducer;
+import net.sf.caltrop.hades.des.OutputConnectors;
 
 public abstract class IOCallback implements SequentialSimulatorCallback
 {

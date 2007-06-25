@@ -6,24 +6,8 @@
 
 package net.sf.caltrop.xslt.cal;
 
-import net.sf.caltrop.cal.interpreter.util.CalScriptImportHandler;
-import net.sf.caltrop.cal.interpreter.util.ClassLoadingImportHandler;
-import net.sf.caltrop.cal.interpreter.util.DefaultPlatform;
-import net.sf.caltrop.cal.interpreter.util.EnvironmentFactoryImportHandler;
-import net.sf.caltrop.cal.interpreter.util.ImportHandler;
-import net.sf.caltrop.cal.interpreter.util.ImportMapper;
-import net.sf.caltrop.cal.interpreter.util.Platform;
-import net.sf.caltrop.cal.interpreter.util.IntegerList;
-import net.sf.caltrop.cal.interpreter.util.ReplacePrefixImportMapper;
-
-import net.sf.caltrop.cal.interpreter.Context;
-import net.sf.caltrop.cal.interpreter.Function;
-import net.sf.caltrop.cal.interpreter.InterpreterException;
-import net.sf.caltrop.cal.interpreter.Procedure;
-import net.sf.caltrop.cal.interpreter.environment.Environment;
-import net.sf.caltrop.cal.interpreter.environment.HashEnvironment;
-
-import java.math.BigDecimal;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -34,8 +18,20 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.io.FileInputStream;
-import java.io.InputStream;
+
+import net.sf.caltrop.cal.interpreter.Context;
+import net.sf.caltrop.cal.interpreter.Function;
+import net.sf.caltrop.cal.interpreter.InterpreterException;
+import net.sf.caltrop.cal.interpreter.Procedure;
+import net.sf.caltrop.cal.interpreter.environment.Environment;
+import net.sf.caltrop.cal.interpreter.util.CalScriptImportHandler;
+import net.sf.caltrop.cal.interpreter.util.ClassLoadingImportHandler;
+import net.sf.caltrop.cal.interpreter.util.EnvironmentFactoryImportHandler;
+import net.sf.caltrop.cal.interpreter.util.ImportHandler;
+import net.sf.caltrop.cal.interpreter.util.ImportMapper;
+import net.sf.caltrop.cal.interpreter.util.IntegerList;
+import net.sf.caltrop.cal.interpreter.util.Platform;
+import net.sf.caltrop.cal.interpreter.util.ReplacePrefixImportMapper;
 
 
 /**

@@ -36,9 +36,9 @@ EDW 18-Sep-2002 Lex # token too..
 */
 package net.sf.caltrop.cal.parser;
 
+import java.io.IOException;
+
 import java_cup.runtime.Symbol;
-import java.lang.Integer;
-import java.lang.String;
 
 /**
 Lexing class for Caltrop.

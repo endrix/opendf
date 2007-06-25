@@ -27,8 +27,12 @@ import net.sf.caltrop.cal.i2.Evaluator;
 import net.sf.caltrop.cal.i2.Executor;
 import net.sf.caltrop.cal.i2.Function;
 import net.sf.caltrop.cal.i2.InterpreterException;
+import net.sf.caltrop.cal.i2.Procedure;
 import net.sf.caltrop.cal.i2.configuration.DefaultUntypedConfiguration;
 import net.sf.caltrop.cal.i2.environment.DynamicEnvironmentFrame;
+import net.sf.caltrop.cal.i2.util.CalScriptImportHandler;
+import net.sf.caltrop.cal.i2.util.ClassLoadingImportHandler;
+import net.sf.caltrop.cal.i2.util.EnvironmentFactoryImportHandler;
 import net.sf.caltrop.cal.i2.util.FunctionOf0;
 import net.sf.caltrop.cal.i2.util.FunctionOf1;
 import net.sf.caltrop.cal.i2.util.FunctionOf2;
@@ -38,17 +42,13 @@ import net.sf.caltrop.cal.i2.util.FunctionOf3Eval;
 import net.sf.caltrop.cal.i2.util.ImportHandler;
 import net.sf.caltrop.cal.i2.util.ImportMapper;
 import net.sf.caltrop.cal.i2.util.IntegerFactory;
+import net.sf.caltrop.cal.i2.util.IntegerList;
 import net.sf.caltrop.cal.i2.util.Platform;
 import net.sf.caltrop.cal.i2.util.ProcedureOf1;
 import net.sf.caltrop.cal.i2.util.ProcedureOf2;
 import net.sf.caltrop.cal.i2.util.ProcedureOf2Eval;
 import net.sf.caltrop.cal.i2.util.ProcedureOf4;
 import net.sf.caltrop.cal.i2.util.ReplacePrefixImportMapper;
-import net.sf.caltrop.cal.i2.Procedure;
-import net.sf.caltrop.cal.i2.util.IntegerList;
-import net.sf.caltrop.cal.i2.util.CalScriptImportHandler;
-import net.sf.caltrop.cal.i2.util.ClassLoadingImportHandler;
-import net.sf.caltrop.cal.i2.util.EnvironmentFactoryImportHandler;
 
 public class DefaultUntypedPlatform implements Platform {
 

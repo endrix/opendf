@@ -42,7 +42,6 @@ import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -51,7 +50,6 @@ import net.sf.caltrop.cli.lib.CalMLActorClassFactory;
 import net.sf.caltrop.cli.lib.ClassLoaderModelClassLocator;
 import net.sf.caltrop.cli.lib.DirectoryModelClassLocator;
 import net.sf.caltrop.cli.lib.NLClassFactory;
-import net.sf.caltrop.cli.lib.PCalMLActorClassFactory;
 import net.sf.caltrop.cli.lib.XDFClassFactory;
 import net.sf.caltrop.cli.lib.XNLClassFactory;
 import net.sf.caltrop.util.Logging;

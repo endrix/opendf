@@ -41,9 +41,9 @@ ENDCOPYRIGHT
 
 package net.sf.caltrop.nl.parser;
 
+import java.io.IOException;
+
 import java_cup.runtime.Symbol;
-import java.lang.Integer;
-import java.lang.String;
 
 /**
 Lexing class for NLParser.

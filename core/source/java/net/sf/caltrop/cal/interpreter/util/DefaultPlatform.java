@@ -42,15 +42,14 @@ package net.sf.caltrop.cal.interpreter.util;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.InputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.InputStream;
-import java.net.UnknownHostException;
-import java.net.Socket;
-import java.net.InetAddress;
+import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.net.InetAddress;
+import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -66,7 +65,6 @@ import net.sf.caltrop.cal.interpreter.Function;
 import net.sf.caltrop.cal.interpreter.InterpreterException;
 import net.sf.caltrop.cal.interpreter.Procedure;
 import net.sf.caltrop.cal.interpreter.environment.Environment;
-import net.sf.caltrop.cal.interpreter.environment.HashEnvironment;
 
 
 /**

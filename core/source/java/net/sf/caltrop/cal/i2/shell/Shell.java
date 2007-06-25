@@ -42,12 +42,12 @@ package net.sf.caltrop.cal.i2.shell;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintWriter;
-import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -57,24 +57,22 @@ import java.util.Map;
 import java.util.Set;
 
 import net.sf.caltrop.cal.i2.Configuration;
+import net.sf.caltrop.cal.i2.Environment;
 import net.sf.caltrop.cal.i2.Evaluator;
 import net.sf.caltrop.cal.i2.Executor;
-import net.sf.caltrop.cal.interpreter.ast.Expression;
-import net.sf.caltrop.cal.interpreter.ast.Statement;
-import net.sf.caltrop.cal.i2.Environment;
 import net.sf.caltrop.cal.i2.environment.AccessLoggingEnvironment;
 import net.sf.caltrop.cal.i2.environment.AutoBindEnvironment;
 import net.sf.caltrop.cal.i2.environment.CacheEnvironment;
 import net.sf.caltrop.cal.i2.environment.ConstantEnvironment;
 import net.sf.caltrop.cal.i2.environment.ImportEnvironment;
-
 import net.sf.caltrop.cal.i2.platform.DefaultUntypedPlatform;
 import net.sf.caltrop.cal.i2.util.CalScriptImportHandler;
 import net.sf.caltrop.cal.i2.util.ClassLoadingImportHandler;
 import net.sf.caltrop.cal.i2.util.EnvironmentFactoryImportHandler;
 import net.sf.caltrop.cal.i2.util.ImportHandler;
 import net.sf.caltrop.cal.i2.util.Platform;
-
+import net.sf.caltrop.cal.interpreter.ast.Expression;
+import net.sf.caltrop.cal.interpreter.ast.Statement;
 import net.sf.caltrop.cal.interpreter.util.NullOutputStream;
 import net.sf.caltrop.cal.interpreter.util.SourceReader;
 

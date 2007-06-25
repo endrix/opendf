@@ -41,10 +41,10 @@ ENDCOPYRIGHT
 package net.sf.caltrop.hades.models;
 
 
-import java.util.*;
+import java.util.Map;
 
-import net.sf.caltrop.hades.des.*;
-import net.sf.caltrop.hades.des.components.*;
+import net.sf.caltrop.hades.des.DiscreteEventComponent;
+import net.sf.caltrop.hades.des.components.ParameterDescriptor;
 
 
 public interface ModelInterface {

@@ -38,12 +38,16 @@ ENDCOPYRIGHT
 
 package net.sf.caltrop.nl;
 
-import java.util.ArrayList;
+import static net.sf.caltrop.nl.util.Lib.createAttributes;
+import static net.sf.caltrop.nl.util.Lib.substituteExpression;
+import static net.sf.caltrop.util.Util.xpathEvalElement;
+import static net.sf.caltrop.util.Util.xpathEvalElements;
+import static net.sf.caltrop.util.Util.xpathEvalNodes;
+
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import net.sf.caltrop.cal.interpreter.Context;
 import net.sf.caltrop.cal.interpreter.ExprEvaluator;
@@ -62,16 +66,7 @@ import net.sf.caltrop.nl.util.IDGenerator;
 import net.sf.caltrop.util.CascadedMap;
 
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-
-
-
-import static net.sf.caltrop.nl.util.Lib.createAttributes;
-import static net.sf.caltrop.nl.util.Lib.substituteExpression;
-import static net.sf.caltrop.util.Util.xpathEvalElement;
-import static net.sf.caltrop.util.Util.xpathEvalElements;
-import static net.sf.caltrop.util.Util.xpathEvalNodes;
 
 
 

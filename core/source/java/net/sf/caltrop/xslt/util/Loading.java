@@ -1,5 +1,7 @@
 package net.sf.caltrop.xslt.util;
 
+import static net.sf.caltrop.util.Util.createXML;
+
 import java.io.InputStream;
 
 import net.sf.caltrop.cli.ModelClassLocator;
@@ -10,8 +12,6 @@ import net.sf.caltrop.xslt.util.loader.CalMLLoader;
 import net.sf.caltrop.xslt.util.loader.NLLoader;
 import net.sf.caltrop.xslt.util.loader.XDFLoader;
 import net.sf.caltrop.xslt.util.loader.XNLLoader;
-
-import static net.sf.caltrop.util.Util.createXML;
 
 import org.w3c.dom.Node;
 

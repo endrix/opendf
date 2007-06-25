@@ -40,7 +40,7 @@ ENDCOPYRIGHT
 
 package net.sf.caltrop.hades.des.util;
 
-import java.util.*;
+import java.util.Set;
 
 public interface LocationMap
 {

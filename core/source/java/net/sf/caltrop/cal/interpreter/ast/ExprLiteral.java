@@ -39,8 +39,8 @@ ENDCOPYRIGHT
 
 package net.sf.caltrop.cal.interpreter.ast;
 
-import net.sf.caltrop.cal.i2.OperandStack;
 import net.sf.caltrop.cal.i2.Configuration;
+import net.sf.caltrop.cal.i2.OperandStack;
 import net.sf.caltrop.cal.interpreter.Context;
 import net.sf.caltrop.cal.interpreter.InterpreterException;
 

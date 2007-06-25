@@ -38,12 +38,15 @@ ENDCOPYRIGHT
 
 package net.sf.caltrop.hades.models.lib;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-import net.sf.caltrop.cal.interpreter.ast.*;
-import net.sf.caltrop.hades.cal_i2.*;
-import net.sf.caltrop.hades.des.*;
-import net.sf.caltrop.hades.des.components.*;
+import net.sf.caltrop.cal.interpreter.ast.Actor;
+import net.sf.caltrop.hades.cal_i2.CalInterpreter;
+import net.sf.caltrop.hades.des.DiscreteEventComponent;
+import net.sf.caltrop.hades.des.components.ParameterDescriptor;
 import net.sf.caltrop.hades.models.ModelInterface;
 
 

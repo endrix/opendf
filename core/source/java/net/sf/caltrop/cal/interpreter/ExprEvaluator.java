@@ -40,7 +40,6 @@ ENDCOPYRIGHT
 package net.sf.caltrop.cal.interpreter;
 
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -48,17 +47,29 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import net.sf.caltrop.cal.interpreter.ast.*;
+import net.sf.caltrop.cal.interpreter.ast.Decl;
+import net.sf.caltrop.cal.interpreter.ast.ExprApplication;
+import net.sf.caltrop.cal.interpreter.ast.ExprEntry;
+import net.sf.caltrop.cal.interpreter.ast.ExprIf;
+import net.sf.caltrop.cal.interpreter.ast.ExprIndexer;
+import net.sf.caltrop.cal.interpreter.ast.ExprLambda;
+import net.sf.caltrop.cal.interpreter.ast.ExprLet;
+import net.sf.caltrop.cal.interpreter.ast.ExprList;
+import net.sf.caltrop.cal.interpreter.ast.ExprLiteral;
+import net.sf.caltrop.cal.interpreter.ast.ExprMap;
+import net.sf.caltrop.cal.interpreter.ast.ExprProc;
+import net.sf.caltrop.cal.interpreter.ast.ExprSet;
+import net.sf.caltrop.cal.interpreter.ast.ExprVariable;
+import net.sf.caltrop.cal.interpreter.ast.Expression;
+import net.sf.caltrop.cal.interpreter.ast.ExpressionVisitor;
+import net.sf.caltrop.cal.interpreter.ast.GeneratorFilter;
 import net.sf.caltrop.cal.interpreter.environment.Environment;
 import net.sf.caltrop.cal.interpreter.generator.CollectionGenerator;
 import net.sf.caltrop.cal.interpreter.generator.Filter;
 import net.sf.caltrop.cal.interpreter.generator.Generator;
 import net.sf.caltrop.cal.interpreter.generator.GeneratorCallback;
-import net.sf.caltrop.cal.interpreter.generator.PrintGeneratorCallback;
 import net.sf.caltrop.cal.interpreter.generator.Seed;
 import net.sf.caltrop.cal.interpreter.generator.VariableGenerator;
-import net.sf.caltrop.cal.interpreter.java.ClassObject;
-import net.sf.caltrop.cal.interpreter.java.MethodObject;
 
 /**
  * The expression evaluator interprets expressions in a given environment and context and computes the value

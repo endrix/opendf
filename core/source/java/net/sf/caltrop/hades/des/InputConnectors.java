@@ -40,7 +40,8 @@ ENDCOPYRIGHT
 
 package net.sf.caltrop.hades.des;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Iterator;
 
 /**
 *   This object describes the input signature of a DEC, i.e. it maps input connector names to 

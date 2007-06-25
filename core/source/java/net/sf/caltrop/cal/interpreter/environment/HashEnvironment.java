@@ -47,7 +47,6 @@ import java.util.Set;
 
 import net.sf.caltrop.cal.interpreter.InterpreterException;
 import net.sf.caltrop.cal.interpreter.UndefinedVariableException;
-import net.sf.caltrop.util.Logging;
 
 /**
  * This class implements the <tt>Environment</tt> interface based on <tt>java.util.HashMap</tt> objects.

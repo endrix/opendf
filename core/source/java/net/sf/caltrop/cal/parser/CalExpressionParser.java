@@ -6,12 +6,20 @@
 
 package net.sf.caltrop.cal.parser;
 
-import java_cup.runtime.*;
-import org.w3c.dom.*;
-import javax.xml.parsers.DocumentBuilderFactory;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
+
+import java_cup.runtime.Symbol;
+
+import javax.xml.parsers.DocumentBuilderFactory;
+
+import org.w3c.dom.Attr;
+import org.w3c.dom.DOMImplementation;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 /** CUP v0.10k generated parser.
   * @version Tue Jun 19 18:46:22 PDT 2007

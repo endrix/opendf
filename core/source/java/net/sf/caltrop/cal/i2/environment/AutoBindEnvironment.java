@@ -44,7 +44,6 @@ import java.util.Map;
 
 import net.sf.caltrop.cal.i2.Environment;
 import net.sf.caltrop.cal.i2.UndefinedInterpreterException;
-import net.sf.caltrop.cal.i2.UndefinedVariableException;
 
 
 /**

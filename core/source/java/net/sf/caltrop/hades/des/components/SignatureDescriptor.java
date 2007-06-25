@@ -41,8 +41,10 @@ ENDCOPYRIGHT
 
 package net.sf.caltrop.hades.des.components;
 
-import java.util.*;
-import java.lang.reflect.*;
+import java.lang.reflect.Method;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
 
 /**
     A SignatureDiscriptor provides structured data describing the I/O signature of a component.

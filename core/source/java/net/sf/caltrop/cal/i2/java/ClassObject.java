@@ -41,7 +41,6 @@ package net.sf.caltrop.cal.i2.java;
 
 
 import java.lang.reflect.Constructor;
-import java.lang.reflect.Type;
 
 import net.sf.caltrop.cal.i2.Configuration;
 import net.sf.caltrop.cal.i2.Evaluator;

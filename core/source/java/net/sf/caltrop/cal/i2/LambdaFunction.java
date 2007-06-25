@@ -39,12 +39,11 @@ ENDCOPYRIGHT
 
 package net.sf.caltrop.cal.i2;
 
-import net.sf.caltrop.cal.interpreter.ast.Decl;
-import net.sf.caltrop.cal.interpreter.ast.ExprLambda;
-import net.sf.caltrop.cal.i2.Environment;
 import net.sf.caltrop.cal.i2.environment.EnvironmentFrame;
 import net.sf.caltrop.cal.i2.environment.LazyEnvironmentFrame;
 import net.sf.caltrop.cal.i2.types.Type;
+import net.sf.caltrop.cal.interpreter.ast.Decl;
+import net.sf.caltrop.cal.interpreter.ast.ExprLambda;
 
 /**
  * A LambdaFunction is a function object that is created as the result of evaluating

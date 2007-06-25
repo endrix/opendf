@@ -2,7 +2,6 @@
 package net.sf.caltrop.xslt.cal;
 
 
-import net.sf.caltrop.cal.interpreter.ast.TypeExpr;
 
 
 /**

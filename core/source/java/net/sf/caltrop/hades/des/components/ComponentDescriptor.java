@@ -41,8 +41,9 @@ ENDCOPYRIGHT
 
 package net.sf.caltrop.hades.des.components;
 
-import java.util.*;
-import java.lang.reflect.*;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
+import java.util.Iterator;
 
 /**
     A ComponentDescriptor object provides information about a given DEC class. In this way,

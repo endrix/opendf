@@ -44,9 +44,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import net.sf.caltrop.cal.interpreter.Context;
 import net.sf.caltrop.cal.interpreter.environment.Environment;
-import net.sf.caltrop.cal.interpreter.environment.HashEnvironment;
 import net.sf.caltrop.cal.interpreter.environment.SingleEntryEnvironment;
 import net.sf.caltrop.cal.shell.Shell;
 

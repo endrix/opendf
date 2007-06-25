@@ -40,14 +40,11 @@ ENDCOPYRIGHT
 package net.sf.caltrop.cal.interpreter.util;
 
 
-import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.io.StringReader;
 
 import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 
 import net.sf.caltrop.cal.interpreter.ast.Actor;
 import net.sf.caltrop.cal.interpreter.ast.Expression;
@@ -56,15 +53,10 @@ import net.sf.caltrop.cal.parser.CalExpressionParser;
 import net.sf.caltrop.cal.parser.CalStatementParser;
 import net.sf.caltrop.cal.parser.Lexer;
 import net.sf.caltrop.cal.parser.Parser;
-
 import net.sf.caltrop.util.MultiErrorException;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.xml.sax.SAXException;
-
-import static net.sf.caltrop.util.Util.xpathEvalElement;
 
 
 /**

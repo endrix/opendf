@@ -39,7 +39,7 @@ ENDCOPYRIGHT
 
 package net.sf.caltrop.util;
 
-import java.util.*;
+import java.util.List;
 
 /**
  * A subclass of MultiErrorException specifically used by the parsers.

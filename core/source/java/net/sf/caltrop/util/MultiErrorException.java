@@ -39,7 +39,8 @@ ENDCOPYRIGHT
 
 package net.sf.caltrop.util;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
 import java.util.logging.Logger;
 
 /**

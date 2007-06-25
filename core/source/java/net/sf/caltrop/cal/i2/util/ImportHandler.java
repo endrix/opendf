@@ -39,8 +39,8 @@ ENDCOPYRIGHT
 
 package net.sf.caltrop.cal.i2.util;
 
-import net.sf.caltrop.cal.interpreter.ast.Import;
 import net.sf.caltrop.cal.i2.Environment;
+import net.sf.caltrop.cal.interpreter.ast.Import;
 
 /**
  * An import handler extends the specified environment with another frame that 

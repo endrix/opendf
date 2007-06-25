@@ -40,10 +40,10 @@ ENDCOPYRIGHT
 
 package net.sf.caltrop.hades.des.util;
 
-import java.util.*;
-import java.io.*;
+import java.io.Serializable;
+import java.util.Vector;
 
-import net.sf.caltrop.hades.des.*;
+import net.sf.caltrop.hades.des.DiscreteEventEntity;
 
 /**
  *  @memo time-sorted linear structure of objects

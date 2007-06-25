@@ -40,25 +40,16 @@ ENDCOPYRIGHT
 package net.sf.caltrop.cal.i2.environment;
 
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import net.sf.caltrop.cal.i2.Configuration;
 import net.sf.caltrop.cal.i2.Environment;
 import net.sf.caltrop.cal.i2.InterpreterException;
 import net.sf.caltrop.cal.i2.ObjectSink;
-import net.sf.caltrop.cal.i2.UndefinedVariableException;
-import net.sf.caltrop.cal.i2.types.Type;
 
 /**
  * A package environment represents an imported Java package. It maps all class names in that package to the
  * corresponding class object. The class object is constructed by the context.
  *
  *
- *  @see Context
  *
  *  @author Jörn W. Janneck <janneck@eecs.berkeley.edu>
  */

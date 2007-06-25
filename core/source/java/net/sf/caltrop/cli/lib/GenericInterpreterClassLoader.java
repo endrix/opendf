@@ -41,7 +41,6 @@ package net.sf.caltrop.cli.lib;
 import java.io.DataInputStream;
 import java.io.InputStream;
 import java.lang.reflect.Method;
-import java.util.Map;
 
 import net.sf.caltrop.hades.models.ModelInterface;
 import net.sf.caltrop.util.Logging;

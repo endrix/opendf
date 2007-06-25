@@ -44,8 +44,6 @@ import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 
-import net.sf.caltrop.nl.parser.Lexer;
-import net.sf.caltrop.nl.parser.Parser;
 import net.sf.caltrop.nl.util.Lib;
 import net.sf.caltrop.util.Logging;
 import net.sf.caltrop.util.Util;

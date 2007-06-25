@@ -40,16 +40,20 @@ ENDCOPYRIGHT
 package net.sf.caltrop.cal.main;
 
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
+import java.io.PrintWriter;
+
 import net.sf.caltrop.cal.parser.Lexer;
 import net.sf.caltrop.cal.parser.Parser;
+import net.sf.caltrop.util.GenericError;
 import net.sf.caltrop.util.Logging;
-import net.sf.caltrop.util.*;
+import net.sf.caltrop.util.MultiErrorException;
+import net.sf.caltrop.util.Util;
 
-import org.w3c.dom.Document;
 import org.w3c.dom.Node;
-
-import javax.xml.transform.TransformerException;
-import java.io.*;
 
 public class ReadCALWriteXML {
 

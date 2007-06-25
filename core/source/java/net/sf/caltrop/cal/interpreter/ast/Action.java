@@ -39,7 +39,6 @@ ENDCOPYRIGHT
 
 package net.sf.caltrop.cal.interpreter.ast;
 
-import net.sf.caltrop.cal.interpreter.util.Utility;
 
 public class Action extends ASTNode {
 

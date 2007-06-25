@@ -39,7 +39,6 @@ ENDCOPYRIGHT
 
 package net.sf.caltrop.cal.interpreter.environment;
 
-import net.sf.caltrop.cal.interpreter.UndefinedVariableException;
 
 
 /**

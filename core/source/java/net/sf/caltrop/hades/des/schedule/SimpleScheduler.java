@@ -40,7 +40,7 @@ ENDCOPYRIGHT
 
 package net.sf.caltrop.hades.des.schedule;
 
-import net.sf.caltrop.hades.des.*;
+import net.sf.caltrop.hades.des.EventProcessor;
 
 public class SimpleScheduler extends AbstractObservableScheduler {
 	

@@ -43,9 +43,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.PrintWriter;
 import java.io.StringReader;
-import java.io.StringWriter;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -61,7 +59,6 @@ import java.util.logging.Level;
 
 import net.sf.caltrop.cal.interpreter.ExprEvaluator;
 import net.sf.caltrop.cal.interpreter.environment.Environment;
-import net.sf.caltrop.cal.interpreter.environment.HashEnvironment;
 import net.sf.caltrop.cal.interpreter.util.DefaultPlatform;
 import net.sf.caltrop.cal.interpreter.util.Platform;
 import net.sf.caltrop.cal.interpreter.util.SourceReader;

@@ -44,15 +44,15 @@ import java.util.List;
 import java.util.Map;
 
 import net.sf.caltrop.cal.i2.Configuration;
-import net.sf.caltrop.cal.i2.Evaluator;
-import net.sf.caltrop.cal.interpreter.InputChannel;
-import net.sf.caltrop.cal.interpreter.InputPort;
+import net.sf.caltrop.cal.i2.Environment;
+import net.sf.caltrop.cal.i2.Executor;
 import net.sf.caltrop.cal.i2.InterpreterException;
-import net.sf.caltrop.cal.interpreter.OutputChannel;
-import net.sf.caltrop.cal.interpreter.OutputPort;
 import net.sf.caltrop.cal.i2.environment.DynamicEnvironmentFrame;
 import net.sf.caltrop.cal.i2.environment.Thunk;
-import net.sf.caltrop.cal.i2.Executor;
+import net.sf.caltrop.cal.interpreter.InputChannel;
+import net.sf.caltrop.cal.interpreter.InputPort;
+import net.sf.caltrop.cal.interpreter.OutputChannel;
+import net.sf.caltrop.cal.interpreter.OutputPort;
 import net.sf.caltrop.cal.interpreter.ast.Action;
 import net.sf.caltrop.cal.interpreter.ast.Actor;
 import net.sf.caltrop.cal.interpreter.ast.Decl;
@@ -60,7 +60,6 @@ import net.sf.caltrop.cal.interpreter.ast.Expression;
 import net.sf.caltrop.cal.interpreter.ast.InputPattern;
 import net.sf.caltrop.cal.interpreter.ast.OutputExpression;
 import net.sf.caltrop.cal.interpreter.ast.Statement;
-import net.sf.caltrop.cal.i2.Environment;
 
 
 public class ActorInterpreter {

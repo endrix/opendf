@@ -39,13 +39,12 @@ ENDCOPYRIGHT
 
 package net.sf.caltrop.cal.i2;
 
-import net.sf.caltrop.cal.interpreter.ast.Decl;
-import net.sf.caltrop.cal.interpreter.ast.ExprProc;
-import net.sf.caltrop.cal.interpreter.ast.Statement;
-import net.sf.caltrop.cal.i2.Environment;
 import net.sf.caltrop.cal.i2.environment.EnvironmentFrame;
 import net.sf.caltrop.cal.i2.environment.LazyEnvironmentFrame;
 import net.sf.caltrop.cal.i2.types.Type;
+import net.sf.caltrop.cal.interpreter.ast.Decl;
+import net.sf.caltrop.cal.interpreter.ast.ExprProc;
+import net.sf.caltrop.cal.interpreter.ast.Statement;
 
 /**
  * A ProcProcedure is a procedure object resulting from the evaluation of a proc expression.

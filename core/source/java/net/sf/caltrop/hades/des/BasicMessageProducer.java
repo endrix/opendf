@@ -41,7 +41,8 @@ ENDCOPYRIGHT
 
 package net.sf.caltrop.hades.des;
 
-import java.util.*;
+import java.util.Iterator;
+import java.util.Vector;
 
 /**
  *   A BMP handles the registration and notification protocol of a MessageProducer.

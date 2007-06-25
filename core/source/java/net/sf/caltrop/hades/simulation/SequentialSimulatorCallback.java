@@ -41,7 +41,7 @@ ENDCOPYRIGHT
 
 package net.sf.caltrop.hades.simulation;
 
-import net.sf.caltrop.hades.des.*;
+import net.sf.caltrop.hades.des.DiscreteEventComponent;
 
 /**
  *  This is the interface to an object serving as the environment of a discrete event component being executed

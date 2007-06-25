@@ -39,17 +39,11 @@ ENDCOPYRIGHT
 package net.sf.caltrop.cli.lib;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.security.DigestInputStream;
-import java.security.MessageDigest;
 
-import net.sf.caltrop.util.BufferingInputStream;
-import net.sf.caltrop.util.*;
+import net.sf.caltrop.util.Logging;
+import net.sf.caltrop.util.MultiErrorException;
 
 abstract public class AbstractCachingGenericInterpreterModelClassFactory extends AbstractGenericInterpreterModelClassFactory {
 	

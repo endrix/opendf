@@ -40,7 +40,7 @@ ENDCOPYRIGHT
 
 package net.sf.caltrop.hades.des.schedule;
 
-import net.sf.caltrop.hades.des.*;
+import net.sf.caltrop.hades.des.EventProcessor;
 
 /**
  The scheduler drives the execution of DECs. Event processors register for execution and are

@@ -38,23 +38,22 @@ ENDCOPYRIGHT
 
 package net.sf.caltrop.cli.lib;
 
-import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintWriter;
-import javax.xml.transform.TransformerException;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.DocumentFragment;
-import org.w3c.dom.Node;
 
 import net.sf.caltrop.cal.interpreter.ast.Actor;
 import net.sf.caltrop.cal.interpreter.util.ASTFactory;
 import net.sf.caltrop.cal.interpreter.util.SourceReader;
 import net.sf.caltrop.hades.models.ModelInterface;
 import net.sf.caltrop.hades.models.lib.CalModelInterface;
-import net.sf.caltrop.util.*;
+import net.sf.caltrop.util.Logging;
+import net.sf.caltrop.util.MultiErrorException;
+import net.sf.caltrop.util.Util;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
 
 
 public class CalActorClassFactory extends AbstractCachingGenericInterpreterModelClassFactory {

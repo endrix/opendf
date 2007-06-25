@@ -41,10 +41,14 @@ ENDCOPYRIGHT
 
 package net.sf.caltrop.hades.simulation;
 
-import java.io.*;
-import java.util.*;
-
-import net.sf.caltrop.hades.des.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Reader;
+import java.io.StreamTokenizer;
+import java.io.Writer;
 
 public class StreamIOCallback extends IOCallback
 {

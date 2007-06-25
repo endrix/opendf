@@ -41,7 +41,8 @@ ENDCOPYRIGHT
 
 package net.sf.caltrop.hades.des;
 
-import java.util.*;
+import java.util.Iterator;
+import java.util.Vector;
 
 import net.sf.caltrop.util.Logging;
 

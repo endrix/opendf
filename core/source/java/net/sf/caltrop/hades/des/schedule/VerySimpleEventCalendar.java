@@ -40,9 +40,11 @@ ENDCOPYRIGHT
 
 package net.sf.caltrop.hades.des.schedule;
 
-import java.util.*;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 
-import net.sf.caltrop.hades.des.*;
+import net.sf.caltrop.hades.des.EventProcessor;
 
 
 public class VerySimpleEventCalendar implements EventCalendar {

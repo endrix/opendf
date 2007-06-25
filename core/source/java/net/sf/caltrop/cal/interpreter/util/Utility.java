@@ -39,7 +39,6 @@ ENDCOPYRIGHT
 
 package net.sf.caltrop.cal.interpreter.util;
 
-import java.util.ArrayList;
 
 
 /**

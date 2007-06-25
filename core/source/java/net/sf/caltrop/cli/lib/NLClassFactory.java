@@ -38,17 +38,12 @@ ENDCOPYRIGHT
 
 package net.sf.caltrop.cli.lib;
 
-import java.io.IOException;
 import java.io.InputStream;
 
 import net.sf.caltrop.hades.models.ModelInterface;
 import net.sf.caltrop.hades.models.lib.XNLModelInterface;
-import net.sf.caltrop.nl.parser.Lexer;
-import net.sf.caltrop.nl.parser.Parser;
 import net.sf.caltrop.nl.util.Lib;
-import net.sf.caltrop.util.*;
-
-import org.w3c.dom.Document;
+import net.sf.caltrop.util.MultiErrorException;
 
 
 

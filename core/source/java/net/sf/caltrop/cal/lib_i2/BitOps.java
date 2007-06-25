@@ -39,8 +39,6 @@ ENDCOPYRIGHT
 package net.sf.caltrop.cal.lib_i2;
 
 import net.sf.caltrop.cal.i2.Configuration;
-import net.sf.caltrop.cal.i2.Function;
-import net.sf.caltrop.cal.i2.InterpreterException;
 import net.sf.caltrop.cal.i2.Environment;
 import net.sf.caltrop.cal.i2.environment.DynamicEnvironmentFrame;
 import net.sf.caltrop.cal.i2.environment.EnvironmentFactory;

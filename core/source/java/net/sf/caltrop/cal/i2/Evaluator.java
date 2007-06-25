@@ -7,7 +7,22 @@ import net.sf.caltrop.cal.i2.generator.Filter;
 import net.sf.caltrop.cal.i2.generator.Generator;
 import net.sf.caltrop.cal.i2.generator.Seed;
 import net.sf.caltrop.cal.i2.generator.VariableGenerator;
-import net.sf.caltrop.cal.interpreter.ast.*;
+import net.sf.caltrop.cal.interpreter.ast.Decl;
+import net.sf.caltrop.cal.interpreter.ast.ExprApplication;
+import net.sf.caltrop.cal.interpreter.ast.ExprEntry;
+import net.sf.caltrop.cal.interpreter.ast.ExprIf;
+import net.sf.caltrop.cal.interpreter.ast.ExprIndexer;
+import net.sf.caltrop.cal.interpreter.ast.ExprLambda;
+import net.sf.caltrop.cal.interpreter.ast.ExprLet;
+import net.sf.caltrop.cal.interpreter.ast.ExprList;
+import net.sf.caltrop.cal.interpreter.ast.ExprLiteral;
+import net.sf.caltrop.cal.interpreter.ast.ExprMap;
+import net.sf.caltrop.cal.interpreter.ast.ExprProc;
+import net.sf.caltrop.cal.interpreter.ast.ExprSet;
+import net.sf.caltrop.cal.interpreter.ast.ExprVariable;
+import net.sf.caltrop.cal.interpreter.ast.Expression;
+import net.sf.caltrop.cal.interpreter.ast.ExpressionVisitor;
+import net.sf.caltrop.cal.interpreter.ast.GeneratorFilter;
 
 public class Evaluator implements ExpressionVisitor, OperandStack, ObjectSink {
 

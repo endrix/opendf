@@ -32,16 +32,14 @@ Created : September 2002
 */
 package net.sf.caltrop.cal.parser;
 
-import net.sf.caltrop.util.Util;
-
-import org.w3c.dom.Document;
-
-import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
-import java.util.Properties;
+
+import net.sf.caltrop.util.Util;
+
+import org.w3c.dom.Document;
 
 ///////////main//////////////////////////////////////////////////////////////
 //// main

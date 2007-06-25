@@ -38,11 +38,17 @@ ENDCOPYRIGHT
 
 package net.sf.caltrop.cli;
 
-import java.util.*;
-import java.io.*;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 import net.sf.caltrop.cal.main.Cal2CalML;
-import net.sf.caltrop.util.*;
+import net.sf.caltrop.util.Logging;
+import net.sf.caltrop.util.MultiErrorException;
 
 /**
  * DRCChecker is a front end to the SystemBuilder tool which simply

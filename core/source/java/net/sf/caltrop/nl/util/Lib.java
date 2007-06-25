@@ -38,15 +38,15 @@ ENDCOPYRIGHT
 
 package net.sf.caltrop.nl.util;
 
+import static net.sf.caltrop.util.Util.xpathEvalElement;
+
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -54,16 +54,10 @@ import java.util.Set;
 import net.sf.caltrop.cal.interpreter.Context;
 import net.sf.caltrop.nl.parser.Lexer;
 import net.sf.caltrop.nl.parser.Parser;
-import net.sf.caltrop.util.CascadedMap;
 import net.sf.caltrop.util.ParserErrorException;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-
-
-import static net.sf.caltrop.util.Util.xpathEvalElement;
 
 public class Lib {
 	

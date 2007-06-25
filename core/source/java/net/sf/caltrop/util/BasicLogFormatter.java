@@ -39,9 +39,10 @@ ENDCOPYRIGHT
 
 package net.sf.caltrop.util;
 
-import java.util.*;
-import java.text.*;
-import java.util.logging.*;
+import java.text.DateFormat;
+import java.util.Date;
+import java.util.logging.Level;
+import java.util.logging.LogRecord;
 
 
 /**

@@ -44,13 +44,11 @@ import static net.sf.caltrop.util.Util.root;
 import static net.sf.caltrop.util.Util.xpathEvalNode;
 import static net.sf.caltrop.util.Util.xpathEvalNodes;
 
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import net.sf.caltrop.cal.interpreter.environment.Environment;
 import net.sf.caltrop.cal.interpreter.util.Platform;
 import net.sf.caltrop.hades.des.DiscreteEventComponent;
 import net.sf.caltrop.hades.des.components.AtomicConnectorDescriptor;

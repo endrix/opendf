@@ -40,8 +40,6 @@ ENDCOPYRIGHT
 package net.sf.caltrop.cal.i2.environment;
 
 
-import java.util.Set;
-
 import net.sf.caltrop.cal.i2.Configuration;
 import net.sf.caltrop.cal.i2.Environment;
 import net.sf.caltrop.cal.i2.InterpreterException;
@@ -52,7 +50,6 @@ import net.sf.caltrop.cal.i2.ObjectSink;
  * alias. It maps the class name or the alias to the
  * corresponding class object. The class object is constructed by the context.
  *
- *  @see Context
  *
  *  @author Jörn W. Janneck <janneck@eecs.berkeley.edu>
  */

@@ -40,14 +40,7 @@ ENDCOPYRIGHT
 package net.sf.caltrop.cal.i2.environment;
 
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-
-import net.sf.caltrop.cal.i2.Configuration;
 import net.sf.caltrop.cal.i2.Environment;
-import net.sf.caltrop.cal.i2.InterpreterException;
-import net.sf.caltrop.util.Logging;
 
 
 /**

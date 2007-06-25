@@ -1,7 +1,6 @@
 package net.sf.caltrop.xslt.cal;
 
 import net.sf.caltrop.cal.interpreter.Function;
-import net.sf.caltrop.cal.interpreter.ast.TypeExpr;
 
 public abstract class AbstractBinarySBFunction implements Function {
 

@@ -39,13 +39,13 @@ ENDCOPYRIGHT
 
 package net.sf.caltrop.cal.interpreter.util;
 
-import java.util.Map;
-import java.util.List;
-import java.util.Set;
-import java.util.Collection;
-import java.util.Iterator;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * A SequentialMap works very much like an ordinary HashMap (which in fact it encapsulates), and adds

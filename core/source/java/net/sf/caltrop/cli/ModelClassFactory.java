@@ -39,7 +39,6 @@ ENDCOPYRIGHT
 package net.sf.caltrop.cli;
 
 import java.io.InputStream;
-import java.io.OutputStream;
 
 /**
  * A ModelClassFactory generates a class 

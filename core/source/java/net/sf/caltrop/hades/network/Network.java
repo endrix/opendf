@@ -54,7 +54,6 @@ import net.sf.caltrop.hades.des.MessageHandler;
 import net.sf.caltrop.hades.des.MessageListener;
 import net.sf.caltrop.hades.des.MessageProducer;
 import net.sf.caltrop.hades.des.schedule.Scheduler;
-import net.sf.caltrop.util.Logging;
 
 
 

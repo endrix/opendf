@@ -39,8 +39,12 @@ ENDCOPYRIGHT
 
 package net.sf.caltrop.util;
 
-import java.io.*;
-import java.util.logging.*;
+import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.util.logging.ErrorManager;
+import java.util.logging.Formatter;
+import java.util.logging.Handler;
+import java.util.logging.LogRecord;
 
 /**
  * FlushedStreamHandler is a {@link Handler} which ensures that the

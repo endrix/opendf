@@ -55,7 +55,6 @@ import net.sf.caltrop.cal.interpreter.InterpreterException;
 import net.sf.caltrop.cal.interpreter.Procedure;
 import net.sf.caltrop.cal.interpreter.environment.Environment;
 import net.sf.caltrop.cal.interpreter.environment.EnvironmentFactory;
-import net.sf.caltrop.cal.interpreter.environment.HashEnvironment;
 import net.sf.caltrop.cal.interpreter.util.DefaultContext;
 import net.sf.caltrop.cal.interpreter.util.IntegerList;
 import net.sf.caltrop.cal.interpreter.util.DefaultPlatform.FunctionComposition;

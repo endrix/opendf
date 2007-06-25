@@ -41,7 +41,7 @@ ENDCOPYRIGHT
 
 package net.sf.caltrop.hades.des.components;
 
-import java.io.*;
+import java.io.Serializable;
 
 /**
  Defines the name, type, and optional default value (null if none) of a component parameter.

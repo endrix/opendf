@@ -42,9 +42,9 @@ ENDCOPYRIGHT
 package net.sf.caltrop.hades.des;
 
 
-import java.util.*;
+import java.util.Iterator;
 
-import net.sf.caltrop.hades.des.schedule.*;
+import net.sf.caltrop.hades.des.schedule.Scheduler;
 
 /**
  *  A wrapper to be used around a DiscreteEventComponent. A VDEC allows scaling and offsetting the time

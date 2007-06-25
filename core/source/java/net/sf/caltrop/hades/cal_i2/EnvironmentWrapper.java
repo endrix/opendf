@@ -40,16 +40,12 @@ ENDCOPYRIGHT
 package net.sf.caltrop.hades.cal_i2;
 
 import java.util.Map;
-import java.util.Set;
 
-import net.sf.caltrop.cal.i2.Configuration;
-import net.sf.caltrop.cal.i2.InterpreterException;
+import net.sf.caltrop.cal.i2.Environment;
 import net.sf.caltrop.cal.i2.ObjectSink;
 import net.sf.caltrop.cal.i2.UndefinedInterpreterException;
-import net.sf.caltrop.cal.i2.UndefinedVariableException;
 import net.sf.caltrop.cal.i2.environment.AbstractEnvironment;
 import net.sf.caltrop.cal.i2.types.Type;
-import net.sf.caltrop.cal.i2.Environment;
 
 
 /**

@@ -41,8 +41,9 @@ ENDCOPYRIGHT
 
 package net.sf.caltrop.hades.des;
 
-import java.util.*;
-import java.io.*;
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  *  StatData is a basic facility for collecting and transmitting statistical data.

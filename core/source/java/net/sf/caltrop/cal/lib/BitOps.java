@@ -43,7 +43,6 @@ import net.sf.caltrop.cal.interpreter.Function;
 import net.sf.caltrop.cal.interpreter.InterpreterException;
 import net.sf.caltrop.cal.interpreter.environment.Environment;
 import net.sf.caltrop.cal.interpreter.environment.EnvironmentFactory;
-import net.sf.caltrop.cal.interpreter.environment.HashEnvironment;
 
 /**
  * 

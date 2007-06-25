@@ -39,8 +39,10 @@ ENDCOPYRIGHT
 
 package net.sf.caltrop.cli;
 
-import java.io.*;
-import java.util.logging.*;
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.IOException;
+import java.io.PrintStream;
 
 import net.sf.caltrop.util.Logging;
 

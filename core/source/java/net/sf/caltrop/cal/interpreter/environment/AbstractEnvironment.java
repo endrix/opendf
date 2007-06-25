@@ -40,12 +40,11 @@ ENDCOPYRIGHT
 package net.sf.caltrop.cal.interpreter.environment;
 
 
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.HashMap;
 
 import net.sf.caltrop.cal.interpreter.InterpreterException;
-import net.sf.caltrop.util.Logging;
 
 /**
  * This is an abstract base class for environments that handles the access to structured objects

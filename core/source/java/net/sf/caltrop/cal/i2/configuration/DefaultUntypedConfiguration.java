@@ -16,13 +16,13 @@ import net.sf.caltrop.cal.i2.ObjectSink;
 import net.sf.caltrop.cal.i2.OperandStack;
 import net.sf.caltrop.cal.i2.UndefinedInterpreterException;
 import net.sf.caltrop.cal.i2.UndefinedVariableException;
+import net.sf.caltrop.cal.i2.java.ClassObject;
+import net.sf.caltrop.cal.i2.java.MethodObject;
 import net.sf.caltrop.cal.interpreter.InterpreterException;
 import net.sf.caltrop.cal.interpreter.ast.ExprIf;
 import net.sf.caltrop.cal.interpreter.ast.ExprLiteral;
 import net.sf.caltrop.cal.interpreter.ast.ExprVariable;
 import net.sf.caltrop.cal.interpreter.ast.StmtAssignment;
-import net.sf.caltrop.cal.i2.java.ClassObject;
-import net.sf.caltrop.cal.i2.java.MethodObject;
 
 public class DefaultUntypedConfiguration implements Configuration {
 	

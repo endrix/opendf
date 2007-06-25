@@ -38,13 +38,16 @@ ENDCOPYRIGHT
 
 package net.sf.caltrop.cli.lib;
 
-import java.io.*;
-import java.util.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Collections;
 
+import net.sf.caltrop.cli.LoadingErrorException;
 import net.sf.caltrop.cli.ModelClassFactory;
 import net.sf.caltrop.hades.models.ModelInterface;
-import net.sf.caltrop.util.*;
-import net.sf.caltrop.cli.*;
+import net.sf.caltrop.util.GenericError;
+import net.sf.caltrop.util.Logging;
+import net.sf.caltrop.util.MultiErrorException;
 
 /**
  * This class builds a model class from a generic interpreter, which is loaded by the {@link GenericInterpreterClassLoader},

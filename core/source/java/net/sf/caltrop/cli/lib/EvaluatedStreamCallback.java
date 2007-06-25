@@ -39,7 +39,10 @@ ENDCOPYRIGHT
 package net.sf.caltrop.cli.lib;
 
 
-import java.io.*;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 
 import net.sf.caltrop.cal.interpreter.ExprEvaluator;
 import net.sf.caltrop.cal.interpreter.ast.Expression;

@@ -40,18 +40,17 @@ ENDCOPYRIGHT
 package net.sf.caltrop.cal.interpreter.util;
 
 
+import java.lang.reflect.Field;
+import java.math.BigInteger;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.lang.reflect.Field;
-import java.math.BigInteger;
 
 import net.sf.caltrop.cal.interpreter.Context;
 import net.sf.caltrop.cal.interpreter.Function;
 import net.sf.caltrop.cal.interpreter.InterpreterException;
 import net.sf.caltrop.cal.interpreter.Procedure;
-import net.sf.caltrop.cal.interpreter.Context.Thunk;
 import net.sf.caltrop.cal.interpreter.environment.DataStructureManipulator;
 import net.sf.caltrop.cal.interpreter.environment.Environment;
 import net.sf.caltrop.cal.interpreter.environment.HashEnvironment;

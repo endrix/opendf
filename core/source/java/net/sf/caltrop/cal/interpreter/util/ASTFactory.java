@@ -39,22 +39,10 @@ ENDCOPYRIGHT
 
 package net.sf.caltrop.cal.interpreter.util;
 
-import net.sf.caltrop.cal.interpreter.InterpreterException;
-import net.sf.caltrop.cal.interpreter.ast.*;
-import net.sf.caltrop.util.ElementPredicate;
-import net.sf.caltrop.util.Logging;
-import net.sf.caltrop.util.TagNameAttributeValuePredicate;
-import net.sf.caltrop.util.TagNamePredicate;
-import net.sf.caltrop.util.Util;
+import static net.sf.caltrop.util.Util.xpathEvalElement;
+import static net.sf.caltrop.util.Util.xpathEvalElements;
+import static net.sf.caltrop.util.Util.xpathEvalNodes;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-
-import javax.print.attribute.standard.Finishings;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.transform.Transformer;
 import java.io.File;
 import java.io.InputStream;
 import java.io.PrintWriter;
@@ -65,9 +53,56 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import static net.sf.caltrop.util.Util.xpathEvalElement;
-import static net.sf.caltrop.util.Util.xpathEvalElements;
-import static net.sf.caltrop.util.Util.xpathEvalNodes;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.Transformer;
+
+import net.sf.caltrop.cal.interpreter.InterpreterException;
+import net.sf.caltrop.cal.interpreter.ast.ASTNode;
+import net.sf.caltrop.cal.interpreter.ast.Action;
+import net.sf.caltrop.cal.interpreter.ast.Actor;
+import net.sf.caltrop.cal.interpreter.ast.AttributeKeys;
+import net.sf.caltrop.cal.interpreter.ast.Decl;
+import net.sf.caltrop.cal.interpreter.ast.ExprApplication;
+import net.sf.caltrop.cal.interpreter.ast.ExprEntry;
+import net.sf.caltrop.cal.interpreter.ast.ExprIf;
+import net.sf.caltrop.cal.interpreter.ast.ExprIndexer;
+import net.sf.caltrop.cal.interpreter.ast.ExprLambda;
+import net.sf.caltrop.cal.interpreter.ast.ExprLet;
+import net.sf.caltrop.cal.interpreter.ast.ExprList;
+import net.sf.caltrop.cal.interpreter.ast.ExprLiteral;
+import net.sf.caltrop.cal.interpreter.ast.ExprMap;
+import net.sf.caltrop.cal.interpreter.ast.ExprProc;
+import net.sf.caltrop.cal.interpreter.ast.ExprSet;
+import net.sf.caltrop.cal.interpreter.ast.ExprVariable;
+import net.sf.caltrop.cal.interpreter.ast.Expression;
+import net.sf.caltrop.cal.interpreter.ast.GeneratorFilter;
+import net.sf.caltrop.cal.interpreter.ast.Import;
+import net.sf.caltrop.cal.interpreter.ast.InputPattern;
+import net.sf.caltrop.cal.interpreter.ast.OutputExpression;
+import net.sf.caltrop.cal.interpreter.ast.PackageImport;
+import net.sf.caltrop.cal.interpreter.ast.PortDecl;
+import net.sf.caltrop.cal.interpreter.ast.QID;
+import net.sf.caltrop.cal.interpreter.ast.ScheduleFSM;
+import net.sf.caltrop.cal.interpreter.ast.SingleImport;
+import net.sf.caltrop.cal.interpreter.ast.Statement;
+import net.sf.caltrop.cal.interpreter.ast.StmtAssignment;
+import net.sf.caltrop.cal.interpreter.ast.StmtBlock;
+import net.sf.caltrop.cal.interpreter.ast.StmtCall;
+import net.sf.caltrop.cal.interpreter.ast.StmtForeach;
+import net.sf.caltrop.cal.interpreter.ast.StmtIf;
+import net.sf.caltrop.cal.interpreter.ast.StmtWhile;
+import net.sf.caltrop.cal.interpreter.ast.Transition;
+import net.sf.caltrop.cal.interpreter.ast.TypeExpr;
+import net.sf.caltrop.util.ElementPredicate;
+import net.sf.caltrop.util.Logging;
+import net.sf.caltrop.util.TagNameAttributeValuePredicate;
+import net.sf.caltrop.util.TagNamePredicate;
+import net.sf.caltrop.util.Util;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 /**
  * An ASTFactory creates an AST from a valid CalML/DOM representation of an actor.

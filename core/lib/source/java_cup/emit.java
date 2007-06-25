@@ -1,9 +1,9 @@
 package java_cup;
 
 import java.io.PrintWriter;
-import java.util.Stack;
-import java.util.Enumeration;
 import java.util.Date;
+import java.util.Enumeration;
+import java.util.Stack;
 
 /** 
  * This class handles emitting generated code for the resulting parser.

@@ -6,12 +6,25 @@
 
 package net.sf.caltrop.nl.parser;
 
-import java_cup.runtime.*;
-import org.w3c.dom.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Vector;
+
+import java_cup.runtime.Symbol;
+
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import java.util.*;
-import net.sf.caltrop.util.*;
+
+import net.sf.caltrop.util.GenericError;
+import net.sf.caltrop.util.ParserErrorException;
+
+import org.w3c.dom.Attr;
+import org.w3c.dom.DOMImplementation;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 /** CUP v0.10k generated parser.
   * @version Wed Jun 20 20:50:30 PDT 2007

@@ -41,7 +41,9 @@ ENDCOPYRIGHT
 
 package net.sf.caltrop.hades.des.util;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
 
 /**
  * Provides an implementation of the add/remove/etc listener functionality

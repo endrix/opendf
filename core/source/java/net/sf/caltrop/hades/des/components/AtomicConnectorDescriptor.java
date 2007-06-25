@@ -40,7 +40,6 @@ ENDCOPYRIGHT
 
 package net.sf.caltrop.hades.des.components;
 
-import java.lang.reflect.*;
 
 /**
     An atomic connector is characterized by its name, its type, and its direction. The direction

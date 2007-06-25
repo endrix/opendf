@@ -41,7 +41,6 @@ package net.sf.caltrop.cal.interpreter.environment;
 
 import java.util.Set;
 
-import net.sf.caltrop.cal.interpreter.Context;
 import net.sf.caltrop.cal.interpreter.InterpreterException;
 
 

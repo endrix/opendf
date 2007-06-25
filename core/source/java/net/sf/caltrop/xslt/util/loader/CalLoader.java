@@ -3,18 +3,17 @@
  */
 package net.sf.caltrop.xslt.util.loader;
 
+import static net.sf.caltrop.util.Util.saxonify;
+
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 
 import net.sf.caltrop.cal.interpreter.util.SourceReader;
-import net.sf.caltrop.util.Util;
 import net.sf.caltrop.xslt.util.SourceLoader;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
-
-import static net.sf.caltrop.util.Util.saxonify;
 
 
 public class CalLoader implements SourceLoader {

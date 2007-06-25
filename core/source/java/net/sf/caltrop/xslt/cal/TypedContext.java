@@ -6,27 +6,23 @@
 
 package net.sf.caltrop.xslt.cal;
 
-import net.sf.caltrop.cal.interpreter.Context;
-import net.sf.caltrop.cal.interpreter.Function;
-import net.sf.caltrop.cal.interpreter.Procedure;
-import net.sf.caltrop.cal.interpreter.InterpreterException;
-import net.sf.caltrop.cal.interpreter.java.MethodObject;
-import net.sf.caltrop.cal.interpreter.java.ClassObject;
-
-import net.sf.caltrop.cal.interpreter.Context.Thunk;
-import net.sf.caltrop.cal.interpreter.environment.DataStructureManipulator;
-import net.sf.caltrop.cal.interpreter.environment.Environment;
-import net.sf.caltrop.cal.interpreter.environment.HashEnvironment;
-import net.sf.caltrop.cal.interpreter.util.DefaultDataStructureManipulator;
-
+import java.lang.reflect.Field;
+import java.math.BigInteger;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.lang.reflect.Field;
-import java.math.BigInteger;
+
+import net.sf.caltrop.cal.interpreter.Context;
+import net.sf.caltrop.cal.interpreter.Function;
+import net.sf.caltrop.cal.interpreter.InterpreterException;
+import net.sf.caltrop.cal.interpreter.Procedure;
+import net.sf.caltrop.cal.interpreter.environment.Environment;
+import net.sf.caltrop.cal.interpreter.environment.HashEnvironment;
+import net.sf.caltrop.cal.interpreter.java.ClassObject;
+import net.sf.caltrop.cal.interpreter.java.MethodObject;
 
 /**
  *  @author Jörn W. Janneck <janneck@eecs.berkeley.edu>

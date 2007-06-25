@@ -39,17 +39,17 @@ ENDCOPYRIGHT
 
 package net.sf.caltrop.cal.main;
 
-import net.sf.caltrop.util.Logging;
-import net.sf.caltrop.util.Util;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-
-import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+
+import javax.xml.parsers.DocumentBuilderFactory;
+
+import net.sf.caltrop.util.Logging;
+import net.sf.caltrop.util.Util;
+
+import org.w3c.dom.Node;
 
 
 public class ReadXMLWriteXML {

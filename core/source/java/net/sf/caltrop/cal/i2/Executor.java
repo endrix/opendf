@@ -39,6 +39,12 @@ ENDCOPYRIGHT
 
 package net.sf.caltrop.cal.i2;
 
+import net.sf.caltrop.cal.i2.environment.LazyEnvironmentFrame;
+import net.sf.caltrop.cal.i2.generator.CollectionGenerator;
+import net.sf.caltrop.cal.i2.generator.Filter;
+import net.sf.caltrop.cal.i2.generator.Generator;
+import net.sf.caltrop.cal.i2.generator.Seed;
+import net.sf.caltrop.cal.i2.generator.VariableGenerator;
 import net.sf.caltrop.cal.interpreter.ast.Decl;
 import net.sf.caltrop.cal.interpreter.ast.Expression;
 import net.sf.caltrop.cal.interpreter.ast.GeneratorFilter;
@@ -50,13 +56,6 @@ import net.sf.caltrop.cal.interpreter.ast.StmtCall;
 import net.sf.caltrop.cal.interpreter.ast.StmtForeach;
 import net.sf.caltrop.cal.interpreter.ast.StmtIf;
 import net.sf.caltrop.cal.interpreter.ast.StmtWhile;
-import net.sf.caltrop.cal.i2.Environment;
-import net.sf.caltrop.cal.i2.environment.LazyEnvironmentFrame;
-import net.sf.caltrop.cal.i2.generator.CollectionGenerator;
-import net.sf.caltrop.cal.i2.generator.Filter;
-import net.sf.caltrop.cal.i2.generator.Generator;
-import net.sf.caltrop.cal.i2.generator.Seed;
-import net.sf.caltrop.cal.i2.generator.VariableGenerator;
 
 /**
  * The statement evaluator interprets statements and potentially modifies the assignment of values to variables

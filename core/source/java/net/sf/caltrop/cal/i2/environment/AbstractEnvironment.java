@@ -2,7 +2,6 @@ package net.sf.caltrop.cal.i2.environment;
 
 import net.sf.caltrop.cal.i2.Environment;
 import net.sf.caltrop.cal.i2.ObjectSink;
-import net.sf.caltrop.cal.i2.OperandStack;
 import net.sf.caltrop.cal.i2.UndefinedInterpreterException;
 import net.sf.caltrop.cal.i2.UndefinedVariableException;
 import net.sf.caltrop.cal.i2.types.Type;

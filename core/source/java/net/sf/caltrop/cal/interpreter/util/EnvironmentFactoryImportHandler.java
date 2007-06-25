@@ -39,8 +39,6 @@ ENDCOPYRIGHT
 
 package net.sf.caltrop.cal.interpreter.util;
 
-import net.sf.caltrop.cal.interpreter.Context;
-import net.sf.caltrop.cal.interpreter.ast.Import;
 import net.sf.caltrop.cal.interpreter.environment.Environment;
 import net.sf.caltrop.cal.interpreter.environment.EnvironmentFactory;
 import net.sf.caltrop.cal.interpreter.environment.SingleEntryEnvironment;

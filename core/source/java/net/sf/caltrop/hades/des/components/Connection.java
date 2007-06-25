@@ -40,7 +40,7 @@ ENDCOPYRIGHT
 
 package net.sf.caltrop.hades.des.components;
 
-import net.sf.caltrop.hades.des.*;
+import net.sf.caltrop.hades.des.DiscreteEventComponent;
 
 
 /**

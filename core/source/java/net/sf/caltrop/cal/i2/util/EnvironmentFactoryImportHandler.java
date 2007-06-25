@@ -39,9 +39,6 @@ ENDCOPYRIGHT
 
 package net.sf.caltrop.cal.i2.util;
 
-import net.sf.caltrop.cal.i2.Configuration;
-import net.sf.caltrop.cal.interpreter.ast.Import;
-import net.sf.caltrop.cal.i2.util.AbstractImportHandler;
 import net.sf.caltrop.cal.i2.Environment;
 import net.sf.caltrop.cal.i2.environment.EnvironmentFactory;
 import net.sf.caltrop.cal.i2.environment.SingleEntryEnvironment;

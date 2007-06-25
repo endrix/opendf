@@ -39,27 +39,21 @@ package net.sf.caltrop.cli;
 	ENDCOPYRIGHT
  */
 
-import net.sf.caltrop.cli.lib.ClassLoaderModelClassLocator;
-import net.sf.caltrop.cli.lib.DirectoryModelClassLocator;
-import net.sf.caltrop.util.Logging;
-import net.sf.caltrop.util.Util;
-import net.sf.caltrop.xslt.util.Loading;
+import static net.sf.caltrop.util.Util.applyTransform;
+import static net.sf.caltrop.util.Util.createTransformer;
+import static net.sf.caltrop.util.Util.createXML;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.transform.Transformer;
-
-import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
-import java.util.logging.Level;
 
-import static net.sf.caltrop.util.Util.createTransformer;
-import static net.sf.caltrop.util.Util.applyTransform;
-import static net.sf.caltrop.util.Util.createXML;
+import javax.xml.transform.Transformer;
+
+import net.sf.caltrop.cli.lib.ClassLoaderModelClassLocator;
+import net.sf.caltrop.cli.lib.DirectoryModelClassLocator;
+import net.sf.caltrop.xslt.util.Loading;
+
+import org.w3c.dom.Node;
 
 
 public class Elaborator {

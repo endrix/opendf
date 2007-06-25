@@ -40,7 +40,7 @@ ENDCOPYRIGHT
 
 package net.sf.caltrop.hades.des.util;
 
-import net.sf.caltrop.hades.des.*;
+import net.sf.caltrop.hades.des.MessageProducer;
 
 public interface StateChangeProducer extends MessageProducer {
 

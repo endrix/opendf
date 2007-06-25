@@ -38,21 +38,30 @@ ENDCOPYRIGHT
 
 package net.sf.caltrop.cli;
 
-import java.io.*;
-import java.util.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.List;
 
-import javax.xml.parsers.*;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
-import org.xml.sax.*;
 
 import net.sf.caltrop.cal.interpreter.util.ASTFactory;
 import net.sf.caltrop.cal.interpreter.util.SourceReader;
-import net.sf.caltrop.cal.parser.Lexer;
-import net.sf.caltrop.cal.parser.Parser;
-import net.sf.caltrop.util.*;
+import net.sf.caltrop.util.Logging;
+import net.sf.caltrop.util.MultiErrorException;
+import net.sf.caltrop.util.Util;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
+import org.xml.sax.SAXException;
 
 
 public class PrecompileCAL {

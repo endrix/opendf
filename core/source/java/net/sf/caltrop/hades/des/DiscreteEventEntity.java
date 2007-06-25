@@ -41,7 +41,7 @@ ENDCOPYRIGHT
 
 package net.sf.caltrop.hades.des;
 
-import net.sf.caltrop.hades.des.schedule.*;
+import net.sf.caltrop.hades.des.schedule.Scheduler;
 
 /**
  *   DiscreteEventEntity interface is implemented by schedulable objects. It provides 

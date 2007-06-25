@@ -39,11 +39,8 @@ ENDCOPYRIGHT
 
 package net.sf.caltrop.cal.interpreter.environment;
 
-import java.util.Collections;
-import java.util.Set;
 import java.util.Map;
-
-import net.sf.caltrop.cal.interpreter.UndefinedVariableException;
+import java.util.Set;
 
 /**
  * An environment is a structure that assigns ("binds") values to identifiers. It is typically cascaded, i.e. it
