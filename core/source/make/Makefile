@@ -22,6 +22,7 @@ CALTROP_CAL_SOURCES = $(shell find $(CALTROP_HOME)/source/java/net/sf/caltrop/ca
 CALTROP_NL_SOURCES = $(shell find $(CALTROP_HOME)/source/java/net/sf/caltrop/nl -name "*.java")
 CALTROP_HADES_SOURCES = $(shell find $(CALTROP_HOME)/source/java/net/sf/caltrop/hades -name "*.java")
 CALTROP_CLI_SOURCES = $(shell find $(CALTROP_HOME)/source/java/net/sf/caltrop/cli -name "*.java")
+CALTROP_XSLT_SOURCES = $(shell find $(CALTROP_HOME)/source/java/net/sf/caltrop/xslt -name "*.java")
 
 CONTRIB_DIR = $(CALTROP_HOME)/../contrib/actorlib
 CONTRIB_SOURCES = $(shell find $(CONTRIB_DIR) -name "*.java")
@@ -68,10 +69,11 @@ nl: util cal java_cup
 hades: util cal nl
 	$(JAVAC) -classpath "$(CALTROP_CLASSPATH)" -d $(CALTROP_CLASSDIR) $(CALTROP_HADES_SOURCES)
 
-cli: util cal nl hades java_cup
+cli: util cal nl hades java_cup xslt
 	$(JAVAC) -classpath "$(CALTROP_CLASSPATH)" -d $(CALTROP_CLASSDIR) $(CALTROP_CLI_SOURCES)
 
 xslt:
+	$(JAVAC) -classpath "$(CALTROP_CLASSPATH)" -d $(CALTROP_CLASSDIR) $(CALTROP_XSLT_SOURCES)
 	mkdir -p $(CALTROP_CLASSDIR)/net/sf/caltrop/cal/transforms
 	cp -p $(CALTROP_HOME)/source/xslt/net/sf/caltrop/cal/transforms/*.xslt $(CALTROP_CLASSDIR)/net/sf/caltrop/cal/transforms
 	mkdir -p $(CALTROP_CLASSDIR)/net/sf/caltrop/cal/checks
