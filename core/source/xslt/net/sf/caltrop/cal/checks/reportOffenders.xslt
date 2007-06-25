@@ -50,9 +50,9 @@
     <xsl:text>]</xsl:text>
   </xsl:template>
 
-  <xsl:template match="Expr[@kind='UnaryOp' or @kind='BinOpSeq']" mode="report-offender">
+  <xsl:template match="Op" mode="report-offender">
     <xsl:text>'</xsl:text>
-    <xsl:value-of select="Op/@name"/>
+    <xsl:value-of select="@name"/>
     <xsl:text>' [</xsl:text>
     <xsl:apply-templates select="parent::*" mode="report-offender-context"/>
     <xsl:text>]</xsl:text>

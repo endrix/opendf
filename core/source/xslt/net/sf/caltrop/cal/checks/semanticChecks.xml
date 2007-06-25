@@ -109,10 +109,10 @@
       <sch:extends rule="selfReference"/>
     </sch:rule>
     
-    <sch:rule context="Expr[@kind='BinOpSeq']" id="binaryOperator">
+    <sch:rule context="Op[ parent::Expr[@kind='BinOpSeq'] ]" id="binaryOperator">
       <sch:assert role="Error" id="undefined"
         test="contains( ' and or = != &lt; &lt;= > >= in + - div mod * / ^ .. >> &lt;&lt; | &amp; ^ ',
-                concat(' ',Op/@name,' ') )">
+                concat(' ',@name,' ') )">
         <xsl:attribute name="subject">
           <xsl:apply-templates select="." mode="report-offender"/>
         </xsl:attribute>
@@ -121,9 +121,9 @@
       </sch:assert>
     </sch:rule>
     
-    <sch:rule context="Expr[@kind='UnaryOp']" id="unaryOperator">
+    <sch:rule context="Op[ parent::Expr[@kind='UnaryOp'] ]" id="unaryOperator">
       <sch:assert role="Error" id="undefined"
-        test="contains( ' not # dom rng - ~ ', concat(' ',Op/@name,' ') )">
+        test="contains( ' not # dom rng - ~ ', concat(' ',@name,' ') )">
         <xsl:attribute name="subject">
           <xsl:apply-templates select="." mode="report-offender"/>
         </xsl:attribute>

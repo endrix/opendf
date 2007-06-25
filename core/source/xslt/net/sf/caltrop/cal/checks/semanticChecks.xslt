@@ -137,9 +137,9 @@
         <xsl:apply-templates mode="M1"/>
     </xsl:template>
     
-    <xsl:template match="Expr[@kind='BinOpSeq']" mode="M1" priority="3994">
+    <xsl:template match="Op[ parent::Expr[@kind='BinOpSeq'] ]" mode="M1" priority="3994">
         <xsl:choose>
-            <xsl:when test="contains( ' and or = != &lt; &lt;= &gt; &gt;= in + - div mod * / ^ .. &gt;&gt; &lt;&lt; | &amp; ^ ',                 concat(' ',Op/@name,' ') )"/>
+            <xsl:when test="contains( ' and or = != &lt; &lt;= &gt; &gt;= in + - div mod * / ^ .. &gt;&gt; &lt;&lt; | &amp; ^ ',                 concat(' ',@name,' ') )"/>
             <xsl:otherwise>
                 <Note id="variableChecks.binaryOperator.undefined" kind="Report" severity="Error"
                       subject="">
@@ -152,9 +152,9 @@
         <xsl:apply-templates mode="M1"/>
     </xsl:template>
     
-    <xsl:template match="Expr[@kind='UnaryOp']" mode="M1" priority="3993">
+    <xsl:template match="Op[ parent::Expr[@kind='UnaryOp'] ]" mode="M1" priority="3993">
         <xsl:choose>
-            <xsl:when test="contains( ' not # dom rng - ~ ', concat(' ',Op/@name,' ') )"/>
+            <xsl:when test="contains( ' not # dom rng - ~ ', concat(' ',@name,' ') )"/>
             <xsl:otherwise>
                 <Note id="variableChecks.unaryOperator.undefined" kind="Report" severity="Error"
                       subject="">

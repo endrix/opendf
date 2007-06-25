@@ -66,42 +66,7 @@
       <axsl:copy-of select="*"/>
     </axsl:copy>
   </axsl:for-each>
-  <!-- 
-  <axsl:for-each select="$contents/Note">
-    <axsl:variable name="body">
-      <axsl:value-of select="text()"/>
-    </axsl:variable>
-    <axsl:message>
-      <axsl:value-of select="@severity"/><axsl:text>: </axsl:text>
-      <axsl:value-of select="normalize-space($body)"/><axsl:text> [id </axsl:text>
-      <axsl:value-of select="@id"/><axsl:text>]</axsl:text>
-    </axsl:message>
-    <axsl:message>
-      <axsl:text>    </axsl:text>
-      <axsl:value-of select="@subject"/>
-    </axsl:message>
-    <axsl:message/>
-  </axsl:for-each>
-  <axsl:if test="$contents/Note[@severity='Warning']">
-    <axsl:message>
-      <axsl:value-of select="count( $contents/Note[@severity='Warning'] )"/>
-      <axsl:text> warning</axsl:text>
-      <axsl:if test="count( $contents/Note[@severity='Warning'] ) &gt; 1">
-        <axsl:text>s</axsl:text>
-      </axsl:if>
-    </axsl:message>
-  </axsl:if>
-  <axsl:if test="$contents/Note[@severity='Error']">
-    <axsl:message terminate="yes">
-      <axsl:value-of select="count( $contents/Note[@severity='Error'] )"/>
-      <axsl:text> error</axsl:text>
-      <axsl:if test="count( $contents/Note[@severity='Error'] ) &gt; 1">
-        <axsl:text>s</axsl:text>
-      </axsl:if>
-      <axsl:text> [processing terminated]&#xA;</axsl:text>
-    </axsl:message>
-  </axsl:if>
-  -->
+
 </xsl:template>
 
 <xsl:template name="process-assert">
