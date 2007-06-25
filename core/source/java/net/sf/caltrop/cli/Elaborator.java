@@ -70,32 +70,40 @@ public class Elaborator {
 			return;
 		}
 				
-		Logging.dbg().setLevel(Level.ALL);
+		//Logging.dbg().setLevel(Level.ALL);
 		
 		initializeLocators();
 
-		Node doc = Loading.loadActorSource(args[0]);
-		
-		Transformer t = createTransformer(Elaborator.class.getResourceAsStream(ElaboratorTransformationName));
-		
-		Node res = applyTransform(doc, t);
-
-		String result = createXML(res);
-
-		OutputStream os = null;
-		boolean closeStream = false;
-		if (".".equals(args[1])) {
-			os = System.out;
-		} else {
-			os = new FileOutputStream(args[1]);
-			closeStream = true;
+		try {
+			Node doc = Loading.loadActorSource(args[0]);
+	
+			Transformer t = createTransformer(Elaborator.class.getResourceAsStream(ElaboratorTransformationName));
+			
+			Node res = applyTransform(doc, t);
+	
+			String result = createXML(res);
+	
+			OutputStream os = null;
+			boolean closeStream = false;
+			if (".".equals(args[1])) {
+				os = System.out;
+			} else {
+				os = new FileOutputStream(args[1]);
+				closeStream = true;
+			}
+			PrintWriter pw = new PrintWriter(os);
+			pw.print(result);
+			if (closeStream)
+				pw.close();
+			else
+				pw.flush();
+			
+			System.out.println("Network '" + args[0] + "' successfully elaborated.");
 		}
-		PrintWriter pw = new PrintWriter(os);
-		pw.print(result);
-		if (closeStream)
-			pw.close();
-		else
-			pw.flush();
+		catch (Exception e) {
+			e.printStackTrace();
+			System.out.println("Network elaboration failed. (" + args[0] + ")");
+		}
 	}
 	
 	static private void  initializeLocators() {

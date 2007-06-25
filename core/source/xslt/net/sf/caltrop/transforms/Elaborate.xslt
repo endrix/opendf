@@ -20,8 +20,8 @@
             <xsl:when test="XDF">
                 <xsl:apply-templates/>
             </xsl:when>
-            <xsl:when test="XNL">
-                <xsl:copy-of select="XNL"/>
+            <xsl:when test="Network">
+                <xsl:apply-templates select="xnlext:elaborate(Network)"/> 
             </xsl:when>
             <xsl:when test="Actor">
                 <xsl:copy-of select="Actor"/>
