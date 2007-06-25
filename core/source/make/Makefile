@@ -14,6 +14,7 @@ endif
 CALTROP_HOME = ../..
 JAR_NAME = caltrop.jar
 CALTROP_CLASSDIR = $(CALTROP_HOME)/classes
+CALTROP_CLASSPATH = $(CALTROP_CLASSDIR)$(CPS)$(CALTROP_HOME)/lib/saxon8.jar$(CPS)$(CALTROP_HOME)/lib/saxon8-dom.jar$(CPS)$(CONTRIB_DIR)/lib/PtPlot.jar
 JAVA_CUP_SOURCES = $(shell find $(CALTROP_HOME)/lib/source/java_cup -name "*.java")
 PTOLEMY_SOURCES = $(shell find $(CALTROP_HOME)/lib/source/ptolemy -name "*.java")
 CALTROP_UTIL_SOURCES = $(shell find $(CALTROP_HOME)/source/java/net/sf/caltrop/util -name "*.java")
@@ -59,16 +60,16 @@ util:
 	$(JAVAC) -d $(CALTROP_CLASSDIR) $(CALTROP_UTIL_SOURCES)
 
 cal: util java_cup
-	$(JAVAC) -classpath $(CALTROP_CLASSDIR) -d $(CALTROP_CLASSDIR) $(CALTROP_CAL_SOURCES)
+	$(JAVAC) -classpath "$(CALTROP_CLASSPATH)" -d $(CALTROP_CLASSDIR) $(CALTROP_CAL_SOURCES)
 
 nl: util cal java_cup
-	$(JAVAC) -classpath $(CALTROP_CLASSDIR) -d $(CALTROP_CLASSDIR) $(CALTROP_NL_SOURCES)
+	$(JAVAC) -classpath "$(CALTROP_CLASSPATH)" -d $(CALTROP_CLASSDIR) $(CALTROP_NL_SOURCES)
 
 hades: util cal nl
-	$(JAVAC) -classpath $(CALTROP_CLASSDIR) -d $(CALTROP_CLASSDIR) $(CALTROP_HADES_SOURCES)
+	$(JAVAC) -classpath "$(CALTROP_CLASSPATH)" -d $(CALTROP_CLASSDIR) $(CALTROP_HADES_SOURCES)
 
 cli: util cal nl hades java_cup
-	$(JAVAC) -classpath "$(CALTROP_CLASSDIR)$(CPS)$(CALTROP_HOME)/lib/saxon8.jar" -d $(CALTROP_CLASSDIR) $(CALTROP_CLI_SOURCES)
+	$(JAVAC) -classpath "$(CALTROP_CLASSPATH)" -d $(CALTROP_CLASSDIR) $(CALTROP_CLI_SOURCES)
 
 xslt:
 	mkdir -p $(CALTROP_CLASSDIR)/net/sf/caltrop/cal/transforms
@@ -78,4 +79,4 @@ xslt:
 
 contrib:
 	mkdir -p $(CALTROP_CLASSDIR)
-	$(JAVAC) -d $(CALTROP_CLASSDIR) -classpath "$(CALTROP_CLASSDIR)$(CPS)$(CONTRIB_DIR)/lib/PtPlot.jar" $(CONTRIB_SOURCES)
+	$(JAVAC) -d $(CALTROP_CLASSDIR) -classpath "$(CALTROP_CLASSPATH)" $(CONTRIB_SOURCES)
