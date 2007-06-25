@@ -89,7 +89,7 @@ public class CalActorClassFactory extends AbstractCachingGenericInterpreterModel
             pw.println(result);
             pw.flush();
         }
-        catch (TransformerException te)
+        catch (Exception te)
         {
             // Compilation succeeded which is all that is necessary
             // for runtime.  If this exception occurs, warn the user

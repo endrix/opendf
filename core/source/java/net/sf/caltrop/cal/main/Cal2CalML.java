@@ -92,7 +92,7 @@ public class Cal2CalML {
         {
             result = Util.createXML(doc);
         }
-        catch (TransformerException te)
+        catch (Exception te)
         {
             throw new CALMLCompileException("Could not convert result to XML ", te);
         }

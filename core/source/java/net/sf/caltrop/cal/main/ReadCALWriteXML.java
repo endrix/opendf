@@ -130,7 +130,7 @@ public class ReadCALWriteXML {
         {
             Util.createXML(doc);
         }
-        catch (TransformerException te)
+        catch (Exception te)
         {
             System.err.println("Could not create XML document " + te.getMessage());
             System.exit(-1);
