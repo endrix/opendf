@@ -13,26 +13,48 @@
     
     <xsl:copy-of select="."/>
     
-    <xsl:variable name="warnings" select="count( //Note[@kind='Report'][@severity='Warning'] )"/>
-    <xsl:variable name="errors" select="count( //Note[@kind='Report'][@severity='Errors'] )"/>
- 
-    <xsl:if test="$warnings &gt; 0">
+    <xsl:variable name="warnings" select="//Note[@kind='Report'][@severity='Warning']"/>
+    <xsl:variable name="errors" select="//Note[@kind='Report'][@severity='Error']"/>
+
+    <xsl:for-each select="$errors">
+       <xsl:message>
+        <xsl:text>Error </xsl:text>
+        <xsl:value-of select="@id"/><xsl:text>: </xsl:text>
+        <xsl:value-of select="normalize-space( text() )"/>
+        <xsl:text>: </xsl:text>
+        <xsl:value-of select="@subject"/>
+      </xsl:message>
+    </xsl:for-each>
+     
+    <xsl:for-each select="$warnings">
       <xsl:message>
-        <xsl:value-of select="$warnings"/>
+        <xsl:text>Warning </xsl:text>
+        <xsl:value-of select="@id"/><xsl:text>: </xsl:text>
+        <xsl:value-of select="normalize-space( text() )"/>
+        <xsl:text>: </xsl:text>
+        <xsl:value-of select="@subject"/>
+      </xsl:message>
+    </xsl:for-each>
+    
+    <xsl:if test="count( $warnings ) &gt; 0">
+      <xsl:message>
+        <xsl:value-of select="count( $warnings )"/>
         <xsl:text> warning</xsl:text>
-          <xsl:if test="$warnings &gt; 1">
+        <xsl:if test="count( $warnings ) &gt; 1">
           <xsl:text>s</xsl:text>
         </xsl:if>
+        <xsl:text> reported.</xsl:text>
       </xsl:message>
     </xsl:if>
       
-    <xsl:if test="$errors &gt; 0">
+    <xsl:if test="count( $errors ) &gt; 0">
       <xsl:message terminate="yes">
-        <xsl:value-of select="$errors"/>
-        <xsl:text> warning</xsl:text>
-          <xsl:if test="$errors &gt; 1">
-            <xsl:text>s</xsl:text>
-          </xsl:if>
+        <xsl:value-of select="count( $errors )"/>
+        <xsl:text> error</xsl:text>
+        <xsl:if test="count( $errors ) &gt; 1">
+          <xsl:text>s</xsl:text>
+        </xsl:if>
+        <xsl:text> reported.</xsl:text>
       </xsl:message>
     </xsl:if>
 

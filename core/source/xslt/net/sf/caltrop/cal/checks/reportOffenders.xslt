@@ -181,7 +181,15 @@
   </xsl:template>
   
   <xsl:template match="Input" mode="report-offender-context">
-    <xsl:text>in input token for port '</xsl:text>
+    <xsl:text>reading port '</xsl:text>
+    <xsl:value-of select="@port"/>
+    <xsl:text>' [</xsl:text>
+    <xsl:apply-templates select="parent::*" mode="report-offender-context"/>
+    <xsl:text>]</xsl:text>
+  </xsl:template>
+  
+  <xsl:template match="Output" mode="report-offender-context">
+    <xsl:text>writing port '</xsl:text>
     <xsl:value-of select="@port"/>
     <xsl:text>' [</xsl:text>
     <xsl:apply-templates select="parent::*" mode="report-offender-context"/>
@@ -199,6 +207,22 @@
     <xsl:text>in </xsl:text>
     <xsl:value-of select="@kind"/>
     <xsl:text> schedule [</xsl:text>
+    <xsl:apply-templates select="parent::*" mode="report-offender-context"/>
+    <xsl:text>]</xsl:text>
+  </xsl:template>
+  
+  <xsl:template match="Port" mode="report-offender-context">
+    <xsl:text>in declaration of port '</xsl:text>
+    <xsl:value-of select="@name"/>
+    <xsl:text>' [</xsl:text>
+    <xsl:apply-templates select="parent::*" mode="report-offender-context"/>
+    <xsl:text>]</xsl:text>
+  </xsl:template>
+  
+  <xsl:template match="Type" mode="report-offender-context">
+    <xsl:text>in Type '</xsl:text>
+    <xsl:value-of select="@name"/>
+    <xsl:text>' [</xsl:text>
     <xsl:apply-templates select="parent::*" mode="report-offender-context"/>
     <xsl:text>]</xsl:text>
   </xsl:template>
