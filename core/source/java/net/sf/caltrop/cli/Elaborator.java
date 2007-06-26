@@ -39,6 +39,7 @@ package net.sf.caltrop.cli;
 	ENDCOPYRIGHT
  */
 
+import static net.sf.caltrop.util.Util.TransformFailedException;
 import static net.sf.caltrop.util.Util.applyTransform;
 import static net.sf.caltrop.util.Util.createTransformer;
 import static net.sf.caltrop.util.Util.createXML;
@@ -48,10 +49,12 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 
 import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
 
 import net.sf.caltrop.cli.lib.ClassLoaderModelClassLocator;
 import net.sf.caltrop.cli.lib.DirectoryModelClassLocator;
 import net.sf.caltrop.xslt.util.Loading;
+import net.sf.caltrop.util.Logging;
 
 import org.w3c.dom.Node;
 
@@ -72,9 +75,19 @@ public class Elaborator {
 			Node doc = Loading.loadActorSource(args[0]);
 	
 			Transformer t = createTransformer(Elaborator.class.getResourceAsStream(ElaboratorTransformationName));
-			
-			Node res = applyTransform(doc, t);
-	
+
+            Node res = null;
+            try
+            {
+                res = applyTransform(doc, t);
+            }
+            catch (TransformFailedException tfe)
+            {
+                Logging.user().severe(tfe.getMessage());
+                Logging.user().severe("Could not elaborate network " + args[0]);
+                System.exit(-1);
+            }
+            
 			String result = createXML(res);
 	
 			OutputStream os = null;
@@ -92,11 +105,11 @@ public class Elaborator {
 			else
 				pw.flush();
 			
-			System.out.println("Network '" + args[0] + "' successfully elaborated.");
+			Logging.user().info("Network '" + args[0] + "' successfully elaborated.");
 		}
 		catch (Exception e) {
 			e.printStackTrace();
-			System.out.println("Network elaboration failed. (" + args[0] + ")");
+			Logging.user().warning("Network elaboration failed. (" + args[0] + ")");
 		}
 	}
 	

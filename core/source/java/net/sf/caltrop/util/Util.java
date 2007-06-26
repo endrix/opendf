@@ -54,6 +54,8 @@ import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Source;
+import javax.xml.transform.ErrorListener;
+import javax.xml.transform.TransformerException;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerFactory;
@@ -168,8 +170,7 @@ public class Util {
             Transformer xf = createTransformer(fileNames[i]);
             DOMResult res = new DOMResult();
             res.setSystemId(baseInputURI);
-            xf.transform(new DOMSource(doc, baseOutputURI), res);
-            doc = res.getNode();
+            doc = applyTransform(xf, new DOMSource(doc, baseOutputURI), res);
         }
         return doc;
     }
@@ -180,9 +181,7 @@ public class Util {
             File file = new File(fileNames[i]);
             Logging.user().fine("Applying transformation " + file.getName());
             Transformer xf = createTransformer(fileNames[i]);
-            DOMResult res = new DOMResult();
-            xf.transform(new DOMSource(doc), res);
-            doc = (Node)res.getNode();
+            doc = applyTransform(xf, new DOMSource(doc), new DOMResult());
         }
         return doc;
     }
@@ -196,11 +195,40 @@ public class Util {
     }
 
     public static Node applyTransform(Node document, Transformer xf) throws Exception {
-    	DOMResult res = new DOMResult();
-    	xf.transform(new DOMSource(document), res);
-    	return res.getNode();
+        return applyTransform(xf, new DOMSource(document), new DOMResult());
     }
 
+    private static Node applyTransform (Transformer xf, DOMSource source, DOMResult res)
+    {
+        ErrorListener oldListener = xf.getErrorListener();
+        
+        // Catch and report errors during transformation here.
+        if (true)
+        {   // Redirect output of errors/warnings to the debug stream
+            xf.setErrorListener(new ErrorListener()
+                {
+                    public void error (TransformerException e) {Logging.dbg().warning(e.getMessage());}
+                    public void fatalError (TransformerException e) {Logging.dbg().warning(e.getMessage());}
+                    public void warning (TransformerException e) {Logging.dbg().warning(e.getMessage());}
+                });
+        }
+
+        try
+        {
+            xf.transform(source, res);
+        }
+        catch (TransformerException te)
+        {
+            xf.setErrorListener(oldListener);
+            // Skip the TransformerException when possible
+            Throwable e = te.getCause() != null ? te.getCause():te;
+            throw new TransformFailedException(e.getMessage(), te);
+        }
+        xf.setErrorListener(oldListener);
+        
+        return res.getNode();
+    }
+    
     public static Node applyTransformsAsResources(Node document, String [] resNames) throws Exception {
         Node doc = document;
         for (int i = 0; i < resNames.length; i++) {
