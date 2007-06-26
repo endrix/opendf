@@ -119,8 +119,8 @@ public class CalmlEvaluator
 		}
         catch (InterpreterException ie)
         {
-            Logging.user().warning("Cannot evaluate expression: " + ie.getMessage());
-            Logging.dbg().warning(ie.toString());
+            // Logging.user().warning("Cannot evaluate expression: " + ie.getMessage());
+            // Logging.dbg().warning(ie.toString());
             throw ie; // Just pass it up
         }
         catch (Throwable th) {
@@ -140,15 +140,23 @@ public class CalmlEvaluator
 //		: 
 //		("##" + expr.getNodeValue()))
 //		);
-        
-        Expression exprAst = ASTFactory.buildExpression((Element)expr);
-        Environment thisEnv = createConstantPropagationEnvironment(env, emptyDocument());
-
+ 
+	    Element result;
+	    
         // Because the constant propagation environment uses the
         // SystemBuilder context the evaluation will return a
-        // TypedObject.  
-        TypedObject val = (TypedObject)evaluateExprObj(sbPlatform, exprAst, thisEnv);
-        Element result = renderObject(val);
+        // TypedObject. 
+        try
+        {
+            Expression exprAst = ASTFactory.buildExpression((Element)expr);
+            Environment thisEnv = createConstantPropagationEnvironment(env, emptyDocument());
+            TypedObject val = (TypedObject)evaluateExprObj(sbPlatform, exprAst, thisEnv);
+            result = renderObject(val);
+        }
+        catch (InterpreterException e)
+        {
+        	result = renderError( e.getMessage() );
+        }
         
 		Node n = toSaxon(result);
 		reallyEmbarrassingHackToMakeThingsWork(n);
@@ -293,7 +301,7 @@ public class CalmlEvaluator
 				boolean b = ("1".equals(s)) || "true".equals(s);
 				return (TypedObject)sbContext.createBoolean(b);
 			} else
-				throw new RuntimeException("Unsupported literal kind: '" + value.getAttribute(attrLiteralKind) + "'.");
+				throw new InterpreterException("Unsupported literal kind: '" + value.getAttribute(attrLiteralKind) + "'.");
 		} else if (valList.equals(value.getAttribute(attrKind))) {
 			
 			Type elementType = (Type)t.getTypeParameters().get(Type.tparType);
@@ -307,7 +315,7 @@ public class CalmlEvaluator
 			
 			return (TypedObject)sbContext.createList(l);
 		} else
-			throw new RuntimeException("Unsupported expression kind: '" + value.getAttribute(attrKind) + "'.");  		
+			throw new InterpreterException("Unsupported expression kind: '" + value.getAttribute(attrKind) + "'.");  		
 	}
 	
 	private static Type createType(Element type) {
@@ -325,7 +333,7 @@ public class CalmlEvaluator
 				try {
 					vp.put(e.getAttribute(attrName), new Integer(expr.getAttribute(attrValue))); // FIXME: generalize
 				} catch (Exception exc) { 
-					throw new RuntimeException("Type parameter '" + e.getAttribute(attrName) + 
+					throw new InterpreterException("Type parameter '" + e.getAttribute(attrName) + 
 							"' does not resolve to a constant at compile time", exc); 
 				} 
 			}
@@ -364,6 +372,30 @@ public class CalmlEvaluator
 //		System.out.println("eExpr: " + caltrop.main.Util.createXML(eExpr));
 //		} catch (Exception eee) {}
 
+		return eExpr;	  
+	}
+
+	
+	private static Element  renderError( String msg ) {
+		
+		Document doc;
+		try {
+			doc = emptyDocument();
+		} catch (Exception e) {
+			throw new RuntimeException("Cannot create empty DOM document.", e);
+		}
+		
+		Element eExpr = doc.createElement( "Expr" );
+	    eExpr.setAttribute("kind", "Undefined");
+		
+		Element eNote = doc.createElement("Note");
+		eNote.setAttribute("kind", "Report");
+		eNote.setAttribute("severity", "Error");
+		eNote.setAttribute("subject", "unknown");
+		eNote.setAttribute("id", "expression.cannotEvaluateOrType");
+		eNote.setTextContent( msg );
+		
+		eExpr.appendChild( eNote );
 		return eExpr;	  
 	}
 	
