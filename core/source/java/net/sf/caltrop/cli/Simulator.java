@@ -61,7 +61,7 @@ import net.sf.caltrop.cal.interpreter.ExprEvaluator;
 import net.sf.caltrop.cal.interpreter.environment.Environment;
 import net.sf.caltrop.cal.interpreter.util.DefaultPlatform;
 import net.sf.caltrop.cal.interpreter.util.Platform;
-import net.sf.caltrop.cal.interpreter.util.SourceReader;
+import net.sf.caltrop.cal.util.SourceReader;
 import net.sf.caltrop.cli.lib.EvaluatedStreamCallback;
 import net.sf.caltrop.hades.des.DiscreteEventComponent;
 import net.sf.caltrop.hades.des.util.OutputBlockRecord;
@@ -70,7 +70,7 @@ import net.sf.caltrop.hades.simulation.SequentialSimulatorCallback;
 import net.sf.caltrop.hades.simulation.StreamIOCallback;
 import net.sf.caltrop.hades.util.NullInputStream;
 import net.sf.caltrop.hades.util.NullOutputStream;
-import net.sf.caltrop.util.Logging;
+import net.sf.caltrop.util.logging.Logging;
 
 public class Simulator {
 	

@@ -2,10 +2,10 @@ package net.sf.caltrop.cal.interpreter.util;
 
 import java.util.Map;
 
+import net.sf.caltrop.cal.ast.Expression;
+import net.sf.caltrop.cal.ast.TypeExpr;
 import net.sf.caltrop.cal.interpreter.Context;
 import net.sf.caltrop.cal.interpreter.ExprEvaluator;
-import net.sf.caltrop.cal.interpreter.ast.Expression;
-import net.sf.caltrop.cal.interpreter.ast.TypeExpr;
 import net.sf.caltrop.cal.interpreter.environment.Environment;
 
 public class Types {

@@ -39,9 +39,9 @@ ENDCOPYRIGHT
 
 package net.sf.caltrop.cal.interpreter.util;
 
-import static net.sf.caltrop.util.Util.xpathEvalElement;
-import static net.sf.caltrop.util.Util.xpathEvalElements;
-import static net.sf.caltrop.util.Util.xpathEvalNodes;
+import static net.sf.caltrop.util.xml.Util.xpathEvalElement;
+import static net.sf.caltrop.util.xml.Util.xpathEvalElements;
+import static net.sf.caltrop.util.xml.Util.xpathEvalNodes;
 
 import java.io.File;
 import java.io.InputStream;
@@ -56,48 +56,48 @@ import java.util.Map;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.Transformer;
 
+import net.sf.caltrop.cal.ast.ASTNode;
+import net.sf.caltrop.cal.ast.Action;
+import net.sf.caltrop.cal.ast.Actor;
+import net.sf.caltrop.cal.ast.AttributeKeys;
+import net.sf.caltrop.cal.ast.Decl;
+import net.sf.caltrop.cal.ast.ExprApplication;
+import net.sf.caltrop.cal.ast.ExprEntry;
+import net.sf.caltrop.cal.ast.ExprIf;
+import net.sf.caltrop.cal.ast.ExprIndexer;
+import net.sf.caltrop.cal.ast.ExprLambda;
+import net.sf.caltrop.cal.ast.ExprLet;
+import net.sf.caltrop.cal.ast.ExprList;
+import net.sf.caltrop.cal.ast.ExprLiteral;
+import net.sf.caltrop.cal.ast.ExprMap;
+import net.sf.caltrop.cal.ast.ExprProc;
+import net.sf.caltrop.cal.ast.ExprSet;
+import net.sf.caltrop.cal.ast.ExprVariable;
+import net.sf.caltrop.cal.ast.Expression;
+import net.sf.caltrop.cal.ast.GeneratorFilter;
+import net.sf.caltrop.cal.ast.Import;
+import net.sf.caltrop.cal.ast.InputPattern;
+import net.sf.caltrop.cal.ast.OutputExpression;
+import net.sf.caltrop.cal.ast.PackageImport;
+import net.sf.caltrop.cal.ast.PortDecl;
+import net.sf.caltrop.cal.ast.QID;
+import net.sf.caltrop.cal.ast.ScheduleFSM;
+import net.sf.caltrop.cal.ast.SingleImport;
+import net.sf.caltrop.cal.ast.Statement;
+import net.sf.caltrop.cal.ast.StmtAssignment;
+import net.sf.caltrop.cal.ast.StmtBlock;
+import net.sf.caltrop.cal.ast.StmtCall;
+import net.sf.caltrop.cal.ast.StmtForeach;
+import net.sf.caltrop.cal.ast.StmtIf;
+import net.sf.caltrop.cal.ast.StmtWhile;
+import net.sf.caltrop.cal.ast.Transition;
+import net.sf.caltrop.cal.ast.TypeExpr;
 import net.sf.caltrop.cal.interpreter.InterpreterException;
-import net.sf.caltrop.cal.interpreter.ast.ASTNode;
-import net.sf.caltrop.cal.interpreter.ast.Action;
-import net.sf.caltrop.cal.interpreter.ast.Actor;
-import net.sf.caltrop.cal.interpreter.ast.AttributeKeys;
-import net.sf.caltrop.cal.interpreter.ast.Decl;
-import net.sf.caltrop.cal.interpreter.ast.ExprApplication;
-import net.sf.caltrop.cal.interpreter.ast.ExprEntry;
-import net.sf.caltrop.cal.interpreter.ast.ExprIf;
-import net.sf.caltrop.cal.interpreter.ast.ExprIndexer;
-import net.sf.caltrop.cal.interpreter.ast.ExprLambda;
-import net.sf.caltrop.cal.interpreter.ast.ExprLet;
-import net.sf.caltrop.cal.interpreter.ast.ExprList;
-import net.sf.caltrop.cal.interpreter.ast.ExprLiteral;
-import net.sf.caltrop.cal.interpreter.ast.ExprMap;
-import net.sf.caltrop.cal.interpreter.ast.ExprProc;
-import net.sf.caltrop.cal.interpreter.ast.ExprSet;
-import net.sf.caltrop.cal.interpreter.ast.ExprVariable;
-import net.sf.caltrop.cal.interpreter.ast.Expression;
-import net.sf.caltrop.cal.interpreter.ast.GeneratorFilter;
-import net.sf.caltrop.cal.interpreter.ast.Import;
-import net.sf.caltrop.cal.interpreter.ast.InputPattern;
-import net.sf.caltrop.cal.interpreter.ast.OutputExpression;
-import net.sf.caltrop.cal.interpreter.ast.PackageImport;
-import net.sf.caltrop.cal.interpreter.ast.PortDecl;
-import net.sf.caltrop.cal.interpreter.ast.QID;
-import net.sf.caltrop.cal.interpreter.ast.ScheduleFSM;
-import net.sf.caltrop.cal.interpreter.ast.SingleImport;
-import net.sf.caltrop.cal.interpreter.ast.Statement;
-import net.sf.caltrop.cal.interpreter.ast.StmtAssignment;
-import net.sf.caltrop.cal.interpreter.ast.StmtBlock;
-import net.sf.caltrop.cal.interpreter.ast.StmtCall;
-import net.sf.caltrop.cal.interpreter.ast.StmtForeach;
-import net.sf.caltrop.cal.interpreter.ast.StmtIf;
-import net.sf.caltrop.cal.interpreter.ast.StmtWhile;
-import net.sf.caltrop.cal.interpreter.ast.Transition;
-import net.sf.caltrop.cal.interpreter.ast.TypeExpr;
-import net.sf.caltrop.util.ElementPredicate;
-import net.sf.caltrop.util.Logging;
-import net.sf.caltrop.util.TagNameAttributeValuePredicate;
-import net.sf.caltrop.util.TagNamePredicate;
-import net.sf.caltrop.util.Util;
+import net.sf.caltrop.util.logging.Logging;
+import net.sf.caltrop.util.xml.ElementPredicate;
+import net.sf.caltrop.util.xml.TagNameAttributeValuePredicate;
+import net.sf.caltrop.util.xml.TagNamePredicate;
+import net.sf.caltrop.util.xml.Util;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -193,7 +193,7 @@ public class ASTFactory {
         } else if (canonicalDoc instanceof Document) {
         	e = ((Document)canonicalDoc).getDocumentElement();
         	if (!predExpr.test(e)) {
-            	e = net.sf.caltrop.util.Util.uniqueElement(e, predExpr);
+            	e = net.sf.caltrop.util.xml.Util.uniqueElement(e, predExpr);
         	}
         } else {
         	throw new RuntimeException("Cannot build expression from this object: " + canonicalDoc);
@@ -281,7 +281,7 @@ public class ASTFactory {
             throw new RuntimeException("Cannot create statement.", exc);
         }
 
-        List statements = net.sf.caltrop.util.Util.listElements(e, predStmt);
+        List statements = net.sf.caltrop.util.xml.Util.listElements(e, predStmt);
         Statement [] s = new Statement[statements.size()];
         for (int i = 0; i < s.length; i++) {
             s[i] = createStatement((Element)statements.get(i));
@@ -331,8 +331,8 @@ public class ASTFactory {
         assert e.getTagName().equals(tagImport);
 
         String alias = e.getAttribute(attrAlias);
-        Element qid = net.sf.caltrop.util.Util.uniqueElement(e, predQID);
-        List idl = net.sf.caltrop.util.Util.listElements(qid, predID);
+        Element qid = net.sf.caltrop.util.xml.Util.uniqueElement(e, predQID);
+        List idl = net.sf.caltrop.util.xml.Util.listElements(qid, predID);
         String [] qname = new String[idl.size()];
         for (int i = 0; i < qname.length; i++) {
             qname[i] = ((Element) idl.get(i)).getAttribute(attrName);
@@ -403,46 +403,46 @@ public class ASTFactory {
             packageName = "";
         }
 
-         List importl = net.sf.caltrop.util.Util.listElements(e, predImports);
+         List importl = net.sf.caltrop.util.xml.Util.listElements(e, predImports);
          Import [] imports = buildImports(importl);
 
          String name = e.getAttribute(attrName);
 
          Decl [] pars = createDecls(e, predDeclPar);
 
-         List ipl = net.sf.caltrop.util.Util.listElements(e, new TagNameAttributeValuePredicate(tagPort, attrKind, valInput));
+         List ipl = net.sf.caltrop.util.xml.Util.listElements(e, new TagNameAttributeValuePredicate(tagPort, attrKind, valInput));
          PortDecl [] inputPorts = new PortDecl[ipl.size()];
          for (int i = 0; i < inputPorts.length; i++) {
              inputPorts[i] = createPortDecl((Element)ipl.get(i));
          }
 
-         List opl = net.sf.caltrop.util.Util.listElements(e, new TagNameAttributeValuePredicate(tagPort, attrKind, valOutput));
+         List opl = net.sf.caltrop.util.xml.Util.listElements(e, new TagNameAttributeValuePredicate(tagPort, attrKind, valOutput));
          PortDecl [] outputPorts = new PortDecl[opl.size()];
          for (int i = 0; i < outputPorts.length; i++) {
              outputPorts[i] = createPortDecl((Element)opl.get(i));
          }
 
-         List initializerl = net.sf.caltrop.util.Util.listElements(e, predInitializer);
+         List initializerl = net.sf.caltrop.util.xml.Util.listElements(e, predInitializer);
          Action [] initializers = new Action[initializerl.size()];
          for (int i = 0; i < initializers.length; i++) {
              initializers[i] = createAction(i, (Element)initializerl.get(i));
          }
 
-         List actionl = net.sf.caltrop.util.Util.listElements(e, predAction);
+         List actionl = net.sf.caltrop.util.xml.Util.listElements(e, predAction);
          Action [] actions = new Action[actionl.size()];
          for (int i = 0; i < actions.length; i++) {
              actions[i] = createAction(i, (Element)actionl.get(i));
          }
 
-         List stateVarl = net.sf.caltrop.util.Util.listElements(e, predDeclVar);
+         List stateVarl = net.sf.caltrop.util.xml.Util.listElements(e, predDeclVar);
          Decl [] stateVars = new Decl [stateVarl.size()];
          for (int i = 0; i < stateVars.length; i++) {
              stateVars[i] = createDecl((Element)stateVarl.get(i));
          }
          
-         ScheduleFSM fsm = createFSM(net.sf.caltrop.util.Util.optionalElement(e, predScheduleFSM));
+         ScheduleFSM fsm = createFSM(net.sf.caltrop.util.xml.Util.optionalElement(e, predScheduleFSM));
          
-         List [] priorities = createPriorities(net.sf.caltrop.util.Util.listElements(e, predPriority));
+         List [] priorities = createPriorities(net.sf.caltrop.util.xml.Util.listElements(e, predPriority));
          
          Element eInv = Util.optionalElement(e, predInvariants);
          Expression [] invariants = null;
@@ -461,7 +461,7 @@ public class ASTFactory {
         assert e.getTagName().equals(tagPort);
 
         String portName = e.getAttribute(attrName);
-        Element type = net.sf.caltrop.util.Util.uniqueElement(e, predType);
+        Element type = net.sf.caltrop.util.xml.Util.uniqueElement(e, predType);
 
         TypeExpr typeExpr = (type != null) ? createTypeExpr(type) : null;
         return new PortDecl(portName, typeExpr);
@@ -503,7 +503,7 @@ public class ASTFactory {
     }
 
     private static Decl [] createDecls(Element e, ElementPredicate pred) {
-        List decll = net.sf.caltrop.util.Util.listElements(e, pred);
+        List decll = net.sf.caltrop.util.xml.Util.listElements(e, pred);
         Decl [] decls = new Decl [decll.size()];
         for (int i = 0; i < decls.length; i++) {
             decls[i] = createDecl((Element) decll.get(i));
@@ -523,10 +523,10 @@ public class ASTFactory {
         assert predDecl.test(e);
 
         String name = e.getAttribute(attrName);
-        Element initExpr = net.sf.caltrop.util.Util.uniqueElement(e, predExpr);
+        Element initExpr = net.sf.caltrop.util.xml.Util.uniqueElement(e, predExpr);
         boolean isAssignable = getBooleanAttribute(e, attrAssignable, false);
         boolean isMutable = getBooleanAttribute(e, attrMutable, false);
-        Element type = net.sf.caltrop.util.Util.uniqueElement(e, predType);        
+        Element type = net.sf.caltrop.util.xml.Util.uniqueElement(e, predType);        
         TypeExpr typeExpr = (type != null) ? createTypeExpr(type) : null;
         return new Decl(typeExpr, name, (initExpr == null) ? null : createExpression(initExpr), isAssignable, isMutable);
     }
@@ -540,11 +540,11 @@ public class ASTFactory {
         for (int i = 0; i < variables.length; i++) {
             variables[i] = ((Element) decll.item(i)).getAttribute(attrName);
         }
-        Element repeatelt = net.sf.caltrop.util.Util.uniqueElement(e, predRepeat);
+        Element repeatelt = net.sf.caltrop.util.xml.Util.uniqueElement(e, predRepeat);
         if (repeatelt == null) {
             return new InputPattern(portname, variables, null);
         } else {
-            return new InputPattern(portname, variables, createExpression(net.sf.caltrop.util.Util.uniqueElement(repeatelt, predExpr)));
+            return new InputPattern(portname, variables, createExpression(net.sf.caltrop.util.xml.Util.uniqueElement(repeatelt, predExpr)));
         }
     }
 
@@ -552,21 +552,21 @@ public class ASTFactory {
         assert e.getTagName().equals(tagOutput);
 
         String portname = e.getAttribute(attrPort);
-        List exprl = net.sf.caltrop.util.Util.listElements(e, new TagNamePredicate(tagExpr));
+        List exprl = net.sf.caltrop.util.xml.Util.listElements(e, new TagNamePredicate(tagExpr));
         Expression [] values = new Expression[exprl.size()];
         for (int i = 0; i < values.length; i++) {
             values[i] = createExpression((Element) exprl.get(i));
         }
-        Element repeatelt = net.sf.caltrop.util.Util.uniqueElement(e, predRepeat);
+        Element repeatelt = net.sf.caltrop.util.xml.Util.uniqueElement(e, predRepeat);
         if (repeatelt == null) {
             return new OutputExpression(portname, values, null);
         } else {
-            return new OutputExpression(portname, values, createExpression(net.sf.caltrop.util.Util.uniqueElement(repeatelt, predExpr)));
+            return new OutputExpression(portname, values, createExpression(net.sf.caltrop.util.xml.Util.uniqueElement(repeatelt, predExpr)));
         }
     }
 
     private static Statement [] createStatements(Element e) {
-        List lStmts = net.sf.caltrop.util.Util.listElements(e, predStmt);
+        List lStmts = net.sf.caltrop.util.xml.Util.listElements(e, predStmt);
         Statement [] body = new Statement [lStmts.size()];
         for (int i = 0; i < body.length; i++) {
             body[i] = createStatement((Element)lStmts.get(i));
@@ -578,15 +578,15 @@ public class ASTFactory {
         assert predStmtAssign.test(e);
 
         String name = e.getAttribute(attrName);
-        Expression expr = createExpression(net.sf.caltrop.util.Util.uniqueElement(e, predExpr));
+        Expression expr = createExpression(net.sf.caltrop.util.xml.Util.uniqueElement(e, predExpr));
 
-        Element argelement = net.sf.caltrop.util.Util.optionalElement(e, predArgs);
+        Element argelement = net.sf.caltrop.util.xml.Util.optionalElement(e, predArgs);
         Element entryElement = Util.optionalElement(e, predEntry);
 
         assert argelement == null || entryElement == null;
 
         if (argelement != null) {
-            List indexl = net.sf.caltrop.util.Util.listElements(argelement, predExpr);
+            List indexl = net.sf.caltrop.util.xml.Util.listElements(argelement, predExpr);
             Expression [] indices = new Expression[indexl.size()];
 
             for (int i = 0; i < indices.length; i++) {
@@ -612,10 +612,10 @@ public class ASTFactory {
     private static StmtCall createStmtCall(Element e) {
         assert predStmtCall.test(e);
 
-        Expression p = createExpression(net.sf.caltrop.util.Util.uniqueElement(e, predExpr));
+        Expression p = createExpression(net.sf.caltrop.util.xml.Util.uniqueElement(e, predExpr));
 
-        Element argelement = net.sf.caltrop.util.Util.uniqueElement(e, predArgs);
-        List argl = net.sf.caltrop.util.Util.listElements(argelement, predExpr); //could be empty, indicating noarg function.
+        Element argelement = net.sf.caltrop.util.xml.Util.uniqueElement(e, predArgs);
+        List argl = net.sf.caltrop.util.xml.Util.listElements(argelement, predExpr); //could be empty, indicating noarg function.
         Expression [] args = new Expression[argl.size()];
 
         for (int i = 0; i < args.length; i++) {
@@ -627,9 +627,9 @@ public class ASTFactory {
     private static StmtIf createStmtIf(Element e) {
         assert predStmtIf.test(e);
 
-        Expression condition = createExpression(net.sf.caltrop.util.Util.uniqueElement(e, predExpr));
+        Expression condition = createExpression(net.sf.caltrop.util.xml.Util.uniqueElement(e, predExpr));
 
-        List blocks = net.sf.caltrop.util.Util.listElements(e, predStmtBlock);
+        List blocks = net.sf.caltrop.util.xml.Util.listElements(e, predStmtBlock);
         assert blocks.size() == 1 || blocks.size() == 2;
 
         Statement thenBranch = createStmtBlock((Element)blocks.get(0));
@@ -641,8 +641,8 @@ public class ASTFactory {
     private static StmtWhile createStmtWhile(Element e) {
         assert predStmtWhile.test(e);
 
-            Expression condition = createExpression(net.sf.caltrop.util.Util.uniqueElement(e, predExpr));
-            Statement body = createStmtBlock(net.sf.caltrop.util.Util.uniqueElement(e, predStmtBlock));
+            Expression condition = createExpression(net.sf.caltrop.util.xml.Util.uniqueElement(e, predExpr));
+            Statement body = createStmtBlock(net.sf.caltrop.util.xml.Util.uniqueElement(e, predStmtBlock));
 
             return new StmtWhile(condition, body);
     }
@@ -653,19 +653,19 @@ public class ASTFactory {
         NodeList genList = xpathEvalNodes("Generator", e);
         assert genList.getLength() > 0;
        	GeneratorFilter [] gens = createGenerators(genList);
-        Statement body = createStmtBlock(net.sf.caltrop.util.Util.uniqueElement(e, predStmtBlock));
+        Statement body = createStmtBlock(net.sf.caltrop.util.xml.Util.uniqueElement(e, predStmtBlock));
 
         return new StmtForeach(gens, body);
     }
 
     private static Expression createExprEntry(Element e) {
         String name = e.getAttribute(attrName);
-        Expression parentExpr = createExpression(net.sf.caltrop.util.Util.uniqueElement(e, predExpr));
+        Expression parentExpr = createExpression(net.sf.caltrop.util.xml.Util.uniqueElement(e, predExpr));
         return new ExprEntry(name, parentExpr);
     }
 
     private static Expression createExprList(Element e) {
-        List exprl = net.sf.caltrop.util.Util.listElements(e, predExpr);
+        List exprl = net.sf.caltrop.util.xml.Util.listElements(e, predExpr);
         Expression [] exprs = new Expression[exprl.size()];
 
         for (int i = 0; i < exprs.length; i++) {
@@ -682,7 +682,7 @@ public class ASTFactory {
     }
 
     private static Expression createExprSet(Element e) {
-        List exprl = net.sf.caltrop.util.Util.listElements(e, predExpr);
+        List exprl = net.sf.caltrop.util.xml.Util.listElements(e, predExpr);
         Expression [] exprs = new Expression[exprl.size()];
 
         for (int i = 0; i < exprs.length; i++) {
@@ -699,12 +699,12 @@ public class ASTFactory {
     }
 
     private static Expression createExprMap(Element e) {
-        List mapl = net.sf.caltrop.util.Util.listElements(e, predMapping);
+        List mapl = net.sf.caltrop.util.xml.Util.listElements(e, predMapping);
         Expression [][] mappings = new Expression[mapl.size()][2];
 
         for (int i = 0; i < mappings.length; i++) {
             Element m = (Element)mapl.get(i);
-            List exprl = net.sf.caltrop.util.Util.listElements(m, predExpr);
+            List exprl = net.sf.caltrop.util.xml.Util.listElements(m, predExpr);
             assert exprl.size() == 2;
             mappings[i][0] = createExpression((Element) exprl.get(0));
             mappings[i][1] = createExpression((Element) exprl.get(1));
@@ -740,7 +740,7 @@ public class ASTFactory {
     }
 
     private static Expression createExprIf(Element e) {
-        List exprs = net.sf.caltrop.util.Util.listElements(e, predExpr);
+        List exprs = net.sf.caltrop.util.xml.Util.listElements(e, predExpr);
 
         assert exprs.size() == 3;
 
@@ -755,10 +755,10 @@ public class ASTFactory {
         assert (Util.listElements(e,predExpr).size() == 1) : "malformed indexer expression";
         assert (Util.listElements(e,predArgs).size() == 1) : "malformed indexer argument expression";
         
-        Expression structure = createExpression(net.sf.caltrop.util.Util.uniqueElement(e, predExpr));
+        Expression structure = createExpression(net.sf.caltrop.util.xml.Util.uniqueElement(e, predExpr));
 
-        Element argelement = net.sf.caltrop.util.Util.uniqueElement(e, predArgs);
-        List indexl = net.sf.caltrop.util.Util.listElements(argelement, predExpr); //could be empty, indicating noarg function.
+        Element argelement = net.sf.caltrop.util.xml.Util.uniqueElement(e, predArgs);
+        List indexl = net.sf.caltrop.util.xml.Util.listElements(argelement, predExpr); //could be empty, indicating noarg function.
         Expression [] indices = new Expression[indexl.size()];
 
         for (int i = 0; i < indices.length; i++) {
@@ -770,43 +770,43 @@ public class ASTFactory {
     private static ExprLambda createExprLambda(Element e) {
         assert e.getTagName().equals(tagExpr) && e.getAttribute(attrKind).equals(valLambda);
 
-        List lParams = net.sf.caltrop.util.Util.listElements(e, predDeclPar);
+        List lParams = net.sf.caltrop.util.xml.Util.listElements(e, predDeclPar);
         String [] pars = new String [lParams.size()];
         for (int i = 0; i < pars.length; i ++) {
             pars[i] = ((Element)lParams.get(i)).getAttribute(attrName);
         }
 
-        List lDecls = net.sf.caltrop.util.Util.listElements(e, predDeclVar);
+        List lDecls = net.sf.caltrop.util.xml.Util.listElements(e, predDeclVar);
         Decl [] decls = new Decl [lDecls.size()];
         for (int i = 0; i < decls.length; i ++) {
             decls[i] = createDecl((Element)lDecls.get(i));
         }
-        Expression body = createExpression(net.sf.caltrop.util.Util.uniqueElement(e, predExpr));
+        Expression body = createExpression(net.sf.caltrop.util.xml.Util.uniqueElement(e, predExpr));
         return new ExprLambda(pars, decls, body);
     }
 
     private static ExprLet createExprLet(Element e) {
         assert e.getTagName().equals(tagExpr) && e.getAttribute(attrKind).equals(valLet);
 
-        List lDecls = net.sf.caltrop.util.Util.listElements(e, predDeclVar);
+        List lDecls = net.sf.caltrop.util.xml.Util.listElements(e, predDeclVar);
         Decl [] decls = new Decl [lDecls.size()];
         for (int i = 0; i < decls.length; i ++) {
             decls[i] = createDecl((Element)lDecls.get(i));
         }
-        Expression body = createExpression(net.sf.caltrop.util.Util.uniqueElement(e, predExpr));
+        Expression body = createExpression(net.sf.caltrop.util.xml.Util.uniqueElement(e, predExpr));
         return new ExprLet(decls, body);
     }
 
     private static ExprProc createExprProc(Element e) {
         assert e.getTagName().equals(tagExpr) && e.getAttribute(attrKind).equals(valProc);
 
-        List lParams = net.sf.caltrop.util.Util.listElements(e, predDeclPar);
+        List lParams = net.sf.caltrop.util.xml.Util.listElements(e, predDeclPar);
         String [] pars = new String [lParams.size()];
         for (int i = 0; i < pars.length; i ++) {
             pars[i] = ((Element)lParams.get(i)).getAttribute(attrName);
         }
 
-        List lDecls = net.sf.caltrop.util.Util.listElements(e, predDeclVar);
+        List lDecls = net.sf.caltrop.util.xml.Util.listElements(e, predDeclVar);
         Decl [] decls = new Decl [lDecls.size()];
         for (int i = 0; i < decls.length; i ++) {
             decls[i] = createDecl((Element)lDecls.get(i));
@@ -852,13 +852,13 @@ public class ASTFactory {
 
     private static ExprApplication createExprApplication(Element e) {
         assert predExprApplication.test(e);
-        assert net.sf.caltrop.util.Util.listElements(e, predExpr).size() == 1 : "Function missing in application expression.";
-        assert net.sf.caltrop.util.Util.listElements(e, predArgs).size() == 1 : "No arguments is application expression.";
+        assert net.sf.caltrop.util.xml.Util.listElements(e, predExpr).size() == 1 : "Function missing in application expression.";
+        assert net.sf.caltrop.util.xml.Util.listElements(e, predArgs).size() == 1 : "No arguments is application expression.";
 
-        Expression function = createExpression(net.sf.caltrop.util.Util.uniqueElement(e, predExpr));
+        Expression function = createExpression(net.sf.caltrop.util.xml.Util.uniqueElement(e, predExpr));
 
-        Element argelement = net.sf.caltrop.util.Util.uniqueElement(e, predArgs);
-        List argl = net.sf.caltrop.util.Util.listElements(argelement, predExpr); //could be empty, indicating noarg function.
+        Element argelement = net.sf.caltrop.util.xml.Util.uniqueElement(e, predArgs);
+        List argl = net.sf.caltrop.util.xml.Util.listElements(argelement, predExpr); //could be empty, indicating noarg function.
         Expression [] args = new Expression[argl.size()];
 
         for (int i = 0; i < args.length; i++) {
@@ -870,15 +870,15 @@ public class ASTFactory {
     private static Action createAction(int id, Element e) {
     	assert predAction.test(e) || predInitializer.test(e);
         
-        Element eTag = net.sf.caltrop.util.Util.optionalElement(e, predQID);
+        Element eTag = net.sf.caltrop.util.xml.Util.optionalElement(e, predQID);
         QID tag = (eTag == null) ? null : createQID(eTag);
 
-        List inputl = net.sf.caltrop.util.Util.listElements(e, predInput);
+        List inputl = net.sf.caltrop.util.xml.Util.listElements(e, predInput);
         InputPattern [] inputpatterns = new InputPattern[inputl.size()];
         for (int i = 0; i < inputpatterns.length; i++) {
             inputpatterns[i] = createInputPattern((Element) inputl.get(i));
         }
-        List outputl = net.sf.caltrop.util.Util.listElements(e, predOutput);
+        List outputl = net.sf.caltrop.util.xml.Util.listElements(e, predOutput);
         OutputExpression [] outputexpressions = new OutputExpression[outputl.size()];
         for (int i = 0; i < outputexpressions.length; i++) {
             outputexpressions[i] = createOutputExpression((Element) outputl.get(i));
@@ -888,10 +888,10 @@ public class ASTFactory {
 
         Decl [] decls = createDecls(e, predDeclVar);
 
-        Element guardRoot = net.sf.caltrop.util.Util.uniqueElement(e, predGuards);
+        Element guardRoot = net.sf.caltrop.util.xml.Util.uniqueElement(e, predGuards);
         Expression [] guards;
         if (guardRoot != null) {
-            List guardl = net.sf.caltrop.util.Util.listElements(guardRoot, predExpr);
+            List guardl = net.sf.caltrop.util.xml.Util.listElements(guardRoot, predExpr);
             guards = new Expression [guardl.size()];
             for (int i = 0; i < guards.length; i++) {
                 guards[i] = createExpression((Element) guardl.get(i));
@@ -900,20 +900,20 @@ public class ASTFactory {
             guards = new Expression [0];
         }
         
-        Element requiresRoot = net.sf.caltrop.util.Util.uniqueElement(e, predRequires);
+        Element requiresRoot = net.sf.caltrop.util.xml.Util.uniqueElement(e, predRequires);
         Expression [] preconditions = null;
         if (requiresRoot != null) {
-            List requiresl = net.sf.caltrop.util.Util.listElements(requiresRoot, predExpr);
+            List requiresl = net.sf.caltrop.util.xml.Util.listElements(requiresRoot, predExpr);
             preconditions = new Expression [requiresl.size()];
             for (int i = 0; i < preconditions.length; i++) {
                 preconditions[i] = createExpression((Element) requiresl.get(i));
             }
         }
         
-        Element ensuresRoot = net.sf.caltrop.util.Util.uniqueElement(e, predEnsures);
+        Element ensuresRoot = net.sf.caltrop.util.xml.Util.uniqueElement(e, predEnsures);
         Expression [] postconditions = null;
         if (ensuresRoot != null) {
-            List ensuresl = net.sf.caltrop.util.Util.listElements(ensuresRoot, predExpr);
+            List ensuresl = net.sf.caltrop.util.xml.Util.listElements(ensuresRoot, predExpr);
             postconditions = new Expression [ensuresl.size()];
             for (int i = 0; i < postconditions.length; i++) {
                 postconditions[i] = createExpression((Element) ensuresl.get(i));
@@ -921,9 +921,9 @@ public class ASTFactory {
         }
         
         Expression delay = null;
-        Element eDelay = net.sf.caltrop.util.Util.optionalElement(e, predDelay);
+        Element eDelay = net.sf.caltrop.util.xml.Util.optionalElement(e, predDelay);
         if (eDelay != null) {
-        	delay = createExpression(net.sf.caltrop.util.Util.uniqueElement(eDelay, predExpr));
+        	delay = createExpression(net.sf.caltrop.util.xml.Util.uniqueElement(eDelay, predExpr));
         }
 
         return (Action)addTextRange(e, new Action(id, tag, inputpatterns, outputexpressions, decls, guards, stmts, delay, preconditions, postconditions));
@@ -934,7 +934,7 @@ public class ASTFactory {
     		return null;
     	
     	String initialState = e.getAttribute(attrInitialState);
-    	List transitionl = net.sf.caltrop.util.Util.listElements(e, predTransition);
+    	List transitionl = net.sf.caltrop.util.xml.Util.listElements(e, predTransition);
     	Transition [] transitions = new Transition[transitionl.size()];
     	for (int i = 0; i < transitions.length; i++) {
     		transitions[i] = createTransition((Element)transitionl.get(i));
@@ -947,8 +947,8 @@ public class ASTFactory {
     private static Transition  createTransition(Element e) {
     	String  fromState = e.getAttribute(attrFrom);
     	String toState = e.getAttribute(attrTo);
-    	Element atags = net.sf.caltrop.util.Util.uniqueElement(e, predActionTags);
-    	List tagl = net.sf.caltrop.util.Util.listElements(atags, predQID);
+    	Element atags = net.sf.caltrop.util.xml.Util.uniqueElement(e, predActionTags);
+    	List tagl = net.sf.caltrop.util.xml.Util.listElements(atags, predQID);
     	QID [] tags = new QID[tagl.size()];
     	for (int i = 0; i < tags.length; i++) {
     		tags[i] = createQID((Element)tagl.get(i));
@@ -969,7 +969,7 @@ public class ASTFactory {
     private static List  createPriority(Element priorityElement) {
     	
     	List ps = new ArrayList();
-    	List qids = net.sf.caltrop.util.Util.listElements(priorityElement, predQID);
+    	List qids = net.sf.caltrop.util.xml.Util.listElements(priorityElement, predQID);
     	for (Iterator i = qids.iterator(); i.hasNext(); ) {
     		Element e = (Element)i.next();
     		ps.add(createQID(e));
@@ -979,7 +979,7 @@ public class ASTFactory {
     }
     
     private static QID  createQID(Element e) {
-    	List idl = net.sf.caltrop.util.Util.listElements(e, predID);
+    	List idl = net.sf.caltrop.util.xml.Util.listElements(e, predID);
     	String [] ids = new String [idl.size()];
     	for (int i = 0; i < ids.length; i++) {
     		ids[i] = ((Element)idl.get(i)).getAttribute(attrName);
@@ -1008,7 +1008,7 @@ public class ASTFactory {
     }
 
     private static ASTNode annotateFreeVars(ASTNode node, Element e) {
-        List freeVarElts = net.sf.caltrop.util.Util.listElements(e, predFreeVarNote);
+        List freeVarElts = net.sf.caltrop.util.xml.Util.listElements(e, predFreeVarNote);
         List freeVars = new ArrayList(freeVarElts.size());
 
         for (Iterator iterator = freeVarElts.iterator(); iterator.hasNext();) {

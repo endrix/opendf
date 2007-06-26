@@ -43,7 +43,7 @@ import java.io.InputStream;
 import java.lang.reflect.Method;
 
 import net.sf.caltrop.hades.models.ModelInterface;
-import net.sf.caltrop.util.Logging;
+import net.sf.caltrop.util.logging.Logging;
 
 
 

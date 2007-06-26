@@ -42,8 +42,8 @@ package net.sf.caltrop.cal.i2.util;
 import java.util.Iterator;
 import java.util.List;
 
+import net.sf.caltrop.cal.ast.Import;
 import net.sf.caltrop.cal.i2.Environment;
-import net.sf.caltrop.cal.interpreter.ast.Import;
 
 
 /**

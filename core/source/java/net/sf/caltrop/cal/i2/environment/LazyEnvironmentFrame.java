@@ -1,10 +1,10 @@
 package net.sf.caltrop.cal.i2.environment;
 
+import net.sf.caltrop.cal.ast.Decl;
+import net.sf.caltrop.cal.ast.Expression;
 import net.sf.caltrop.cal.i2.Environment;
 import net.sf.caltrop.cal.i2.Evaluator;
 import net.sf.caltrop.cal.i2.types.Type;
-import net.sf.caltrop.cal.interpreter.ast.Decl;
-import net.sf.caltrop.cal.interpreter.ast.Expression;
 
 public class LazyEnvironmentFrame extends EnvironmentFrame {
 	

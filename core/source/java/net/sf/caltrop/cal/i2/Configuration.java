@@ -2,10 +2,10 @@ package net.sf.caltrop.cal.i2;
 
 import java.util.List;
 
-import net.sf.caltrop.cal.interpreter.ast.ExprIf;
-import net.sf.caltrop.cal.interpreter.ast.ExprLiteral;
-import net.sf.caltrop.cal.interpreter.ast.ExprVariable;
-import net.sf.caltrop.cal.interpreter.ast.StmtAssignment;
+import net.sf.caltrop.cal.ast.ExprIf;
+import net.sf.caltrop.cal.ast.ExprLiteral;
+import net.sf.caltrop.cal.ast.ExprVariable;
+import net.sf.caltrop.cal.ast.StmtAssignment;
 
 public interface Configuration {
 	

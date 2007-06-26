@@ -46,8 +46,8 @@ import java.io.PrintWriter;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 
-import net.sf.caltrop.util.Logging;
-import net.sf.caltrop.util.Util;
+import net.sf.caltrop.util.logging.Logging;
+import net.sf.caltrop.util.xml.Util;
 
 import org.w3c.dom.Node;
 

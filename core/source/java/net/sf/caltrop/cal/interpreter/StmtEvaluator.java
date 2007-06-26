@@ -39,16 +39,16 @@ ENDCOPYRIGHT
 
 package net.sf.caltrop.cal.interpreter;
 
-import net.sf.caltrop.cal.interpreter.ast.Decl;
-import net.sf.caltrop.cal.interpreter.ast.Expression;
-import net.sf.caltrop.cal.interpreter.ast.Statement;
-import net.sf.caltrop.cal.interpreter.ast.StatementVisitor;
-import net.sf.caltrop.cal.interpreter.ast.StmtAssignment;
-import net.sf.caltrop.cal.interpreter.ast.StmtBlock;
-import net.sf.caltrop.cal.interpreter.ast.StmtCall;
-import net.sf.caltrop.cal.interpreter.ast.StmtForeach;
-import net.sf.caltrop.cal.interpreter.ast.StmtIf;
-import net.sf.caltrop.cal.interpreter.ast.StmtWhile;
+import net.sf.caltrop.cal.ast.Decl;
+import net.sf.caltrop.cal.ast.Expression;
+import net.sf.caltrop.cal.ast.Statement;
+import net.sf.caltrop.cal.ast.StatementVisitor;
+import net.sf.caltrop.cal.ast.StmtAssignment;
+import net.sf.caltrop.cal.ast.StmtBlock;
+import net.sf.caltrop.cal.ast.StmtCall;
+import net.sf.caltrop.cal.ast.StmtForeach;
+import net.sf.caltrop.cal.ast.StmtIf;
+import net.sf.caltrop.cal.ast.StmtWhile;
 import net.sf.caltrop.cal.interpreter.environment.Environment;
 
 /**

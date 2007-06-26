@@ -45,9 +45,9 @@ import java.util.Collections;
 import net.sf.caltrop.cli.LoadingErrorException;
 import net.sf.caltrop.cli.ModelClassFactory;
 import net.sf.caltrop.hades.models.ModelInterface;
-import net.sf.caltrop.util.GenericError;
-import net.sf.caltrop.util.Logging;
-import net.sf.caltrop.util.MultiErrorException;
+import net.sf.caltrop.util.logging.Logging;
+import net.sf.caltrop.util.source.GenericError;
+import net.sf.caltrop.util.source.MultiErrorException;
 
 /**
  * This class builds a model class from a generic interpreter, which is loaded by the {@link GenericInterpreterClassLoader},

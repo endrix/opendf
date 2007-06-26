@@ -38,7 +38,7 @@ ENDCOPYRIGHT
 
 package net.sf.caltrop.cal.i2.util;
 
-import net.sf.caltrop.cal.interpreter.ast.Import;
+import net.sf.caltrop.cal.ast.Import;
 
 /**
  * An ImportMapper can map a specified import to another, allowing for

@@ -44,7 +44,7 @@ package net.sf.caltrop.hades.des;
 import java.util.Iterator;
 import java.util.Vector;
 
-import net.sf.caltrop.util.Logging;
+import net.sf.caltrop.util.logging.Logging;
 
 /**
  *   An AML handles the registration protocol, but leaves the actual message handling unspecified.

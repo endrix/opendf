@@ -1,28 +1,28 @@
 package net.sf.caltrop.cal.i2;
 
 
+import net.sf.caltrop.cal.ast.Decl;
+import net.sf.caltrop.cal.ast.ExprApplication;
+import net.sf.caltrop.cal.ast.ExprEntry;
+import net.sf.caltrop.cal.ast.ExprIf;
+import net.sf.caltrop.cal.ast.ExprIndexer;
+import net.sf.caltrop.cal.ast.ExprLambda;
+import net.sf.caltrop.cal.ast.ExprLet;
+import net.sf.caltrop.cal.ast.ExprList;
+import net.sf.caltrop.cal.ast.ExprLiteral;
+import net.sf.caltrop.cal.ast.ExprMap;
+import net.sf.caltrop.cal.ast.ExprProc;
+import net.sf.caltrop.cal.ast.ExprSet;
+import net.sf.caltrop.cal.ast.ExprVariable;
+import net.sf.caltrop.cal.ast.Expression;
+import net.sf.caltrop.cal.ast.ExpressionVisitor;
+import net.sf.caltrop.cal.ast.GeneratorFilter;
 import net.sf.caltrop.cal.i2.environment.LazyEnvironmentFrame;
 import net.sf.caltrop.cal.i2.generator.CollectionGenerator;
 import net.sf.caltrop.cal.i2.generator.Filter;
 import net.sf.caltrop.cal.i2.generator.Generator;
 import net.sf.caltrop.cal.i2.generator.Seed;
 import net.sf.caltrop.cal.i2.generator.VariableGenerator;
-import net.sf.caltrop.cal.interpreter.ast.Decl;
-import net.sf.caltrop.cal.interpreter.ast.ExprApplication;
-import net.sf.caltrop.cal.interpreter.ast.ExprEntry;
-import net.sf.caltrop.cal.interpreter.ast.ExprIf;
-import net.sf.caltrop.cal.interpreter.ast.ExprIndexer;
-import net.sf.caltrop.cal.interpreter.ast.ExprLambda;
-import net.sf.caltrop.cal.interpreter.ast.ExprLet;
-import net.sf.caltrop.cal.interpreter.ast.ExprList;
-import net.sf.caltrop.cal.interpreter.ast.ExprLiteral;
-import net.sf.caltrop.cal.interpreter.ast.ExprMap;
-import net.sf.caltrop.cal.interpreter.ast.ExprProc;
-import net.sf.caltrop.cal.interpreter.ast.ExprSet;
-import net.sf.caltrop.cal.interpreter.ast.ExprVariable;
-import net.sf.caltrop.cal.interpreter.ast.Expression;
-import net.sf.caltrop.cal.interpreter.ast.ExpressionVisitor;
-import net.sf.caltrop.cal.interpreter.ast.GeneratorFilter;
 
 public class Evaluator implements ExpressionVisitor, OperandStack, ObjectSink {
 

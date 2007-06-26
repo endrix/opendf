@@ -47,7 +47,8 @@ are also intended as sed script tragets.
 
 package net.sf.caltrop.cal.parser;
 
-import net.sf.caltrop.util.*;
+import net.sf.caltrop.util.source.ParserErrorException;
+import net.sf.caltrop.util.source.GenericError;
 
 import java_cup.runtime.*;
 import org.w3c.dom.*;
@@ -180,7 +181,7 @@ parser code {:
     //
     public Document parseActor(String filename, boolean doDebug) throws ParserErrorException
     {
-        net.sf.caltrop.util.Util.setDefaultDBFI();
+        net.sf.caltrop.util.xml.Util.setDefaultDBFI();
         DOMImplementation domImpl = null;
         try
         {

@@ -42,7 +42,7 @@ package net.sf.caltrop.cal.interpreter.util;
 import java.util.Iterator;
 import java.util.List;
 
-import net.sf.caltrop.cal.interpreter.ast.Import;
+import net.sf.caltrop.cal.ast.Import;
 import net.sf.caltrop.cal.interpreter.environment.Environment;
 
 

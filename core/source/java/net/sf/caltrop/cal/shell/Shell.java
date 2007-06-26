@@ -56,11 +56,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import net.sf.caltrop.cal.ast.Expression;
+import net.sf.caltrop.cal.ast.Statement;
 import net.sf.caltrop.cal.interpreter.Context;
 import net.sf.caltrop.cal.interpreter.ExprEvaluator;
 import net.sf.caltrop.cal.interpreter.StmtEvaluator;
-import net.sf.caltrop.cal.interpreter.ast.Expression;
-import net.sf.caltrop.cal.interpreter.ast.Statement;
 import net.sf.caltrop.cal.interpreter.environment.AccessLoggingEnvironment;
 import net.sf.caltrop.cal.interpreter.environment.AutoBindEnvironment;
 import net.sf.caltrop.cal.interpreter.environment.CacheEnvironment;
@@ -73,7 +73,7 @@ import net.sf.caltrop.cal.interpreter.util.EnvironmentFactoryImportHandler;
 import net.sf.caltrop.cal.interpreter.util.ImportHandler;
 import net.sf.caltrop.cal.interpreter.util.NullOutputStream;
 import net.sf.caltrop.cal.interpreter.util.Platform;
-import net.sf.caltrop.cal.interpreter.util.SourceReader;
+import net.sf.caltrop.cal.util.SourceReader;
 
 
 /**

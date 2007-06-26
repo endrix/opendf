@@ -44,7 +44,7 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 
-import net.sf.caltrop.util.Logging;
+import net.sf.caltrop.util.logging.Logging;
 
 /**
  * VersionInfo provides a common facility for reporting the current

@@ -43,14 +43,14 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 
-import net.sf.caltrop.cal.interpreter.ast.Actor;
+import net.sf.caltrop.cal.ast.Actor;
 import net.sf.caltrop.cal.interpreter.util.ASTFactory;
-import net.sf.caltrop.cal.interpreter.util.SourceReader;
+import net.sf.caltrop.cal.util.SourceReader;
 import net.sf.caltrop.hades.models.ModelInterface;
 import net.sf.caltrop.hades.models.lib.CalModelInterface;
-import net.sf.caltrop.util.Logging;
-import net.sf.caltrop.util.MultiErrorException;
-import net.sf.caltrop.util.Util;
+import net.sf.caltrop.util.logging.Logging;
+import net.sf.caltrop.util.source.MultiErrorException;
+import net.sf.caltrop.util.xml.Util;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;

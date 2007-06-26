@@ -22,21 +22,21 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import net.sf.caltrop.cal.ast.Expression;
+import net.sf.caltrop.cal.ast.Import;
+import net.sf.caltrop.cal.ast.PackageImport;
+import net.sf.caltrop.cal.ast.SingleImport;
 import net.sf.caltrop.cal.interpreter.Context;
 import net.sf.caltrop.cal.interpreter.ExprEvaluator;
 import net.sf.caltrop.cal.interpreter.InterpreterException;
-import net.sf.caltrop.cal.interpreter.ast.Expression;
-import net.sf.caltrop.cal.interpreter.ast.Import;
-import net.sf.caltrop.cal.interpreter.ast.PackageImport;
-import net.sf.caltrop.cal.interpreter.ast.SingleImport;
 import net.sf.caltrop.cal.interpreter.environment.Environment;
 import net.sf.caltrop.cal.interpreter.util.ASTFactory;
 import net.sf.caltrop.cal.interpreter.util.ImportUtil;
 import net.sf.caltrop.cal.interpreter.util.Platform;
-import net.sf.caltrop.util.ElementPredicate;
-import net.sf.caltrop.util.Logging;
-import net.sf.caltrop.util.TagNamePredicate;
-import net.sf.caltrop.util.Util;
+import net.sf.caltrop.util.logging.Logging;
+import net.sf.caltrop.util.xml.ElementPredicate;
+import net.sf.caltrop.util.xml.TagNamePredicate;
+import net.sf.caltrop.util.xml.Util;
 import net.sf.saxon.dom.DocumentBuilderFactoryImpl;
 
 import org.w3c.dom.DOMImplementation;
@@ -67,7 +67,7 @@ public class CalmlEvaluator
 	
 	private static Node toSaxon( Node xalan ) throws Exception
 	{
-		String string = net.sf.caltrop.util.Util.createXML( xalan );
+		String string = net.sf.caltrop.util.xml.Util.createXML( xalan );
 //		caltrop.main.Util.setSAXON();
 		StringReader reader = new StringReader(string);
 		return DocumentBuilderFactoryImpl.newInstance().newDocumentBuilder().parse(
@@ -253,7 +253,7 @@ public class CalmlEvaluator
 				sbPlatform.getImportMappers());
 		Environment env = TypedPlatform.theContext.newEnvironmentFrame(env0);
 		
-		List eBindings = net.sf.caltrop.util.Util.listElements(eEnv, predDecl);
+		List eBindings = net.sf.caltrop.util.xml.Util.listElements(eEnv, predDecl);
 		for (Iterator i = eBindings.iterator(); i.hasNext(); ) {
 			Element binding = (Element) i.next();
 			Element value = Util.optionalElement(binding, predExpr);

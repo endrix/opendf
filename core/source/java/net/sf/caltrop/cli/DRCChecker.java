@@ -47,8 +47,8 @@ import java.util.Iterator;
 import java.util.List;
 
 import net.sf.caltrop.cal.main.Cal2CalML;
-import net.sf.caltrop.util.Logging;
-import net.sf.caltrop.util.MultiErrorException;
+import net.sf.caltrop.util.logging.Logging;
+import net.sf.caltrop.util.source.MultiErrorException;
 
 /**
  * DRCChecker is a front end tools that process CAL which simply

@@ -40,7 +40,7 @@ package net.sf.caltrop.cli.lib;
 
 import java.io.InputStream;
 
-import net.sf.caltrop.cal.interpreter.util.SourceReader;
+import net.sf.caltrop.cal.util.SourceReader;
 import net.sf.caltrop.hades.models.ModelInterface;
 import net.sf.caltrop.hades.models.lib.CalModelInterface;
 

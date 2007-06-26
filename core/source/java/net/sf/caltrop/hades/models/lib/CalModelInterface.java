@@ -43,7 +43,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import net.sf.caltrop.cal.interpreter.ast.Actor;
+import net.sf.caltrop.cal.ast.Actor;
 import net.sf.caltrop.hades.cal_i2.CalInterpreter;
 import net.sf.caltrop.hades.des.DiscreteEventComponent;
 import net.sf.caltrop.hades.des.components.ParameterDescriptor;

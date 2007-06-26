@@ -52,6 +52,13 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
+import net.sf.caltrop.cal.ast.Action;
+import net.sf.caltrop.cal.ast.Actor;
+import net.sf.caltrop.cal.ast.Decl;
+import net.sf.caltrop.cal.ast.Expression;
+import net.sf.caltrop.cal.ast.PortDecl;
+import net.sf.caltrop.cal.ast.QID;
+import net.sf.caltrop.cal.ast.Transition;
 import net.sf.caltrop.cal.i2.Configuration;
 import net.sf.caltrop.cal.i2.Environment;
 import net.sf.caltrop.cal.i2.Executor;
@@ -67,13 +74,6 @@ import net.sf.caltrop.cal.interpreter.InputChannel;
 import net.sf.caltrop.cal.interpreter.InputPort;
 import net.sf.caltrop.cal.interpreter.OutputChannel;
 import net.sf.caltrop.cal.interpreter.OutputPort;
-import net.sf.caltrop.cal.interpreter.ast.Action;
-import net.sf.caltrop.cal.interpreter.ast.Actor;
-import net.sf.caltrop.cal.interpreter.ast.Decl;
-import net.sf.caltrop.cal.interpreter.ast.Expression;
-import net.sf.caltrop.cal.interpreter.ast.PortDecl;
-import net.sf.caltrop.cal.interpreter.ast.QID;
-import net.sf.caltrop.cal.interpreter.ast.Transition;
 import net.sf.caltrop.cal.interpreter.util.PriorityUtil;
 import net.sf.caltrop.hades.des.AbstractDiscreteEventComponent;
 import net.sf.caltrop.hades.des.AbstractMessageListener;
@@ -90,7 +90,7 @@ import net.sf.caltrop.hades.des.util.OutputBlockRecord;
 import net.sf.caltrop.hades.des.util.StateChangeEvent;
 import net.sf.caltrop.hades.des.util.StateChangeListener;
 import net.sf.caltrop.hades.des.util.StateChangeProvider;
-import net.sf.caltrop.util.Logging;
+import net.sf.caltrop.util.logging.Logging;
 
 
 

@@ -43,6 +43,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import net.sf.caltrop.cal.ast.Action;
+import net.sf.caltrop.cal.ast.Actor;
+import net.sf.caltrop.cal.ast.Decl;
+import net.sf.caltrop.cal.ast.Expression;
+import net.sf.caltrop.cal.ast.InputPattern;
+import net.sf.caltrop.cal.ast.OutputExpression;
+import net.sf.caltrop.cal.ast.Statement;
 import net.sf.caltrop.cal.interpreter.Context;
 import net.sf.caltrop.cal.interpreter.ExprEvaluator;
 import net.sf.caltrop.cal.interpreter.InputChannel;
@@ -52,13 +59,6 @@ import net.sf.caltrop.cal.interpreter.OutputChannel;
 import net.sf.caltrop.cal.interpreter.OutputPort;
 import net.sf.caltrop.cal.interpreter.SimpleThunk;
 import net.sf.caltrop.cal.interpreter.StmtEvaluator;
-import net.sf.caltrop.cal.interpreter.ast.Action;
-import net.sf.caltrop.cal.interpreter.ast.Actor;
-import net.sf.caltrop.cal.interpreter.ast.Decl;
-import net.sf.caltrop.cal.interpreter.ast.Expression;
-import net.sf.caltrop.cal.interpreter.ast.InputPattern;
-import net.sf.caltrop.cal.interpreter.ast.OutputExpression;
-import net.sf.caltrop.cal.interpreter.ast.Statement;
 import net.sf.caltrop.cal.interpreter.environment.Environment;
 
 

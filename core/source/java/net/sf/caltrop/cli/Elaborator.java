@@ -39,22 +39,22 @@ package net.sf.caltrop.cli;
 	ENDCOPYRIGHT
  */
 
-import static net.sf.caltrop.util.Util.TransformFailedException;
-import static net.sf.caltrop.util.Util.applyTransform;
-import static net.sf.caltrop.util.Util.createTransformer;
-import static net.sf.caltrop.util.Util.createXML;
+import static net.sf.caltrop.util.xml.Util.applyTransform;
+import static net.sf.caltrop.util.xml.Util.createTransformer;
+import static net.sf.caltrop.util.xml.Util.createXML;
 
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 
 import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
 
-import net.sf.caltrop.cli.lib.ClassLoaderModelClassLocator;
-import net.sf.caltrop.cli.lib.DirectoryModelClassLocator;
+import net.sf.caltrop.util.io.ClassLoaderStreamLocator;
+import net.sf.caltrop.util.io.DirectoryStreamLocator;
+import net.sf.caltrop.util.io.StreamLocator;
+import net.sf.caltrop.util.logging.Logging;
+import net.sf.caltrop.util.xml.Util.TransformFailedException;
 import net.sf.caltrop.xslt.util.Loading;
-import net.sf.caltrop.util.Logging;
 
 import org.w3c.dom.Node;
 
@@ -114,9 +114,9 @@ public class Elaborator {
 	}
 	
 	static private void  initializeLocators() {
-		Loading.setLocators(new ModelClassLocator [] {
-				new DirectoryModelClassLocator("."),
-				new ClassLoaderModelClassLocator(Elaborator.class.getClassLoader())
+		Loading.setLocators(new StreamLocator [] {
+				new DirectoryStreamLocator("."),
+				new ClassLoaderStreamLocator(Elaborator.class.getClassLoader())
 		});
 	}
 

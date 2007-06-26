@@ -1,17 +1,18 @@
 package net.sf.caltrop.xslt.util;
 
-import static net.sf.caltrop.util.Util.createXML;
+import static net.sf.caltrop.util.xml.Util.createXML;
 
 import java.io.InputStream;
 
-import net.sf.caltrop.cli.ModelClassLocator;
-import net.sf.caltrop.cli.lib.ClassLoaderModelClassLocator;
-import net.sf.caltrop.util.Logging;
-import net.sf.caltrop.xslt.util.loader.CalLoader;
-import net.sf.caltrop.xslt.util.loader.CalMLLoader;
-import net.sf.caltrop.xslt.util.loader.NLLoader;
-import net.sf.caltrop.xslt.util.loader.XDFLoader;
-import net.sf.caltrop.xslt.util.loader.XNLLoader;
+import net.sf.caltrop.cal.util.CalLoader;
+import net.sf.caltrop.nl.util.NLLoader;
+import net.sf.caltrop.util.io.ClassLoaderStreamLocator;
+import net.sf.caltrop.util.io.StreamLocator;
+import net.sf.caltrop.util.logging.Logging;
+import net.sf.caltrop.util.source.CalMLLoader;
+import net.sf.caltrop.util.source.SourceLoader;
+import net.sf.caltrop.util.source.XDFLoader;
+import net.sf.caltrop.util.source.XNLLoader;
 
 import org.w3c.dom.Node;
 
@@ -38,19 +39,19 @@ public class Loading {
 	}
 
 	
-	public static void setLocators(ModelClassLocator [] mcl) {
+	public static void setLocators(StreamLocator [] mcl) {
 		locators = mcl;
 	}
 	
-	public static ModelClassLocator[] getLocators() {
+	public static StreamLocator[] getLocators() {
 		if (locators == null) {
-			locators = new ModelClassLocator [] { new ClassLoaderModelClassLocator(Loading.class.getClassLoader()) };
+			locators = new StreamLocator [] { new ClassLoaderStreamLocator(Loading.class.getClassLoader()) };
 		}
 		return locators;
 	}
 
 	private static InputStream  getSourceAsStream(String name) {
-		for (ModelClassLocator mcl : getLocators()) {
+		for (StreamLocator mcl : getLocators()) {
 			InputStream s = mcl.getAsStream(name);
 			if (s != null)
 				return s;
@@ -66,6 +67,6 @@ public class Loading {
 		new CalMLLoader()
 	};
 	
-	private static ModelClassLocator [] locators;
+	private static StreamLocator [] locators;
 
 }

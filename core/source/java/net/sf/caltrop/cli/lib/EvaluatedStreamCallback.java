@@ -44,13 +44,13 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 
+import net.sf.caltrop.cal.ast.Expression;
 import net.sf.caltrop.cal.interpreter.ExprEvaluator;
-import net.sf.caltrop.cal.interpreter.ast.Expression;
 import net.sf.caltrop.cal.interpreter.environment.Environment;
 import net.sf.caltrop.cal.interpreter.util.Platform;
-import net.sf.caltrop.cal.interpreter.util.SourceReader;
+import net.sf.caltrop.cal.util.SourceReader;
 import net.sf.caltrop.hades.simulation.IOCallback;
-import net.sf.caltrop.util.Logging;
+import net.sf.caltrop.util.logging.Logging;
 
 /**
  *

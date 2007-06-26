@@ -45,8 +45,8 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 
 import net.sf.caltrop.nl.util.Lib;
-import net.sf.caltrop.util.Logging;
-import net.sf.caltrop.util.Util;
+import net.sf.caltrop.util.logging.Logging;
+import net.sf.caltrop.util.xml.Util;
 
 import org.w3c.dom.Document;
 

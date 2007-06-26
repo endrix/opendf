@@ -1,7 +1,7 @@
 package net.sf.caltrop.xslt.nl;
 
-import static net.sf.caltrop.util.Util.saxonify;
-import static net.sf.caltrop.util.Util.xercify;
+import static net.sf.caltrop.util.xml.Util.saxonify;
+import static net.sf.caltrop.util.xml.Util.xercify;
 import net.sf.caltrop.cal.interpreter.util.DefaultPlatform;
 import net.sf.caltrop.cal.interpreter.util.Platform;
 import net.sf.caltrop.nl.Network;

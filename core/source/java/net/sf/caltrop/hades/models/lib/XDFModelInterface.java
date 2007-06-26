@@ -40,9 +40,9 @@ package net.sf.caltrop.hades.models.lib;
 
 import static net.sf.caltrop.hades.models.lib.Util.buildNetworkFromXDF;
 import static net.sf.caltrop.hades.models.lib.Util.getPlatform;
-import static net.sf.caltrop.util.Util.root;
-import static net.sf.caltrop.util.Util.xpathEvalNode;
-import static net.sf.caltrop.util.Util.xpathEvalNodes;
+import static net.sf.caltrop.util.xml.Util.root;
+import static net.sf.caltrop.util.xml.Util.xpathEvalNode;
+import static net.sf.caltrop.util.xml.Util.xpathEvalNodes;
 
 import java.util.HashSet;
 import java.util.List;
@@ -56,9 +56,9 @@ import net.sf.caltrop.hades.des.components.ParameterDescriptor;
 import net.sf.caltrop.hades.des.schedule.Scheduler;
 import net.sf.caltrop.hades.models.ModelInterface;
 import net.sf.caltrop.hades.network.Network;
-import net.sf.caltrop.util.ElementPredicate;
-import net.sf.caltrop.util.TagNamePredicate;
-import net.sf.caltrop.util.Util;
+import net.sf.caltrop.util.xml.ElementPredicate;
+import net.sf.caltrop.util.xml.TagNamePredicate;
+import net.sf.caltrop.util.xml.Util;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;

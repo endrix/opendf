@@ -40,9 +40,9 @@ package net.sf.caltrop.nl;
 
 import static net.sf.caltrop.nl.util.Lib.createAttributes;
 import static net.sf.caltrop.nl.util.Lib.substituteExpression;
-import static net.sf.caltrop.util.Util.xpathEvalElement;
-import static net.sf.caltrop.util.Util.xpathEvalElements;
-import static net.sf.caltrop.util.Util.xpathEvalNodes;
+import static net.sf.caltrop.util.xml.Util.xpathEvalElement;
+import static net.sf.caltrop.util.xml.Util.xpathEvalElements;
+import static net.sf.caltrop.util.xml.Util.xpathEvalNodes;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -50,11 +50,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import net.sf.caltrop.cal.ast.Decl;
+import net.sf.caltrop.cal.ast.Expression;
+import net.sf.caltrop.cal.ast.GeneratorFilter;
 import net.sf.caltrop.cal.interpreter.Context;
 import net.sf.caltrop.cal.interpreter.ExprEvaluator;
-import net.sf.caltrop.cal.interpreter.ast.Decl;
-import net.sf.caltrop.cal.interpreter.ast.Expression;
-import net.sf.caltrop.cal.interpreter.ast.GeneratorFilter;
 import net.sf.caltrop.cal.interpreter.environment.Environment;
 import net.sf.caltrop.cal.interpreter.generator.CollectionGenerator;
 import net.sf.caltrop.cal.interpreter.generator.Filter;
@@ -64,8 +64,8 @@ import net.sf.caltrop.cal.interpreter.generator.VariableGenerator;
 import net.sf.caltrop.cal.interpreter.util.ASTFactory;
 import net.sf.caltrop.nl.util.DOMFactory;
 import net.sf.caltrop.nl.util.IDGenerator;
-import net.sf.caltrop.util.CascadedMap;
-import net.sf.caltrop.util.Logging;
+import net.sf.caltrop.util.logging.CascadedMap;
+import net.sf.caltrop.util.logging.Logging;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;

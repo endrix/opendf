@@ -47,7 +47,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.StringTokenizer;
 
-import net.sf.caltrop.util.Logging;
+import net.sf.caltrop.util.logging.Logging;
 
 /**
  * The LineSegmentTokenizer consumes characters from an inputstream

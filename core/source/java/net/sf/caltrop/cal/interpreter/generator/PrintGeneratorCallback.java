@@ -40,7 +40,7 @@ package net.sf.caltrop.cal.interpreter.generator;
 
 import java.util.Collection;
 
-import net.sf.caltrop.cal.interpreter.ast.Expression;
+import net.sf.caltrop.cal.ast.Expression;
 import net.sf.caltrop.cal.interpreter.environment.Environment;
 
 

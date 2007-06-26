@@ -43,7 +43,7 @@ import java.io.InputStream;
 import net.sf.caltrop.hades.models.ModelInterface;
 import net.sf.caltrop.hades.models.lib.XNLModelInterface;
 import net.sf.caltrop.nl.util.Lib;
-import net.sf.caltrop.util.MultiErrorException;
+import net.sf.caltrop.util.source.MultiErrorException;
 
 
 

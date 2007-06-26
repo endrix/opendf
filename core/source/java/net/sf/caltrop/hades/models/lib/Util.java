@@ -39,30 +39,30 @@ ENDCOPYRIGHT
 package net.sf.caltrop.hades.models.lib;
 
 import static net.sf.caltrop.cal.interpreter.util.ImportUtil.handleImportList;
-import static net.sf.caltrop.util.Util.xpathEvalElement;
-import static net.sf.caltrop.util.Util.xpathEvalNodes;
+import static net.sf.caltrop.util.xml.Util.xpathEvalElement;
+import static net.sf.caltrop.util.xml.Util.xpathEvalNodes;
 
 import java.lang.reflect.Constructor;
 import java.util.HashMap;
 import java.util.Map;
 
+import net.sf.caltrop.cal.ast.Import;
 import net.sf.caltrop.cal.interpreter.Context;
 import net.sf.caltrop.cal.interpreter.ExprEvaluator;
 import net.sf.caltrop.cal.interpreter.SimpleThunk;
-import net.sf.caltrop.cal.interpreter.ast.Import;
 import net.sf.caltrop.cal.interpreter.environment.Environment;
 import net.sf.caltrop.cal.interpreter.util.ASTFactory;
 import net.sf.caltrop.cal.interpreter.util.DefaultPlatform;
 import net.sf.caltrop.cal.interpreter.util.ImportHandler;
 import net.sf.caltrop.cal.interpreter.util.ImportMapper;
 import net.sf.caltrop.cal.interpreter.util.Platform;
-import net.sf.caltrop.cal.interpreter.util.SourceReader;
+import net.sf.caltrop.cal.util.SourceReader;
 import net.sf.caltrop.hades.cal.EnvironmentWrapper;
 import net.sf.caltrop.hades.des.DiscreteEventComponent;
 import net.sf.caltrop.hades.des.MessageListener;
 import net.sf.caltrop.hades.des.util.Attributable;
 import net.sf.caltrop.hades.network.Network;
-import net.sf.caltrop.util.Logging;
+import net.sf.caltrop.util.logging.Logging;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -97,7 +97,7 @@ public class Util {
 		
 		Logging.dbg().info("BEGIN NETWORK XDF");
 		try {
-			String xml = net.sf.caltrop.util.Util.createXML(xpathEvalElement("/XDF", source));
+			String xml = net.sf.caltrop.util.xml.Util.createXML(xpathEvalElement("/XDF", source));
 			Logging.dbg().info(xml);
 		}
 		catch (Exception e) {
@@ -134,7 +134,7 @@ public class Util {
 				Element ePar = (Element)nlPars.item(j);
 				Object name = ePar.getAttribute(attrName);
 				Element eVal = xpathEvalElement("Expr", ePar);
-				net.sf.caltrop.cal.interpreter.ast.Expression expr = ASTFactory.buildExpression(eVal);
+				net.sf.caltrop.cal.ast.Expression expr = ASTFactory.buildExpression(eVal);
 				// NOTE: Ideally, we could also use lazy evaluation to pass parameters down the 
 				//       hierarchy. However, lazy evaluation only works "automatically" when using 
 				//       environments, and since we use an ordinary map to pass the value down, we
@@ -185,7 +185,7 @@ public class Util {
 						}
 						Object val = null;
 						if (eVal != null) {
-							net.sf.caltrop.cal.interpreter.ast.Expression expr = ASTFactory.buildExpression(eVal);
+							net.sf.caltrop.cal.ast.Expression expr = ASTFactory.buildExpression(eVal);
 							val = evaluator.evaluate(expr);
 						}
 						((Attributable)port).set(eAttr.getAttribute(attrName), val);
@@ -206,7 +206,7 @@ public class Util {
 	
 	public static Class loadClassFromElement(Element e, ClassLoader loader) {
 		try {
-			Logging.dbg().warning("LoadClassFromElement 1:: " + net.sf.caltrop.util.Util.createXML(e));
+			Logging.dbg().warning("LoadClassFromElement 1:: " + net.sf.caltrop.util.xml.Util.createXML(e));
         } catch (Exception exc) {
             System.out.println(exc);
             exc.printStackTrace();
@@ -251,7 +251,7 @@ public class Util {
 			Element eDecl = (Element)decls.item(i);
 			Object name = eDecl.getAttribute(attrName);
 			Element eVal = xpathEvalElement("Expr", eDecl);
-			net.sf.caltrop.cal.interpreter.ast.Expression expr = ASTFactory.buildExpression(eVal);
+			net.sf.caltrop.cal.ast.Expression expr = ASTFactory.buildExpression(eVal);
 			// NOTE: In order to allow out-of-order declaration of variables, we need to lazily evaluate
 			//       them. Therefore, thunks are used in building the local environment.
 			localEnv.bind(name, new SimpleThunk(expr, platform.context(), localEnv));

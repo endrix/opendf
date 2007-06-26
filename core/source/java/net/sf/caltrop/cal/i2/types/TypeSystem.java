@@ -1,8 +1,8 @@
 package net.sf.caltrop.cal.i2.types;
 
+import net.sf.caltrop.cal.ast.ExprLiteral;
+import net.sf.caltrop.cal.ast.TypeExpr;
 import net.sf.caltrop.cal.i2.Environment;
-import net.sf.caltrop.cal.interpreter.ast.ExprLiteral;
-import net.sf.caltrop.cal.interpreter.ast.TypeExpr;
 
 public interface TypeSystem {
 

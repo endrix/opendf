@@ -42,8 +42,8 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import net.sf.caltrop.util.Logging;
-import net.sf.caltrop.util.MultiErrorException;
+import net.sf.caltrop.util.logging.Logging;
+import net.sf.caltrop.util.source.MultiErrorException;
 
 abstract public class AbstractCachingGenericInterpreterModelClassFactory extends AbstractGenericInterpreterModelClassFactory {
 	

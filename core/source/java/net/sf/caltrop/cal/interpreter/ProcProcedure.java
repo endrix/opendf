@@ -39,9 +39,9 @@ ENDCOPYRIGHT
 
 package net.sf.caltrop.cal.interpreter;
 
-import net.sf.caltrop.cal.interpreter.ast.Decl;
-import net.sf.caltrop.cal.interpreter.ast.ExprProc;
-import net.sf.caltrop.cal.interpreter.ast.Statement;
+import net.sf.caltrop.cal.ast.Decl;
+import net.sf.caltrop.cal.ast.ExprProc;
+import net.sf.caltrop.cal.ast.Statement;
 import net.sf.caltrop.cal.interpreter.environment.Environment;
 
 /**

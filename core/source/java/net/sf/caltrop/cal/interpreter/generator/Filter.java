@@ -38,9 +38,9 @@ ENDCOPYRIGHT
 
 package net.sf.caltrop.cal.interpreter.generator;
 
+import net.sf.caltrop.cal.ast.Expression;
 import net.sf.caltrop.cal.interpreter.Context;
 import net.sf.caltrop.cal.interpreter.ExprEvaluator;
-import net.sf.caltrop.cal.interpreter.ast.Expression;
 import net.sf.caltrop.cal.interpreter.environment.Environment;
 
 public class Filter implements Generator {

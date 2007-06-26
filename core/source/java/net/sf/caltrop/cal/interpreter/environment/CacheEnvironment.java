@@ -45,7 +45,7 @@ import java.util.Map;
 import java.util.Set;
 
 import net.sf.caltrop.cal.interpreter.InterpreterException;
-import net.sf.caltrop.util.Logging;
+import net.sf.caltrop.util.logging.Logging;
 
 
 /**

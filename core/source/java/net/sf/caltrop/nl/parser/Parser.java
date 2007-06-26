@@ -16,8 +16,8 @@ import java_cup.runtime.Symbol;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import net.sf.caltrop.util.GenericError;
-import net.sf.caltrop.util.ParserErrorException;
+import net.sf.caltrop.util.source.GenericError;
+import net.sf.caltrop.util.source.ParserErrorException;
 
 import org.w3c.dom.Attr;
 import org.w3c.dom.DOMImplementation;
@@ -1947,7 +1947,7 @@ public class Parser extends java_cup.runtime.lr_parser {
     //
     public Document parseNetwork(String filename, boolean doDebug) throws ParserErrorException
     {
-        net.sf.caltrop.util.Util.setDefaultDBFI();
+        net.sf.caltrop.util.xml.Util.setDefaultDBFI();
         DOMImplementation domImpl = null;
         try
         {

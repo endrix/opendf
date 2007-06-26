@@ -39,7 +39,7 @@ ENDCOPYRIGHT
 
 package net.sf.caltrop.cal.interpreter;
 
-import net.sf.caltrop.cal.interpreter.ast.Expression;
+import net.sf.caltrop.cal.ast.Expression;
 import net.sf.caltrop.cal.interpreter.environment.Environment;
 
 /**

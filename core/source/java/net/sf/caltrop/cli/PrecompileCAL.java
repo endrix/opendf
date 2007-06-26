@@ -54,10 +54,10 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 
 import net.sf.caltrop.cal.interpreter.util.ASTFactory;
-import net.sf.caltrop.cal.interpreter.util.SourceReader;
-import net.sf.caltrop.util.Logging;
-import net.sf.caltrop.util.MultiErrorException;
-import net.sf.caltrop.util.Util;
+import net.sf.caltrop.cal.util.SourceReader;
+import net.sf.caltrop.util.logging.Logging;
+import net.sf.caltrop.util.source.MultiErrorException;
+import net.sf.caltrop.util.xml.Util;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;

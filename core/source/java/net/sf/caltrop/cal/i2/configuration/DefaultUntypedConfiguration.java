@@ -9,6 +9,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import net.sf.caltrop.cal.ast.ExprIf;
+import net.sf.caltrop.cal.ast.ExprLiteral;
+import net.sf.caltrop.cal.ast.ExprVariable;
+import net.sf.caltrop.cal.ast.StmtAssignment;
 import net.sf.caltrop.cal.i2.Configuration;
 import net.sf.caltrop.cal.i2.Environment;
 import net.sf.caltrop.cal.i2.Evaluator;
@@ -19,10 +23,6 @@ import net.sf.caltrop.cal.i2.UndefinedVariableException;
 import net.sf.caltrop.cal.i2.java.ClassObject;
 import net.sf.caltrop.cal.i2.java.MethodObject;
 import net.sf.caltrop.cal.interpreter.InterpreterException;
-import net.sf.caltrop.cal.interpreter.ast.ExprIf;
-import net.sf.caltrop.cal.interpreter.ast.ExprLiteral;
-import net.sf.caltrop.cal.interpreter.ast.ExprVariable;
-import net.sf.caltrop.cal.interpreter.ast.StmtAssignment;
 
 public class DefaultUntypedConfiguration implements Configuration {
 	

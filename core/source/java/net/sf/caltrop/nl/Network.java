@@ -39,10 +39,10 @@ ENDCOPYRIGHT
 package net.sf.caltrop.nl;
 
 import static net.sf.caltrop.nl.util.Lib.renderObject;
-import static net.sf.caltrop.util.Util.xpathEvalElement;
-import static net.sf.caltrop.util.Util.xpathEvalElements;
-import static net.sf.caltrop.util.Util.xpathEvalNode;
-import static net.sf.caltrop.util.Util.xpathEvalNodes;
+import static net.sf.caltrop.util.xml.Util.xpathEvalElement;
+import static net.sf.caltrop.util.xml.Util.xpathEvalElements;
+import static net.sf.caltrop.util.xml.Util.xpathEvalNode;
+import static net.sf.caltrop.util.xml.Util.xpathEvalNodes;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -56,19 +56,19 @@ import java.util.Map;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 
+import net.sf.caltrop.cal.ast.Expression;
 import net.sf.caltrop.cal.interpreter.Context;
 import net.sf.caltrop.cal.interpreter.ExprEvaluator;
 import net.sf.caltrop.cal.interpreter.SimpleThunk;
-import net.sf.caltrop.cal.interpreter.ast.Expression;
 import net.sf.caltrop.cal.interpreter.environment.Environment;
 import net.sf.caltrop.cal.interpreter.util.ASTFactory;
 import net.sf.caltrop.cal.interpreter.util.Platform;
-import net.sf.caltrop.cal.interpreter.util.SourceReader;
+import net.sf.caltrop.cal.util.SourceReader;
 import net.sf.caltrop.nl.util.DOMFactory;
 import net.sf.caltrop.nl.util.IDGenerator;
 import net.sf.caltrop.nl.util.Lib;
-import net.sf.caltrop.util.Logging;
-import net.sf.caltrop.util.Util;
+import net.sf.caltrop.util.logging.Logging;
+import net.sf.caltrop.util.xml.Util;
 
 import org.w3c.dom.DOMImplementation;
 import org.w3c.dom.Document;
@@ -167,7 +167,7 @@ public class Network {
 	public Network () {
 		instanceID = 0;
 		try {
-	        net.sf.caltrop.util.Util.setDefaultDBFI();
+	        net.sf.caltrop.util.xml.Util.setDefaultDBFI();
 	        DOMImplementation domImpl = DocumentBuilderFactory.newInstance().newDocumentBuilder().getDOMImplementation();
 	        network = domImpl.createDocument("", tagXDF, null);
 		}

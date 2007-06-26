@@ -43,7 +43,7 @@ import net.sf.caltrop.cal.interpreter.Context;
 import net.sf.caltrop.cal.interpreter.environment.Environment;
 import net.sf.caltrop.cal.interpreter.environment.PackageEnvironment;
 import net.sf.caltrop.cal.interpreter.environment.SingleEntryEnvironment;
-import net.sf.caltrop.util.Logging;
+import net.sf.caltrop.util.logging.Logging;
 
 /**
  * 

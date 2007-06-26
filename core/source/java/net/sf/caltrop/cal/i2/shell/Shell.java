@@ -56,6 +56,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import net.sf.caltrop.cal.ast.Expression;
+import net.sf.caltrop.cal.ast.Statement;
 import net.sf.caltrop.cal.i2.Configuration;
 import net.sf.caltrop.cal.i2.Environment;
 import net.sf.caltrop.cal.i2.Evaluator;
@@ -71,10 +73,8 @@ import net.sf.caltrop.cal.i2.util.ClassLoadingImportHandler;
 import net.sf.caltrop.cal.i2.util.EnvironmentFactoryImportHandler;
 import net.sf.caltrop.cal.i2.util.ImportHandler;
 import net.sf.caltrop.cal.i2.util.Platform;
-import net.sf.caltrop.cal.interpreter.ast.Expression;
-import net.sf.caltrop.cal.interpreter.ast.Statement;
 import net.sf.caltrop.cal.interpreter.util.NullOutputStream;
-import net.sf.caltrop.cal.interpreter.util.SourceReader;
+import net.sf.caltrop.cal.util.SourceReader;
 
 
 /**

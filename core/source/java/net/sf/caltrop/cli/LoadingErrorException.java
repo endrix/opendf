@@ -39,7 +39,7 @@ ENDCOPYRIGHT
 
 package net.sf.caltrop.cli;
 
-import net.sf.caltrop.util.MultiErrorContainer;
+import net.sf.caltrop.util.source.MultiErrorContainer;
 
 /**
  * This exception is thrown when a custom class loader was able to

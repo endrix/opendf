@@ -49,7 +49,7 @@ import java.util.logging.Level;
 
 import net.sf.caltrop.cal.main.ReadXMLWriteText;
 import net.sf.caltrop.cal.main.ReadXMLWriteXML;
-import net.sf.caltrop.util.Logging;
+import net.sf.caltrop.util.logging.Logging;
 
 /**
  * XSLTTransformRunner is the superclass of those CLI frontends which
