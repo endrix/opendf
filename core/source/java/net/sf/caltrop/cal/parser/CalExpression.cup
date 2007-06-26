@@ -955,16 +955,11 @@ expr_let ::=
 
 expr_list ::=
         LBRACK RBRACK {: RESULT = createElement("Expr", "List"); :}
-     |  LBRACK expressions:l colon_generators_opt:g  expr_list_tail_opt:t  RBRACK
+     |  LBRACK expressions:l colon_generators_opt:g  RBRACK
             {:  Element e = createElement("Expr", "List");
                 appendChildren(e, l);
-                appendChildren(e, g);
-                RESULT = appendChild(e, t); :}
-    ;
-expr_list_tail_opt ::=
-        /* empty */ {: RESULT = null; :}
-//    |   TAIL expression:e {: RESULT = appendChild(createElement("Tail"), e); :}
-    |   VBAR expression:e {: RESULT = appendChild(createElement("Tail"), e); :}
+                RESULT = appendChildren(e, g);
+            :}
     ;
 
 expr_literal ::=
@@ -1572,7 +1567,7 @@ expression_op_name ::=
     |   PLUS:k {: RESULT = k; :}
     |   QMARK:k {: RESULT = k; :}
     |   STAR:k {: RESULT = k; :}
-//    |   VBAR:k {: RESULT = k; :}
+    |   VBAR:k {: RESULT = k; :}
     |   IllegalCharacter:k  {: RESULT = k; /* Never happens, but loses a warning */:}
     ;
 
