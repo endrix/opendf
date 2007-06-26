@@ -286,6 +286,8 @@ public class CalmlEvaluator
 			// FIXME: add other literal kinds
 			if (valInteger.equals(value.getAttribute(attrLiteralKind))) {
 				return (TypedObject)sbContext.createInteger(value.getAttribute(attrValue));
+			} else if (valReal.equals(value.getAttribute(attrLiteralKind))) {
+					return (TypedObject)sbContext.createReal(value.getAttribute(attrValue));
 			} else if (valBoolean.equals(value.getAttribute(attrLiteralKind))) {
 				String s = value.getAttribute(attrValue).trim().toLowerCase();
 				boolean b = ("1".equals(s)) || "true".equals(s);
@@ -459,6 +461,7 @@ public class CalmlEvaluator
 	final static String valBoolean = "Boolean";
 	final static String valExpr = "Expr";
 	final static String valInteger = "Integer";
+	final static String valReal = "Real";
 	final static String valList = "List";
 	final static String valLiteral = "Literal";
 	final static String valType = "Type";
