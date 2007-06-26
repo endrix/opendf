@@ -325,7 +325,8 @@ public class CalmlEvaluator
 				try {
 					vp.put(e.getAttribute(attrName), new Integer(expr.getAttribute(attrValue))); // FIXME: generalize
 				} catch (Exception exc) { 
-					throw new RuntimeException("WTF", exc); 
+					throw new RuntimeException("Type parameter '" + e.getAttribute(attrName) + 
+							"' does not resolve to a constant at compile time", exc); 
 				} 
 			}
 		}
