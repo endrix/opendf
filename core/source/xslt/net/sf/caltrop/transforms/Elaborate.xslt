@@ -54,11 +54,12 @@
                 </xsl:attribute>
             </xsl:for-each>
                         
-            <xsl:apply-templates select="* | text()"/>
+            <xsl:apply-templates select="Class | Note"/>
             
             <xsl:choose>
                 <xsl:when test="$source/XDF">
                     <Note kind="sourceInfo" className="{$className}" type="XDF"/>
+                    <xsl:copy-of select="Parameter"/>
                     <xsl:variable name="instantiatedSource">
                         <xsl:call-template name="instantiateXDF">
                             <xsl:with-param name="n" select="$source/XDF"/>
@@ -70,6 +71,7 @@
                 </xsl:when>
                 <xsl:when test="$source/Network">
                     <Note kind="sourceInfo" className="{$className}" type="XNL"/>
+                    <xsl:copy-of select="Parameter"/>
                     <xsl:variable name="instantiatedSource">
                         <xsl:call-template name="instantiateXNL">
                             <xsl:with-param name="n" select="$source/Network"/>
@@ -81,15 +83,21 @@
                 </xsl:when>
                 <xsl:when test="$source/Actor">
                     <Note kind="sourceInfo" className="{$className}" type="Actor"/>
-                    <xsl:copy-of select="$source"/>
+                    <xsl:copy-of select="Parameter"/>
+                    <Actor/>
+                    <!-- <xsl:copy-of select="$source"/> -->
                 </xsl:when>
                 <xsl:otherwise>
+                    <xsl:copy-of select="Parameter"/>
+                    <Actor/>
                     <ERROR source="XNL Elaborator:">Cannot find definition for actor class <xsl:value-of select="$className"/>.
                     <xsl:copy-of select="$source"/></ERROR>
                 </xsl:otherwise>
             </xsl:choose>            
         </xsl:copy>
     </xsl:template>
+    
+    <xsl:template match="Parameter"></xsl:template> <!-- swallow parameters -->
     
     <xsl:template match="*">
         <xsl:copy>
