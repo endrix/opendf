@@ -10,11 +10,11 @@ CPS = :
 endif
 
 CORE = ../../../../../../..
-CLASSPATH = $(CORE)/classes$(CPS)$(CORE)/lib/saxon8.jar$(CPS)$(CORE)/lib/saxon8-dom.jar$(CPS)$(CORE)/source/xslt
+CLASSPATH = $(CORE)/classes$(CPS)$(CORE)/lib/saxon8.jar$(CPS)$(CORE)/lib/saxon8-dom.jar$(CPS)$(CORE)/source/xslt$(CPS)$(CORE)/source/xslt
 
 # Processing commands
 JAVA = java
-XSLT = $(JAVA) -classpath "$(CLASSPATH)" net.sf.caltrop.cal.main.ReadXMLWriteXML
+XSLT = $(JAVA) -classpath "$(CLASSPATH)" net.sf.caltrop.cal.main.ReadXMLWriteXML -r 
 PARSECAL = $(JAVA) -classpath "$(CLASSPATH)" net.sf.caltrop.cal.main.Cal2CalML
 PARSENL  = $(JAVA) -classpath "$(CLASSPATH)" net.sf.caltrop.nl.NL2XNL
 
@@ -37,7 +37,7 @@ caltests: rules $(CALTESTS:.cal=.calml)
 			echo "**"; \
 			echo "** Applying check $$check to test file $$test"; \
 			echo "**"; \
-			$(XSLT) $$test $$test.out.calml $$check; \
+			$(XSLT) $$test $$test.out.calml net/sf/caltrop/cal/checks/$$check net/sf/caltrop/cal/checks/problemSummary.xslt; \
 		done; \
 	done ;
 

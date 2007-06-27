@@ -9,12 +9,10 @@
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
   version="2.0" >
   
-  <xsl:template match="*">
-    
-    <xsl:copy-of select="."/>
-    
-    <xsl:variable name="warnings" select="//Note[@kind='Report'][@severity='Warning']"/>
-    <xsl:variable name="errors" select="//Note[@kind='Report'][@severity='Error']"/>
+  <xsl:template match="/*">
+     
+    <xsl:variable name="warnings" select="//Note[@kind='Report'][@severity='Warning'][ not( @reported ) ]"/>
+    <xsl:variable name="errors" select="//Note[@kind='Report'][@severity='Error'][ not( @reported ) ]"/>
 
     <xsl:for-each select="$errors">
        <xsl:message>
@@ -58,6 +56,36 @@
       </xsl:message>
     </xsl:if>
 
+    <xsl:copy>
+      <xsl:for-each select="@*">
+        <xsl:copy/>
+      </xsl:for-each>
+      
+      <xsl:apply-templates/>
+    </xsl:copy>
+    
+  </xsl:template>
+ 
+  <xsl:template match="*" mode="copy">
+    <xsl:copy>
+      <xsl:for-each select="@*">
+        <xsl:copy/>
+      </xsl:for-each>
+      
+      <xsl:apply-templates/>
+    </xsl:copy>
+  </xsl:template>
+  
+  <!-- Flag as reported -->  
+  <xsl:template match="Note[@kind='Report']">
+    <xsl:copy>
+      <xsl:for-each select="@*">
+        <xsl:copy/>
+      </xsl:for-each>
+      <xsl:attribute name="reported">yes</xsl:attribute>
+    
+      <xsl:apply-templates mode="copy"/>    
+    </xsl:copy>
   </xsl:template>
   
 </xsl:stylesheet>

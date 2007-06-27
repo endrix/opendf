@@ -31,7 +31,7 @@
    xmlns:axsl="http://www.w3.org/1999/XSL/TransformAlias"
    xmlns:cal="java:net.sf.caltrop.xslt.cal.CalmlEvaluator" >
 
-<xsl:import href="skeleton1-5.xsl"/>
+<xsl:import href="net/sf/caltrop/cal/checks/skeleton1-5.xsl"/>
 
 <xsl:namespace-alias stylesheet-prefix="axsl" result-prefix="xsl"/>
  

@@ -180,6 +180,14 @@
     <xsl:text>]</xsl:text>
   </xsl:template>
   
+  <xsl:template match="Decl[@kind='Parameter']" mode="report-offender-context">
+    <xsl:text>for parameter '</xsl:text>
+    <xsl:value-of select="@name"/>
+    <xsl:text>' [</xsl:text>
+    <xsl:apply-templates select="parent::*" mode="report-offender-context"/>
+    <xsl:text>]</xsl:text>
+  </xsl:template>
+  
   <xsl:template match="Input" mode="report-offender-context">
     <xsl:text>reading port '</xsl:text>
     <xsl:value-of select="@port"/>
