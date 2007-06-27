@@ -54,7 +54,7 @@
                 </xsl:attribute>
             </xsl:for-each>
                         
-            <xsl:apply-templates select="Class | Note"/>
+            <xsl:apply-templates select="Class | Note | Attribute"/>
             
             <xsl:choose>
                 <xsl:when test="$source/XDF">
