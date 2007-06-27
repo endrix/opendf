@@ -74,7 +74,7 @@ cli: util cal nl hades java_cup xslt
 
 xslt:
 	$(JAVAC) -classpath "$(CALTROP_CLASSPATH)" -d $(CALTROP_CLASSDIR) $(CALTROP_XSLT_SOURCES)
-	cp -rp $(CALTROP_HOME)/source/xslt/ $(CALTROP_CLASSDIR)/
+	cp -rp $(CALTROP_HOME)/source/xslt/* $(CALTROP_CLASSDIR)/
 
 contrib:
 	mkdir -p $(CALTROP_CLASSDIR)
