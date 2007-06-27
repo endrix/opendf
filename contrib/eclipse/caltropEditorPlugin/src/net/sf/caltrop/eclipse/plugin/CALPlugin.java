@@ -47,7 +47,7 @@ public class CALPlugin extends AbstractUIPlugin {
 
 	//The shared instance.
 	private static CALPlugin plugin;
-	
+
 	public CALPlugin()
 	{
 		plugin = this;

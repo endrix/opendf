@@ -39,7 +39,7 @@ ENDCOPYRIGHT
 package net.sf.caltrop.eclipse.plugin.editors;
 
 
-import static net.sf.caltrop.util.Util.xpathEvalElements;
+import static net.sf.caltrop.util.xml.Util.xpathEvalElements;
 
 import java.util.*;
 
@@ -48,12 +48,12 @@ import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 
-import net.sf.caltrop.cal.interpreter.util.SourceReader;
-import net.sf.caltrop.cal.parser.*;
-import net.sf.caltrop.util.*;
+import net.sf.caltrop.cal.util.SourceReader;
 import net.sf.caltrop.eclipse.plugin.CALPlugin;
 import org.eclipse.jface.text.*;
 import org.eclipse.ui.texteditor.MarkerUtilities;
+import net.sf.caltrop.util.source.GenericError;
+import net.sf.caltrop.util.source.ParserErrorException;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -63,10 +63,11 @@ import net.sf.caltrop.eclipse.plugin.editors.outline.*;
 import org.eclipse.swt.widgets.Display;
 import javax.xml.transform.*;
 import net.sf.caltrop.nl.util.Lib;
+import net.sf.caltrop.util.xml.Util;
 
 public class CALDisplayManager implements Runnable
 {
-  public static final String PROBLEM_MARKER_ID = IMarker.PROBLEM;
+  public static final String PROBLEM_MARKER_ID = "net.sf.caltrop.eclipse.plugin.caleditor.calerror";
 
   private IDocument document;
   private IFile file;

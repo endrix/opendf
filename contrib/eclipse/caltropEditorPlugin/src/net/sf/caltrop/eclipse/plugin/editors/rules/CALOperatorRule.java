@@ -55,7 +55,7 @@ public class CALOperatorRule implements IRule
     	separatorToken = new Token( new TextAttribute( colorManager.getColor( ICALColorConstants.SEPARATOR ) ) );
     }
 
-    private static final String operators  = "=+-*/<>!@$%^&#:?~";
+    private static final String operators  = "=+-*/<>!@$%^&#:?~|";
     private static final String separators = ".[]{}(),;";
 
 	public IToken evaluate( ICharacterScanner scanner )
