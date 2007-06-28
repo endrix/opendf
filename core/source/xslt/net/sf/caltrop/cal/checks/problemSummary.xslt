@@ -66,7 +66,7 @@
     
   </xsl:template>
  
-  <xsl:template match="*" mode="copy">
+  <xsl:template match="*">
     <xsl:copy>
       <xsl:for-each select="@*">
         <xsl:copy/>
