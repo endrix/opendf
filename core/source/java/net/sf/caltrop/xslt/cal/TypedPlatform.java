@@ -64,7 +64,7 @@ public class TypedPlatform implements Platform {
 	public ImportMapper[] getImportMappers() {
 		return new ImportMapper [] {
 				new ReplacePrefixImportMapper(new String [] {"caltrop", "lib"}, 
-											  new String [] {"com", "xilinx", "systembuilder", "caltrop", "lib"})
+											  new String [] {"net", "sf", "caltrop", "xslt", "cal", "lib"})
 		};
 	}
 
