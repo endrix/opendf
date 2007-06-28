@@ -80,17 +80,22 @@ import org.w3c.dom.NodeList;
 
 public class Network {
 	
-	public void   setName(String name) {
-		network.getDocumentElement().setAttribute(attrName, name);
+	public void  setName(ClassName name) {
+		network.getDocumentElement().setAttribute(attrName, name.name);
+
+		if (name.packageName != null && name.packageName.length > 0) {
+			Element p = network.createElement(tagPackage);
+			Element qid = network.createElement(tagQID);
+			p.appendChild(qid);
+			for (String pn : name.packageName) {
+				Element id = network.createElement(tagID);
+				id.setAttribute(attrName, pn);
+				qid.appendChild(id);
+			}
+			network.getDocumentElement().appendChild(p);
+		}
 	}
-	
-	public void   setPackage(Node packageQID) {
-		Element p = network.createElement(tagPackage);
-		network.getDocumentElement().appendChild(p);
-		Node qid = network.adoptNode(packageQID);
-		p.appendChild(qid);
-	}
-	
+
 	public void   addPort(String name, boolean input, Node type) {
 		Element p = network.createElement(tagPort);
 		network.getDocumentElement().appendChild(p);
@@ -191,6 +196,8 @@ public class Network {
 	private static final String  tagClass = "Class";
 	private static final String  tagConnection = "Connection";
 	private static final String  tagInstance = "Instance";
+	private static final String  tagID = "ID";
+	private static final String  tagQID = "QID";
 	private static final String  tagPackage = "Package";
 	private static final String  tagParameter = "Parameter";
 	private static final String  tagPort = "Port";
@@ -204,7 +211,12 @@ public class Network {
 	public static Document  translate(Node nldoc, Environment env, Context context) {
 		Network n = new Network();
 		
-		n.setName(xpathEvalElement("/Network", nldoc).getAttribute(attrName));
+		Element name = xpathEvalElement("/Network/QID", nldoc);
+		if (name != null) {
+			n.setName(qid2ClassName(name));
+		}
+			
+		
 		NodeList ports = xpathEvalNodes("/Network/Port", nldoc);
 		for (int i = 0; i < ports.getLength(); i++) {
 			Element p = (Element)ports.item(i);
