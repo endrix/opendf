@@ -330,66 +330,207 @@ public class TypedPlatform implements Platform {
 	    
         }));
         
+        env.bind("bitnot", context().createFunction(new AbstractUnarySBFunction() {
+
+        	protected TypedObject  doValueFunction(TypedObject a) {
+        		if (context().isInteger(a)) {
+        			return new TypedObject(a.getType(),
+        					context().asBigInteger(a).not());
+        		} else
+        			throw new RuntimeException("Cannot bitnot.");
+        	}
+
+        	protected Type doTypeFunction(Type t) {
+				return Type.create(Type.nameInt, 
+						Collections.EMPTY_MAP, 
+						Collections.singletonMap(Type.vparSize, new Integer(32)));
+        	}
+        }));
+
+        env.bind("bitor", context().createFunction(new AbstractBinarySBFunction() {
+
+    	    protected TypedObject  doValueFunction(TypedObject a, TypedObject b) {
+    	    	if (context().isInteger(a) && context().isInteger(b)) {
+    	    		BigInteger n = context().asBigInteger(a).or(context().asBigInteger(b));
+    	    		return (TypedObject)context().createInteger(n, n.bitLength() + 1, true);
+    	    	} else
+    	    		throw new RuntimeException("Cannot bitor. (" + a + "<" + ((a == null) ? "NULL" : a.getType()) + ">, " 
+    	    				                                   + b + "<" + ((b == null) ? "NULL" : b.getType()) + ">");
+    	    }
+
+    	    protected Type doTypeFunction(Type a, Type b) {
+        		if (Type.nameInt.equals(a.getName()) && Type.nameInt.equals(b.getName())) {
+        				int w1 = ((Integer)a.getValueParameters().get(Type.vparSize)).intValue();
+        				int w2 = ((Integer)b.getValueParameters().get(Type.vparSize)).intValue();
+        				return Type.create(Type.nameInt, 
+        						Collections.EMPTY_MAP, 
+        						Collections.singletonMap(Type.vparSize, new Integer(Math.max(w1, w2))));
+        		} else {
+        			throw new RuntimeException("Cannot bitor types: " + a + ", " + b + ".");
+        		}
+    	    }
+        }));
+
+        env.bind("bitand", context().createFunction(new AbstractBinarySBFunction() {
+
+    	    protected TypedObject  doValueFunction(TypedObject a, TypedObject b) {
+    	    	if (context().isInteger(a) && context().isInteger(b)) {
+    	    		BigInteger n = context().asBigInteger(a).and(context().asBigInteger(b));
+    	    		return (TypedObject)context().createInteger(n, n.bitLength() + 1, true);
+    	    	} else
+    	    		throw new RuntimeException("Cannot bitand. (" + a + "<" + ((a == null) ? "NULL" : a.getType()) + ">, " 
+    	    				                                   + b + "<" + ((b == null) ? "NULL" : b.getType()) + ">");
+    	    }
+
+    	    protected Type doTypeFunction(Type a, Type b) {
+        		if (Type.nameInt.equals(a.getName()) && Type.nameInt.equals(b.getName())) {
+        				int w1 = ((Integer)a.getValueParameters().get(Type.vparSize)).intValue();
+        				int w2 = ((Integer)b.getValueParameters().get(Type.vparSize)).intValue();
+        				return Type.create(Type.nameInt, 
+        						Collections.EMPTY_MAP, 
+        						Collections.singletonMap(Type.vparSize, new Integer(Math.max(w1, w2))));
+        		} else {
+        			throw new RuntimeException("Cannot bitand types: " + a + ", " + b + ".");
+        		}
+    	    }
+        }));
+        
+        env.bind("bitxor", context().createFunction(new AbstractBinarySBFunction() {
+
+    	    protected TypedObject  doValueFunction(TypedObject a, TypedObject b) {
+    	    	if (context().isInteger(a) && context().isInteger(b)) {
+    	    		BigInteger n = context().asBigInteger(a).xor(context().asBigInteger(b));
+    	    		return (TypedObject)context().createInteger(n, n.bitLength() + 1, true);
+    	    	} else
+    	    		throw new RuntimeException("Cannot bitxor. (" + a + "<" + ((a == null) ? "NULL" : a.getType()) + ">, " 
+    	    				                                   + b + "<" + ((b == null) ? "NULL" : b.getType()) + ">");
+    	    }
+
+    	    protected Type doTypeFunction(Type a, Type b) {
+        		if (Type.nameInt.equals(a.getName()) && Type.nameInt.equals(b.getName())) {
+        				int w1 = ((Integer)a.getValueParameters().get(Type.vparSize)).intValue();
+        				int w2 = ((Integer)b.getValueParameters().get(Type.vparSize)).intValue();
+        				return Type.create(Type.nameInt, 
+        						Collections.EMPTY_MAP, 
+        						Collections.singletonMap(Type.vparSize, new Integer(Math.max(w1, w2))));
+        		} else {
+        			throw new RuntimeException("Cannot bitxor types: " + a + ", " + b + ".");
+        		}
+    	    }
+        }));
+
+        env.bind("rshift", context().createFunction(new AbstractBinarySBFunction() {
+
+    	    protected TypedObject  doValueFunction(TypedObject a, TypedObject b) {
+    	    	if (context().isInteger(a) && context().isInteger(b)) {
+    	    		BigInteger n = context().asBigInteger(a).shiftRight(context().intValue(b));
+    	    		return (TypedObject)context().createInteger(n, n.bitLength() + 1, true);
+    	    	} else
+    	    		throw new RuntimeException("Cannot rshift. (" + a + "<" + ((a == null) ? "NULL" : a.getType()) + ">, " 
+    	    				                                   + b + "<" + ((b == null) ? "NULL" : b.getType()) + ">");
+    	    }
+
+    	    protected Type doTypeFunction(Type a, Type b) {
+    	    	return a;
+    	    }
+        }));
+
+        env.bind("urshift", context().createFunction(new AbstractBinarySBFunction() {
+
+    	    protected TypedObject  doValueFunction(TypedObject a, TypedObject b) {
+    	    	if (context().isInteger(a) && context().isInteger(b)) {
+    	    		BigInteger n = context().asBigInteger(a).shiftRight(context().intValue(b));
+    	    		return (TypedObject)context().createInteger(n, n.bitLength() + 1, true);
+    	    	} else
+    	    		throw new RuntimeException("Cannot urshift. (" + a + "<" + ((a == null) ? "NULL" : a.getType()) + ">, " 
+    	    				                                   + b + "<" + ((b == null) ? "NULL" : b.getType()) + ">");
+    	    }
+
+    	    protected Type doTypeFunction(Type a, Type b) {
+    	    	return a;
+    	    }
+        }));
+
+        env.bind("lshift", context().createFunction(new AbstractBinarySBFunction() {
+
+    	    protected TypedObject  doValueFunction(TypedObject a, TypedObject b) {
+    	    	if (context().isInteger(a) && context().isInteger(b)) {
+    	    		BigInteger n = context().asBigInteger(a).shiftLeft(context().intValue(b)).and(BigInteger.valueOf(0xffffffff));
+    	    		return (TypedObject)context().createInteger(n, n.bitLength() + 1, true);
+    	    	} else
+    	    		throw new RuntimeException("Cannot lshift. (" + a + "<" + ((a == null) ? "NULL" : a.getType()) + ">, " 
+    	    				                                   + b + "<" + ((b == null) ? "NULL" : b.getType()) + ">");
+    	    }
+
+        	protected Type doTypeFunction(Type a, Type b) {
+				return Type.create(Type.nameInt, 
+						Collections.EMPTY_MAP, 
+						Collections.singletonMap(Type.vparSize, new Integer(32)));
+        	}
+        }));
+
+        
+
         env.bind("$negate", context().createFunction(new AbstractUnarySBFunction() {
 
-	        	protected TypedObject  doValueFunction(TypedObject a) {
-	    	    	if (context().isInteger(a)) {
-	    	    		return new TypedObject(a.getType(),
-	    	    				              context().asBigInteger(a).negate());
-	    	    	} else if (context().isReal(a)) {
-	    	    		return (TypedObject)context().createReal(-context().realValue(a));
-	    	    	} else
-	    	    		throw new RuntimeException("Cannot negate.");
-	    	    }	    	    
-            }));
+        	protected TypedObject  doValueFunction(TypedObject a) {
+    	    	if (context().isInteger(a)) {
+    	    		return new TypedObject(a.getType(),
+    	    				              context().asBigInteger(a).negate());
+    	    	} else if (context().isReal(a)) {
+    	    		return (TypedObject)context().createReal(-context().realValue(a));
+    	    	} else
+    	    		throw new RuntimeException("Cannot negate.");
+    	    }	    	    
+        }));
 
         env.bind("$add", context().createFunction(new AbstractBinarySBFunction() {
 
-        	    protected TypedObject  doValueFunction(TypedObject a, TypedObject b) {
-	    	    	if (context().isInteger(a)) {
-	    	    		if (context().isInteger(b)) {
-	    	    			BigInteger n = context().asBigInteger(a).add(context().asBigInteger(b));
-	    	    			return (TypedObject)context().createInteger(n, n.bitLength() + 1, true);
-	    	    		} else if (context().isReal(b)) {
-	    	    			return (TypedObject)context().createReal(context().asBigInteger(a).doubleValue() + context().realValue(b));
-	    	    		} else
-	    	    			throw new RuntimeException("Cannot add.");
-	    	    	} else if (context().isReal(a)) {
-	    	    		if (context().isInteger(b)) {
-	    	    			return (TypedObject)context().createReal(context().realValue(a) + context().asBigInteger(b).doubleValue());
-	    	    		} else if (context().isReal(b)) {
-	    	    			return (TypedObject)context().createReal(context().realValue(a) + context().realValue(b));
-	    	    		} else
-	    	    			throw new RuntimeException("Cannot add.");
-	    	    	} else
-	    	    		throw new RuntimeException("Cannot add. (" + a + "<" + ((a == null) ? "NULL" : a.getType()) + ">, " 
-	    	    				                                   + b + "<" + ((b == null) ? "NULL" : b.getType()) + ">");
-        	    }
+    	    protected TypedObject  doValueFunction(TypedObject a, TypedObject b) {
+    	    	if (context().isInteger(a)) {
+    	    		if (context().isInteger(b)) {
+    	    			BigInteger n = context().asBigInteger(a).add(context().asBigInteger(b));
+    	    			return (TypedObject)context().createInteger(n, n.bitLength() + 1, true);
+    	    		} else if (context().isReal(b)) {
+    	    			return (TypedObject)context().createReal(context().asBigInteger(a).doubleValue() + context().realValue(b));
+    	    		} else
+    	    			throw new RuntimeException("Cannot add.");
+    	    	} else if (context().isReal(a)) {
+    	    		if (context().isInteger(b)) {
+    	    			return (TypedObject)context().createReal(context().realValue(a) + context().asBigInteger(b).doubleValue());
+    	    		} else if (context().isReal(b)) {
+    	    			return (TypedObject)context().createReal(context().realValue(a) + context().realValue(b));
+    	    		} else
+    	    			throw new RuntimeException("Cannot add.");
+    	    	} else
+    	    		throw new RuntimeException("Cannot add. (" + a + "<" + ((a == null) ? "NULL" : a.getType()) + ">, " 
+    	    				                                   + b + "<" + ((b == null) ? "NULL" : b.getType()) + ">");
+    	    }
 
-        	    protected Type doTypeFunction(Type a, Type b) {
-            		if (Type.nameInt.equals(a.getName())) {
-            			if (Type.nameInt.equals(b.getName())) {
-            				int w1 = ((Integer)a.getValueParameters().get(Type.vparSize)).intValue();
-            				int w2 = ((Integer)b.getValueParameters().get(Type.vparSize)).intValue();
-            				return Type.create(Type.nameInt, 
-            						Collections.EMPTY_MAP, 
-            						Collections.singletonMap(Type.vparSize, new Integer(Math.max(w1, w2) + 1)));
-            			} else if (Type.nameReal.equals(b.getName())) {
-            				return Type.typeReal;
-            			} else {
-            				throw new RuntimeException("Cannot add types.");
-            			}
-            		} else if (Type.nameReal.equals(a.getName())) {
-            			if (Type.nameInt.equals(b.getName()) || Type.nameReal.equals(b.getName())) {
-            				return Type.typeReal;
-            			} else {
-                			throw new RuntimeException("Cannot add types: " + a + ", " + b + ".");
-            			}	
-            		} else {
+    	    protected Type doTypeFunction(Type a, Type b) {
+        		if (Type.nameInt.equals(a.getName())) {
+        			if (Type.nameInt.equals(b.getName())) {
+        				int w1 = ((Integer)a.getValueParameters().get(Type.vparSize)).intValue();
+        				int w2 = ((Integer)b.getValueParameters().get(Type.vparSize)).intValue();
+        				return Type.create(Type.nameInt, 
+        						Collections.EMPTY_MAP, 
+        						Collections.singletonMap(Type.vparSize, new Integer(Math.max(w1, w2) + 1)));
+        			} else if (Type.nameReal.equals(b.getName())) {
+        				return Type.typeReal;
+        			} else {
+        				throw new RuntimeException("Cannot add types.");
+        			}
+        		} else if (Type.nameReal.equals(a.getName())) {
+        			if (Type.nameInt.equals(b.getName()) || Type.nameReal.equals(b.getName())) {
+        				return Type.typeReal;
+        			} else {
             			throw new RuntimeException("Cannot add types: " + a + ", " + b + ".");
-            		}
-        	    }
-            }));
+        			}	
+        		} else {
+        			throw new RuntimeException("Cannot add types: " + a + ", " + b + ".");
+        		}
+    	    }
+        }));
 
         env.bind("$mul", context().createFunction(new AbstractBinarySBFunction() {
 
