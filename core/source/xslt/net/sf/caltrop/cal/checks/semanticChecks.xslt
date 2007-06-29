@@ -340,7 +340,7 @@
         </xsl:choose>
       
         <xsl:choose>
-            <xsl:when test="for $this in . return                 some $arc in $this/../Transition satisfies $arc/@to = $this/@from"/>
+            <xsl:when test="../@initial-state = @from or for $this in . return                 some $arc in $this/../Transition satisfies $arc/@to = $this/@from"/>
             <xsl:otherwise>
                 <Note id="FSMChecks.states.unreachable" kind="Report" severity="Warning" subject="">
                     <attribute xmlns="http://www.w3.org/1999/XSL/Transform" name="subject">

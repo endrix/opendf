@@ -291,7 +291,7 @@
       </sch:assert>
       
       <sch:assert role="Warning" id="unreachable" 
-        test="for $this in . return
+        test="../@initial-state = @from or for $this in . return
                 some $arc in $this/../Transition satisfies $arc/@to = $this/@from">
         <xsl:attribute name="subject">
           <xsl:apply-templates select=".." mode="report-offender"/>

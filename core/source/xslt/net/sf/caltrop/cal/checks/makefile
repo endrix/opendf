@@ -52,7 +52,7 @@ nltests: rules $(NLTESTS:.nl=.xnl)
 	done ;
 
 %.xslt: %.xml schematron-xml.xsl reportOffenders.xslt
-	$(XSLT) $*.xml $*.xslt schematron-xml.xsl
+	$(XSLT) $*.xml $*.xslt net/sf/caltrop/cal/checks/schematron-xml.xsl
 
 %.calml: %.cal
 	$(PARSECAL) $<
