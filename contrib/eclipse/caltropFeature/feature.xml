@@ -69,14 +69,14 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
    <plugin
          id="net.sf.caltrop.eclipse.plugin.caldoc"
-         download-size="0"
-         install-size="0"
+         download-size="485"
+         install-size="485"
          version="0.0.0"/>
 
    <plugin
          id="net.sf.caltrop.eclipse.plugin.caleditor"
-         download-size="0"
-         install-size="0"
+         download-size="4108"
+         install-size="4108"
          version="0.0.0"/>
 
 </feature>
