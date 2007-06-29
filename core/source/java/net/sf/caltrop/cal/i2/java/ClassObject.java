@@ -66,6 +66,16 @@ public class ClassObject implements Function {
 		
         // find constructor in _classObject
             Constructor ctor = findConstructor(_configuration, _classObject, _classObject.getName(), n, evaluator);
+            if (ctor == null) {
+            	String msg = "Cannot find contructor in class " + _classObject.getName() + " for parameters (";
+            	for (int i = 0; i < n; i++) {
+            		if (i > 0) 
+            			msg += ", ";
+            		msg += evaluator.getValue(i);
+            	}
+            	msg += ").";
+            	throw new InterpreterException(msg);
+            }
             Object [] newargs = new Object[n];
             Class [] argTypes = ctor.getParameterTypes();
             for (int i = 0; i < newargs.length; i++) {

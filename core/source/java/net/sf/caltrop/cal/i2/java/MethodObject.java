@@ -89,7 +89,7 @@ public class MethodObject implements Function, Procedure {
     			if (!first) {
     				msg += ", ";
     			}
-    			msg += c.getName() + "  ";
+    			msg += c.getName();
     			first = false;
     		}        	
         	msg += ") belonging to " + _thisInstance.toString();
@@ -105,7 +105,7 @@ public class MethodObject implements Function, Procedure {
             for (int i = 0; i < n; i++) {
                 newargs[i] = _configuration.convertToJavaType(evaluator.getValue(i), argTypes[i]);
             }
-            evaluator.replaceWithResult(n, m.invoke(_thisInstance, newargs));
+            evaluator.replaceWithResult(n, _configuration.convertJavaResult(m.invoke(_thisInstance, newargs)));
         } catch (Exception e) {
             String parlist = "(";
             for (int i = 0; i < n; i++) {

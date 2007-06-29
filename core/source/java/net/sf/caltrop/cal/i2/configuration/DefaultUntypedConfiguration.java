@@ -224,32 +224,27 @@ public class DefaultUntypedConfiguration implements Configuration {
 	}
 
 	public Object selectField(Object composite, String fieldName) {
-		// check if the name of e is a Field in the enclosingObject. if so, return that value. otherwise,
-		// assume it's a method.
-		Class c = composite.getClass();
-		Field f;
-		try {
-			f = c.getField(fieldName);
-			return f.get(composite);
-		} catch (NoSuchFieldException nsfe1) {
-			// maybe the enclosing object is a Class?
-			if (composite instanceof Class) {
-				Class javaClass = (Class) composite;
-				try {
-					f = javaClass.getField(fieldName);
-					return f.get(composite);
-				} catch (NoSuchFieldException nsfe2) {
-					// assume it's a method.
-					return new MethodObject(composite, fieldName, this);
-				} catch (IllegalAccessException iae) {
-					throw new InterpreterException("Tried to access field " + fieldName +
-							" in " + composite.toString(), iae);
-				}
+		if (composite instanceof ClassObject) {
+			Class c = ((ClassObject)composite).getClassObject();
+			try {
+				Field f = c.getField(fieldName);
+				return f.get(null);
 			}
-			// assume it's a method.
-			return new MethodObject(composite, fieldName, this);
-		} catch (IllegalAccessException iae) {
-			throw new InterpreterException("Tried to access field " + fieldName + " in " + composite, iae);
+			catch (NoSuchFieldException nsfe1) {
+				return new MethodObject(c, fieldName, this);
+			} catch (IllegalAccessException iae) {
+				throw new InterpreterException("Permission denied to access static field " + fieldName + " in class " + c.getName() + ".", iae);
+			}			
+		} else {
+			Class c = composite.getClass();
+			try {
+				Field f = c.getField(fieldName);
+				return f.get(composite);
+			} catch (NoSuchFieldException nsfe1) {
+				return new MethodObject(composite, fieldName, this);
+			} catch (IllegalAccessException iae) {
+				throw new InterpreterException("Permission denied to access field " + fieldName + " in " + composite + ".", iae);
+			}			
 		}
 	}
 
@@ -281,6 +276,16 @@ public class DefaultUntypedConfiguration implements Configuration {
 		}
 
 	}
+	
+	
+	public Object  convertJavaResult(Object res) {
+		if (res instanceof Class) {
+			return new ClassObject((Class)res, this);
+		}
+		
+		return res;
+	}
+
 	
 	public  boolean  isAssignableToJavaType(Object v, Class c) {
 		if (v == null)

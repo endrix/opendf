@@ -39,6 +39,7 @@ public interface Configuration {
 	void	assignField(Object value, Environment env, StmtAssignment stmt, String field);
 
 
+	Object  convertJavaResult(Object res);
 	Object  createClassObject(Class c);	
 	
 	boolean isAssignableToJavaType(Object v, Class c);
