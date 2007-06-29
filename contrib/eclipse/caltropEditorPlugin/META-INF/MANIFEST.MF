@@ -26,4 +26,5 @@ Provide-Package: net.sf.caltrop.eclipse.plugin,
 Bundle-ClassPath: caleditor.jar,
  lib/caltrop.jar,
  lib/saxon8.jar,
- lib/saxon8-dom.jar
+ lib/saxon8-dom.jar,
+ lib/PtPlot.jar
