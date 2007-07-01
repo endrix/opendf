@@ -132,13 +132,21 @@ public class SourceReader
 	}
 	
 	public static Expression  readExpr(Reader s) {
-		Lexer calLexer = new Lexer(s);
-		CalExpressionParser calParser = new CalExpressionParser(calLexer);
 		try {
-			return ASTFactory.buildExpression(calParser.doParse().getDocumentElement());
+			return ASTFactory.buildExpression(parseExpr(s).getDocumentElement());
 		} catch (Exception e) {
 			throw new RuntimeException("Cannot create expression AST.", e);
 		}
+	}
+	
+	public static Document parseExpr(String s) throws Exception {
+		return parseExpr(new StringReader(s));
+	}
+	
+	public static Document parseExpr(Reader s) throws Exception {
+		Lexer calLexer = new Lexer(s);
+		CalExpressionParser calParser = new CalExpressionParser(calLexer);
+		return calParser.doParse();
 	}
 	
 	

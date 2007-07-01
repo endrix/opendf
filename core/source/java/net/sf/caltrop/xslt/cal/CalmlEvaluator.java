@@ -33,6 +33,7 @@ import net.sf.caltrop.cal.interpreter.environment.Environment;
 import net.sf.caltrop.cal.interpreter.util.ASTFactory;
 import net.sf.caltrop.cal.interpreter.util.ImportUtil;
 import net.sf.caltrop.cal.interpreter.util.Platform;
+import net.sf.caltrop.cal.util.SourceReader;
 import net.sf.caltrop.util.logging.Logging;
 import net.sf.caltrop.util.xml.ElementPredicate;
 import net.sf.caltrop.util.xml.TagNamePredicate;
@@ -43,6 +44,8 @@ import org.w3c.dom.DOMImplementation;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+
+import static net.sf.caltrop.util.xml.Util.xpathEvalNode;
 
 public class CalmlEvaluator
 {
@@ -130,6 +133,12 @@ public class CalmlEvaluator
 		}
 		
 		return result;
+    }
+    
+    public static Node parseExpression(String expr) throws Exception {
+    	Node n = toSaxon(SourceReader.parseExpr(expr).getDocumentElement());
+		reallyEmbarrassingHackToMakeThingsWork(n);
+		return xpathEvalNode("/Expression", n);
     }
     
 	public static Node evaluateExpr( Node expr, Node env ) throws Exception

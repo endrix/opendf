@@ -213,8 +213,12 @@ public class Evaluator implements ExpressionVisitor, OperandStack, ObjectSink {
 
     public void visitExprLet(ExprLet e) {
         Decl [] decls = e.getDecls();
-        Environment env2 = new LazyEnvironmentFrame(env, decls, this);
-        evaluate(e.getBody(), env2);
+        if (decls.length == 0) {
+        	evaluate(e.getBody());
+        } else {
+        	Environment env2 = new LazyEnvironmentFrame(env, decls, this);
+        	evaluate(e.getBody(), env2);
+        }
     }
 
     public void visitExprList(ExprList e) {
