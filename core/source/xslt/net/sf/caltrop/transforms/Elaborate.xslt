@@ -85,7 +85,9 @@
                     <Note kind="sourceInfo" className="{$className}" type="Actor"/>
                     <xsl:copy-of select="Parameter"/>
                     <Actor/>
-                    <!-- <xsl:copy-of select="$source"/> -->
+<!--                    <Actor name="{$source/Actor/@name}">
+                        <xsl:copy-of select="Port | Decl[@kind='Parameter'] | Directive"/>
+                    </Actor> -->
                 </xsl:when>
                 <xsl:otherwise>
                     <xsl:copy-of select="Parameter"/>
