@@ -813,16 +813,17 @@ public class TypedPlatform implements Platform {
         env.bind("accumulate", context().createFunction(new Function() {
                 public Object apply(Object[] args) {
                     try {
-                        Function f = (Function)args[0];
-                        Object v = args[1];
-                        Collection c = (Collection)args[2];
+                    	
+                        Function f = (Function)((TypedObject)args[0]).getValue();
+                        TypedObject v = (TypedObject)args[1];
+                        Collection c = (Collection)((TypedObject)args[2]).getValue();
 
                         Object [] a = new Object [2];
                         for (Iterator i = c.iterator(); i.hasNext(); ) {
                             Object k = i.next();
                             a[0] = v;
                             a[1] = k;
-                            v = f.apply(a);
+                            v = (TypedObject)f.apply(a);
                         }
 
                         return v;
@@ -840,9 +841,9 @@ public class TypedPlatform implements Platform {
         env.bind("zip", context().createFunction(new Function() {
                 public Object apply(Object[] args) {
                     try {
-                        Function f = (Function)args[0];
-                        Collection c1 = (Collection)args[1];
-                        Collection c2 = (Collection)args[2];
+                        Function f = (Function)((TypedObject)args[0]).getValue();
+                        Collection c1 = (Collection)((TypedObject)args[1]).getValue();
+                        Collection c2 = (Collection)((TypedObject)args[2]).getValue();
 
                         Object [] a = new Object [2];
                         Iterator i1 = c1.iterator();
