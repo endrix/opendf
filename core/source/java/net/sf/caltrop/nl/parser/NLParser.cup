@@ -826,18 +826,11 @@ entity_exprs ::=
     
 instantiation_args_opt ::=
 	  /* EMPTY */ {: RESULT = null; :}
-	| instantiation_args_positional:args {: RESULT = args; :}
 	| instantiation_args_named:args {: RESULT = args; :}
 	;
 	
-instantiation_args_positional ::=
-	  expression:e {: List as = new ArrayList(); as.add(e); RESULT = as; :}
-	| instantiation_args_positional:as COMMA expression:e
-	  {: as.add(e); RESULT = as; :}
-	;
-
 instantiation_args_named ::=
-	  id:nm COLON_COLON expression:e 
+	  id:nm EQUALS expression:e 
 	  {: 
 	      List as = new ArrayList(); 
 	      Element a = createElement("Arg");
@@ -845,7 +838,7 @@ instantiation_args_named ::=
 	      appendChild(a, e);
 	      as.add(a); RESULT = as; 
 	  :}
-	| instantiation_args_named:as COMMA id:nm COLON_COLON expression:e
+	| instantiation_args_named:as COMMA id:nm EQUALS expression:e
 	  {: 
 	      Element a = createElement("Arg");
 	      setName(a, nm);
