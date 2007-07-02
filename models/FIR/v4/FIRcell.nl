@@ -42,11 +42,11 @@ var
 	nTaps = #taps;
 	
 entities
-	up = Upsample(n:: nTaps);
-	merge = MergeLast(n:: nTaps);
-	split = SplitFirst(n:: nTaps);
-	consts = Constants(constants:: taps);
-	z = Z(tokens:: [0 : for i in taps]);
+	up = Upsample(n = nTaps);
+	merge = MergeLast(n = nTaps);
+	split = SplitFirst(n = nTaps);
+	consts = Constants(constants = taps);
+	z = Z(tokens = [0 : for i in taps]);
 	mul = Multiply();
 	add = Add();
 

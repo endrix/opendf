@@ -44,21 +44,21 @@ var
 	
 entities
 
-	rowsort = RowSort(sz:: INP_SZ);
+	rowsort = RowSort(sz = INP_SZ);
 	
-	fairmerge = FairMerge(rsz:: INP_SZ, csz:: MEM_SZ);
+	fairmerge = FairMerge(rsz = INP_SZ, csz = MEM_SZ);
 	
 	downsample = Downsample();
 	
-	idct1d = idct1d(MEM_SZ:: MEM_SZ);
+	idct1d = idct1d(MEM_SZ = MEM_SZ);
 	
-	sep = Separate(isz:: MEM_SZ, rsz:: MEM_SZ, csz:: OUT_SZ);
+	sep = Separate(isz = MEM_SZ, rsz = MEM_SZ, csz = OUT_SZ);
 
-	trans = Transpose(sz:: MEM_SZ);
+	trans = Transpose(sz = MEM_SZ);
 	
-	retrans = Retranspose(isz:: OUT_SZ, osz:: OUT_SZ);
+	retrans = Retranspose(isz = OUT_SZ, osz = OUT_SZ);
 	
-	clip = Clip(isz:: OUT_SZ, osz:: PIX_SZ);
+	clip = Clip(isz = OUT_SZ, osz = PIX_SZ);
 
 structure
 

@@ -42,11 +42,11 @@ network TopMandelbrotPartial (W, H, maxIter, satLevels, fileName) ==> :
 	
 entities
 
-	reader = ReadFile(fname:: fileName);
-	colorer = SampleColorer(maxIter:: maxIter, satLevels:: satLevels);
-	gen = CoordinateGenerator(W:: W, H:: H);
-	display = Display(title:: "Mandelbrot", width:: W, height:: H, autoUpdate:: 1);
-	b2w = B2W(bigEndian:: true);
+	reader = ReadFile(fname = fileName);
+	colorer = SampleColorer(maxIter = maxIter, satLevels = satLevels);
+	gen = CoordinateGenerator(W = W, H = H);
+	display = Display(title = "Mandelbrot", width = W, height = H, autoUpdate = 1);
+	b2w = B2W(bigEndian = true);
 	
 structure
 

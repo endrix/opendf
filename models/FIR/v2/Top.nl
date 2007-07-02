@@ -53,17 +53,17 @@ var
 
 entities
 	r = Random();
-	mul = ConstantMultiply(c:: noise);
+	mul = ConstantMultiply(c = noise);
 	add = Add();
-	s = Sine(d:: .01);
-	p = Plotter(autoredraw:: 50);
-	clk = Clock(dt:: 1);
+	s = Sine(d = .01);
+	p = Plotter(autoredraw = 50);
+	clk = Clock(dt = 1);
 	
-	tagFIRgolden = Tag(tag:: "FIR golden");
-	tagFIRparallel = Tag(tag:: "FIR parallel");
+	tagFIRgolden = Tag(tag = "FIR golden");
+	tagFIRparallel = Tag(tag = "FIR parallel");
 
-	firGolden = FIRgolden(taps:: taps);	
-	firParallel = FIR(taps:: taps);
+	firGolden = FIRgolden(taps = taps);	
+	firParallel = FIR(taps = taps);
 	
 structure
 	clk.Out --> r.Trigger;

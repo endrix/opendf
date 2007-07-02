@@ -41,7 +41,7 @@ network Top () ==> :
 
 entities
 	primes = Primes();
-	print = Print(msg:: "Prime: ");
+	print = Print(msg = "Prime: ");
 	
 structure
 	

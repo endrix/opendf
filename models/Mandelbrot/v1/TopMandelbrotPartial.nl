@@ -50,15 +50,15 @@ network TopMandelbrotPartial (W, H, maxIter, CenterX, CenterY, DiameterX, Diamet
 entities
 
 	clk = Clock();
-	display = Display(title:: "Mandelbrot", width:: W, height:: H, autoUpdate:: 100);
-	mcg = MandelbrotCoordinateGenerator(startX:: CenterX - DiameterX / 2, 
-										startY:: CenterY - DiameterY / 2,
-										dx:: DiameterX / W,
-										w:: W,
-										dy:: DiameterY / H,
-										h:: H);
-	kernel = MandelbrotKernel(maxIter:: maxIter);
-	colorer = SampleColorer(maxIter:: maxIter, satLevels:: satLevels);
+	display = Display(title = "Mandelbrot", width = W, height = H, autoUpdate = 100);
+	mcg = MandelbrotCoordinateGenerator(startX = CenterX - DiameterX / 2, 
+										startY = CenterY - DiameterY / 2,
+										dx = DiameterX / W,
+										w = W,
+										dy = DiameterY / H,
+										h = H);
+	kernel = MandelbrotKernel(maxIter = maxIter);
+	colorer = SampleColorer(maxIter = maxIter, satLevels = satLevels);
 	
 structure
 

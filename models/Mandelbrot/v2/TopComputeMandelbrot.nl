@@ -48,18 +48,18 @@ network TopComputeMandelbrot (W, H, maxIter, CenterX, CenterY, DiameterX, Diamet
 entities
 
 	clk = Clock();
-	mcg = MandelbrotCoordinateGenerator(startX:: CenterX - DiameterX / 2, 
-										startY:: CenterY - DiameterY / 2,
-										dx:: DiameterX / W,
-										w:: W,
-										dy:: DiameterY / H,
-										h:: H);
-	kernel = MandelbrotKernel(maxIter:: maxIter);
+	mcg = MandelbrotCoordinateGenerator(startX = CenterX - DiameterX / 2, 
+										startY = CenterY - DiameterY / 2,
+										dx = DiameterX / W,
+										w = W,
+										dy = DiameterY / H,
+										h = H);
+	kernel = MandelbrotKernel(maxIter = maxIter);
 
-	w2b = W2B(bigEndian:: true);
-	writer = WriteFile(fname:: fileName);
-	progress = ProgressWindow(title:: "Computing Mandelbrot set into file: " + fileName, 
-	                          N:: W * H);
+	w2b = W2B(bigEndian = true);
+	writer = WriteFile(fname = fileName);
+	progress = ProgressWindow(title = "Computing Mandelbrot set into file: " + fileName, 
+	                          N = W * H);
 	
 structure
 

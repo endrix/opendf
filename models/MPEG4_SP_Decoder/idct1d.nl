@@ -46,15 +46,15 @@ var
 
 entities
 
-	scale = Scale(isz:: MEM_SZ, osz:: SCALE_SZ, csz:: COEFF_SZ);
+	scale = Scale(isz = MEM_SZ, osz = SCALE_SZ, csz = COEFF_SZ);
 	
-	combine = Combine(isz:: SCALE_SZ, osz:: ACC_SZ);
+	combine = Combine(isz = SCALE_SZ, osz = ACC_SZ);
 	
-	shufflefly = ShuffleFly(sz:: ACC_SZ);
+	shufflefly = ShuffleFly(sz = ACC_SZ);
 
-	shuffle = Shuffle(sz:: ACC_SZ);
+	shuffle = Shuffle(sz = ACC_SZ);
 	
-	final = Final(isz:: ACC_SZ, osz:: MEM_SZ);
+	final = Final(isz = ACC_SZ, osz = MEM_SZ);
 	
 structure
 

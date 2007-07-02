@@ -41,14 +41,14 @@ network testbed () ==> :
 
 entities
 	decoder = decoder();
-	source = fread(fname:: "data/foreman_qcif_30.bit");
-	display = DispYUV(title:: "Foreman QCIF",
-	                  file:: "data/foreman_qcif_30.yuv",
-	                  width:: 176,
-	                  height:: 144,
-	                  doCompare:: 1);
-	ddr = DDRModel(MAXW_IN_MB:: 121,
-	               MAXH_IN_MB:: 69);
+	source = fread(fname = "data/foreman_qcif_30.bit");
+	display = DispYUV(title = "Foreman QCIF",
+	                  file = "data/foreman_qcif_30.yuv",
+	                  width = 176,
+	                  height = 144,
+	                  doCompare = 1);
+	ddr = DDRModel(MAXW_IN_MB = 121,
+	               MAXH_IN_MB = 69);
 
 structure
 	source.O --> decoder.bits;

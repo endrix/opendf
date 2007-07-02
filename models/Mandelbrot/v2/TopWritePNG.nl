@@ -43,11 +43,11 @@ network TopWritePNG (dataFile, imageFile, W, H, maxIter, satLevels) ==> :
 	
 entities
 
-	reader = ReadFile(fname:: dataFile);
-	colorer = SampleColorer(maxIter:: maxIter, satLevels:: satLevels);
-	writer = WriteImage(fileName:: imageFile, format:: "PNG", W:: W, H:: H);
-	b2w = B2W(bigEndian:: true);
-	progress = ProgressWindow(title:: "Writing image file " + imageFile, N:: W * H);
+	reader = ReadFile(fname = dataFile);
+	colorer = SampleColorer(maxIter = maxIter, satLevels = satLevels);
+	writer = WriteImage(fileName = imageFile, format = "PNG", W = W, H = H);
+	b2w = B2W(bigEndian = true);
+	progress = ProgressWindow(title = "Writing image file " + imageFile, N = W * H);
 	
 structure
 

@@ -2,7 +2,7 @@
 network Sum () In ==> Out:
 
 entities
-  init0 = InitialTokens(tokens:: [0]);
+  init0 = InitialTokens(tokens = [0]);
   add = Add();
 
 structure

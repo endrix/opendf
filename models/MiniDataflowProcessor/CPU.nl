@@ -46,9 +46,9 @@ network CPU (program, memorySize, initialMemory) I0, I1, I2, I3 ==> O0, O1, O2, 
 
 entities
 
-	rom = ROM(contents:: program);
+	rom = ROM(contents = program);
 			
-	memory = Memory(size:: memorySize, initialValues:: initialMemory, defaultValue:: 0);
+	memory = Memory(size = memorySize, initialValues = initialMemory, defaultValue = 0);
 	
 	processor = MDP();
 	

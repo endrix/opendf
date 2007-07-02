@@ -41,10 +41,10 @@ network Primes () ==> Out:
 
 entities
 
-	sieve = Sieve(pred:: lambda (x, y) : (x mod y) = 0 end);
-	nats = Generate(initial:: 2, 
-	                iterator:: lambda (x) : x + 1 end);
-	trigger = InitialTokens(tokens:: [null]);
+	sieve = Sieve(pred = lambda (x, y) : (x mod y) = 0 end);
+	nats = Generate(initial = 2, 
+	                iterator = lambda (x) : x + 1 end);
+	trigger = InitialTokens(tokens = [null]);
 	
 structure
 

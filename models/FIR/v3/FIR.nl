@@ -60,8 +60,8 @@ var
 	nSegs = #tapSegments;
 		
 entities
-	c = [FIRcell(taps:: segment) : for segment in reverse(tapSegments)];
-	zeros = Constants(constants:: [0]);
+	c = [FIRcell(taps = segment) : for segment in reverse(tapSegments)];
+	zeros = Constants(constants = [0]);
 	
 structure
 	foreach i in 0 .. nSegs - 1 do

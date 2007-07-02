@@ -42,15 +42,15 @@ network TopMandelbrot (W, H, maxIter, satLevels) ==> :
 entities
 
 	clk = Clock();
-	display = Display(title:: "Mandelbrot", width:: W, height:: H, autoUpdate:: 100);
-	mcg = MandelbrotCoordinateGenerator(startX:: -2.0, 
-										startY:: -1.0,
-										dx:: 3.0 / W,
-										w:: W,
-										dy:: 2.0 / H,
-										h:: H);
-	kernel = MandelbrotKernel(maxIter:: maxIter);
-	colorer = SampleColorer(maxIter:: maxIter, satLevels:: satLevels);
+	display = Display(title = "Mandelbrot", width = W, height = H, autoUpdate = 100);
+	mcg = MandelbrotCoordinateGenerator(startX = -2.0, 
+										startY = -1.0,
+										dx = 3.0 / W,
+										w = W,
+										dy = 2.0 / H,
+										h = H);
+	kernel = MandelbrotKernel(maxIter = maxIter);
+	colorer = SampleColorer(maxIter = maxIter, satLevels = satLevels);
 	
 structure
 

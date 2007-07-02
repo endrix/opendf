@@ -43,9 +43,9 @@ var
 	n = #taps;
 	
 entities
-	m = [ConstantMultiply(c:: t) : for t in taps];
+	m = [ConstantMultiply(c = t) : for t in taps];
 	a = [Add() : for i in 0 .. n - 2];
-	z = [Z(tokens:: [0]) : for _1 in taps];
+	z = [Z(tokens = [0]) : for _1 in taps];
 	
 structure
 	foreach i in 0 .. n - 1 do

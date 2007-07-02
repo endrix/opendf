@@ -2,7 +2,7 @@
 network Nats () ==> Out:
 
 entities
-  ones = InitialTokens(tokens:: [1]);
+  ones = InitialTokens(tokens = [1]);
   sum = Sum();
 
 structure

@@ -2,8 +2,8 @@
 network Fibs () ==> Out:
 
 entities
-  init1 = InitialTokens(tokens:: [1]);
-  init2 = InitialTokens(tokens:: [1]);
+  init1 = InitialTokens(tokens = [1]);
+  init2 = InitialTokens(tokens = [1]);
   add = Add();
 
 structure
