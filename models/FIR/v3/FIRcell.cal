@@ -37,7 +37,7 @@ ENDCOPYRIGHT
 */
 
 
-actor FIRcell1 (taps) Sample, AccLineIn ==> AccLineOut :
+actor FIRcell (taps) Sample, AccLineIn ==> AccLineOut :
 
 	n = #taps;
 	data := [0 : for t in taps];
