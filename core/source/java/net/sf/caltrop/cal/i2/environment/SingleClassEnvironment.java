@@ -69,7 +69,7 @@ public class SingleClassEnvironment extends SingleEntryEnvironment {
                     Object classObject = configuration.createClassObject(c);
                     super.localSetByPos(0, classObject);
                 } catch (ClassNotFoundException e) {
-                    throw new InterpreterException("Cannot find class '" + (packagePrefix + className) + "' for variable '" + this.var + "'.", e);
+                    throw new InterpreterException("Cannot find class '" + (packagePrefix + "." + className) + "' for variable '" + this.var + "'.", e);
                 }
         	}
         	return super.localGet(var, s);
