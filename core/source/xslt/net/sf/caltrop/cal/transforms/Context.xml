@@ -9,38 +9,41 @@
     <UnaryOp name="not" function="$not"/>
 
     <UnaryOp name="~" function="bitnot"/>
+
     
-
-    <BinaryOp name="or" precedence= "10" function="$or"/>
+    <BinaryOp name="or" precedence= "40" function="$or"/>
     
-    <BinaryOp name="and" precedence= "20" function="$and"/>
+    <BinaryOp name="and" precedence= "50" function="$and"/>
 
-    <BinaryOp name="=" precedence= "30" function="$eq"/>
-    <BinaryOp name="&lt;" precedence= "30" function="$lt"/>
-    <BinaryOp name="&lt;=" precedence= "30" function="$le"/>
-    <BinaryOp name="&gt;" precedence= "30" function="$gt"/>
-    <BinaryOp name="&gt;=" precedence= "30" function="$ge"/>
-    <BinaryOp name="!=" precedence= "30" function="$ne"/>
-
-    <BinaryOp name=".." precedence= "40" function="Integers"/>
-
-    <BinaryOp name="|" precedence= "40" function="bitor"/>
-    <BinaryOp name="^" precedence= "40" function="bitxor"/>
-
-    <BinaryOp name="&amp;" precedence= "50" function="bitand"/>
+    <BinaryOp name=".." precedence= "55" function="Integers"/>
     
-    <BinaryOp name="&lt;&lt;" precedence= "60" function="lshift"/>
-    <BinaryOp name="&gt;&gt;" precedence= "60" function="rshift"/>
-    <BinaryOp name="&gt;&gt;&gt;" precedence= "60" function="urshift"/>
+    <BinaryOp name="|" precedence= "60" function="bitor"/>
+    
+    <BinaryOp name="^" precedence= "70" function="bitxor"/>
+    
+    <BinaryOp name="&amp;" precedence= "80" function="bitand"/>
+    
+    <BinaryOp name="=" precedence= "90" function="$eq"/>
+    <BinaryOp name="!=" precedence= "90" function="$ne"/>
+    
+    <BinaryOp name="&lt;" precedence= "100" function="$lt"/>
+    <BinaryOp name="&lt;=" precedence= "100" function="$le"/>
+    <BinaryOp name="&gt;" precedence= "100" function="$gt"/>
+    <BinaryOp name="&gt;=" precedence= "100" function="$ge"/>
 
-    <BinaryOp name="+" precedence= "70" function="$add"/>
-    <BinaryOp name="-" precedence= "70" function="$sub"/>
+    <BinaryOp name="&lt;&lt;" precedence= "110" function="lshift"/>
+    <BinaryOp name="&gt;&gt;" precedence= "110" function="rshift"/>
+    <BinaryOp name="&gt;&gt;&gt;" precedence= "110" function="urshift"/>
 
-    <BinaryOp name="*" precedence= "80" function="$mul"/>
-    <BinaryOp name="/" precedence= "80" function="$div"/>
-    <BinaryOp name="div" precedence= "80" function="$idiv"/>
-    <BinaryOp name="mod" precedence= "80" function="$mod"/>
+    <BinaryOp name="+" precedence= "120" function="$add"/>
+    <BinaryOp name="-" precedence= "120" function="$sub"/>
 
+    <BinaryOp name="*" precedence= "130" function="$mul"/>
+    <BinaryOp name="/" precedence= "130" function="$div"/>
+    <BinaryOp name="div" precedence= "130" function="$idiv"/>
+    <BinaryOp name="mod" precedence= "130" function="$mod"/>
+    
+    
     <Function name="create-list" function="$createList"/>
     <Function name="create-map" function="$createMap"/>
     <Function name="create-set" function="$createSet"/>
