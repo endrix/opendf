@@ -59,6 +59,8 @@ import net.sf.caltrop.hades.network.Network;
 import net.sf.caltrop.util.xml.ElementPredicate;
 import net.sf.caltrop.util.xml.TagNamePredicate;
 import net.sf.caltrop.util.xml.Util;
+import net.sf.caltrop.util.source.LoadingErrorException;
+import net.sf.caltrop.util.source.LoadingErrorRuntimeException;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -167,14 +169,25 @@ public class XDFModelInterface implements ModelInterface {
 	private final static ElementPredicate predQID = new TagNamePredicate(tagQID);
 	
 	
-	static public class XDFNetworkCreator implements Network.Creator {
-
+	static public class XDFNetworkCreator implements Network.Creator
+    {
 		public void createNetwork(Network n, double t, Scheduler s, Map env, ClassLoader loader) {
 
 			ClassLoader myLoader = (loader == null) ? this.getClass().getClassLoader() : loader;
 			Platform myPlatform = getPlatform(myLoader);
-			
-			buildNetworkFromXDF(n, modelSource, myPlatform, env, myLoader);
+
+			try
+            {
+                buildNetworkFromXDF(n, modelSource, myPlatform, env, myLoader);
+            }
+            catch (LoadingErrorException lee)
+            {
+                throw new LoadingErrorRuntimeException("XDF Network instantiation failed", lee);
+            }
+            catch (Exception e)
+            {
+                throw new RuntimeException("XDF Network instantiation failed", e);
+            }
 		}
 		
 		XDFNetworkCreator(Object modelSource) {

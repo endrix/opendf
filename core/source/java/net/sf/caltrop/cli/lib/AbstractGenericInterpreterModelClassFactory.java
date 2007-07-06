@@ -42,7 +42,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
 
-import net.sf.caltrop.cli.LoadingErrorException;
+import net.sf.caltrop.util.source.LoadingErrorException;
 import net.sf.caltrop.cli.ModelClassFactory;
 import net.sf.caltrop.hades.models.ModelInterface;
 import net.sf.caltrop.util.logging.Logging;
@@ -63,7 +63,9 @@ import net.sf.caltrop.util.source.MultiErrorException;
  */
 
 public abstract class AbstractGenericInterpreterModelClassFactory implements ModelClassFactory {
-	
+
+	private String resName = "unknown";
+    
 	/**
 	 * Read the model from aa input stream, and construct an object representing it.
 	 * 
@@ -73,6 +75,11 @@ public abstract class AbstractGenericInterpreterModelClassFactory implements Mod
 	 */
 	abstract protected Object  readModel(InputStream modelSource) throws IOException, MultiErrorException;
 
+    protected String getResourceName ()
+    {
+        return this.resName;
+    }
+    
 	/**
 	 * Return the model interface corresponding to the models read by this factory.
 	 * 
@@ -82,6 +89,8 @@ public abstract class AbstractGenericInterpreterModelClassFactory implements Mod
 
 	public Class createClass(String name, ClassLoader topLevelLoader, InputStream source) throws ClassNotFoundException
     {
+        this.resName = name;
+        
         Logging.dbg().fine("AGIModelClassFactory:: Reading class " + name + "...");
         Object model = null;
         try

@@ -193,13 +193,13 @@ parser code {:
             if (this.errorList.isEmpty())
                 throw new NLParserException(e.getMessage());
             else 
-                throw new ParserErrorException("Errors found in parsing CAL source", this.errorList);
+                throw new ParserErrorException("Errors found in parsing NL source", this.errorList);
         }
         
         //if (this.errors > 0)
         if (!this.errorList.isEmpty())
         {
-            throw new ParserErrorException("Errors found in parsing CAL source", this.errorList);
+            throw new ParserErrorException("Errors found in parsing NL source", this.errorList);
         }
         return returnSymbol != null ? document : null;
     }

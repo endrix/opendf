@@ -55,9 +55,15 @@ import net.sf.caltrop.cal.parser.CalStatementParser;
 import net.sf.caltrop.cal.parser.Lexer;
 import net.sf.caltrop.cal.parser.Parser;
 import net.sf.caltrop.util.source.MultiErrorException;
+import net.sf.caltrop.util.source.LoadingErrorRuntimeException;
+
+import net.sf.caltrop.util.xml.Util;
+import net.sf.caltrop.util.logging.Logging;
+
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
 
 
@@ -67,18 +73,48 @@ import org.w3c.dom.Element;
 
 public class SourceReader
 {
-	
-
+    private static final boolean suppressActorChecks = System.getenv().containsKey("CAL_SUPPRESS_ACTOR_CHECKS");
+        
 	public static Document parseActor(Reader s) throws MultiErrorException
+    {
+        return parseActor(s,"unknown");
+    }
+    
+    /**
+     * May throw LoadingErrorRuntimeException if failure occurs during parsing.
+     */
+	public static Document parseActor(Reader s, String name) throws MultiErrorException
 	{
-		Lexer calLexer = new Lexer(s);
-		Parser calParser = new Parser(calLexer);
-	    return calParser.parseActor();
+        Document doc = null;
+        Lexer calLexer = new Lexer(s);
+        Parser calParser = new Parser(calLexer);
+        doc = calParser.parseActor(name);
+
+        if (!suppressActorChecks)
+        {
+            try
+            {
+                // Basic error checking...
+                Node res = Util.applyTransformsAsResources(doc, new String[] {
+                    "net/sf/caltrop/cal/checks/semanticChecks.xslt",
+                    // provide counts, terminate-on-error
+                    "net/sf/caltrop/cal/checks/problemSummary.xslt"
+                });
+            }
+            catch (Exception e)
+            {
+                // Catching exceptions keeps the XSLT fatal message from
+                // terminating the process.
+            }
+        }
+        
+	    return doc;
 	}
 
-	public static Document parseActor(String s) throws MultiErrorException
+	public static Document parseActor(String s) throws MultiErrorException { return parseActor(s, "unknown"); }
+	public static Document parseActor(String s, String name) throws MultiErrorException
 	{
-		return parseActor(new StringReader(s));
+		return parseActor(new StringReader(s), name);
 	}
 
 	public static Element  readExprDOM(Reader s) throws Exception {
@@ -98,14 +134,16 @@ public class SourceReader
 	}
 
 	
-	public static Actor readActor(Reader s) throws MultiErrorException
+	public static Actor readActor(Reader s) throws MultiErrorException { return readActor(s, "unknown"); }
+	public static Actor readActor(Reader s, String name) throws MultiErrorException
     {
-		return ASTFactory.buildActor(parseActor(s));
+		return ASTFactory.buildActor(parseActor(s, name));
 	}
 	
-	public static Actor readActor(String s) throws MultiErrorException
+	public static Actor readActor(String s) throws MultiErrorException { return readActor(s, "unknown"); }
+	public static Actor readActor(String s, String name) throws MultiErrorException
     {
-		return readActor(new StringReader(s));
+		return readActor(new StringReader(s), name);
 	}
 	
 	public static Actor readActorML(InputStream s) {

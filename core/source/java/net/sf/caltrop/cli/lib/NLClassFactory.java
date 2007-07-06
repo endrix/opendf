@@ -52,7 +52,7 @@ public class NLClassFactory extends AbstractGenericInterpreterModelClassFactory 
 	@Override
 	protected Object readModel(InputStream modelSource) throws MultiErrorException
     {
-        return Lib.readNL(modelSource);
+        return Lib.readNL(modelSource, getResourceName());
 	}
 
 	protected ModelInterface getModelInterface() {

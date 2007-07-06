@@ -64,6 +64,8 @@ import net.sf.caltrop.hades.des.util.Attributable;
 import net.sf.caltrop.hades.network.Network;
 import net.sf.caltrop.util.logging.Logging;
 
+import net.sf.caltrop.util.source.LoadingErrorException;
+
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
@@ -93,7 +95,8 @@ public class Util {
 	}
 	
 
-	public static void  buildNetworkFromXDF(Network n, Object source, Platform platform, Map env, ClassLoader loader) {
+	public static void  buildNetworkFromXDF(Network n, Object source, Platform platform, Map env, ClassLoader loader) throws ClassNotFoundException
+    {
 		
 		Logging.dbg().info("BEGIN NETWORK XDF");
 		try {
@@ -203,8 +206,14 @@ public class Util {
 			}
 		}
 	}
-	
-	public static Class loadClassFromElement(Element e, ClassLoader loader) {
+
+    /**
+     * @throws ClassNotFoundException for class loading issues
+     * @throws LoadingErrorException (a subclass of
+     * ClassNotFoundException) for errors in the loaded class/element)
+     */
+	public static Class loadClassFromElement(Element e, ClassLoader loader) throws ClassNotFoundException
+    {
 		try {
 			Logging.dbg().warning("LoadClassFromElement 1:: " + net.sf.caltrop.util.xml.Util.createXML(e));
         } catch (Exception exc) {
@@ -223,22 +232,30 @@ public class Util {
 		
 		String className = packageName + unqualifiedClassName;
 
-		try { 
+// 		try { 
 			Class c;
 			try {
 				c = loader.loadClass(className);
 				Logging.dbg().warning("Loaded '" + className + "' with '" + loader.getClass().getName() + "'");
-			} catch (Exception exc) {
+			}
+            catch (LoadingErrorException lee)
+            {
+                // A LoadginErrorException indicates we found the
+                // class but could not parse it.  Pass that
+                // information up.
+                throw lee;
+            }
+            catch (Exception exc) {
+                System.out.println("CAUGHT EXCEPTION " + exc);
 				Logging.dbg().warning("Default loader for '" + className + "' because an exception was thrown: " + exc.getMessage());
 				c = Class.forName(className);
 			}
 			
 			return c;
-		}
-		catch (ClassNotFoundException exc) {
-			exc.printStackTrace();
-			throw new RuntimeException("Could not locate model class '" + packageName + unqualifiedClassName + "'.", exc);
-		}
+// 		}
+// 		catch (ClassNotFoundException exc) {
+// 			throw new RuntimeException("Could not locate model class '" + packageName + unqualifiedClassName + "'.", exc);
+// 		}
 	}
 	
 	private  static net.sf.caltrop.cal.interpreter.environment.Environment  createEnvironment(NodeList decls, Map env, Platform platform) {

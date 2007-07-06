@@ -71,6 +71,8 @@ import net.sf.caltrop.hades.simulation.StreamIOCallback;
 import net.sf.caltrop.hades.util.NullInputStream;
 import net.sf.caltrop.hades.util.NullOutputStream;
 import net.sf.caltrop.util.logging.Logging;
+import net.sf.caltrop.util.source.LoadingErrorException;
+import net.sf.caltrop.util.source.LoadingErrorRuntimeException;
 
 public class Simulator {
 	
@@ -216,9 +218,23 @@ public class Simulator {
             Logging.user().severe("An error has occurred.  Exiting abnormally.\n");
             System.exit(-1);
         }
+        catch (LoadingErrorRuntimeException lere)
+        {
+            Logging.user().severe(lere.getMessage());
+            lere.getErrorContainer().logTo(Logging.user());
+            Logging.user().severe("An error has occurred.  Exiting abnormally.\n");
+            System.exit(-1);
+        }
         catch (DECLoadException dle)
         {
             Logging.user().severe("Could not load simulation model." + dle.getMessage());
+            Logging.user().severe("An error has occurred.  Exiting abnormally.\n");
+            System.exit(-1);
+        }
+        catch (ClassNotFoundException cnfe)
+        {
+            Logging.user().severe("Could not load simulation model." + cnfe.getMessage());
+            Logging.user().severe("Specify the simulatable entity as a class (no extension)");
             Logging.user().severe("An error has occurred.  Exiting abnormally.\n");
             System.exit(-1);
         }
@@ -233,6 +249,12 @@ public class Simulator {
         try
         {
             sim = new SequentialSimulator(dec, callback);
+        }
+        catch (LoadingErrorRuntimeException lere)
+        {
+            Logging.user().severe("Could not initialize Simulator");
+            lere.getErrorContainer().logTo(Logging.user());
+            System.exit(-1);
         }
         catch (Exception e)
         {

@@ -139,7 +139,7 @@ public class TypedContext implements Context {
     }
 
     public Object createCharacter(char c) {
-    	throw new RuntimeException("TypedContext: Characters not supported.");
+    	throw new UnsupportedTypeException("TypedContext: Characters not supported.");
     }
 
     public boolean isCharacter(Object o) {
@@ -147,7 +147,7 @@ public class TypedContext implements Context {
     }
 
     public char charValue(Object o) {
-    	throw new RuntimeException("TypedContext: Characters not supported.");
+    	throw new UnsupportedTypeException("TypedContext: Characters not supported.");
     }
 
     public Object createString(String s) {
@@ -184,7 +184,7 @@ public class TypedContext implements Context {
     }
 
     public Object createSet(Set s) {
-    	throw new RuntimeException("TypedContext: Sets not supported.");
+    	throw new UnsupportedTypeException("TypedContext: Sets not supported.");
     }
 
     public boolean isSet(Object o) {
@@ -192,11 +192,11 @@ public class TypedContext implements Context {
     }
 
     public Set getSet(Object o) {
-    	throw new RuntimeException("TypedContext: Sets not supported.");
+    	throw new UnsupportedTypeException("TypedContext: Sets not supported.");
     }
 
     public Object createMap(Map m) {
-    	throw new RuntimeException("TypedContext: Maps not supported.");
+    	throw new UnsupportedTypeException("TypedContext: Maps not supported.");
     }
 
     public boolean isMap(Object o) {
@@ -204,11 +204,11 @@ public class TypedContext implements Context {
     }
 
     public Map getMap(Object a) {
-    	throw new RuntimeException("TypedContext: Maps not supported.");
+    	throw new UnsupportedTypeException("TypedContext: Maps not supported.");
     }
 
     public Object applyMap(Object map, Object arg) {
-    	throw new RuntimeException("TypedContext: Maps not supported.");
+    	throw new UnsupportedTypeException("TypedContext: Maps not supported.");
     }
 
     public boolean isCollection(Object o) {
@@ -529,6 +529,11 @@ public class TypedContext implements Context {
     	return t;
     }
     
+
+    static class UnsupportedTypeException extends RuntimeException
+    {
+        public UnsupportedTypeException (String msg) { super(msg); }
+    }
     
        
     public  final static Object      UNDEFINED = new Object();

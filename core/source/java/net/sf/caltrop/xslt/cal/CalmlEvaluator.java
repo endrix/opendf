@@ -126,6 +126,10 @@ public class CalmlEvaluator
             // Logging.dbg().warning(ie.toString());
             throw ie; // Just pass it up
         }
+        catch (TypedContext.UnsupportedTypeException ute)
+        {
+            throw ute;
+        }
         catch (Throwable th) {
             Logging.dbg().warning(th.toString());
             Logging.dbg().throwing("CalmlEvaluator", "evaluateExprObj", th);
@@ -165,6 +169,18 @@ public class CalmlEvaluator
         catch (InterpreterException e)
         {
         	result = renderError( e.getMessage() );
+        }
+        catch (TypedContext.UnsupportedTypeException ute)
+        {
+        	result = renderError( ute.getMessage() );
+        }
+        catch (Exception e)
+        {
+            Logging.dbg().info("Error processing node with name: " + expr.getNodeName());
+            Logging.dbg().info("Error processing node with parent: " + (expr.getParentNode() == null ? "null":expr.getParentNode().getNodeName()));
+            Logging.dbg().info("Error processing node with id: " + expr.getAttributes().getNamedItem("id"));
+            Logging.dbg().info("Error processing node with name attribute: " + expr.getAttributes().getNamedItem("name"));
+            throw e;
         }
         
 		Node n = toSaxon(result);

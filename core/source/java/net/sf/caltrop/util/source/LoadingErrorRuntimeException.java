@@ -37,28 +37,24 @@ BEGINCOPYRIGHT X,UC
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.cli;
-
-import net.sf.caltrop.util.source.MultiErrorContainer;
+package net.sf.caltrop.util.source;
 
 /**
  * This exception is thrown when a custom class loader was able to
  * find the required resource but was unable to sufficiently process
  * it due to error conditions (eg bad parse).  
  */
-public class LoadingErrorException extends ClassNotFoundException
+public class LoadingErrorRuntimeException extends RuntimeException
 {
-    private MultiErrorContainer errors;
     
-	public LoadingErrorException (String message, MultiErrorContainer errors)
+	public LoadingErrorRuntimeException (String message, LoadingErrorException error)
     {
-        super(message);
-        this.errors = errors;
+        super(message, error);
     }
 
     public MultiErrorContainer getErrorContainer ()
     {
-        return this.errors;
+        return ((LoadingErrorException)getCause()).getErrorContainer();
     }
     
 }

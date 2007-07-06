@@ -237,6 +237,8 @@ public abstract class XSLTTransformRunner
         }
         
         String rxwxArguments[] = new String[flags.length + 2 + xforms.length];
+        //String rxwxArguments[] = new String[flags.length + 2 + 1];
+        
         int index = 0;
 
         System.arraycopy(flags, 0, rxwxArguments, 0, flags.length);
@@ -265,6 +267,25 @@ public abstract class XSLTTransformRunner
         {
             throw new SubProcessException("Sub process reported exception during processing of " + infile + ".  Message: "+ e.getMessage(), e);
         }
+
+        /*
+        for (int i=0; i < xforms.length; i++)
+        {
+            try
+            {
+                System.out.println("Applying " + xforms[i] + " output: " + i);
+                rxwxArguments[index-1] = outfile.getAbsolutePath() + "_" + i;
+                if (i > 0)
+                    rxwxArguments[index-2] = outfile.getAbsolutePath() + "_" + (i-1);
+                rxwxArguments[index] = xforms[i];
+                ReadXMLWriteXML.main(rxwxArguments);
+            }
+            catch (Exception e)
+            {
+                throw new SubProcessException("Sub process reported exception during processing of " + infile + ".  Message: "+ e.getMessage(), e);
+            }
+        }
+        */
         
         if (!outfile.exists())
         {

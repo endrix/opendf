@@ -67,7 +67,7 @@ public class CalActorClassFactory extends AbstractCachingGenericInterpreterModel
 	@Override
 	protected Object readModel(InputStream modelSource) throws MultiErrorException
     {
-		return SourceReader.readActor(new InputStreamReader(modelSource));
+		return SourceReader.readActor(new InputStreamReader(modelSource), getResourceName());
 	}
 
 	@Override
@@ -78,7 +78,7 @@ public class CalActorClassFactory extends AbstractCachingGenericInterpreterModel
 	@Override
 	protected Object readModelWhileCaching(InputStream is, OutputStream os) throws MultiErrorException
     {
-        Document doc = SourceReader.parseActor(new InputStreamReader(is));
+        Document doc = SourceReader.parseActor(new InputStreamReader(is), getResourceName());
         Node a = ASTFactory.preprocessActor(doc);
         
         try

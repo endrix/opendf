@@ -60,6 +60,8 @@ import net.sf.caltrop.hades.network.Network;
 import net.sf.caltrop.util.xml.ElementPredicate;
 import net.sf.caltrop.util.xml.TagNamePredicate;
 import net.sf.caltrop.util.xml.Util;
+import net.sf.caltrop.util.source.LoadingErrorException;
+import net.sf.caltrop.util.source.LoadingErrorRuntimeException;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -162,7 +164,19 @@ public class XNLModelInterface implements ModelInterface {
 					                                                          thisEnv, 
 					                                                          myPlatform.context());
 
-			buildNetworkFromXDF(n, xdfModel, myPlatform, env, myLoader);
+			try
+            {
+                buildNetworkFromXDF(n, xdfModel, myPlatform, env, myLoader);
+            }
+            catch (LoadingErrorException lee)
+            {
+                throw new LoadingErrorRuntimeException("XDF Network instantiation failed", lee);
+            }
+            catch (Exception e)
+            {
+                throw new RuntimeException("XDF Network instantiation failed", e);
+            }
+
 		}
 		
 		public XNLNetworkCreator(Object modelSource) {
@@ -172,32 +186,32 @@ public class XNLModelInterface implements ModelInterface {
 		private Object modelSource;		
 	}
 	
-	private static Class loadClassFromElement(Element e, ClassLoader loader) {
-		String unqualifiedClassName = e.getAttribute(attrName);
-		NodeList nlId = xpathEvalNodes("QID/ID", e);
-		String packageName = "";
-		for (int i = 0; i < nlId.getLength(); i++) {
-			Element eID = (Element)nlId.item(i);
-			packageName += eID.getAttribute(attrId) + ".";
-		}
+// 	private static Class loadClassFromElement(Element e, ClassLoader loader) {
+// 		String unqualifiedClassName = e.getAttribute(attrName);
+// 		NodeList nlId = xpathEvalNodes("QID/ID", e);
+// 		String packageName = "";
+// 		for (int i = 0; i < nlId.getLength(); i++) {
+// 			Element eID = (Element)nlId.item(i);
+// 			packageName += eID.getAttribute(attrId) + ".";
+// 		}
 		
-		String className = packageName + unqualifiedClassName;
+// 		String className = packageName + unqualifiedClassName;
 		
-		try { 
-			Class c;
-			try {
-				c = loader.loadClass(className);
-			} catch (Exception exc) {
-				c = Class.forName(className);
-			}
+// 		try { 
+// 			Class c;
+// 			try {
+// 				c = loader.loadClass(className);
+// 			} catch (Exception exc) {
+// 				c = Class.forName(className);
+// 			}
 			
-			return c;
-		}
-		catch (ClassNotFoundException exc) {
-			exc.printStackTrace();
-			throw new RuntimeException("Could not locate model class '" + packageName + unqualifiedClassName + "'.", exc);
-		}
-	}
+// 			return c;
+// 		}
+// 		catch (ClassNotFoundException exc) {
+// 			exc.printStackTrace();
+// 			throw new RuntimeException("Could not locate model class '" + packageName + unqualifiedClassName + "'.", exc);
+// 		}
+// 	}
 
 
 }
