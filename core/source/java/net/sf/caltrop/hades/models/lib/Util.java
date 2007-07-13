@@ -65,6 +65,7 @@ import net.sf.caltrop.hades.network.Network;
 import net.sf.caltrop.util.logging.Logging;
 
 import net.sf.caltrop.util.source.LoadingErrorException;
+import net.sf.caltrop.util.source.LoadingErrorRuntimeException;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -245,8 +246,22 @@ public class Util {
                 // information up.
                 throw lee;
             }
+            catch (LoadingErrorRuntimeException lere)
+            {
+                // A LoadginErrorRumtimeException indicates we found
+                // the class but could not parse it.  Pass that
+                // information up.
+                throw lere;
+            }
             catch (Exception exc) {
-                System.out.println("CAUGHT EXCEPTION " + exc);
+                Logging.dbg().severe("CAUGHT EXCEPTION " + exc);
+                Throwable t = exc;
+                while (t.getCause() != null)
+                {
+                    Logging.dbg().info("\tbecause " + t.getCause());
+                    t = t.getCause();
+                }
+                
 				Logging.dbg().warning("Default loader for '" + className + "' because an exception was thrown: " + exc.getMessage());
 				c = Class.forName(className);
 			}

@@ -172,6 +172,10 @@ public class XNLModelInterface implements ModelInterface {
             {
                 throw new LoadingErrorRuntimeException("XDF Network instantiation failed", lee);
             }
+            catch (LoadingErrorRuntimeException lere)
+            {
+                throw lere;
+            }
             catch (Exception e)
             {
                 throw new RuntimeException("XDF Network instantiation failed", e);
