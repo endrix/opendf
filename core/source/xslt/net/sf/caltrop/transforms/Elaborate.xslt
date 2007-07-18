@@ -9,6 +9,7 @@
     version="2.0">
     
     <xsl:output method="xml"/>
+    <xsl:include href="net/sf/caltrop/transforms/CopyRequiredDecls.xslt"/>
     
     <xd:doc type="stylesheet">
         <xd:author>JWJ</xd:author>
@@ -125,7 +126,12 @@
                 <Decl kind="Variable" name="{$nm}">
                     <xsl:copy-of select="Type"/>
                     <Expr kind="Let">
-                        <xsl:copy-of select="$env/Env/Decl"/>
+                      <!--<xsl:copy-of select="$env/Env/Decl"/> -->
+                      <xsl:call-template name="copyAllRequiredDecls">
+                        <xsl:with-param name="expr" select="$pars[@name=$nm]/Expr"/>
+                        <xsl:with-param name="env" select="$env"/>
+                      </xsl:call-template>
+
                         <xsl:copy-of select="$pars[@name=$nm]/Expr"/>
                     </Expr>
                 </Decl> 
@@ -151,7 +157,11 @@
                 <Decl kind="Variable" name="{$nm}">
                     <xsl:copy-of select="Type"/>
                     <Expr kind="Let">
-                        <xsl:copy-of select="$env/Env/Decl"/>
+                      <!-- <xsl:copy-of select="$env/Env/Decl"/>-->
+                      <xsl:call-template name="copyAllRequiredDecls">
+                        <xsl:with-param name="expr" select="$pars[@name=$nm]/Expr"/>
+                        <xsl:with-param name="env" select="$env"/>
+                      </xsl:call-template>
                         <xsl:copy-of select="$pars[@name=$nm]/Expr"/>
                     </Expr>
                 </Decl> 
