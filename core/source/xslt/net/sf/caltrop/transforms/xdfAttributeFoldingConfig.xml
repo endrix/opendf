@@ -1,0 +1,34 @@
+
+<AttributeFolding>
+    
+    <ConnectionAttributeDefault attrKind="Value">
+        <FoldingFunction value="lambda (L) : L end"/>
+    </ConnectionAttributeDefault>
+        
+    <ConnectionAttribute attrName="bufferSize" attrKind="Value">
+        <DefaultValue value="1"/>
+        <FoldingFunction value="lambda (L) : accumulate(lambda (x, y) : if x > y then x else y end end, 0, L) end"/>
+    </ConnectionAttribute>
+
+    <ConnectionAttribute attrName="queuetap" attrKind="Value">
+        <DefaultValue value="0"/>
+        <FoldingFunction value="lambda (L) : accumulate(lambda (x, y) : if x > y then x else y end end, 0, L) end"/>
+    </ConnectionAttribute>
+    
+    <ConnectionAttribute attrName="debugtap" attrKind="Value">
+        <DefaultValue value="0"/>
+        <FoldingFunction value="lambda (L) : accumulate(lambda (x, y) : if x > y then x else y end end, 0, L) end"/>
+    </ConnectionAttribute>
+
+    <NetworkAttribute attrName="example" attrKind="Value">
+        <DefaultValue value="0"/>
+        <FoldingFunction value="lambda (L) : accumulate(lambda (x, y) : x + y end, 0, L) end"/>        
+    </NetworkAttribute>
+    
+    <NetworkAttributeDefault attrKind="Value">
+        <FoldingFunction value="lambda (L) : L end"/>
+    </NetworkAttributeDefault>
+    
+    
+    
+</AttributeFolding>

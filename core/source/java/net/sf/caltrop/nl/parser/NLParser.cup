@@ -647,12 +647,15 @@ network ::=
 	port_inputs_opt:iports EQUALS_EQUALS_GT port_outputs_opt:oports
 	COLON
 	
+	attributes_opt:attrs
+	
 	network_body_things_opt:things
 	
 	end_network:zzz
 	{:
 		Element n = getDocumentElement();
 		appendChild(n, name);
+		appendChildren(n, attrs);
 		appendChildren(n, iports);
 		appendChildren(n, oports);
 		appendChildren(n, typePars);

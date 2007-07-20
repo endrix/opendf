@@ -155,7 +155,7 @@ public class Network {
 	public void  addNetworkElement(Element e) {
 		network.getDocumentElement().appendChild(e);
 	}
-	
+		
 	public Document  getXDF() {
 		return network;
 	}
@@ -231,6 +231,14 @@ public class Network {
 			String var = pd.getAttribute(attrName);
 			Object val = env.get(var);
 			addDeclarationToNetwork(var, renderObject(val, context, Network.domFactory), n);
+		}
+		
+		//
+		// network attributes
+		//
+		
+		for (Element ae : xpathEvalElements("/Network/Attribute", nldoc)) {
+			n.addNetworkElement((Element)n.importNode(ae));
 		}
 		
 		//
