@@ -149,8 +149,18 @@
             
         </XDF>
     </xsl:template>
-    
-    <xsl:template match="Attribute"/>
+        
+    <xsl:template match="Attribute">
+        <xsl:if test="parent::Instance">
+            <xsl:copy>
+                <xsl:for-each select="@*">
+                    <xsl:attribute name="{name()}"><xsl:value-of select="."/></xsl:attribute>
+                </xsl:for-each>
+                
+                <xsl:apply-templates select="node() | text()"/>
+            </xsl:copy>
+        </xsl:if>
+    </xsl:template>
     
     <xsl:template match="*">
         <xsl:copy>
