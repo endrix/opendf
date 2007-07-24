@@ -1324,7 +1324,6 @@ send_new_vop_height: action ==> BTYPE: [ vol_height ] end
   priority
 
     vo_header.good         >  generic_done;
-    vol_start_code.good    >  generic_done;
     vol_aspect.detailed    >  generic_done;
     vol_control.detailed   >  generic_done_with_bitread;
     vol_vbv.detailed       >  generic_done_with_bitread;
