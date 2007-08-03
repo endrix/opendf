@@ -256,6 +256,35 @@ public class Util {
         return doc;
     }
 
+    public static Node applyTransformAsResource(Node document, String resName, String [] parNames, Object [] parValues) throws Exception {
+    	assert parNames.length == parValues.length;
+    	
+        Node doc = document;
+
+        InputStream is = Util.class.getClassLoader().getResourceAsStream(resName);
+        Transformer xf;
+        try {
+        	xf = createTransformer(is);
+        } catch (Throwable e) {
+        	Logging.dbg().throwing("Util", "applyTransformsAsResources", e);
+        	throw new TransformFailedException("Could not create transformer '" + resName + "'.", e);
+        } finally {
+        	if (is != null) is.close();
+        }
+        for (int i = 0; i < parNames.length; i++) {
+        	xf.setParameter(parNames[i], parValues[i]);
+        }
+        DOMResult res = new DOMResult();
+        try {
+        	xf.transform(new DOMSource(doc), res);
+        	doc = (Node)res.getNode();
+        } catch (Throwable e) {
+        	Logging.dbg().throwing("Util", "applyTransformsAsResources", e);
+        	throw new TransformFailedException("Could not apply transformation '" + resName + "'.", e);
+        }
+        return doc;
+    }
+
     private static TransformerFactory createTransformerFactory ()
     {
         TransformerFactory xff = TransformerFactory.newInstance();

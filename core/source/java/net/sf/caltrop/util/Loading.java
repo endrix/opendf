@@ -1,4 +1,4 @@
-package net.sf.caltrop.xslt.util;
+package net.sf.caltrop.util;
 
 import static net.sf.caltrop.util.xml.Util.createXML;
 

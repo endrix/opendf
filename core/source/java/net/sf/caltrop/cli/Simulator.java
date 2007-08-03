@@ -38,6 +38,10 @@ ENDCOPYRIGHT
 
 package net.sf.caltrop.cli;
 
+import static net.sf.caltrop.util.xml.Util.applyTransformAsResource;
+import static net.sf.caltrop.util.xml.Util.applyTransformsAsResources;
+import static net.sf.caltrop.util.xml.Util.createTransformer;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -57,6 +61,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.Transformer;
+
+import org.w3c.dom.DOMImplementation;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+
 import net.sf.caltrop.cal.interpreter.ExprEvaluator;
 import net.sf.caltrop.cal.interpreter.environment.Environment;
 import net.sf.caltrop.cal.interpreter.util.DefaultPlatform;
@@ -65,14 +78,21 @@ import net.sf.caltrop.cal.util.SourceReader;
 import net.sf.caltrop.cli.lib.EvaluatedStreamCallback;
 import net.sf.caltrop.hades.des.DiscreteEventComponent;
 import net.sf.caltrop.hades.des.util.OutputBlockRecord;
+import net.sf.caltrop.hades.models.ModelInterface;
+import net.sf.caltrop.hades.models.lib.XDFModelInterface;
 import net.sf.caltrop.hades.simulation.SequentialSimulator;
 import net.sf.caltrop.hades.simulation.SequentialSimulatorCallback;
 import net.sf.caltrop.hades.simulation.StreamIOCallback;
 import net.sf.caltrop.hades.util.NullInputStream;
 import net.sf.caltrop.hades.util.NullOutputStream;
+import net.sf.caltrop.util.Loading;
+import net.sf.caltrop.util.io.ClassLoaderStreamLocator;
+import net.sf.caltrop.util.io.DirectoryStreamLocator;
+import net.sf.caltrop.util.io.StreamLocator;
 import net.sf.caltrop.util.logging.Logging;
 import net.sf.caltrop.util.source.LoadingErrorException;
 import net.sf.caltrop.util.source.LoadingErrorRuntimeException;
+import net.sf.caltrop.util.xml.Util.TransformFailedException;
 
 public class Simulator {
 	
@@ -86,11 +106,12 @@ public class Simulator {
 		String actorClass = null;
 		String cachePath = null;
         Level userVerbosity = Logging.user().getLevel();
+        boolean elaborate = false;
 		boolean debug = false;
         boolean interpretStimulus = true;
         boolean bufferBlockRecord = false;
 		
-		Map params = new HashMap();
+		Map<String, String> params = new HashMap<String, String>();
 		
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].equals("-n")) {
@@ -115,6 +136,8 @@ public class Simulator {
 				outFile = args[i];
 			} else if (args[i].equals("--no-interpret-stimulus")) {
                 interpretStimulus = false;
+			} else if (args[i].equals("-e")) {
+				elaborate = true;
 			} else if (args[i].equals("-ea")) {
 				System.setProperty("EnableAssertions", "true");
 			} else if (args[i].equals("-tc")) {
@@ -189,55 +212,10 @@ public class Simulator {
         }
         Logging.user().info("Model Path: " + Arrays.asList(modelPath));
         ClassLoader classLoader = new SimulationClassLoader(Simulator.class.getClassLoader(), modelPath, cachePath);
-        
+
         Platform platform = DefaultPlatform.thePlatform;
 
-        Environment env = platform.context().newEnvironmentFrame(platform.createGlobalEnvironment());
-        env.bind("__ClassLoader", platform.context().fromJavaObject(classLoader));
-        ExprEvaluator evaluator = new ExprEvaluator(platform.context(), env);
-		
-        Map paramValues = new HashMap();
-        paramValues.put("__ClassLoader", classLoader);
-        for (Iterator i = params.keySet().iterator(); i.hasNext(); ) {
-            String var = (String)i.next();
-			
-            Object value = evaluator.evaluate(SourceReader.readExpr(new StringReader((String)params.get(var))));
-                
-            paramValues.put(var, value);
-        }
-				
-        DiscreteEventComponent dec = null;
-        try
-        {
-            dec = loadDEC(actorClass, paramValues, classLoader);
-        }
-        catch (LoadingErrorException lee)
-        {
-            Logging.user().severe(lee.getMessage());
-            lee.getErrorContainer().logTo(Logging.user());
-            Logging.user().severe("An error has occurred.  Exiting abnormally.\n");
-            System.exit(-1);
-        }
-        catch (LoadingErrorRuntimeException lere)
-        {
-            Logging.user().severe(lere.getMessage());
-            lere.getErrorContainer().logTo(Logging.user());
-            Logging.user().severe("An error has occurred.  Exiting abnormally.\n");
-            System.exit(-1);
-        }
-        catch (DECLoadException dle)
-        {
-            Logging.user().severe("Could not load simulation model." + dle.getMessage());
-            Logging.user().severe("An error has occurred.  Exiting abnormally.\n");
-            System.exit(-1);
-        }
-        catch (ClassNotFoundException cnfe)
-        {
-            Logging.user().severe("Could not load simulation model." + cnfe.getMessage());
-            Logging.user().severe("Specify the simulatable entity as a class (no extension)");
-            Logging.user().severe("An error has occurred.  Exiting abnormally.\n");
-            System.exit(-1);
-        }
+        DiscreteEventComponent dec = createDEC(modelPath, actorClass,	elaborate, params, classLoader, platform);
         
             
         InputStream is = inFile == null ? new NullInputStream() : new FileInputStream(inFile);
@@ -290,8 +268,92 @@ public class Simulator {
         
         long endWallclockTime = System.currentTimeMillis();
         long wcTime = endWallclockTime - beginWallclockTime;
-            
-        Logging.user().info("Done after " + stepCount + " steps. Last step at time " + lastTime + ".");
+        if (os != null)
+        	os.close();
+        
+        postSimulationMessage(userVerbosity, bufferBlockRecord, sim, stepCount, lastTime, wcTime);
+	}
+	
+	private static DiscreteEventComponent createDEC(String[] modelPath, String actorClass, 
+			boolean elaborate,
+			Map<String, String> params, ClassLoader classLoader, Platform platform)
+			throws Exception {
+		DiscreteEventComponent dec = null;
+        try
+        {
+        	if (elaborate) {
+        		initializeLocators(modelPath, classLoader);
+
+    			Node doc = Loading.loadActorSource(actorClass);
+    			
+                Node res = applyTransformAsResource(doc, elaborationTransformName, 
+                								    new String [] {"actorParameters"}, new Object [] {createActorParameters(params)});
+                res = applyTransformsAsResources(res, postElaborationTransformNames);
+                
+                dec = createNetworkDEC(res, classLoader);
+        	} else {
+                Environment env = platform.context().newEnvironmentFrame(platform.createGlobalEnvironment());
+                env.bind("__ClassLoader", platform.context().fromJavaObject(classLoader));
+                ExprEvaluator evaluator = new ExprEvaluator(platform.context(), env);
+        		
+                Map paramValues = new HashMap();
+                paramValues.put("__ClassLoader", classLoader);
+                for (String var : params.keySet()) {
+        			
+                    Object value = evaluator.evaluate(SourceReader.readExpr(new StringReader((String)params.get(var))));
+                        
+                    paramValues.put(var, value);
+                }
+
+                dec = loadDEC(actorClass, paramValues, classLoader);
+        	}
+        }
+        catch (LoadingErrorException lee)
+        {
+            Logging.user().severe(lee.getMessage());
+            lee.getErrorContainer().logTo(Logging.user());
+            Logging.user().severe("An error has occurred.  Exiting abnormally.\n");
+            System.exit(-1);
+        }
+        catch (LoadingErrorRuntimeException lere)
+        {
+            Logging.user().severe(lere.getMessage());
+            lere.getErrorContainer().logTo(Logging.user());
+            Logging.user().severe("An error has occurred.  Exiting abnormally.\n");
+            System.exit(-1);
+        }
+        catch (DECLoadException dle)
+        {
+            Logging.user().severe("Could not load simulation model." + dle.getMessage());
+            Logging.user().severe("An error has occurred.  Exiting abnormally.\n");
+            System.exit(-1);
+        }
+        catch (ClassNotFoundException cnfe)
+        {
+            Logging.user().severe("Could not load simulation model." + cnfe.getMessage());
+            Logging.user().severe("Specify the simulatable entity as a class (no extension)");
+            Logging.user().severe("An error has occurred.  Exiting abnormally.\n");
+            System.exit(-1);
+        }
+        catch (TransformFailedException tfe)
+        {
+            Logging.user().severe(tfe.getMessage());
+            Logging.user().severe("Could not elaborate network " + actorClass);
+            System.exit(-1);
+        }
+		return dec;
+	}
+	
+	private static DiscreteEventComponent  createNetworkDEC(Node xdf, ClassLoader classLoader) {
+		ModelInterface mi = new XDFModelInterface();
+		
+		return mi.instantiate(xdf, Collections.EMPTY_MAP, mi.createLocationMap(xdf), classLoader);
+	}
+
+	private static void postSimulationMessage(Level userVerbosity,
+			boolean bufferBlockRecord, SequentialSimulator sim, long stepCount,
+			double lastTime, long wcTime) {
+		Logging.user().info("Done after " + stepCount + " steps. Last step at time " + lastTime + ".");
         Logging.user().info("Execution time: " + wcTime + "ms."
             + (wcTime > 0 ? " (" + (1000.0 * (double)stepCount / (double)wcTime) + " steps/s)" : ""));
         Logging.user().info("The network is " + (sim.hasEvent() ? "live" : "dead")+ ".");
@@ -318,6 +380,32 @@ public class Simulator {
 
         Logging.setUserLevel(userVerbosity); // Re-set the verbosity
 	}
+	
+	private static Node createActorParameters(Map<String, String> params) throws ParserConfigurationException {
+        net.sf.caltrop.util.xml.Util.setDefaultDBFI();
+        DOMImplementation domImpl = DocumentBuilderFactory.newInstance().newDocumentBuilder().getDOMImplementation();
+        Document doc = domImpl.createDocument("", "Parameters", null);
+        
+        for (String parName : params.keySet()) {
+        	Element p = doc.createElement("Parameter");
+        	p.setAttribute("name", parName);
+        	p.setAttribute("value", params.get(parName));
+        	doc.getDocumentElement().appendChild(p);
+        }
+		
+		return doc.getDocumentElement();
+	}
+
+	static private void  initializeLocators(String [] modelPath, ClassLoader classLoader) {
+
+		StreamLocator [] sl = new StreamLocator[modelPath.length + 1];
+		for (int i = 0; i < modelPath.length; i++) {
+			sl[i] = new DirectoryStreamLocator(modelPath[i]);
+		}
+		sl[modelPath.length] =	new ClassLoaderStreamLocator(classLoader);
+
+		Loading.setLocators(sl);
+	}	
 	
 	private static String []  extractPath(String p) {
 		List<String> paths = new ArrayList<String>();
@@ -412,6 +500,13 @@ public class Simulator {
     			return 1;
     		return 0;
     	}    	
+    };
+    
+    private static final String elaborationTransformName = "net/sf/caltrop/transforms/Elaborate.xslt";
+
+    private static final String [] postElaborationTransformNames = {
+    	"net/sf/caltrop/transforms/xdfFlatten.xslt",
+    	"net/sf/caltrop/transforms/xdfFoldAttributes.xslt"
     };
 }
 

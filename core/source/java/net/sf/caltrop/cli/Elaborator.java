@@ -49,12 +49,12 @@ import java.io.PrintWriter;
 
 import javax.xml.transform.Transformer;
 
+import net.sf.caltrop.util.Loading;
 import net.sf.caltrop.util.io.ClassLoaderStreamLocator;
 import net.sf.caltrop.util.io.DirectoryStreamLocator;
 import net.sf.caltrop.util.io.StreamLocator;
 import net.sf.caltrop.util.logging.Logging;
 import net.sf.caltrop.util.xml.Util.TransformFailedException;
-import net.sf.caltrop.xslt.util.Loading;
 
 import org.w3c.dom.Node;
 
@@ -126,7 +126,7 @@ public class Elaborator {
 		);
 	}
 	
-	private final static String ElaboratorTransformationName = "/net/sf/caltrop/transforms/Elaborate.xslt";
+	public final static String ElaboratorTransformationName = "/net/sf/caltrop/transforms/Elaborate.xslt";
 
 }
 
