@@ -40,12 +40,22 @@ package net.sf.caltrop.cli;
  */
 
 import static net.sf.caltrop.util.xml.Util.applyTransform;
+import static net.sf.caltrop.util.xml.Util.applyTransformAsResource;
+import static net.sf.caltrop.util.xml.Util.applyTransformsAsResources;
 import static net.sf.caltrop.util.xml.Util.createTransformer;
 import static net.sf.caltrop.util.xml.Util.createXML;
+import static net.sf.caltrop.cli.Util.elaborate;
+import static net.sf.caltrop.cli.Util.extractPath;
+import static net.sf.caltrop.cli.Util.createActorParameters;
+import static net.sf.caltrop.cli.Util.initializeLocators;
 
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.logging.Level;
 
 import javax.xml.transform.Transformer;
 
@@ -54,6 +64,7 @@ import net.sf.caltrop.util.io.ClassLoaderStreamLocator;
 import net.sf.caltrop.util.io.DirectoryStreamLocator;
 import net.sf.caltrop.util.io.StreamLocator;
 import net.sf.caltrop.util.logging.Logging;
+import net.sf.caltrop.util.xml.Util;
 import net.sf.caltrop.util.xml.Util.TransformFailedException;
 
 import org.w3c.dom.Node;
@@ -62,29 +73,92 @@ import org.w3c.dom.Node;
 public class Elaborator {
 
 	public static void main (String [] args) throws Exception {
-		if (args.length != 2) {
-			printUsage();
-			return;
-		}
-				
-		//Logging.dbg().setLevel(Level.ALL);
+		String networkClass = null;
+		String outputFileName = null;
+		String cachePath = null;
+		String [] modelPath = null;
+		Map<String, String> params = new HashMap<String, String>();
 		
-		initializeLocators();
+		for (int i = 0; i < args.length; i++) {
+			if (args[i].equals("-D")) {
+				i += 1;
+				if (i >= args.length) usage("-D option must be followed by variable definition.");
+
+				String s = args[i].trim();
+				int n = s.indexOf('=');
+				if (n < 0) usage("Variable definition must contain '=' sign.");
+
+				String v = s.substring(0, n).trim();
+				if ("".equals(v)) usage("Variable name must not be empty.");
+				String expr = s.substring(n + 1);
+
+				params.put(v, expr);
+			} else if (args[i].equals("-o")) {
+				if (outputFileName != null) usage("Doubly defined output file.");
+				i += 1;
+				if (i >= args.length) usage();
+				outputFileName = args[i];
+            } else if (args[i].equals("-qq")) {
+                Logging.user().setLevel(Level.OFF);
+            } else if (args[i].equals("-q")) {
+                if (Logging.user().isLoggable(Level.WARNING))
+                {
+                    // If WARNING level is allowed, then make it the
+                    // least restrictive level.  If it is not, then do
+                    // NOT further relax to the WARNING level
+                    Logging.setUserLevel(Level.WARNING);
+                }
+            } else if (args[i].equals("-v")) {
+                Logging.user().setLevel(Level.ALL);                
+            } else if (args[i].equals("-debug")) {
+                Logging.user().setLevel(Level.ALL);
+            } else if (args[i].equals("-debug0")) {
+                Logging.dbg().setLevel(Level.ALL);
+			} else if (args[i].equals("-cache")) {
+				if (cachePath != null) usage("Doubly defined cache path.");
+				i += 1;
+				if (i >= args.length) usage("-cache option must be followed by cache path.");
+				cachePath = args[i];				
+			} else if (args[i].equals("-mp")) {
+				if (modelPath != null) usage("Doubly defined model path.");
+				i += 1;
+				if (i >= args.length) usage("-mp option must be followed by model path.");
+				modelPath = extractPath(args[i]);
+            } else if (args[i].equals("--version")) {
+                VersionInfo.printVersion();
+                System.exit(0);
+            }
+            else if (!args[i].startsWith("-")) {
+				if (networkClass != null) {
+					if (outputFileName != null)
+						usage("Network class and output file already defined.");
+					outputFileName = args[i];
+				} else {
+					networkClass = args[i];
+				}
+			} else {
+				usage("Unknown option: " + args[i]);
+			}
+		}
+
+        if (modelPath == null) {
+            modelPath = new String [] {"."};
+        }
+        Logging.user().info("Model Path: " + Arrays.asList(modelPath));
+						
+        ClassLoader classLoader = new SimulationClassLoader(Simulator.class.getClassLoader(), modelPath, cachePath);
+		initializeLocators(modelPath, Elaborator.class.getClassLoader());
 
 		try {
-			Node doc = Loading.loadActorSource(args[0]);
-	
-			Transformer t = createTransformer(Elaborator.class.getResourceAsStream(ElaboratorTransformationName));
-
             Node res = null;
-            try
-            {
-                res = applyTransform(doc, t);
+            try {
+                res = elaborate(networkClass, modelPath, classLoader, params);
             }
             catch (TransformFailedException tfe)
             {
+            	tfe.printStackTrace();
                 Logging.user().severe(tfe.getMessage());
-                Logging.user().severe("Could not elaborate network " + args[0]);
+                Logging.user().severe("Could not elaborate network " + networkClass);
                 System.exit(-1);
             }
             
@@ -92,10 +166,10 @@ public class Elaborator {
 	
 			OutputStream os = null;
 			boolean closeStream = false;
-			if (".".equals(args[1])) {
+			if (outputFileName == null || ".".equals(outputFileName)) {
 				os = System.out;
 			} else {
-				os = new FileOutputStream(args[1]);
+				os = new FileOutputStream(outputFileName);
 				closeStream = true;
 			}
 			PrintWriter pw = new PrintWriter(os);
@@ -105,28 +179,30 @@ public class Elaborator {
 			else
 				pw.flush();
 			
-			Logging.user().info("Network '" + args[0] + "' successfully elaborated.");
+			Logging.user().info("Network '" + networkClass + "' successfully elaborated.");
 		}
 		catch (Exception e) {
 			e.printStackTrace();
-			Logging.user().warning("Network elaboration failed. (" + args[0] + ")");
+			Logging.user().warning("Network elaboration failed. (" + networkClass + ")");
 		}
 	}
-	
-	static private void  initializeLocators() {
-		Loading.setLocators(new StreamLocator [] {
-				new DirectoryStreamLocator("."),
-				new ClassLoaderStreamLocator(Elaborator.class.getClassLoader())
-		});
-	}
 
-	static private void printUsage() {
-		System.err.println(
-				"Elaborator [options] <toplevelclass> <outfile> (\".\" is standard out)"
-		);
+	static private void usage(String message) {
+		System.err.println(message);
+		usage();
 	}
 	
-	public final static String ElaboratorTransformationName = "/net/sf/caltrop/transforms/Elaborate.xslt";
-
+	static private void usage() {
+		System.out.println("Elaborator [options] <toplevelclass> <outfile> (\".\" is standard out)");
+        System.out.println("  -o <file>           defines the output file");
+        System.out.println("  -D <param def>      allows specification of parameter defs");
+        System.out.println("  -q                  run quietly");
+        System.out.println("  -v                  run verbosely");
+        System.out.println("  -mp <paths>         specifies the search paths for model files");        
+        System.out.println("  -cache <path>       the path to use for caching precompiled models");        
+        System.out.println("                      If none is specified, caching is turned off.");        
+        System.out.println("  --version           Display Version information and quit");
+	}
+	
 }
 

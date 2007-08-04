@@ -41,8 +41,11 @@ package net.sf.caltrop.cli;
 import static net.sf.caltrop.util.xml.Util.applyTransformAsResource;
 import static net.sf.caltrop.util.xml.Util.applyTransformsAsResources;
 import static net.sf.caltrop.util.xml.Util.createTransformer;
+import static net.sf.caltrop.cli.Util.createActorParameters;
+import static net.sf.caltrop.cli.Util.elaborate;
+import static net.sf.caltrop.cli.Util.extractPath;
+import static net.sf.caltrop.cli.Util.initializeLocators;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
@@ -61,13 +64,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Transformer;
 
-import org.w3c.dom.DOMImplementation;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import net.sf.caltrop.cal.interpreter.ExprEvaluator;
@@ -86,9 +84,6 @@ import net.sf.caltrop.hades.simulation.StreamIOCallback;
 import net.sf.caltrop.hades.util.NullInputStream;
 import net.sf.caltrop.hades.util.NullOutputStream;
 import net.sf.caltrop.util.Loading;
-import net.sf.caltrop.util.io.ClassLoaderStreamLocator;
-import net.sf.caltrop.util.io.DirectoryStreamLocator;
-import net.sf.caltrop.util.io.StreamLocator;
 import net.sf.caltrop.util.logging.Logging;
 import net.sf.caltrop.util.source.LoadingErrorException;
 import net.sf.caltrop.util.source.LoadingErrorRuntimeException;
@@ -279,16 +274,13 @@ public class Simulator {
 			Map<String, String> params, ClassLoader classLoader, Platform platform)
 			throws Exception {
 		DiscreteEventComponent dec = null;
-        try
-        {
+        try {
         	if (elaborate) {
-        		initializeLocators(modelPath, classLoader);
-
-    			Node doc = Loading.loadActorSource(actorClass);
-    			
-                Node res = applyTransformAsResource(doc, elaborationTransformName, 
-                								    new String [] {"actorParameters"}, new Object [] {createActorParameters(params)});
+        		Node res = elaborate(actorClass, modelPath, classLoader, params);
+        		
                 res = applyTransformsAsResources(res, postElaborationTransformNames);
+                
+                Logging.user().info("Network successfully elaborated.");
                 
                 dec = createNetworkDEC(res, classLoader);
         	} else {
@@ -341,6 +333,8 @@ public class Simulator {
             Logging.user().severe("Could not elaborate network " + actorClass);
             System.exit(-1);
         }
+        Logging.user().info("Model successfully instantiated.");
+
 		return dec;
 	}
 	
@@ -379,54 +373,6 @@ public class Simulator {
         }
 
         Logging.setUserLevel(userVerbosity); // Re-set the verbosity
-	}
-	
-	private static Node createActorParameters(Map<String, String> params) throws ParserConfigurationException {
-        net.sf.caltrop.util.xml.Util.setDefaultDBFI();
-        DOMImplementation domImpl = DocumentBuilderFactory.newInstance().newDocumentBuilder().getDOMImplementation();
-        Document doc = domImpl.createDocument("", "Parameters", null);
-        
-        for (String parName : params.keySet()) {
-        	Element p = doc.createElement("Parameter");
-        	p.setAttribute("name", parName);
-        	p.setAttribute("value", params.get(parName));
-        	doc.getDocumentElement().appendChild(p);
-        }
-		
-		return doc.getDocumentElement();
-	}
-
-	static private void  initializeLocators(String [] modelPath, ClassLoader classLoader) {
-
-		StreamLocator [] sl = new StreamLocator[modelPath.length + 1];
-		for (int i = 0; i < modelPath.length; i++) {
-			sl[i] = new DirectoryStreamLocator(modelPath[i]);
-		}
-		sl[modelPath.length] =	new ClassLoaderStreamLocator(classLoader);
-
-		Loading.setLocators(sl);
-	}	
-	
-	private static String []  extractPath(String p) {
-		List<String> paths = new ArrayList<String>();
-		boolean done = false;
-		String r = p;
-		while (!done) {
-			String s = null;
-			int n = r.indexOf(File.pathSeparatorChar);
-			if (n < 0) {
-				s = r;
-				done = true;
-			} else {
-				s = r.substring(0, n);
-				r = (r.length() > n) ? r.substring(n + 1) : "";
-			}
-			s = s.trim();
-			if (!"".equals(s)) {
-				paths.add(s);
-			}
-		}
-		return paths.toArray(new String [paths.size()]);
 	}
 	
 	private static void usage() {
@@ -502,7 +448,6 @@ public class Simulator {
     	}    	
     };
     
-    private static final String elaborationTransformName = "net/sf/caltrop/transforms/Elaborate.xslt";
 
     private static final String [] postElaborationTransformNames = {
     	"net/sf/caltrop/transforms/xdfFlatten.xslt",

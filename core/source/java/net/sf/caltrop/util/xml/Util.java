@@ -256,6 +256,10 @@ public class Util {
         return doc;
     }
 
+    public static Node applyTransformAsResource(Node document, String resName) throws Exception { 
+    	return applyTransformAsResource(document, resName, new String[] {}, new Object [] {});
+    }
+
     public static Node applyTransformAsResource(Node document, String resName, String [] parNames, Object [] parValues) throws Exception {
     	assert parNames.length == parValues.length;
     	

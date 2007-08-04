@@ -12,28 +12,21 @@
     <xsl:output method="xml"/>
     <xsl:include href="net/sf/caltrop/transforms/CopyRequiredDecls.xslt"/>
     
-    <xsl:param name="actorParameters"><Parameters/></xsl:param>
-    
     <xd:doc type="stylesheet">
         <xd:author>JWJ</xd:author>
         <xd:copyright>Xilinx, 2007</xd:copyright>
     </xd:doc>
     
     <xsl:template match="/">
-        <xsl:variable name="model">
-            <xsl:call-template name="inlineParameters">
-                <xsl:with-param name="model" select="XDF | Network | Actor"/>
-            </xsl:call-template>
-        </xsl:variable>
         <xsl:choose>
             <xsl:when test="XDF">
-                <xsl:apply-templates select="$model/*"/>
+                <xsl:apply-templates/>
             </xsl:when>
             <xsl:when test="Network">
-                <xsl:apply-templates select="xnlext:elaborate($model)"/> 
+                <xsl:apply-templates select="xnlext:elaborate(.)"/> 
             </xsl:when>
             <xsl:when test="Actor">
-                <xsl:copy-of select="$model/Actor"/>
+                <xsl:copy-of select="Actor"/>
             </xsl:when>
             <xsl:otherwise>
                 <ERROR source="XNL Elaborator:">Undefined top-level construct.</ERROR>
@@ -181,37 +174,6 @@
                 </xsl:if>
             </xsl:for-each>
         </Network>
-    </xsl:template>
-    
-    <xsl:template name="inlineParameters">
-        <xsl:param name="model"/>
-        
-        <xsl:element name="{name($model)}">
-            <xsl:for-each select="$model/@*">
-                <xsl:attribute name="{name()}">
-                    <xsl:value-of select="."/>
-                </xsl:attribute>
-            </xsl:for-each>
-            
-            <xsl:for-each select="$model/*">
-                <xsl:choose>
-                    <xsl:when test="Decl[@kind='Parameter'] | Decl[@kind='Param']">
-                    </xsl:when>
-                    <xsl:otherwise>
-                        <xsl:copy-of select="."/>
-                    </xsl:otherwise>
-                </xsl:choose>
-            </xsl:for-each>
-            
-            <xsl:for-each select="$actorParameters/Parameters/Parameter">
-                <xsl:variable name="v" select="@name"/>
-                <Decl kind="Variable" name="{@name}">
-                    <xsl:copy-of select="cal:parseExpression(@value)"/>
-                    <xsl:copy-of select="Decl[@kind='Param'][@name=$v]/Type"/>
-                    <xsl:copy-of select="Decl[@kind='Parameter'][@name=$v]/Type"/>
-                </Decl>
-            </xsl:for-each>
-        </xsl:element>
     </xsl:template>
     
 </xsl:stylesheet>
