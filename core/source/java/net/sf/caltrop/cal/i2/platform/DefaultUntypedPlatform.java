@@ -706,7 +706,7 @@ public class DefaultUntypedPlatform implements Platform {
 				try {
 					return createInteger(s.read());
 				} catch (IOException e) {
-					throw new InterpreterException("I/O exception.", e);
+					throw new InterpreterException("I/O exception while trying to read a byte.", e);
 				}
 			}
 		}, null);
@@ -719,7 +719,7 @@ public class DefaultUntypedPlatform implements Platform {
 				try {
 					s.write(bb);
 				} catch (IOException e) {
-					throw new InterpreterException("I/O exception.", e);
+					throw new InterpreterException("I/O exception while trying to write a byte.", e);
 				}
 			}
 		}, null);
@@ -731,7 +731,7 @@ public class DefaultUntypedPlatform implements Platform {
 				try {
 					return new FileInputStream(fname);
 				} catch (FileNotFoundException e) {
-					throw new InterpreterException("I/O exception.", e);
+					throw new InterpreterException("I/O exception while trying to open a file at '" + fname + "'.", e);
 				}
 			}
 		}, null);
@@ -743,7 +743,7 @@ public class DefaultUntypedPlatform implements Platform {
 				try {
 					return new FileOutputStream(fname);
 				} catch (FileNotFoundException e) {
-					throw new InterpreterException("I/O exception.", e);
+					throw new InterpreterException("I/O exception while trying to create a file at '" + fname + "'.", e);
 				}
 			}
 		}, null);
@@ -754,7 +754,7 @@ public class DefaultUntypedPlatform implements Platform {
 				try {
 					((InputStream)a).close();
 				} catch (IOException e) {
-					throw new InterpreterException("I/O exception.", e);
+					throw new InterpreterException("I/O exception while trying to close an input stream.", e);
 				}
 			}
 		}, null);
@@ -765,7 +765,7 @@ public class DefaultUntypedPlatform implements Platform {
 				try {
 					((OutputStream)a).close();
 				} catch (IOException e) {
-					throw new InterpreterException("I/O exception.", e);
+					throw new InterpreterException("I/O exception white trying to close an output stream.", e);
 				}
 			}
 		}, null);
