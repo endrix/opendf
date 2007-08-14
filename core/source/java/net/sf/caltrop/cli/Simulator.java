@@ -354,7 +354,7 @@ public class Simulator {
         if (bufferBlockRecord && !sim.hasEvent()) {
         	Collection<OutputBlockRecord> obrs = (Collection<OutputBlockRecord>)sim.getProperty("OutputBlockRecords");
         	int n = 0;
-        	List<OutputBlockRecord> sortedObrs = new ArrayList<OutputBlockRecord>(obrs);
+        	List<OutputBlockRecord> sortedObrs = obrs == null ? new ArrayList<OutputBlockRecord>():new ArrayList<OutputBlockRecord>(obrs);
         	Collections.sort(sortedObrs, obrComparator);
         	for (OutputBlockRecord obr : sortedObrs) {
         		StringBuffer msg = new StringBuffer("Blocked: ");
