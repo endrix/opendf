@@ -621,6 +621,43 @@ public class DefaultUntypedPlatform implements Platform {
 		    }
 		}, null);
 		
+		
+		env.bind("real", new FunctionOf1() {
+			@Override
+		    public Object f(Object a) {
+				if (a instanceof Complex) 
+					return new Double(((Complex)a).re());
+				if (a instanceof Number)
+					return a;
+				throw new InterpreterException("real function: Cannot apply. (" + a + ")");						
+			}
+		}, null);
+
+		env.bind("imag", new FunctionOf1() {
+			@Override
+		    public Object f(Object a) {
+				if (a instanceof Complex) 
+					return new Double(((Complex)a).im());
+				if (a instanceof Number)
+					return Double.valueOf(0);
+				throw new InterpreterException("imag function: Cannot apply. (" + a + ")");						
+			}
+		}, null);
+		
+		env.bind("isComplex", new FunctionOf1() {
+			@Override
+		    public Object f(Object a) {
+				if (a instanceof Complex) 
+					return Boolean.TRUE;
+				if (a instanceof Number)
+					return Boolean.FALSE;
+				throw new InterpreterException("isComplex function: Cannot apply. (" + a + ")");						
+			}
+		}, null);
+
+
+
+		
 
 		env.bind("$size", new FunctionOf1() {
 			@Override
