@@ -49,6 +49,7 @@ import net.sf.caltrop.cal.i2.util.ProcedureOf2;
 import net.sf.caltrop.cal.i2.util.ProcedureOf2Eval;
 import net.sf.caltrop.cal.i2.util.ProcedureOf4;
 import net.sf.caltrop.cal.i2.util.ReplacePrefixImportMapper;
+import net.sf.caltrop.lib.Complex;
 
 public class DefaultUntypedPlatform implements Platform {
 
@@ -163,7 +164,11 @@ public class DefaultUntypedPlatform implements Platform {
 			
 			@Override
 			public Object f(Object a) {
-				return Double.valueOf(java.lang.Math.sin(doubleValueOf(a)));
+				if (a instanceof Complex) {
+					return createComplex(((Complex)a).sin());
+				} else {
+					return Double.valueOf(java.lang.Math.sin(doubleValueOf(a)));
+				}
 		    }
 		}, null);
 
@@ -171,7 +176,23 @@ public class DefaultUntypedPlatform implements Platform {
 
 			@Override
 			public Object f(Object a) {
-				return Double.valueOf(java.lang.Math.cos(doubleValueOf(a)));
+				if (a instanceof Complex) {
+					return createComplex(((Complex)a).sin());
+				} else {
+					return Double.valueOf(java.lang.Math.cos(doubleValueOf(a)));
+				}
+		    }
+		}, null);
+
+		env.bind("exp", new FunctionOf1() {
+
+			@Override
+			public Object f(Object a) {
+				if (a instanceof Complex) {
+					return createComplex(((Complex)a).exp());
+				} else {
+					return Double.valueOf(java.lang.Math.exp(doubleValueOf(a)));
+				}
 		    }
 		}, null);
 
@@ -318,6 +339,8 @@ public class DefaultUntypedPlatform implements Platform {
 		env.bind("$negate", new FunctionOf1() {
 			@Override
 			public Object f(Object a) {
+				if (a instanceof Complex) 
+					return createComplex(((Complex)a).negate());
 				if (! (a instanceof Number))
 					throw new InterpreterException("- operator: Argument not a number. (" + a + ")");
 				Number n = (Number)a;
@@ -346,6 +369,9 @@ public class DefaultUntypedPlatform implements Platform {
 				if (a instanceof String || b instanceof String) {
 					return "" + a + b;
 				} else if (a instanceof Number) {
+					if (b instanceof Complex) {
+						return createComplex(((Complex)b).add(((Number)a).doubleValue()));
+					}
 					if (! (b instanceof Number))
 						throw new InterpreterException("+ operator: Cannot add to number: " + b);
 
@@ -362,6 +388,14 @@ public class DefaultUntypedPlatform implements Platform {
 					}
 
 					return BigInteger.valueOf(((Number)a).longValue()).add(BigInteger.valueOf(((Number)b).longValue()));
+				} else if (a instanceof Complex) {
+					if (b instanceof Complex) {
+						return createComplex(((Complex)a).add((Complex)b));
+					}
+					if (b instanceof Number) {
+						return createComplex(((Complex)a).add(((Number)b).doubleValue()));
+					}
+					throw new InterpreterException("+ operator: Cannot add to complex: " + b);
 				} else if (a instanceof List) {
 					if (b instanceof List) {
 						List res = new ArrayList((List)a);
@@ -397,6 +431,9 @@ public class DefaultUntypedPlatform implements Platform {
 			@Override
 			public Object f(Object a, Object b) {
 				if (a instanceof Number) {
+					if (b instanceof Complex) {
+						return createComplex(((Complex)b).multiply(((Number)a).doubleValue()));
+					}
 					if (! (b instanceof Number))
 						throw new InterpreterException("* operator: Cannot multiply with number: " + b);
 
@@ -413,6 +450,14 @@ public class DefaultUntypedPlatform implements Platform {
 					}
 
 					return BigInteger.valueOf(((Number)a).longValue()).multiply(BigInteger.valueOf(((Number)b).longValue()));
+				} else if (a instanceof Complex) {
+					if (b instanceof Complex) {
+						return createComplex(((Complex)a).multiply((Complex)b));
+					}
+					if (b instanceof Number) {
+						return createComplex(((Complex)a).multiply(((Number)b).doubleValue()));
+					}
+					throw new InterpreterException("* operator: Cannot multiply with complex: " + b);
 				} else if (a instanceof Collection) {
 					if (b instanceof Collection) {
 						Set res = new HashSet((Collection)a);
@@ -445,6 +490,9 @@ public class DefaultUntypedPlatform implements Platform {
 			@Override
 			public Object f(Object a, Object b) {
 				if (a instanceof Number) {
+					if (b instanceof Complex) {
+						return createComplex(((Complex)b).negate().add(((Number)a).doubleValue()));
+					}
 					if (! (b instanceof Number))
 						throw new InterpreterException("- operator: Cannot subtract from number: " + b);
 
@@ -461,6 +509,14 @@ public class DefaultUntypedPlatform implements Platform {
 					}
 
 					return BigInteger.valueOf(((Number)a).longValue()).subtract(BigInteger.valueOf(((Number)b).longValue()));
+				} else if (a instanceof Complex) {
+					if (b instanceof Complex) {
+						return createComplex(((Complex)a).subtract((Complex)b));
+					}
+					if (b instanceof Number) {
+						return createComplex(((Complex)a).subtract(((Number)b).doubleValue()));
+					}
+					throw new InterpreterException("- operator: Cannot add to complex: " + b);
 				} else if (a instanceof Collection) {
 					if (b instanceof Collection) {
 						Set res = new HashSet((Collection)a);
@@ -488,6 +544,9 @@ public class DefaultUntypedPlatform implements Platform {
 			@Override
 			public Object f(Object a, Object b) {
 				if (a instanceof Number) {
+					if (b instanceof Complex) {
+						return createComplex(((Complex)b).reciprocal().multiply(((Number)a).doubleValue()));
+					}
 					if (! (b instanceof Number))
 						throw new InterpreterException("/ operator: Cannot divide number: " + b);
 
@@ -504,6 +563,14 @@ public class DefaultUntypedPlatform implements Platform {
 					}
 
 					return BigInteger.valueOf(((Number)a).longValue()).divide(BigInteger.valueOf(((Number)b).longValue()));
+				} else if (a instanceof Complex) {
+					if (b instanceof Complex) {
+						return createComplex(((Complex)a).divide((Complex)b));
+					}
+					if (b instanceof Number) {
+						return createComplex(((Complex)a).divide(((Number)b).doubleValue()));
+					}
+					throw new InterpreterException("/ operator: Cannot divide complex: " + b);
 				} else if (a instanceof Map) {
 					if (b instanceof Collection) {
 						Map res = new HashMap((Map)a);
@@ -543,6 +610,17 @@ public class DefaultUntypedPlatform implements Platform {
 		        }
 		    }
 		}, null);
+		
+		env.bind("complex", new FunctionOf2() {
+			@Override
+			public Object f(Object a, Object b) {
+				if (a instanceof Number && b instanceof Number) {
+					return createComplex(((Number)a).doubleValue(), ((Number)b).doubleValue());
+				}
+				throw new InterpreterException("complex function: Cannot create complex number. (" + a + ", " + b + ")");						
+		    }
+		}, null);
+		
 
 		env.bind("$size", new FunctionOf1() {
 			@Override
@@ -894,6 +972,22 @@ public class DefaultUntypedPlatform implements Platform {
 			}
 			
 			return a.equals(b);
+		}
+	}
+	
+	private static Object  createComplex(Complex c) {
+		if (c.im() == 0) {
+			return new Double(c.re());
+		} else {
+			return c;
+		}
+	}
+	
+	private static Object  createComplex(double re, double im) {
+		if (im == 0) {
+			return new Double(re);
+		} else {
+			return new Complex(re, im);
 		}
 	}
 	
