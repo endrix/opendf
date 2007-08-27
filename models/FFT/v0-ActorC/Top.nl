@@ -36,8 +36,59 @@ BEGINCOPYRIGHT X
 ENDCOPYRIGHT
 */
 
-actor Clock (dt) ==> Out {
+/**
+	FFT v1 illustrates the construction of a simple DFT in CAL.
+	
+*/
 
-	action ==> [null]
-	delay dt ;
-}
+network Top () ==> :
+
+import entity net.sf.caltrop.actors.Plotter;
+
+var
+	F1 = 20.0;
+	F2 = 30.0;
+	F3 = 70.0;
+
+	N = 256;
+	SQRTN = 16;
+	
+entities
+	add1 = Add();
+	add2 = Add();
+	s1 = Sine(d = (2.0 * 3.14) / F1);
+	s2 = Sine(d = (2.0 * 3.14) / F2);
+	s3 = Sine(d = (2.0 * 3.14) / F3);
+	p = Plotter(autoredraw = 50, time = false);
+	clk = Clock(dt = 1);
+	
+	tagOrig = Tag(tag = "Original");
+	tagDFT = Tag(tag = "DFT");
+	tagIDFT = Tag(tag = "IDFT");
+
+	dft = DFT(N = N, scale = 1.0/SQRTN);
+	idft = IDFT(N = N, scale = 1.0/SQRTN);
+
+structure
+	clk.Out --> s1.Trigger;
+	clk.Out --> s2.Trigger;	
+	clk.Out --> s3.Trigger;	
+	s1.Out --> add1.A;
+	s2.Out --> add1.B;
+	add1.Out --> add2.A;
+	s3.Out --> add2.B;
+	add2.Out --> tagOrig.In;
+	
+	add2.Out --> dft.In;
+	dft.Out --> tagDFT.In;
+	
+	dft.Out --> idft.In;
+	idft.Out --> tagIDFT.In;
+	
+	tagOrig.Out --> p.Data;	
+	tagDFT.Out --> p.Data;
+	tagIDFT.Out --> p.Data;
+end
+
+
+		

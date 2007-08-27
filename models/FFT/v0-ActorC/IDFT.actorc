@@ -36,28 +36,28 @@ BEGINCOPYRIGHT X
 ENDCOPYRIGHT
 */
 /**
- * This actor implements an DFT.
+ * This actor implements an inverse DFT.
  * 
  * @author JWJ
 */
 
-actor DFT (scale, N) In ==> Out {
+actor IDFT (scale, N) In ==> Out {
 
     invariant {
         N > 0
     }
-    
+
     action In: [a] repeat N ==> Out: [b] repeat N
-    var 
-    	b = [sum([a[n] * coeff[k, n] : for n in 0 .. N - 1]) : for k in 0 .. N - 1]; 
+    var
+    	b = [sum([a[n] * coeff[k, n] : for n in 0 .. N - 1]) : for k in 0 .. N - 1];
     ;
     
     function sum (L) {
     	accumulate(lambda (x, y) { x + y }, 0, L)
     }
-        
+    
     coeff = [ [exp(P * k * n) * scale : for n in 0 .. N - 1] : for k in 0 .. N - 1]; 
     
-    P = complex(0, (-2.0 * 3.14) / N);
+    P = complex(0, (2.0 * 3.14) / N);
     
 }
