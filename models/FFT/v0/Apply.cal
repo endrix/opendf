@@ -1,5 +1,0 @@
-
-actor Apply (f) In ==> Out :
-
-	action In: [a] ==> Out: [real(a)] end
-end
