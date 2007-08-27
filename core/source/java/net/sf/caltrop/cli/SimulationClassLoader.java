@@ -45,6 +45,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import net.sf.caltrop.cli.lib.ActorCClassFactory;
 import net.sf.caltrop.cli.lib.CalActorClassFactory;
 import net.sf.caltrop.cli.lib.CalMLActorClassFactory;
 import net.sf.caltrop.cli.lib.NLClassFactory;
@@ -121,6 +122,8 @@ public class SimulationClassLoader extends ClassLoader {
 
 //		addModelClassFactory("pcalml", new PCalMLActorClassFactory());
 		addModelClassFactory("cal", new CalActorClassFactory(cachePath));
+		addModelClassFactory("actorc", new ActorCClassFactory(cachePath));
+		addModelClassFactory("ac", new ActorCClassFactory(cachePath));
 		addModelClassFactory("calml", new CalMLActorClassFactory()); 
 		addModelClassFactory("nl", new NLClassFactory());
 		addModelClassFactory("xnl", new XNLClassFactory());

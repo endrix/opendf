@@ -24,6 +24,7 @@
     <BinaryOp name="&amp;" precedence= "80" function="bitand"/>
     
     <BinaryOp name="=" precedence= "90" function="$eq"/>
+    <BinaryOp name="==" precedence= "90" function="$eq"/>
     <BinaryOp name="!=" precedence= "90" function="$ne"/>
     
     <BinaryOp name="&lt;" precedence= "100" function="$lt"/>

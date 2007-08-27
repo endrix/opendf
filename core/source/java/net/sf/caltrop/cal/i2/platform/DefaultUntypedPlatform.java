@@ -195,6 +195,45 @@ public class DefaultUntypedPlatform implements Platform {
 				}
 		    }
 		}, null);
+		
+		env.bind("abs", new FunctionOf1() {
+
+			@Override
+			public Object f(Object a) {
+				if (a instanceof Complex) {
+					return Double.valueOf(((Complex)a).abs());
+				}
+				if (a instanceof Double || a instanceof Float) {
+					return createReal(Math.abs(((Number)a).doubleValue()));
+				}
+				if (a instanceof BigInteger) {
+					return ((BigInteger)a).abs();
+				}
+				if (a instanceof Long || a instanceof Integer || a instanceof Short || a instanceof Byte) {
+					return createInteger(Math.abs(((Number)a).longValue()));
+				}
+				throw new InterpreterException("abs function: Cannot be used with this argument. (" + a + ")");
+		    }
+		}, null);
+		
+		
+		env.bind("phase", new FunctionOf1() {
+
+			@Override
+			public Object f(Object a) {
+				if (a instanceof Complex) {
+					return Double.valueOf(((Complex)a).phase());
+				}
+				if (a instanceof Number) {
+					if (((Number)a).doubleValue() >= 0)
+						return Double.valueOf(0);
+					else 
+						return Double.valueOf(Math.PI);
+				}
+				throw new InterpreterException("phase function: Cannot be used with this argument. (" + a + ")");
+		    }
+		}, null);		
+		
 
 		env.bind("int", new FunctionOf1() {
 
@@ -1026,6 +1065,10 @@ public class DefaultUntypedPlatform implements Platform {
 		} else {
 			return new Complex(re, im);
 		}
+	}
+	
+	private static Object createReal(double d) {
+		return Double.valueOf(d);
 	}
 	
 	private static BigInteger  createInteger(long n) {
