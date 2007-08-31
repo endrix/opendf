@@ -65,13 +65,18 @@ public class Network extends AbstractDiscreteEventComponent {
 
 	public void initializeState(double t, Scheduler s) {
 		
-		creator.createNetwork(this, t, s, env, loader);
-		
-		for (Iterator i = processes.iterator(); i.hasNext(); ) {
-			DiscreteEventComponent dec = (DiscreteEventComponent) i.next();
-			dec.initializeState(t, s);
+		try {
+			creator.createNetwork(this, t, s, env, loader);
+			
+			for (Iterator i = processes.iterator(); i.hasNext(); ) {
+				DiscreteEventComponent dec = (DiscreteEventComponent) i.next();
+				dec.initializeState(t, s);
+			}
+			initialized = true;
+			}
+		catch (Exception e) {
+			throw new RuntimeException("Failed to initialize network: " + e.getMessage());
 		}
-		initialized = true;
 	}
 	
 	public boolean isInitialized() {

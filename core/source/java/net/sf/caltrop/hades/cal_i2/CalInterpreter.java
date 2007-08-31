@@ -123,86 +123,91 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 	//
 	
 	public void initializeState(double t, Scheduler s) {
-		
-		scheduler = s;
-		
-		setupAssertionHandling();
-		
-		setupPortTypeChecking();
-		
-		warnBigBuffers = -1;
-		String bufferSizeWarning = System.getProperty("CalBufferWarning");
-		if (bufferSizeWarning != null) {
-			try {
-			warnBigBuffers = Integer.parseInt(bufferSizeWarning);
-			}
-			catch (Exception exc) {}
-		}
-		
-		ignoreBufferBounds = false;
-		String ignoreBufferBoundString = System.getProperty("CalBufferIgnoreBounds");
-		if (ignoreBufferBoundString != null && ignoreBufferBoundString.trim().toLowerCase().equals("true")) {
-			ignoreBufferBounds = true;
-		}
-		
-		bufferBlockRecord = false;
-		String bufferBlockRecordString = System.getProperty("CalBufferBlockRecord");
-		if (bufferBlockRecordString != null && bufferBlockRecordString.trim().toLowerCase().equals("true")) {
-			bufferBlockRecord = true;
-		}
-	
-		//
-		//  build environment
-		//
-		
-		setupConstantEnvironment();
-		
-		outsideEnv = new EnvironmentWrapper(this.instantiationEnv, constantEnv);
-		
-		Decl[] decls = actor.getStateVars();
-		DynamicEnvironmentFrame constantEnv = new DynamicEnvironmentFrame(outsideEnv);
-		constantEnv.bind("this", this, null);  // TYPEFIXME
-		// disallow writing to cached environment
-		this.actorEnv = createActorStateEnvironment(constantEnv);
-		this.myInterpreter = new Executor(theConfiguration, this.actorEnv);
-		
-		hasTraceVar = false;
-		hasNDTrackerVar = false;
-		
-		if (decls != null) {
-			for (int i = 0; i < decls.length; i++) {
-				String var = decls[i].getName();
-				Expression valExpr = decls[i].getInitialValue();
-				boolean isStateVariable = decls[i].isAssignable() || decls[i].isMutable();
-				
-				// Note: this assumes that declarations are
-				// ordered by eager dependency
-				
-				Object value = (valExpr == null) ? null : myInterpreter.valueOf(valExpr, this.actorEnv);
-				if (isStateVariable)
-					this.actorEnv.bind(var, value, null);  // TYPEFIXME
-				else
-					constantEnv.bind(var, value, null);  // TYPEFIXME
-				
-				if (traceVarName.equals(var))
-					hasTraceVar = true;
-				if (nondeterminismTrackerVarName.equals(var))
-					hasNDTrackerVar = true;
-			}
-		}
-		
-		ai = new ActorInterpreter(actor, theConfiguration,
-				this.actorEnv, inputPortMap, outputPortMap);
-		
-		executeInitializer();
-		
-		firingCount = 0;
-		delayOutput = false;
-		blockedOutputChannels = new HashSet();
 
-		checkInvariants();
-		checkFinalizer(constantEnv);
-		scheduleActor();		
+		try {
+			scheduler = s;
+			
+			setupAssertionHandling();
+			
+			setupPortTypeChecking();
+			
+			warnBigBuffers = -1;
+			String bufferSizeWarning = System.getProperty("CalBufferWarning");
+			if (bufferSizeWarning != null) {
+				try {
+				warnBigBuffers = Integer.parseInt(bufferSizeWarning);
+				}
+				catch (Exception exc) {}
+			}
+			
+			ignoreBufferBounds = false;
+			String ignoreBufferBoundString = System.getProperty("CalBufferIgnoreBounds");
+			if (ignoreBufferBoundString != null && ignoreBufferBoundString.trim().toLowerCase().equals("true")) {
+				ignoreBufferBounds = true;
+			}
+			
+			bufferBlockRecord = false;
+			String bufferBlockRecordString = System.getProperty("CalBufferBlockRecord");
+			if (bufferBlockRecordString != null && bufferBlockRecordString.trim().toLowerCase().equals("true")) {
+				bufferBlockRecord = true;
+			}
+		
+			//
+			//  build environment
+			//
+			
+			setupConstantEnvironment();
+			
+			outsideEnv = new EnvironmentWrapper(this.instantiationEnv, constantEnv);
+			
+			Decl[] decls = actor.getStateVars();
+			DynamicEnvironmentFrame constantEnv = new DynamicEnvironmentFrame(outsideEnv);
+			constantEnv.bind("this", this, null);  // TYPEFIXME
+			// disallow writing to cached environment
+			this.actorEnv = createActorStateEnvironment(constantEnv);
+			this.myInterpreter = new Executor(theConfiguration, this.actorEnv);
+			
+			hasTraceVar = false;
+			hasNDTrackerVar = false;
+			
+			if (decls != null) {
+				for (int i = 0; i < decls.length; i++) {
+					String var = decls[i].getName();
+					Expression valExpr = decls[i].getInitialValue();
+					boolean isStateVariable = decls[i].isAssignable() || decls[i].isMutable();
+					
+					// Note: this assumes that declarations are
+					// ordered by eager dependency
+					
+					Object value = (valExpr == null) ? null : myInterpreter.valueOf(valExpr, this.actorEnv);
+					if (isStateVariable)
+						this.actorEnv.bind(var, value, null);  // TYPEFIXME
+					else
+						constantEnv.bind(var, value, null);  // TYPEFIXME
+					
+					if (traceVarName.equals(var))
+						hasTraceVar = true;
+					if (nondeterminismTrackerVarName.equals(var))
+						hasNDTrackerVar = true;
+				}
+			}
+			
+			ai = new ActorInterpreter(actor, theConfiguration,
+					this.actorEnv, inputPortMap, outputPortMap);
+			
+			executeInitializer();
+			
+			firingCount = 0;
+			delayOutput = false;
+			blockedOutputChannels = new HashSet();
+	
+			checkInvariants();
+			checkFinalizer(constantEnv);
+			scheduleActor();		
+		}
+		catch (Exception e) {
+			throw new RuntimeException("Failed to initialize actor '" + actor.getName() + "':" + e.getMessage(), e);
+		}
 	}
 	
 	private void checkFinalizer(Environment env) {
