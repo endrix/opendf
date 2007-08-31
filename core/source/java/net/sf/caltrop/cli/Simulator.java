@@ -278,7 +278,7 @@ public class Simulator {
         	if (elaborate) {
         		Node res = elaborate(actorClass, modelPath, classLoader, params);
         		
-                res = applyTransformsAsResources(res, postElaborationTransformNames);
+                res = applyTransformsAsResources(res, Elaborator.postElaborationTransformNames);
                 
                 Logging.user().info("Network successfully elaborated.");
                 
@@ -446,12 +446,6 @@ public class Simulator {
     			return 1;
     		return 0;
     	}    	
-    };
-    
-
-    private static final String [] postElaborationTransformNames = {
-    	"net/sf/caltrop/transforms/xdfFlatten.xslt",
-    	"net/sf/caltrop/transforms/xdfFoldAttributes.xslt"
     };
 }
 

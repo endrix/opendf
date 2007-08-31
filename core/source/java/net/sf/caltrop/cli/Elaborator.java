@@ -77,6 +77,7 @@ public class Elaborator {
 		String outputFileName = null;
 		String cachePath = null;
 		String [] modelPath = null;
+		boolean postProcessing = true; 
 		Map<String, String> params = new HashMap<String, String>();
 		
 		for (int i = 0; i < args.length; i++) {
@@ -93,6 +94,8 @@ public class Elaborator {
 				String expr = s.substring(n + 1);
 
 				params.put(v, expr);
+            } else if (args[i].equals("-npp")) {
+            	postProcessing = false;
 			} else if (args[i].equals("-o")) {
 				if (outputFileName != null) usage("Doubly defined output file.");
 				i += 1;
@@ -153,6 +156,10 @@ public class Elaborator {
             Node res = null;
             try {
                 res = elaborate(networkClass, modelPath, classLoader, params);
+
+                if (postProcessing) {
+                	res = applyTransformsAsResources(res, postElaborationTransformNames);
+                }
             }
             catch (TransformFailedException tfe)
             {
@@ -198,11 +205,16 @@ public class Elaborator {
         System.out.println("  -D <param def>      allows specification of parameter defs");
         System.out.println("  -q                  run quietly");
         System.out.println("  -v                  run verbosely");
+        System.out.println("  -npp                no post-processing");        
         System.out.println("  -mp <paths>         specifies the search paths for model files");        
         System.out.println("  -cache <path>       the path to use for caching precompiled models");        
         System.out.println("                      If none is specified, caching is turned off.");        
         System.out.println("  --version           Display Version information and quit");
 	}
-	
+
+	static final String [] postElaborationTransformNames = {
+		"net/sf/caltrop/transforms/xdfFlatten.xslt",
+		"net/sf/caltrop/transforms/xdfFoldAttributes.xslt"
+	};
 }
 
