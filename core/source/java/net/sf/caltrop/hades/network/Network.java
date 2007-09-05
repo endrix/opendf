@@ -55,6 +55,9 @@ import net.sf.caltrop.hades.des.MessageListener;
 import net.sf.caltrop.hades.des.MessageProducer;
 import net.sf.caltrop.hades.des.schedule.Scheduler;
 
+import net.sf.caltrop.util.source.ParserErrorException;
+import net.sf.caltrop.util.source.LoadingErrorException;
+import net.sf.caltrop.util.source.LoadingErrorRuntimeException;
 
 
 public class Network extends AbstractDiscreteEventComponent {
@@ -74,6 +77,12 @@ public class Network extends AbstractDiscreteEventComponent {
 			}
 			initialized = true;
 			}
+        catch (RuntimeException re)
+        {
+            // Allows detailed runtime exceptions created during
+            // parsing to pass through to where they are handled
+            throw re;
+        }
 		catch (Exception e) {
 			throw new RuntimeException("Failed to initialize network: " + e.getMessage());
 		}
