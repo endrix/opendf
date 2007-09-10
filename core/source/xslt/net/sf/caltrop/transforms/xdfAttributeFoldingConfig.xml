@@ -12,12 +12,12 @@
 
     <ConnectionAttribute attrName="queuetap" attrKind="Value">
         <DefaultValue value="0"/>
-        <FoldingFunction value="lambda (L) : accumulate(lambda (x, y) : if x > y then x else y end end, 0, L) end"/>
+        <FoldingFunction value="lambda (L) : accumulate(lambda (x, y) : x or y end, false, L) end"/>
     </ConnectionAttribute>
     
     <ConnectionAttribute attrName="debugtap" attrKind="Value">
         <DefaultValue value="0"/>
-        <FoldingFunction value="lambda (L) : accumulate(lambda (x, y) : if x > y then x else y end end, 0, L) end"/>
+        <FoldingFunction value="lambda (L) : accumulate(lambda (x, y) : x or y end, false, L) end"/>
     </ConnectionAttribute>
 
     <NetworkAttribute attrName="example" attrKind="Value">
