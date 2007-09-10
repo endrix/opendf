@@ -30,10 +30,7 @@
                 <xsl:variable name="attrs" select="$c/Attribute[@kind='Value'][@name=$name]"/>
                 
                 <xsl:choose>
-                    <xsl:when test="count($attrs) = 1">
-                        <xsl:copy-of select="$attrs"/>                                        
-                    </xsl:when>
-                    <xsl:when test="count($attrs) > 1">
+                    <xsl:when test="count($attrs) >= 1">
                         <Attribute name="{$name}" kind="Value">
                             <Expr kind="Application">
                                 <xsl:copy-of select="cal:parseExpression(FoldingFunction/@value)"/>
@@ -97,10 +94,7 @@
                 <xsl:variable name="attrs" select="$n/Attribute[@kind='Value'][@name=$name]"/>
                 
                 <xsl:choose>
-                    <xsl:when test="count($attrs) = 1">
-                        <xsl:copy-of select="$attrs"/>                                        
-                    </xsl:when>
-                    <xsl:when test="count($attrs) > 1">
+                    <xsl:when test="count($attrs) >= 1">
                         <Attribute name="{$name}" kind="Value">
                             <Expr kind="Application">
                                 <xsl:copy-of select="cal:parseExpression(FoldingFunction/@value)"/>
@@ -128,7 +122,7 @@
                 <xsl:for-each select="$n/Attribute[@kind='Value']">
                     <xsl:variable name="a" select="."/>
                     <xsl:variable name="attrs" select="$n/Attribute[@kind='Value'][@name=$a/@name]"/>
-                    <xsl:if test="every $ca in $config/ConnectionAttribute[@attrKind='Value'] satisfies $ca/@attrName ne $a/@name">
+                    <xsl:if test="every $ca in $config/NetworkAttribute[@attrKind='Value'] satisfies $ca/@attrName ne $a/@name">
                         <xsl:if test="not($a/preceding-sibling::Attribute[@kind='Value'][@name=$a/@name])">
                             <Attribute name="{$a/@name}" kind="Value">
                                 <Expr kind="Application">
