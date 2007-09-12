@@ -180,12 +180,11 @@ public class XDFModelInterface implements ModelInterface {
             {
                 buildNetworkFromXDF(n, modelSource, myPlatform, env, myLoader);
             }
-            catch (LoadingErrorException lee)
-            {
+            catch (LoadingErrorException lee){
                 throw new LoadingErrorRuntimeException("XDF Network instantiation failed", lee);
-            }
-            catch (Exception e)
-            {
+            }catch (LoadingErrorRuntimeException lere){
+                throw lere;
+            }catch (Exception e){
                 throw new RuntimeException("XDF Network instantiation failed", e);
             }
 		}
