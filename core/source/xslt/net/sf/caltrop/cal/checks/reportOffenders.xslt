@@ -85,6 +85,13 @@
     <xsl:text>]</xsl:text>
   </xsl:template>
   
+  <xsl:template match="Connection" mode="report-offender">
+    <xsl:variable name="conn" select="."/>
+    <xsl:value-of select="$conn/../Instance[@id=$conn/@src]/Actor/@name"/>:<xsl:value-of select="$conn/@src-port"/><xsl:text> to </xsl:text><xsl:value-of select="$conn/../Instance[@id=$conn/@dst]/Actor/@name"/>:<xsl:value-of select="$conn/@dst-port"/><xsl:text> [</xsl:text>
+    <xsl:apply-templates select="parent::*" mode="report-offender-context"/>
+    <xsl:text>]</xsl:text>
+  </xsl:template>
+  
   <xsl:template match="*" mode="report-offender">
     <xsl:value-of select="name(.)"/>
     <xsl:text> '</xsl:text>
