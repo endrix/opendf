@@ -216,6 +216,8 @@ public abstract class XSLTTransformRunner
         ps.println("  --version      Display version information and quit");
     }
 
+    protected boolean runfast = true;
+    
     /**
      * Run the ReadXMLWriteXML process with the specified arguments.
      *
@@ -235,49 +237,34 @@ public abstract class XSLTTransformRunner
         {
             throw new SubProcessException("Intermediate format file " + infile + " does not exist.  Cannot complete run");
         }
+
+        if (this.runfast)
+        {
+            String rxwxArguments[] = new String[flags.length + 2 + xforms.length];
+            //String rxwxArguments[] = new String[flags.length + 2 + 1];
         
-        String rxwxArguments[] = new String[flags.length + 2 + xforms.length];
-        //String rxwxArguments[] = new String[flags.length + 2 + 1];
-        
-        int index = 0;
+            int index = 0;
 
-        System.arraycopy(flags, 0, rxwxArguments, 0, flags.length);
-        index += flags.length;
+            System.arraycopy(flags, 0, rxwxArguments, 0, flags.length);
+            index += flags.length;
 
-        rxwxArguments[index] = infile.getAbsolutePath();
-        index++;
+            rxwxArguments[index] = infile.getAbsolutePath();
+            index++;
 
-        rxwxArguments[index] = outfile.getAbsolutePath();
-        index++;
+            rxwxArguments[index] = outfile.getAbsolutePath();
+            index++;
 
-        System.arraycopy(xforms, 0, rxwxArguments, index, xforms.length);
-        index += xforms.length;
+            System.arraycopy(xforms, 0, rxwxArguments, index, xforms.length);
+            index += xforms.length;
 
-        try
-        {
-            if (Logging.dbg().isLoggable(Level.FINER))
-            {
-                String dbg = "";
-                for (int i=0; i < rxwxArguments.length; i++) dbg += rxwxArguments[i] + " ";
-                Logging.dbg().finer("XSLT Transform: readXMLWriteXML " + dbg);
-            }
-            ReadXMLWriteXML.main(rxwxArguments);
-        }
-        catch (Exception e)
-        {
-            throw new SubProcessException("Sub process reported exception during processing of " + infile + ".  Message: "+ e.getMessage(), e);
-        }
-
-        /*
-        for (int i=0; i < xforms.length; i++)
-        {
             try
             {
-                System.out.println("Applying " + xforms[i] + " output: " + i);
-                rxwxArguments[index-1] = outfile.getAbsolutePath() + "_" + i;
-                if (i > 0)
-                    rxwxArguments[index-2] = outfile.getAbsolutePath() + "_" + (i-1);
-                rxwxArguments[index] = xforms[i];
+                if (Logging.dbg().isLoggable(Level.FINER))
+                {
+                    String dbg = "";
+                    for (int i=0; i < rxwxArguments.length; i++) dbg += rxwxArguments[i] + " ";
+                    Logging.dbg().finer("XSLT Transform: readXMLWriteXML " + dbg);
+                }
                 ReadXMLWriteXML.main(rxwxArguments);
             }
             catch (Exception e)
@@ -285,7 +272,43 @@ public abstract class XSLTTransformRunner
                 throw new SubProcessException("Sub process reported exception during processing of " + infile + ".  Message: "+ e.getMessage(), e);
             }
         }
-        */
+        else
+        {
+
+            String rxwxArguments[] = new String[flags.length + 2 + 1];
+            int index = 0;
+            System.arraycopy(flags, 0, rxwxArguments, 0, flags.length);
+            index += flags.length;
+
+            rxwxArguments[index] = infile.getAbsolutePath();
+            index++;
+
+            rxwxArguments[index] = outfile.getAbsolutePath();
+            index++;
+
+            File previous = infile;
+            for (int i=0; i < xforms.length; i++)
+            {
+                try
+                {
+                    rxwxArguments[index-2] = previous.getAbsolutePath();
+                    previous = new File(outfile.getParent(), i+"_"+outfile.getName());
+                    if (i == xforms.length-1) 
+                        rxwxArguments[index-1] = outfile.getAbsolutePath();
+                    else
+                        rxwxArguments[index-1] = previous.getAbsolutePath();
+                    System.out.println("Applying " + xforms[i] + " output: " + i + " to " + rxwxArguments[index-2]);
+
+                    rxwxArguments[index] = xforms[i];
+                    ReadXMLWriteXML.main(rxwxArguments);
+                }
+                catch (Exception e)
+                {
+                    throw new SubProcessException("Sub process reported exception during processing of " + infile + ".  Message: "+ e.getMessage(), e);
+                }
+            }
+        }
+        
         
         if (!outfile.exists())
         {
