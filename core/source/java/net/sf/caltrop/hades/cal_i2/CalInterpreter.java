@@ -1204,7 +1204,13 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 		//
 		
 		public boolean hasAvailable(int n) {
-			return n <= tokens.size();
+			int avail = tokens.size();
+			
+			if ((!ignoreBufferBounds) && bufferSize > 0 && bufferSize < avail) {
+				avail = bufferSize;
+			}
+			
+			return n <= avail;
 		}
 		
 		public Object get(int n) {
