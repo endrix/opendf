@@ -1288,7 +1288,7 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 		protected boolean bufferFull() {
 			if (ignoreBufferBounds)
 				return false;
-			return bufferSize > 0 && tokens.size() >= bufferSize;
+			return bufferSize > 0 && tokens.size() > bufferSize;
 		}
 		
 		public void  setTokenListener(TokenListener tl) {
