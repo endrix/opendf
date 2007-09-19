@@ -237,13 +237,13 @@ public class SSAGenerator extends XSLTTransformRunner
         final File pcalml = genIntermediateFile(prefix, "pcalml");
         runReadXMLWriteXML(rXwXRunFlags, calml, pcalml, getParserTransforms());
         
-        // hardware *.pcalml -> *.hwcalml
-        final File hwcalml = genIntermediateFile(prefix, "hwcalml");
-        runReadXMLWriteXML(rXwXRunFlags, pcalml, hwcalml, getSSATransforms());
+        // SSA *.pcalml -> *.ssacalml
+        final File ssacalml = genIntermediateFile(prefix, "ssacalml");
+        runReadXMLWriteXML(rXwXRunFlags, pcalml, ssacalml, getSSATransforms());
         
-        // xlim *.hwcalml -> *.xlim
+        // xlim *.ssacalml -> *.xlim
         final File xlim = new File(this.getRunDir(), prefix + ".xlim");
-        runReadXMLWriteXML(rXwXRunFlags, hwcalml, xlim, getXlimTransforms());
+        runReadXMLWriteXML(rXwXRunFlags, ssacalml, xlim, getXlimTransforms());
     }
     
     private static void usage (PrintStream ps)
