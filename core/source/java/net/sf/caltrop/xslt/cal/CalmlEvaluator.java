@@ -210,6 +210,7 @@ public class CalmlEvaluator
 			} else {
 				res = doc.createElement("ERROR");
 				res.setAttribute("code", Integer.toString(tcr.result));
+				res.setAttribute("msg", tcr.message);
 				res.appendChild(doc.createTextNode(tcr.message));
 			}
 		} catch (Exception e) {
