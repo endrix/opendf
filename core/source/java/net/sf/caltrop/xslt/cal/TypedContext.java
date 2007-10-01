@@ -458,7 +458,9 @@ public class TypedContext implements Context {
             		return new TypeCheckResult(TypeCheckResult.resIncompatible, "Integer types are not assignable---precision is lost converting " + asz + " bits to " + bsz + " bits.");        			
         		} 
     		} else {
-        		return new TypeCheckResult(TypeCheckResult.resIncompatible, "Incompatible types: " + ts.getName() + " and " + td.getName());        			
+        		return new TypeCheckResult(TypeCheckResult.resIncompatible, "Incompatible types: " + ts.getName() + " and " + td.getName() +
+                    " src_params:" + ts.getTypeParameters() + " dst_params:" + td.getTypeParameters() +
+                    " src_params:" + ts.getValueParameters() + " dst_params:" + td.getValueParameters());
     		}
     	} else {
     		return new TypeCheckResult(TypeCheckResult.resIncompatible, "Incompatible types: " + ts.getName() + " and " + td.getName());
