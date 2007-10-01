@@ -84,8 +84,9 @@ public class SSAGenerator extends XSLTTransformRunner
         "net/sf/caltrop/cal/transforms/xlim/SetActorParameters.xslt",
         "net/sf/caltrop/cal/transforms/xlim/AddDefaultTypes.xslt",
         "net/sf/caltrop/cal/transforms/xlim/AnnotateDecls.xslt",
-        "net/sf/caltrop/cal/transforms/xlim/EvaluateConstantExpressions.xslt",
+        "net/sf/caltrop/cal/transforms/EvaluateConstantExpressions.xslt",
         "net/sf/caltrop/cal/checks/problemSummary.xslt",
+        "net/sf/caltrop/cal/transforms/EliminateDeadCode.xslt",
         "net/sf/caltrop/cal/transforms/AddID.xslt",
         "net/sf/caltrop/cal/transforms/xlim/VariableUsage.xslt",
         "net/sf/caltrop/cal/transforms/xlim/SSANotes.xslt",
@@ -159,7 +160,6 @@ public class SSAGenerator extends XSLTTransformRunner
         try
         {
             SSAGenerator codeGen = new SSAGenerator(args);
-            
             codeGen.runTransforms();
         }
         catch (Exception e)
