@@ -55,8 +55,7 @@ import net.sf.caltrop.cal.interpreter.Context;
 import net.sf.caltrop.nl.parser.Lexer;
 import net.sf.caltrop.nl.parser.Parser;
 import net.sf.caltrop.util.source.ParserErrorException;
-import net.sf.caltrop.util.source.LoadingErrorException;
-import net.sf.caltrop.util.source.LoadingErrorRuntimeException;
+import net.sf.caltrop.util.exception.LocatableException;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -100,7 +99,8 @@ public class Lib {
 		catch (ParserErrorException exc)
         {
 			//throw new RuntimeException("Error parsing NL.", exc);
-            throw new LoadingErrorRuntimeException("Error parsing NL.", new LoadingErrorException(exc.getMessage(), exc));
+            //throw new LoadingErrorRuntimeException("Error parsing NL.", new LoadingErrorException(exc.getMessage(), exc));
+            throw new LocatableException(exc, fileName);
 		}
 	}
 

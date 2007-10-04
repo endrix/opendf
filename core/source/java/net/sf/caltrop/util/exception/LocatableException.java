@@ -1,8 +1,8 @@
-/* 
-BEGINCOPYRIGHT X,UC
+
+/*
+BEGINCOPYRIGHT X
 	
 	Copyright (c) 2007, Xilinx Inc.
-	Copyright (c) 2003, The Regents of the University of California
 	All rights reserved.
 	
 	Redistribution and use in source and binary forms, 
@@ -15,8 +15,8 @@ BEGINCOPYRIGHT X,UC
 	  above copyright notice, this list of conditions and 
 	  the following disclaimer in the documentation and/or 
 	  other materials provided with the distribution.
-	- Neither the names of the copyright holders nor the names 
-	  of contributors may be used to endorse or promote 
+	- Neither the name of the copyright holder nor the names 
+	  of its contributors may be used to endorse or promote 
 	  products derived from this software without specific 
 	  prior written permission.
 	
@@ -35,23 +35,53 @@ BEGINCOPYRIGHT X,UC
 	SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	
 ENDCOPYRIGHT
-*/
+ */
 
-package net.sf.caltrop.util.source;
-
-import java.util.List;
-import java.util.logging.Logger;
-
+package net.sf.caltrop.util.exception;
 
 /**
- * This interface is implemented by exceptions which may represent the
- * accumulation of multiple errors (eg from parsing).  Facilities are
- * provided for obtaining the errors and logging them.
+ * The LocatableException is an exception wrapper that provides
+ * relevent context information such as source file, etc.
+ *
+ * <p>Created: Tue Oct 02 16:00:57 2007
+ *
+ * @author imiller, last modified by $Author: imiller $
+ * @version $Id:$
  */
-public interface MultiErrorContainer
+public class LocatableException extends RuntimeException
 {
-    public List<GenericError> getErrors ();
 
-    public void logTo (Logger logger);
+    private String locate;
+
+    /**
+     * Creates a new LocatableException
+     *
+     * @param cause non-null Throwable cause of the exception
+     * @param locate a non-null String identifying the location of the
+     * exceptional event.  The location is relative to user experience
+     * and not the location in the source code.
+     */
+    public LocatableException (Throwable cause, String locate)
+    {
+        super(cause);
+        this.locate = locate;
+    }
+
+    public String getLocation ()
+    {
+        return this.locate;
+    }
+
+    /**
+     * Lightweight class to distinguish between user locations and
+     * internal tool/infrastructure locations.
+     */
+    public static class Internal extends LocatableException
+    {
+        public Internal (Throwable cause, String locate)
+        {
+            super(cause, locate);
+        }
+    }
     
 }

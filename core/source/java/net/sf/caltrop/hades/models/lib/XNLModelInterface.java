@@ -60,8 +60,8 @@ import net.sf.caltrop.hades.network.Network;
 import net.sf.caltrop.util.xml.ElementPredicate;
 import net.sf.caltrop.util.xml.TagNamePredicate;
 import net.sf.caltrop.util.xml.Util;
-import net.sf.caltrop.util.source.LoadingErrorException;
-import net.sf.caltrop.util.source.LoadingErrorRuntimeException;
+// import net.sf.caltrop.util.source.LoadingErrorException;
+// import net.sf.caltrop.util.source.LoadingErrorRuntimeException;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -168,17 +168,17 @@ public class XNLModelInterface implements ModelInterface {
             {
                 buildNetworkFromXDF(n, xdfModel, myPlatform, env, myLoader);
             }
-            catch (LoadingErrorException lee)
-            {
-                throw new LoadingErrorRuntimeException("XDF Network instantiation failed", lee);
-            }
-            catch (LoadingErrorRuntimeException lere)
-            {
-                throw lere;
-            }
+//             catch (LoadingErrorException lee)
+//             {
+//                 throw new LoadingErrorRuntimeException("XDF Network instantiation failed", lee);
+//             }
+//             catch (LoadingErrorRuntimeException lere)
+//             {
+//                 throw lere;
+//             }
             catch (Exception e)
             {
-                throw new RuntimeException("XDF Network instantiation failed", e);
+                throw new RuntimeException("Network Language instantiation failed", e);
             }
 
 		}

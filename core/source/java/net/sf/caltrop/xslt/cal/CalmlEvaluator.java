@@ -34,6 +34,7 @@ import net.sf.caltrop.cal.interpreter.util.ASTFactory;
 import net.sf.caltrop.cal.interpreter.util.ImportUtil;
 import net.sf.caltrop.cal.interpreter.util.Platform;
 import net.sf.caltrop.cal.util.SourceReader;
+import net.sf.caltrop.util.exception.LocatableException;
 import net.sf.caltrop.util.logging.Logging;
 import net.sf.caltrop.util.xml.ElementPredicate;
 import net.sf.caltrop.util.xml.TagNamePredicate;
@@ -176,11 +177,9 @@ public class CalmlEvaluator
         }
         catch (Exception e)
         {
-            Logging.dbg().info("Error processing node with name: " + expr.getNodeName());
-            Logging.dbg().info("Error processing node with parent: " + (expr.getParentNode() == null ? "null":expr.getParentNode().getNodeName()));
-            Logging.dbg().info("Error processing node with id: " + expr.getAttributes().getNamedItem("id"));
-            Logging.dbg().info("Error processing node with name attribute: " + expr.getAttributes().getNamedItem("name"));
-            throw e;
+            final String loc = "node: " + expr.getNodeName() + " parent: " + (expr.getParentNode() == null ? "null":expr.getParentNode().getNodeName()) + " id: " + expr.getAttributes().getNamedItem("id") + " name: " + expr.getAttributes().getNamedItem("name");
+            Logging.dbg().info("Error processing node " + loc);
+            throw new LocatableException(e, loc);
         }
         
 		Node n = toSaxon(result);

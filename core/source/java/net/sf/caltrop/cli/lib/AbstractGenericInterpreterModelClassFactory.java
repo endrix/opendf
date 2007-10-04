@@ -42,12 +42,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
 
-import net.sf.caltrop.util.source.LoadingErrorException;
 import net.sf.caltrop.cli.ModelClassFactory;
 import net.sf.caltrop.hades.models.ModelInterface;
 import net.sf.caltrop.util.logging.Logging;
-import net.sf.caltrop.util.source.GenericError;
-import net.sf.caltrop.util.source.MultiErrorException;
+import net.sf.caltrop.util.exception.LocatableException;
 
 /**
  * This class builds a model class from a generic interpreter, which is loaded by the {@link GenericInterpreterClassLoader},
@@ -73,7 +71,7 @@ public abstract class AbstractGenericInterpreterModelClassFactory implements Mod
 	 * @return An object representing the model.
 	 * @throws IOException
 	 */
-	abstract protected Object  readModel(InputStream modelSource) throws IOException, MultiErrorException;
+	abstract protected Object  readModel(InputStream modelSource) throws IOException;
 
     protected String getResourceName ()
     {
@@ -97,18 +95,19 @@ public abstract class AbstractGenericInterpreterModelClassFactory implements Mod
         {
             model = readModel(source);
         }
-        catch (IOException ioe)
+        catch (Exception e)
         {
-            throw new LoadingErrorException(ioe.getMessage(),
-                new MultiErrorException(ioe.getMessage(), Collections.singletonList(
-                                            new GenericError(ioe.getMessage(), "", -1, -1))
-                ));
+            throw new LocatableException(e, name);
+//             throw new LoadingErrorException(ioe.getMessage(),
+//                 new MultiErrorException(ioe.getMessage(), Collections.singletonList(
+//                                             new GenericError(ioe.getMessage(), "", -1, -1))
+//                 ));
         }
-        catch (MultiErrorException ge)
-        {
-            Logging.dbg().throwing("ASGImcf","createClass",ge);
-            throw new LoadingErrorException("Errors found in " + name + ": " + ge.getMessage(), ge);
-        }
+//         catch (MultiErrorException ge)
+//         {
+//             Logging.dbg().throwing("ASGImcf","createClass",ge);
+//             throw new LoadingErrorException("Errors found in " + name + ": " + ge.getMessage(), ge);
+//         }
         
         GenericInterpreterClassLoader cl = new GenericInterpreterClassLoader(topLevelLoader, name, this.getModelInterface(), 
             null, model);

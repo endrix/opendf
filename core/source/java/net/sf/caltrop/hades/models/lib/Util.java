@@ -45,6 +45,7 @@ import static net.sf.caltrop.util.xml.Util.xpathEvalNodes;
 import java.lang.reflect.Constructor;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
 
 import net.sf.caltrop.cal.ast.Import;
 import net.sf.caltrop.cal.interpreter.Context;
@@ -64,8 +65,8 @@ import net.sf.caltrop.hades.des.util.Attributable;
 import net.sf.caltrop.hades.network.Network;
 import net.sf.caltrop.util.logging.Logging;
 
-import net.sf.caltrop.util.source.LoadingErrorException;
-import net.sf.caltrop.util.source.LoadingErrorRuntimeException;
+// import net.sf.caltrop.util.source.LoadingErrorException;
+// import net.sf.caltrop.util.source.LoadingErrorRuntimeException;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -98,17 +99,19 @@ public class Util {
 
 	public static void  buildNetworkFromXDF(Network n, Object source, Platform platform, Map env, ClassLoader loader) throws ClassNotFoundException
     {
-		
-		Logging.dbg().info("BEGIN NETWORK XDF");
-		try {
-			String xml = net.sf.caltrop.util.xml.Util.createXML(xpathEvalElement("/XDF", source));
-			Logging.dbg().info(xml);
-		}
-		catch (Exception e) {
-			Logging.dbg().info("  ERROR creating network XDF: " + e.getMessage());
-		}
-		Logging.dbg().info("END NETWORK XDF");
-
+        if (Logging.dbg().isLoggable(Level.FINE))
+        {
+            Logging.dbg().fine("BEGIN NETWORK XDF");
+            try {
+                String xml = net.sf.caltrop.util.xml.Util.createXML(xpathEvalElement("/XDF", source));
+                Logging.dbg().fine(xml);
+            }
+            catch (Exception e) {
+                Logging.dbg().fine("  ERROR creating network XDF: " + e.getMessage());
+            }
+            Logging.dbg().fine("END NETWORK XDF");
+        }
+        
 		Import [] imports = ASTFactory.buildImports(xpathEvalNodes("/XDF/Import", source));
 		ImportHandler [] importHandlers = platform.getImportHandlers(loader);
 		ImportMapper [] importMappers = platform.getImportMappers();
@@ -210,8 +213,6 @@ public class Util {
 
     /**
      * @throws ClassNotFoundException for class loading issues
-     * @throws LoadingErrorException (a subclass of
-     * ClassNotFoundException) for errors in the loaded class/element)
      */
 	public static Class loadClassFromElement(Element e, ClassLoader loader) throws ClassNotFoundException
     {
@@ -239,29 +240,25 @@ public class Util {
 				c = loader.loadClass(className);
 				Logging.dbg().warning("Loaded '" + className + "' with '" + loader.getClass().getName() + "'");
 			}
-            catch (LoadingErrorException lee)
+//             catch (LoadingErrorException lee)
+//             {
+//                 // A LoadginErrorException indicates we found the
+//                 // class but could not parse it.  Pass that
+//                 // information up.
+//                 throw lee;
+//             }
+//             catch (LoadingErrorRuntimeException lere)
+//             {
+//                 // A LoadginErrorRumtimeException indicates we found
+//                 // the class but could not parse it.  Pass that
+//                 // information up.
+//                 throw lere;
+//             }
+            catch (RuntimeException re)
             {
-                // A LoadginErrorException indicates we found the
-                // class but could not parse it.  Pass that
-                // information up.
-                throw lee;
-            }
-            catch (LoadingErrorRuntimeException lere)
-            {
-                // A LoadginErrorRumtimeException indicates we found
-                // the class but could not parse it.  Pass that
-                // information up.
-                throw lere;
+                throw re;
             }
             catch (Exception exc) {
-                Logging.dbg().severe("CAUGHT EXCEPTION " + exc);
-                Throwable t = exc;
-                while (t.getCause() != null)
-                {
-                    Logging.dbg().info("\tbecause " + t.getCause());
-                    t = t.getCause();
-                }
-                
 				Logging.dbg().warning("Default loader for '" + className + "' because an exception was thrown: " + exc.getMessage());
 				c = Class.forName(className);
 			}

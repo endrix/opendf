@@ -71,6 +71,7 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
 
 import net.sf.caltrop.util.logging.Logging;
+import net.sf.caltrop.util.exception.LocatableException;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -203,7 +204,7 @@ public class Util {
     private static Node applyTransform (Transformer xf, DOMSource source, DOMResult res)
     {
         ErrorListener oldListener = xf.getErrorListener();
-        
+
         // Catch and report errors during transformation here.
         if (true)
         {   // Redirect output of errors/warnings to the debug stream
@@ -215,16 +216,11 @@ public class Util {
                 });
         }
 
-        try
-        {
+        try {
             xf.transform(source, res);
-        }
-        catch (TransformerException te)
-        {
+        } catch (TransformerException te) {
             xf.setErrorListener(oldListener);
-            // Skip the TransformerException when possible
-            Throwable e = te.getCause() != null ? te.getCause():te;
-            throw new TransformFailedException(e.getMessage(), te);
+            throw new RuntimeException(te);
         }
         xf.setErrorListener(oldListener);
         
@@ -240,17 +236,18 @@ public class Util {
                 xf = createTransformer(is);
             } catch (Throwable e) {
                 Logging.dbg().throwing("Util", "applyTransformsAsResources", e);
-                throw new TransformFailedException("Could not create transformer '" + resNames[i] + "'.", e);
+                throw new LocatableException.Internal(e, "creating " + resNames[i]);
             } finally {
                 if (is != null) is.close();
             }
             DOMResult res = new DOMResult();
             try {
-                xf.transform(new DOMSource(doc), res);
-                doc = (Node)res.getNode();
+//                 xf.transform(new DOMSource(doc), res);
+//                 doc = (Node)res.getNode();
+                doc = applyTransform(xf, new DOMSource(doc), res);
             } catch (Throwable e) {
                 Logging.dbg().throwing("Util", "applyTransformsAsResources", e);
-                throw new TransformFailedException("Could not apply transformation '" + resNames[i] + "'.", e);
+                throw new LocatableException.Internal(e, "applying " + resNames[i]);
             }
         }
         return doc;
@@ -271,7 +268,7 @@ public class Util {
         	xf = createTransformer(is);
         } catch (Throwable e) {
         	Logging.dbg().throwing("Util", "applyTransformsAsResources", e);
-        	throw new TransformFailedException("Could not create transformer '" + resName + "'.", e);
+        	throw new LocatableException.Internal(e, "creating " + resName);
         } finally {
         	if (is != null) is.close();
         }
@@ -280,11 +277,12 @@ public class Util {
         }
         DOMResult res = new DOMResult();
         try {
-        	xf.transform(new DOMSource(doc), res);
-        	doc = (Node)res.getNode();
+//         	xf.transform(new DOMSource(doc), res);
+//         	doc = (Node)res.getNode();
+            doc = applyTransform(xf, new DOMSource(doc), res);
         } catch (Throwable e) {
         	Logging.dbg().throwing("Util", "applyTransformsAsResources", e);
-        	throw new TransformFailedException("Could not apply transformation '" + resName + "'.", e);
+        	throw new LocatableException.Internal(e, "applying " + resName);
         }
         return doc;
     }
@@ -479,18 +477,6 @@ public class Util {
         private String _newSystemID;
         private EntityResolver _resolver;
     }
-
-    public static class TransformFailedException extends RuntimeException
-    {
-        // This class of exception MUST have a cause as we use the
-        // cause wherever this exception is caught in order to display
-        // a meaningful message.
-        public TransformFailedException (String msg, Throwable th)
-        {
-            super(msg, th);
-        }
-    }
-
 
     /**
      * Utility method for displaying an Element

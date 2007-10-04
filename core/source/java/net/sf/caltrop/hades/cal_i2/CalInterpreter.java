@@ -91,6 +91,7 @@ import net.sf.caltrop.hades.des.util.StateChangeEvent;
 import net.sf.caltrop.hades.des.util.StateChangeListener;
 import net.sf.caltrop.hades.des.util.StateChangeProvider;
 import net.sf.caltrop.util.logging.Logging;
+import net.sf.caltrop.util.exception.LocatableException;
 
 
 
@@ -383,7 +384,9 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 					rollbackInputChannels();
 				}
 				} catch (Exception exc) {
-					throw new RuntimeException("Error in actor '" + actor.getName() + "', action " + a[i].getID() + " (" + a[i].getAttribute("text-begin-line") + "-" + a[i].getAttribute("text-end-line") + ").", exc);
+                    String loc = actor.getName() + "', action " + a[i].getID() + " (" + a[i].getAttribute("text-begin-line") + "-" + a[i].getAttribute("text-end-line") + ")";
+                    throw new LocatableException(exc, loc);
+					//throw new RuntimeException("Error in actor '" + actor.getName() + "', action " + a[i].getID() + " (" + a[i].getAttribute("text-begin-line") + "-" + a[i].getAttribute("text-end-line") + ").", exc);
 				}
 			}
 			nVoidFirings += 1;

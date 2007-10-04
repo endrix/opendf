@@ -64,6 +64,8 @@ public class Logging
     // User logger.  Used for user interactions
     private static Logger USER = null;
 
+    private static Logger SIMSTATE = null;
+    
     /** A Logger {@link Level} which forces output to happen
      * regardless of the specified level. */
     public static final Level FORCE = new XCALLoggingLevel("FORCE", Level.OFF.intValue());
@@ -113,6 +115,21 @@ public class Logging
     }
     
     /**
+     * Returns a non-null Logger instance that is used for output of
+     * simulation status messages.
+     *
+     * @return a non-null {@link Logger}
+     */
+    public static Logger simState ()
+    {
+        if (SIMSTATE == null)
+        {
+            init();
+        }
+        return SIMSTATE;
+    }
+    
+    /**
      * Initialization is deferred until the first call to access a
      * Logger so that we avoid a race condition with the reading of
      * the logging properties.
@@ -121,6 +138,7 @@ public class Logging
     {
         DBG = Logger.getLogger("xcal.debug");
         USER = Logger.getLogger("xcal.user");
+        SIMSTATE = Logger.getLogger("xcal.simstate");
 
         // Check to see if we have explicit setting of the default
         // levels.  If not, then set some appropriate levels now
@@ -131,6 +149,8 @@ public class Logging
                 DBG.setLevel(Level.SEVERE);
             if (USER.getLevel() == null)
                 USER.setLevel(Level.INFO);
+            if (SIMSTATE.getLevel() == null)
+                SIMSTATE.setLevel(Level.INFO);
         }
         
         // The parent Loggers are the root which, by default, have the
@@ -140,6 +160,9 @@ public class Logging
 
         DBG.setUseParentHandlers(false);
         DBG.addHandler(new FlushedStreamHandler(System.out, new DebugLogFormatter(true, "dbg")));
+
+        SIMSTATE.setUseParentHandlers(false);
+        SIMSTATE.addHandler(new FlushedStreamHandler(System.out, new DebugLogFormatter(true, "simstate")));
     }
 
     /**

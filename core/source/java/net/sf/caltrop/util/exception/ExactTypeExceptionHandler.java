@@ -1,8 +1,8 @@
-/* 
-BEGINCOPYRIGHT X,UC
+
+/*
+BEGINCOPYRIGHT X
 	
 	Copyright (c) 2007, Xilinx Inc.
-	Copyright (c) 2003, The Regents of the University of California
 	All rights reserved.
 	
 	Redistribution and use in source and binary forms, 
@@ -15,8 +15,8 @@ BEGINCOPYRIGHT X,UC
 	  above copyright notice, this list of conditions and 
 	  the following disclaimer in the documentation and/or 
 	  other materials provided with the distribution.
-	- Neither the names of the copyright holders nor the names 
-	  of contributors may be used to endorse or promote 
+	- Neither the name of the copyright holder nor the names 
+	  of its contributors may be used to endorse or promote 
 	  products derived from this software without specific 
 	  prior written permission.
 	
@@ -35,26 +35,44 @@ BEGINCOPYRIGHT X,UC
 	SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	
 ENDCOPYRIGHT
-*/
+ */
 
-package net.sf.caltrop.util.source;
+package net.sf.caltrop.util.exception;
 
 /**
- * This exception is thrown when a custom class loader was able to
- * find the required resource but was unable to sufficiently process
- * it due to error conditions (eg bad parse).  
+ * This class delegates the handling of an exception iff that
+ * exception is assignable to the class returned by getHandledClass.
+ *
+ * <p>Created: Wed Oct 03 12:45 2007
+ *
+ * @author imiller, last modified by $Author: imiller $
+ * @version $Id:$
  */
-public class LoadingErrorRuntimeException extends RuntimeException
+public abstract class ExactTypeExceptionHandler implements ExceptionHandler
 {
-    
-	public LoadingErrorRuntimeException (String message, LoadingErrorException error)
-    {
-        super(message, error);
-    }
 
-    public MultiErrorContainer getErrorContainer ()
+    public ExactTypeExceptionHandler ()
     {
-        return ((LoadingErrorException)getCause()).getErrorContainer();
     }
+    
+    /**
+     * Returns true if the handler successfully processed the given
+     * Throwable.
+     *
+     * @param t a non-null Throwable object
+     */
+    public boolean process (Throwable t)
+    {
+        final Class handledClass = getHandledClass();
+        if (handledClass.equals(t.getClass()))
+        {
+            return handle(t);
+        }
+        
+        return false;
+    }
+    
+    protected abstract Class getHandledClass ();
+    protected abstract boolean handle (Throwable t);
     
 }

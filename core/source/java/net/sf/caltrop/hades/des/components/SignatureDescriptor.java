@@ -91,16 +91,16 @@ public class SignatureDescriptor implements SignatureConstants {
         
   protected void  addInterface(String nm, Class interfaceClass, boolean inv) {
     	
-    try {	    
-      ComponentDescriptor cd = new ComponentDescriptor(interfaceClass, 
-						       prefix + nm + hierarchySeparator, 
-						       inv ^ inverted);
-      if (cd.isInterface())
-	interfaces.add(new InterfaceDescriptor(nm, cd.getSignature(), inv));
-      else
-	throw new RuntimeException("Class '" + interfaceClass.getName() + "' is not an interface.");
-    }
-    catch (Exception e) { e.printStackTrace(); throw new RuntimeException(e.getMessage()); }
+      try {	    
+          ComponentDescriptor cd = new ComponentDescriptor(interfaceClass, 
+              prefix + nm + hierarchySeparator, 
+              inv ^ inverted);
+          if (cd.isInterface())
+              interfaces.add(new InterfaceDescriptor(nm, cd.getSignature(), inv));
+          else
+              throw new RuntimeException("Class '" + interfaceClass.getName() + "' is not an interface.");
+      }
+      catch (Exception e) { throw new RuntimeException(e.getMessage()); }
   }
     
   //

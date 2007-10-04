@@ -49,6 +49,7 @@ import java.util.List;
 import net.sf.caltrop.cal.main.Cal2CalML;
 import net.sf.caltrop.util.logging.Logging;
 import net.sf.caltrop.util.source.MultiErrorException;
+import net.sf.caltrop.util.exception.*;
 
 /**
  * DRCChecker is a front end tools that process CAL which simply
@@ -165,9 +166,8 @@ public class DRCChecker extends XSLTTransformRunner
         }
         catch (Exception e) // in 'main'
         {
-            Logging.dbg().warning(e.getMessage());
-            Logging.user().fine(e.getMessage());
-            Logging.user().severe("An error has occurred.  Exiting abnormally.\n");
+            ExceptionHandler handler = new ReportingExceptionHandler();
+            handler.process(e);
             System.exit(-1);
         }
 
@@ -214,7 +214,7 @@ public class DRCChecker extends XSLTTransformRunner
                 this.passed = false;
                 throw new SubProcessException("Could not compile CAL source to CALML." + mee.getMessage());
             }
-            catch (Cal2CalML.CALMLCompileException e) {
+            catch (RuntimeException e) {
                 this.passed = false;
                 throw new SubProcessException("Could not compile CAL source to CALML." + e.getMessage());
             }

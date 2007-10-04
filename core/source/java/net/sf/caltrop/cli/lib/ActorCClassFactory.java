@@ -65,9 +65,19 @@ public class ActorCClassFactory extends AbstractCachingGenericInterpreterModelCl
 	}
 
 	@Override
-	protected Object readModel(InputStream modelSource) throws MultiErrorException
+	protected Object readModel(InputStream modelSource)
     {
-		return SourceReader.readActor(new InputStreamReader(modelSource), getResourceName());
+        Object o = null;
+        try
+        {
+            o = SourceReader.readActor(new InputStreamReader(modelSource), getResourceName());
+        }
+        catch (MultiErrorException mee)
+        {
+            throw new RuntimeException(mee);
+        }
+        
+		return o;
 	}
 
 	@Override
@@ -76,9 +86,18 @@ public class ActorCClassFactory extends AbstractCachingGenericInterpreterModelCl
 	}
 
 	@Override
-	protected Object readModelWhileCaching(InputStream is, OutputStream os) throws MultiErrorException
+	protected Object readModelWhileCaching(InputStream is, OutputStream os)
     {
-        Document doc = SourceReader.parseActor(new InputStreamReader(is), getResourceName());
+        Document doc = null;
+        try
+        {
+            doc = SourceReader.parseActor(new InputStreamReader(is), getResourceName());
+        }
+        catch (MultiErrorException mee)
+        {
+            throw new RuntimeException(mee);
+        }
+        
         Node a = ASTFactory.preprocessActor(doc);
         
         try

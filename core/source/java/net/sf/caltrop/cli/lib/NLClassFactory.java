@@ -50,7 +50,7 @@ import net.sf.caltrop.util.source.MultiErrorException;
 public class NLClassFactory extends AbstractGenericInterpreterModelClassFactory {
 
 	@Override
-	protected Object readModel(InputStream modelSource) throws MultiErrorException
+	protected Object readModel(InputStream modelSource)
     {
         return Lib.readNL(modelSource, getResourceName());
 	}

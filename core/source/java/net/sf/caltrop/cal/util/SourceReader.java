@@ -55,7 +55,6 @@ import net.sf.caltrop.cal.parser.CalStatementParser;
 import net.sf.caltrop.cal.parser.Lexer;
 import net.sf.caltrop.cal.parser.Parser;
 import net.sf.caltrop.util.source.MultiErrorException;
-import net.sf.caltrop.util.source.LoadingErrorRuntimeException;
 
 import net.sf.caltrop.util.xml.Util;
 import net.sf.caltrop.util.logging.Logging;
@@ -81,7 +80,7 @@ public class SourceReader
     }
     
     /**
-     * May throw LoadingErrorRuntimeException if failure occurs during parsing.
+     * May throw Exception if failure occurs during parsing.
      */
 	public static Document parseActor(Reader s, String name) throws MultiErrorException
 	{

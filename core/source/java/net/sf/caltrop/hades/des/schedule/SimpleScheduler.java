@@ -41,6 +41,8 @@ ENDCOPYRIGHT
 package net.sf.caltrop.hades.des.schedule;
 
 import net.sf.caltrop.hades.des.EventProcessor;
+import net.sf.caltrop.util.logging.Logging;
+import java.util.logging.Level;
 
 public class SimpleScheduler extends AbstractObservableScheduler {
 	
@@ -96,7 +98,11 @@ public class SimpleScheduler extends AbstractObservableScheduler {
 			
 			postfire();
 		} catch (Exception e) {
-			e.printStackTrace();
+            if (Logging.dbg().isLoggable(Level.FINE))
+            {
+                e.printStackTrace();
+            }
+            
 			notifyException(e);
 //			System.out.println("Ex E: " + events.size());
 			return Scheduler.NOSTEP;

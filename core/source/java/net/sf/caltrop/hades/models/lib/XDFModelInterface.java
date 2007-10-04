@@ -59,8 +59,8 @@ import net.sf.caltrop.hades.network.Network;
 import net.sf.caltrop.util.xml.ElementPredicate;
 import net.sf.caltrop.util.xml.TagNamePredicate;
 import net.sf.caltrop.util.xml.Util;
-import net.sf.caltrop.util.source.LoadingErrorException;
-import net.sf.caltrop.util.source.LoadingErrorRuntimeException;
+// import net.sf.caltrop.util.source.LoadingErrorException;
+// import net.sf.caltrop.util.source.LoadingErrorRuntimeException;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -180,11 +180,12 @@ public class XDFModelInterface implements ModelInterface {
             {
                 buildNetworkFromXDF(n, modelSource, myPlatform, env, myLoader);
             }
-            catch (LoadingErrorException lee){
-                throw new LoadingErrorRuntimeException("XDF Network instantiation failed", lee);
-            }catch (LoadingErrorRuntimeException lere){
-                throw lere;
-            }catch (Exception e){
+//             catch (LoadingErrorException lee){
+//                 throw new LoadingErrorRuntimeException("XDF Network instantiation failed", lee);
+//             }catch (LoadingErrorRuntimeException lere){
+//                 throw lere;
+//             }
+            catch (Exception e){
                 throw new RuntimeException("XDF Network instantiation failed", e);
             }
 		}

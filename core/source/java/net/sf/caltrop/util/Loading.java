@@ -13,28 +13,33 @@ import net.sf.caltrop.util.source.CalMLLoader;
 import net.sf.caltrop.util.source.SourceLoader;
 import net.sf.caltrop.util.source.XDFLoader;
 import net.sf.caltrop.util.source.XNLLoader;
+import net.sf.caltrop.util.exception.LocatableException;
 
 import org.w3c.dom.Node;
 
 public class Loading {
 	
-	public static Node  loadActorSource(String qname) {
-		
+	public static Node  loadActorSource(String qname)
+    {
 		String baseName = "/" + qname.replace('.', '/');
-		
-		for (SourceLoader l : loaders) {
-			try {
-				String name = baseName + "." + l.extension();
-				InputStream s = getSourceAsStream(name);
-				if (s != null) {
-					Node res = l.load(s);
-					String xml = createXML(res);
-					Logging.dbg().info("Loaded: " + xml);
-					return res;
-				}
-			}
-			catch (Exception e) {}
-		}		
+
+        for (SourceLoader l : loaders)
+        {
+            String name = baseName + "." + l.extension();
+            try
+            {
+                InputStream s = getSourceAsStream(name);
+                if (s != null) {
+                    Node res = l.load(s);
+                    return res;
+                }
+            }
+            catch (RuntimeException e)
+            {
+                throw new LocatableException(e, qname);
+            }
+        }
+        
 		return null;
 	}
 

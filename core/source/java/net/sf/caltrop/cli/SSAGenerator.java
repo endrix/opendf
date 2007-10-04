@@ -41,6 +41,7 @@ package net.sf.caltrop.cli;
 
 import net.sf.caltrop.cal.main.Cal2CalML;
 import net.sf.caltrop.util.logging.Logging;
+import net.sf.caltrop.util.exception.*;
 
 import java.util.*;
 import java.io.*;
@@ -164,9 +165,8 @@ public class SSAGenerator extends XSLTTransformRunner
         }
         catch (Exception e)
         {
-            Logging.dbg().warning(e.getMessage());
-            Logging.user().fine(e.getMessage());
-            Logging.user().severe("An error has occurred.  Exiting abnormally.\n");
+            ExceptionHandler handler = new ReportingExceptionHandler();
+            handler.process(e);
             System.exit(-1);
         }
     }

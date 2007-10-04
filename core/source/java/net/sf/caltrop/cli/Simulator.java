@@ -74,6 +74,8 @@ import net.sf.caltrop.cal.interpreter.util.DefaultPlatform;
 import net.sf.caltrop.cal.interpreter.util.Platform;
 import net.sf.caltrop.cal.util.SourceReader;
 import net.sf.caltrop.cli.lib.EvaluatedStreamCallback;
+import net.sf.caltrop.util.exception.ExceptionHandler;
+import net.sf.caltrop.util.exception.ReportingExceptionHandler;
 import net.sf.caltrop.hades.des.DiscreteEventComponent;
 import net.sf.caltrop.hades.des.util.OutputBlockRecord;
 import net.sf.caltrop.hades.models.ModelInterface;
@@ -85,9 +87,8 @@ import net.sf.caltrop.hades.util.NullInputStream;
 import net.sf.caltrop.hades.util.NullOutputStream;
 import net.sf.caltrop.util.Loading;
 import net.sf.caltrop.util.logging.Logging;
-import net.sf.caltrop.util.source.LoadingErrorException;
-import net.sf.caltrop.util.source.LoadingErrorRuntimeException;
-import net.sf.caltrop.util.xml.Util.TransformFailedException;
+import net.sf.caltrop.hades.des.schedule.SchedulerObserver;
+import net.sf.caltrop.hades.des.EventProcessor;
 
 public class Simulator {
 	
@@ -105,7 +106,8 @@ public class Simulator {
 		boolean debug = false;
         boolean interpretStimulus = true;
         boolean bufferBlockRecord = false;
-		
+		int maxErrs = 100;
+        
 		Map<String, String> params = new HashMap<String, String>();
 		
 		for (int i = 0; i < args.length; i++) {
@@ -133,6 +135,10 @@ public class Simulator {
                 interpretStimulus = false;
 			} else if (args[i].equals("-e")) {
 				elaborate = true;
+			} else if (args[i].equals("--max-errors")) {
+				i += 1;
+				if (i >= args.length) usage();
+				maxErrs = Integer.parseInt(args[i]);
 			} else if (args[i].equals("-ea")) {
 				System.setProperty("EnableAssertions", "true");
 			} else if (args[i].equals("-tc")) {
@@ -223,20 +229,27 @@ public class Simulator {
         {
             sim = new SequentialSimulator(dec, callback);
         }
-        catch (LoadingErrorRuntimeException lere)
+        catch (Throwable t)
         {
-            Logging.user().severe("Could not initialize Simulator");
-            lere.getErrorContainer().logTo(Logging.user());
+            ExceptionHandler handler = new ReportingExceptionHandler();
+            handler.process(t);
             System.exit(-1);
         }
-        catch (Exception e)
-        {
-            Logging.dbg().throwing("Simulator", "main", e);
-            Logging.user().severe(e.toString());
-            Logging.user().severe("Could not initialize simulator.\nAn error has occurred.  Exiting abnormally.\n");
-            System.exit(-1);
-        }
-            
+
+        
+        final SimRuntimeExceptionHandler simExcHandler = new SimRuntimeExceptionHandler();
+        sim.addSchedulerObserver(new SchedulerObserver()
+            {
+                public void schedulerException(double now, Exception e)
+                {
+                    simExcHandler.process(e);
+                }
+                public void schedulerSchedule(double now, double time, double precedence, EventProcessor ep){}
+                public void schedulerUnschedule(double now, EventProcessor ep){}
+                public void schedulerExecute(double time, double precedence, EventProcessor ep, boolean weak, boolean result){}
+            });
+        
+        
         long stepCount = 0;
         double currentTime = 0;
         double lastTime = 0;
@@ -251,13 +264,20 @@ public class Simulator {
                 stepCount += 1;
                 lastTime = currentTime;
                 currentTime = sim.currentTime();
+                if (simExcHandler.getErrorCount() >= maxErrs)
+                {
+                    Logging.user().severe("Too many errors (" + simExcHandler.getErrorCount() + ")");
+                    long endWallclockTime = System.currentTimeMillis();
+                    long wcTime = endWallclockTime - beginWallclockTime;
+                    postSimulationMessage(userVerbosity, bufferBlockRecord, sim, stepCount, lastTime, wcTime);
+                    System.exit(-1);
+                }
             }
         }
-        catch (Exception e)
+        catch (Throwable t)
         {
-            Logging.dbg().throwing("Simulator", "main", e);
-            Logging.user().severe(e.toString());
-            Logging.user().severe("Error during simulation.\nAn error has occurred.  Exiting abnormally.\n");
+            ExceptionHandler handler = new ReportingExceptionHandler();
+            handler.process(t);
             System.exit(-1);
         }
         
@@ -300,39 +320,25 @@ public class Simulator {
                 dec = loadDEC(actorClass, paramValues, classLoader);
         	}
         }
-        catch (LoadingErrorException lee)
-        {
-            Logging.user().severe(lee.getMessage());
-            lee.getErrorContainer().logTo(Logging.user());
-            Logging.user().severe("An error has occurred.  Exiting abnormally.\n");
-            System.exit(-1);
-        }
-        catch (LoadingErrorRuntimeException lere)
-        {
-            Logging.user().severe(lere.getMessage());
-            lere.getErrorContainer().logTo(Logging.user());
-            Logging.user().severe("An error has occurred.  Exiting abnormally.\n");
-            System.exit(-1);
-        }
         catch (DECLoadException dle)
         {
             Logging.user().severe("Could not load simulation model." + dle.getMessage());
             Logging.user().severe("An error has occurred.  Exiting abnormally.\n");
             System.exit(-1);
         }
-        catch (ClassNotFoundException cnfe)
+        catch (Throwable t)
         {
-            Logging.user().severe("Could not load simulation model." + cnfe.getMessage());
-            Logging.user().severe("Specify the simulatable entity as a class (no extension)");
-            Logging.user().severe("An error has occurred.  Exiting abnormally.\n");
+            ExceptionHandler handler = new ReportingExceptionHandler();
+            handler.process(t);
             System.exit(-1);
         }
-        catch (TransformFailedException tfe)
-        {
-            Logging.user().severe(tfe.getMessage());
-            Logging.user().severe("Could not elaborate network " + actorClass);
-            System.exit(-1);
-        }
+//         catch (ClassNotFoundException cnfe)
+//         {
+//             Logging.user().severe("Could not load simulation model." + cnfe.getMessage());
+//             Logging.user().severe("Specify the simulatable entity as a class (no extension)");
+//             Logging.user().severe("An error has occurred.  Exiting abnormally.\n");
+//             System.exit(-1);
+//         }
         Logging.user().info("Model successfully instantiated.");
 
 		return dec;
@@ -380,6 +386,7 @@ public class Simulator {
         System.out.println("  -ea                 enables assertion checking during simulation");
         System.out.println("  -n <##>             defines an upper bound for number of simulation steps");
         System.out.println("  -t <##>             defines an upper bound for the simulation time");
+        System.out.println("  --max-errors <##>   defines an upper bound for the maximum number of allowable errors during simulation");
         System.out.println("  -i <file>           identifies the input stimuli (vector) file");
         System.out.println("  -o <file>           defines the output vectors");
         System.out.println("  -D <param def>      allows specification of parameter defs");

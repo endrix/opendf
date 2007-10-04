@@ -1,8 +1,8 @@
-/* 
-BEGINCOPYRIGHT X,UC
+
+/*
+BEGINCOPYRIGHT X
 	
 	Copyright (c) 2007, Xilinx Inc.
-	Copyright (c) 2003, The Regents of the University of California
 	All rights reserved.
 	
 	Redistribution and use in source and binary forms, 
@@ -15,8 +15,8 @@ BEGINCOPYRIGHT X,UC
 	  above copyright notice, this list of conditions and 
 	  the following disclaimer in the documentation and/or 
 	  other materials provided with the distribution.
-	- Neither the names of the copyright holders nor the names 
-	  of contributors may be used to endorse or promote 
+	- Neither the name of the copyright holder nor the names 
+	  of its contributors may be used to endorse or promote 
 	  products derived from this software without specific 
 	  prior written permission.
 	
@@ -35,43 +35,44 @@ BEGINCOPYRIGHT X,UC
 	SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	
 ENDCOPYRIGHT
-*/
+ */
 
-package net.sf.caltrop.util.source;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.logging.Logger;
-
+package net.sf.caltrop.util.exception;
 
 /**
- * This exception class is used by the parsers to report on all
- * found/generated errors during the parse.  A single exception is
- * thrown which contains the accumulated errors.
+ * This class delegates the handling of an exception iff that
+ * exception is assignable to the class returned by getHandledClass.
+ *
+ * <p>Created: Tue Oct 02 16:00:57 2007
+ *
+ * @author imiller, last modified by $Author: imiller $
+ * @version $Id:$
  */
-public class MultiErrorException extends Exception
+public abstract class TypedExceptionHandler implements ExceptionHandler
 {
-    private List<GenericError>errors;
-    
-    public MultiErrorException (String message, List<GenericError> errs)
-    {
-        super(message);
-        this.errors = errs;
-    }
-    
-    public List<GenericError> getErrors ()
-    {
-        return Collections.unmodifiableList(errors);
-    }
-    
-    public void logTo (Logger logger)
-    {
-        String s = "";
-        for (GenericError err : this.errors)
-        {
-            s += "\n\t" + err.toString();
-        }
-        logger.severe(s);
-    }
 
+    public TypedExceptionHandler ()
+    {
+    }
+    
+    /**
+     * Returns true if the handler successfully processed the given
+     * Throwable.
+     *
+     * @param t a non-null Throwable object
+     */
+    public boolean process (Throwable t)
+    {
+        final Class handledClass = getHandledClass();
+        if (handledClass.isAssignableFrom(t.getClass()))
+        {
+            return handle(t);
+        }
+        
+        return false;
+    }
+    
+    protected abstract Class getHandledClass ();
+    protected abstract boolean handle (Throwable t);
+    
 }

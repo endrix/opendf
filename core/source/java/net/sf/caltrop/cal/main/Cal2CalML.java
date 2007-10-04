@@ -51,6 +51,7 @@ import net.sf.caltrop.cal.parser.Parser;
 import net.sf.caltrop.util.logging.Logging;
 import net.sf.caltrop.util.source.MultiErrorException;
 import net.sf.caltrop.util.xml.Util;
+import net.sf.caltrop.util.exception.ReportingExceptionHandler;
 
 import org.w3c.dom.Document;
 
@@ -81,8 +82,9 @@ public class Cal2CalML {
                 compileSource(args[i]);
 				if (verbose) Logging.user().info("done.");
 			} catch (Exception e) {
-				Logging.user().severe("ERROR: " + e.getMessage() + "(" + e.getClass().getName() + ").");
-			}
+				//Logging.user().severe("ERROR: " + e.getMessage() + "(" + e.getClass().getName() + ").");
+                (new ReportingExceptionHandler()).process(e);
+            }
 		}
 	}
 
@@ -95,14 +97,7 @@ public class Cal2CalML {
         doc = calParser.parseActor(fileName);
         
         String result = "";
-        try
-        {
-            result = Util.createXML(doc);
-        }
-        catch (Exception te)
-        {
-            throw new CALMLCompileException("Could not convert result to XML ", te);
-        }
+        result = Util.createXML(doc);
         
         File outputFile = new File(fileName+"ml");
         OutputStream os = new FileOutputStream(outputFile);
@@ -117,11 +112,4 @@ public class Cal2CalML {
 		System.out.println("Cal2CalML <source> ...");
 	}
 
-    public static class CALMLCompileException extends RuntimeException
-    {
-        CALMLCompileException (String msg, Throwable cause)
-        {
-            super(msg, cause);
-        }
-    }
 }

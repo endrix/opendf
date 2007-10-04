@@ -58,6 +58,7 @@ import net.sf.caltrop.cal.util.SourceReader;
 import net.sf.caltrop.util.logging.Logging;
 import net.sf.caltrop.util.source.MultiErrorException;
 import net.sf.caltrop.util.xml.Util;
+import net.sf.caltrop.util.exception.ReportingExceptionHandler;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -78,13 +79,10 @@ public class PrecompileCAL {
         {
             doCompiling();
         }
-        catch (MultiErrorException mee)
-        {
-            mee.logTo(Logging.user());
-        }
         catch (Exception e) // in 'main'
         {
-            Logging.user().severe(e.getMessage());
+            (new ReportingExceptionHandler()).process(e);
+            System.exit(-1);
         }
 	}
 		

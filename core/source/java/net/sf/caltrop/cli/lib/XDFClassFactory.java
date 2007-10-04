@@ -57,7 +57,8 @@ public class XDFClassFactory extends
 			return doc;
 		}
 		catch (Exception exc) {
-			throw new IOException("Could not read model.");
+			//throw new IOException("Could not read model.");
+			throw new RuntimeException("Could not read model.", exc);
 		}
         
 	}
