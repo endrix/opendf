@@ -611,6 +611,9 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 //			return 10000;
 //		else return -(double)tokensQueued;
 		
+		if (inputPortMap.isEmpty()) {	// actor is an input-less source
+			return Double.POSITIVE_INFINITY;
+		}
 		
 		if (tokensQueued == 0)
 			return 101;
@@ -1295,9 +1298,9 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 		}
 		
 		protected boolean bufferFull() {
-			if (ignoreBufferBounds)
+			if (ignoreBufferBounds ||bufferSize <= 0)
 				return false;
-			return bufferSize > 0 && tokens.size() > bufferSize;
+			return tokens.size() > bufferSize;
 		}
 		
 		public void  setTokenListener(TokenListener tl) {
