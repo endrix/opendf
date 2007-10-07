@@ -1003,6 +1003,15 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 			return ports;
 		}
 		
+		public Map<String, Collection<Object>> getBlockingSourceMap() {
+			Map<String, Collection<Object>> sources = new HashMap<String, Collection<Object>>();
+			for (MosesOutputChannel moc : blockedOutputChannels) {
+				sources.put(moc.getName(), moc.getBlockingSources());
+			}
+			return sources;
+		}
+		
+		
 		public long getStepNumber() {
 			return blockedStep;
 		}
@@ -1010,6 +1019,7 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 		public double getTime() {
 			return blockedTime;
 		}
+
 	};
 	
 	protected AnimationPostfireHandler animationPostfireHandler = new AnimationPostfireHandler();
@@ -1307,6 +1317,10 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 			listener = tl;
 		}
 		
+		public String  toString() {
+			return actor.getName() + "." + name;
+		}
+		
 		//
 		//  data
 		//
@@ -1334,12 +1348,22 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 		public void  control(ControlEvent ce) {
 			if (ce.data == ControlEvent.BLOCK) {
 				blocked = true;
+				if (ce.source != null) {
+					blockingSources.add(ce.source);
+				}
 				blockActor(getName());
 			} else if (ce.data == ControlEvent.UNBLOCK) {
 				if (blocked) {
-					blocked = false;
-					unblockActor(getName());
-					scheduleActorForOutputFlushing();
+					if (ce.source == null) {
+						blockingSources.clear();
+					} else {
+						blockingSources.remove(ce.source);
+					}
+					if (blockingSources.isEmpty()) {
+						blocked = false;
+						unblockActor(getName());
+						scheduleActorForOutputFlushing();
+					}
 				} else {
 					Logging.dbg().warning(CalInterpreter.this.getName() + "." + this.getName() + ": Received unblocking event without blocking event.");
 				}
@@ -1368,6 +1392,10 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 		
 		public int width() {
 			return 1;
+		}
+		
+		public Collection<Object>  getBlockingSources() {
+			return blockingSources;
 		}
 		
 		//
@@ -1414,8 +1442,10 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 		
 		protected TokenListener  listener;
 		protected String name;
-		protected boolean  blocked;
 		protected MyArrayList tokens = new MyArrayList();
+		
+		protected boolean  blocked;
+		protected Collection<Object>  blockingSources = new HashSet<Object>();
 	}
 	
 	interface TokenListener {

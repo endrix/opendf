@@ -363,12 +363,18 @@ public class Simulator {
         	List<OutputBlockRecord> sortedObrs = obrs == null ? new ArrayList<OutputBlockRecord>():new ArrayList<OutputBlockRecord>(obrs);
         	Collections.sort(sortedObrs, obrComparator);
         	for (OutputBlockRecord obr : sortedObrs) {
+            	Map<String, Collection<Object>> blockingSourceMap = obr.getBlockingSourceMap();
         		StringBuffer msg = new StringBuffer("Blocked: ");
         		msg.append(obr.getComponentName() + " (");
         		boolean first = true;
         		for (String p : obr.getBlockedOutputConnectors()) {
         			if (!first) msg.append(", ");
         			msg.append(p);
+        			Collection<Object> sources = blockingSourceMap.get(p);
+        			if (sources != null && !sources.isEmpty()) {
+        				msg.append(" ");
+        				msg.append(formatBlockingSources(sources));
+        			}
         			first = false;
         		}
         		msg.append(") at step " + obr.getStepNumber() + ", time " + obr.getTime());
@@ -379,6 +385,17 @@ public class Simulator {
         }
 
         Logging.setUserLevel(userVerbosity); // Re-set the verbosity
+	}
+	
+	private static String  formatBlockingSources(Collection<Object> sources) {
+		StringBuffer msg = new StringBuffer("[");
+		boolean first = true;
+		for (Object s : sources) {
+			if (!first) msg.append(", ");
+			msg.append(s.toString());
+		}
+		msg.append("]");
+		return msg.toString();
 	}
 	
 	private static void usage() {

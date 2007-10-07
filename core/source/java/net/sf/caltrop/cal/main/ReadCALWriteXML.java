@@ -132,7 +132,7 @@ public class ReadCALWriteXML {
         String result = "";
         try
         {
-            Util.createXML(doc);
+            result = Util.createXML(doc);
         }
         catch (Exception te)
         {
