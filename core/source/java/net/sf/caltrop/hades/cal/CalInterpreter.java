@@ -967,6 +967,14 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 			return ports;
 		}
 		
+		public Map<String, Collection<Object>> getBlockingSourceMap() {
+			Map<String, Collection<Object>> sources = new HashMap<String, Collection<Object>>();
+			for (MosesOutputChannel moc : blockedOutputChannels) {
+				sources.put(moc.getName(), Collections.EMPTY_SET); // to shut up the compiler. this class has got to go. JWJ
+	  		}
+			return sources;
+		}
+		
 		public long getStepNumber() {
 			return blockedStep;
 		}
