@@ -10,10 +10,6 @@ public abstract class AbstractType implements Type {
 
 	public abstract boolean convertible(Object v);
 
-	public abstract boolean isConvertibleTo(Type t);
-
-	public abstract boolean isSubtypeOf(Type t);
-
 	public TypeClass getTypeClass() {
 		return typeClass;
 	}

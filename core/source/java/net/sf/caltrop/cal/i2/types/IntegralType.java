@@ -28,7 +28,7 @@ public interface IntegralType extends RealType {
 	 */
 	
 	int      size();
-
+	
 	BigInteger	maxValue();
 
 	BigInteger  minValue();

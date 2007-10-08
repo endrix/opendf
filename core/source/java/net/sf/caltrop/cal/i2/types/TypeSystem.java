@@ -4,6 +4,18 @@ import net.sf.caltrop.cal.ast.ExprLiteral;
 import net.sf.caltrop.cal.ast.TypeExpr;
 import net.sf.caltrop.cal.i2.Environment;
 
+/**
+ * A TypeSystem is a structured collection of types and type classes. The TypeSystem itself
+ * contains references to TypeClass objects that it can resolve by name. It also controls the
+ * relation between types.
+ * 
+ * This is in contrast to the Type objects themselves, which determine their relation to data
+ * objects.
+ * 
+ * @author jornj
+ *
+ */
+
 public interface TypeSystem {
 
 	/**
@@ -26,6 +38,28 @@ public interface TypeSystem {
 	 */
 
 	Type  evaluate(TypeExpr te, Environment env);
+
+	/**
+	 * Evaluate the type expression in the global (or empty) environment, and create the 
+	 * corresponding type object.
+	 * 
+	 * @param te
+	 * @param env
+	 * @return
+	 */
+
+	Type  evaluate(TypeExpr te);
+	
+	/**
+	 * Evaluate the type expression in the specified environment, and create the 
+	 * corresponding type object. Do not use caching.
+	 * 
+	 * @param te
+	 * @param env
+	 * @return
+	 */
+
+	Type  doEvaluate(TypeExpr te, Environment env);
 	
 	/**
 	 * Determine the type of the literal.
@@ -46,4 +80,12 @@ public interface TypeSystem {
 	 */
 	
 	Type  lub(Type t1, Type t2);
+	
+	/**
+	 * Determine whether t1 is assignable to t2. This is the case iff for every
+	 * object a that is an instance of t1 (i.e. t1.contains(a)), a is convertible to t2,
+	 * i.e. t2.convertible(a). 
+	 */
+	
+	boolean assignableTo(Type t1, Type t2);
 }

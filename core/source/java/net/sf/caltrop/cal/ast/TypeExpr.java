@@ -41,9 +41,17 @@ package net.sf.caltrop.cal.ast;
 
 import java.util.Map;
 
+import net.sf.caltrop.cal.i2.Configuration;
+import net.sf.caltrop.cal.i2.Environment;
+import net.sf.caltrop.cal.i2.OperandStack;
+import net.sf.caltrop.cal.i2.types.Type;
+import net.sf.caltrop.cal.i2.types.TypeSystem;
+
 /**
  * @author Christopher Chang <cbc@eecs.berkeley.edu>
+ * @author Jörn W. Janneck <jorn.janneck@xilinx.com>
  */
+
 public class TypeExpr extends ASTNode {
     public String getName() {
         return name;
@@ -76,9 +84,23 @@ public class TypeExpr extends ASTNode {
     	this.typeParameters = typeParameters;
     	this.valueParameters = valueParameters;
     }
+    
+    public Type  evaluate(TypeSystem ts, Environment env) {
+    	if (ts != lastTypeSystem || lastEnvironment != env) {
+    		lastTypeSystem = ts;
+    		lastEnvironment = env;
+    		lastType = ts.doEvaluate(this, env);
+    	}
+		return lastType;
+    }
+
 
     private String name;
     private TypeExpr [] parameters;
     private Map  typeParameters;
     private Map  valueParameters;
+    
+    private TypeSystem  lastTypeSystem;
+    private Environment lastEnvironment;
+    private Type        lastType;
 }

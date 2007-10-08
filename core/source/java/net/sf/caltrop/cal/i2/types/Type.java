@@ -47,11 +47,11 @@ public interface Type {
 	
 	/**
 	 * Determine whether the object can be converted to this type. Instances 
-	 * of a type are always convertable to it, i.e. {@link #contains(Object) contains} 
-	 * implies {@link #convertible(Object) convertable}.
+	 * of a type are always convertible to it, i.e. {@link #contains(Object) contains} 
+	 * implies {@link #convertible(Object) convertible}.
 	 * 
 	 * @param v The object.
-	 * @return True, if the object is convertable to an instance of this type.
+	 * @return True, if the object is convertible to an instance of this type.
 	 * @see #contains(Object)
 	 * @see #convert(Object)
 	 */
@@ -72,24 +72,5 @@ public interface Type {
 	 * @see #convertible(Object)
 	 */
 	
-	Object   convert(Object v);
-
-	/**
-	 * Determine whether this type is a subtype of the argument. If it is, then any instance of this type is also 
-	 * an instance of the argument type.
-	 * 
-	 * @param t A type.
-	 * @return True, if this type is a subtype of t.
-	 * @see #contains(Object)
-	 */
-	boolean  isSubtypeOf(Type t);
-	
-	/**
-	 * Determine whether this type is convertible to the argument type. If it is, then any instance of this type 
-	 * is convertible to the argument type.
-	 * 
-	 * @param t A type.
-	 * @return True, if this type is convertible to t.
-	 */
-	boolean  isConvertibleTo(Type t);
+	Object   convert(Object v) throws TypeConversionWarning;
 }
