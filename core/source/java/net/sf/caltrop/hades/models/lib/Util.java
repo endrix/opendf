@@ -58,7 +58,7 @@ import net.sf.caltrop.cal.interpreter.util.ImportHandler;
 import net.sf.caltrop.cal.interpreter.util.ImportMapper;
 import net.sf.caltrop.cal.interpreter.util.Platform;
 import net.sf.caltrop.cal.util.SourceReader;
-import net.sf.caltrop.hades.cal.EnvironmentWrapper;
+import net.sf.caltrop.hades.cal.OldEnvironmentWrapper;
 import net.sf.caltrop.hades.des.DiscreteEventComponent;
 import net.sf.caltrop.hades.des.MessageListener;
 import net.sf.caltrop.hades.des.util.Attributable;
@@ -271,7 +271,7 @@ public class Util {
 	}
 	
 	private  static net.sf.caltrop.cal.interpreter.environment.Environment  createEnvironment(NodeList decls, Map env, Platform platform) {
-		net.sf.caltrop.cal.interpreter.environment.Environment wrappedEnv = new EnvironmentWrapper(env, platform.createGlobalEnvironment(), platform.context());
+		net.sf.caltrop.cal.interpreter.environment.Environment wrappedEnv = new OldEnvironmentWrapper(env, platform.createGlobalEnvironment(), platform.context());
 		net.sf.caltrop.cal.interpreter.environment.Environment localEnv = platform.context().newEnvironmentFrame(wrappedEnv);
 		
 		// FIXME: handle imports

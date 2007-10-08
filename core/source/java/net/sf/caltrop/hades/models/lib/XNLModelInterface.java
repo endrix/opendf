@@ -51,7 +51,7 @@ import java.util.Set;
 
 import net.sf.caltrop.cal.interpreter.environment.Environment;
 import net.sf.caltrop.cal.interpreter.util.Platform;
-import net.sf.caltrop.hades.cal.EnvironmentWrapper;
+import net.sf.caltrop.hades.cal.OldEnvironmentWrapper;
 import net.sf.caltrop.hades.des.DiscreteEventComponent;
 import net.sf.caltrop.hades.des.components.ParameterDescriptor;
 import net.sf.caltrop.hades.des.schedule.Scheduler;
@@ -159,7 +159,7 @@ public class XNLModelInterface implements ModelInterface {
 			ClassLoader myLoader = (loader == null) ? this.getClass().getClassLoader() : loader;
 			Platform myPlatform = getPlatform(myLoader);
 			
-			Environment thisEnv = myPlatform.createGlobalEnvironment(new EnvironmentWrapper(env, myPlatform.context()));
+			Environment thisEnv = myPlatform.createGlobalEnvironment(new OldEnvironmentWrapper(env, myPlatform.context()));
 			Document xdfModel = net.sf.caltrop.nl.Network.translate((Document)modelSource, 
 					                                                          thisEnv, 
 					                                                          myPlatform.context());

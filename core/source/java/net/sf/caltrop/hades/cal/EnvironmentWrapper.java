@@ -37,7 +37,7 @@ BEGINCOPYRIGHT X,UC
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.hades.cal_i2;
+package net.sf.caltrop.hades.cal;
 
 import java.util.Map;
 
