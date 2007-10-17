@@ -486,11 +486,10 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 			}
 		}
 
-		if (!bufferBlockRecord)
-			return;
-		
-		Collection<OutputBlockRecord> obr = getOBR();
-		obr.remove(myOBR);
+		if (bufferBlockRecord) {
+			Collection<OutputBlockRecord> obr = getOBR();
+			obr.remove(myOBR);
+		}
 	}
 	
 	private Collection<OutputBlockRecord> getOBR() {
@@ -1347,12 +1346,18 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 		
 		public void  control(ControlEvent ce) {
 			if (ce.data == ControlEvent.BLOCK) {
+				if (ce.source == null) {
+					Logging.dbg().info(portQID() + ": Received anonymous UNBLOCK event. Actor was " + (blocked ? "blocked" : "unblocked") + ".");					
+				}
 				blocked = true;
 				if (ce.source != null) {
 					blockingSources.add(ce.source);
 				}
 				blockActor(getName());
 			} else if (ce.data == ControlEvent.UNBLOCK) {
+				if (ce.source == null) {
+					Logging.dbg().info(portQID() + ": Received anonymous UNBLOCK event. Actor was " + (blocked ? "blocked" : "unblocked") + ".");					
+				}
 				if (blocked) {
 					if (ce.source == null) {
 						blockingSources.clear();
@@ -1365,10 +1370,15 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 						scheduleActorForOutputFlushing();
 					}
 				} else {
-					Logging.dbg().warning(CalInterpreter.this.getName() + "." + this.getName() + ": Received unblocking event without blocking event.");
+					Logging.dbg().warning(portQID() + ": Received unblocking event while not blocked.");
 				}
-			} else
-				Logging.dbg().warning("Received unidentified control event.");
+			} else {
+				Logging.dbg().warning(portQID() + ": Received unidentified control event.");
+			}
+		}
+		
+		private String portQID() {
+			return CalInterpreter.this.getName() + "." + this.getName();
 		}
 		
 		//
