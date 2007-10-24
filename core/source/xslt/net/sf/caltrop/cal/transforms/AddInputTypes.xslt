@@ -18,7 +18,7 @@
     <xd:detail>
       <ul>
         <li>Reads/writes either CALML or XDF</li>
-        <li>Relies on CannonicalizePorts</li>
+        <li>Relies on CannonicalizePortTags</li>
       </ul>
     </xd:detail>
     <xd:author>DBP</xd:author>
