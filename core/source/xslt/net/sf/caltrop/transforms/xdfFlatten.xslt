@@ -18,12 +18,14 @@
       <xsl:with-param name="env">
         <Env/>
       </xsl:with-param>
+      <xsl:with-param name="iattrs" select="self::NOTHING"/>        
     </xsl:apply-templates>
   </xsl:template>
   
   <xsl:template match="XDF">
     <xsl:param name="prefix"/>
     <xsl:param name="env"/>
+    <xsl:param name="iattrs"/>
     
     <xsl:variable name="localEnv">
       <Env>
@@ -38,16 +40,27 @@
       </Env>
     </xsl:variable>
     
+    <xsl:variable name="localIAttrs">
+      <xsl:apply-templates select="Attribute">
+        <xsl:with-param name="prefix" select="$prefix"/>
+        <xsl:with-param name="env" select="$env"/>
+        <xsl:with-param name="iattrs" select="$iattrs"/>        
+      </xsl:apply-templates>
+      <xsl:copy-of select="$iattrs"/>
+    </xsl:variable>  
+    
     <xsl:variable name="I">
       <xsl:apply-templates select="Instance">
         <xsl:with-param name="prefix" select="$prefix"/>
         <xsl:with-param name="env" select="$localEnv"/>
+        <xsl:with-param name="iattrs" select="$localIAttrs"/>        
       </xsl:apply-templates>
     </xsl:variable>
     <xsl:variable name="C">
       <xsl:apply-templates select="Connection">
         <xsl:with-param name="prefix" select="$prefix"/>
         <xsl:with-param name="env" select="$localEnv"/>
+        <xsl:with-param name="iattrs" select="$localIAttrs"/>        
       </xsl:apply-templates>
     </xsl:variable>
     
@@ -66,10 +79,11 @@
       <xsl:apply-templates select="Attribute">
         <xsl:with-param name="prefix" select="$prefix"/>
         <xsl:with-param name="env" select="$localEnv"/>
+        <xsl:with-param name="iattrs" select="$localIAttrs"/>        
       </xsl:apply-templates>
       
       <!-- copy network attributes of embedded networks -->
-      <xsl:copy-of select="$I/Instance/XDF/Attribute"/>
+      <!-- <xsl:copy-of select="$I/Instance/XDF/Attribute"/> -->
       
       <!-- unfold embedded networks -->     
       <xsl:for-each select="$I/Instance[XDF]">
@@ -92,19 +106,30 @@
   <xsl:template match="Instance[XDF]">
     <xsl:param name="prefix"/>
     <xsl:param name="env"/>
+    <xsl:param name="iattrs"/>
     
-    <xsl:param name="instEnv">
+    <xsl:variable name="localIAttrs">
+      <xsl:apply-templates select="Attribute">
+        <xsl:with-param name="prefix" select="$prefix"/>
+        <xsl:with-param name="env" select="$env"/>
+        <xsl:with-param name="iattrs" select="$iattrs"/>        
+      </xsl:apply-templates>
+      <xsl:copy-of select="$iattrs"/>
+    </xsl:variable>  
+    
+    <xsl:variable name="instEnv">
       <Env>
         <xsl:for-each select="Parameter">
           <Decl kind="Variable" name="@name">
             <xsl:apply-templates select="Expr">
               <xsl:with-param name="prefix" select="$prefix"/>
               <xsl:with-param name="env" select="$env"/>              
+              <xsl:with-param name="iattrs" select="$localIAttrs"/>        
             </xsl:apply-templates>
           </Decl>
         </xsl:for-each>
       </Env>
-    </xsl:param>
+    </xsl:variable>
     
     <Instance id="{concat($prefix, @id)}">
       <xsl:copy-of select="Class"/>
@@ -112,16 +137,30 @@
       <xsl:apply-templates select="XDF">
         <xsl:with-param name="prefix" select="concat($prefix, concat(@id, '$'))"/>
         <xsl:with-param name="env" select="$instEnv"/>
+        <xsl:with-param name="iattrs" select="$localIAttrs"/>        
       </xsl:apply-templates>
+      
     </Instance>
   </xsl:template>
   
   <xsl:template match="Instance">
     <xsl:param name="prefix"/>
     <xsl:param name="env"/>
+    <xsl:param name="iattrs"/>
+    
+    <xsl:variable name="localIAttrs">
+      <xsl:apply-templates select="Attribute">
+        <xsl:with-param name="prefix" select="$prefix"/>
+        <xsl:with-param name="env" select="$env"/>
+        <xsl:with-param name="iattrs" select="$iattrs"/>        
+      </xsl:apply-templates>
+      <xsl:copy-of select="$iattrs"/>
+    </xsl:variable>  
     
     <Instance id="{concat($prefix, @id)}">      
-      <xsl:copy-of select="Class | Note | Attribute"/>
+      <xsl:copy-of select="Class | Note"/>
+
+      <xsl:copy-of select="$localIAttrs"/>      
       
       <xsl:apply-templates select="Parameter">
         <xsl:with-param name="prefix" select="$prefix"/>
@@ -150,6 +189,8 @@
   <xsl:template match="Expr">
     <xsl:param name="prefix"/>
     <xsl:param name="env"/>
+    <xsl:param name="iattrs"/>
+    
     <xsl:variable name="expr" select="."/>
 
     <Expr kind="Let">
@@ -168,6 +209,7 @@
   <xsl:template match="*">
     <xsl:param name="prefix"/>
     <xsl:param name="env"/>
+    <xsl:param name="iattrs"/>
     
     <xsl:copy>
       <xsl:for-each select="@*">
@@ -179,6 +221,7 @@
       <xsl:apply-templates>
         <xsl:with-param name="prefix" select="$prefix"/>
         <xsl:with-param name="env" select="$env"/>
+        <xsl:with-param name="iattrs" select="$iattrs"/>
       </xsl:apply-templates>
     </xsl:copy>
   </xsl:template>
@@ -272,6 +315,7 @@
       </xsl:otherwise>
     </xsl:choose>
   </xsl:template>
+    
 </xsl:stylesheet>
 
 

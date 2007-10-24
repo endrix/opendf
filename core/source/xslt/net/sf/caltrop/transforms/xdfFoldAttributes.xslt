@@ -80,16 +80,16 @@
         </Connection>
     </xsl:template>
     
-    <xsl:template match="XDF">
+    <xsl:template match="Instance">
         <xsl:variable name="n" select="."/>
-        <XDF>
+        <Instance>
             <xsl:for-each select="@*">
                 <xsl:attribute name="{name()}"><xsl:value-of select="."/></xsl:attribute>
             </xsl:for-each>
             
-            <xsl:apply-templates/>
+            <xsl:apply-templates select="*[not(self::Attribute)]"/>
             
-            <xsl:for-each select="$config/NetworkAttribute[@attrKind='Value']">
+            <xsl:for-each select="$config/InstanceAttribute[@attrKind='Value']">
                 <xsl:variable name="name" select="@attrName"/>
                 <xsl:variable name="attrs" select="$n/Attribute[@kind='Value'][@name=$name]"/>
                 
@@ -118,15 +118,15 @@
                 </xsl:choose>
             </xsl:for-each>
             
-            <xsl:if test="$config/NetworkAttributeDefault[@attrKind='Value']">
+            <xsl:if test="$config/InstanceAttributeDefault[@attrKind='Value']">
                 <xsl:for-each select="$n/Attribute[@kind='Value']">
                     <xsl:variable name="a" select="."/>
                     <xsl:variable name="attrs" select="$n/Attribute[@kind='Value'][@name=$a/@name]"/>
-                    <xsl:if test="every $ca in $config/NetworkAttribute[@attrKind='Value'] satisfies $ca/@attrName ne $a/@name">
+                    <xsl:if test="every $ca in $config/InstanceAttribute[@attrKind='Value'] satisfies $ca/@attrName ne $a/@name">
                         <xsl:if test="not($a/preceding-sibling::Attribute[@kind='Value'][@name=$a/@name])">
                             <Attribute name="{$a/@name}" kind="Value">
                                 <Expr kind="Application">
-                                    <xsl:copy-of select="cal:parseExpression($config/NetworkAttributeDefault/FoldingFunction/@value)"/>
+                                    <xsl:copy-of select="cal:parseExpression($config/InstanceAttributeDefault/FoldingFunction/@value)"/>
                                     <Args>
                                         <Expr kind="List">
                                             <xsl:for-each select="$attrs">
@@ -141,7 +141,7 @@
                 </xsl:for-each>
             </xsl:if>
             
-        </XDF>
+        </Instance>
     </xsl:template>
         
     <xsl:template match="Attribute">

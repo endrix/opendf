@@ -6,7 +6,7 @@
     </ConnectionAttributeDefault>
         
     <ConnectionAttribute attrName="bufferSize" attrKind="Value">
-        <DefaultValue value="1"/>
+        <!-- <DefaultValue value="1"/> -->
         <FoldingFunction value="lambda (L) : accumulate(lambda (x, y) : if x > y then x else y end end, 0, L) end"/>
     </ConnectionAttribute>
 
@@ -18,19 +18,10 @@
         <FoldingFunction value="lambda (L) : accumulate(lambda (x, y) : x or y end, false, L) end"/>
     </ConnectionAttribute>
 
-    <NetworkAttribute attrName="partname" attrKind="Value">
+    <InstanceAttribute attrName="clockDomain" attrKind="Value">
         <FoldingFunction value="lambda (L) : L[0] end"/>
-    </NetworkAttribute>
+        <DefaultValue value='"CLK"'/>
+    </InstanceAttribute>
 
-    <NetworkAttribute attrName="example" attrKind="Value">
-        <DefaultValue value="0"/>
-        <FoldingFunction value="lambda (L) : accumulate(lambda (x, y) : x + y end, 0, L) end"/>        
-    </NetworkAttribute>
-    
-    <NetworkAttributeDefault attrKind="Value">
-        <FoldingFunction value="lambda (L) : L end"/>
-    </NetworkAttributeDefault>
-    
-    
     
 </AttributeFolding>
