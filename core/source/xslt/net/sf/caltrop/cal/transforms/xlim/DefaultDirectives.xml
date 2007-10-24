@@ -17,9 +17,6 @@
   <!-- default root-level directives -->
   <directives>
     
-    <!-- code generation strategy -->
-  	<parameter name="code-generator" value="behavioral"/>
-  	
   	<!-- name of default type for any untyped Decl -->
   	<parameter name="default-type-name" value="int"/>
   	    
