@@ -205,7 +205,7 @@ public class ASTFactory {
         return createExpression(e);
      }
     
-    private static Expression createExpression(Element e) {
+    public static Expression createExpression(Element e) {
         assert e.getTagName().equals(tagExpr);
 
         Expression result;
@@ -469,7 +469,7 @@ public class ASTFactory {
         assert predType.test(e);
 
         String typeName = e.getAttribute(attrName);
-        
+
         List<Element> typeParameters = xpathEvalElements("Type", e);
         if (typeParameters.size() > 0) {
             TypeExpr [] typeExprs = new TypeExpr[typeParameters.size()];
@@ -524,7 +524,7 @@ public class ASTFactory {
         Element initExpr = net.sf.caltrop.util.xml.Util.uniqueElement(e, predExpr);
         boolean isAssignable = getBooleanAttribute(e, attrAssignable, false);
         boolean isMutable = getBooleanAttribute(e, attrMutable, false);
-        Element type = net.sf.caltrop.util.xml.Util.uniqueElement(e, predType);        
+        Element type = net.sf.caltrop.util.xml.Util.uniqueElement(e, predType);
         TypeExpr typeExpr = (type != null) ? createTypeExpr(type) : null;
         return new Decl(typeExpr, name, (initExpr == null) ? null : createExpression(initExpr), isAssignable, isMutable);
     }
@@ -1267,7 +1267,6 @@ public class ASTFactory {
     private static Transformer [] actorTransformations = null;
 
     private static Node   canonicalizeExprStmt(Node doc)  {
-
         try {
             if (exprTransformations == null) {
                 exprTransformations = new Transformer [exprTransformationPaths.length];

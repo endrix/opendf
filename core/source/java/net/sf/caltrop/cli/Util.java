@@ -91,14 +91,4 @@ public class Util {
     private static final String inlineParametersTransformName = "net/sf/caltrop/transforms/InlineParameters.xslt";
     private static final String elaborationTransformName = "net/sf/caltrop/transforms/Elaborate.xslt";
 
-    private static final String instantiateTransformName = "net/sf/caltrop/transforms/Instantiate.xslt";
-    static void instantiate (String networkClass, String[] modelPath, ClassLoader classLoader, String destDir) throws Exception
-    {
-        
-        Node networkDoc = Loading.loadActorSource(networkClass);
-        Node res = applyTransformAsResource(networkDoc, instantiateTransformName,
-            new String[] {"destinationDir"}, new Object [] {destDir});
-    }
-
-    
 }

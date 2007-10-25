@@ -53,6 +53,7 @@ ENDCOPYRIGHT
       <ul>
         <li>Reads/writes either CALML or XDF</li>
         <li>Relies on AddID.</li>
+        <li>Is reentrant safe.  All declAnn notes are stripped and new ones created.</li>
       </ul>
       Each Decl has a child element added of the form:<br/>
       <code>&lt;Note kind="declAnn" scope-id="<em>xyz</em>" reassigned="yes|no"/></code><br/>
@@ -127,6 +128,13 @@ ENDCOPYRIGHT
       
   </xsl:template>
 
+  <xd:doc>
+    Strip any preexisting declAnn notes
+  </xd:doc>
+  <xsl:template match="Note[@kind='declAnn']">
+  </xsl:template>
+
+  
   <xd:doc>
     Default preserves the existing template.
   </xd:doc>

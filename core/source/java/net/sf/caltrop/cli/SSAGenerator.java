@@ -65,15 +65,13 @@ public class SSAGenerator extends XSLTTransformRunner
         "net/sf/caltrop/cal/transforms/CanonicalizePortTags.xslt",
         "net/sf/caltrop/cal/transforms/AddInputTypes.xslt",
         "net/sf/caltrop/cal/transforms/ReplaceOld.xslt",
-        "net/sf/caltrop/cal/transforms/RenameLocalVars.xslt",
-        "net/sf/caltrop/cal/transforms/Inline.xslt",
-        "net/sf/caltrop/cal/transforms/AddID.xslt",
-        "net/sf/caltrop/cal/transforms/VariableAnnotator.xslt",
-        "net/sf/caltrop/cal/transforms/ContextInfoAnnotator.xslt",
-        "net/sf/caltrop/cal/transforms/CanonicalizeOperators.xslt",
-        "net/sf/caltrop/cal/transforms/AnnotateFreeVars.xslt",
-        "net/sf/caltrop/cal/transforms/DependencyAnnotator.xslt",
-        "net/sf/caltrop/cal/transforms/VariableSorter.xslt"
+        
+//         "net/sf/caltrop/cal/transforms/VariableAnnotator.xslt",
+//         "net/sf/caltrop/cal/transforms/ContextInfoAnnotator.xslt",
+//         "net/sf/caltrop/cal/transforms/CanonicalizeOperators.xslt",
+//         "net/sf/caltrop/cal/transforms/AnnotateFreeVars.xslt",
+//         "net/sf/caltrop/cal/transforms/DependencyAnnotator.xslt",
+//         "net/sf/caltrop/cal/transforms/VariableSorter.xslt"
     };
 
     private static String[] ssaTransforms = {
@@ -81,14 +79,17 @@ public class SSAGenerator extends XSLTTransformRunner
         "net/sf/caltrop/cal/transforms/xlim/CopyQIDToAction.xslt",
         "net/sf/caltrop/cal/transforms/xlim/EnumerateStates.xslt",
         "net/sf/caltrop/cal/transforms/xlim/MergePriorityInequalities.xslt",
+        // Now in Elaborator
         "net/sf/caltrop/cal/transforms/xlim/AddDirectives.xslt",
-        "net/sf/caltrop/cal/transforms/xlim/SetActorParameters.xslt",
+        //"net/sf/caltrop/cal/transforms/xlim/SetActorParameters.xslt",
         "net/sf/caltrop/cal/transforms/xlim/AddDefaultTypes.xslt",
         "net/sf/caltrop/cal/transforms/xlim/AnnotateDecls.xslt",
+
         "net/sf/caltrop/cal/transforms/EvaluateConstantExpressions.xslt",
         "net/sf/caltrop/cal/checks/problemSummary.xslt",
         "net/sf/caltrop/cal/transforms/EliminateDeadCode.xslt",
         "net/sf/caltrop/cal/transforms/AddID.xslt",
+        
         "net/sf/caltrop/cal/transforms/xlim/VariableUsage.xslt",
         "net/sf/caltrop/cal/transforms/xlim/SSANotes.xslt",
         "net/sf/caltrop/cal/transforms/xlim/TrueSource.xslt",

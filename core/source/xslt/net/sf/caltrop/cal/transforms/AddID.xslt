@@ -1,8 +1,9 @@
 <!--
     AddID
 
-    Adds to each element an "id" attribute with a unique value. This may later be used to establish
-    references between nodes, e.g. in the VariableAnnotator transformation.
+    Adds to each element an "id" attribute with a unique value. This may
+    later be used to establish references between nodes, e.g. in the
+    VariableAnnotator transformation.
 
     author: JWJ
 -->
@@ -17,9 +18,11 @@
   <xsl:output method="xml"/>
 
   <xsl:variable name="prefix">
+    <xsl:variable name="counterValues" select="//Note[@kind='counter']/@value"/>
     <xsl:choose>
-      <xsl:when test="//Note[@kind='counter']">
-        <xsl:value-of select="1 + //Note[@kind='counter']/@value"/>
+      <xsl:when test="$counterValues">
+        <!--<xsl:value-of select="1 + //Note[@kind='counter']/@value"/>-->
+        <xsl:value-of select="1 + max($counterValues)"/>
       </xsl:when>
       <xsl:otherwise>
         <xsl:value-of select="0"/>
@@ -28,6 +31,8 @@
   </xsl:variable>
 
   <xsl:template match="Note[@kind='counter']">
+    <!-- Keep the individual sub-notes resetting the value to the new 'max' -->
+    <Note kind="counter" value="{$prefix}"/>
   </xsl:template>
 
   <xsl:template match="/*">

@@ -18,6 +18,7 @@
       <xsl:with-param name="env">
         <Env/>
       </xsl:with-param>
+      <xsl:with-param name="hierarchy" select="_empty_list"/>
       <xsl:with-param name="iattrs" select="VERYUNLIKELYNAME"/>        
     </xsl:apply-templates>
   </xsl:template>
@@ -25,6 +26,7 @@
   <xsl:template match="XDF">
     <xsl:param name="prefix"/>
     <xsl:param name="env"/>
+    <xsl:param name="hierarchy"/>
     <xsl:param name="iattrs"/>
     
     <xsl:variable name="localEnv">
@@ -44,6 +46,7 @@
       <xsl:apply-templates select="Attribute">
         <xsl:with-param name="prefix" select="$prefix"/>
         <xsl:with-param name="env" select="$env"/>
+        <xsl:with-param name="hierarchy" select="$hierarchy"/>
         <xsl:with-param name="iattrs" select="$iattrs"/>        
       </xsl:apply-templates>
       <xsl:copy-of select="$iattrs"/>
@@ -53,6 +56,7 @@
       <xsl:apply-templates select="Instance">
         <xsl:with-param name="prefix" select="$prefix"/>
         <xsl:with-param name="env" select="$localEnv"/>
+        <xsl:with-param name="hierarchy" select="$hierarchy"/>
         <xsl:with-param name="iattrs" select="$localIAttrs"/>        
       </xsl:apply-templates>
     </xsl:variable>
@@ -60,6 +64,7 @@
       <xsl:apply-templates select="Connection">
         <xsl:with-param name="prefix" select="$prefix"/>
         <xsl:with-param name="env" select="$localEnv"/>
+        <xsl:with-param name="hierarchy" select="$hierarchy"/>
         <xsl:with-param name="iattrs" select="$localIAttrs"/>        
       </xsl:apply-templates>
     </xsl:variable>
@@ -79,6 +84,7 @@
       <xsl:apply-templates select="Attribute">
         <xsl:with-param name="prefix" select="$prefix"/>
         <xsl:with-param name="env" select="$localEnv"/>
+        <xsl:with-param name="hierarchy" select="$hierarchy"/>
         <xsl:with-param name="iattrs" select="$localIAttrs"/>        
       </xsl:apply-templates>
       
@@ -106,48 +112,77 @@
   <xsl:template match="Instance[XDF]">
     <xsl:param name="prefix"/>
     <xsl:param name="env"/>
+    <xsl:param name="hierarchy"/>
     <xsl:param name="iattrs"/>
-    
+
     <xsl:variable name="localIAttrs">
       <xsl:apply-templates select="Attribute">
         <xsl:with-param name="prefix" select="$prefix"/>
         <xsl:with-param name="env" select="$env"/>
+        <xsl:with-param name="hierarchy" select="$hierarchy"/>
         <xsl:with-param name="iattrs" select="$iattrs"/>        
       </xsl:apply-templates>
       <xsl:copy-of select="$iattrs"/>
     </xsl:variable>  
     
+    <!-- Create a new local environment which associates the local
+         parameter names and the current environment which supplies
+         the bindings for those parameters -->
     <xsl:variable name="instEnv">
       <Env>
         <xsl:for-each select="Parameter">
-          <Decl kind="Variable" name="@name">
+          <Decl kind="Variable" name="{@name}">
             <xsl:apply-templates select="Expr">
               <xsl:with-param name="prefix" select="$prefix"/>
               <xsl:with-param name="env" select="$env"/>              
+              <xsl:with-param name="hierarchy" select="$hierarchy"/>
               <xsl:with-param name="iattrs" select="$localIAttrs"/>        
             </xsl:apply-templates>
           </Decl>
         </xsl:for-each>
       </Env>
     </xsl:variable>
-    
+
     <Instance id="{concat($prefix, @id)}">
       <xsl:copy-of select="Class"/>
       
       <xsl:apply-templates select="XDF">
         <xsl:with-param name="prefix" select="concat($prefix, concat(@id, '$'))"/>
         <xsl:with-param name="env" select="$instEnv"/>
-        <xsl:with-param name="iattrs" select="$localIAttrs"/>        
+        <xsl:with-param name="hierarchy">
+          <xsl:copy-of select="$hierarchy/*"/>
+          <Note kind="hierElement" value="{XDF/@name}"/>
+        </xsl:with-param>
+        <xsl:with-param name="iattrs" select="$localIAttrs"/>
       </xsl:apply-templates>
       
     </Instance>
   </xsl:template>
-  
+
   <xsl:template match="Instance">
     <xsl:param name="prefix"/>
     <xsl:param name="env"/>
+    <xsl:param name="hierarchy"/>
     <xsl:param name="iattrs"/>
-    
+
+    <!-- Create a new local environment which associates the local
+         parameter names and the current environment which supplies
+         the bindings for those parameters -->
+    <xsl:variable name="instEnv">
+      <Env>
+        <xsl:for-each select="Parameter">
+          <Decl kind="Variable" name="{@name}">
+            <xsl:apply-templates select="Expr">
+              <xsl:with-param name="prefix" select="$prefix"/>
+              <xsl:with-param name="env" select="$env"/>
+              <xsl:with-param name="hierarchy" select="$hierarchy"/>
+              <xsl:with-param name="iattrs" select="$iattrs"/>        
+            </xsl:apply-templates>
+          </Decl>
+        </xsl:for-each>
+      </Env>
+    </xsl:variable>
+
     <xsl:variable name="localIAttrs">
       <xsl:apply-templates select="Attribute">
         <xsl:with-param name="prefix" select="$prefix"/>
@@ -157,21 +192,43 @@
       <xsl:copy-of select="$iattrs"/>
     </xsl:variable>  
     
-    <Instance id="{concat($prefix, @id)}">      
-      <xsl:copy-of select="Class | Note"/>
-
-      <xsl:copy-of select="$localIAttrs"/>      
+    <xsl:copy>
+      <xsl:for-each select="@*">
+        <xsl:attribute name="{name()}">
+          <xsl:value-of select="if (name() = 'id' and not(ancestor::QID)) then concat($prefix, .) else ."/>
+        </xsl:attribute>
+      </xsl:for-each>
       
-      <xsl:apply-templates select="Parameter">
+      <Note kind="instanceHierarchy">
+        <xsl:copy-of select="$hierarchy/*"/>
+      </Note>
+      
+      <xsl:copy-of select="$localIAttrs"/>
+
+      <xsl:apply-templates select="*[self::Parameter]">
         <xsl:with-param name="prefix" select="$prefix"/>
+        <!-- Parameters are bound based on external environment -->
         <xsl:with-param name="env" select="$env"/>
-      </xsl:apply-templates>      
-    </Instance>
+        <xsl:with-param name="hierarchy" select="$hierarchy"/>
+        <xsl:with-param name="iattrs" select="$iattrs"/>        
+      </xsl:apply-templates>
+      <xsl:apply-templates select="*[not(self::Parameter)]">
+        <xsl:with-param name="prefix" select="$prefix"/>
+        <!-- IDM.  The Expr elements within the (non XDF) Instances need to
+             reflect the bindings in the Parameters.
+             <xsl:with-param name="env" select="$env"/>
+        -->
+        <xsl:with-param name="env" select="$instEnv"/>
+        <xsl:with-param name="hierarchy" select="$hierarchy"/>
+        <xsl:with-param name="iattrs" select="$localIAttrs"/>        
+      </xsl:apply-templates>
+    </xsl:copy>
   </xsl:template>
-  
+
   <xsl:template match="Connection">
     <xsl:param name="prefix"/>
     <xsl:param name="env"/>
+    <xsl:param name="hierarchy"/>
     
     <Connection 
       src="{if(@src='') then '' else concat($prefix, @src)}"
@@ -182,6 +239,7 @@
       <xsl:apply-templates>
         <xsl:with-param name="prefix" select="$prefix"/>
         <xsl:with-param name="env" select="$env"/>
+        <xsl:with-param name="hierarchy" select="$hierarchy"/>
       </xsl:apply-templates>
     </Connection>
   </xsl:template>
@@ -189,6 +247,7 @@
   <xsl:template match="Expr">
     <xsl:param name="prefix"/>
     <xsl:param name="env"/>
+    <xsl:param name="hierarchy"/>
     <xsl:param name="iattrs"/>
     
     <xsl:variable name="expr" select="."/>
@@ -205,10 +264,40 @@
     </Expr>
     
   </xsl:template>
+
+  <xsl:template match="Actor">
+    <xsl:param name="prefix"/>
+    <xsl:param name="env"/>
+    <xsl:param name="hierarchy"/>
+    <xsl:param name="iattrs"/>
+
+    <xsl:copy>
+      <xsl:for-each select="@*">
+        <xsl:attribute name="{name()}">
+          <xsl:value-of select="if (name() = 'id' and not(ancestor::QID)) then concat($prefix, .) else ."/>
+        </xsl:attribute>
+      </xsl:for-each>
+      
+      <xsl:apply-templates>
+        <xsl:with-param name="prefix" select="$prefix"/>
+        <!-- empty out the env.  This prevents us from incorrectly handling shadowed vars
+             as this stylesheet does not pick up all the Decl elements within the actor.
+             By having an empty environment no Decls will be inserted leaving a correctly
+             formed result.
+        -->
+        <xsl:with-param name="env">
+          <Env/>
+        </xsl:with-param>
+        <xsl:with-param name="hierarchy" select="$hierarchy"/>
+        <xsl:with-param name="iattrs" select="$iattrs"/>
+      </xsl:apply-templates>
+    </xsl:copy>
+  </xsl:template>
   
   <xsl:template match="*">
     <xsl:param name="prefix"/>
     <xsl:param name="env"/>
+    <xsl:param name="hierarchy"/>
     <xsl:param name="iattrs"/>
     
     <xsl:copy>
@@ -221,6 +310,7 @@
       <xsl:apply-templates>
         <xsl:with-param name="prefix" select="$prefix"/>
         <xsl:with-param name="env" select="$env"/>
+        <xsl:with-param name="hierarchy" select="$hierarchy"/>
         <xsl:with-param name="iattrs" select="$iattrs"/>
       </xsl:apply-templates>
     </xsl:copy>

@@ -8,7 +8,7 @@
   <xd:doc type="stylesheet">
     <xd:author>IDM</xd:author>
     <xd:copyright>Xilinx, 2007</xd:copyright>
-    <xd:short>Create copies of all Decl elements referenced by Exrp[@kind='Var']</xd:short>
+    <xd:short>Create copies of all Decl elements referenced by Expr[@kind='Var']</xd:short>
     <xd:detail>
       For each Expr[@kind='Var'] element within the tree of the given element, the
       corresponding Decl (matched by name attribute) is found in the supplied environment

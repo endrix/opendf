@@ -23,7 +23,8 @@
                 <xsl:attribute name="{name()}"><xsl:value-of select="."/></xsl:attribute>
             </xsl:for-each>
 
-            <xsl:apply-templates select="* | text()"/>
+            <!-- suppress any prior annoatations and recalculate -->
+            <xsl:apply-templates select="*[not(self::Note[@kind='freeVar'])] | text()"/>
 
             <xsl:call-template name="freeVars">
                 <xsl:with-param name="N" select="."/>

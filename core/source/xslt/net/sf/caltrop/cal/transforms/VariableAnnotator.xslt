@@ -9,6 +9,8 @@
 
     assumes: TagPorts, AddID
 
+    IS reentrant.  Any prior varRef or varMod notes are stripped and new ones created.
+
     author: JWJ
 -->
 
@@ -31,6 +33,9 @@
         </xsl:copy>
     </xsl:template>
 
+    <xsl:template match="Note[@kind='varRef' or @kind='varMod']">
+      <!-- Suppress any prior varRef or varMod notes and rebuild the annotation entirely -->
+    </xsl:template>
 
     <xsl:template match="Expr[@kind='Var']|Stmt[@kind='Assign']">
         <xsl:variable name="name"><xsl:value-of select="@name"/></xsl:variable>
@@ -117,41 +122,6 @@ Also, what about Generator Decls?
             </xsl:for-each>
         </xsl:variable>
                 
-<!-- Replaced code:
-        <xsl:variable name="decls">
-            <xsl:for-each select="./ancestor::*">
-                <xsl:choose>
-                    <xsl:when test="Decl[@kind='Variable'][@name=$name]">
-                        <Note kind="{$ref-type}" free="no" assignable="{Decl/@assignable}"
-                              mutable="{Decl/@mutable}" scope-id="{@id}">
-                              <xsl:copy-of select="Decl[@name=$name]/Type"/>
-                        </Note>
-                    </xsl:when>
-                    <xsl:when test="Decl[@kind='Parameter'][@name=$name]">
-                        <Note kind="{$ref-type}" free="no" assignable="no" mutable="no" scope-id="{@id}">
-                              <xsl:copy-of select="Decl[@name=$name]/Type"/>
-                        </Note>
-                    </xsl:when>
-                    <xsl:when test="Input/Decl[@name=$name]">
-                        <xsl:variable name="port"><xsl:value-of select="Input/@port"/></xsl:variable>
-                        <Note kind="{$ref-type}" free="no" assignable="no" mutable="no" scope-id="{@id}">
-                              <xsl:copy-of select="ancestor::*/Port[@name=$port][1]/Type"/>
-                        </Note>
-                    </xsl:when>
-                    <xsl:when test="Input/Decl[@name=$name]">
-                        <xsl:variable name="port"><xsl:value-of select="Input/@port"/></xsl:variable>
-                        <Note kind="{$ref-type}" free="no" assignable="no" mutable="no" scope-id="{@id}">
-                            <Type name="Seq">
-                                <TypePars>
-                                    <xsl:copy-of select="ancestor::*/Port[@name=$port][1]/Type"/>
-                                </TypePars>
-                            </Type>
-                        </Note>
-                    </xsl:when>
-                </xsl:choose>
-            </xsl:for-each>
-        </xsl:variable>
--->
         <xsl:copy>
             <xsl:for-each select="@*">
                 <xsl:attribute name="{name()}"><xsl:value-of select="."/></xsl:attribute>

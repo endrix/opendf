@@ -41,7 +41,6 @@ ENDCOPYRIGHT
 <xsl:stylesheet
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
   xmlns:xd="http://www.pnp-software.com/XSLTdoc"
-  xmlns:math="http://exslt.org/math"
   version="1.1">
   <xsl:output method="xml"/>
   
@@ -52,6 +51,7 @@ ENDCOPYRIGHT
       <ul>
         <li>Reads/writes either CALML or XDF</li>
         <li>Relies on AddDirectives.</li>
+        <li>Relies on AddID.</li>
       </ul>
     </xd:detail>
     <xd:author>DBP</xd:author>
@@ -60,51 +60,92 @@ ENDCOPYRIGHT
   </xd:doc>
 
   <xd:doc>
-    <xd:short>Set the value of an Actor parameter.</xd:short>
-    <xd:detail>The value is determined by looking for (in this order):
-    <ol>
-      <li> the value assigned by a Directive, else</li>
-      <li> the value of the parent Actor vertex attribute of the same name, else</li>
-      <li> a default value expression</li>
-    </ol>
+    <xd:detail>
+      Eliminates Parameter elements in inlined Instances
+      Converts Decl[@kind=parameter] elements in Actors to Decl[@kind=variable] based
+        on Instance parameter values or directives
     </xd:detail>
   </xd:doc>
-  <xsl:template match="Decl[ @kind='Parameter' ]">
 
-    <xsl:variable name="this" select="@name"/>
+  <!--
+      Suppress the instance parameter if the source has already been loaded
+  -->
+  <xsl:template match="Instance/Parameter">
+    <xsl:choose>
+      
+      <xsl:when test="../Note[@kind='sourceLoaded' and @value='true']">
+        <!-- Drop the Parameter.  It will be pushed into the Actor instance below -->
+      </xsl:when>
+      
+      <xsl:otherwise>
+        <!-- Preserve the existing element information -->  
+        <xsl:copy>
+          <xsl:for-each select="@*">
+            <xsl:attribute name="{name()}"><xsl:value-of select="."/></xsl:attribute>
+          </xsl:for-each>
 
-    <!-- Find the applicable Expr in the source document -->    
-    <xsl:variable name="expr">
-      <xsl:variable name="dir-attr" select="../Note[ @kind='Directive' and @name=$this ]/Expr"/>
-      <xsl:variable name="graph-attr" select="../../../Note[ @kind='parameter' and @name=$this ]/Expr"/>
+          <xsl:apply-templates/>
+        </xsl:copy>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+
+<!--  <xsl:template match="Instance[Note[@kind='sourceLoaded',@value='true']]/Actor/Decl[@kind='Parameter']">-->
+<xsl:template match="Instance/Actor/Decl[@kind='Parameter']">
+
+  <xsl:variable name="paramName" select="@name"/>
+  <xsl:variable name="actor" select=".."/>
+  <xsl:variable name="instance" select="../.."/>
+
+  <!-- only apply to loaded-source actors -->
+  <xsl:choose>
+
+    <xsl:when test="$instance/Note[@kind='sourceLoaded' and @value='true']">
+      <!-- If an actor variable declaration shadows the parameter value,
+           leave the actor parameter declaration alone.  Otherwise,
+           convert the actor parameter declaration to an actor variable
+           declartion with the content set from the Instance Parameter -->
+      
       <xsl:choose>
-        <xsl:when test="parent::Actor and $dir-attr">
-          <!-- directive -->
-          <xsl:copy-of select="$dir-attr"/>
+        <xsl:when test="$actor/Decl[@kind='Variable' and @name=$paramName]">
+          <Decl kind="Parameter" id="{@id}" name="{@name}">
+            <xsl:copy-of select="Type"/>
+            <xsl:copy-of select="$actor/Parameter[@name = $paramName]/Expr"/>
+          </Decl>
         </xsl:when>
-        <xsl:when test="parent::Actor and $graph-attr">
-          <!-- graph attribute -->
-          <xsl:copy-of select="$graph-attr"/>
+        
+        <xsl:when test="$instance/Parameter[@name= $paramName]">
+          <Decl kind="Variable" id="{@id}" name="{@name}">
+            <xsl:copy-of select="Type"/>
+            <xsl:copy-of select="$instance/Parameter[@name = $paramName]/Expr"/>
+          </Decl>
         </xsl:when>
+        
         <xsl:otherwise>
-          <!-- default value -->
-          <xsl:copy-of select="Expr"/>
+          <!-- Preserve the existing element information -->  
+          <xsl:copy>
+            <xsl:for-each select="@*">
+              <xsl:attribute name="{name()}"><xsl:value-of select="."/></xsl:attribute>
+            </xsl:for-each>
+            
+            <xsl:apply-templates/>
+          </xsl:copy>
         </xsl:otherwise>
       </xsl:choose>
-    </xsl:variable>
-    
-    <!-- Preserve the existing element information -->  
-    <xsl:copy>
-      <xsl:for-each select="@*">
-        <xsl:attribute name="{name()}"><xsl:value-of select="."/></xsl:attribute>
-      </xsl:for-each>
-      
-      <xsl:copy-of select="*[ not( Expr ) ]"/> 
-      <xsl:copy-of select="$expr"/>
-    </xsl:copy>
-      
-  </xsl:template>
- 
+    </xsl:when>
+    <xsl:otherwise>
+      <!-- leave the element unmodified -->
+      <xsl:copy>
+        <xsl:for-each select="@*">
+          <xsl:attribute name="{name()}"><xsl:value-of select="."/></xsl:attribute>
+        </xsl:for-each>
+
+        <xsl:apply-templates/>
+      </xsl:copy>
+    </xsl:otherwise>
+  </xsl:choose>
+</xsl:template>
+  
   <xd:doc>
     Copy unmodified elemnt.
   </xd:doc>

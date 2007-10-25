@@ -4,6 +4,7 @@
     xmlns:xd="http://www.pnp-software.com/XSLTdoc"
 
     xmlns:loading="java:net.sf.caltrop.util.Loading"  
+    xmlns:preproc="java:net.sf.caltrop.cal.util.SourceReader"  
     xmlns:xnlext="java:net.sf.caltrop.xslt.nl.Elaborating"  
     xmlns:cal="java:net.sf.caltrop.xslt.cal.CalmlEvaluator"  
     
@@ -60,7 +61,7 @@
             
             <xsl:choose>
                 <xsl:when test="$source/XDF">
-                    <Note kind="sourceInfo" className="{$className}" type="XDF"/>
+                  <Note kind="sourceLoaded" value="true"/>
                     <xsl:copy-of select="Parameter"/>
                     <xsl:variable name="instantiatedSource">
                         <xsl:call-template name="instantiateXDF">
@@ -72,7 +73,7 @@
                     <xsl:apply-templates select="$instantiatedSource/XDF"/>
                 </xsl:when>
                 <xsl:when test="$source/Network">
-                    <Note kind="sourceInfo" className="{$className}" type="XNL"/>
+                  <Note kind="sourceLoaded" value="true"/>
                     <xsl:copy-of select="Parameter"/>
                     <xsl:variable name="instantiatedSource">
                         <xsl:call-template name="instantiateXNL">
@@ -84,14 +85,13 @@
                     <xsl:apply-templates select="xnlext:elaborate($instantiatedSource)"/> 
                 </xsl:when>
                 <xsl:when test="$source/Actor">
-                    <Note kind="sourceInfo" className="{$className}" type="Actor"/>
-                    <xsl:copy-of select="Parameter"/>
-                    <Actor/>
-<!--                    <Actor name="{$source/Actor/@name}">
-                        <xsl:copy-of select="Port | Decl[@kind='Parameter'] | Directive"/>
-                    </Actor> -->
+                  <Note kind="sourceLoaded" value="true"/>
+                  <xsl:copy-of select="Parameter"/> <!-- Bring the network parameters in local to the instance -->
+                  <xsl:apply-templates select="preproc:actorPreprocess($source/Actor)"/>
                 </xsl:when>
                 <xsl:otherwise>
+                  <Note kind="sourceLoaded" value="false"/>
+                  <Note kind="className" value="$className"/>
                     <xsl:copy-of select="Parameter"/>
                     <Actor/>
                     <ERROR source="XNL Elaborator:">Cannot find definition for actor class <xsl:value-of select="$className"/>.

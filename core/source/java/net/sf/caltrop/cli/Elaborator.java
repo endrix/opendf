@@ -52,9 +52,7 @@ import static net.sf.caltrop.cli.Util.initializeLocators;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.logging.Level;
 
 import javax.xml.transform.Transformer;
@@ -78,6 +76,7 @@ public class Elaborator {
 		String cachePath = null;
 		String [] modelPath = null;
 		boolean postProcessing = true; 
+		boolean doInlining = true; // functions/procedures will be inlined if true.
 		Map<String, String> params = new HashMap<String, String>();
 		
 		for (int i = 0; i < args.length; i++) {
@@ -96,6 +95,8 @@ public class Elaborator {
 				params.put(v, expr);
             } else if (args[i].equals("-npp")) {
             	postProcessing = false;
+            } else if (args[i].equals("-ni")) {
+            	doInlining = false;
 			} else if (args[i].equals("-o")) {
 				if (outputFileName != null) usage("Doubly defined output file.");
 				i += 1;
@@ -155,9 +156,15 @@ public class Elaborator {
 		try {
             Node res = null;
             res = elaborate(networkClass, modelPath, classLoader, params);
-            
+
             if (postProcessing) {
-                res = applyTransformsAsResources(res, postElaborationTransformNames);
+                List<String> postElabXForms = new ArrayList();
+                postElabXForms.addAll(Arrays.asList(postElaborationTransformNames));
+                if (doInlining) postElabXForms.addAll(Arrays.asList(inlineTransforms));
+                postElabXForms.addAll(Arrays.asList(postInlineTransforms));
+                String[] postElabXFormsArray = postElabXForms.toArray(new String[1]);
+                //res = applyTransformsAsResources(res, postElaborationTransformNames);
+                res = applyTransformsAsResources(res, postElabXFormsArray);
             }
             
 			String result = createXML(res);
@@ -205,9 +212,48 @@ public class Elaborator {
         System.out.println("  --version           Display Version information and quit");
 	}
 
+
 	static final String [] postElaborationTransformNames = {
 		"net/sf/caltrop/transforms/xdfFlatten.xslt",
-		"net/sf/caltrop/transforms/xdfFoldAttributes.xslt"
+		"net/sf/caltrop/transforms/xdfFoldAttributes.xslt",
+        
+        "net/sf/caltrop/cal/transforms/xlim/AddDirectives.xslt"
+    };
+    
+    static final String [] inlineTransforms = {
+        "net/sf/caltrop/cal/transforms/RenameLocalVars.xslt",
+        "net/sf/caltrop/cal/transforms/Inline.xslt"
+    };
+    
+    static final String [] postInlineTransforms = {
+        "net/sf/caltrop/cal/transforms/AddID.xslt",
+        "net/sf/caltrop/cal/transforms/xlim/SetActorParameters.xslt",
+        
+        // Apply transforms to set up conditions for expr evaluation.
+        // These are duplicated in the Actor context (where it is done
+        // during initial loading) but they need to be run for
+        // expressions in the XDF domain (including those introduced
+        // by attribute folding).
+        "net/sf/caltrop/cal/transforms/ContextInfoAnnotator.xslt",  // Adds an attribute to Unary/Binary Ops with the function name for each operator (bitand for &, $eq for =, etc)
+        "net/sf/caltrop/cal/transforms/CanonicalizeOperators.xslt", // Converts Unary/Binary Ops to the attributed named function application.
+        "net/sf/caltrop/cal/transforms/AnnotateFreeVars.xslt",      // Generate freeVar notes indicating the name of each free variable
+        "net/sf/caltrop/cal/transforms/DependencyAnnotator.xslt",   // Adds a dependency note indicating the name of vars (same scope) it depends on (and if they are lazy).  Requied for the VariableSorter
+        "net/sf/caltrop/cal/transforms/VariableSorter.xslt",        // Re-orders variable declarations based on dependencies
+        
+        // EvaluateConstantExpressions depends on the annotations
+        // provided by AnnotateDecls.
+        "net/sf/caltrop/cal/transforms/VariableAnnotator.xslt",     // Adds var-ref notes w/ id of the Decl for that var
+        "net/sf/caltrop/cal/transforms/xlim/AnnotateDecls.xslt",    // Adds declAnn notes with id of the enclosing scope
+        "net/sf/caltrop/cal/transforms/EvaluateConstantExpressions.xslt",
+
+        // Do not report errors at this point.  There may be some
+        // based on a lack of type information.  This will be resolved
+        // by the code generators by adding default type information
+        //"net/sf/caltrop/cal/checks/problemSummary.xslt",
+        // Since we are ignoring them (for now) strip them out
+        "net/sf/caltrop/cal/transforms/stripExprEvalReports.xslt",
+        
+        "net/sf/caltrop/cal/transforms/EliminateDeadCode.xslt",
 	};
 }
 

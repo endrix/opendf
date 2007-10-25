@@ -15,7 +15,9 @@
     <xd:doc type="stylesheet">
         <xd:short>Rename all local variables.</xd:short>
         <xd:detail>
-            Rename the declarations and references to all variables that are neither global nor actor state variables.
+            Rename the declarations and references to all variables that are
+            neither global nor actor state variables.  This prevents name capture
+            when functions/procedures are inlined.
             <p/>
         </xd:detail>
         <xd:author>JWJ</xd:author>

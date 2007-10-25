@@ -50,6 +50,7 @@ import java.util.logging.Level;
 import net.sf.caltrop.cal.main.ReadXMLWriteText;
 import net.sf.caltrop.cal.main.ReadXMLWriteXML;
 import net.sf.caltrop.util.logging.Logging;
+import net.sf.caltrop.util.exception.*;
 
 /**
  * XSLTTransformRunner is the superclass of those CLI frontends which
@@ -82,6 +83,8 @@ public abstract class XSLTTransformRunner
         try
         {
             this.runDir = new File(System.getProperty("user.dir"));
+            String runfast = System.getProperty("caltrop.debug.xslt.runfast");
+            this.runfast = runfast == null ? true:runfast.toUpperCase().startsWith("T");
         }
         catch (SecurityException se)
         {
@@ -269,6 +272,8 @@ public abstract class XSLTTransformRunner
             }
             catch (Exception e)
             {
+                // Debug hook for saving the source DOM
+                (new SaveDOMExceptionHandler()).process(e);
                 throw new SubProcessException("Sub process reported exception during processing of " + infile + ".  Message: "+ e.getMessage(), e);
             }
         }
@@ -304,6 +309,8 @@ public abstract class XSLTTransformRunner
                 }
                 catch (Exception e)
                 {
+                    // Debug hook for saving the source DOM
+                    (new SaveDOMExceptionHandler()).process(e);
                     throw new SubProcessException("Sub process reported exception during processing of " + infile + ".  Message: "+ e.getMessage(), e);
                 }
             }
@@ -363,6 +370,8 @@ public abstract class XSLTTransformRunner
         }
         catch (Exception e)
         {
+            // Debug hook for saving the source DOM
+            (new SaveDOMExceptionHandler()).process(e);
             throw new SubProcessException("Sub process reported exception during processing of " + infile + ".  Message: "+ e.getMessage(), e);
         }
 
@@ -423,6 +432,53 @@ public abstract class XSLTTransformRunner
             super(msg, subException);
         }
     }
+
+    private static class SaveDOMExceptionHandler extends UnravelingExceptionHandler
+    {
+        protected ExceptionHandler[] getHandlers ()
+        {
+            return handlers;
+        }
+    
+        private static final ExceptionHandler handlers[] = {
+            new TypedExceptionHandler() 
+            {
+                protected Class getHandledClass() { return DOMProcessingException.class; }
+                public boolean handle (Throwable t)
+                {
+                    if (Logging.dbg().isLoggable(Level.FINE))
+                    {
+                        try
+                        {
+                            File tmpFile = File.createTempFile("err",".xml",new File("."));
+                            Logging.dbg().fine("Error during processing of DOM.  Saving result to " + tmpFile.getAbsolutePath());
+                            PrintStream ps = new PrintStream(tmpFile);
+                            ps.print(net.sf.caltrop.util.xml.Util.createXML(((DOMProcessingException)t).getDOMNode()));
+                            ps.flush();
+                            ps.close();
+                        }
+                        catch (Exception e)
+                        {
+                            Logging.dbg().severe("Could not save source DOM");
+                        }
+                    }
+                    return true;
+                }
+            },
+        
+            new TypedExceptionHandler() 
+            {
+                protected Class getHandledClass() { return LocatableException.class; }
+                public boolean handle (Throwable t)
+                {
+                    Logging.dbg().warning("Error found in: " + ((LocatableException)t).getLocation());
+                    return true;
+                }
+            }
+        };
+    }
+    
+
     
 }
 

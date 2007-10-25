@@ -29,6 +29,7 @@
         <xsl:value-of select="normalize-space( text() )"/>
         <xsl:text>: </xsl:text>
         <xsl:value-of select="@subject"/>
+        <xsl:value-of select="@detail"/>
       </xsl:message>
     </xsl:for-each>
      
@@ -39,6 +40,7 @@
         <xsl:value-of select="normalize-space( text() )"/>
         <xsl:text>: </xsl:text>
         <xsl:value-of select="@subject"/>
+        <xsl:value-of select="@detail"/>
       </xsl:message>
     </xsl:for-each>
     

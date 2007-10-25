@@ -92,11 +92,8 @@ public class DefaultUntypedConfiguration implements Configuration {
             		
             		a = ((List)a).get(idx);
         		}
-        		catch (NumberFormatException e) {
+        		catch (ClassCastException e) {
         			throw new IllegalArgumentException("List indices must all be integers: " + index, e);
-        		}
-        		catch (IndexOutOfBoundsException e) {
-        			throw e;
         		}
         	}
             ((List)a).set(intValue(stack.getValue(nIndices - 1)), value);
@@ -196,8 +193,8 @@ public class DefaultUntypedConfiguration implements Configuration {
             		
             		a = ((List)a).get(idx);
         		}
-        		catch (Exception e) {
-        			throw new IllegalArgumentException("List indices must all be integers: " + index, e);        			
+        		catch (ClassCastException e) {
+        			throw new IllegalArgumentException("List indices must all be integers: " + index, e);
         		}
         	}
         	stack.replaceWithResult(nIndices, a);

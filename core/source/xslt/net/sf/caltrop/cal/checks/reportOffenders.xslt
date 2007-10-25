@@ -117,11 +117,21 @@
       </xsl:when>
       <xsl:otherwise><xsl:text>?unknown?</xsl:text></xsl:otherwise>
     </xsl:choose>
-    <xsl:if test="parent::*">
-      <xsl:text> [</xsl:text>
-      <xsl:apply-templates select="parent::*" mode="report-offender-context"/>
-      <xsl:text>]</xsl:text>
-    </xsl:if>
+    <xsl:text> [</xsl:text>
+    <xsl:choose>
+      <xsl:when test="Note[@kind='instanceHierarchy']">
+        <xsl:for-each select="Note[@kind='instanceHierarchy']/Note[@kind='hierElement']">
+          <xsl:value-of select="@value"/><xsl:text>/</xsl:text>
+        </xsl:for-each>
+      </xsl:when>
+      <xsl:when test="parent::*">
+        <xsl:apply-templates select="parent::*" mode="report-offender-context"/>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:text> ?unknown?</xsl:text>
+      </xsl:otherwise>
+    </xsl:choose>
+    <xsl:text>]</xsl:text>
   </xsl:template>
   
   <xsl:template match="Instance" mode="report-offender-context">
@@ -144,7 +154,19 @@
       <xsl:otherwise><xsl:text>?unknown?</xsl:text></xsl:otherwise>
     </xsl:choose>
     <xsl:text> [</xsl:text>
-    <xsl:apply-templates select="parent::*" mode="report-offender-context"/>
+    <xsl:choose>
+      <xsl:when test="Note[@kind='instanceHierarchy']">
+        <xsl:for-each select="Note[@kind='instanceHierarchy']/Note[@kind='hierElement']">
+          <xsl:value-of select="@value"/><xsl:text>/</xsl:text>
+        </xsl:for-each>
+      </xsl:when>
+      <xsl:when test="parent::*">
+        <xsl:apply-templates select="parent::*" mode="report-offender-context"/>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:text> ?unknown?</xsl:text>
+      </xsl:otherwise>
+    </xsl:choose>
     <xsl:text>]</xsl:text>
   </xsl:template>
   

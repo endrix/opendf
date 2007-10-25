@@ -71,7 +71,9 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
 
 import net.sf.caltrop.util.logging.Logging;
+import java.util.logging.Level;
 import net.sf.caltrop.util.exception.LocatableException;
+import net.sf.caltrop.util.exception.DOMProcessingException;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -126,13 +128,15 @@ public class Util {
 			return xpath.evaluate(expr, e, type);
 		}
 		catch (Exception exc) {
-			Logging.dbg().info("xpathEval: Error evaluating expression '" + expr + "' on node " + createXML((Node)e));
-			throw new RuntimeException("Cannot evaluate xpath expression.", exc);
+            RuntimeException re = new RuntimeException("Cannot evaluate xpath expression: "+ expr, exc);
+            if (e instanceof Node)
+                throw new DOMProcessingException(re, (Node)e);
+            else
+                throw re;
 		}
 	}
-	
-	private final static XPath xpath = XPathFactory.newInstance().newXPath();
 
+	private final static XPath xpath = XPathFactory.newInstance().newXPath();
 
 	public static List listElements(Element parent, ElementPredicate p) {
 	    NodeList nl = parent.getChildNodes();
@@ -165,31 +169,53 @@ public class Util {
 	
     public static Node applyTransforms(Node document, 
             String baseInputURI, String baseOutputURI, String [] fileNames)
-            throws Exception {
+    {
         Node doc = document;
         for (int i = 0; i < fileNames.length; i++) {
             File file = new File(fileNames[i]);
             Logging.user().fine("Applying transformation " + file.getName());
-            Transformer xf = createTransformer(fileNames[i]);
-            DOMResult res = new DOMResult();
-            res.setSystemId(baseInputURI);
-            doc = applyTransform(xf, new DOMSource(doc, baseOutputURI), res);
+            try
+            {
+                Transformer xf = createTransformer(fileNames[i]);
+                DOMResult res = new DOMResult();
+                res.setSystemId(baseInputURI);
+                if (Logging.dbg().isLoggable(Level.FINER)) Logging.dbg().finer("Applying transform " + fileNames[i]);
+                doc = applyTransform(xf, new DOMSource(doc, baseOutputURI), res);
+                if (Logging.dbg().isLoggable(Level.FINER)) Logging.dbg().finer("transform completed " + fileNames[i]);
+            }
+            catch (Throwable e)
+            {
+                Logging.dbg().throwing("Util", "applyTransforms", e);
+                throw new LocatableException.Internal(e, "applying " + fileNames[i]);
+            }
         }
         return doc;
     }
 
-    public static Node applyTransforms(Node document, String [] fileNames) throws Exception {
+    public static Node applyTransforms(Node document, String [] fileNames)
+    {
         Node doc = document;
         for (int i = 0; i < fileNames.length; i++) {
             File file = new File(fileNames[i]);
             Logging.user().fine("Applying transformation " + file.getName());
-            Transformer xf = createTransformer(fileNames[i]);
-            doc = applyTransform(xf, new DOMSource(doc), new DOMResult());
+            try
+            {
+                Transformer xf = createTransformer(fileNames[i]);
+                if (Logging.dbg().isLoggable(Level.FINER)) Logging.dbg().finer("Applying transform " + fileNames[i]);
+                doc = applyTransform(xf, new DOMSource(doc), new DOMResult());
+                if (Logging.dbg().isLoggable(Level.FINER)) Logging.dbg().finer("transform completed " + fileNames[i]);
+            }
+            catch (Throwable e)
+            {
+                Logging.dbg().throwing("Util", "applyTransforms", e);
+                throw new LocatableException.Internal(e, "applying " + fileNames[i]);
+            }
         }
         return doc;
     }
 
-    public static Node applyTransforms(Node document, Transformer [] xfs) throws Exception {
+    public static Node applyTransforms(Node document, Transformer [] xfs)
+    {
         Node doc = document;
         for (Transformer xf : xfs) {
         	doc = applyTransform(doc, xf);
@@ -197,7 +223,8 @@ public class Util {
         return doc;
     }
 
-    public static Node applyTransform(Node document, Transformer xf) throws Exception {
+    public static Node applyTransform(Node document, Transformer xf)
+    {
         return applyTransform(xf, new DOMSource(document), new DOMResult());
     }
 
@@ -220,44 +247,46 @@ public class Util {
             xf.transform(source, res);
         } catch (TransformerException te) {
             xf.setErrorListener(oldListener);
-            throw new RuntimeException(te);
+            throw new DOMProcessingException(te, source.getNode());
         }
         xf.setErrorListener(oldListener);
         
         return res.getNode();
     }
+
+    private static boolean runfast = true;
+    static
+    {
+        final String rfString = System.getProperty("caltrop.debug.xslt.runfast");
+        runfast = rfString == null ? true:rfString.toUpperCase().startsWith("T");
+    }
     
-    public static Node applyTransformsAsResources(Node document, String [] resNames) throws Exception {
+    public static Node applyTransformsAsResources(Node document, String [] resNames)
+    {
         Node doc = document;
         for (int i = 0; i < resNames.length; i++) {
-            InputStream is = Util.class.getClassLoader().getResourceAsStream(resNames[i]);
-            Transformer xf;
-            try {
-                xf = createTransformer(is);
-            } catch (Throwable e) {
-                Logging.dbg().throwing("Util", "applyTransformsAsResources", e);
-                throw new LocatableException.Internal(e, "creating " + resNames[i]);
-            } finally {
-                if (is != null) is.close();
-            }
-            DOMResult res = new DOMResult();
-            try {
-//                 xf.transform(new DOMSource(doc), res);
-//                 doc = (Node)res.getNode();
-                doc = applyTransform(xf, new DOMSource(doc), res);
-            } catch (Throwable e) {
-                Logging.dbg().throwing("Util", "applyTransformsAsResources", e);
-                throw new LocatableException.Internal(e, "applying " + resNames[i]);
+            doc = applyTransformAsResource(doc, resNames[i]);
+            if (!runfast)
+            {
+                String rname = resNames[i].substring(resNames[i].lastIndexOf("/")+1);
+                String fname = System.getProperty("user.dir") + System.getProperty("file.separator") + i+"_"+rname+"_result.xml";
+                try{
+                    java.io.PrintWriter pw = new java.io.PrintWriter(new java.io.FileOutputStream(fname));
+                    pw.print(createXML(doc));
+                    pw.flush();
+                }catch (Exception e){System.out.println("Could not create intermediate XML for debug: " + fname);}
             }
         }
         return doc;
     }
 
-    public static Node applyTransformAsResource(Node document, String resName) throws Exception { 
+    public static Node applyTransformAsResource(Node document, String resName)
+    {
     	return applyTransformAsResource(document, resName, new String[] {}, new Object [] {});
     }
 
-    public static Node applyTransformAsResource(Node document, String resName, String [] parNames, Object [] parValues) throws Exception {
+    public static Node applyTransformAsResource(Node document, String resName, String [] parNames, Object [] parValues)
+    {
     	assert parNames.length == parValues.length;
     	
         Node doc = document;
@@ -270,16 +299,18 @@ public class Util {
         	Logging.dbg().throwing("Util", "applyTransformsAsResources", e);
         	throw new LocatableException.Internal(e, "creating " + resName);
         } finally {
-        	if (is != null) is.close();
+            try{
+                if (is != null) is.close();
+            }catch (IOException ioe){ Logging.user().severe("IOException closing stream"); }
         }
         for (int i = 0; i < parNames.length; i++) {
         	xf.setParameter(parNames[i], parValues[i]);
         }
         DOMResult res = new DOMResult();
         try {
-//         	xf.transform(new DOMSource(doc), res);
-//         	doc = (Node)res.getNode();
+            if (Logging.dbg().isLoggable(Level.FINER)) Logging.dbg().finer("Applying transform " + resName);
             doc = applyTransform(xf, new DOMSource(doc), res);
+            if (Logging.dbg().isLoggable(Level.FINER)) Logging.dbg().finer("transform completed " + resName);
         } catch (Throwable e) {
         	Logging.dbg().throwing("Util", "applyTransformsAsResources", e);
         	throw new LocatableException.Internal(e, "applying " + resName);
@@ -294,17 +325,21 @@ public class Util {
         return xff;
     }
     
-    public static Transformer createTransformer(String fileName) throws Exception {
+    public static Transformer createTransformer (String fileName) throws TransformerConfigurationException
+    {
         File file = new File(fileName);
         TransformerFactory xff = createTransformerFactory();
         Transformer xf = xff.newTransformer(new StreamSource(file));
         return xf;
     }
 
-    public static Transformer createTransformer(InputStream is) throws Exception {
+    public static Transformer createTransformer (InputStream is) throws TransformerConfigurationException
+    {
         TransformerFactory xff = createTransformerFactory();
         Transformer xf = xff.newTransformer(new StreamSource(is));
-        is.close();
+        try{
+            is.close();
+        }catch (IOException ioe){Logging.user().severe("Could not close IO stream");}
         return xf;
     }
 

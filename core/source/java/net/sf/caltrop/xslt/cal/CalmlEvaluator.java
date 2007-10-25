@@ -39,7 +39,9 @@ import net.sf.caltrop.util.logging.Logging;
 import net.sf.caltrop.util.xml.ElementPredicate;
 import net.sf.caltrop.util.xml.TagNamePredicate;
 import net.sf.caltrop.util.xml.Util;
+import net.sf.caltrop.util.logging.Logging;
 import net.sf.saxon.dom.DocumentBuilderFactoryImpl;
+import net.sf.caltrop.util.exception.*;
 
 import org.w3c.dom.DOMImplementation;
 import org.w3c.dom.Document;
@@ -60,13 +62,20 @@ public class CalmlEvaluator
 // 		return n;
 // 	}
 	
-	private static Document emptyDocument() throws Exception
+	private static Document emptyDocument()
 	{
-		//caltrop.main.Util.setDefaultDBFI(); 
-		DOMImplementation di = DocumentBuilderFactory.newInstance().newDocumentBuilder().getDOMImplementation();
-		//System.out.println("DI: " + di.getClass().getName());
-		
-		return di.createDocument("", "CalmlEvaluatorResult", null);
+        try
+        {
+            //caltrop.main.Util.setDefaultDBFI(); 
+            DOMImplementation di = DocumentBuilderFactory.newInstance().newDocumentBuilder().getDOMImplementation();
+            //System.out.println("DI: " + di.getClass().getName());
+            
+            return di.createDocument("", "CalmlEvaluatorResult", null);
+        }
+        catch(Exception e)
+        {
+			throw new RuntimeException("Cannot create empty DOM document.", e);
+        }
 	}
 	
 	private static Node toSaxon( Node xalan ) throws Exception
@@ -140,13 +149,15 @@ public class CalmlEvaluator
 		return result;
     }
     
-    public static Node parseExpression(String expr) throws Exception {
+    public static Node parseExpression(String expr) throws Exception
+    {
+    	//Node n = Util.saxonify(SourceReader.parseExpr(expr).getDocumentElement());
     	Node n = toSaxon(SourceReader.parseExpr(expr).getDocumentElement());
 		reallyEmbarrassingHackToMakeThingsWork(n);
 		return xpathEvalNode("/Expression", n);
     }
     
-	public static Node evaluateExpr( Node expr, Node env ) throws Exception
+	public static Node evaluateExpr( Node expr, Node env ) throws TransformerException
 	{ 	
 //		System.out.println("Eval: " + 
 //		((expr instanceof Element) ? 
@@ -154,7 +165,7 @@ public class CalmlEvaluator
 //		: 
 //		("##" + expr.getNodeValue()))
 //		);
- 
+
 	    Element result;
 	    
         // Because the constant propagation environment uses the
@@ -162,39 +173,66 @@ public class CalmlEvaluator
         // TypedObject. 
         try
         {
-            Expression exprAst = ASTFactory.buildExpression((Element)expr);
+            //Expression exprAst = ASTFactory.buildExpression((Element)expr);
+            // The assumption is that the expr has already been
+            // canonicalized.
+            //Expression exprAst = ASTFactory.createExpression((Element)expr);
+            Node nXerces = Util.xercify((Element)expr);
+            final Element eXerces;
+            if (nXerces instanceof Element)
+                eXerces = (Element)nXerces;
+            else if (nXerces instanceof Document)
+                eXerces = ((Document)nXerces).getDocumentElement();
+            else
+            {
+                eXerces = null;
+                Logging.dbg().severe("Could not get Element from expr node: " + nXerces + " " + nXerces.getClass());
+            }
+            Expression exprAst = ASTFactory.createExpression(eXerces);
             Environment thisEnv = createConstantPropagationEnvironment(env, emptyDocument());
             TypedObject val = (TypedObject)evaluateExprObj(sbPlatform, exprAst, thisEnv);
             result = renderObject(val);
         }
         catch (InterpreterException e)
         {
-        	result = renderError( e.getMessage() );
+        	result = renderError( e.getMessage());
         }
         catch (TypedContext.UnsupportedTypeException ute)
         {
-        	result = renderError( ute.getMessage() );
+        	result = renderError( ute.getMessage());
         }
         catch (Exception e)
         {
-            final String loc = "node: " + expr.getNodeName() + " parent: " + (expr.getParentNode() == null ? "null":expr.getParentNode().getNodeName()) + " id: " + expr.getAttributes().getNamedItem("id") + " name: " + expr.getAttributes().getNamedItem("name");
+            String lineage = "";
+            Node x = expr;
+            while (x != null)
+            {
+                if (x instanceof Element)
+                {
+                    String name = ((Element)x).getAttribute("name");
+                    if (name != null)
+                        lineage = name + ":" + lineage;
+                }
+                x = x.getParentNode();
+            }
+            
+            final String loc = "node: " + expr.getNodeName() + " lineage: " + lineage + " id: " + expr.getAttributes().getNamedItem("id") + " name: " + expr.getAttributes().getNamedItem("name");
             Logging.dbg().info("Error processing node " + loc);
-            throw new LocatableException(e, loc);
+            Logging.dbg().info("Error message: " + e.getMessage());
+        	result = renderError( e.getMessage());
+            (new ReportingExceptionHandler()).process(e);
+//             throw new LocatableException(e, loc);
         }
         
-		Node n = toSaxon(result);
+		Node n = Util.saxonify(result);
 		reallyEmbarrassingHackToMakeThingsWork(n);
 
 		return n;
 	}
 	
-	public static Node  checkTypes(Node nts, Node ntd) throws Exception {
-		Document doc;
-		try {
-			doc = emptyDocument();
-		} catch (Exception e2) {
-			throw new RuntimeException("Cannot create empty DOM document.", e2);
-		}
+	public static Node  checkTypes(Node nts, Node ntd) throws TransformerException
+    {
+		Document doc = emptyDocument();
 		
 		TypedContext.TypeCheckResult tcr;
 		Element res;
@@ -215,10 +253,11 @@ public class CalmlEvaluator
 		} catch (Exception e) {
 			res = doc.createElement("ERROR");
 			res.setAttribute("code", "-666");
+            res.setAttribute("msg", e.getMessage());
 			res.appendChild(doc.createTextNode(e.getMessage()));			
 		}
-		
-		Node n = toSaxon(res);
+
+		Node n = Util.saxonify(res);
 		reallyEmbarrassingHackToMakeThingsWork(n);
 
 		return n;
@@ -239,13 +278,21 @@ public class CalmlEvaluator
 		}
 	}
 	
-	private static void  reallyEmbarrassingHackToMakeThingsWork(Node n) throws TransformerException, IOException {
+	private static void  reallyEmbarrassingHackToMakeThingsWork(Node n) throws TransformerException
+    {
 		TransformerFactory xff = TransformerFactory.newInstance();
         Transformer serializer = xff.newTransformer();
-        OutputStream os = new ByteArrayOutputStream();
-        serializer.transform(new DOMSource(n),
+        try
+        {
+            OutputStream os = new ByteArrayOutputStream();
+            serializer.transform(new DOMSource(n),
                 new StreamResult(os));
-        os.close();
+            os.close();
+        }
+        catch (IOException ioe)
+        {
+            Logging.dbg().severe("IO Exception in really embarrasing hack. " + ioe);
+        }
 	}
 	
 	
@@ -282,6 +329,7 @@ public class CalmlEvaluator
 		for (Iterator i = eBindings.iterator(); i.hasNext(); ) {
 			Element binding = (Element) i.next();
 			Element value = Util.optionalElement(binding, predExpr);
+
 			if (value == null) {
 				value = doc.createElement("Expr");
 				value.setAttribute(attrKind, valUndefined);
@@ -369,12 +417,7 @@ public class CalmlEvaluator
 	
 	private static Element  renderObject(TypedObject a) {
 		
-		Document doc;
-		try {
-			doc = emptyDocument();
-		} catch (Exception e2) {
-			throw new RuntimeException("Cannot create empty DOM document.", e2);
-		}
+		Document doc = emptyDocument();
 		
 		Element eExpr = null;
 		try {
@@ -382,10 +425,11 @@ public class CalmlEvaluator
 //			System.out.println("eExpr: " + caltrop.main.Util.createXML(eExpr));
 			
 		} catch (Exception e) {
+            (new DbgExceptionHandler()).process(e);
 			eExpr = doc.createElement("Expr");
 			eExpr.setAttribute("kind", "Undefined");
 		}
-		
+
 		Element eNote = doc.createElement("Note");
 		eNote.setAttribute("kind", "exprType");
 		Element eType = doRenderType(a.getType(), doc);
@@ -403,12 +447,7 @@ public class CalmlEvaluator
 	
 	private static Element  renderError( String msg ) {
 		
-		Document doc;
-		try {
-			doc = emptyDocument();
-		} catch (Exception e) {
-			throw new RuntimeException("Cannot create empty DOM document.", e);
-		}
+		Document doc = emptyDocument();
 		
 		Element eExpr = doc.createElement( "Expr" );
 	    eExpr.setAttribute("kind", "Undefined");
@@ -526,4 +565,28 @@ public class CalmlEvaluator
 	final static String valUndefined = "Undefined";
 	
 
+    private static class DbgExceptionHandler extends UnravelingExceptionHandler
+    {
+        protected ExceptionHandler[] getHandlers ()
+        {
+            return handlers;
+        }
+    
+        private static final ExceptionHandler handlers[] = {
+        
+            // By default, report out ALL exceptions to the debug stream
+            new TypedExceptionHandler() 
+            {
+                protected Class getHandledClass() { return Throwable.class; }
+                public boolean handle (Throwable t)
+                {
+                    String stackTop = t.getStackTrace().length == 0 ? "no stack trace available":t.getStackTrace()[0].toString();
+                    Logging.dbg().info(t.getClass() + " " + stackTop + "\n\t" + t.getMessage());
+                    return true;
+                }
+            },
+        
+        };
+    }
+    
 }

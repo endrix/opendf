@@ -1,49 +1,49 @@
 <!--
-	EvaluateConstantExpressions.xslt
-BEGINCOPYRIGHT X
-	
-	Copyright (c) 2007, Xilinx Inc.
-	All rights reserved.
-	
-	Redistribution and use in source and binary forms, 
-	with or without modification, are permitted provided 
-	that the following conditions are met:
-	- Redistributions of source code must retain the above 
-	  copyright notice, this list of conditions and the 
-	  following disclaimer.
-	- Redistributions in binary form must reproduce the 
-	  above copyright notice, this list of conditions and 
-	  the following disclaimer in the documentation and/or 
-	  other materials provided with the distribution.
-	- Neither the name of the copyright holder nor the names 
-	  of its contributors may be used to endorse or promote 
-	  products derived from this software without specific 
-	  prior written permission.
-	
-	THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND 
-	CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, 
-	INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF 
-	MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE 
-	DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
-	CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, 
-	SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT 
-	NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; 
-	LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) 
-	HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
-	CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-	OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
-	SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-	
-ENDCOPYRIGHT
+    EvaluateConstantExpressions.xslt
+    BEGINCOPYRIGHT X
+    
+    Copyright (c) 2007, Xilinx Inc.
+    All rights reserved.
+    
+    Redistribution and use in source and binary forms, 
+    with or without modification, are permitted provided 
+    that the following conditions are met:
+    - Redistributions of source code must retain the above 
+    copyright notice, this list of conditions and the 
+    following disclaimer.
+    - Redistributions in binary form must reproduce the 
+    above copyright notice, this list of conditions and 
+    the following disclaimer in the documentation and/or 
+    other materials provided with the distribution.
+    - Neither the name of the copyright holder nor the names 
+    of its contributors may be used to endorse or promote 
+    products derived from this software without specific 
+    prior written permission.
+    
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND 
+    CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, 
+    INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF 
+    MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE 
+    DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
+    CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, 
+    SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT 
+    NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; 
+    LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) 
+    HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
+    CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
+    OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
+    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+    
+    ENDCOPYRIGHT
 
 -->
 
 <xsl:stylesheet
-  xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-  xmlns:xd="http://www.pnp-software.com/XSLTdoc"
-  xmlns:math="http://exslt.org/math"
-  xmlns:cal="java:net.sf.caltrop.xslt.cal.CalmlEvaluator"  
-  version="2.0">
+    xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+    xmlns:xd="http://www.pnp-software.com/XSLTdoc"
+    xmlns:math="http://exslt.org/math"
+    xmlns:cal="java:net.sf.caltrop.xslt.cal.CalmlEvaluator"  
+    version="2.0">
   <xsl:output method="xml"/>
   
   <xsl:include href="net/sf/caltrop/cal/checks/reportOffenders.xslt"/>
@@ -69,14 +69,14 @@ ENDCOPYRIGHT
     <xd:copyright>Xilinx, 2005</xd:copyright>
     <xd:cvsId>$Id: EvaluateConstantExpressions.xslt 2451 2007-06-28 19:23:34Z imiller $</xd:cvsId>
   </xd:doc>
- 
+  
   <xd:doc>
     <xd:short>Evaluate an expression (and replace if constant)</xd:short>
     <xd:detail>The expression evaluator is called with this expression and the
-      current environment. The expression will be replaced with the evaluated
-      result if its value can be determined. If the evaluator returns a Note it
-      will be added to the Expr. If there are any Decls in scope they will be
-      added to the environment before the Expr is evaluated.
+    current environment. The expression will be replaced with the evaluated
+    result if its value can be determined. If the evaluator returns a Note it
+    will be added to the Expr. If there are any Decls in scope they will be
+    added to the environment before the Expr is evaluated.
     </xd:detail>
     <xd:param name="env">The environment table.</xd:param>
   </xd:doc>
@@ -98,12 +98,12 @@ ENDCOPYRIGHT
       <env>
         <!-- Filter to relevant decls (ignore shadowing for simplicity but it will still work) -->
         <!-- xsl:copy-of select="$new-env/Import"/>
-        <xsl:for-each select="$new-env/Decl">
-          <xsl:variable name="name" select="@name"/>
-          <xsl:if test="$freeVars[@name = $name]">
-            <xsl:copy-of select="."/>
-          </xsl:if>
-        </xsl:for-each -->
+             <xsl:for-each select="$new-env/Decl">
+             <xsl:variable name="name" select="@name"/>
+             <xsl:if test="$freeVars[@name = $name]">
+             <xsl:copy-of select="."/>
+             </xsl:if>
+             </xsl:for-each -->
         <xsl:if test="@kind != 'Literal'">
           <xsl:copy-of select="$new-env/*"/>
         </xsl:if>
@@ -115,20 +115,54 @@ ENDCOPYRIGHT
     </xsl:variable>
 
     <xsl:variable name="error" select="$eval//Note[ @kind='Report' ][ @severity='Error' ][1]"/>
+
+    <!-- For debug
+         <xsl:message>Evaluating expr <xsl:value-of select="@name"/>@<xsl:value-of select="@id"/>
+         <xsl:for-each select="$eval/*">
+         <xsl:value-of select="name()"/>
+         <xsl:for-each select="@*">
+         <xsl:value-of select="name()"/>=<xsl:value-of select="."/>:
+         </xsl:for-each>
+         </xsl:for-each>
+         </xsl:message>
+    -->
     
     <xsl:choose>
       <!-- When the evaluator cannot determine a type, keep this error -->
       <xsl:when test="$error">
-        <Expr kind="Undefined">
-          <Note kind="Report" severity="Error" id="{$error/@id}">
+        <!-- To allow partial evaluation, keep the original Expr in case of error
+             <Expr kind="Undefined">
+             <Note kind="Report" severity="Error" id="{$error/@id}">
+             <xsl:attribute name="subject">
+             <xsl:apply-templates select="." mode="report-offender-context"/>
+             </xsl:attribute>
+             <xsl:copy-of select="$error/text()"/>
+             </Note>
+             </Expr>
+        -->
+        <xsl:copy>
+          <xsl:for-each select="@*">
+            <xsl:attribute name="{name()}"><xsl:value-of select="."/></xsl:attribute>
+          </xsl:for-each>
+          
+          <xsl:apply-templates>
+            <xsl:with-param name="env">
+              <xsl:copy-of select="$new-env/*"/>
+            </xsl:with-param>
+          </xsl:apply-templates>
+          
+          <Note>
+            <xsl:for-each select="$error/@*">
+              <xsl:attribute name="{name()}"><xsl:value-of select="."/></xsl:attribute>
+            </xsl:for-each>
             <xsl:attribute name="subject">
               <xsl:apply-templates select="." mode="report-offender-context"/>
             </xsl:attribute>
             <xsl:copy-of select="$error/text()"/>
           </Note>
-        </Expr>
+        </xsl:copy>
       </xsl:when>
-      
+
       <!-- Undefined values, or varRefs in an Indexer cannot be replaced -->
       <xsl:when test="$eval//Expr[ @kind='Undefined' ] or parent::Expr[ @kind='Indexer' ]">
         <!--Keep this Expr, posssibly adding a return type Note -->
@@ -136,7 +170,8 @@ ENDCOPYRIGHT
           <xsl:for-each select="@*">
             <xsl:attribute name="{name()}"><xsl:value-of select="."/></xsl:attribute>
           </xsl:for-each>
-          <xsl:apply-templates>
+
+          <xsl:apply-templates select="*[not(self::Note[@kind='exprType'])]">
             <xsl:with-param name="env">
               <xsl:copy-of select="$new-env/*"/>
             </xsl:with-param>
@@ -144,19 +179,20 @@ ENDCOPYRIGHT
           <xsl:copy-of select="$eval/Expr/Note"/>
         </xsl:copy>
       </xsl:when>
-      
+
+      <!-- successful evaluation, copy the new Expr -->
       <xsl:otherwise>
         <xsl:copy-of select="$eval/Expr"/>
       </xsl:otherwise>
-          
+      
     </xsl:choose>
   </xsl:template>  
- 
+  
   <xd:doc>
     <xd:short>Evaluate a Decl.</xd:short>
     <xd:detail>If the Decl is not in the environment list, evaluate its children
-      and emit the resulting element. If it is in the environment list, and it
-      does not contain Undefined Exprs, emit it.
+    and emit the resulting element. If it is in the environment list, and it
+    does not contain Undefined Exprs, emit it.
     </xd:detail>
     <xd:param name="env">The environment table.</xd:param>
   </xd:doc>
@@ -165,9 +201,8 @@ ENDCOPYRIGHT
 
     <xsl:variable name="name" select="@name"/>
     <xsl:variable name="scope-id" select="Note[@kind='declAnn']/@scope-id"/>
-    <xsl:variable name="this" select="$env/Decl[@name=$name]
-      [ Note[@kind='declAnn'][@scope-id=$scope-id] ]"/>
-     
+    <xsl:variable name="this" select="$env/Decl[@name=$name][ Note[@kind='declAnn'][@scope-id=$scope-id] ]"/>
+    
     <xsl:choose>
       
       <!-- Decl is in the symbol table, but initializer could not be evaluated --> 
@@ -189,11 +224,14 @@ ENDCOPYRIGHT
       <xsl:when test="$this">
         <xsl:copy-of select="$this"/>
       </xsl:when>
- 
+      
       <!-- Decl needs to be added to the symbol table -->          
       <xsl:otherwise>
+        <xsl:for-each select="ancestor-or-self::*">
+          <xsl:message><xsl:value-of select="@id"/></xsl:message>
+        </xsl:for-each>
         <xsl:message terminate="yes">   
-          Internal fault - missing Decl in environment
+          Internal fault - missing Decl (<xsl:value-of select="@name"/>)in environment
         </xsl:message>
       </xsl:otherwise>
 
@@ -203,8 +241,8 @@ ENDCOPYRIGHT
   <xd:doc>
     <xd:short>Constant propagation template for all elements that can scope a Decl (other than Expr)</xd:short>
     <xd:detail>Any Decl child elements in scope are added to the
-      environment by a recursive call to the add-symbols template, to account
-      for sibling dependencies.
+    environment by a recursive call to the add-symbols template, to account
+    for sibling dependencies.
     </xd:detail>
     <xd:param name="env">The environment table.</xd:param>
   </xd:doc>
@@ -254,16 +292,16 @@ ENDCOPYRIGHT
           <xsl:copy-of select="$env/*"/>
         </xsl:with-param>     
       </xsl:apply-templates>   
-         
+      
     </xsl:copy>
   </xsl:template>
   
   <xd:doc>
     <xd:short>Named template to construct symbol table.</xd:short>
     <xd:detail>Evaluates a list of declarations and adds them to the environment
-      table. The list is processed recursively one element at a
-      time because there may be dependencies. The VariableSorter transformation
-      guarantees that document-order respects these dependencies.</xd:detail>
+    table. The list is processed recursively one element at a
+    time because there may be dependencies. The VariableSorter transformation
+    guarantees that document-order respects these dependencies.</xd:detail>
     <xd:param name="env">Contains Decls for all the in-scope constants found so far.</xd:param>
     <xd:param name="decls">A list of all the Decls to be evaluated.</xd:param>
   </xd:doc>
@@ -351,10 +389,10 @@ ENDCOPYRIGHT
   </xsl:template>
 
   <!-- ************************************************************
-     Moded templates to do evaluations of elements to be included
-     in the environment. In this mode, 'Undefined' expressions
-     are allowed
-  ************************************************************* -->
+       Moded templates to do evaluations of elements to be included
+       in the environment. In this mode, 'Undefined' expressions
+       are allowed
+       ************************************************************* -->
   <xd:doc>
     Evaluate a Decl for inclusion in the environment.
     <xd:param name="env">The environment table.</xd:param>
@@ -366,7 +404,7 @@ ENDCOPYRIGHT
       <xsl:for-each select="@*">
         <xsl:attribute name="{name()}"><xsl:value-of select="."/></xsl:attribute>
       </xsl:for-each>
-          
+      
       <xsl:apply-templates mode="add-symbol">
         <xsl:with-param name="env">
           <xsl:copy-of select="$env/*"/>
@@ -378,7 +416,7 @@ ENDCOPYRIGHT
         <Expr kind="Undefined"/>
       </xsl:if>         
     </xsl:copy>
- 
+    
   </xsl:template>
 
   <xd:doc>
@@ -397,18 +435,18 @@ ENDCOPYRIGHT
         <xsl:with-param name="new-context" select="."/>
       </xsl:call-template>
     </xsl:variable>
-  
+    
     <xsl:variable name="freeVars" select=".//Note[@kind='freeVar']"/>        
     <xsl:variable name="wrapped-env">
       <env>
         <!-- Filter to relevant decls (ignore shadowing for simplicity but it will still work) -->
         <!-- xsl:copy-of select="$new-env/Import"/>
-        <xsl:for-each select="$new-env/Decl">
-          <xsl:variable name="name" select="@name"/>
-          <xsl:if test="$freeVars[@name = $name]">
-            <xsl:copy-of select="."/>
-          </xsl:if>
-        </xsl:for-each -->
+             <xsl:for-each select="$new-env/Decl">
+             <xsl:variable name="name" select="@name"/>
+             <xsl:if test="$freeVars[@name = $name]">
+             <xsl:copy-of select="."/>
+             </xsl:if>
+             </xsl:for-each -->
         <xsl:if test="@kind != 'Literal'">
           <xsl:copy-of select="$new-env/*"/>
         </xsl:if>
@@ -443,5 +481,5 @@ ENDCOPYRIGHT
       </xsl:apply-templates>
     </xsl:copy>
   </xsl:template>
-    
+  
 </xsl:stylesheet>

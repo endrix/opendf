@@ -60,25 +60,15 @@ import java.util.*;
  * @author imiller, last modified by $Author: imiller $
  * @version $Id:$
  */
-public class ReportingExceptionHandler implements ExceptionHandler
+public class ReportingExceptionHandler extends UnravelingExceptionHandler
 {
 
-    public boolean process (Throwable t)
+    protected ExceptionHandler[] getHandlers ()
     {
-        while (t != null)
-        {
-            for (int i=0; i < handlers.length; i++)
-            {
-                if (handlers[i].process(t))
-                    break;
-            }
-            
-            t = t.getCause();
-        }
-        return true;
+        return handlers;
     }
-
-    private static ExceptionHandler handlers[] = {
+    
+    private static final ExceptionHandler handlers[] = {
 
         
         new DbgTypedExceptionHandler() 
@@ -203,7 +193,9 @@ public class ReportingExceptionHandler implements ExceptionHandler
     {
         public boolean handle (Throwable t)
         {
-            Logging.dbg().info(t.getClass() + " " + t.getStackTrace()[0].toString() + "\n\t" + t.getMessage());
+            String stackTop = t.getStackTrace().length == 0 ? "no stack trace available":t.getStackTrace()[0].toString();
+            Logging.dbg().info(t.getClass() + " " + stackTop + "\n\t" + t.getMessage());
+
             return false;
         }
         

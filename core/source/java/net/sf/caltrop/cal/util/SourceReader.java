@@ -73,7 +73,32 @@ import org.w3c.dom.Node;
 public class SourceReader
 {
     private static final boolean suppressActorChecks = System.getenv().containsKey("CAL_SUPPRESS_ACTOR_CHECKS");
-        
+
+    private static String [] actorPreprocessTransforms = {
+        "net/sf/caltrop/cal/transforms/BuildProductSchedule.xslt",
+        "net/sf/caltrop/cal/transforms/CanonicalizePortTags.xslt",
+
+        // Copies Input Port Type to Input Decl
+        "net/sf/caltrop/cal/transforms/AddInputTypes.xslt",
+
+        // Convert the old keyword to appropriate local var declaration
+        "net/sf/caltrop/cal/transforms/ReplaceOld.xslt",
+        // Add $local to all local variables.
+        //"net/sf/caltrop/cal/transforms/RenameLocalVars.xslt",
+
+        // Defer inlining of fxn/procedure to the code generators
+        //"net/sf/caltrop/cal/transforms/Inline.xslt",
+
+        // Done in elaborator after inlining
+        //"net/sf/caltrop/cal/transforms/AddID.xslt",
+        //"net/sf/caltrop/cal/transforms/VariableAnnotator.xslt",
+        //"net/sf/caltrop/cal/transforms/ContextInfoAnnotator.xslt",
+        //"net/sf/caltrop/cal/transforms/CanonicalizeOperators.xslt",
+        //"net/sf/caltrop/cal/transforms/AnnotateFreeVars.xslt",
+        //"net/sf/caltrop/cal/transforms/DependencyAnnotator.xslt",
+        //"net/sf/caltrop/cal/transforms/VariableSorter.xslt"
+    };
+    
 	public static Document parseActor(Reader s) throws MultiErrorException
     {
         return parseActor(s,"unknown");
@@ -115,6 +140,15 @@ public class SourceReader
 	{
 		return parseActor(new StringReader(s), name);
 	}
+
+    /**
+     * Canonicalize Actor elements.
+     */
+    public static Node actorPreprocess (Node node)
+    {
+        Node result = Util.applyTransformsAsResources(node, actorPreprocessTransforms);
+        return result;
+    }
 
 	public static Element  readExprDOM(Reader s) throws Exception {
 		Lexer calLexer = new Lexer(s);
@@ -176,11 +210,13 @@ public class SourceReader
 		}
 	}
 	
-	public static Document parseExpr(String s) throws Exception {
+	public static Document parseExpr(String s) throws Exception
+    {
 		return parseExpr(new StringReader(s));
 	}
 	
-	public static Document parseExpr(Reader s) throws Exception {
+	public static Document parseExpr(Reader s) throws Exception
+    {
 		Lexer calLexer = new Lexer(s);
 		CalExpressionParser calParser = new CalExpressionParser(calLexer);
 		return calParser.doParse();
