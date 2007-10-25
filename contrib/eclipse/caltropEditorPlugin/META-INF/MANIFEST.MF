@@ -22,9 +22,10 @@ Provide-Package: net.sf.caltrop.eclipse.plugin,
  net.sf.caltrop.eclipse.plugin.editors,
  net.sf.caltrop.eclipse.plugin.editors.outline,
  net.sf.caltrop.eclipse.plugin.editors.rules,
- net.sf.caltrop.eclipse.plugin.editors.scanners
-Bundle-ClassPath: caleditor.jar,
- lib/caltrop.jar,
- lib/saxon8.jar,
+ net.sf.caltrop.eclipse.plugin.editors.scanners,
+ net.sf.caltrop.xslt.cal
+Bundle-ClassPath: lib/saxon8.jar,
  lib/saxon8-dom.jar,
- lib/PtPlot.jar
+ lib/caltrop.jar,
+ lib/PtPlot.jar,
+ caleditor.jar

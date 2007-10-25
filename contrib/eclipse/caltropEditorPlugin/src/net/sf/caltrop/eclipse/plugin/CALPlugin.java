@@ -48,11 +48,19 @@ public class CALPlugin extends AbstractUIPlugin {
 	//The shared instance.
 	private static CALPlugin plugin;
 
+	public static final String XFMR_PROPERTY_NAME  = "javax.xml.transform.TransformerFactory";
+
+	private String saved_xfmr_property_value; 
+	
 	public CALPlugin()
 	{
 		plugin = this;
 		// printLog( "CAL plugin started" );
 		// System.out.println( "Starting ...");
+		 
+		 // Save off the system XSLT transformer property for later restoration.
+		 saved_xfmr_property_value = System.getProperty(XFMR_PROPERTY_NAME);
+		 // System.out.println( saved_xfmr_property_value );
 	}
 
 	public static void printLog( String msg )
@@ -69,7 +77,15 @@ public class CALPlugin extends AbstractUIPlugin {
 	{
 		super.stop(context);
 		plugin = null;
-	}
+
+		 // System.out.println( "Stopping ...");
+		 // System.out.println( System.getProperty(XFMR_PROPERTY_NAME));
+		 
+		 // When the plug-in is uninstalled, it is necessary to return the system
+		 // XSLT transformer property to its original value, because Eclipse uses
+		 // XSLT to process the XML workspace settings document.
+		 System.setProperty( XFMR_PROPERTY_NAME, saved_xfmr_property_value );
+}
 
 	public static CALPlugin getDefault()
 	{
