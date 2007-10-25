@@ -18,7 +18,7 @@
       <xsl:with-param name="env">
         <Env/>
       </xsl:with-param>
-      <xsl:with-param name="iattrs" select="self::NOTHING"/>        
+      <xsl:with-param name="iattrs" select="VERYUNLIKELYNAME"/>        
     </xsl:apply-templates>
   </xsl:template>
   
