@@ -2,15 +2,14 @@
 <feature
       id="net.sf.caltrop.eclipse.plugin.calfeature"
       label="Caltrop Editor"
-      version="1.0.4"
+      version="1.0.5"
       provider-name="net.sf.caltrop">
 
    <description>
       CAL plug-in for Eclipse.
 Latest Features:
-* Added support for network language
-* Error reporting expanded to include semantic checks
-
+* Should fix Eclipse shutdown issue
+* Latest syntax fixes for NL and CAL.
 Known Issues:
 * most features unavailable when editing outside a project
    </description>
@@ -77,6 +76,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
          id="net.sf.caltrop.eclipse.plugin.caleditor"
          download-size="4108"
          install-size="4108"
+         version="0.0.0"/>
+
+   <plugin
+         id="net.sf.caltrop.eclipse.plugin.saxon"
+         download-size="0"
+         install-size="0"
          version="0.0.0"/>
 
 </feature>
