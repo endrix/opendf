@@ -48,12 +48,19 @@ actor FIRgolden (taps) In ==> Out :
     end
 
     n = #taps;
-    data := [0 : for i in Integers(1, n)];
+    data := [0 : for i in 1..n];
 
     action [a] ==> [b]
     var
-        b = accumulate(lambda (x, y) : x + y end, 0, [taps[i] * data[i] : for i in Integers(0, n - 1)])
+        newData = [data[i] : for i in 1..n-1] + [a],
+
+        b =  sum([taps[i] * newData[i] : for i in 0..n-1])
     do
-        data := [data[i] : for i in Integers(1, n - 1)] + [a];
+        data := newData;
+    end
+
+    function sum (L) :
+        accumulate(lambda (x, y) : x + y end, 0, L)
     end
 end
+
