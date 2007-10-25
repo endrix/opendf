@@ -3,6 +3,10 @@
 	<name>caltropSite</name>
 	<comment></comment>
 	<projects>
+		<project>caltropDocPlugin</project>
+		<project>caltropEditorPlugin</project>
+		<project>caltropFeature</project>
+		<project>saxonPlugin</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
