@@ -78,10 +78,4 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
          install-size="4108"
          version="0.0.0"/>
 
-   <plugin
-         id="net.sf.caltrop.eclipse.plugin.saxon"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"/>
-
 </feature>
