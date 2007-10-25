@@ -4,6 +4,8 @@ actor portChecks() inPort ==> outPort :
 
   goodAction: action inPort:[i] ==> outPort:[i] end
 
+  goodAnonymousAction: action [i] ==> [i] end
+
   undefinedRead: action undefinedInputPort:[ i ] ==> end   
   
   undefinedWrite: action ==> undefinedOutputPort:[ 0 ] end   
@@ -15,5 +17,13 @@ actor portChecks() inPort ==> outPort :
   multipleReads: action inPort:[i], inPort:[x] ==> outPort:[i] end
 
   multipleWrites: action inPort:[i] ==> outPort:[i], outPort:[i] end
+  
+  illegalNumberOfAnonymousInputPatterns: action [i], [j] ==> end
+
+  illegalNumberOfAnonymousOutputPatterns: action ==> [1], [2] end
+
+  mixingAnonymousInputPatterns: action inPort: [i], [j] ==> end
+
+  mixingAnonymousOutputPatterns: action ==> outPort: [1], [2] end
 
 end

@@ -139,7 +139,7 @@
     <sch:rule context="Input" id="portRead">
       
       <sch:assert role="Error" id="undefined"
-        test="some $port in ../../Port satisfies $port/@name = current()/@port" >
+        test="(not(@port)) or (some $port in ../../Port[@kind='Input'] satisfies $port/@name = current()/@port)" >
         <xsl:attribute name="subject">
           <xsl:apply-templates select="." mode="report-offender"/>
         </xsl:attribute>
@@ -170,7 +170,7 @@
     <sch:rule context="Output" id="portWrite">
       
       <sch:assert role="Error" id="undefined"
-        test="some $port in ../../Port satisfies $port/@name = current()/@port" >
+        test="(not(@port)) or (some $port in ../../Port[@kind='Output'] satisfies $port/@name = current()/@port)" >
         <xsl:attribute name="subject">
           <xsl:apply-templates select="." mode="report-offender"/>
         </xsl:attribute>
@@ -197,7 +197,47 @@
       </sch:assert>
             
     </sch:rule>
-        
+    
+    <sch:rule context="Action" id="anonymousPorts">
+      
+      <sch:assert role="Error" id="undefined"
+        test="(every $i in Input satisfies $i/@port) or (every $i in Input satisfies not($i/@port))" >
+        <xsl:attribute name="subject">
+          <xsl:apply-templates select="." mode="report-offender"/>
+        </xsl:attribute>
+        <xsl:apply-templates select="." mode="annotate-location"/>
+        Mixing anonymous and tagged input patterns
+      </sch:assert>
+
+      <sch:assert role="Error" id="undefined"
+        test="(every $i in Output satisfies $i/@port) or (every $i in Output satisfies not($i/@port))" >
+        <xsl:attribute name="subject">
+          <xsl:apply-templates select="." mode="report-offender"/>
+        </xsl:attribute>
+        <xsl:apply-templates select="." mode="annotate-location"/>
+        Mixing anonymous and tagged output patterns
+      </sch:assert>
+      
+      <sch:assert role="Error" id="undefined"
+        test="(some $i in Input satisfies $i/@port) or (count(Input) = count(../../Port[@kind='Input']))" >
+        <xsl:attribute name="subject">
+          <xsl:apply-templates select="." mode="report-offender"/>
+        </xsl:attribute>
+        <xsl:apply-templates select="." mode="annotate-location"/>
+        Number of anonymous input patterns does not correspond to number of input port declarations
+      </sch:assert>
+      
+      <sch:assert role="Error" id="undefined"
+        test="(some $i in Output satisfies $i/@port) or (count(Output) = count(../../Port[@kind='Output']))" >
+        <xsl:attribute name="subject">
+          <xsl:apply-templates select="." mode="report-offender"/>
+        </xsl:attribute>
+        <xsl:apply-templates select="." mode="annotate-location"/>
+        Number of anonymous output patterns does not correspond to number of output port declarations
+      </sch:assert>
+      
+    </sch:rule>
+      
   </sch:pattern>
 
   <sch:pattern id="priorityChecks">

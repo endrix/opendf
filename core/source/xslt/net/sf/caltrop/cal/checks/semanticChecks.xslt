@@ -174,7 +174,7 @@
     <xsl:template match="Input" mode="M2" priority="4000">
       
         <xsl:choose>
-            <xsl:when test="some $port in ../../Port satisfies $port/@name = current()/@port"/>
+            <xsl:when test="(not(@port)) or (some $port in ../../Port[@kind='Input'] satisfies $port/@name = current()/@port)"/>
             <xsl:otherwise>
                 <Note id="portChecks.portRead.undefined" kind="Report" severity="Error" subject="">
                     <attribute xmlns="http://www.w3.org/1999/XSL/Transform" name="subject">
@@ -212,7 +212,7 @@
     <xsl:template match="Output" mode="M2" priority="3999">
       
         <xsl:choose>
-            <xsl:when test="some $port in ../../Port satisfies $port/@name = current()/@port"/>
+            <xsl:when test="(not(@port)) or (some $port in ../../Port[@kind='Output'] satisfies $port/@name = current()/@port)"/>
             <xsl:otherwise>
                 <Note id="portChecks.portWrite.undefined" kind="Report" severity="Error" subject="">
                     <attribute xmlns="http://www.w3.org/1999/XSL/Transform" name="subject">
@@ -246,7 +246,60 @@
             
         <xsl:apply-templates mode="M2"/>
     </xsl:template>
-        
+    
+    <xsl:template match="Action" mode="M2" priority="3998">
+      
+        <xsl:choose>
+            <xsl:when test="(every $i in Input satisfies $i/@port) or (every $i in Input satisfies not($i/@port))"/>
+            <xsl:otherwise>
+                <Note id="portChecks.anonymousPorts.undefined" kind="Report" severity="Error"
+                      subject="">
+                    <attribute xmlns="http://www.w3.org/1999/XSL/Transform" name="subject">
+                        <apply-templates mode="report-offender" select="."/>
+                    </attribute>
+                    <apply-templates xmlns="http://www.w3.org/1999/XSL/Transform" mode="annotate-location" select="."/>Mixing anonymous and tagged input patterns</Note>
+            </xsl:otherwise>
+        </xsl:choose>
+
+        <xsl:choose>
+            <xsl:when test="(every $i in Output satisfies $i/@port) or (every $i in Output satisfies not($i/@port))"/>
+            <xsl:otherwise>
+                <Note id="portChecks.anonymousPorts.undefined" kind="Report" severity="Error"
+                      subject="">
+                    <attribute xmlns="http://www.w3.org/1999/XSL/Transform" name="subject">
+                        <apply-templates mode="report-offender" select="."/>
+                    </attribute>
+                    <apply-templates xmlns="http://www.w3.org/1999/XSL/Transform" mode="annotate-location" select="."/>Mixing anonymous and tagged output patterns</Note>
+            </xsl:otherwise>
+        </xsl:choose>
+      
+        <xsl:choose>
+            <xsl:when test="(some $i in Input satisfies $i/@port) or (count(Input) = count(../../Port[@kind='Input']))"/>
+            <xsl:otherwise>
+                <Note id="portChecks.anonymousPorts.undefined" kind="Report" severity="Error"
+                      subject="">
+                    <attribute xmlns="http://www.w3.org/1999/XSL/Transform" name="subject">
+                        <apply-templates mode="report-offender" select="."/>
+                    </attribute>
+                    <apply-templates xmlns="http://www.w3.org/1999/XSL/Transform" mode="annotate-location" select="."/>Number of anonymous input patterns does not correspond to number of input port declarations</Note>
+            </xsl:otherwise>
+        </xsl:choose>
+      
+        <xsl:choose>
+            <xsl:when test="(some $i in Output satisfies $i/@port) or (count(Output) = count(../../Port[@kind='Output']))"/>
+            <xsl:otherwise>
+                <Note id="portChecks.anonymousPorts.undefined" kind="Report" severity="Error"
+                      subject="">
+                    <attribute xmlns="http://www.w3.org/1999/XSL/Transform" name="subject">
+                        <apply-templates mode="report-offender" select="."/>
+                    </attribute>
+                    <apply-templates xmlns="http://www.w3.org/1999/XSL/Transform" mode="annotate-location" select="."/>Number of anonymous output patterns does not correspond to number of output port declarations</Note>
+            </xsl:otherwise>
+        </xsl:choose>
+      
+        <xsl:apply-templates mode="M2"/>
+    </xsl:template>
+      
     <xsl:template match="text()" mode="M2" priority="-1"/>
 
   
