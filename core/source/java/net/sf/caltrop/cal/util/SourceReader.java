@@ -146,8 +146,12 @@ public class SourceReader
      */
     public static Node actorPreprocess (Node node)
     {
-        Node result = Util.applyTransformsAsResources(node, actorPreprocessTransforms);
-        return result;
+    	try {
+    		Node result = Util.applyTransformsAsResources(node, actorPreprocessTransforms);
+    		return result;
+    	} catch (Exception e) {
+    		throw new RuntimeException(e);
+    	}
     }
 
 	public static Element  readExprDOM(Reader s) throws Exception {
