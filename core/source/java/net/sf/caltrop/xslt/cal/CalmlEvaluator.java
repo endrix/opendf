@@ -159,13 +159,14 @@ public class CalmlEvaluator
     
 	public static Node evaluateExpr( Node expr, Node env ) throws TransformerException
 	{ 	
-//		System.out.println("Eval: " + 
-//		((expr instanceof Element) ? 
-//		(((Element)expr).getTagName() + "::" + ((Element)expr).getAttribute("kind") + "#" + ((Element)expr).getAttribute("literal-kind") + "#" + ((Element)expr).getAttribute("value"))
-//		: 
-//		("##" + expr.getNodeValue()))
-//		);
-
+//         System.out.println("Eval: " + 
+//             ((expr instanceof Element) ? 
+//                 (((Element)expr).getTagName() + "::" + ((Element)expr).getAttribute("kind") + "#" + ((Element)expr).getAttribute("id") + "#" + ((Element)expr).getAttribute("value"))
+//                 : 
+//                 ("##" + expr.getNodeValue()))
+//                            );
+//         System.out.println("The context is " + net.sf.caltrop.util.xml.Util.createXML(env));
+        
 	    Element result;
 	    
         // Because the constant propagation environment uses the
@@ -203,6 +204,9 @@ public class CalmlEvaluator
         }
         catch (Exception e)
         {
+            (new ReportingExceptionHandler()).process(e);
+        	result = renderError( e.getMessage());
+            
             String lineage = "";
             Node x = expr;
             while (x != null)
@@ -215,12 +219,9 @@ public class CalmlEvaluator
                 }
                 x = x.getParentNode();
             }
-            
             final String loc = "node: " + expr.getNodeName() + " lineage: " + lineage + " id: " + expr.getAttributes().getNamedItem("id") + " name: " + expr.getAttributes().getNamedItem("name");
             Logging.dbg().info("Error processing node " + loc);
             Logging.dbg().info("Error message: " + e.getMessage());
-        	result = renderError( e.getMessage());
-            (new ReportingExceptionHandler()).process(e);
 //             throw new LocatableException(e, loc);
         }
         
@@ -337,7 +338,13 @@ public class CalmlEvaluator
 			Element type = Util.uniqueElement(binding, predType);
 			if (type == null)
             {
-				Logging.dbg().severe("ERROR: Could not find type for object.");
+                String id = binding.getAttribute("name");
+				Logging.dbg().severe("ERROR: Could not find type for object '"+id+"'.  Skipping it in the environment.");
+                // If there is no type simply skip the binding of the
+                // element into the environment.  This causes it to be
+                // ignored which should be safe (though non optimal)
+                // in all circumstances.
+                continue;
             }
             
 			String var = binding.getAttribute(attrName);

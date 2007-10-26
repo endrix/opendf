@@ -157,6 +157,13 @@ public class Elaborator {
             Node res = null;
             res = elaborate(networkClass, modelPath, classLoader, params);
 
+//             try{
+//                 java.io.PrintWriter pw = new java.io.PrintWriter(new java.io.FileOutputStream(networkClass + ".exdf"));
+//                 pw.print(createXML(res));
+//                 pw.flush();
+//             }catch (Exception e){System.out.println("Could not create intermediate XML for debug: " + networkClass + ".exdf");}
+            
+            
             if (postProcessing) {
                 List<String> postElabXForms = new ArrayList();
                 postElabXForms.addAll(Arrays.asList(postElaborationTransformNames));
@@ -221,7 +228,6 @@ public class Elaborator {
     };
     
     static final String [] inlineTransforms = {
-        "net/sf/caltrop/cal/transforms/RenameLocalVars.xslt",
         "net/sf/caltrop/cal/transforms/Inline.xslt"
     };
     

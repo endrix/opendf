@@ -84,7 +84,7 @@ public class SourceReader
         // Convert the old keyword to appropriate local var declaration
         "net/sf/caltrop/cal/transforms/ReplaceOld.xslt",
         // Add $local to all local variables.
-        //"net/sf/caltrop/cal/transforms/RenameLocalVars.xslt",
+        "net/sf/caltrop/cal/transforms/RenameLocalVars.xslt",
 
         // Defer inlining of fxn/procedure to the code generators
         //"net/sf/caltrop/cal/transforms/Inline.xslt",
