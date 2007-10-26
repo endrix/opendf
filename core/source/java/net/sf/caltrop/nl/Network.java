@@ -172,8 +172,7 @@ public class Network {
 	public Network () {
 		instanceID = 0;
 		try {
-	        net.sf.caltrop.util.xml.Util.setDefaultDBFI();
-	        DOMImplementation domImpl = DocumentBuilderFactory.newInstance().newDocumentBuilder().getDOMImplementation();
+	        DOMImplementation domImpl = net.sf.caltrop.util.xml.Util.getDefaultImplementation().getDocumentBuilder().getDOMImplementation();
 	        network = domImpl.createDocument("", tagXDF, null);
 		}
 		catch (Exception exc) {

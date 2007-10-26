@@ -182,16 +182,7 @@ parser code {:
     //
     public Document parseActor(String filename, boolean doDebug) throws ParserErrorException
     {
-        net.sf.caltrop.util.xml.Util.setDefaultDBFI();
-        DOMImplementation domImpl = null;
-        try
-        {
-          domImpl = DocumentBuilderFactory.newInstance().newDocumentBuilder().getDOMImplementation();
-        }
-        catch (ParserConfigurationException pce)
-        {
-          throw new CalParserException(pce.getMessage());
-        }
+        DOMImplementation domImpl = net.sf.caltrop.util.xml.Util.getDefaultImplementation().getDocumentBuilder().getDOMImplementation();
         document = domImpl.createDocument("", "Actor", null);
         file = filename;
         debug = doDebug;

@@ -25,8 +25,7 @@ import org.w3c.dom.Node;
 public class Util {
 
 	static Node createActorParameters(Map<String, String> params) throws ParserConfigurationException {
-	    net.sf.caltrop.util.xml.Util.setDefaultDBFI();
-	    DOMImplementation domImpl = DocumentBuilderFactory.newInstance().newDocumentBuilder().getDOMImplementation();
+        DOMImplementation domImpl = net.sf.caltrop.util.xml.Util.getDefaultImplementation().getDocumentBuilder().getDOMImplementation();
 	    Document doc = domImpl.createDocument("", "Parameters", null);
 	    
 	    for (String parName : params.keySet()) {

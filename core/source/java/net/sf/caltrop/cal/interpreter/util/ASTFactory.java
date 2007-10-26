@@ -1239,7 +1239,7 @@ public class ASTFactory {
 
     static {
         // System.out.println("properties = " + System.getProperties());
-        Util.setSAXON();
+        // Util.setSAXON();
         // System.out.println("properties = " + System.getProperties());
     }
     

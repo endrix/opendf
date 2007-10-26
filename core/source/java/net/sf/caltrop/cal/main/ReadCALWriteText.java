@@ -52,6 +52,7 @@ import net.sf.caltrop.cal.parser.Parser;
 import net.sf.caltrop.util.source.GenericError;
 import net.sf.caltrop.util.source.MultiErrorException;
 import net.sf.caltrop.util.xml.Util;
+import net.sf.caltrop.util.xml.XmlImplementation;
 
 import org.w3c.dom.Node;
 
@@ -87,8 +88,8 @@ public class ReadCALWriteText {
             System.exit(-1);
         }
 
-        Util.setSAXON();
-
+        //Util.setSAXON();
+        
         String [] xfs = new String [args.length - 3];
         for (int i = 0; i < xfs.length; i++)
             xfs[i] = args[i + 2];
@@ -96,8 +97,8 @@ public class ReadCALWriteText {
         String result = "";
         try
         {
-            doc = Util.applyTransforms(doc, xfs);
-            result = Util.createTXT(Util.createTransformer(args[args.length -1]), doc);
+            doc = Util.applyTransforms(doc, xfs, Util.getSaxonImplementation());
+            result = Util.createTXT(Util.createTransformer(args[args.length -1], Util.getSaxonImplementation()), doc);
         }
         catch (Exception e)
         {

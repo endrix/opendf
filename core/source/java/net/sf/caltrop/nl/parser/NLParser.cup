@@ -167,16 +167,7 @@ parser code {:
     //
     public Document parseNetwork(String filename, boolean doDebug) throws ParserErrorException
     {
-        net.sf.caltrop.util.xml.Util.setDefaultDBFI();
-        DOMImplementation domImpl = null;
-        try
-        {
-          domImpl = DocumentBuilderFactory.newInstance().newDocumentBuilder().getDOMImplementation();
-        } catch (ParserConfigurationException pce)
-        {
-          throw new NLParserException(pce.getMessage());
-        }
-
+        DOMImplementation domImpl = net.sf.caltrop.util.xml.Util.getDefaultImplementation().getDocumentBuilder().getDOMImplementation();
         document = domImpl.createDocument("", "Network", null);
         file = filename;
         debug = doDebug;
