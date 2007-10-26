@@ -219,7 +219,7 @@
       </sch:assert>
       
       <sch:assert role="Error" id="undefined"
-        test="(some $i in Input satisfies $i/@port) or (count(Input) = count(../../Port[@kind='Input']))" >
+        test="not(Input) or (some $i in Input satisfies $i/@port) or (count(Input) = count(../Port[@kind='Input']))" >
         <xsl:attribute name="subject">
           <xsl:apply-templates select="." mode="report-offender"/>
         </xsl:attribute>
@@ -228,7 +228,7 @@
       </sch:assert>
       
       <sch:assert role="Error" id="undefined"
-        test="(some $i in Output satisfies $i/@port) or (count(Output) = count(../../Port[@kind='Output']))" >
+        test="not(Output) or (some $i in Output satisfies $i/@port) or (count(Output) = count(../Port[@kind='Output']))" >
         <xsl:attribute name="subject">
           <xsl:apply-templates select="." mode="report-offender"/>
         </xsl:attribute>

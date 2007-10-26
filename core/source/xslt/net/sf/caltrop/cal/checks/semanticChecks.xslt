@@ -274,7 +274,7 @@
         </xsl:choose>
       
         <xsl:choose>
-            <xsl:when test="(some $i in Input satisfies $i/@port) or (count(Input) = count(../../Port[@kind='Input']))"/>
+            <xsl:when test="not(Input) or (some $i in Input satisfies $i/@port) or (count(Input) = count(../Port[@kind='Input']))"/>
             <xsl:otherwise>
                 <Note id="portChecks.anonymousPorts.undefined" kind="Report" severity="Error"
                       subject="">
@@ -286,7 +286,7 @@
         </xsl:choose>
       
         <xsl:choose>
-            <xsl:when test="(some $i in Output satisfies $i/@port) or (count(Output) = count(../../Port[@kind='Output']))"/>
+            <xsl:when test="not(Output) or (some $i in Output satisfies $i/@port) or (count(Output) = count(../Port[@kind='Output']))"/>
             <xsl:otherwise>
                 <Note id="portChecks.anonymousPorts.undefined" kind="Report" severity="Error"
                       subject="">
