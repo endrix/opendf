@@ -339,12 +339,7 @@ public class CalmlEvaluator
 			if (type == null)
             {
                 String id = binding.getAttribute("name");
-				Logging.dbg().warning("Could not find type for object '"+id+"'.  Skipping it in the environment.");
-                // If there is no type simply skip the binding of the
-                // element into the environment.  This causes it to be
-                // ignored which should be safe (though non optimal)
-                // in all circumstances.
-                continue;
+				Logging.dbg().info("Could not find type for object '"+id+"'.  Skipping it in the environment.");
             }
             
 			String var = binding.getAttribute(attrName);
@@ -398,7 +393,10 @@ public class CalmlEvaluator
 			throw new InterpreterException("Unsupported expression kind: '" + value.getAttribute(attrKind) + "'.");  		
 	}
 	
-	private static Type createType(Element type) {
+	private static Type createType(Element type)
+    {
+        if (type == null) return Type.typeANY;
+        
 		String name = type.getAttribute(attrName);
 		Map tp = new HashMap();
 		Map vp = new HashMap();
