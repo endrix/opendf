@@ -339,7 +339,7 @@ public class CalmlEvaluator
 			if (type == null)
             {
                 String id = binding.getAttribute("name");
-				Logging.dbg().severe("ERROR: Could not find type for object '"+id+"'.  Skipping it in the environment.");
+				Logging.dbg().warn("Could not find type for object '"+id+"'.  Skipping it in the environment.");
                 // If there is no type simply skip the binding of the
                 // element into the environment.  This causes it to be
                 // ignored which should be safe (though non optimal)
