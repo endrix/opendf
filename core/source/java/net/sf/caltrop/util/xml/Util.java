@@ -248,6 +248,14 @@ public class Util {
 //                 xf.transform(new DOMSource(doc), res);
 //                 doc = (Node)res.getNode();
                 doc = applyTransform(xf, new DOMSource(doc), res);
+
+//                 try{
+//                     java.io.PrintWriter pw = new java.io.PrintWriter(
+//                         new java.io.FileOutputStream(i + resNames[i].replaceAll("/","_") + ".xdf"));
+//                     pw.print(createXML(doc));
+//                     pw.flush();
+//                 }catch (Exception e){System.out.println("Could not create intermediate XML for debug: ");}
+
             } catch (Throwable e) {
                 Logging.dbg().throwing("Util", "applyTransformsAsResources", e);
                 throw new LocatableException.Internal(e, "applying " + resNames[i]);

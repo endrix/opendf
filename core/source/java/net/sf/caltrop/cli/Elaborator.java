@@ -157,12 +157,14 @@ public class Elaborator {
             Node res = null;
             res = elaborate(networkClass, modelPath, classLoader, params);
 
-//             try{
-//                 java.io.PrintWriter pw = new java.io.PrintWriter(new java.io.FileOutputStream(networkClass + ".exdf"));
-//                 pw.print(createXML(res));
-//                 pw.flush();
-//             }catch (Exception e){System.out.println("Could not create intermediate XML for debug: " + networkClass + ".exdf");}
-            
+            if (Logging.dbg().isLoggable(Level.FINE))
+            {
+                try{
+                    java.io.PrintWriter pw = new java.io.PrintWriter(new java.io.FileOutputStream(networkClass + ".exdf"));
+                    pw.print(createXML(res));
+                    pw.flush();
+                }catch (Exception e){System.out.println("Could not create intermediate XML for debug: " + networkClass + ".exdf");}
+            }
             
             if (postProcessing) {
                 List<String> postElabXForms = new ArrayList();
@@ -222,6 +224,12 @@ public class Elaborator {
 
 	static final String [] postElaborationTransformNames = {
 		"net/sf/caltrop/transforms/xdfFlatten.xslt",
+
+        // For now the conversion of xmlElement to attributes must be
+        // done before the attribute folding.  The TypedContext does
+        // not yet handle Maps in evaluation making it impossible to
+        // extract the data from the folding function.
+		"net/sf/caltrop/transforms/xdfBuildXMLAttribute.xslt",
 		"net/sf/caltrop/transforms/xdfFoldAttributes.xslt",
         
         "net/sf/caltrop/cal/transforms/xlim/AddDirectives.xslt"

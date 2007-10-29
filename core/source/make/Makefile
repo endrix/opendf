@@ -13,10 +13,13 @@ endif
 
 CALTROP_HOME = ../..
 JAR_NAME = caltrop.jar
+JFREECHART_CP = $(CALTROP_HOME)/../../jfreechart-1.0.6/jfreechart-1.0.6.jar$(CPS)$(CALTROP_HOME)/../../jfreechart-1.0.6/lib/jcommon-1.0.10.jar
 CALTROP_CLASSDIR = $(CALTROP_HOME)/classes
 CALTROP_CLASSPATH = $(CALTROP_CLASSDIR)$(CPS)$(CALTROP_HOME)/lib/saxon8.jar$(CPS)$(CALTROP_HOME)/lib/saxon8-dom.jar$(CPS)$(CONTRIB_DIR)/lib/PtPlot.jar
 JAVA_CUP_SOURCES = $(shell find $(CALTROP_HOME)/lib/source/java_cup -name "*.java")
 PTOLEMY_SOURCES = $(shell find $(CALTROP_HOME)/lib/source/ptolemy -name "*.java")
+CALTROP_LIB_SOURCES =  $(shell find $(CALTROP_HOME)/source/java/net/sf/caltrop/lib -name "*.java")
+CALTROP_ACTORC_SOURCES = $(shell find $(CALTROP_HOME)/source/java/net/sf/caltrop/actorc -name "*.java")
 CALTROP_UTIL_SOURCES = $(shell find $(CALTROP_HOME)/source/java/net/sf/caltrop/util -name "*.java")
 CALTROP_CAL_SOURCES = $(shell find $(CALTROP_HOME)/source/java/net/sf/caltrop/cal -name "*.java")
 CALTROP_NL_SOURCES = $(shell find $(CALTROP_HOME)/source/java/net/sf/caltrop/nl -name "*.java")
@@ -45,7 +48,7 @@ cproot = $(CALTROP_CLASSDIR)/net/sf/caltrop
 
 .PHONY = create_dir
 
-$(CALTROP_CLASSDIR): create_dir util cal nl hades cli ptolemy xslt contrib
+$(CALTROP_CLASSDIR): create_dir util hades cli ptolemy xslt contrib
 
 
 create_dir:
@@ -57,20 +60,21 @@ java_cup:
 ptolemy:
 	$(JAVAC) -classpath "$(CALTROP_CLASSPATH)" -d $(CALTROP_CLASSDIR) $(PTOLEMY_SOURCES)
 
-util:
-	$(JAVAC) -classpath "$(CALTROP_CLASSPATH)" -d $(CALTROP_CLASSDIR) $(CALTROP_UTIL_SOURCES)
+util: create_dir java_cup 
+	$(JAVAC) -classpath "$(CALTROP_CLASSPATH)" -d $(CALTROP_CLASSDIR) $(CALTROP_LIB_SOURCES) $(CALTROP_UTIL_SOURCES) $(CALTROP_CAL_SOURCES) $(CALTROP_NL_SOURCES) $(CALTROP_ACTORC_SOURCES)
+#	$(JAVAC) -classpath "$(CALTROP_CLASSPATH)" -d $(CALTROP_CLASSDIR) $(CALTROP_UTIL_SOURCES)
 
-cal: util java_cup
-	$(JAVAC) -classpath "$(CALTROP_CLASSPATH)" -d $(CALTROP_CLASSDIR) $(CALTROP_CAL_SOURCES)
+#cal: util java_cup
+#	$(JAVAC) -classpath "$(CALTROP_CLASSPATH)" -d $(CALTROP_CLASSDIR) $(CALTROP_CAL_SOURCES)
 
-nl: util cal java_cup
-	$(JAVAC) -classpath "$(CALTROP_CLASSPATH)" -d $(CALTROP_CLASSDIR) $(CALTROP_NL_SOURCES)
+#nl: util cal java_cup
+#	$(JAVAC) -classpath "$(CALTROP_CLASSPATH)" -d $(CALTROP_CLASSDIR) $(CALTROP_NL_SOURCES)
 
-hades: util cal nl
+hades: util
 	$(JAVAC) -classpath "$(CALTROP_CLASSPATH)" -d $(CALTROP_CLASSDIR) $(CALTROP_HADES_SOURCES)
 
-cli: util cal nl hades java_cup xslt
-	$(JAVAC) -classpath "$(CALTROP_CLASSPATH)" -d $(CALTROP_CLASSDIR) $(CALTROP_CLI_SOURCES)
+cli: util  hades java_cup xslt
+	$(JAVAC) -classpath "$(CALTROP_CLASSPATH):$(JFREECHART_CP)" -d $(CALTROP_CLASSDIR) $(CALTROP_CLI_SOURCES)
 
 xslt:
 	$(JAVAC) -classpath "$(CALTROP_CLASSPATH)" -d $(CALTROP_CLASSDIR) $(CALTROP_XSLT_SOURCES)
