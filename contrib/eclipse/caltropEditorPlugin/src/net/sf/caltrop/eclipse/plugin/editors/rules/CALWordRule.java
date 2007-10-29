@@ -53,10 +53,10 @@ public class CALWordRule implements IRule
     	// cal keywords
     	"action", "actor", "all",  "any", "at", "begin", "choose", "const",
 		"delay", "do", "else", "end", "endaction", "endactor", "endchoose", "endforeach",
-	    "endfunction", "endif", "endinitialize", "endlambda", "endlet", "endpriority", "endproc", "endprocedure",
-	    "endschedule", "endwhile", "for", "foreach", "fsm", "function", "guard", "if", "import",
-	    "in", "initialize", "lambda", "let", "map", "multi", "mutable", "old",
-	    "or", "priority", "proc", "procedure", "regexp", "repeat", "schedule", "then",
+	    "endfunction", "endif", "endinitialize", "endinvariant", "endlambda", "endlet", "endpriority", "endproc", "endprocedure",
+	    "endschedule", "endwhile", "ensure", "for", "foreach", "fsm", "function", "guard", "if", "import",
+	    "in", "initialize", "invariant", "lambda", "let", "map", "multi", "mutable", "old",
+	    "or", "priority", "proc", "procedure", "regexp", "repeat", "require", "schedule", "then",
 	    "time", "var", "while",
 	    
 	    // nl keywords
