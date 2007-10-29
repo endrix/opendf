@@ -3,13 +3,16 @@ How to build the Eclipse editor plug-in.
 Step 1 -  Build caltropEditorPlugin/lib/caltrop.jar
 
 Contents:    javacup
-             net/sf/caltop
+             net/sf/caltrop
              ptolemy/media
 
-If using the Eclipse JAR file creator, select File->export JAR on the contrib project.
-In the export wizard, select:     lib/source
-                                  source/java
-                                  source/xslt
+If using the Eclipse JAR file creator, select File->export JAR
+From the core project, include:
+     lib/source
+     source/java
+     source/xslt
+From the contrib project, include:
+     actorlib/source
                                   
 Step 2 - Make the necessary plugin changes, then rev up the plugin version in the plugin
 manifest editor.
