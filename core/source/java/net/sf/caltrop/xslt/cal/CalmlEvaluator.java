@@ -31,6 +31,7 @@ import net.sf.caltrop.cal.interpreter.ExprEvaluator;
 import net.sf.caltrop.cal.interpreter.InterpreterException;
 import net.sf.caltrop.cal.interpreter.environment.Environment;
 import net.sf.caltrop.cal.interpreter.util.ASTFactory;
+import net.sf.caltrop.cal.interpreter.util.DefaultPlatform;
 import net.sf.caltrop.cal.interpreter.util.ImportUtil;
 import net.sf.caltrop.cal.interpreter.util.Platform;
 import net.sf.caltrop.cal.util.SourceReader;
@@ -192,7 +193,7 @@ public class CalmlEvaluator
             Expression exprAst = ASTFactory.createExpression(eXerces);
             Environment thisEnv = createConstantPropagationEnvironment(env, emptyDocument());
             TypedObject val = (TypedObject)evaluateExprObj(sbPlatform, exprAst, thisEnv);
-            result = renderObject(val);
+            result = renderTypedObject(val);
         }
         catch (InterpreterException e)
         {
@@ -279,6 +280,49 @@ public class CalmlEvaluator
 		}
 	}
 	
+	public static Node evaluateConstantExpr( Node expr ) throws TransformerException
+	{ 	
+        
+	    Element result;
+        try
+        {
+            Expression exprAst = ASTFactory.buildExpression((Element)expr);
+            Object val = evaluateExprObj(DefaultPlatform.thePlatform, exprAst, DefaultPlatform.theDefaultEnvironment);
+            result = renderObject(val);
+        }
+        catch (InterpreterException e)
+        {
+        	result = renderError( e.getMessage());
+        }
+        catch (Exception e)
+        {
+            (new ReportingExceptionHandler()).process(e);
+        	result = renderError( e.getMessage());
+            
+            String lineage = "";
+            Node x = expr;
+            while (x != null)
+            {
+                if (x instanceof Element)
+                {
+                    String name = ((Element)x).getAttribute("name");
+                    if (name != null)
+                        lineage = name + ":" + lineage;
+                }
+                x = x.getParentNode();
+            }
+            final String loc = "node: " + expr.getNodeName() + " lineage: " + lineage + " id: " + expr.getAttributes().getNamedItem("id") + " name: " + expr.getAttributes().getNamedItem("name");
+            Logging.dbg().info("Error processing node " + loc);
+            Logging.dbg().info("Error message: " + e.getMessage());
+//             throw new LocatableException(e, loc);
+        }
+        
+		Node n = Util.saxonify(result);
+		reallyEmbarrassingHackToMakeThingsWork(n);
+
+		return n;
+	}
+
 	private static void  reallyEmbarrassingHackToMakeThingsWork(Node n) throws TransformerException
     {
 		TransformerFactory xff = TransformerFactory.newInstance();
@@ -420,7 +464,7 @@ public class CalmlEvaluator
 		return t;
 	}
 	
-	private static Element  renderObject(TypedObject a) {
+	private static Element  renderTypedObject(TypedObject a) {
 		
 		Document doc = emptyDocument();
 		
@@ -445,6 +489,70 @@ public class CalmlEvaluator
 //		try {
 //		System.out.println("eExpr: " + caltrop.main.Util.createXML(eExpr));
 //		} catch (Exception eee) {}
+
+		return eExpr;	  
+	}
+
+	
+	private static Element  renderObject(Object a) {
+		
+		Document doc = emptyDocument();
+		
+		Element eExpr = null;
+		try {
+			eExpr = renderObject(a, doc);
+		} catch (Exception e) {
+            (new DbgExceptionHandler()).process(e);
+			eExpr = doc.createElement("Expr");
+			eExpr.setAttribute("kind", "Undefined");
+		}
+
+		return eExpr;	  
+	}
+	
+	private static Element  renderObject(Object a, Document doc) {
+			
+		Element eExpr = null;
+		try {
+			Element expr = doc.createElement("Expr");
+			doc.getDocumentElement().appendChild(expr);
+			
+			Object v = a;
+			if (v == TypedContext.UNDEFINED) {
+				expr.setAttribute("kind", "Undefined");
+			} else if (v instanceof Boolean) {
+				expr.setAttribute("kind", "Literal");
+				expr.setAttribute("literal-kind", "Boolean");
+				expr.setAttribute("value", ((Boolean)v).booleanValue() ? "1" : "0");
+			} else if (v instanceof Integer || v instanceof Long || v instanceof BigInteger) {
+				expr.setAttribute("kind", "Literal");
+				expr.setAttribute("literal-kind", "Integer");
+				expr.setAttribute("value", v.toString());
+			} else if (v instanceof Float || v instanceof Double) {
+				expr.setAttribute("kind", "Literal");
+				expr.setAttribute("literal-kind", "Real");
+				expr.setAttribute("value", v.toString());
+			} else if (v instanceof String) {
+				expr.setAttribute("kind", "Literal");
+				expr.setAttribute("literal-kind", "String");
+				expr.setAttribute("value", (String)v);
+			} else if (v instanceof List) {
+				expr.setAttribute("kind", "List");
+				for (Object e :  (List)v) {
+					Node enode = renderObject(e, doc);
+					expr.appendChild(enode);
+				}
+			} else {
+				expr.setAttribute("kind", "Undefined");
+			}
+			
+			return expr;
+		} catch (Exception e) {
+            (new DbgExceptionHandler()).process(e);
+			eExpr = doc.createElement("Expr");
+			eExpr.setAttribute("kind", "Undefined");
+		}
+
 
 		return eExpr;	  
 	}
