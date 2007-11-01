@@ -292,6 +292,7 @@ public class CalmlEvaluator
         }
         catch (InterpreterException e)
         {
+            (new ReportingExceptionHandler()).process(e);
         	result = renderError( e.getMessage());
         }
         catch (Exception e)
