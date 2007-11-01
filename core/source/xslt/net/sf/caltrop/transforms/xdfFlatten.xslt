@@ -212,7 +212,7 @@
         <xsl:with-param name="hierarchy" select="$hierarchy"/>
         <xsl:with-param name="iattrs" select="$iattrs"/>        
       </xsl:apply-templates>
-      <xsl:apply-templates select="*[not(self::Parameter)]">
+      <xsl:apply-templates select="*[not(self::Parameter)][not(self::Attribute)]">
         <xsl:with-param name="prefix" select="$prefix"/>
         <!-- IDM.  The Expr elements within the (non XDF) Instances need to
              reflect the bindings in the Parameters.
