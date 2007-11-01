@@ -26,5 +26,9 @@
     <InstanceAttribute attrName="partname" attrKind="Value">
       <FoldingFunction value="lambda (L) : L[0] end"/>
     </InstanceAttribute>
+    
+    <InstanceAttribute attrName="xmlElement" attrKind="Value">
+      <FoldingFunction value="lambda (L) : L[0] end"/>
+    </InstanceAttribute>
 
 </AttributeFolding>

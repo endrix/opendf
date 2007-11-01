@@ -258,6 +258,7 @@ public class Elaborator {
         // provided by AnnotateDecls.
         "net/sf/caltrop/cal/transforms/VariableAnnotator.xslt",     // Adds var-ref notes w/ id of the Decl for that var
         "net/sf/caltrop/cal/transforms/xlim/AnnotateDecls.xslt",    // Adds declAnn notes with id of the enclosing scope
+        "net/sf/caltrop/cal/transforms/EvaluateNetworkExpressions.xslt", // Evaluates non-typed constants in attributes and parameters
         "net/sf/caltrop/cal/transforms/EvaluateConstantExpressions.xslt",
 
         // Do not report errors at this point.  There may be some
