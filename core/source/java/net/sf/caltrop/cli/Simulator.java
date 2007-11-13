@@ -216,17 +216,18 @@ public class Simulator {
 
         Platform platform = DefaultPlatform.thePlatform;
 
-        DiscreteEventComponent dec = createDEC(modelPath, actorClass,	elaborate, params, classLoader, platform);
-        
-            
-        InputStream is = inFile == null ? new NullInputStream() : new FileInputStream(inFile);
-        OutputStream os = outFile == null ? new NullOutputStream() : 
-        (".".equals(outFile) ? System.out : new FileOutputStream(outFile));
-        SequentialSimulatorCallback callback = interpretStimulus ? new EvaluatedStreamCallback(is, os, platform):new StreamIOCallback(is, os);
-
         SequentialSimulator sim = null;
+        InputStream is = null;
+        OutputStream os = null;
         try
         {
+            DiscreteEventComponent dec = createDEC(modelPath, actorClass,	elaborate, params, classLoader, platform);
+            
+            is = inFile == null ? new NullInputStream() : new FileInputStream(inFile);
+            os = outFile == null ? new NullOutputStream() : 
+            (".".equals(outFile) ? System.out : new FileOutputStream(outFile));
+            SequentialSimulatorCallback callback = interpretStimulus ? new EvaluatedStreamCallback(is, os, platform):new StreamIOCallback(is, os);
+
             sim = new SequentialSimulator(dec, callback);
         }
         catch (Throwable t)
@@ -324,6 +325,8 @@ public class Simulator {
         {
             Logging.user().severe("Could not load simulation model." + dle.getMessage());
             Logging.user().severe("An error has occurred.  Exiting abnormally.\n");
+            ExceptionHandler handler = new ReportingExceptionHandler();
+            handler.process(dle);
             System.exit(-1);
         }
         catch (Throwable t)

@@ -507,6 +507,21 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 	
 	public CalInterpreter(Actor a, Map outsideEnv) {
 		
+		Set<String> undefinedParameters = new HashSet<String>();
+		for (Decl parDecl : a.getParameters()) {
+			if (! outsideEnv.containsKey(parDecl.getName())) {
+				undefinedParameters.add(parDecl.getName());
+			}
+		}
+		if (!undefinedParameters.isEmpty()) {
+			String undefs = null;
+			for (String s : undefinedParameters) {
+				undefs = (undefs == null) ? s : (undefs + ", " + s);
+			}
+			String actorName = ("".equals(a.getPackage())) ? a.getName() : (a.getPackage() + "." + a.getName());
+			throw new RuntimeException("Undefined parameters in actor '" + actorName + "': " + undefs);
+		}
+		
 		actor = a;
 		
 		this.instantiationEnv = outsideEnv;

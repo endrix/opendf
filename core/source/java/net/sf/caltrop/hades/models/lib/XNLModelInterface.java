@@ -41,14 +41,17 @@ package net.sf.caltrop.hades.models.lib;
 import static net.sf.caltrop.hades.models.lib.Util.buildNetworkFromXDF;
 import static net.sf.caltrop.hades.models.lib.Util.getPlatform;
 import static net.sf.caltrop.util.xml.Util.root;
+import static net.sf.caltrop.util.xml.Util.xpathEvalString;
 import static net.sf.caltrop.util.xml.Util.xpathEvalNode;
 import static net.sf.caltrop.util.xml.Util.xpathEvalNodes;
+import static net.sf.caltrop.util.xml.Util.xpathEvalElements;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import net.sf.caltrop.cal.ast.Decl;
 import net.sf.caltrop.cal.interpreter.environment.Environment;
 import net.sf.caltrop.cal.interpreter.util.Platform;
 import net.sf.caltrop.hades.cal.OldEnvironmentWrapper;
@@ -72,30 +75,60 @@ import org.w3c.dom.NodeList;
 public class XNLModelInterface implements ModelInterface {
 
 	public String getName(Object modelSource) {
-		return root(modelSource).getAttribute(attrName);
+		return myGetName(modelSource);
+	}
+
+	static private String myGetName(Object modelSource) {
+		String [] q = getQualifiedName(modelSource);
+		if (q.length == 0)
+			return null;
+		else
+			return q[q.length - 1];
 	}
 
 	public String getPackageName(Object modelSource) {
+		return myGetPackageName(modelSource);
+	}
+
+	static private String myGetPackageName(Object modelSource) {
+		String [] q = getQualifiedName(modelSource);
+		String s = null;
+		for (int i = 0; i < q.length - 1; i++) {
+			s = ((s == null) ? "" : (s + ".")) + q[i];
+		}
+		return s;
+	}
+	
+	static private String getQualifiedNameAsString(Object modelSource) {
+		String [] q = getQualifiedName(modelSource);
+		String s = null;
+		for (int i = 0; i < q.length; i++) {
+			s = ((s == null) ? "" : (s + ".")) + q[i];
+		}
+		return s;		
+	}
+	
+	static private String [] getQualifiedName(Object modelSource) {
 		try {
-			Node qid = xpathEvalNode("/Network/Package/QID", modelSource);
-			List ids = Util.listElements((Element)qid, predID);
-			String p = "";
+			List<Element> ids = xpathEvalElements("/Network/QID/ID", modelSource);
+			String [] p = new String[ids.size()];
 			for (int i = 0; i < ids.size(); i++) {
-				if (i != 0) {
-					p += ".";
-				}
-				Element e = (Element)ids.get(i);
-				p += e.getAttribute(attrId);
+				Element e = ids.get(i);
+				p[i] = e.getAttribute(attrName);
 			}
 			return p;
 		}
 		catch (Exception exc) {
-			throw new RuntimeException("Could not get package name.", exc);
+			return new String [0];
 		}
 	}
 
 	public ParameterDescriptor[] getParameters(Object modelSource) {
-		NodeList nlPars = xpathEvalNodes("/Network/Decl[@kind='Param']", modelSource);
+		return myGetParameters(modelSource);
+	}
+	
+	static private ParameterDescriptor[] myGetParameters(Object modelSource) {
+		NodeList nlPars = xpathEvalNodes("/Network/Decl[@kind='Parameter']", modelSource);
 		ParameterDescriptor [] pds = new ParameterDescriptor[nlPars.getLength()];
 		for (int i = 0; i < nlPars.getLength(); i++) {
 			String name = ((Element)nlPars.item(i)).getAttribute(attrName);
@@ -155,6 +188,22 @@ public class XNLModelInterface implements ModelInterface {
 	static public class XNLNetworkCreator implements Network.Creator {
 
 		public void createNetwork(Network n, double t, Scheduler s, Map env, ClassLoader loader) {
+			
+			Set<String> undefinedParameters = new HashSet<String>();
+			for (ParameterDescriptor pd : myGetParameters(modelSource)) {
+				if (! env.containsKey(pd.getName())) {
+					undefinedParameters.add(pd.getName());
+				}
+			}
+			if (!undefinedParameters.isEmpty()) {
+				String undefs = null;
+				for (String p : undefinedParameters) {
+					undefs = (undefs == null) ? p : (undefs + ", " + p);
+				}
+				String actorName = getQualifiedNameAsString(modelSource);
+				throw new RuntimeException("Undefined parameters in network '" + actorName + "': " + undefs);
+			}
+
 
 			ClassLoader myLoader = (loader == null) ? this.getClass().getClassLoader() : loader;
 			Platform myPlatform = getPlatform(myLoader);

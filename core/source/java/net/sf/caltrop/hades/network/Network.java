@@ -72,7 +72,7 @@ public class Network extends AbstractDiscreteEventComponent {
 				dec.initializeState(t, s);
 			}
 			initialized = true;
-			}
+		}
         catch (RuntimeException re)
         {
             // Allows detailed runtime exceptions created during
