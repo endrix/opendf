@@ -84,6 +84,17 @@ public class ReportingExceptionHandler extends UnravelingExceptionHandler
         
         new DbgTypedExceptionHandler() 
         {
+            protected Class getHandledClass() { return net.sf.caltrop.cal.i2.InterpreterException.class; }
+            public boolean handle (Throwable t)
+            {
+                super.handle(t);
+                Logging.user().severe("Error during interpreting: " + t.getMessage());
+                return true;
+            }
+        },
+        
+        new DbgTypedExceptionHandler() 
+        {
             protected Class getHandledClass() { return ClassNotFoundException.class; }
             public boolean handle (Throwable t)
             {

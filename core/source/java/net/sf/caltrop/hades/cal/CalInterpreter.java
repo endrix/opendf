@@ -62,6 +62,7 @@ import net.sf.caltrop.cal.ast.Transition;
 import net.sf.caltrop.cal.i2.Configuration;
 import net.sf.caltrop.cal.i2.Environment;
 import net.sf.caltrop.cal.i2.Executor;
+import net.sf.caltrop.cal.i2.InterpreterException;
 import net.sf.caltrop.cal.i2.Procedure;
 import net.sf.caltrop.cal.i2.environment.ConstantEnvironment;
 import net.sf.caltrop.cal.i2.environment.DynamicEnvironmentFrame;
@@ -519,7 +520,7 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 				undefs = (undefs == null) ? s : (undefs + ", " + s);
 			}
 			String actorName = ("".equals(a.getPackage())) ? a.getName() : (a.getPackage() + "." + a.getName());
-			throw new RuntimeException("Undefined parameters in actor '" + actorName + "': " + undefs);
+			throw new InterpreterException("Undefined parameters in actor '" + actorName + "': " + undefs);
 		}
 		
 		actor = a;

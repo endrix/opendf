@@ -52,6 +52,7 @@ import java.util.Map;
 import java.util.Set;
 
 import net.sf.caltrop.cal.ast.Decl;
+import net.sf.caltrop.cal.i2.InterpreterException;
 import net.sf.caltrop.cal.interpreter.environment.Environment;
 import net.sf.caltrop.cal.interpreter.util.Platform;
 import net.sf.caltrop.hades.cal.OldEnvironmentWrapper;
@@ -60,6 +61,7 @@ import net.sf.caltrop.hades.des.components.ParameterDescriptor;
 import net.sf.caltrop.hades.des.schedule.Scheduler;
 import net.sf.caltrop.hades.models.ModelInterface;
 import net.sf.caltrop.hades.network.Network;
+import net.sf.caltrop.util.exception.LocatableException;
 import net.sf.caltrop.util.xml.ElementPredicate;
 import net.sf.caltrop.util.xml.TagNamePredicate;
 import net.sf.caltrop.util.xml.Util;
@@ -201,7 +203,7 @@ public class XNLModelInterface implements ModelInterface {
 					undefs = (undefs == null) ? p : (undefs + ", " + p);
 				}
 				String actorName = getQualifiedNameAsString(modelSource);
-				throw new RuntimeException("Undefined parameters in network '" + actorName + "': " + undefs);
+				throw new InterpreterException("Undefined parameters in network '" + actorName + "': " + undefs);
 			}
 
 
