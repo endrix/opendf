@@ -22,7 +22,11 @@
         <FoldingFunction value="lambda (L) : L[0] end"/>
         <DefaultValue value='"CLK"'/>
     </InstanceAttribute>
-
+    
+    <InstanceAttribute attrName="vhdlEntity" attrKind="Value">
+        <FoldingFunction value="lambda (L) : L[0] end"/>
+    </InstanceAttribute>
+    
     <InstanceAttribute attrName="partname" attrKind="Value">
       <FoldingFunction value="lambda (L) : L[0] end"/>
     </InstanceAttribute>
