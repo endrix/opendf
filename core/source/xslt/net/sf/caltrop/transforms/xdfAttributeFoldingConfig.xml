@@ -23,6 +23,10 @@
         <DefaultValue value='"CLK"'/>
     </InstanceAttribute>
     
+    <InstanceAttribute attrName="sdcConstraint" attrKind="Value">
+        <FoldingFunction value="lambda (L) : L[0] end"/>
+    </InstanceAttribute>
+    
     <InstanceAttribute attrName="vhdlEntity" attrKind="Value">
         <FoldingFunction value="lambda (L) : L[0] end"/>
     </InstanceAttribute>
