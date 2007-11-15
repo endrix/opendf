@@ -24,7 +24,7 @@
     </InstanceAttribute>
     
     <InstanceAttribute attrName="sdcConstraint" attrKind="Value">
-        <FoldingFunction value="lambda (L) : L[0] end"/>
+        <FoldingFunction value="lambda (L) : L end"/>
     </InstanceAttribute>
     
     <InstanceAttribute attrName="vhdlEntity" attrKind="Value">
