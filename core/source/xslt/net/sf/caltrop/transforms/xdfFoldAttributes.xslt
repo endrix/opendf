@@ -145,7 +145,7 @@
     </xsl:template>
         
     <xsl:template match="Attribute">
-        <xsl:if test="parent::Instance">
+        <xsl:if test="parent::XDF">
             <xsl:copy>
                 <xsl:for-each select="@*">
                     <xsl:attribute name="{name()}"><xsl:value-of select="."/></xsl:attribute>
