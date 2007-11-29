@@ -2,13 +2,14 @@
 <feature
       id="net.sf.caltrop.eclipse.plugin.calfeature"
       label="Caltrop Editor"
-      version="1.0.5"
+      version="1.0.6"
       provider-name="net.sf.caltrop">
 
    <description>
       CAL plug-in for Eclipse.
 Latest Features:
-* Should fix Eclipse shutdown issue
+* Problem marker tooltips now functional
+* Fixes Eclipse shutdown issue
 * Latest syntax fixes for NL and CAL.
 Known Issues:
 * most features unavailable when editing outside a project
@@ -52,6 +53,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
    </license>
 
    <url>
+      <update label="Caltrop Editor" url="http://caltrop.sourceforge.net/eclipse"/>
       <discovery label="Caltrop Site" url="http://caltrop.sourceforge.net"/>
    </url>
 
