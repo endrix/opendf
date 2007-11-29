@@ -12,5 +12,12 @@
    <feature url="features/net.sf.caltrop.eclipse.plugin.calfeature_1.0.5.jar" id="net.sf.caltrop.eclipse.plugin.calfeature" version="1.0.5">
       <category name="caltrop"/>
    </feature>
-   <category-def name="caltrop" label="CAL Editor Plug-in"/>
+   <feature url="features/net.sf.caltrop.eclipse.plugin.calfeature_1.0.6.jar" id="net.sf.caltrop.eclipse.plugin.calfeature" version="1.0.6">
+      <category name="caltrop"/>
+   </feature>
+   <category-def name="caltrop" label="CAL Editor Plug-in">
+      <description>
+         An editor for both CAL and NL that provides coloring and on-the-fly syntax, semantic checking of the document.
+      </description>
+   </category-def>
 </site>
