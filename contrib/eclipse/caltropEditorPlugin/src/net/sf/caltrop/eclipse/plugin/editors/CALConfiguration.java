@@ -42,15 +42,18 @@ import org.eclipse.jface.text.*;
 import org.eclipse.jface.text.presentation.*;
 import org.eclipse.jface.text.rules.*;
 import org.eclipse.jface.text.source.*;
+import org.eclipse.ui.editors.text.*;
 import net.sf.caltrop.eclipse.plugin.editors.scanners.*;
+import org.eclipse.jface.preference.*;
 
-public class CALConfiguration extends SourceViewerConfiguration
+public class CALConfiguration extends TextSourceViewerConfiguration
 {
 	private CALColorManager colorManager;
 	private CALScanner scanner;
 
-	public CALConfiguration( CALColorManager cm )
+	public CALConfiguration( IPreferenceStore store, CALColorManager cm )
 	{
+		super( store );
 		colorManager = cm;
      	scanner = new CALScanner( colorManager );
 	}

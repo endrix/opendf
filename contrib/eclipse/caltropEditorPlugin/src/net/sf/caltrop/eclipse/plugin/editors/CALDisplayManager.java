@@ -51,7 +51,6 @@ import org.eclipse.core.runtime.CoreException;
 import net.sf.caltrop.cal.util.SourceReader;
 import net.sf.caltrop.eclipse.plugin.CALPlugin;
 import org.eclipse.jface.text.*;
-import org.eclipse.ui.texteditor.MarkerUtilities;
 import net.sf.caltrop.util.source.GenericError;
 import net.sf.caltrop.util.source.ParserErrorException;
 
@@ -67,7 +66,8 @@ import net.sf.caltrop.util.xml.Util;
 
 public class CALDisplayManager implements Runnable
 {
-  public static final String PROBLEM_MARKER_ID = "net.sf.caltrop.eclipse.plugin.caleditor.calerror";
+//  public static final String PROBLEM_MARKER_ID = "net.sf.caltrop.eclipse.plugin.caleditor.calerror";
+  public static final String PROBLEM_MARKER_ID = "org.eclipse.core.resources.problemmarker";
 
   private IDocument document;
   private IFile file;
@@ -229,11 +229,8 @@ public class CALDisplayManager implements Runnable
   {
 	    try
 	    {		  
-		  Map<String, Object> map = new HashMap<String, Object>();
-		  MarkerUtilities.setLineNumber( map, line );
-		  map.put( IMarker.SEVERITY, new Integer( severity ) );
-		  MarkerUtilities.setMessage( map, message );
-		  
+		  IMarker marker = file.createMarker( PROBLEM_MARKER_ID );
+		  marker.setAttribute( IMarker.SEVERITY, severity );
 		  try
 		  {
 			  IRegion r = document.getLineInformation( line - 1 );
@@ -242,13 +239,13 @@ public class CALDisplayManager implements Runnable
 				  start += col - 1;
 			  int end = start + 1;
 			  if( end >= document.getLength() ) end = document.getLength() - 1;
-			  MarkerUtilities.setCharStart( map, start );
-			  MarkerUtilities.setCharEnd( map, end );
+			  marker.setAttribute( IMarker.CHAR_START, start );
+			  marker.setAttribute( IMarker.CHAR_END  , end );
 		  }
 		  catch( BadLocationException e )
 		  {
-			  MarkerUtilities.setCharStart( map, 0 );
-			  MarkerUtilities.setCharEnd( map, 0 );
+			  marker.setAttribute( IMarker.CHAR_START, 0 );
+			  marker.setAttribute( IMarker.CHAR_END  , 0 );
 		  }
 			  
 		  String loc = location;
@@ -259,14 +256,13 @@ public class CALDisplayManager implements Runnable
 			{
 				loc = "line " + line;
 				if( col > 0 )
-					loc += loc + " col " + col;
+					loc = loc + " col " + col;
 			}
 			else loc = "unknown";
 		  }
 		  
-		  map.put( IMarker.LOCATION, loc );
-
-		  MarkerUtilities.createMarker( file, map, PROBLEM_MARKER_ID );
+		  marker.setAttribute( IMarker.LOCATION, loc );
+		  marker.setAttribute( IMarker.MESSAGE , message );
 
 	    }
 	    catch( CoreException e )

@@ -58,7 +58,9 @@ public class CALEditor extends TextEditor
 	{
 		super();
 		colorManager = new CALColorManager();
-		setSourceViewerConfiguration( new CALConfiguration( colorManager ) );
+		
+		setSourceViewerConfiguration( new CALConfiguration( getPreferenceStore(), colorManager ) );
+		// System.out.println(getSourceViewerConfiguration().getClass().toString());
 		
 		documentProvider = new CALDocumentProvider( );
 		setDocumentProvider( documentProvider );
