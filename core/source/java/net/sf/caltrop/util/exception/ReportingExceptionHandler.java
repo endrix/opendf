@@ -178,7 +178,12 @@ public class ReportingExceptionHandler extends UnravelingExceptionHandler
             public boolean handle (Throwable t)
             {
                 Logging.dbg().info(t.getClass() + " " + t.getStackTrace()[0].toString() + "\n\t" + t.getMessage());
-                //Do nothing for user
+                //Do nothing for user unless this is the top level of
+                // the stack trace
+                if (t.getCause() == null)
+                {
+                    Logging.user().info("Exceptional event: " + t.getMessage());
+                }
                 return true;
             }
         },
