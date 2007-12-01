@@ -3,6 +3,7 @@ package net.sf.caltrop.cal.i2.types;
 import net.sf.caltrop.cal.ast.ExprLiteral;
 import net.sf.caltrop.cal.ast.TypeExpr;
 import net.sf.caltrop.cal.i2.Environment;
+import net.sf.caltrop.cal.i2.Evaluator;
 
 /**
  * A TypeSystem is a structured collection of types and type classes. The TypeSystem itself
@@ -29,17 +30,6 @@ public interface TypeSystem {
 	Type  typeOf(Object v);
 
 	/**
-	 * Evaluate the type expression in the specified environment, and create the 
-	 * corresponding type object.
-	 * 
-	 * @param te
-	 * @param env
-	 * @return
-	 */
-
-	Type  evaluate(TypeExpr te, Environment env);
-
-	/**
 	 * Evaluate the type expression in the global (or empty) environment, and create the 
 	 * corresponding type object.
 	 * 
@@ -48,7 +38,7 @@ public interface TypeSystem {
 	 * @return
 	 */
 
-	Type  evaluate(TypeExpr te);
+	Type  evaluate(TypeExpr te, Evaluator eval);
 	
 	/**
 	 * Evaluate the type expression in the specified environment, and create the 
@@ -59,7 +49,7 @@ public interface TypeSystem {
 	 * @return
 	 */
 
-	Type  doEvaluate(TypeExpr te, Environment env);
+	Type  doEvaluate(TypeExpr te, Evaluator eval);
 	
 	/**
 	 * Determine the type of the literal.

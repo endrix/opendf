@@ -3,6 +3,10 @@ package net.sf.caltrop.cal.i2.types;
 import java.math.BigInteger;
 import java.util.Map;
 
+import net.sf.caltrop.cal.ast.Expression;
+import net.sf.caltrop.cal.ast.TypeExpr;
+import net.sf.caltrop.cal.i2.Evaluator;
+
 public class TheIntType extends AbstractIntegralType implements IntegralType {
 
 	//
@@ -32,14 +36,14 @@ public class TheIntType extends AbstractIntegralType implements IntegralType {
 		return true;
 	}
 	
-	
 	// 
 	// Ctor
 	//
 	
 
-	private TheIntType(TypeClass typeClass, Map<String, Type> typeParameters, Map<String, Object> valueParameters) {
-		super(typeClass, typeParameters, valueParameters);
+	private TheIntType(TypeClass typeClass, int sz) {
+		super(typeClass);
+		this.size = sz;
 	}
 	
 	//
@@ -56,13 +60,16 @@ public class TheIntType extends AbstractIntegralType implements IntegralType {
 	
 	public static class TheClass extends AbstractTypeClass {
 
-		public Type createType(Map<String, Type> typeParameters,
-				Map<String, Object> valueParameters) {
-			return new TheIntType(this, typeParameters, valueParameters);
+		public Type createType(TypeExpr te, Evaluator eval) {
+			Map<String, Expression> vp = te.getValueParameters();
+			int sz = getIntParameter(te, "size", 32, eval);
+			return new TheIntType(this, sz);
 		}
 
 		public TheClass (TypeSystem ts) {
 			super("int", ts);
 		}
 	}
+	
+	final static String vpSize = "size"; 
 }

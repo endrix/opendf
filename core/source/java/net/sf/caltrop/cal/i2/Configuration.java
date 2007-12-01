@@ -6,6 +6,7 @@ import net.sf.caltrop.cal.ast.ExprIf;
 import net.sf.caltrop.cal.ast.ExprLiteral;
 import net.sf.caltrop.cal.ast.ExprVariable;
 import net.sf.caltrop.cal.ast.StmtAssignment;
+import net.sf.caltrop.cal.i2.types.TypeSystem;
 
 public interface Configuration {
 	
@@ -38,6 +39,7 @@ public interface Configuration {
 	void	assign(Object value, Environment env, StmtAssignment stmt, int nIndices, OperandStack stack);
 	void	assignField(Object value, Environment env, StmtAssignment stmt, String field);
 
+	TypeSystem  getTypeSystem();
 
 	Object  convertJavaResult(Object res);
 	Object  createClassObject(Class c);	

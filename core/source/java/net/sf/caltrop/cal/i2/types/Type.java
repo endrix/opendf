@@ -21,22 +21,6 @@ public interface Type {
 	TypeClass  getTypeClass();
 	
 	/**
-	 * Get the value parameters of this type.
-	 * 
-	 * @return A map containing the value parameters.
-	 */
-
-	Map<String, Object> getValueParameters();
-	
-	/**
-	 * Get the type parameters of this type.
-	 * 
-	 * @return A map containing the type parameters.
-	 */
-
-	Map<String, Type>	getTypeParameters();
-	
-	/**
 	 * Determine whether the object is an instance of this type.
 	 * 
 	 * @param v The object.
@@ -72,5 +56,5 @@ public interface Type {
 	 * @see #convertible(Object)
 	 */
 	
-	Object   convert(Object v) throws TypeConversionWarning;
+	Object   convert(Object v); // throws TypeConversionWarning; FIXME --- needs to provide waring when losing precision
 }

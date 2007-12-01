@@ -59,6 +59,7 @@ import net.sf.caltrop.cal.ast.Expression;
 import net.sf.caltrop.cal.ast.PortDecl;
 import net.sf.caltrop.cal.ast.QID;
 import net.sf.caltrop.cal.ast.Transition;
+import net.sf.caltrop.cal.ast.TypeExpr;
 import net.sf.caltrop.cal.i2.Configuration;
 import net.sf.caltrop.cal.i2.Environment;
 import net.sf.caltrop.cal.i2.Executor;
@@ -66,7 +67,10 @@ import net.sf.caltrop.cal.i2.InterpreterException;
 import net.sf.caltrop.cal.i2.Procedure;
 import net.sf.caltrop.cal.i2.environment.ConstantEnvironment;
 import net.sf.caltrop.cal.i2.environment.DynamicEnvironmentFrame;
+import net.sf.caltrop.cal.i2.platform.DefaultTypedPlatform;
 import net.sf.caltrop.cal.i2.platform.DefaultUntypedPlatform;
+import net.sf.caltrop.cal.i2.types.Type;
+import net.sf.caltrop.cal.i2.types.TypeSystem;
 import net.sf.caltrop.cal.i2.util.ImportHandler;
 import net.sf.caltrop.cal.i2.util.ImportMapper;
 import net.sf.caltrop.cal.i2.util.ImportUtil;
@@ -94,7 +98,7 @@ import net.sf.caltrop.hades.des.util.StateChangeProvider;
 import net.sf.caltrop.util.logging.Logging;
 import net.sf.caltrop.util.exception.LocatableException;
 
-
+import static net.sf.caltrop.util.Misc.deepCopy;
 
 /**
  * 
@@ -164,7 +168,7 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 			
 			Decl[] decls = actor.getStateVars();
 			DynamicEnvironmentFrame constantEnv = new DynamicEnvironmentFrame(outsideEnv);
-			constantEnv.bind("this", this, null);  // TYPEFIXME
+			constantEnv.bind("this", this, null); 
 			// disallow writing to cached environment
 			this.actorEnv = createActorStateEnvironment(constantEnv);
 			this.myInterpreter = new Executor(theConfiguration, this.actorEnv);
@@ -176,16 +180,19 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 				for (int i = 0; i < decls.length; i++) {
 					String var = decls[i].getName();
 					Expression valExpr = decls[i].getInitialValue();
+					TypeExpr te = decls[i].getType(); 
 					boolean isStateVariable = decls[i].isAssignable() || decls[i].isMutable();
 					
 					// Note: this assumes that declarations are
 					// ordered by eager dependency
 					
 					Object value = (valExpr == null) ? null : myInterpreter.valueOf(valExpr, this.actorEnv);
-					if (isStateVariable)
-						this.actorEnv.bind(var, value, null);  // TYPEFIXME
+					TypeSystem ts = theConfiguration.getTypeSystem();
+					Type type =  (ts != null) ? ts.evaluate(te, myInterpreter) : null;
+					if (isStateVariable) 
+						this.actorEnv.bind(var, value, type);  
 					else
-						constantEnv.bind(var, value, null);  // TYPEFIXME
+						constantEnv.bind(var, value, type);
 					
 					if (traceVarName.equals(var))
 						hasTraceVar = true;
@@ -523,7 +530,11 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 			throw new InterpreterException("Undefined parameters in actor '" + actorName + "': " + undefs);
 		}
 		
-		actor = a;
+		//
+		//  obtain a deep copy of the actor structure, so we can cache constant parts in it, such as 
+		//  evaluated type objects, constants etc.
+		//
+		actor = (Actor)deepCopy(a);
 		
 		this.instantiationEnv = outsideEnv;
 		
@@ -955,7 +966,8 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 	protected AssertionHandler assertionHandler = null;
 	
 
-	protected final static Platform thePlatform = DefaultUntypedPlatform.thePlatform;
+	protected final static Platform thePlatform = DefaultTypedPlatform.thePlatform;
+	//protected final static Platform thePlatform = DefaultUntypedPlatform.thePlatform;
 	protected final static Configuration  theConfiguration  = thePlatform.configuration();
 	
 	/**

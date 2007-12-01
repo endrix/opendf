@@ -2,6 +2,9 @@ package net.sf.caltrop.cal.i2.types;
 
 import java.util.Map;
 
+import net.sf.caltrop.cal.ast.TypeExpr;
+import net.sf.caltrop.cal.i2.Evaluator;
+
 public class TheIntegerType extends AbstractIntegralType implements IntegralType {
 
 	//
@@ -35,8 +38,8 @@ public class TheIntegerType extends AbstractIntegralType implements IntegralType
 	// Ctor
 	//
 
-	private TheIntegerType(TypeClass typeClass, Map<String, Type> typeParameters, Map<String, Object> valueParameters) {
-		super(typeClass, typeParameters, valueParameters);
+	private TheIntegerType(TypeClass typeClass) {
+		super(typeClass);
 	}
 
 	//
@@ -51,9 +54,8 @@ public class TheIntegerType extends AbstractIntegralType implements IntegralType
 
 	public static class TheClass extends AbstractTypeClass {
 
-		public Type createType(Map<String, Type> typeParameters,
-				Map<String, Object> valueParameters) {
-			return new TheIntegerType(this, typeParameters, valueParameters);
+		public Type createType(TypeExpr te, Evaluator eval) {
+			return new TheIntegerType(this);
 		}
 
 		public TheClass (TypeSystem ts) {

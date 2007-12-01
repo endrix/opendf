@@ -1,7 +1,7 @@
 
 package net.sf.caltrop.cal.i2.types;
 
-public class TypeConversionWarning extends Exception {
+public class TypeConversionWarning extends RuntimeException {
 
 	public TypeConversionWarning(Object original, Type type, Object converted) {
 		this (original, type, converted, 

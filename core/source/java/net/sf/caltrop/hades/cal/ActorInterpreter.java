@@ -56,6 +56,7 @@ import net.sf.caltrop.cal.i2.Executor;
 import net.sf.caltrop.cal.i2.InterpreterException;
 import net.sf.caltrop.cal.i2.environment.DynamicEnvironmentFrame;
 import net.sf.caltrop.cal.i2.environment.Thunk;
+import net.sf.caltrop.cal.i2.types.Type;
 import net.sf.caltrop.cal.interpreter.InputChannel;
 import net.sf.caltrop.cal.interpreter.InputPort;
 import net.sf.caltrop.cal.interpreter.OutputChannel;

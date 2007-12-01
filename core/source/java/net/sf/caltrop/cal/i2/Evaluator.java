@@ -65,6 +65,14 @@ public class Evaluator implements ExpressionVisitor, OperandStack, ObjectSink {
     public OperandStack  getStack() {
     	return stack;
     }
+    
+    public Configuration  getConfiguration() {
+    	return configuration;
+    }
+    
+    public Environment  getEnvironment() {
+    	return env;
+    }
 
     protected Environment  setEnvironment(Environment env) {
     	Environment oldEnv = this.env;

@@ -36,7 +36,7 @@ public class EnvironmentFrame extends AbstractEnvironment {
 		int i = 0;
 		while (i < vars.length) {
 			if (vars[i].equals(var)) {
-				values[i] = value;  // TYPEFIXME: do type conversion
+				localSetByPos(i, value);
 				return i;
 			}
 			i += 1;
@@ -46,7 +46,11 @@ public class EnvironmentFrame extends AbstractEnvironment {
 
 	@Override
 	protected void localSetByPos(int varPos, Object value) {
-		values[varPos] = value; 
+		if (types[varPos] != null) {
+			values[varPos] = types[varPos].convert(value); 
+		} else {
+			values[varPos] = value; 
+		}
 	}
 	
 	@Override
@@ -65,6 +69,13 @@ public class EnvironmentFrame extends AbstractEnvironment {
 		this.vars = vars;
 		this.values = values;
 		this.types = types;
+		if (values != null) {
+			for (int i = 0; i < values.length; i++) {
+				if (types != null && types[i] != null && !(values[i] instanceof VariableContainer)) {
+					values[i] = types[i].convert(values[i]); 
+				}
+			}
+		}
 	}
 	
 	protected EnvironmentFrame(Environment parent) {

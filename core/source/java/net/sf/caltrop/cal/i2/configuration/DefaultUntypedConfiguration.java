@@ -22,6 +22,7 @@ import net.sf.caltrop.cal.i2.UndefinedInterpreterException;
 import net.sf.caltrop.cal.i2.UndefinedVariableException;
 import net.sf.caltrop.cal.i2.java.ClassObject;
 import net.sf.caltrop.cal.i2.java.MethodObject;
+import net.sf.caltrop.cal.i2.types.TypeSystem;
 import net.sf.caltrop.cal.interpreter.InterpreterException;
 
 public class DefaultUntypedConfiguration implements Configuration {
@@ -275,6 +276,10 @@ public class DefaultUntypedConfiguration implements Configuration {
 			throw new InterpreterException("Tried to access field " + fieldName + " in " + composite, iae);
 		}
 
+	}
+	
+	public TypeSystem  getTypeSystem() {
+		return null;
 	}
 	
 	

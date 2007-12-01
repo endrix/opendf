@@ -41,7 +41,7 @@ public class DynamicEnvironmentFrame extends AbstractEnvironment {
 		int i = 0;
 		while (i < vars.size()) {
 			if (vars.get(i).equals(var)) {
-				values.set(i, value);  // TYPEFIXME: do type conversion
+				localSetByPos(i, value);
 				return i;
 			}
 			i += 1;
@@ -51,7 +51,12 @@ public class DynamicEnvironmentFrame extends AbstractEnvironment {
 
 	@Override
 	protected void localSetByPos(int varPos, Object value) {
-		values.set(varPos, value);  // TYPEFIXME: do type conversion
+		Type t = types.get(varPos);
+		if (t != null) {
+			values.set(varPos, t.convert(value));
+		} else {
+			values.set(varPos, value);
+		}
 	}
 	
 	@Override
@@ -72,9 +77,14 @@ public class DynamicEnvironmentFrame extends AbstractEnvironment {
 		if (vars.contains(var)) {
 			throw new InterpreterException("Variable defined multiple times: '" + var + "'.");
 		}
+		Object v = value;
+		if (type != null && !(value instanceof VariableContainer)) {
+			v = type.convert(v);
+		}
 		vars.add(var);
 		values.add(value);
 		types.add(type);
+		
 		return vars.size() - 1;
 	}
 	

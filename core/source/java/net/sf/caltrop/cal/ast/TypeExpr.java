@@ -43,6 +43,7 @@ import java.util.Map;
 
 import net.sf.caltrop.cal.i2.Configuration;
 import net.sf.caltrop.cal.i2.Environment;
+import net.sf.caltrop.cal.i2.Evaluator;
 import net.sf.caltrop.cal.i2.OperandStack;
 import net.sf.caltrop.cal.i2.types.Type;
 import net.sf.caltrop.cal.i2.types.TypeSystem;
@@ -61,11 +62,11 @@ public class TypeExpr extends ASTNode {
         return parameters;
     }
     
-    public Map  getTypeParameters() {
+    public Map<String, TypeExpr>  getTypeParameters() {
     	return typeParameters;
     }
     
-    public Map  getValueParameters() {
+    public Map<String, Expression>  getValueParameters() {
     	return valueParameters;
     }
 
@@ -79,17 +80,17 @@ public class TypeExpr extends ASTNode {
     	this.name = name;
     }
     
-    public TypeExpr(String name, Map typeParameters, Map valueParameters) {
+    public TypeExpr(String name, Map<String, TypeExpr> typeParameters, Map<String, Expression> valueParameters) {
     	this.name = name;
     	this.typeParameters = typeParameters;
     	this.valueParameters = valueParameters;
     }
     
-    public Type  evaluate(TypeSystem ts, Environment env) {
-    	if (ts != lastTypeSystem || lastEnvironment != env) {
+    public Type  evaluate(TypeSystem ts, Evaluator eval) {
+    	if (ts != lastTypeSystem || lastEnvironment != eval.getEnvironment()) {
     		lastTypeSystem = ts;
-    		lastEnvironment = env;
-    		lastType = ts.doEvaluate(this, env);
+    		lastEnvironment = eval.getEnvironment();
+    		lastType = ts.doEvaluate(this, eval);
     	}
 		return lastType;
     }
@@ -97,8 +98,8 @@ public class TypeExpr extends ASTNode {
 
     private String name;
     private TypeExpr [] parameters;
-    private Map  typeParameters;
-    private Map  valueParameters;
+    private Map<String, TypeExpr>  typeParameters;
+    private Map<String, Expression>  valueParameters;
     
     private TypeSystem  lastTypeSystem;
     private Environment lastEnvironment;

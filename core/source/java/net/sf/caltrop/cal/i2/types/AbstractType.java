@@ -14,22 +14,9 @@ public abstract class AbstractType implements Type {
 		return typeClass;
 	}
 
-	public Map<String, Type> getTypeParameters() {
-		return typeParameters;
-	}
-	
-	public Map<String, Object> getValueParameters() {
-		return valueParameters;
-	}
-	
-	public AbstractType(TypeClass typeClass, Map<String, Type> typeParameters, Map<String, Object> valueParameters) {
+	public AbstractType(TypeClass typeClass) {
 		this.typeClass = typeClass;
-		this.typeParameters = typeParameters;
-		this.valueParameters = valueParameters;
 	}
-
 
 	private TypeClass			typeClass;
-	private Map<String, Type>	typeParameters;
-	private Map<String, Object>	valueParameters;
 }
