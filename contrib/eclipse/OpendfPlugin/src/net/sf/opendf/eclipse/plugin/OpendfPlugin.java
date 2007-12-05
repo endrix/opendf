@@ -36,58 +36,49 @@ BEGINCOPYRIGHT X
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.eclipse.plugin;
+package net.sf.opendf.eclipse.plugin;
 
 import org.eclipse.ui.plugin.*;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.osgi.framework.BundleContext;
 import org.eclipse.core.runtime.Status;
 
-public class CALPlugin extends AbstractUIPlugin {
+public class OpendfPlugin extends AbstractUIPlugin {
 
-	//The shared instance.
-	private static CALPlugin plugin;
-
-	public static final String XFMR_PROPERTY_NAME  = "javax.xml.transform.TransformerFactory";
-
-	private String saved_xfmr_property_value; 
+	public static final String ID = "net.sf.opendf.eclipse.plugin";
 	
-	public CALPlugin()
+	//The shared instance.
+	private static OpendfPlugin plugin;
+	
+	public OpendfPlugin()
 	{
 		plugin = this;
 		// printLog( "CAL plugin started" );
 		// System.out.println( "Starting ...");
-		 
-		 // Save off the system XSLT transformer property for later restoration.
-		 saved_xfmr_property_value = System.getProperty(XFMR_PROPERTY_NAME);
-		 // System.out.println( saved_xfmr_property_value );
 	}
 
-	public static void printLog( String msg )
+	public static void logInfoMessage( String msg )
 	{
-		plugin.getLog().log( new Status( Status.INFO, "cal.editors.CALEditor", Status.OK, msg, null ));	
+		plugin.getLog().log( new Status( Status.INFO, ID, Status.OK, msg, null ));	
 	}
 
-	public void start(BundleContext context) throws Exception
+  public static void logErrorMessage( String msg, Throwable exception )
+  {
+    plugin.getLog().log( new Status( Status.ERROR, ID, Status.OK, msg, exception ));  
+  }
+
+	public void start( BundleContext context ) throws Exception
 	{
-		super.start(context);
+		super.start( context );
 	}
 
-	public void stop(BundleContext context) throws Exception
+	public void stop( BundleContext context ) throws Exception
 	{
-		super.stop(context);
+		super.stop( context );
 		plugin = null;
+	}
 
-		 // System.out.println( "Stopping ...");
-		 // System.out.println( System.getProperty(XFMR_PROPERTY_NAME));
-		 
-		 // When the plug-in is uninstalled, it is necessary to return the system
-		 // XSLT transformer property to its original value, because Eclipse uses
-		 // XSLT to process the XML workspace settings document.
-		 System.setProperty( XFMR_PROPERTY_NAME, saved_xfmr_property_value );
-}
-
-	public static CALPlugin getDefault()
+	public static OpendfPlugin getDefault()
 	{
 		return plugin;
 	}
@@ -101,6 +92,6 @@ public class CALPlugin extends AbstractUIPlugin {
 	 */
 	public static ImageDescriptor getImageDescriptor(String path)
 	{
-		return AbstractUIPlugin.imageDescriptorFromPlugin("CAL", path);
+		return AbstractUIPlugin.imageDescriptorFromPlugin( ID, path );
 	}
 }
