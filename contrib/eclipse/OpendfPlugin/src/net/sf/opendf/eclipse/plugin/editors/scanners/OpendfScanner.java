@@ -36,24 +36,24 @@ BEGINCOPYRIGHT X
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.eclipse.plugin.editors.scanners;
+package net.sf.opendf.eclipse.plugin.editors.scanners;
 
 import java.util.*;
 import org.eclipse.jface.text.TextAttribute;
 import org.eclipse.jface.text.rules.*;
-import net.sf.caltrop.eclipse.plugin.editors.*;
-import net.sf.caltrop.eclipse.plugin.editors.rules.*;
+import net.sf.opendf.eclipse.plugin.editors.*;
+import net.sf.opendf.eclipse.plugin.editors.rules.*;
 
 // This is the scanner that really matters. It adds color token to
 // all the syntax elements in the source file.
 
-public class CALScanner extends RuleBasedScanner
+public class OpendfScanner extends RuleBasedScanner
 {
 
-	public CALScanner( CALColorManager colorManager  )
+	public OpendfScanner( OpendfColorManager colorManager  )
 	{
-		IToken commentToken = new Token( new TextAttribute( colorManager.getColor( ICALColorConstants.COMMENT ) ) );
-		IToken constantToken = new Token( new TextAttribute( colorManager.getColor( ICALColorConstants.CONSTANT ) ) );
+		IToken commentToken = new Token( new TextAttribute( colorManager.getColor( IOpendfColorDefaults.COMMENT ) ) );
+		IToken constantToken = new Token( new TextAttribute( colorManager.getColor( IOpendfColorDefaults.CONSTANT ) ) );
 
 		List<IRule> rules = new ArrayList<IRule>();
 		
@@ -61,9 +61,9 @@ public class CALScanner extends RuleBasedScanner
 		rules.add( new EndOfLineRule( "//", commentToken ) );
 		rules.add( new SingleLineRule( "\"", "\"", constantToken ) );
 		rules.add( new SingleLineRule( "'", "'", constantToken ) );
-		rules.add( new CALNumberRule( colorManager ) );
-		rules.add( new CALWordRule( colorManager ) );
-		rules.add( new CALOperatorRule( colorManager ) );
+		rules.add( new OpendfNumberRule( colorManager ) );
+		rules.add( new OpendfWordRule( colorManager ) );
+		rules.add( new OpendfOperatorRule( colorManager ) );
        
 		IRule[] result= new IRule[ rules.size() ];
 		rules.toArray( result );
