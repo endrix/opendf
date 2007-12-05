@@ -61,7 +61,7 @@
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform" 
   xmlns:axsl="http://www.w3.org/1999/XSL/TransformAlias" 
   xmlns:sch="http://www.ascc.net/xml/schematron"
-  xmlns:cal="java:net.sf.caltrop.xslt.cal.CalmlEvaluator" >
+    xmlns:cal="java:net.sf.opendf.xslt.cal.CalmlEvaluator" >
   <!-- Note that this namespace is not version specific.
        This program implements schematron 1.5 with some 1.6 extensions -->
   <xsl:namespace-alias stylesheet-prefix="axsl" result-prefix="xsl"/>

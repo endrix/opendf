@@ -29,15 +29,15 @@
    version="2.0"
    xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
    xmlns:axsl="http://www.w3.org/1999/XSL/TransformAlias"
-   xmlns:cal="java:net.sf.caltrop.xslt.cal.CalmlEvaluator" >
+   xmlns:cal="java:net.sf.opendf.xslt.cal.CalmlEvaluator" >
 
-<xsl:import href="net/sf/caltrop/cal/checks/skeleton1-5.xsl"/>
+  <xsl:import href="net/sf/opendf/cal/checks/skeleton1-5.xsl"/>
 
 <xsl:namespace-alias stylesheet-prefix="axsl" result-prefix="xsl"/>
  
 <xsl:template name="process-prolog">
   <axsl:output method="xml" indent="yes"/>
-  <axsl:include href="net/sf/caltrop/cal/checks/reportOffenders.xslt"/>
+  <axsl:include href="net/sf/opendf/cal/checks/reportOffenders.xslt"/>
 </xsl:template>
 
 <xsl:template name="process-root">

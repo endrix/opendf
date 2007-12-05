@@ -8,7 +8,7 @@
 <sch:schema
    xmlns:sch="http://www.ascc.net/xml/schematron"
    xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-   xmlns:cal="java:net.sf.caltrop.xslt.cal.CalmlEvaluator"
+  xmlns:cal="java:net.sf.opendf.xslt.cal.CalmlEvaluator"
    defaultPhase="general" >
   
   <sch:phase id="general">

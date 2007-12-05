@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-                xmlns:cal="java:net.sf.caltrop.xslt.cal.CalmlEvaluator"
+    xmlns:cal="java:net.sf.opendf.xslt.cal.CalmlEvaluator"
                 xmlns:sch="http://www.ascc.net/xml/schematron"
                 version="2.0">
     <xsl:output indent="yes" method="xml"/>
-    <xsl:include href="net/sf/caltrop/cal/checks/reportOffenders.xslt"/>
+    <xsl:include href="net/sf/opendf/cal/checks/reportOffenders.xslt"/>
     <xsl:template match="*|@*" mode="schematron-get-full-path">
         <xsl:apply-templates mode="schematron-get-full-path" select="parent::*"/>
         <xsl:text>/</xsl:text>
