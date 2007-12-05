@@ -36,9 +36,9 @@ BEGINCOPYRIGHT X
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.cal.interpreter.util;
+package net.sf.opendf.cal.interpreter.util;
 
-import net.sf.caltrop.cal.ast.Import;
+import net.sf.opendf.cal.ast.Import;
 
 /**
  * An ImportMapper can map a specified import to another, allowing for

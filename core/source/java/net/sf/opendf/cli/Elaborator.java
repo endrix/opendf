@@ -1,4 +1,4 @@
-package net.sf.caltrop.cli;
+package net.sf.opendf.cli;
 
 /* 
 	BEGINCOPYRIGHT X,UC
@@ -39,15 +39,15 @@ package net.sf.caltrop.cli;
 	ENDCOPYRIGHT
  */
 
-import static net.sf.caltrop.util.xml.Util.applyTransform;
-import static net.sf.caltrop.util.xml.Util.applyTransformAsResource;
-import static net.sf.caltrop.util.xml.Util.applyTransformsAsResources;
-import static net.sf.caltrop.util.xml.Util.createTransformer;
-import static net.sf.caltrop.util.xml.Util.createXML;
-import static net.sf.caltrop.cli.Util.elaborate;
-import static net.sf.caltrop.cli.Util.extractPath;
-import static net.sf.caltrop.cli.Util.createActorParameters;
-import static net.sf.caltrop.cli.Util.initializeLocators;
+import static net.sf.opendf.util.xml.Util.applyTransform;
+import static net.sf.opendf.util.xml.Util.applyTransformAsResource;
+import static net.sf.opendf.util.xml.Util.applyTransformsAsResources;
+import static net.sf.opendf.util.xml.Util.createTransformer;
+import static net.sf.opendf.util.xml.Util.createXML;
+import static net.sf.opendf.cli.Util.elaborate;
+import static net.sf.opendf.cli.Util.extractPath;
+import static net.sf.opendf.cli.Util.createActorParameters;
+import static net.sf.opendf.cli.Util.initializeLocators;
 
 import java.io.FileOutputStream;
 import java.io.OutputStream;
@@ -57,13 +57,13 @@ import java.util.logging.Level;
 
 import javax.xml.transform.Transformer;
 
-import net.sf.caltrop.util.Loading;
-import net.sf.caltrop.util.io.ClassLoaderStreamLocator;
-import net.sf.caltrop.util.io.DirectoryStreamLocator;
-import net.sf.caltrop.util.io.StreamLocator;
-import net.sf.caltrop.util.logging.Logging;
-import net.sf.caltrop.util.xml.Util;
-import net.sf.caltrop.util.exception.*;
+import net.sf.opendf.util.Loading;
+import net.sf.opendf.util.io.ClassLoaderStreamLocator;
+import net.sf.opendf.util.io.DirectoryStreamLocator;
+import net.sf.opendf.util.io.StreamLocator;
+import net.sf.opendf.util.logging.Logging;
+import net.sf.opendf.util.xml.Util;
+import net.sf.opendf.util.exception.*;
 
 import org.w3c.dom.Node;
 
@@ -223,52 +223,52 @@ public class Elaborator {
 
 
 	static final String [] postElaborationTransformNames = {
-		"net/sf/caltrop/transforms/xdfFlatten.xslt",
+		"net/sf/opendf/transforms/xdfFlatten.xslt",
 
         // For now the conversion of xmlElement to attributes must be
         // done before the attribute folding.  The TypedContext does
         // not yet handle Maps in evaluation making it impossible to
         // extract the data from the folding function.
-		"net/sf/caltrop/transforms/xdfBuildXMLAttribute.xslt",
-		"net/sf/caltrop/transforms/xdfFoldAttributes.xslt",
+		"net/sf/opendf/transforms/xdfBuildXMLAttribute.xslt",
+		"net/sf/opendf/transforms/xdfFoldAttributes.xslt",
         
-        "net/sf/caltrop/cal/transforms/xlim/AddDirectives.xslt"
+        "net/sf/opendf/cal/transforms/xlim/AddDirectives.xslt"
     };
     
     static final String [] inlineTransforms = {
-        "net/sf/caltrop/cal/transforms/Inline.xslt"
+        "net/sf/opendf/cal/transforms/Inline.xslt"
     };
     
     static final String [] postInlineTransforms = {
-        "net/sf/caltrop/cal/transforms/AddID.xslt",
-        "net/sf/caltrop/cal/transforms/xlim/SetActorParameters.xslt",
+        "net/sf/opendf/cal/transforms/AddID.xslt",
+        "net/sf/opendf/cal/transforms/xlim/SetActorParameters.xslt",
         
         // Apply transforms to set up conditions for expr evaluation.
         // These are duplicated in the Actor context (where it is done
         // during initial loading) but they need to be run for
         // expressions in the XDF domain (including those introduced
         // by attribute folding).
-        "net/sf/caltrop/cal/transforms/ContextInfoAnnotator.xslt",  // Adds an attribute to Unary/Binary Ops with the function name for each operator (bitand for &, $eq for =, etc)
-        "net/sf/caltrop/cal/transforms/CanonicalizeOperators.xslt", // Converts Unary/Binary Ops to the attributed named function application.
-        "net/sf/caltrop/cal/transforms/AnnotateFreeVars.xslt",      // Generate freeVar notes indicating the name of each free variable
-        "net/sf/caltrop/cal/transforms/DependencyAnnotator.xslt",   // Adds a dependency note indicating the name of vars (same scope) it depends on (and if they are lazy).  Requied for the VariableSorter
-        "net/sf/caltrop/cal/transforms/VariableSorter.xslt",        // Re-orders variable declarations based on dependencies
+        "net/sf/opendf/cal/transforms/ContextInfoAnnotator.xslt",  // Adds an attribute to Unary/Binary Ops with the function name for each operator (bitand for &, $eq for =, etc)
+        "net/sf/opendf/cal/transforms/CanonicalizeOperators.xslt", // Converts Unary/Binary Ops to the attributed named function application.
+        "net/sf/opendf/cal/transforms/AnnotateFreeVars.xslt",      // Generate freeVar notes indicating the name of each free variable
+        "net/sf/opendf/cal/transforms/DependencyAnnotator.xslt",   // Adds a dependency note indicating the name of vars (same scope) it depends on (and if they are lazy).  Requied for the VariableSorter
+        "net/sf/opendf/cal/transforms/VariableSorter.xslt",        // Re-orders variable declarations based on dependencies
         
         // EvaluateConstantExpressions depends on the annotations
         // provided by AnnotateDecls.
-        "net/sf/caltrop/cal/transforms/VariableAnnotator.xslt",     // Adds var-ref notes w/ id of the Decl for that var
-        "net/sf/caltrop/cal/transforms/xlim/AnnotateDecls.xslt",    // Adds declAnn notes with id of the enclosing scope
-        "net/sf/caltrop/cal/transforms/EvaluateNetworkExpressions.xslt", // Evaluates non-typed constants in attributes and parameters
-        "net/sf/caltrop/cal/transforms/EvaluateConstantExpressions.xslt",
+        "net/sf/opendf/cal/transforms/VariableAnnotator.xslt",     // Adds var-ref notes w/ id of the Decl for that var
+        "net/sf/opendf/cal/transforms/xlim/AnnotateDecls.xslt",    // Adds declAnn notes with id of the enclosing scope
+        "net/sf/opendf/cal/transforms/EvaluateNetworkExpressions.xslt", // Evaluates non-typed constants in attributes and parameters
+        "net/sf/opendf/cal/transforms/EvaluateConstantExpressions.xslt",
 
         // Do not report errors at this point.  There may be some
         // based on a lack of type information.  This will be resolved
         // by the code generators by adding default type information
-        //"net/sf/caltrop/cal/checks/problemSummary.xslt",
+        //"net/sf/opendf/cal/checks/problemSummary.xslt",
         // Since we are ignoring them (for now) strip them out
-        "net/sf/caltrop/cal/transforms/stripExprEvalReports.xslt",
+        "net/sf/opendf/cal/transforms/stripExprEvalReports.xslt",
         
-        "net/sf/caltrop/cal/transforms/EliminateDeadCode.xslt",
+        "net/sf/opendf/cal/transforms/EliminateDeadCode.xslt",
 	};
 }
 

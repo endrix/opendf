@@ -37,13 +37,13 @@ BEGINCOPYRIGHT X,UC
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.cal.i2.environment;
+package net.sf.opendf.cal.i2.environment;
 
 
-import net.sf.caltrop.cal.i2.Configuration;
-import net.sf.caltrop.cal.i2.Environment;
-import net.sf.caltrop.cal.i2.InterpreterException;
-import net.sf.caltrop.cal.i2.ObjectSink;
+import net.sf.opendf.cal.i2.Configuration;
+import net.sf.opendf.cal.i2.Environment;
+import net.sf.opendf.cal.i2.InterpreterException;
+import net.sf.opendf.cal.i2.ObjectSink;
 
 /**
  * A single class environment represents an imported Java class, which is optionally given an

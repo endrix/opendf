@@ -36,16 +36,16 @@ BEGINCOPYRIGHT X
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.cli.lib;
+package net.sf.opendf.cli.lib;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
 
-import net.sf.caltrop.cli.ModelClassFactory;
-import net.sf.caltrop.hades.models.ModelInterface;
-import net.sf.caltrop.util.logging.Logging;
-import net.sf.caltrop.util.exception.LocatableException;
+import net.sf.opendf.cli.ModelClassFactory;
+import net.sf.opendf.hades.models.ModelInterface;
+import net.sf.opendf.util.logging.Logging;
+import net.sf.opendf.util.exception.LocatableException;
 
 /**
  * This class builds a model class from a generic interpreter, which is loaded by the {@link GenericInterpreterClassLoader},

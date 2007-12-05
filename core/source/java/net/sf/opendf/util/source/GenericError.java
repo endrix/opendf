@@ -37,7 +37,7 @@ BEGINCOPYRIGHT X,UC
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.util.source;
+package net.sf.opendf.util.source;
 
 /**
  * A class which represents the known information about a particular

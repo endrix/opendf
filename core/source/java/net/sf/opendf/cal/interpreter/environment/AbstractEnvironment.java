@@ -37,14 +37,14 @@ BEGINCOPYRIGHT X,UC
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.cal.interpreter.environment;
+package net.sf.opendf.cal.interpreter.environment;
 
 
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import net.sf.caltrop.cal.interpreter.InterpreterException;
+import net.sf.opendf.cal.interpreter.InterpreterException;
 
 /**
  * This is an abstract base class for environments that handles the access to structured objects

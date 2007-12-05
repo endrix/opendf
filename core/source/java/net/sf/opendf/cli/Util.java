@@ -1,8 +1,8 @@
-package net.sf.caltrop.cli;
+package net.sf.opendf.cli;
 
-import static net.sf.caltrop.cli.Util.createActorParameters;
-import static net.sf.caltrop.cli.Util.initializeLocators;
-import static net.sf.caltrop.util.xml.Util.applyTransformAsResource;
+import static net.sf.opendf.cli.Util.createActorParameters;
+import static net.sf.opendf.cli.Util.initializeLocators;
+import static net.sf.opendf.util.xml.Util.applyTransformAsResource;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -12,10 +12,10 @@ import java.util.Map;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import net.sf.caltrop.util.Loading;
-import net.sf.caltrop.util.io.ClassLoaderStreamLocator;
-import net.sf.caltrop.util.io.DirectoryStreamLocator;
-import net.sf.caltrop.util.io.StreamLocator;
+import net.sf.opendf.util.Loading;
+import net.sf.opendf.util.io.ClassLoaderStreamLocator;
+import net.sf.opendf.util.io.DirectoryStreamLocator;
+import net.sf.opendf.util.io.StreamLocator;
 
 import org.w3c.dom.DOMImplementation;
 import org.w3c.dom.Document;
@@ -25,7 +25,7 @@ import org.w3c.dom.Node;
 public class Util {
 
 	static Node createActorParameters(Map<String, String> params) throws ParserConfigurationException {
-        DOMImplementation domImpl = net.sf.caltrop.util.xml.Util.getDefaultImplementation().getDocumentBuilder().getDOMImplementation();
+        DOMImplementation domImpl = net.sf.opendf.util.xml.Util.getDefaultImplementation().getDocumentBuilder().getDOMImplementation();
 	    Document doc = domImpl.createDocument("", "Parameters", null);
 	    
 	    for (String parName : params.keySet()) {
@@ -87,7 +87,7 @@ public class Util {
         return res;
 	}
 
-    private static final String inlineParametersTransformName = "net/sf/caltrop/transforms/InlineParameters.xslt";
-    private static final String elaborationTransformName = "net/sf/caltrop/transforms/Elaborate.xslt";
+    private static final String inlineParametersTransformName = "net/sf/opendf/transforms/InlineParameters.xslt";
+    private static final String elaborationTransformName = "net/sf/opendf/transforms/Elaborate.xslt";
 
 }

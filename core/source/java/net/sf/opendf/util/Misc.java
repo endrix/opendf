@@ -1,4 +1,4 @@
-package net.sf.caltrop.util;
+package net.sf.opendf.util;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

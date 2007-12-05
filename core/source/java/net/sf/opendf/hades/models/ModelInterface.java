@@ -43,8 +43,8 @@ package net.sf.caltrop.hades.models;
 
 import java.util.Map;
 
-import net.sf.caltrop.hades.des.DiscreteEventComponent;
-import net.sf.caltrop.hades.des.components.ParameterDescriptor;
+import net.sf.opendf.hades.des.DiscreteEventComponent;
+import net.sf.opendf.hades.des.components.ParameterDescriptor;
 
 
 public interface ModelInterface {

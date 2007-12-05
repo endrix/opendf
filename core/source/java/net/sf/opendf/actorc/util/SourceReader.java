@@ -37,7 +37,7 @@ BEGINCOPYRIGHT X,UC
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.actorc.util;
+package net.sf.opendf.actorc.util;
 
 
 import java.io.InputStream;
@@ -46,16 +46,16 @@ import java.io.StringReader;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 
-import net.sf.caltrop.actorc.parser.Lexer;
-import net.sf.caltrop.actorc.parser.Parser;
-import net.sf.caltrop.cal.ast.Actor;
-import net.sf.caltrop.cal.ast.Expression;
-import net.sf.caltrop.cal.ast.Statement;
-import net.sf.caltrop.cal.interpreter.util.ASTFactory;
-import net.sf.caltrop.util.source.MultiErrorException;
+import net.sf.opendf.actorc.parser.Lexer;
+import net.sf.opendf.actorc.parser.Parser;
+import net.sf.opendf.cal.ast.Actor;
+import net.sf.opendf.cal.ast.Expression;
+import net.sf.opendf.cal.ast.Statement;
+import net.sf.opendf.cal.interpreter.util.ASTFactory;
+import net.sf.opendf.util.source.MultiErrorException;
 
-import net.sf.caltrop.util.xml.Util;
-import net.sf.caltrop.util.logging.Logging;
+import net.sf.opendf.util.xml.Util;
+import net.sf.opendf.util.logging.Logging;
 
 
 import org.w3c.dom.Document;
@@ -93,9 +93,9 @@ public class SourceReader
             {
                 // Basic error checking...
                 Node res = Util.applyTransformsAsResources(doc, new String[] {
-                    "net/sf/caltrop/cal/checks/semanticChecks.xslt",
+                    "net/sf/opendf/cal/checks/semanticChecks.xslt",
                     // provide counts, terminate-on-error
-                    "net/sf/caltrop/cal/checks/problemSummary.xslt"
+                    "net/sf/opendf/cal/checks/problemSummary.xslt"
                 });
             }
             catch (Exception e)

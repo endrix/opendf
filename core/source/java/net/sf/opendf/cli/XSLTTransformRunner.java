@@ -37,7 +37,7 @@ ENDCOPYRIGHT
 */
 
 
-package net.sf.caltrop.cli;
+package net.sf.opendf.cli;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -47,10 +47,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 
-import net.sf.caltrop.cal.main.ReadXMLWriteText;
-import net.sf.caltrop.cal.main.ReadXMLWriteXML;
-import net.sf.caltrop.util.logging.Logging;
-import net.sf.caltrop.util.exception.*;
+import net.sf.opendf.cal.main.ReadXMLWriteText;
+import net.sf.opendf.cal.main.ReadXMLWriteXML;
+import net.sf.opendf.util.logging.Logging;
+import net.sf.opendf.util.exception.*;
 
 /**
  * XSLTTransformRunner is the superclass of those CLI frontends which
@@ -83,7 +83,7 @@ public abstract class XSLTTransformRunner
         try
         {
             this.runDir = new File(System.getProperty("user.dir"));
-            String runfast = System.getProperty("caltrop.debug.xslt.runfast");
+            String runfast = System.getProperty("opendf.debug.xslt.runfast");
             this.runfast = runfast == null ? true:runfast.toUpperCase().startsWith("T");
         }
         catch (SecurityException se)
@@ -453,7 +453,7 @@ public abstract class XSLTTransformRunner
                             File tmpFile = File.createTempFile("err",".xml",new File("."));
                             Logging.dbg().fine("Error during processing of DOM.  Saving result to " + tmpFile.getAbsolutePath());
                             PrintStream ps = new PrintStream(tmpFile);
-                            ps.print(net.sf.caltrop.util.xml.Util.createXML(((DOMProcessingException)t).getDOMNode()));
+                            ps.print(net.sf.opendf.util.xml.Util.createXML(((DOMProcessingException)t).getDOMNode()));
                             ps.flush();
                             ps.close();
                         }

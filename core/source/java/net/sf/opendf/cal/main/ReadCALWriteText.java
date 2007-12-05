@@ -37,7 +37,7 @@ BEGINCOPYRIGHT X,UC
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.cal.main;
+package net.sf.opendf.cal.main;
 
 
 import java.io.FileInputStream;
@@ -47,12 +47,12 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 
-import net.sf.caltrop.cal.parser.Lexer;
-import net.sf.caltrop.cal.parser.Parser;
-import net.sf.caltrop.util.source.GenericError;
-import net.sf.caltrop.util.source.MultiErrorException;
-import net.sf.caltrop.util.xml.Util;
-import net.sf.caltrop.util.xml.XmlImplementation;
+import net.sf.opendf.cal.parser.Lexer;
+import net.sf.opendf.cal.parser.Parser;
+import net.sf.opendf.util.source.GenericError;
+import net.sf.opendf.util.source.MultiErrorException;
+import net.sf.opendf.util.xml.Util;
+import net.sf.opendf.util.xml.XmlImplementation;
 
 import org.w3c.dom.Node;
 

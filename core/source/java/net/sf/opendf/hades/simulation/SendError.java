@@ -39,7 +39,7 @@ ENDCOPYRIGHT
 */
 
 
-package net.sf.caltrop.hades.simulation;
+package net.sf.opendf.hades.simulation;
 
 public class SendError extends SimulationError {
 }

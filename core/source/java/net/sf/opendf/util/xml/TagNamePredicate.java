@@ -36,7 +36,7 @@ BEGINCOPYRIGHT X
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.util.xml;
+package net.sf.opendf.util.xml;
 
 
 import org.w3c.dom.Element;

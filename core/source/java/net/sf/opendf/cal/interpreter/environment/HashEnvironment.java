@@ -37,7 +37,7 @@ BEGINCOPYRIGHT X,UC
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.cal.interpreter.environment;
+package net.sf.opendf.cal.interpreter.environment;
 
 
 import java.util.HashMap;
@@ -45,8 +45,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
-import net.sf.caltrop.cal.interpreter.InterpreterException;
-import net.sf.caltrop.cal.interpreter.UndefinedVariableException;
+import net.sf.opendf.cal.interpreter.InterpreterException;
+import net.sf.opendf.cal.interpreter.UndefinedVariableException;
 
 /**
  * This class implements the <tt>Environment</tt> interface based on <tt>java.util.HashMap</tt> objects.

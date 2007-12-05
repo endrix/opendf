@@ -1,6 +1,6 @@
-package net.sf.caltrop.xslt.cal;
+package net.sf.opendf.xslt.cal;
 
-import net.sf.caltrop.cal.interpreter.Function;
+import net.sf.opendf.cal.interpreter.Function;
 
 public abstract class AbstractBinarySBFunction implements Function {
 

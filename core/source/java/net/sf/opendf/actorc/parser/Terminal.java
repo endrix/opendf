@@ -4,7 +4,7 @@
 // Thu Oct 25 21:29:35 PDT 2007
 //----------------------------------------------------
 
-package net.sf.caltrop.actorc.parser;
+package net.sf.opendf.actorc.parser;
 
 /** CUP generated class containing symbol constants. */
 public class Terminal {

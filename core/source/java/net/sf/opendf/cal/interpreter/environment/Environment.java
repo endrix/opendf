@@ -37,7 +37,7 @@ BEGINCOPYRIGHT X,UC
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.cal.interpreter.environment;
+package net.sf.opendf.cal.interpreter.environment;
 
 import java.util.Map;
 import java.util.Set;
@@ -60,7 +60,7 @@ public interface Environment {
      * {@link VariableContainer variable containers}, i.e. if a variable is bound to such a
      * container, call its {@link VariableContainer#value() value()} method.
      *
-     * @throws net.sf.caltrop.cal.interpreter.InterpreterException If variable cannot be found in this environment.
+     * @throws net.sf.opendf.cal.interpreter.InterpreterException If variable cannot be found in this environment.
      * @param variable The variable.
      * @return Its value.
      * @see VariableContainer
@@ -72,7 +72,7 @@ public interface Environment {
      * {@link StateVariableContainer state variable containers}, i.e. if a variable is bound to such a
      * container, call its {@link StateVariableContainer#setValue(java.lang.Object) setValue(Object)} method.
      *
-     * @throws net.sf.caltrop.cal.interpreter.InterpreterException If variable cannot be found in this environment.
+     * @throws net.sf.opendf.cal.interpreter.InterpreterException If variable cannot be found in this environment.
      * @param variable The variable.
      * @param value The new value.
      * @see StateVariableContainer
@@ -91,7 +91,7 @@ public interface Environment {
      *
      * @param variable The new variable name.
      * @param value The initial value.
-     * @throws net.sf.caltrop.cal.interpreter.InterpreterException If there already exists a variable by that name in the local frame.
+     * @throws net.sf.opendf.cal.interpreter.InterpreterException If there already exists a variable by that name in the local frame.
      */
     public void         bind(Object variable, Object value);
 

@@ -36,7 +36,7 @@ BEGINCOPYRIGHT X
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.util.xml;
+package net.sf.opendf.util.xml;
 
 
 import java.io.ByteArrayOutputStream;
@@ -70,11 +70,11 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
 
-import net.sf.caltrop.util.logging.Logging;
+import net.sf.opendf.util.logging.Logging;
 import java.util.logging.Level;
-import net.sf.caltrop.util.exception.LocatableException;
+import net.sf.opendf.util.exception.LocatableException;
 import net.sf.saxon.TransformerFactoryImpl;
-import net.sf.caltrop.util.exception.DOMProcessingException;
+import net.sf.opendf.util.exception.DOMProcessingException;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;

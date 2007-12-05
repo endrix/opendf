@@ -37,9 +37,9 @@ BEGINCOPYRIGHT X,UC
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.cal.ast;
+package net.sf.opendf.cal.ast;
 
-import net.sf.caltrop.cal.i2.Environment;
+import net.sf.opendf.cal.i2.Environment;
 
 
 

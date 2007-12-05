@@ -37,11 +37,11 @@ BEGINCOPYRIGHT X,UC
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.cal.interpreter;
+package net.sf.opendf.cal.interpreter;
 
-import net.sf.caltrop.cal.ast.Decl;
-import net.sf.caltrop.cal.ast.ExprLambda;
-import net.sf.caltrop.cal.interpreter.environment.Environment;
+import net.sf.opendf.cal.ast.Decl;
+import net.sf.opendf.cal.ast.ExprLambda;
+import net.sf.opendf.cal.interpreter.environment.Environment;
 
 /**
  * A LambdaFunction is a function object that is created as the result of evaluating

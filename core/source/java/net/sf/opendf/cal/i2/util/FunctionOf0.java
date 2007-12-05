@@ -1,7 +1,7 @@
-package net.sf.caltrop.cal.i2.util;
+package net.sf.opendf.cal.i2.util;
 
-import net.sf.caltrop.cal.i2.Evaluator;
-import net.sf.caltrop.cal.i2.Function;
+import net.sf.opendf.cal.i2.Evaluator;
+import net.sf.opendf.cal.i2.Function;
 
 abstract public class FunctionOf0 implements Function {
 

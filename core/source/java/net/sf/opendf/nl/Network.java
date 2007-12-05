@@ -36,13 +36,13 @@ BEGINCOPYRIGHT X
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.nl;
+package net.sf.opendf.nl;
 
-import static net.sf.caltrop.nl.util.Lib.renderObject;
-import static net.sf.caltrop.util.xml.Util.xpathEvalElement;
-import static net.sf.caltrop.util.xml.Util.xpathEvalElements;
-import static net.sf.caltrop.util.xml.Util.xpathEvalNode;
-import static net.sf.caltrop.util.xml.Util.xpathEvalNodes;
+import static net.sf.opendf.nl.util.Lib.renderObject;
+import static net.sf.opendf.util.xml.Util.xpathEvalElement;
+import static net.sf.opendf.util.xml.Util.xpathEvalElements;
+import static net.sf.opendf.util.xml.Util.xpathEvalNode;
+import static net.sf.opendf.util.xml.Util.xpathEvalNodes;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -56,19 +56,19 @@ import java.util.Map;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 
-import net.sf.caltrop.cal.ast.Expression;
-import net.sf.caltrop.cal.interpreter.Context;
-import net.sf.caltrop.cal.interpreter.ExprEvaluator;
-import net.sf.caltrop.cal.interpreter.SimpleThunk;
-import net.sf.caltrop.cal.interpreter.environment.Environment;
-import net.sf.caltrop.cal.interpreter.util.ASTFactory;
-import net.sf.caltrop.cal.interpreter.util.Platform;
-import net.sf.caltrop.cal.util.SourceReader;
-import net.sf.caltrop.nl.util.DOMFactory;
-import net.sf.caltrop.nl.util.IDGenerator;
-import net.sf.caltrop.nl.util.Lib;
-import net.sf.caltrop.util.logging.Logging;
-import net.sf.caltrop.util.xml.Util;
+import net.sf.opendf.cal.ast.Expression;
+import net.sf.opendf.cal.interpreter.Context;
+import net.sf.opendf.cal.interpreter.ExprEvaluator;
+import net.sf.opendf.cal.interpreter.SimpleThunk;
+import net.sf.opendf.cal.interpreter.environment.Environment;
+import net.sf.opendf.cal.interpreter.util.ASTFactory;
+import net.sf.opendf.cal.interpreter.util.Platform;
+import net.sf.opendf.cal.util.SourceReader;
+import net.sf.opendf.nl.util.DOMFactory;
+import net.sf.opendf.nl.util.IDGenerator;
+import net.sf.opendf.nl.util.Lib;
+import net.sf.opendf.util.logging.Logging;
+import net.sf.opendf.util.xml.Util;
 
 import org.w3c.dom.DOMImplementation;
 import org.w3c.dom.Document;
@@ -172,7 +172,7 @@ public class Network {
 	public Network () {
 		instanceID = 0;
 		try {
-	        DOMImplementation domImpl = net.sf.caltrop.util.xml.Util.getDefaultImplementation().getDocumentBuilder().getDOMImplementation();
+	        DOMImplementation domImpl = net.sf.opendf.util.xml.Util.getDefaultImplementation().getDocumentBuilder().getDOMImplementation();
 	        network = domImpl.createDocument("", tagXDF, null);
 		}
 		catch (Exception exc) {
@@ -485,7 +485,7 @@ public class Network {
 		FileInputStream inputStream = new FileInputStream(fileName);
 		Document doc = Lib.readNL(fileName);
 
-		Platform platform = net.sf.caltrop.cal.interpreter.util.DefaultPlatform.thePlatform;
+		Platform platform = net.sf.opendf.cal.interpreter.util.DefaultPlatform.thePlatform;
 		Context context =  platform.context(); // FIXME: make this parametric
 
 		Environment env = context.newEnvironmentFrame(platform.createGlobalEnvironment());

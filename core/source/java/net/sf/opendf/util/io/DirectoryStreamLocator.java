@@ -1,10 +1,10 @@
-package net.sf.caltrop.util.io;
+package net.sf.opendf.util.io;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 
-import net.sf.caltrop.util.logging.Logging;
+import net.sf.opendf.util.logging.Logging;
 
 public class DirectoryStreamLocator implements StreamLocator {
 

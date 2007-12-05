@@ -37,30 +37,30 @@ BEGINCOPYRIGHT X,UC
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.hades.cal;
+package net.sf.opendf.hades.cal;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import net.sf.caltrop.cal.ast.Action;
-import net.sf.caltrop.cal.ast.Actor;
-import net.sf.caltrop.cal.ast.Decl;
-import net.sf.caltrop.cal.ast.Expression;
-import net.sf.caltrop.cal.ast.InputPattern;
-import net.sf.caltrop.cal.ast.OutputExpression;
-import net.sf.caltrop.cal.ast.Statement;
-import net.sf.caltrop.cal.i2.Configuration;
-import net.sf.caltrop.cal.i2.Environment;
-import net.sf.caltrop.cal.i2.Executor;
-import net.sf.caltrop.cal.i2.InterpreterException;
-import net.sf.caltrop.cal.i2.environment.DynamicEnvironmentFrame;
-import net.sf.caltrop.cal.i2.environment.Thunk;
-import net.sf.caltrop.cal.i2.types.Type;
-import net.sf.caltrop.cal.interpreter.InputChannel;
-import net.sf.caltrop.cal.interpreter.InputPort;
-import net.sf.caltrop.cal.interpreter.OutputChannel;
-import net.sf.caltrop.cal.interpreter.OutputPort;
+import net.sf.opendf.cal.ast.Action;
+import net.sf.opendf.cal.ast.Actor;
+import net.sf.opendf.cal.ast.Decl;
+import net.sf.opendf.cal.ast.Expression;
+import net.sf.opendf.cal.ast.InputPattern;
+import net.sf.opendf.cal.ast.OutputExpression;
+import net.sf.opendf.cal.ast.Statement;
+import net.sf.opendf.cal.i2.Configuration;
+import net.sf.opendf.cal.i2.Environment;
+import net.sf.opendf.cal.i2.Executor;
+import net.sf.opendf.cal.i2.InterpreterException;
+import net.sf.opendf.cal.i2.environment.DynamicEnvironmentFrame;
+import net.sf.opendf.cal.i2.environment.Thunk;
+import net.sf.opendf.cal.i2.types.Type;
+import net.sf.opendf.cal.interpreter.InputChannel;
+import net.sf.opendf.cal.interpreter.InputPort;
+import net.sf.opendf.cal.interpreter.OutputChannel;
+import net.sf.opendf.cal.interpreter.OutputPort;
 
 
 public class ActorInterpreter {
@@ -142,7 +142,7 @@ public class ActorInterpreter {
 	 * <em>responsible</em>.
 	 *
 	 * @return True, if the action precondition was satisfied.
-	 * @exception net.sf.caltrop.cal.interpreter.InterpreterException If the
+	 * @exception net.sf.opendf.cal.interpreter.InterpreterException If the
 	 * evaluation of the guards could not be successfully completed.
 	 */
 	public boolean actionEvaluatePreconditionOriginal() {
@@ -246,7 +246,7 @@ public class ActorInterpreter {
 	 * <em>responsible</em>.
 	 *
 	 * @return True, if the action precondition was satisfied.
-	 * @exception net.sf.caltrop.cal.interpreter.InterpreterException If the
+	 * @exception net.sf.opendf.cal.interpreter.InterpreterException If the
 	 * evaluation of the guards could not be successfully completed.
 	 */
 	public boolean actionEvaluatePrecondition() {
@@ -280,7 +280,7 @@ public class ActorInterpreter {
 	 *  Execute the action body, potentially changing the value of
 	 *  actor state variables and action-scope variables.
 	 *
-	 * @exception net.sf.caltrop.cal.interpreter.InterpreterException If the
+	 * @exception net.sf.opendf.cal.interpreter.InterpreterException If the
 	 * action body could not be executed successfully.
 	 */
 	public void actionStep() {
@@ -441,8 +441,8 @@ public class ActorInterpreter {
 	 * @param actorEnv  The global environment.
 	 * @param inputPortMap Map from input port names to channels.
 	 * @param outputPortMap Map from output port names to channels.
-	 * @see net.sf.caltrop.cal.interpreter.InputChannel
-	 * @see net.sf.caltrop.cal.interpreter.OutputChannel
+	 * @see net.sf.opendf.cal.interpreter.InputChannel
+	 * @see net.sf.opendf.cal.interpreter.OutputChannel
 	 */
 	public ActorInterpreter(final Actor actor, final Configuration configuration,
 			final Environment actorEnv,

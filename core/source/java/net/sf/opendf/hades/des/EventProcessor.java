@@ -38,14 +38,14 @@ BEGINCOPYRIGHT X,ETH
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.hades.des;
+package net.sf.opendf.hades.des;
 
 /**
   Event processors are called by the scheduler to execute events. Every 'active' object must implement
   this interface.
 
   @author JWJ
-  @see net.sf.caltrop.hades.des.schedule.Scheduler
+  @see net.sf.opendf.hades.des.schedule.Scheduler
   */
 
 public interface EventProcessor {

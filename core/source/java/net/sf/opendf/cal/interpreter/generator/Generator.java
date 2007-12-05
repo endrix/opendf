@@ -36,9 +36,9 @@ BEGINCOPYRIGHT X
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.cal.interpreter.generator;
+package net.sf.opendf.cal.interpreter.generator;
 
-import net.sf.caltrop.cal.interpreter.environment.Environment;
+import net.sf.opendf.cal.interpreter.environment.Environment;
 
 public interface Generator {
 	

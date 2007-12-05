@@ -37,7 +37,7 @@ BEGINCOPYRIGHT X,UC
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.cal.interpreter;
+package net.sf.opendf.cal.interpreter;
 
 /**
  * An output channel serves as the receiver of tokens produced during the computation of output values by

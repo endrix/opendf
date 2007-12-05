@@ -36,7 +36,7 @@ BEGINCOPYRIGHT X
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.hades.des.schedule;
+package net.sf.opendf.hades.des.schedule;
 
 /**
  * This interface is implemented by objects that need to perform clean-up or other

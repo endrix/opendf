@@ -4,15 +4,15 @@
 // Thu Oct 25 21:35:24 PDT 2007
 //----------------------------------------------------
 
-package net.sf.caltrop.nl.parser;
+package net.sf.opendf.nl.parser;
 
 import java_cup.runtime.*;
 import org.w3c.dom.*;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.util.*;
-import net.sf.caltrop.util.source.ParserErrorException;
-import net.sf.caltrop.util.source.GenericError;
+import net.sf.opendf.util.source.ParserErrorException;
+import net.sf.opendf.util.source.GenericError;
 
 /** CUP v0.10k generated parser.
   * @version Thu Oct 25 21:35:24 PDT 2007
@@ -1914,7 +1914,7 @@ public class Parser extends java_cup.runtime.lr_parser {
     //
     public Document parseNetwork(String filename, boolean doDebug) throws ParserErrorException
     {
-        DOMImplementation domImpl = net.sf.caltrop.util.xml.Util.getDefaultImplementation().getDocumentBuilder().getDOMImplementation();
+        DOMImplementation domImpl = net.sf.opendf.util.xml.Util.getDefaultImplementation().getDocumentBuilder().getDOMImplementation();
         document = domImpl.createDocument("", "Network", null);
         file = filename;
         debug = doDebug;

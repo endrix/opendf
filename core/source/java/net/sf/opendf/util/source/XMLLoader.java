@@ -1,9 +1,9 @@
 /**
  * 
  */
-package net.sf.caltrop.util.source;
+package net.sf.opendf.util.source;
 
-import static net.sf.caltrop.util.xml.Util.saxonify;
+import static net.sf.opendf.util.xml.Util.saxonify;
 
 import java.io.InputStream;
 

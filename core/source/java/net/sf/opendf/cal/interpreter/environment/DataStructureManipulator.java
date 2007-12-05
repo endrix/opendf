@@ -37,14 +37,14 @@ BEGINCOPYRIGHT X,UC
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.cal.interpreter.environment;
+package net.sf.opendf.cal.interpreter.environment;
 
 /**
  * Implementors of this interface provide access to structured data objects. Specifically, they
  * allow to retrieve information from those objects at specified <em>locations</em>, and to
  * selectively modify structured objects at those locations.
  *
- * @see net.sf.caltrop.cal.interpreter.Context
+ * @see net.sf.opendf.cal.interpreter.Context
  *
  * @author Jörn W. Janneck <jwj@acm.org>
  */

@@ -39,7 +39,7 @@ ENDCOPYRIGHT
 */
 
 
-package net.sf.caltrop.hades.util;
+package net.sf.opendf.hades.util;
 
 
 public class NullOutputStream extends java.io.OutputStream {

@@ -37,10 +37,10 @@ BEGINCOPYRIGHT X,UC
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.cal.interpreter.util;
+package net.sf.opendf.cal.interpreter.util;
 
-import net.sf.caltrop.cal.ast.Import;
-import net.sf.caltrop.cal.interpreter.environment.Environment;
+import net.sf.opendf.cal.ast.Import;
+import net.sf.opendf.cal.interpreter.environment.Environment;
 
 /**
  * An import handler extends the specified environment with another frame that 

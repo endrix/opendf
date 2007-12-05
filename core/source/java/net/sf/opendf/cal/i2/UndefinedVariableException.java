@@ -37,7 +37,7 @@ BEGINCOPYRIGHT X,UC
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.cal.i2;
+package net.sf.opendf.cal.i2;
 
 /**
  *  @author Jörn W. Janneck <janneck@eecs.berkeley.edu>

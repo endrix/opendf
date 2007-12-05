@@ -37,7 +37,7 @@ BEGINCOPYRIGHT X,UC
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.cal.interpreter.util;
+package net.sf.opendf.cal.interpreter.util;
 
 import java.util.Comparator;
 import java.util.HashMap;
@@ -47,9 +47,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import net.sf.caltrop.cal.ast.Action;
-import net.sf.caltrop.cal.ast.Actor;
-import net.sf.caltrop.cal.ast.QID;
+import net.sf.opendf.cal.ast.Action;
+import net.sf.opendf.cal.ast.Actor;
+import net.sf.opendf.cal.ast.QID;
 
 
 /**

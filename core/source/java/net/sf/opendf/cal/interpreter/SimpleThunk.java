@@ -37,10 +37,10 @@ BEGINCOPYRIGHT X,UC
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.cal.interpreter;
+package net.sf.opendf.cal.interpreter;
 
-import net.sf.caltrop.cal.ast.Expression;
-import net.sf.caltrop.cal.interpreter.environment.Environment;
+import net.sf.opendf.cal.ast.Expression;
+import net.sf.opendf.cal.interpreter.environment.Environment;
 
 /**
  * A simple thunk encapsulates an expression, together with its context and an environment. Bound to a

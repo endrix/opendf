@@ -37,7 +37,7 @@ BEGINCOPYRIGHT X,UC
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.cal.interpreter.environment;
+package net.sf.opendf.cal.interpreter.environment;
 
 
 import java.util.HashMap;
@@ -46,9 +46,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import net.sf.caltrop.cal.interpreter.Context;
-import net.sf.caltrop.cal.interpreter.InterpreterException;
-import net.sf.caltrop.cal.interpreter.util.SequentialMap;
+import net.sf.opendf.cal.interpreter.Context;
+import net.sf.opendf.cal.interpreter.InterpreterException;
+import net.sf.opendf.cal.interpreter.util.SequentialMap;
 
 /**
  * This environment allows the set of imported classes and packages to be changed at runtime.
@@ -56,7 +56,7 @@ import net.sf.caltrop.cal.interpreter.util.SequentialMap;
  * classloading.
  * 
  * The ability to import and unimport classes and packages is relevant in interactive
- * contexts, such as the {@link net.sf.caltrop.cal.shell.Shell Cal shell}.
+ * contexts, such as the {@link net.sf.opendf.cal.shell.Shell Cal shell}.
  *
  * @see PackageEnvironment
  * @see SingleClassEnvironment

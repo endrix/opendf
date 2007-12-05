@@ -40,7 +40,7 @@ ENDCOPYRIGHT
 
 
 
-package net.sf.caltrop.hades.des;
+package net.sf.opendf.hades.des;
 
 /**
 *   This simple interface serves to call message handling functionality from a BasicMessageListener.

@@ -37,7 +37,7 @@ BEGINCOPYRIGHT X,UC
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.util.source;
+package net.sf.opendf.util.source;
 
 import java.util.Collections;
 import java.util.List;

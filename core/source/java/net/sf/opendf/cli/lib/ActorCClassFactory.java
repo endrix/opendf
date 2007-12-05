@@ -36,21 +36,21 @@ BEGINCOPYRIGHT X
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.cli.lib;
+package net.sf.opendf.cli.lib;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 
-import net.sf.caltrop.cal.ast.Actor;
-import net.sf.caltrop.cal.interpreter.util.ASTFactory;
-import net.sf.caltrop.actorc.util.SourceReader;
-import net.sf.caltrop.hades.models.ModelInterface;
-import net.sf.caltrop.hades.models.lib.CalModelInterface;
-import net.sf.caltrop.util.logging.Logging;
-import net.sf.caltrop.util.source.MultiErrorException;
-import net.sf.caltrop.util.xml.Util;
+import net.sf.opendf.cal.ast.Actor;
+import net.sf.opendf.cal.interpreter.util.ASTFactory;
+import net.sf.opendf.actorc.util.SourceReader;
+import net.sf.opendf.hades.models.ModelInterface;
+import net.sf.opendf.hades.models.lib.CalModelInterface;
+import net.sf.opendf.util.logging.Logging;
+import net.sf.opendf.util.source.MultiErrorException;
+import net.sf.opendf.util.xml.Util;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;

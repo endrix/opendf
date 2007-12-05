@@ -37,9 +37,9 @@ BEGINCOPYRIGHT X,UC
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.cal.ast;
+package net.sf.opendf.cal.ast;
 
-import net.sf.caltrop.cal.util.Utility;
+import net.sf.opendf.cal.util.Utility;
 
 public class ExprApplication extends Expression {
 

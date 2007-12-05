@@ -36,14 +36,14 @@ BEGINCOPYRIGHT X
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.cal.i2.generator;
+package net.sf.opendf.cal.i2.generator;
 
 import java.util.Collection;
 import java.util.Iterator;
 
-import net.sf.caltrop.cal.i2.Environment;
-import net.sf.caltrop.cal.i2.ObjectSink;
-import net.sf.caltrop.cal.i2.environment.SingleEntryEnvironment;
+import net.sf.opendf.cal.i2.Environment;
+import net.sf.opendf.cal.i2.ObjectSink;
+import net.sf.opendf.cal.i2.environment.SingleEntryEnvironment;
 
 
 public class VariableGenerator implements Generator {

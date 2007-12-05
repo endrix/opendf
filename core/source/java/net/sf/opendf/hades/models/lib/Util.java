@@ -36,37 +36,37 @@ BEGINCOPYRIGHT X
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.hades.models.lib;
+package net.sf.opendf.hades.models.lib;
 
-import static net.sf.caltrop.cal.interpreter.util.ImportUtil.handleImportList;
-import static net.sf.caltrop.util.xml.Util.xpathEvalElement;
-import static net.sf.caltrop.util.xml.Util.xpathEvalNodes;
+import static net.sf.opendf.cal.interpreter.util.ImportUtil.handleImportList;
+import static net.sf.opendf.util.xml.Util.xpathEvalElement;
+import static net.sf.opendf.util.xml.Util.xpathEvalNodes;
 
 import java.lang.reflect.Constructor;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 
-import net.sf.caltrop.cal.ast.Import;
-import net.sf.caltrop.cal.interpreter.Context;
-import net.sf.caltrop.cal.interpreter.ExprEvaluator;
-import net.sf.caltrop.cal.interpreter.SimpleThunk;
-import net.sf.caltrop.cal.interpreter.environment.Environment;
-import net.sf.caltrop.cal.interpreter.util.ASTFactory;
-import net.sf.caltrop.cal.interpreter.util.DefaultPlatform;
-import net.sf.caltrop.cal.interpreter.util.ImportHandler;
-import net.sf.caltrop.cal.interpreter.util.ImportMapper;
-import net.sf.caltrop.cal.interpreter.util.Platform;
-import net.sf.caltrop.cal.util.SourceReader;
-import net.sf.caltrop.hades.cal.OldEnvironmentWrapper;
-import net.sf.caltrop.hades.des.DiscreteEventComponent;
-import net.sf.caltrop.hades.des.MessageListener;
-import net.sf.caltrop.hades.des.util.Attributable;
-import net.sf.caltrop.hades.network.Network;
-import net.sf.caltrop.util.logging.Logging;
+import net.sf.opendf.cal.ast.Import;
+import net.sf.opendf.cal.interpreter.Context;
+import net.sf.opendf.cal.interpreter.ExprEvaluator;
+import net.sf.opendf.cal.interpreter.SimpleThunk;
+import net.sf.opendf.cal.interpreter.environment.Environment;
+import net.sf.opendf.cal.interpreter.util.ASTFactory;
+import net.sf.opendf.cal.interpreter.util.DefaultPlatform;
+import net.sf.opendf.cal.interpreter.util.ImportHandler;
+import net.sf.opendf.cal.interpreter.util.ImportMapper;
+import net.sf.opendf.cal.interpreter.util.Platform;
+import net.sf.opendf.cal.util.SourceReader;
+import net.sf.opendf.hades.cal.OldEnvironmentWrapper;
+import net.sf.opendf.hades.des.DiscreteEventComponent;
+import net.sf.opendf.hades.des.MessageListener;
+import net.sf.opendf.hades.des.util.Attributable;
+import net.sf.opendf.hades.network.Network;
+import net.sf.opendf.util.logging.Logging;
 
-// import net.sf.caltrop.util.source.LoadingErrorException;
-// import net.sf.caltrop.util.source.LoadingErrorRuntimeException;
+// import net.sf.opendf.util.source.LoadingErrorException;
+// import net.sf.opendf.util.source.LoadingErrorRuntimeException;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -103,7 +103,7 @@ public class Util {
         {
             Logging.dbg().fine("BEGIN NETWORK XDF");
             try {
-                String xml = net.sf.caltrop.util.xml.Util.createXML(xpathEvalElement("/XDF", source));
+                String xml = net.sf.opendf.util.xml.Util.createXML(xpathEvalElement("/XDF", source));
                 Logging.dbg().fine(xml);
             }
             catch (Exception e) {
@@ -141,7 +141,7 @@ public class Util {
 				Element ePar = (Element)nlPars.item(j);
 				Object name = ePar.getAttribute(attrName);
 				Element eVal = xpathEvalElement("Expr", ePar);
-				net.sf.caltrop.cal.ast.Expression expr = ASTFactory.buildExpression(eVal);
+				net.sf.opendf.cal.ast.Expression expr = ASTFactory.buildExpression(eVal);
 				// NOTE: Ideally, we could also use lazy evaluation to pass parameters down the 
 				//       hierarchy. However, lazy evaluation only works "automatically" when using 
 				//       environments, and since we use an ordinary map to pass the value down, we
@@ -192,7 +192,7 @@ public class Util {
 						}
 						Object val = null;
 						if (eVal != null) {
-							net.sf.caltrop.cal.ast.Expression expr = ASTFactory.buildExpression(eVal);
+							net.sf.opendf.cal.ast.Expression expr = ASTFactory.buildExpression(eVal);
 							val = evaluator.evaluate(expr);
 						}
 						((Attributable)port).set(eAttr.getAttribute(attrName), val);
@@ -217,7 +217,7 @@ public class Util {
 	public static Class loadClassFromElement(Element e, ClassLoader loader) throws ClassNotFoundException
     {
 		try {
-			Logging.dbg().warning("LoadClassFromElement 1:: " + net.sf.caltrop.util.xml.Util.createXML(e));
+			Logging.dbg().warning("LoadClassFromElement 1:: " + net.sf.opendf.util.xml.Util.createXML(e));
         } catch (Exception exc) {
             System.out.println(exc);
             exc.printStackTrace();
@@ -270,9 +270,9 @@ public class Util {
 // 		}
 	}
 	
-	private  static net.sf.caltrop.cal.interpreter.environment.Environment  createEnvironment(NodeList decls, Map env, Platform platform) {
-		net.sf.caltrop.cal.interpreter.environment.Environment wrappedEnv = new OldEnvironmentWrapper(env, platform.createGlobalEnvironment(), platform.context());
-		net.sf.caltrop.cal.interpreter.environment.Environment localEnv = platform.context().newEnvironmentFrame(wrappedEnv);
+	private  static net.sf.opendf.cal.interpreter.environment.Environment  createEnvironment(NodeList decls, Map env, Platform platform) {
+		net.sf.opendf.cal.interpreter.environment.Environment wrappedEnv = new OldEnvironmentWrapper(env, platform.createGlobalEnvironment(), platform.context());
+		net.sf.opendf.cal.interpreter.environment.Environment localEnv = platform.context().newEnvironmentFrame(wrappedEnv);
 		
 		// FIXME: handle imports
 		
@@ -280,7 +280,7 @@ public class Util {
 			Element eDecl = (Element)decls.item(i);
 			Object name = eDecl.getAttribute(attrName);
 			Element eVal = xpathEvalElement("Expr", eDecl);
-			net.sf.caltrop.cal.ast.Expression expr = ASTFactory.buildExpression(eVal);
+			net.sf.opendf.cal.ast.Expression expr = ASTFactory.buildExpression(eVal);
 			// NOTE: In order to allow out-of-order declaration of variables, we need to lazily evaluate
 			//       them. Therefore, thunks are used in building the local environment.
 			localEnv.bind(name, new SimpleThunk(expr, platform.context(), localEnv));

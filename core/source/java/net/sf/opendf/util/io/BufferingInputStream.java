@@ -36,7 +36,7 @@ BEGINCOPYRIGHT X
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.util.io;
+package net.sf.opendf.util.io;
 
 import java.io.IOException;
 import java.io.InputStream;

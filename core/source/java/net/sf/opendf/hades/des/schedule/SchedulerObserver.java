@@ -38,9 +38,9 @@ BEGINCOPYRIGHT X,ETH
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.hades.des.schedule;
+package net.sf.opendf.hades.des.schedule;
 
-import net.sf.caltrop.hades.des.EventProcessor;
+import net.sf.opendf.hades.des.EventProcessor;
 
 public interface SchedulerObserver {
 

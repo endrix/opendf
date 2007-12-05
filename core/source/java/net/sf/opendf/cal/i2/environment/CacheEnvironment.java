@@ -37,10 +37,10 @@ BEGINCOPYRIGHT X,UC
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.cal.i2.environment;
+package net.sf.opendf.cal.i2.environment;
 
 
-import net.sf.caltrop.cal.i2.Environment;
+import net.sf.opendf.cal.i2.Environment;
 
 
 /**

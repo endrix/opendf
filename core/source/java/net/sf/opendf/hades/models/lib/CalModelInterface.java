@@ -36,18 +36,18 @@ BEGINCOPYRIGHT X
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.hades.models.lib;
+package net.sf.opendf.hades.models.lib;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import net.sf.caltrop.cal.ast.Actor;
-import net.sf.caltrop.hades.cal.CalInterpreter;
-import net.sf.caltrop.hades.des.DiscreteEventComponent;
-import net.sf.caltrop.hades.des.components.ParameterDescriptor;
-import net.sf.caltrop.hades.models.ModelInterface;
+import net.sf.opendf.cal.ast.Actor;
+import net.sf.opendf.hades.cal.CalInterpreter;
+import net.sf.opendf.hades.des.DiscreteEventComponent;
+import net.sf.opendf.hades.des.components.ParameterDescriptor;
+import net.sf.opendf.hades.models.ModelInterface;
 
 
 /**

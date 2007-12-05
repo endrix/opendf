@@ -36,7 +36,7 @@ BEGINCOPYRIGHT X
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.nl.util;
+package net.sf.opendf.nl.util;
 
 public interface  IDGenerator {
 	String  newID();

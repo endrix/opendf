@@ -37,7 +37,7 @@ BEGINCOPYRIGHT X
 ENDCOPYRIGHT
  */
 
-package net.sf.caltrop.util.exception;
+package net.sf.opendf.util.exception;
 
 /**
  * This class delegates the handling of an exception iff that

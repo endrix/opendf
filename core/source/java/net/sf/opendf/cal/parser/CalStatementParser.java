@@ -4,7 +4,7 @@
 // Thu Oct 25 21:33:37 PDT 2007
 //----------------------------------------------------
 
-package net.sf.caltrop.cal.parser;
+package net.sf.opendf.cal.parser;
 
 import java_cup.runtime.*;
 import org.w3c.dom.*;
@@ -1821,7 +1821,7 @@ public class CalStatementParser extends java_cup.runtime.lr_parser {
     //  Return a document containing the parsed lexer source, describing the source as 'fileName' in diagnostics.
     //
     public Document doParse(String filename, boolean doDebug) throws java.lang.Exception {
-        DOMImplementation domImpl = net.sf.caltrop.util.xml.Util.getDefaultImplementation().getDocumentBuilder().getDOMImplementation();
+        DOMImplementation domImpl = net.sf.opendf.util.xml.Util.getDefaultImplementation().getDocumentBuilder().getDOMImplementation();
         document = domImpl.createDocument("", "Statement", null);
         file = filename;
         debug = doDebug;

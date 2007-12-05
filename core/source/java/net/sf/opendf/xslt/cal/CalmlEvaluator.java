@@ -2,7 +2,7 @@
 // Xilinx Confidential
 // Copyright (c) 2005 Xilinx Inc
 
-package net.sf.caltrop.xslt.cal;
+package net.sf.opendf.xslt.cal;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -22,34 +22,34 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
-import net.sf.caltrop.cal.ast.Expression;
-import net.sf.caltrop.cal.ast.Import;
-import net.sf.caltrop.cal.ast.PackageImport;
-import net.sf.caltrop.cal.ast.SingleImport;
-import net.sf.caltrop.cal.interpreter.Context;
-import net.sf.caltrop.cal.interpreter.ExprEvaluator;
-import net.sf.caltrop.cal.interpreter.InterpreterException;
-import net.sf.caltrop.cal.interpreter.environment.Environment;
-import net.sf.caltrop.cal.interpreter.util.ASTFactory;
-import net.sf.caltrop.cal.interpreter.util.DefaultPlatform;
-import net.sf.caltrop.cal.interpreter.util.ImportUtil;
-import net.sf.caltrop.cal.interpreter.util.Platform;
-import net.sf.caltrop.cal.util.SourceReader;
-import net.sf.caltrop.util.exception.LocatableException;
-import net.sf.caltrop.util.logging.Logging;
-import net.sf.caltrop.util.xml.ElementPredicate;
-import net.sf.caltrop.util.xml.TagNamePredicate;
-import net.sf.caltrop.util.xml.Util;
-import net.sf.caltrop.util.logging.Logging;
+import net.sf.opendf.cal.ast.Expression;
+import net.sf.opendf.cal.ast.Import;
+import net.sf.opendf.cal.ast.PackageImport;
+import net.sf.opendf.cal.ast.SingleImport;
+import net.sf.opendf.cal.interpreter.Context;
+import net.sf.opendf.cal.interpreter.ExprEvaluator;
+import net.sf.opendf.cal.interpreter.InterpreterException;
+import net.sf.opendf.cal.interpreter.environment.Environment;
+import net.sf.opendf.cal.interpreter.util.ASTFactory;
+import net.sf.opendf.cal.interpreter.util.DefaultPlatform;
+import net.sf.opendf.cal.interpreter.util.ImportUtil;
+import net.sf.opendf.cal.interpreter.util.Platform;
+import net.sf.opendf.cal.util.SourceReader;
+import net.sf.opendf.util.exception.LocatableException;
+import net.sf.opendf.util.logging.Logging;
+import net.sf.opendf.util.xml.ElementPredicate;
+import net.sf.opendf.util.xml.TagNamePredicate;
+import net.sf.opendf.util.xml.Util;
+import net.sf.opendf.util.logging.Logging;
 import net.sf.saxon.dom.DocumentBuilderFactoryImpl;
-import net.sf.caltrop.util.exception.*;
+import net.sf.opendf.util.exception.*;
 
 import org.w3c.dom.DOMImplementation;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
-import static net.sf.caltrop.util.xml.Util.xpathEvalNode;
+import static net.sf.opendf.util.xml.Util.xpathEvalNode;
 
 public class CalmlEvaluator
 {
@@ -58,7 +58,7 @@ public class CalmlEvaluator
 	 
 // 	public static Node printXML(String s, Node n) throws Exception {
 // 		System.out.println("------------------- " + s + ":");
-// 		System.out.println(caltrop.xml.Util.createXML(n));
+// 		System.out.println(opendf.xml.Util.createXML(n));
 // 		System.out.println("-------------------");
 // 		return n;
 // 	}
@@ -67,7 +67,7 @@ public class CalmlEvaluator
 	{
         try
         {
-            //caltrop.main.Util.setDefaultDBFI(); 
+            //opendf.main.Util.setDefaultDBFI(); 
             DOMImplementation di = DocumentBuilderFactory.newInstance().newDocumentBuilder().getDOMImplementation();
             //System.out.println("DI: " + di.getClass().getName());
             
@@ -81,8 +81,8 @@ public class CalmlEvaluator
 	
 	private static Node toSaxon( Node xalan ) throws Exception
 	{
-		String string = net.sf.caltrop.util.xml.Util.createXML( xalan );
-//		caltrop.main.Util.setSAXON();
+		String string = net.sf.opendf.util.xml.Util.createXML( xalan );
+//		opendf.main.Util.setSAXON();
 		StringReader reader = new StringReader(string);
 		return DocumentBuilderFactoryImpl.newInstance().newDocumentBuilder().parse(
 				new org.xml.sax.InputSource(reader));          
@@ -166,7 +166,7 @@ public class CalmlEvaluator
 //                 : 
 //                 ("##" + expr.getNodeValue()))
 //                            );
-//         System.out.println("The context is " + net.sf.caltrop.util.xml.Util.createXML(env));
+//         System.out.println("The context is " + net.sf.opendf.util.xml.Util.createXML(env));
         
 	    Element result;
 	    
@@ -371,7 +371,7 @@ public class CalmlEvaluator
 				sbPlatform.getImportMappers());
 		Environment env = TypedPlatform.theContext.newEnvironmentFrame(env0);
 		
-		List eBindings = net.sf.caltrop.util.xml.Util.listElements(eEnv, predDecl);
+		List eBindings = net.sf.opendf.util.xml.Util.listElements(eEnv, predDecl);
 		for (Iterator i = eBindings.iterator(); i.hasNext(); ) {
 			Element binding = (Element) i.next();
 			Element value = Util.optionalElement(binding, predExpr);
@@ -472,7 +472,7 @@ public class CalmlEvaluator
 		Element eExpr = null;
 		try {
 			eExpr = doRenderObject(a, doc);
-//			System.out.println("eExpr: " + caltrop.main.Util.createXML(eExpr));
+//			System.out.println("eExpr: " + opendf.main.Util.createXML(eExpr));
 			
 		} catch (Exception e) {
             (new DbgExceptionHandler()).process(e);
@@ -488,7 +488,7 @@ public class CalmlEvaluator
 		eExpr.appendChild(eNote);
 
 //		try {
-//		System.out.println("eExpr: " + caltrop.main.Util.createXML(eExpr));
+//		System.out.println("eExpr: " + opendf.main.Util.createXML(eExpr));
 //		} catch (Exception eee) {}
 
 		return eExpr;	  

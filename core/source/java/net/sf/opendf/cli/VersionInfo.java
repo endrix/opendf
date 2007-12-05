@@ -37,14 +37,14 @@ ENDCOPYRIGHT
 */
 
 
-package net.sf.caltrop.cli;
+package net.sf.opendf.cli;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 
-import net.sf.caltrop.util.logging.Logging;
+import net.sf.opendf.util.logging.Logging;
 
 /**
  * VersionInfo provides a common facility for reporting the current

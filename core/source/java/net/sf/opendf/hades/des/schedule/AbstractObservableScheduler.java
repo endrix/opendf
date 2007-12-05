@@ -38,13 +38,13 @@ BEGINCOPYRIGHT X,ETH
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.hades.des.schedule;
+package net.sf.opendf.hades.des.schedule;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import net.sf.caltrop.hades.des.EventProcessor;
+import net.sf.opendf.hades.des.EventProcessor;
 
 public abstract class AbstractObservableScheduler extends AbstractScheduler 
                                                   implements ObservableScheduler {

@@ -40,7 +40,7 @@ ENDCOPYRIGHT
 
 
 
-package net.sf.caltrop.hades.des;
+package net.sf.opendf.hades.des;
 
 /**
 *   This interface extends DiscreteEventEntity by connector functionality. DECs can thus be

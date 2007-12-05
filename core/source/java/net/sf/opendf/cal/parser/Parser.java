@@ -4,10 +4,10 @@
 // Thu Oct 25 21:33:11 PDT 2007
 //----------------------------------------------------
 
-package net.sf.caltrop.cal.parser;
+package net.sf.opendf.cal.parser;
 
-import net.sf.caltrop.util.source.ParserErrorException;
-import net.sf.caltrop.util.source.GenericError;
+import net.sf.opendf.util.source.ParserErrorException;
+import net.sf.opendf.util.source.GenericError;
 import java_cup.runtime.*;
 import org.w3c.dom.*;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -2628,7 +2628,7 @@ public class Parser extends java_cup.runtime.lr_parser {
     //
     public Document parseActor(String filename, boolean doDebug) throws ParserErrorException
     {
-        DOMImplementation domImpl = net.sf.caltrop.util.xml.Util.getDefaultImplementation().getDocumentBuilder().getDOMImplementation();
+        DOMImplementation domImpl = net.sf.opendf.util.xml.Util.getDefaultImplementation().getDocumentBuilder().getDOMImplementation();
         document = domImpl.createDocument("", "Actor", null);
         file = filename;
         debug = doDebug;

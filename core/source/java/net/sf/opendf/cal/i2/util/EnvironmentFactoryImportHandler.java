@@ -37,11 +37,11 @@ BEGINCOPYRIGHT X,UC
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.cal.i2.util;
+package net.sf.opendf.cal.i2.util;
 
-import net.sf.caltrop.cal.i2.Environment;
-import net.sf.caltrop.cal.i2.environment.EnvironmentFactory;
-import net.sf.caltrop.cal.i2.environment.SingleEntryEnvironment;
+import net.sf.opendf.cal.i2.Environment;
+import net.sf.opendf.cal.i2.environment.EnvironmentFactory;
+import net.sf.opendf.cal.i2.environment.SingleEntryEnvironment;
 
 /**
  * 

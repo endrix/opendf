@@ -36,7 +36,7 @@ BEGINCOPYRIGHT X
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.cli;
+package net.sf.opendf.cli;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -46,10 +46,10 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import net.sf.caltrop.cal.main.Cal2CalML;
-import net.sf.caltrop.util.logging.Logging;
-import net.sf.caltrop.util.source.MultiErrorException;
-import net.sf.caltrop.util.exception.*;
+import net.sf.opendf.cal.main.Cal2CalML;
+import net.sf.opendf.util.logging.Logging;
+import net.sf.opendf.util.source.MultiErrorException;
+import net.sf.opendf.util.exception.*;
 
 /**
  * DRCChecker is a front end tools that process CAL which simply
@@ -67,9 +67,9 @@ public class DRCChecker extends XSLTTransformRunner
     private static final String CALEXT = ".cal";
     
     private static String[] calmlCheckers = {
-    	"net/sf/caltrop/cal/checks/semanticChecks.xslt",
+    	"net/sf/opendf/cal/checks/semanticChecks.xslt",
     	// provide counts, terminate-on-error
-    	"net/sf/caltrop/cal/checks/problemSummary.xslt"
+    	"net/sf/opendf/cal/checks/problemSummary.xslt"
     };
     private static String[] simCheckers = {}; // TBD
     private static String[] synthCheckers = {}; // TBD

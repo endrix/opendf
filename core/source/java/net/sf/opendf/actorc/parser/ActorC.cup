@@ -36,6 +36,7 @@ EDW 19-Sep-2002 Eliminate ; rather than , separation for variable list.
 EDW  3-Oct-2002 Give 'Boolean' literals a value.
 EDW  5-Oct-2002 Lose Expr.Tuple, allowing () for expression precedence.
 EDW 11-Oct-2002 Eliminate spurious @all on Import.
+DBP 12-Dec-2007 Change package and import declarations for opendf
 
 Note that comments such as --INSERT-IMPORTS-- represent editing targets for
 a sed script to extend the grammar to a larger language.
@@ -45,11 +46,11 @@ are also intended as sed script tragets.
 
 */
 
-package net.sf.caltrop.actorc.parser;
+package net.sf.opendf.actorc.parser;
 
-import net.sf.caltrop.util.source.ParserErrorException;
-import net.sf.caltrop.util.source.GenericError;
-import net.sf.caltrop.cal.parser.CalParserException;
+import net.sf.opendf.util.source.ParserErrorException;
+import net.sf.opendf.util.source.GenericError;
+import net.sf.opendf.cal.parser.CalParserException;
 
 import java_cup.runtime.*;
 import org.w3c.dom.*;
@@ -182,7 +183,7 @@ parser code {:
     //
     public Document parseActor(String filename, boolean doDebug) throws ParserErrorException
     {
-        DOMImplementation domImpl = net.sf.caltrop.util.xml.Util.getDefaultImplementation().getDocumentBuilder().getDOMImplementation();
+        DOMImplementation domImpl = net.sf.opendf.util.xml.Util.getDefaultImplementation().getDocumentBuilder().getDOMImplementation();
         document = domImpl.createDocument("", "Actor", null);
         file = filename;
         debug = doDebug;

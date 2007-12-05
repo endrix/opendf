@@ -37,7 +37,7 @@ BEGINCOPYRIGHT X,UC
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.cal.main;
+package net.sf.opendf.cal.main;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -47,8 +47,8 @@ import java.io.PrintWriter;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.Transformer;
 
-import net.sf.caltrop.util.logging.Logging;
-import net.sf.caltrop.util.xml.Util;
+import net.sf.opendf.util.logging.Logging;
+import net.sf.opendf.util.xml.Util;
 
 import org.w3c.dom.Node;
 

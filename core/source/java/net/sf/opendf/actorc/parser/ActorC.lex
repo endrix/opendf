@@ -30,9 +30,10 @@
 
 EDW September 2002 Original 
 EDW 18-Sep-2002 Lex # token too..
+DBP 12-Dec-2007 Change package and import declarations for opendf
 
 */
-package net.sf.caltrop.actorc.parser;
+package net.sf.opendf.actorc.parser;
 
 import java_cup.runtime.Symbol;
 import java.lang.Integer;

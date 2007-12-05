@@ -1,4 +1,4 @@
-package net.sf.caltrop.cal.i2.util;
+package net.sf.opendf.cal.i2.util;
 
 public interface IntegerFactory {
 

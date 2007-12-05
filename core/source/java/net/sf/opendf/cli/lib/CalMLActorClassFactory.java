@@ -36,13 +36,13 @@ BEGINCOPYRIGHT X
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.cli.lib;
+package net.sf.opendf.cli.lib;
 
 import java.io.InputStream;
 
-import net.sf.caltrop.cal.util.SourceReader;
-import net.sf.caltrop.hades.models.ModelInterface;
-import net.sf.caltrop.hades.models.lib.CalModelInterface;
+import net.sf.opendf.cal.util.SourceReader;
+import net.sf.opendf.hades.models.ModelInterface;
+import net.sf.opendf.hades.models.lib.CalModelInterface;
 
 
 public class CalMLActorClassFactory extends AbstractGenericInterpreterModelClassFactory {

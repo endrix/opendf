@@ -39,7 +39,7 @@ ENDCOPYRIGHT
 */
 
 
-package net.sf.caltrop.hades.simulation;
+package net.sf.opendf.hades.simulation;
 
 import java.io.IOException;
 import java.io.InputStream;

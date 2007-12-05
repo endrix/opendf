@@ -37,7 +37,7 @@ BEGINCOPYRIGHT X,UC
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.cal.interpreter;
+package net.sf.opendf.cal.interpreter;
 
 /**
  * An input channel provides the actor with a finite or infinite sequence of tokens on each firing. A key property is

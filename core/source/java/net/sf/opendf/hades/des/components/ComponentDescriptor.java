@@ -39,7 +39,7 @@ ENDCOPYRIGHT
 */
 
 
-package net.sf.caltrop.hades.des.components;
+package net.sf.opendf.hades.des.components;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
@@ -55,17 +55,17 @@ import java.util.Iterator;
     defined by a ConnectorDescriptor.
     
     @see    SignatureDescriptor
-    @see    net.sf.caltrop.hades.des.DiscreteEventComponent
+    @see    net.sf.opendf.hades.des.DiscreteEventComponent
     
 */
 
 public class ComponentDescriptor {
 
-  private static final String componentRootName = "net.sf.caltrop.hades.des.DiscreteEventComponent";
-  private static final String interfaceRootName = "net.sf.caltrop.hades.des.components.Interface";
+  private static final String componentRootName = "net.sf.opendf.hades.des.DiscreteEventComponent";
+  private static final String interfaceRootName = "net.sf.opendf.hades.des.components.Interface";
 
-  private static Class componentRootClass = net.sf.caltrop.hades.des.DiscreteEventComponent.class;
-  private static Class interfaceRootClass = net.sf.caltrop.hades.des.components.Interface.class;
+  private static Class componentRootClass = net.sf.opendf.hades.des.DiscreteEventComponent.class;
+  private static Class interfaceRootClass = net.sf.opendf.hades.des.components.Interface.class;
 
   private Class		componentClass;
   private SignatureDescriptor	signature;
@@ -160,7 +160,7 @@ public class ComponentDescriptor {
   //
 
   private static void printUsage() {
-    System.err.println("<java> net.sf.caltrop.hades.des.components.ComponentDecsriptor <fullclassname>");
+    System.err.println("<java> net.sf.opendf.hades.des.components.ComponentDecsriptor <fullclassname>");
   }
 
   private String format() {

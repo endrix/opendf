@@ -37,7 +37,7 @@ ENDCOPYRIGHT
 */
 
 
-package net.sf.caltrop.util.logging;
+package net.sf.opendf.util.logging;
 
 import java.text.DateFormat;
 import java.util.Date;

@@ -37,7 +37,7 @@ BEGINCOPYRIGHT X,UC
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.nl.parser;
+package net.sf.opendf.nl.parser;
 
 /**
  * A lightweight wrapper around RuntimeException to provide greater

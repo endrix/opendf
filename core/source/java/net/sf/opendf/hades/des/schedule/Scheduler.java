@@ -38,9 +38,9 @@ BEGINCOPYRIGHT X,ETH
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.hades.des.schedule;
+package net.sf.opendf.hades.des.schedule;
 
-import net.sf.caltrop.hades.des.EventProcessor;
+import net.sf.opendf.hades.des.EventProcessor;
 
 /**
  The scheduler drives the execution of DECs. Event processors register for execution and are
@@ -50,8 +50,8 @@ import net.sf.caltrop.hades.des.EventProcessor;
  It is assumed that max one instance of an event processor is scheduled at any one time.
 
  @author JWJ
- @see net.sf.caltrop.hades.des.DiscreteEventComponent
- @see net.sf.caltrop.hades.des.EventProcessor
+ @see net.sf.opendf.hades.des.DiscreteEventComponent
+ @see net.sf.opendf.hades.des.EventProcessor
  */
 
 public interface Scheduler {
@@ -74,10 +74,10 @@ public interface Scheduler {
   public boolean hasEvent();
 
   /**
-   Checks, if next event (if there is one) is 'weak' (as defined in net.sf.caltrop.hades.des.EventProcessor).
+   Checks, if next event (if there is one) is 'weak' (as defined in net.sf.opendf.hades.des.EventProcessor).
 
    @return true, if next event is weak. undefined, if no event exists.
-   @see net.sf.caltrop.hades.des.EventProcessor
+   @see net.sf.opendf.hades.des.EventProcessor
    */
   public boolean isNextWeak();
 

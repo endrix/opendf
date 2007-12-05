@@ -36,7 +36,7 @@ BEGINCOPYRIGHT X
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.cli;
+package net.sf.opendf.cli;
 
 import java.io.InputStream;
 

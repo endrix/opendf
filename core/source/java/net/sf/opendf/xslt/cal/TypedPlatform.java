@@ -2,9 +2,9 @@
 // Xilinx Confidential
 // Copyright (c) 2005 Xilinx Inc
 
-//2005-08-08 DBP Created from caltrop/dev/source/java/caltrop/interpreter/util/DefaultPlatform.java
+//2005-08-08 DBP Created from opendf/dev/source/java/opendf/interpreter/util/DefaultPlatform.java
 
-package net.sf.caltrop.xslt.cal;
+package net.sf.opendf.xslt.cal;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -19,19 +19,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import net.sf.caltrop.cal.interpreter.Context;
-import net.sf.caltrop.cal.interpreter.Function;
-import net.sf.caltrop.cal.interpreter.InterpreterException;
-import net.sf.caltrop.cal.interpreter.Procedure;
-import net.sf.caltrop.cal.interpreter.environment.Environment;
-import net.sf.caltrop.cal.interpreter.util.CalScriptImportHandler;
-import net.sf.caltrop.cal.interpreter.util.ClassLoadingImportHandler;
-import net.sf.caltrop.cal.interpreter.util.EnvironmentFactoryImportHandler;
-import net.sf.caltrop.cal.interpreter.util.ImportHandler;
-import net.sf.caltrop.cal.interpreter.util.ImportMapper;
-import net.sf.caltrop.cal.interpreter.util.IntegerList;
-import net.sf.caltrop.cal.interpreter.util.Platform;
-import net.sf.caltrop.cal.interpreter.util.ReplacePrefixImportMapper;
+import net.sf.opendf.cal.interpreter.Context;
+import net.sf.opendf.cal.interpreter.Function;
+import net.sf.opendf.cal.interpreter.InterpreterException;
+import net.sf.opendf.cal.interpreter.Procedure;
+import net.sf.opendf.cal.interpreter.environment.Environment;
+import net.sf.opendf.cal.interpreter.util.CalScriptImportHandler;
+import net.sf.opendf.cal.interpreter.util.ClassLoadingImportHandler;
+import net.sf.opendf.cal.interpreter.util.EnvironmentFactoryImportHandler;
+import net.sf.opendf.cal.interpreter.util.ImportHandler;
+import net.sf.opendf.cal.interpreter.util.ImportMapper;
+import net.sf.opendf.cal.interpreter.util.IntegerList;
+import net.sf.opendf.cal.interpreter.util.Platform;
+import net.sf.opendf.cal.interpreter.util.ReplacePrefixImportMapper;
 
 
 /**
@@ -63,8 +63,8 @@ public class TypedPlatform implements Platform {
 
 	public ImportMapper[] getImportMappers() {
 		return new ImportMapper [] {
-				new ReplacePrefixImportMapper(new String [] {"caltrop", "lib"}, 
-											  new String [] {"net", "sf", "caltrop", "xslt", "cal", "lib"})
+				new ReplacePrefixImportMapper(new String [] {"opendf", "lib"}, 
+											  new String [] {"net", "sf", "opendf", "xslt", "cal", "lib"})
 		};
 	}
 

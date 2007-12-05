@@ -1,7 +1,7 @@
 /**
  * 
  */
-package net.sf.caltrop.util.xml;
+package net.sf.opendf.util.xml;
 
 import java.io.InputStream;
 import java.net.URL;

@@ -37,24 +37,24 @@ BEGINCOPYRIGHT X,UC
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.cal.i2.util;
+package net.sf.opendf.cal.i2.util;
 
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import net.sf.caltrop.cal.i2.Environment;
-import net.sf.caltrop.cal.i2.environment.DynamicEnvironmentFrame;
-import net.sf.caltrop.cal.i2.environment.SingleEntryEnvironment;
-import net.sf.caltrop.cal.i2.shell.Shell;
-import net.sf.caltrop.cal.interpreter.util.NullOutputStream;
-import net.sf.caltrop.cal.interpreter.util.UnsatisfiedImportException;
+import net.sf.opendf.cal.i2.Environment;
+import net.sf.opendf.cal.i2.environment.DynamicEnvironmentFrame;
+import net.sf.opendf.cal.i2.environment.SingleEntryEnvironment;
+import net.sf.opendf.cal.i2.shell.Shell;
+import net.sf.opendf.cal.interpreter.util.NullOutputStream;
+import net.sf.opendf.cal.interpreter.util.UnsatisfiedImportException;
 
 
 /**
  * This import handler imports the definitions made as the result of executing a Cal
- * script file (see also {@link net.sf.caltrop.cal.shell.Shell the shell definition}).
+ * script file (see also {@link net.sf.opendf.cal.shell.Shell the shell definition}).
  * 
  * It reads the script as the path corresponding to the package name plus the 
  * extension ".cal", relative to the class loader. If such a file 

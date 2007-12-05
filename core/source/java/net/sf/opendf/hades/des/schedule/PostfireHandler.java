@@ -36,7 +36,7 @@ BEGINCOPYRIGHT X
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.hades.des.schedule;
+package net.sf.opendf.hades.des.schedule;
 
 /**
  * PostfireHandler objects can be registered during the firing of an event with a scheduler.

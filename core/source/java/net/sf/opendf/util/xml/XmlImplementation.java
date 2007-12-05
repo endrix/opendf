@@ -1,4 +1,4 @@
-package net.sf.caltrop.util.xml;
+package net.sf.opendf.util.xml;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;

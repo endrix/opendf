@@ -36,7 +36,7 @@ BEGINCOPYRIGHT X
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.nl.util;
+package net.sf.opendf.nl.util;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;

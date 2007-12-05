@@ -37,7 +37,7 @@ BEGINCOPYRIGHT X,UC
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.cal.interpreter;
+package net.sf.opendf.cal.interpreter;
 
 /**
  * The input port interface represents input ports to the actor interpreter.

@@ -36,7 +36,7 @@ BEGINCOPYRIGHT X
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.util.logging;
+package net.sf.opendf.util.logging;
 
 import java.util.AbstractMap;
 import java.util.Collections;

@@ -39,7 +39,7 @@ ENDCOPYRIGHT
 */
 
 
-package net.sf.caltrop.hades.simulation;
+package net.sf.opendf.hades.simulation;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -53,13 +53,13 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
 
-import net.sf.caltrop.hades.des.DiscreteEventComponent;
-import net.sf.caltrop.hades.des.schedule.AbstractObservableScheduler;
-import net.sf.caltrop.hades.des.schedule.Scheduler;
-import net.sf.caltrop.hades.des.schedule.SchedulerObserver;
-import net.sf.caltrop.hades.des.schedule.SimpleScheduler;
-import net.sf.caltrop.hades.util.NullInputStream;
-import net.sf.caltrop.hades.util.NullOutputStream;
+import net.sf.opendf.hades.des.DiscreteEventComponent;
+import net.sf.opendf.hades.des.schedule.AbstractObservableScheduler;
+import net.sf.opendf.hades.des.schedule.Scheduler;
+import net.sf.opendf.hades.des.schedule.SchedulerObserver;
+import net.sf.opendf.hades.des.schedule.SimpleScheduler;
+import net.sf.opendf.hades.util.NullInputStream;
+import net.sf.opendf.hades.util.NullOutputStream;
 
 /**
  *  This generic sequential simulator class is a simple discrete event component interface

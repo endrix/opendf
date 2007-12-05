@@ -39,9 +39,9 @@ ENDCOPYRIGHT
 */
 
 
-package net.sf.caltrop.hades.des;
+package net.sf.opendf.hades.des;
 
-import net.sf.caltrop.hades.des.schedule.Scheduler;
+import net.sf.opendf.hades.des.schedule.Scheduler;
 
 /**
  *   DiscreteEventEntity interface is implemented by schedulable objects. It provides 

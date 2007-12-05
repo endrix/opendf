@@ -36,14 +36,14 @@ BEGINCOPYRIGHT X
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.cli.lib;
+package net.sf.opendf.cli.lib;
 
 import java.io.DataInputStream;
 import java.io.InputStream;
 import java.lang.reflect.Method;
 
-import net.sf.caltrop.hades.models.ModelInterface;
-import net.sf.caltrop.util.logging.Logging;
+import net.sf.opendf.hades.models.ModelInterface;
+import net.sf.opendf.util.logging.Logging;
 
 
 
@@ -66,7 +66,7 @@ public class GenericInterpreterClassLoader extends ClassLoader {
 		}
 		
 		try {
-			Class c = this.defineClass(null, // "net.sf.caltrop.hades.models.GenericModelInterpreter",
+			Class c = this.defineClass(null, // "net.sf.opendf.hades.models.GenericModelInterpreter",
 					interpreterClassBytes, 0, interpreterClassBytes.length);
 			
 			Method m = c.getMethod("setModelParameters", new Class[] { Object.class, ModelInterface.class, Object.class, ClassLoader.class });
@@ -112,7 +112,7 @@ public class GenericInterpreterClassLoader extends ClassLoader {
 	
 	private String actualName = null;	
 	
-	private static final String GenericModelInterpreterClassFileName = "net/sf/caltrop/hades/models/GenericModelInterpreter.class";
+	private static final String GenericModelInterpreterClassFileName = "net/sf/opendf/hades/models/GenericModelInterpreter.class";
 
 	private static byte[] interpreterClassBytes;
 	

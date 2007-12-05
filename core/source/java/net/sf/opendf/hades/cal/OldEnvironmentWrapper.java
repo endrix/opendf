@@ -37,17 +37,17 @@ BEGINCOPYRIGHT X,UC
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.hades.cal;
+package net.sf.opendf.hades.cal;
 
 import java.util.Map;
 import java.util.Set;
 
-import net.sf.caltrop.cal.interpreter.Context;
-import net.sf.caltrop.cal.interpreter.InterpreterException;
-import net.sf.caltrop.cal.interpreter.UndefinedVariableException;
-import net.sf.caltrop.cal.interpreter.environment.AbstractEnvironment;
-import net.sf.caltrop.cal.interpreter.environment.Environment;
-import net.sf.caltrop.cal.interpreter.environment.HashEnvironment;
+import net.sf.opendf.cal.interpreter.Context;
+import net.sf.opendf.cal.interpreter.InterpreterException;
+import net.sf.opendf.cal.interpreter.UndefinedVariableException;
+import net.sf.opendf.cal.interpreter.environment.AbstractEnvironment;
+import net.sf.opendf.cal.interpreter.environment.Environment;
+import net.sf.opendf.cal.interpreter.environment.HashEnvironment;
 
 
 /**

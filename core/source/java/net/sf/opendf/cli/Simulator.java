@@ -36,15 +36,15 @@ BEGINCOPYRIGHT X
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.cli;
+package net.sf.opendf.cli;
 
-import static net.sf.caltrop.util.xml.Util.applyTransformAsResource;
-import static net.sf.caltrop.util.xml.Util.applyTransformsAsResources;
-import static net.sf.caltrop.util.xml.Util.createTransformer;
-import static net.sf.caltrop.cli.Util.createActorParameters;
-import static net.sf.caltrop.cli.Util.elaborate;
-import static net.sf.caltrop.cli.Util.extractPath;
-import static net.sf.caltrop.cli.Util.initializeLocators;
+import static net.sf.opendf.util.xml.Util.applyTransformAsResource;
+import static net.sf.opendf.util.xml.Util.applyTransformsAsResources;
+import static net.sf.opendf.util.xml.Util.createTransformer;
+import static net.sf.opendf.cli.Util.createActorParameters;
+import static net.sf.opendf.cli.Util.elaborate;
+import static net.sf.opendf.cli.Util.extractPath;
+import static net.sf.opendf.cli.Util.initializeLocators;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -68,27 +68,27 @@ import javax.xml.transform.Transformer;
 
 import org.w3c.dom.Node;
 
-import net.sf.caltrop.cal.interpreter.ExprEvaluator;
-import net.sf.caltrop.cal.interpreter.environment.Environment;
-import net.sf.caltrop.cal.interpreter.util.DefaultPlatform;
-import net.sf.caltrop.cal.interpreter.util.Platform;
-import net.sf.caltrop.cal.util.SourceReader;
-import net.sf.caltrop.cli.lib.EvaluatedStreamCallback;
-import net.sf.caltrop.util.exception.ExceptionHandler;
-import net.sf.caltrop.util.exception.ReportingExceptionHandler;
-import net.sf.caltrop.hades.des.DiscreteEventComponent;
-import net.sf.caltrop.hades.des.util.OutputBlockRecord;
-import net.sf.caltrop.hades.models.ModelInterface;
-import net.sf.caltrop.hades.models.lib.XDFModelInterface;
-import net.sf.caltrop.hades.simulation.SequentialSimulator;
-import net.sf.caltrop.hades.simulation.SequentialSimulatorCallback;
-import net.sf.caltrop.hades.simulation.StreamIOCallback;
-import net.sf.caltrop.hades.util.NullInputStream;
-import net.sf.caltrop.hades.util.NullOutputStream;
-import net.sf.caltrop.util.Loading;
-import net.sf.caltrop.util.logging.Logging;
-import net.sf.caltrop.hades.des.schedule.SchedulerObserver;
-import net.sf.caltrop.hades.des.EventProcessor;
+import net.sf.opendf.cal.interpreter.ExprEvaluator;
+import net.sf.opendf.cal.interpreter.environment.Environment;
+import net.sf.opendf.cal.interpreter.util.DefaultPlatform;
+import net.sf.opendf.cal.interpreter.util.Platform;
+import net.sf.opendf.cal.util.SourceReader;
+import net.sf.opendf.cli.lib.EvaluatedStreamCallback;
+import net.sf.opendf.util.exception.ExceptionHandler;
+import net.sf.opendf.util.exception.ReportingExceptionHandler;
+import net.sf.opendf.hades.des.DiscreteEventComponent;
+import net.sf.opendf.hades.des.util.OutputBlockRecord;
+import net.sf.opendf.hades.models.ModelInterface;
+import net.sf.opendf.hades.models.lib.XDFModelInterface;
+import net.sf.opendf.hades.simulation.SequentialSimulator;
+import net.sf.opendf.hades.simulation.SequentialSimulatorCallback;
+import net.sf.opendf.hades.simulation.StreamIOCallback;
+import net.sf.opendf.hades.util.NullInputStream;
+import net.sf.opendf.hades.util.NullOutputStream;
+import net.sf.opendf.util.Loading;
+import net.sf.opendf.util.logging.Logging;
+import net.sf.opendf.hades.des.schedule.SchedulerObserver;
+import net.sf.opendf.hades.des.EventProcessor;
 
 public class Simulator {
 	

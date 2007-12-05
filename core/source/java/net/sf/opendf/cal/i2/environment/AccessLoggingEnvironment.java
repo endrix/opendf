@@ -37,7 +37,7 @@ BEGINCOPYRIGHT X,UC
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.cal.i2.environment;
+package net.sf.opendf.cal.i2.environment;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -45,9 +45,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import net.sf.caltrop.cal.i2.Environment;
-import net.sf.caltrop.cal.i2.ObjectSink;
-import net.sf.caltrop.cal.i2.types.Type;
+import net.sf.opendf.cal.i2.Environment;
+import net.sf.opendf.cal.i2.ObjectSink;
+import net.sf.opendf.cal.i2.types.Type;
 
 /**
  * This environment can be used to log all accesses to variables, which it delegates to its parent

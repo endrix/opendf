@@ -39,14 +39,14 @@ ENDCOPYRIGHT
 */
 
 
-package net.sf.caltrop.hades.des.schedule;
+package net.sf.opendf.hades.des.schedule;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import net.sf.caltrop.hades.des.EventProcessor;
+import net.sf.opendf.hades.des.EventProcessor;
 
 
 public class SimpleEventCalendar implements EventCalendar {

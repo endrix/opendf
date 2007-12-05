@@ -30,14 +30,14 @@
 Created : September 2002
 
 */
-package net.sf.caltrop.cal.parser;
+package net.sf.opendf.cal.parser;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 
-import net.sf.caltrop.util.xml.Util;
+import net.sf.opendf.util.xml.Util;
 
 import org.w3c.dom.Document;
 
@@ -51,7 +51,7 @@ it out again as XML to args[2].
 
 @author Ed Willink
 @version $Id: Main.java 52 2007-01-22 15:56:51Z imiller $
-@see net.sf.caltrop.cal.parser.Lexer net.sf.caltrop.cal.parser.Parser
+@see net.sf.opendf.cal.parser.Lexer net.sf.opendf.cal.parser.Parser
 */
 public class Main {
 
@@ -95,7 +95,7 @@ public class Main {
     //  Print the program usage..
     //
     private static void printUsage() {
-        System.out.println("net.sf.caltrop.cal.parser.Main <infile> <outfile> (\".\" is standard out)");
+        System.out.println("net.sf.opendf.cal.parser.Main <infile> <outfile> (\".\" is standard out)");
     }
 
 

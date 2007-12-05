@@ -37,21 +37,21 @@ BEGINCOPYRIGHT X,UC
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.cal.interpreter.util;
+package net.sf.opendf.cal.interpreter.util;
 
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import net.sf.caltrop.cal.interpreter.environment.Environment;
-import net.sf.caltrop.cal.interpreter.environment.SingleEntryEnvironment;
-import net.sf.caltrop.cal.shell.Shell;
+import net.sf.opendf.cal.interpreter.environment.Environment;
+import net.sf.opendf.cal.interpreter.environment.SingleEntryEnvironment;
+import net.sf.opendf.cal.shell.Shell;
 
 
 /**
  * This import handler imports the definitions made as the result of executing a Cal
- * script file (see also {@link net.sf.caltrop.cal.shell.Shell the shell definition}).
+ * script file (see also {@link net.sf.opendf.cal.shell.Shell the shell definition}).
  * 
  * It reads the script as the path corresponding to the package name plus the 
  * extension ".cal", relative to the class loader. If such a file 

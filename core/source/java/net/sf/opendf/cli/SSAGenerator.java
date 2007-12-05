@@ -37,11 +37,11 @@ BEGINCOPYRIGHT X
 ENDCOPYRIGHT
  */
 
-package net.sf.caltrop.cli;
+package net.sf.opendf.cli;
 
-import net.sf.caltrop.cal.main.Cal2CalML;
-import net.sf.caltrop.util.logging.Logging;
-import net.sf.caltrop.util.exception.*;
+import net.sf.opendf.cal.main.Cal2CalML;
+import net.sf.opendf.util.logging.Logging;
+import net.sf.opendf.util.exception.*;
 
 import java.util.*;
 import java.io.*;
@@ -62,43 +62,43 @@ public class SSAGenerator extends XSLTTransformRunner
     private static final String CALMLEXT = ".calml";
     
     private static String[] parserTransforms = {
-        "net/sf/caltrop/cal/transforms/CanonicalizePortTags.xslt",
-        "net/sf/caltrop/cal/transforms/AddInputTypes.xslt",
-        "net/sf/caltrop/cal/transforms/ReplaceOld.xslt",
+        "net/sf/opendf/cal/transforms/CanonicalizePortTags.xslt",
+        "net/sf/opendf/cal/transforms/AddInputTypes.xslt",
+        "net/sf/opendf/cal/transforms/ReplaceOld.xslt",
         
-//         "net/sf/caltrop/cal/transforms/VariableAnnotator.xslt",
-//         "net/sf/caltrop/cal/transforms/ContextInfoAnnotator.xslt",
-//         "net/sf/caltrop/cal/transforms/CanonicalizeOperators.xslt",
-//         "net/sf/caltrop/cal/transforms/AnnotateFreeVars.xslt",
-//         "net/sf/caltrop/cal/transforms/DependencyAnnotator.xslt",
-//         "net/sf/caltrop/cal/transforms/VariableSorter.xslt"
+//         "net/sf/opendf/cal/transforms/VariableAnnotator.xslt",
+//         "net/sf/opendf/cal/transforms/ContextInfoAnnotator.xslt",
+//         "net/sf/opendf/cal/transforms/CanonicalizeOperators.xslt",
+//         "net/sf/opendf/cal/transforms/AnnotateFreeVars.xslt",
+//         "net/sf/opendf/cal/transforms/DependencyAnnotator.xslt",
+//         "net/sf/opendf/cal/transforms/VariableSorter.xslt"
     };
 
     private static String[] ssaTransforms = {
-        "net/sf/caltrop/cal/transforms/xlim/AnnotateActionQIDs.xslt",
-        "net/sf/caltrop/cal/transforms/xlim/CopyQIDToAction.xslt",
-        "net/sf/caltrop/cal/transforms/xlim/EnumerateStates.xslt",
-        "net/sf/caltrop/cal/transforms/xlim/MergePriorityInequalities.xslt",
+        "net/sf/opendf/cal/transforms/xlim/AnnotateActionQIDs.xslt",
+        "net/sf/opendf/cal/transforms/xlim/CopyQIDToAction.xslt",
+        "net/sf/opendf/cal/transforms/xlim/EnumerateStates.xslt",
+        "net/sf/opendf/cal/transforms/xlim/MergePriorityInequalities.xslt",
         // Now in Elaborator
-        "net/sf/caltrop/cal/transforms/xlim/AddDirectives.xslt",
-        //"net/sf/caltrop/cal/transforms/xlim/SetActorParameters.xslt",
-        "net/sf/caltrop/cal/transforms/xlim/AddDefaultTypes.xslt",
-        "net/sf/caltrop/cal/transforms/xlim/AnnotateDecls.xslt",
+        "net/sf/opendf/cal/transforms/xlim/AddDirectives.xslt",
+        //"net/sf/opendf/cal/transforms/xlim/SetActorParameters.xslt",
+        "net/sf/opendf/cal/transforms/xlim/AddDefaultTypes.xslt",
+        "net/sf/opendf/cal/transforms/xlim/AnnotateDecls.xslt",
 
-        "net/sf/caltrop/cal/transforms/EvaluateConstantExpressions.xslt",
-        "net/sf/caltrop/cal/checks/problemSummary.xslt",
-        "net/sf/caltrop/cal/transforms/EliminateDeadCode.xslt",
-        "net/sf/caltrop/cal/transforms/AddID.xslt",
+        "net/sf/opendf/cal/transforms/EvaluateConstantExpressions.xslt",
+        "net/sf/opendf/cal/checks/problemSummary.xslt",
+        "net/sf/opendf/cal/transforms/EliminateDeadCode.xslt",
+        "net/sf/opendf/cal/transforms/AddID.xslt",
         
-        "net/sf/caltrop/cal/transforms/xlim/VariableUsage.xslt",
-        "net/sf/caltrop/cal/transforms/xlim/SSANotes.xslt",
-        "net/sf/caltrop/cal/transforms/xlim/TrueSource.xslt",
-        "net/sf/caltrop/cal/transforms/xlim/UsedInGuard.xslt",
-        "net/sf/caltrop/cal/transforms/xlim/Dimensions.xslt"
+        "net/sf/opendf/cal/transforms/xlim/VariableUsage.xslt",
+        "net/sf/opendf/cal/transforms/xlim/SSANotes.xslt",
+        "net/sf/opendf/cal/transforms/xlim/TrueSource.xslt",
+        "net/sf/opendf/cal/transforms/xlim/UsedInGuard.xslt",
+        "net/sf/opendf/cal/transforms/xlim/Dimensions.xslt"
     };
 
     private static String[] xlimTransforms = {
-        "net/sf/caltrop/cal/transforms/xlim/MakeOneHotXLIM.xslt"
+        "net/sf/opendf/cal/transforms/xlim/MakeOneHotXLIM.xslt"
     };
 
     // Flags which are always passed to the transform runner.

@@ -38,7 +38,7 @@ ENDCOPYRIGHT
 */
 
 
-package net.sf.caltrop.cal.interpreter;
+package net.sf.opendf.cal.interpreter;
 
 import java.math.BigInteger;
 import java.util.Collection;
@@ -46,7 +46,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import net.sf.caltrop.cal.interpreter.environment.Environment;
+import net.sf.opendf.cal.interpreter.environment.Environment;
 
 /**
  * This interface provides the key abstraction of the context an
@@ -59,10 +59,10 @@ import net.sf.caltrop.cal.interpreter.environment.Environment;
  * @author Jörn W. Janneck <janneck@eecs.berkeley.edu>
  * @see ExprEvaluator
  * @see StmtEvaluator
- * @see ptolemy.caltrop.ddi.util.DataflowActorInterpreter
+ * @see ptolemy.opendf.ddi.util.DataflowActorInterpreter
  */
 
-public interface Context extends net.sf.caltrop.cal.interpreter.environment.DataStructureManipulator {
+public interface Context extends net.sf.opendf.cal.interpreter.environment.DataStructureManipulator {
 
     //////////////////////////////////////////////////////////
     ////    Simple Data Objects
@@ -207,7 +207,7 @@ public interface Context extends net.sf.caltrop.cal.interpreter.environment.Data
 
     /**
      * Apply a function object to an array of parameters. The <tt>function</tt> parameter is guaranteed to be an object
-     * that was returned from a {@link #createFunction(net.sf.caltrop.cal.interpreter.Function) createFunction(...)} call.
+     * that was returned from a {@link #createFunction(net.sf.opendf.cal.interpreter.Function) createFunction(...)} call.
      *
      * @param function The function object.
      * @param args The arguments.
@@ -230,7 +230,7 @@ public interface Context extends net.sf.caltrop.cal.interpreter.environment.Data
     boolean  isProcedure(Object o);
     /**
      * Call a procedure object on an array of parameters. The <tt>procedure</tt> parameter is guaranteed to be an object
-     * that was returned from a {@link #createProcedure(net.sf.caltrop.cal.interpreter.Procedure) createProcedure(...)} call.
+     * that was returned from a {@link #createProcedure(net.sf.opendf.cal.interpreter.Procedure) createProcedure(...)} call.
      *
      * @param procedure The function object.
      * @param args The arguments.

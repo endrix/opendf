@@ -38,12 +38,12 @@ BEGINCOPYRIGHT X,ETH
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.hades.des.util;
+package net.sf.opendf.hades.des.util;
 
 import java.io.Serializable;
 import java.util.Vector;
 
-import net.sf.caltrop.hades.des.DiscreteEventEntity;
+import net.sf.opendf.hades.des.DiscreteEventEntity;
 
 /**
  *  @memo time-sorted linear structure of objects

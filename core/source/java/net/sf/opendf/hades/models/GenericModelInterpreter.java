@@ -38,15 +38,15 @@ BEGINCOPYRIGHT X,ETH
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.hades.models;
+package net.sf.opendf.hades.models;
 
 
 import java.util.Collections;
 import java.util.Map;
 
-import net.sf.caltrop.hades.des.AbstractDiscreteEventComponent;
-import net.sf.caltrop.hades.des.DiscreteEventComponent;
-import net.sf.caltrop.hades.des.schedule.Scheduler;
+import net.sf.opendf.hades.des.AbstractDiscreteEventComponent;
+import net.sf.opendf.hades.des.DiscreteEventComponent;
+import net.sf.opendf.hades.des.schedule.Scheduler;
 
 
 

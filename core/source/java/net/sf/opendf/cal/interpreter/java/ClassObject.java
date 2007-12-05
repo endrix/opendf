@@ -37,14 +37,14 @@ BEGINCOPYRIGHT X,UC
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.cal.interpreter.java;
+package net.sf.opendf.cal.interpreter.java;
 
 
 import java.lang.reflect.Constructor;
 
-import net.sf.caltrop.cal.interpreter.Context;
-import net.sf.caltrop.cal.interpreter.Function;
-import net.sf.caltrop.cal.interpreter.InterpreterException;
+import net.sf.opendf.cal.interpreter.Context;
+import net.sf.opendf.cal.interpreter.Function;
+import net.sf.opendf.cal.interpreter.InterpreterException;
 
 /**
  * A ClassObject represents a class inside the interpreter. In particular, it encapsulates

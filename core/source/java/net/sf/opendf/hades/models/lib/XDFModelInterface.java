@@ -36,31 +36,31 @@ BEGINCOPYRIGHT X
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.hades.models.lib;
+package net.sf.opendf.hades.models.lib;
 
-import static net.sf.caltrop.hades.models.lib.Util.buildNetworkFromXDF;
-import static net.sf.caltrop.hades.models.lib.Util.getPlatform;
-import static net.sf.caltrop.util.xml.Util.root;
-import static net.sf.caltrop.util.xml.Util.xpathEvalNode;
-import static net.sf.caltrop.util.xml.Util.xpathEvalNodes;
+import static net.sf.opendf.hades.models.lib.Util.buildNetworkFromXDF;
+import static net.sf.opendf.hades.models.lib.Util.getPlatform;
+import static net.sf.opendf.util.xml.Util.root;
+import static net.sf.opendf.util.xml.Util.xpathEvalNode;
+import static net.sf.opendf.util.xml.Util.xpathEvalNodes;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import net.sf.caltrop.cal.interpreter.util.Platform;
-import net.sf.caltrop.hades.des.DiscreteEventComponent;
-import net.sf.caltrop.hades.des.components.AtomicConnectorDescriptor;
-import net.sf.caltrop.hades.des.components.ParameterDescriptor;
-import net.sf.caltrop.hades.des.schedule.Scheduler;
-import net.sf.caltrop.hades.models.ModelInterface;
-import net.sf.caltrop.hades.network.Network;
-import net.sf.caltrop.util.xml.ElementPredicate;
-import net.sf.caltrop.util.xml.TagNamePredicate;
-import net.sf.caltrop.util.xml.Util;
-// import net.sf.caltrop.util.source.LoadingErrorException;
-// import net.sf.caltrop.util.source.LoadingErrorRuntimeException;
+import net.sf.opendf.cal.interpreter.util.Platform;
+import net.sf.opendf.hades.des.DiscreteEventComponent;
+import net.sf.opendf.hades.des.components.AtomicConnectorDescriptor;
+import net.sf.opendf.hades.des.components.ParameterDescriptor;
+import net.sf.opendf.hades.des.schedule.Scheduler;
+import net.sf.opendf.hades.models.ModelInterface;
+import net.sf.opendf.hades.network.Network;
+import net.sf.opendf.util.xml.ElementPredicate;
+import net.sf.opendf.util.xml.TagNamePredicate;
+import net.sf.opendf.util.xml.Util;
+// import net.sf.opendf.util.source.LoadingErrorException;
+// import net.sf.opendf.util.source.LoadingErrorRuntimeException;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;

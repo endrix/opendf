@@ -38,7 +38,7 @@ BEGINCOPYRIGHT X,ETH
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.hades.des.schedule;
+package net.sf.opendf.hades.des.schedule;
 
 import java.util.ArrayList;
 import java.util.HashMap;

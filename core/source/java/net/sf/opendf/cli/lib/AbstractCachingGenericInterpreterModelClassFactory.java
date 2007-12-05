@@ -36,13 +36,13 @@ BEGINCOPYRIGHT X
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.cli.lib;
+package net.sf.opendf.cli.lib;
 
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import net.sf.caltrop.util.logging.Logging;
+import net.sf.opendf.util.logging.Logging;
 
 abstract public class AbstractCachingGenericInterpreterModelClassFactory extends AbstractGenericInterpreterModelClassFactory {
 	

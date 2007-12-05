@@ -36,15 +36,15 @@ BEGINCOPYRIGHT X
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.cli.lib;
+package net.sf.opendf.cli.lib;
 
 import java.io.IOException;
 import java.io.InputStream;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 
-import net.sf.caltrop.hades.models.ModelInterface;
-import net.sf.caltrop.hades.models.lib.XNLModelInterface;
+import net.sf.opendf.hades.models.ModelInterface;
+import net.sf.opendf.hades.models.lib.XNLModelInterface;
 
 import org.w3c.dom.Document;
 

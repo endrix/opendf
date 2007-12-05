@@ -37,18 +37,18 @@ BEGINCOPYRIGHT X
 ENDCOPYRIGHT
  */
 
-package net.sf.caltrop.cli;
+package net.sf.opendf.cli;
 
-import net.sf.caltrop.util.logging.Logging;
-import net.sf.caltrop.cal.parser.CalParserException;
-import net.sf.caltrop.nl.parser.NLParserException;
-import net.sf.caltrop.util.source.ParserErrorException;
-import net.sf.caltrop.util.source.GenericError;
-import net.sf.caltrop.util.source.MultiErrorException;
-import net.sf.caltrop.cal.i2.InterpreterException;
-import net.sf.caltrop.cal.i2.UndefinedVariableException;
-import net.sf.caltrop.cal.i2.UndefinedInterpreterException;
-import net.sf.caltrop.util.exception.*;
+import net.sf.opendf.util.logging.Logging;
+import net.sf.opendf.cal.parser.CalParserException;
+import net.sf.opendf.nl.parser.NLParserException;
+import net.sf.opendf.util.source.ParserErrorException;
+import net.sf.opendf.util.source.GenericError;
+import net.sf.opendf.util.source.MultiErrorException;
+import net.sf.opendf.cal.i2.InterpreterException;
+import net.sf.opendf.cal.i2.UndefinedVariableException;
+import net.sf.opendf.cal.i2.UndefinedInterpreterException;
+import net.sf.opendf.util.exception.*;
 
 import java.util.*;
 
@@ -117,7 +117,7 @@ public class SimRuntimeExceptionHandler implements ExceptionHandler
         // just in case....
         new DbgTypedExceptionHandler() 
         {
-            protected Class getHandledClass() { return net.sf.caltrop.cal.interpreter.InterpreterException.class; }
+            protected Class getHandledClass() { return net.sf.opendf.cal.interpreter.InterpreterException.class; }
             public boolean handle (Throwable t)
             {
                 super.handle(t);

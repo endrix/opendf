@@ -37,12 +37,12 @@ BEGINCOPYRIGHT X,UC
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.cal.interpreter.util;
+package net.sf.opendf.cal.interpreter.util;
 
-import net.sf.caltrop.cal.ast.Import;
-import net.sf.caltrop.cal.ast.PackageImport;
-import net.sf.caltrop.cal.ast.SingleImport;
-import net.sf.caltrop.cal.interpreter.environment.Environment;
+import net.sf.opendf.cal.ast.Import;
+import net.sf.opendf.cal.ast.PackageImport;
+import net.sf.opendf.cal.ast.SingleImport;
+import net.sf.opendf.cal.interpreter.environment.Environment;
 
 /**
  * 

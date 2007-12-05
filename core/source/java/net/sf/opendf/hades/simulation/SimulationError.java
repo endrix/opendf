@@ -39,7 +39,7 @@ ENDCOPYRIGHT
 */
 
 
-package net.sf.caltrop.hades.simulation;
+package net.sf.opendf.hades.simulation;
 
 /**
  *  Top-level exception class for the Simulation package.

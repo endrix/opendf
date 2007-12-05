@@ -37,7 +37,7 @@ BEGINCOPYRIGHT X,UC
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.cal.util;
+package net.sf.opendf.cal.util;
 
 
 import java.io.InputStream;
@@ -46,18 +46,18 @@ import java.io.StringReader;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 
-import net.sf.caltrop.cal.ast.Actor;
-import net.sf.caltrop.cal.ast.Expression;
-import net.sf.caltrop.cal.ast.Statement;
-import net.sf.caltrop.cal.interpreter.util.ASTFactory;
-import net.sf.caltrop.cal.parser.CalExpressionParser;
-import net.sf.caltrop.cal.parser.CalStatementParser;
-import net.sf.caltrop.cal.parser.Lexer;
-import net.sf.caltrop.cal.parser.Parser;
-import net.sf.caltrop.util.source.MultiErrorException;
+import net.sf.opendf.cal.ast.Actor;
+import net.sf.opendf.cal.ast.Expression;
+import net.sf.opendf.cal.ast.Statement;
+import net.sf.opendf.cal.interpreter.util.ASTFactory;
+import net.sf.opendf.cal.parser.CalExpressionParser;
+import net.sf.opendf.cal.parser.CalStatementParser;
+import net.sf.opendf.cal.parser.Lexer;
+import net.sf.opendf.cal.parser.Parser;
+import net.sf.opendf.util.source.MultiErrorException;
 
-import net.sf.caltrop.util.xml.Util;
-import net.sf.caltrop.util.logging.Logging;
+import net.sf.opendf.util.xml.Util;
+import net.sf.opendf.util.logging.Logging;
 
 
 import org.w3c.dom.Document;
@@ -75,28 +75,28 @@ public class SourceReader
     private static final boolean suppressActorChecks = System.getenv().containsKey("CAL_SUPPRESS_ACTOR_CHECKS");
 
     private static String [] actorPreprocessTransforms = {
-        "net/sf/caltrop/cal/transforms/BuildProductSchedule.xslt",
-        "net/sf/caltrop/cal/transforms/CanonicalizePortTags.xslt",
+        "net/sf/opendf/cal/transforms/BuildProductSchedule.xslt",
+        "net/sf/opendf/cal/transforms/CanonicalizePortTags.xslt",
 
         // Copies Input Port Type to Input Decl
-        "net/sf/caltrop/cal/transforms/AddInputTypes.xslt",
+        "net/sf/opendf/cal/transforms/AddInputTypes.xslt",
 
         // Convert the old keyword to appropriate local var declaration
-        "net/sf/caltrop/cal/transforms/ReplaceOld.xslt",
+        "net/sf/opendf/cal/transforms/ReplaceOld.xslt",
         // Add $local to all local variables.
-        "net/sf/caltrop/cal/transforms/RenameLocalVars.xslt",
+        "net/sf/opendf/cal/transforms/RenameLocalVars.xslt",
 
         // Defer inlining of fxn/procedure to the code generators
-        //"net/sf/caltrop/cal/transforms/Inline.xslt",
+        //"net/sf/opendf/cal/transforms/Inline.xslt",
 
         // Done in elaborator after inlining
-        //"net/sf/caltrop/cal/transforms/AddID.xslt",
-        //"net/sf/caltrop/cal/transforms/VariableAnnotator.xslt",
-        //"net/sf/caltrop/cal/transforms/ContextInfoAnnotator.xslt",
-        //"net/sf/caltrop/cal/transforms/CanonicalizeOperators.xslt",
-        //"net/sf/caltrop/cal/transforms/AnnotateFreeVars.xslt",
-        //"net/sf/caltrop/cal/transforms/DependencyAnnotator.xslt",
-        //"net/sf/caltrop/cal/transforms/VariableSorter.xslt"
+        //"net/sf/opendf/cal/transforms/AddID.xslt",
+        //"net/sf/opendf/cal/transforms/VariableAnnotator.xslt",
+        //"net/sf/opendf/cal/transforms/ContextInfoAnnotator.xslt",
+        //"net/sf/opendf/cal/transforms/CanonicalizeOperators.xslt",
+        //"net/sf/opendf/cal/transforms/AnnotateFreeVars.xslt",
+        //"net/sf/opendf/cal/transforms/DependencyAnnotator.xslt",
+        //"net/sf/opendf/cal/transforms/VariableSorter.xslt"
     };
     
 	public static Document parseActor(Reader s) throws MultiErrorException
@@ -120,9 +120,9 @@ public class SourceReader
             {
                 // Basic error checking...
                 Node res = Util.applyTransformsAsResources(doc, new String[] {
-                    "net/sf/caltrop/cal/checks/semanticChecks.xslt",
+                    "net/sf/opendf/cal/checks/semanticChecks.xslt",
                     // provide counts, terminate-on-error
-                    "net/sf/caltrop/cal/checks/problemSummary.xslt"
+                    "net/sf/opendf/cal/checks/problemSummary.xslt"
                 });
             }
             catch (Exception e)

@@ -36,7 +36,7 @@ BEGINCOPYRIGHT X
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.cli;
+package net.sf.opendf.cli;
 
 import java.io.File;
 import java.io.InputStream;
@@ -45,16 +45,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import net.sf.caltrop.cli.lib.ActorCClassFactory;
-import net.sf.caltrop.cli.lib.CalActorClassFactory;
-import net.sf.caltrop.cli.lib.CalMLActorClassFactory;
-import net.sf.caltrop.cli.lib.NLClassFactory;
-import net.sf.caltrop.cli.lib.XDFClassFactory;
-import net.sf.caltrop.cli.lib.XNLClassFactory;
-import net.sf.caltrop.util.io.ClassLoaderStreamLocator;
-import net.sf.caltrop.util.io.DirectoryStreamLocator;
-import net.sf.caltrop.util.io.StreamLocator;
-import net.sf.caltrop.util.logging.Logging;
+import net.sf.opendf.cli.lib.ActorCClassFactory;
+import net.sf.opendf.cli.lib.CalActorClassFactory;
+import net.sf.opendf.cli.lib.CalMLActorClassFactory;
+import net.sf.opendf.cli.lib.NLClassFactory;
+import net.sf.opendf.cli.lib.XDFClassFactory;
+import net.sf.opendf.cli.lib.XNLClassFactory;
+import net.sf.opendf.util.io.ClassLoaderStreamLocator;
+import net.sf.opendf.util.io.DirectoryStreamLocator;
+import net.sf.opendf.util.io.StreamLocator;
+import net.sf.opendf.util.logging.Logging;
 
 
 public class SimulationClassLoader extends ClassLoader {
@@ -74,7 +74,7 @@ public class SimulationClassLoader extends ClassLoader {
 		}
 
         // NOTE: The class loading here must mimic the behavior used
-        // in net.sf.caltrop.cal.xml.Util.ClasspathURIResolver so that the XSLT
+        // in net.sf.opendf.cal.xml.Util.ClasspathURIResolver so that the XSLT
         // transforms (ie synthesis path) and simulation behavior match.
 		
 		String baseName = name.replace('.', File.separatorChar);

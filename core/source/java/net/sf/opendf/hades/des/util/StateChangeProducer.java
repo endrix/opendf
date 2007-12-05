@@ -38,9 +38,9 @@ BEGINCOPYRIGHT X,ETH
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.hades.des.util;
+package net.sf.opendf.hades.des.util;
 
-import net.sf.caltrop.hades.des.MessageProducer;
+import net.sf.opendf.hades.des.MessageProducer;
 
 public interface StateChangeProducer extends MessageProducer {
 

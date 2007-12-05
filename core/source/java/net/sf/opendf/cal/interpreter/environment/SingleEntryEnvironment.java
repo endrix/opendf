@@ -37,11 +37,11 @@ BEGINCOPYRIGHT X,UC
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.cal.interpreter.environment;
+package net.sf.opendf.cal.interpreter.environment;
 
 import java.util.Set;
 
-import net.sf.caltrop.cal.interpreter.InterpreterException;
+import net.sf.opendf.cal.interpreter.InterpreterException;
 
 
 /**

@@ -36,7 +36,7 @@ BEGINCOPYRIGHT X
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.hades.util.causation;
+package net.sf.opendf.hades.util.causation;
 
 /**
  * A CausationTraceBuilder is an object that allows applications 

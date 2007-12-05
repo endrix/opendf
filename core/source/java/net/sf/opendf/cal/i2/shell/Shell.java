@@ -37,7 +37,7 @@ BEGINCOPYRIGHT X,UC
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.cal.i2.shell;
+package net.sf.opendf.cal.i2.shell;
 
 
 import java.io.BufferedReader;
@@ -56,25 +56,25 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import net.sf.caltrop.cal.ast.Expression;
-import net.sf.caltrop.cal.ast.Statement;
-import net.sf.caltrop.cal.i2.Configuration;
-import net.sf.caltrop.cal.i2.Environment;
-import net.sf.caltrop.cal.i2.Evaluator;
-import net.sf.caltrop.cal.i2.Executor;
-import net.sf.caltrop.cal.i2.environment.AccessLoggingEnvironment;
-import net.sf.caltrop.cal.i2.environment.AutoBindEnvironment;
-import net.sf.caltrop.cal.i2.environment.CacheEnvironment;
-import net.sf.caltrop.cal.i2.environment.ConstantEnvironment;
-import net.sf.caltrop.cal.i2.environment.ImportEnvironment;
-import net.sf.caltrop.cal.i2.platform.DefaultUntypedPlatform;
-import net.sf.caltrop.cal.i2.util.CalScriptImportHandler;
-import net.sf.caltrop.cal.i2.util.ClassLoadingImportHandler;
-import net.sf.caltrop.cal.i2.util.EnvironmentFactoryImportHandler;
-import net.sf.caltrop.cal.i2.util.ImportHandler;
-import net.sf.caltrop.cal.i2.util.Platform;
-import net.sf.caltrop.cal.interpreter.util.NullOutputStream;
-import net.sf.caltrop.cal.util.SourceReader;
+import net.sf.opendf.cal.ast.Expression;
+import net.sf.opendf.cal.ast.Statement;
+import net.sf.opendf.cal.i2.Configuration;
+import net.sf.opendf.cal.i2.Environment;
+import net.sf.opendf.cal.i2.Evaluator;
+import net.sf.opendf.cal.i2.Executor;
+import net.sf.opendf.cal.i2.environment.AccessLoggingEnvironment;
+import net.sf.opendf.cal.i2.environment.AutoBindEnvironment;
+import net.sf.opendf.cal.i2.environment.CacheEnvironment;
+import net.sf.opendf.cal.i2.environment.ConstantEnvironment;
+import net.sf.opendf.cal.i2.environment.ImportEnvironment;
+import net.sf.opendf.cal.i2.platform.DefaultUntypedPlatform;
+import net.sf.opendf.cal.i2.util.CalScriptImportHandler;
+import net.sf.opendf.cal.i2.util.ClassLoadingImportHandler;
+import net.sf.opendf.cal.i2.util.EnvironmentFactoryImportHandler;
+import net.sf.opendf.cal.i2.util.ImportHandler;
+import net.sf.opendf.cal.i2.util.Platform;
+import net.sf.opendf.cal.interpreter.util.NullOutputStream;
+import net.sf.opendf.cal.util.SourceReader;
 
 
 /**
@@ -82,7 +82,7 @@ import net.sf.caltrop.cal.util.SourceReader;
  * use any Cal platform.
  * <p>
  * Invocation syntax:<br>
- * <tt>net.sf.caltrop.cal.shell.Shell [-platform <it>platform</it>] file1 file2 ...</tt>
+ * <tt>net.sf.opendf.cal.shell.Shell [-platform <it>platform</it>] file1 file2 ...</tt>
  * <p>
  * Interaction happens on a line-by-line basis, where a logical "line" may be continued on the next
  * physical line if the last non-whitespace character on the current line is a backslash "\". The shell understands
@@ -598,7 +598,7 @@ public class Shell {
 
 
     private static void  printUsage() {
-        System.err.println("net.sf.caltrop.cal.shell.Shell [-platform <platformClass>] files ...");
+        System.err.println("net.sf.opendf.cal.shell.Shell [-platform <platformClass>] files ...");
     }
 
 

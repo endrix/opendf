@@ -38,7 +38,7 @@ BEGINCOPYRIGHT X,ETH
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.hades.des.util;
+package net.sf.opendf.hades.des.util;
 
 public class BinTree {
 

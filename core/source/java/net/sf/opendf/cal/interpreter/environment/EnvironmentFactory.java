@@ -37,9 +37,9 @@ BEGINCOPYRIGHT X,UC
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.cal.interpreter.environment;
+package net.sf.opendf.cal.interpreter.environment;
 
-import net.sf.caltrop.cal.interpreter.Context;
+import net.sf.opendf.cal.interpreter.Context;
 
 /**
  * An environment factory constructs an environment frame that works 

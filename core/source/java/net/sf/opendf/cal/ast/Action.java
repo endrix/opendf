@@ -37,7 +37,7 @@ BEGINCOPYRIGHT X,UC
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.cal.ast;
+package net.sf.opendf.cal.ast;
 
 
 public class Action extends ASTNode {

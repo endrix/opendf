@@ -38,7 +38,7 @@ BEGINCOPYRIGHT X,ETH
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.hades.des.components;
+package net.sf.opendf.hades.des.components;
 
 
 /**

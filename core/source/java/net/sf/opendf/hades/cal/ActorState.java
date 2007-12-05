@@ -37,7 +37,7 @@ BEGINCOPYRIGHT X,UC
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.hades.cal;
+package net.sf.opendf.hades.cal;
 
 import java.util.Collections;
 import java.util.Map;

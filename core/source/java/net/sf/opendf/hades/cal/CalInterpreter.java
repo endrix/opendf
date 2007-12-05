@@ -37,7 +37,7 @@ BEGINCOPYRIGHT X,UC
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.hades.cal;
+package net.sf.opendf.hades.cal;
 
 
 import java.util.ArrayList;
@@ -52,53 +52,53 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
-import net.sf.caltrop.cal.ast.Action;
-import net.sf.caltrop.cal.ast.Actor;
-import net.sf.caltrop.cal.ast.Decl;
-import net.sf.caltrop.cal.ast.Expression;
-import net.sf.caltrop.cal.ast.PortDecl;
-import net.sf.caltrop.cal.ast.QID;
-import net.sf.caltrop.cal.ast.Transition;
-import net.sf.caltrop.cal.ast.TypeExpr;
-import net.sf.caltrop.cal.i2.Configuration;
-import net.sf.caltrop.cal.i2.Environment;
-import net.sf.caltrop.cal.i2.Executor;
-import net.sf.caltrop.cal.i2.InterpreterException;
-import net.sf.caltrop.cal.i2.Procedure;
-import net.sf.caltrop.cal.i2.environment.ConstantEnvironment;
-import net.sf.caltrop.cal.i2.environment.DynamicEnvironmentFrame;
-import net.sf.caltrop.cal.i2.platform.DefaultTypedPlatform;
-import net.sf.caltrop.cal.i2.platform.DefaultUntypedPlatform;
-import net.sf.caltrop.cal.i2.types.Type;
-import net.sf.caltrop.cal.i2.types.TypeSystem;
-import net.sf.caltrop.cal.i2.util.ImportHandler;
-import net.sf.caltrop.cal.i2.util.ImportMapper;
-import net.sf.caltrop.cal.i2.util.ImportUtil;
-import net.sf.caltrop.cal.i2.util.Platform;
-import net.sf.caltrop.cal.interpreter.InputChannel;
-import net.sf.caltrop.cal.interpreter.InputPort;
-import net.sf.caltrop.cal.interpreter.OutputChannel;
-import net.sf.caltrop.cal.interpreter.OutputPort;
-import net.sf.caltrop.cal.interpreter.util.PriorityUtil;
-import net.sf.caltrop.hades.des.AbstractDiscreteEventComponent;
-import net.sf.caltrop.hades.des.AbstractMessageListener;
-import net.sf.caltrop.hades.des.BasicMessageProducer;
-import net.sf.caltrop.hades.des.ControlEvent;
-import net.sf.caltrop.hades.des.EventProcessor;
-import net.sf.caltrop.hades.des.MessageEvent;
-import net.sf.caltrop.hades.des.schedule.PostfireHandler;
-import net.sf.caltrop.hades.des.schedule.Scheduler;
-import net.sf.caltrop.hades.des.schedule.SimulationFinalizer;
-import net.sf.caltrop.hades.des.util.Attributable;
-import net.sf.caltrop.hades.des.util.LocationMap;
-import net.sf.caltrop.hades.des.util.OutputBlockRecord;
-import net.sf.caltrop.hades.des.util.StateChangeEvent;
-import net.sf.caltrop.hades.des.util.StateChangeListener;
-import net.sf.caltrop.hades.des.util.StateChangeProvider;
-import net.sf.caltrop.util.logging.Logging;
-import net.sf.caltrop.util.exception.LocatableException;
+import net.sf.opendf.cal.ast.Action;
+import net.sf.opendf.cal.ast.Actor;
+import net.sf.opendf.cal.ast.Decl;
+import net.sf.opendf.cal.ast.Expression;
+import net.sf.opendf.cal.ast.PortDecl;
+import net.sf.opendf.cal.ast.QID;
+import net.sf.opendf.cal.ast.Transition;
+import net.sf.opendf.cal.ast.TypeExpr;
+import net.sf.opendf.cal.i2.Configuration;
+import net.sf.opendf.cal.i2.Environment;
+import net.sf.opendf.cal.i2.Executor;
+import net.sf.opendf.cal.i2.InterpreterException;
+import net.sf.opendf.cal.i2.Procedure;
+import net.sf.opendf.cal.i2.environment.ConstantEnvironment;
+import net.sf.opendf.cal.i2.environment.DynamicEnvironmentFrame;
+import net.sf.opendf.cal.i2.platform.DefaultTypedPlatform;
+import net.sf.opendf.cal.i2.platform.DefaultUntypedPlatform;
+import net.sf.opendf.cal.i2.types.Type;
+import net.sf.opendf.cal.i2.types.TypeSystem;
+import net.sf.opendf.cal.i2.util.ImportHandler;
+import net.sf.opendf.cal.i2.util.ImportMapper;
+import net.sf.opendf.cal.i2.util.ImportUtil;
+import net.sf.opendf.cal.i2.util.Platform;
+import net.sf.opendf.cal.interpreter.InputChannel;
+import net.sf.opendf.cal.interpreter.InputPort;
+import net.sf.opendf.cal.interpreter.OutputChannel;
+import net.sf.opendf.cal.interpreter.OutputPort;
+import net.sf.opendf.cal.interpreter.util.PriorityUtil;
+import net.sf.opendf.hades.des.AbstractDiscreteEventComponent;
+import net.sf.opendf.hades.des.AbstractMessageListener;
+import net.sf.opendf.hades.des.BasicMessageProducer;
+import net.sf.opendf.hades.des.ControlEvent;
+import net.sf.opendf.hades.des.EventProcessor;
+import net.sf.opendf.hades.des.MessageEvent;
+import net.sf.opendf.hades.des.schedule.PostfireHandler;
+import net.sf.opendf.hades.des.schedule.Scheduler;
+import net.sf.opendf.hades.des.schedule.SimulationFinalizer;
+import net.sf.opendf.hades.des.util.Attributable;
+import net.sf.opendf.hades.des.util.LocationMap;
+import net.sf.opendf.hades.des.util.OutputBlockRecord;
+import net.sf.opendf.hades.des.util.StateChangeEvent;
+import net.sf.opendf.hades.des.util.StateChangeListener;
+import net.sf.opendf.hades.des.util.StateChangeProvider;
+import net.sf.opendf.util.logging.Logging;
+import net.sf.opendf.util.exception.LocatableException;
 
-import static net.sf.caltrop.util.Misc.deepCopy;
+import static net.sf.opendf.util.Misc.deepCopy;
 
 /**
  * 

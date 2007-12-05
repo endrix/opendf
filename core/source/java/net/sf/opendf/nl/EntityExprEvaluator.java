@@ -36,13 +36,13 @@ BEGINCOPYRIGHT X
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.nl;
+package net.sf.opendf.nl;
 
-import static net.sf.caltrop.nl.util.Lib.createAttributes;
-import static net.sf.caltrop.nl.util.Lib.substituteExpression;
-import static net.sf.caltrop.util.xml.Util.xpathEvalElement;
-import static net.sf.caltrop.util.xml.Util.xpathEvalElements;
-import static net.sf.caltrop.util.xml.Util.xpathEvalNodes;
+import static net.sf.opendf.nl.util.Lib.createAttributes;
+import static net.sf.opendf.nl.util.Lib.substituteExpression;
+import static net.sf.opendf.util.xml.Util.xpathEvalElement;
+import static net.sf.opendf.util.xml.Util.xpathEvalElements;
+import static net.sf.opendf.util.xml.Util.xpathEvalNodes;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -50,22 +50,22 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import net.sf.caltrop.cal.ast.Decl;
-import net.sf.caltrop.cal.ast.Expression;
-import net.sf.caltrop.cal.ast.GeneratorFilter;
-import net.sf.caltrop.cal.interpreter.Context;
-import net.sf.caltrop.cal.interpreter.ExprEvaluator;
-import net.sf.caltrop.cal.interpreter.environment.Environment;
-import net.sf.caltrop.cal.interpreter.generator.CollectionGenerator;
-import net.sf.caltrop.cal.interpreter.generator.Filter;
-import net.sf.caltrop.cal.interpreter.generator.Generator;
-import net.sf.caltrop.cal.interpreter.generator.Seed;
-import net.sf.caltrop.cal.interpreter.generator.VariableGenerator;
-import net.sf.caltrop.cal.interpreter.util.ASTFactory;
-import net.sf.caltrop.nl.util.DOMFactory;
-import net.sf.caltrop.nl.util.IDGenerator;
-import net.sf.caltrop.util.logging.CascadedMap;
-import net.sf.caltrop.util.logging.Logging;
+import net.sf.opendf.cal.ast.Decl;
+import net.sf.opendf.cal.ast.Expression;
+import net.sf.opendf.cal.ast.GeneratorFilter;
+import net.sf.opendf.cal.interpreter.Context;
+import net.sf.opendf.cal.interpreter.ExprEvaluator;
+import net.sf.opendf.cal.interpreter.environment.Environment;
+import net.sf.opendf.cal.interpreter.generator.CollectionGenerator;
+import net.sf.opendf.cal.interpreter.generator.Filter;
+import net.sf.opendf.cal.interpreter.generator.Generator;
+import net.sf.opendf.cal.interpreter.generator.Seed;
+import net.sf.opendf.cal.interpreter.generator.VariableGenerator;
+import net.sf.opendf.cal.interpreter.util.ASTFactory;
+import net.sf.opendf.nl.util.DOMFactory;
+import net.sf.opendf.nl.util.IDGenerator;
+import net.sf.opendf.util.logging.CascadedMap;
+import net.sf.opendf.util.logging.Logging;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;

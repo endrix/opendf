@@ -1,12 +1,12 @@
-package net.sf.caltrop.cal.i2;
+package net.sf.opendf.cal.i2;
 
 import java.util.List;
 
-import net.sf.caltrop.cal.ast.ExprIf;
-import net.sf.caltrop.cal.ast.ExprLiteral;
-import net.sf.caltrop.cal.ast.ExprVariable;
-import net.sf.caltrop.cal.ast.StmtAssignment;
-import net.sf.caltrop.cal.i2.types.TypeSystem;
+import net.sf.opendf.cal.ast.ExprIf;
+import net.sf.opendf.cal.ast.ExprLiteral;
+import net.sf.opendf.cal.ast.ExprVariable;
+import net.sf.opendf.cal.ast.StmtAssignment;
+import net.sf.opendf.cal.i2.types.TypeSystem;
 
 public interface Configuration {
 	

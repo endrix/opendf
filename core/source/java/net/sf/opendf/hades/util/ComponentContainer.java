@@ -39,7 +39,7 @@ ENDCOPYRIGHT
 */
 
 
-package net.sf.caltrop.hades.util;
+package net.sf.opendf.hades.util;
 
 
 import java.util.ArrayList;
@@ -50,19 +50,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import net.sf.caltrop.hades.des.AbstractDiscreteEventComponent;
-import net.sf.caltrop.hades.des.AbstractMessageListener;
-import net.sf.caltrop.hades.des.BasicMessageProducer;
-import net.sf.caltrop.hades.des.DelegationMessageListener;
-import net.sf.caltrop.hades.des.DiscreteEventComponent;
-import net.sf.caltrop.hades.des.EventProcessor;
-import net.sf.caltrop.hades.des.MessageEvent;
-import net.sf.caltrop.hades.des.MessageListener;
-import net.sf.caltrop.hades.des.MessageProducer;
-import net.sf.caltrop.hades.des.schedule.PostfireHandler;
-import net.sf.caltrop.hades.des.schedule.Scheduler;
-import net.sf.caltrop.hades.des.schedule.SimpleScheduler;
-import net.sf.caltrop.hades.des.schedule.SimulationFinalizer;
+import net.sf.opendf.hades.des.AbstractDiscreteEventComponent;
+import net.sf.opendf.hades.des.AbstractMessageListener;
+import net.sf.opendf.hades.des.BasicMessageProducer;
+import net.sf.opendf.hades.des.DelegationMessageListener;
+import net.sf.opendf.hades.des.DiscreteEventComponent;
+import net.sf.opendf.hades.des.EventProcessor;
+import net.sf.opendf.hades.des.MessageEvent;
+import net.sf.opendf.hades.des.MessageListener;
+import net.sf.opendf.hades.des.MessageProducer;
+import net.sf.opendf.hades.des.schedule.PostfireHandler;
+import net.sf.opendf.hades.des.schedule.Scheduler;
+import net.sf.opendf.hades.des.schedule.SimpleScheduler;
+import net.sf.opendf.hades.des.schedule.SimulationFinalizer;
 
 public class ComponentContainer
 extends AbstractDiscreteEventComponent

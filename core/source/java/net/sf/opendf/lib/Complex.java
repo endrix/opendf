@@ -1,4 +1,4 @@
-package net.sf.caltrop.lib;
+package net.sf.opendf.lib;
 
 /*************************************************************************
  *  Compilation:  javac Complex.java

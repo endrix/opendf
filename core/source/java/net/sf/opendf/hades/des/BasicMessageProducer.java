@@ -39,7 +39,7 @@ ENDCOPYRIGHT
 */
 
 
-package net.sf.caltrop.hades.des;
+package net.sf.opendf.hades.des;
 
 import java.util.Iterator;
 import java.util.Vector;

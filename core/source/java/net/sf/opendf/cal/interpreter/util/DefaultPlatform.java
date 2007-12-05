@@ -37,7 +37,7 @@ BEGINCOPYRIGHT X,UC
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.cal.interpreter.util;
+package net.sf.opendf.cal.interpreter.util;
 
 
 import java.io.FileInputStream;
@@ -60,11 +60,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import net.sf.caltrop.cal.interpreter.Context;
-import net.sf.caltrop.cal.interpreter.Function;
-import net.sf.caltrop.cal.interpreter.InterpreterException;
-import net.sf.caltrop.cal.interpreter.Procedure;
-import net.sf.caltrop.cal.interpreter.environment.Environment;
+import net.sf.opendf.cal.interpreter.Context;
+import net.sf.opendf.cal.interpreter.Function;
+import net.sf.opendf.cal.interpreter.InterpreterException;
+import net.sf.opendf.cal.interpreter.Procedure;
+import net.sf.opendf.cal.interpreter.environment.Environment;
 
 
 /**
@@ -95,8 +95,8 @@ public class DefaultPlatform implements Platform {
 	
 	public ImportMapper []  getImportMappers() {
 		return new ImportMapper [] {
-				new ReplacePrefixImportMapper(new String [] {"caltrop", "lib"}, 
-											  new String [] {"net", "sf", "caltrop", "cal", "lib"})
+				new ReplacePrefixImportMapper(new String [] {"opendf", "lib"}, 
+											  new String [] {"net", "sf", "opendf", "cal", "lib"})
 		};
     }
 

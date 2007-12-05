@@ -36,9 +36,9 @@ BEGINCOPYRIGHT X
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.cal.i2.generator;
+package net.sf.opendf.cal.i2.generator;
 
-import net.sf.caltrop.cal.i2.Environment;
+import net.sf.opendf.cal.i2.Environment;
 
 public class Seed implements Generator {
 

@@ -39,7 +39,7 @@ ENDCOPYRIGHT
 */
 
 
-package net.sf.caltrop.hades.des.components;
+package net.sf.opendf.hades.des.components;
 
 /**
     This specifies the embedding of a subsignature of an interface into a signature, in

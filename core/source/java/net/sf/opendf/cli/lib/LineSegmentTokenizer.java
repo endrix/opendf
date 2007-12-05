@@ -36,7 +36,7 @@ BEGINCOPYRIGHT X
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.cli.lib;
+package net.sf.opendf.cli.lib;
 
 
 import java.io.BufferedReader;
@@ -47,7 +47,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.StringTokenizer;
 
-import net.sf.caltrop.util.logging.Logging;
+import net.sf.opendf.util.logging.Logging;
 
 /**
  * The LineSegmentTokenizer consumes characters from an inputstream

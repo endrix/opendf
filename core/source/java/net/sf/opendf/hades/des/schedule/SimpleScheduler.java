@@ -38,10 +38,10 @@ BEGINCOPYRIGHT X,ETH
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.hades.des.schedule;
+package net.sf.opendf.hades.des.schedule;
 
-import net.sf.caltrop.hades.des.EventProcessor;
-import net.sf.caltrop.util.logging.Logging;
+import net.sf.opendf.hades.des.EventProcessor;
+import net.sf.opendf.util.logging.Logging;
 import java.util.logging.Level;
 
 public class SimpleScheduler extends AbstractObservableScheduler {

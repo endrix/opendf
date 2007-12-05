@@ -1,4 +1,4 @@
-package net.sf.caltrop.cal.i2.platform;
+package net.sf.opendf.cal.i2.platform;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -21,35 +21,35 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import net.sf.caltrop.cal.i2.Configuration;
-import net.sf.caltrop.cal.i2.Environment;
-import net.sf.caltrop.cal.i2.Evaluator;
-import net.sf.caltrop.cal.i2.Executor;
-import net.sf.caltrop.cal.i2.Function;
-import net.sf.caltrop.cal.i2.InterpreterException;
-import net.sf.caltrop.cal.i2.Procedure;
-import net.sf.caltrop.cal.i2.configuration.DefaultUntypedConfiguration;
-import net.sf.caltrop.cal.i2.environment.DynamicEnvironmentFrame;
-import net.sf.caltrop.cal.i2.util.CalScriptImportHandler;
-import net.sf.caltrop.cal.i2.util.ClassLoadingImportHandler;
-import net.sf.caltrop.cal.i2.util.EnvironmentFactoryImportHandler;
-import net.sf.caltrop.cal.i2.util.FunctionOf0;
-import net.sf.caltrop.cal.i2.util.FunctionOf1;
-import net.sf.caltrop.cal.i2.util.FunctionOf2;
-import net.sf.caltrop.cal.i2.util.FunctionOf2Eval;
-import net.sf.caltrop.cal.i2.util.FunctionOf3;
-import net.sf.caltrop.cal.i2.util.FunctionOf3Eval;
-import net.sf.caltrop.cal.i2.util.ImportHandler;
-import net.sf.caltrop.cal.i2.util.ImportMapper;
-import net.sf.caltrop.cal.i2.util.IntegerFactory;
-import net.sf.caltrop.cal.i2.util.IntegerList;
-import net.sf.caltrop.cal.i2.util.Platform;
-import net.sf.caltrop.cal.i2.util.ProcedureOf1;
-import net.sf.caltrop.cal.i2.util.ProcedureOf2;
-import net.sf.caltrop.cal.i2.util.ProcedureOf2Eval;
-import net.sf.caltrop.cal.i2.util.ProcedureOf4;
-import net.sf.caltrop.cal.i2.util.ReplacePrefixImportMapper;
-import net.sf.caltrop.lib.Complex;
+import net.sf.opendf.cal.i2.Configuration;
+import net.sf.opendf.cal.i2.Environment;
+import net.sf.opendf.cal.i2.Evaluator;
+import net.sf.opendf.cal.i2.Executor;
+import net.sf.opendf.cal.i2.Function;
+import net.sf.opendf.cal.i2.InterpreterException;
+import net.sf.opendf.cal.i2.Procedure;
+import net.sf.opendf.cal.i2.configuration.DefaultUntypedConfiguration;
+import net.sf.opendf.cal.i2.environment.DynamicEnvironmentFrame;
+import net.sf.opendf.cal.i2.util.CalScriptImportHandler;
+import net.sf.opendf.cal.i2.util.ClassLoadingImportHandler;
+import net.sf.opendf.cal.i2.util.EnvironmentFactoryImportHandler;
+import net.sf.opendf.cal.i2.util.FunctionOf0;
+import net.sf.opendf.cal.i2.util.FunctionOf1;
+import net.sf.opendf.cal.i2.util.FunctionOf2;
+import net.sf.opendf.cal.i2.util.FunctionOf2Eval;
+import net.sf.opendf.cal.i2.util.FunctionOf3;
+import net.sf.opendf.cal.i2.util.FunctionOf3Eval;
+import net.sf.opendf.cal.i2.util.ImportHandler;
+import net.sf.opendf.cal.i2.util.ImportMapper;
+import net.sf.opendf.cal.i2.util.IntegerFactory;
+import net.sf.opendf.cal.i2.util.IntegerList;
+import net.sf.opendf.cal.i2.util.Platform;
+import net.sf.opendf.cal.i2.util.ProcedureOf1;
+import net.sf.opendf.cal.i2.util.ProcedureOf2;
+import net.sf.opendf.cal.i2.util.ProcedureOf2Eval;
+import net.sf.opendf.cal.i2.util.ProcedureOf4;
+import net.sf.opendf.cal.i2.util.ReplacePrefixImportMapper;
+import net.sf.opendf.lib.Complex;
 
 public class DefaultUntypedPlatform implements Platform {
 
@@ -78,8 +78,8 @@ public class DefaultUntypedPlatform implements Platform {
 
 	public ImportMapper []  getImportMappers() {
 		return new ImportMapper [] {
-				new ReplacePrefixImportMapper(new String [] {"caltrop", "lib"}, 
-											  new String [] {"net", "sf", "caltrop", "cal", "lib_i2"})
+				new ReplacePrefixImportMapper(new String [] {"opendf", "lib"}, 
+											  new String [] {"net", "sf", "opendf", "cal", "lib_i2"})
 		};
     }
 

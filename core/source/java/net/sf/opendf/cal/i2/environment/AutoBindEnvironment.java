@@ -37,13 +37,13 @@ BEGINCOPYRIGHT X,UC
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.cal.i2.environment;
+package net.sf.opendf.cal.i2.environment;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import net.sf.caltrop.cal.i2.Environment;
-import net.sf.caltrop.cal.i2.UndefinedInterpreterException;
+import net.sf.opendf.cal.i2.Environment;
+import net.sf.opendf.cal.i2.UndefinedInterpreterException;
 
 
 /**

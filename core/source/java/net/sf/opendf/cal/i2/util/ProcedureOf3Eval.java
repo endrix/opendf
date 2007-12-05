@@ -1,7 +1,7 @@
-package net.sf.caltrop.cal.i2.util;
+package net.sf.opendf.cal.i2.util;
 
-import net.sf.caltrop.cal.i2.Executor;
-import net.sf.caltrop.cal.i2.Procedure;
+import net.sf.opendf.cal.i2.Executor;
+import net.sf.opendf.cal.i2.Procedure;
 
 abstract public class ProcedureOf3Eval implements Procedure {
 

@@ -38,11 +38,11 @@ BEGINCOPYRIGHT X,ETH
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.hades.simulation;
+package net.sf.opendf.hades.simulation;
 
 import java.io.Serializable;
 
-import net.sf.caltrop.hades.des.StatData;
+import net.sf.opendf.hades.des.StatData;
 
 /**
  *  This is the basic wrapper for data transfered between logical simulation processes (and must thus be

@@ -36,7 +36,7 @@ BEGINCOPYRIGHT X
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.cal.i2.generator;
+package net.sf.opendf.cal.i2.generator;
 
 public interface GeneratorCallback extends
 	Seed.Callback, CollectionGenerator.Callback, Filter.Callback, VariableGenerator.Callback
