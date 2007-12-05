@@ -36,35 +36,23 @@ BEGINCOPYRIGHT X
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.eclipse.plugin.editors;
+package net.sf.opendf.eclipse.plugin.editors;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import net.sf.opendf.eclipse.plugin.editors.scanners.*;
+import org.eclipse.jface.preference.*;
 
-import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.RGB;
-import org.eclipse.swt.widgets.Display;
-
-public class CALColorManager
+public class NLConfiguration extends OpendfConfiguration
 {
-	protected Map< RGB, Color > fColorTable = new HashMap< RGB, Color >(10);
-
-	public void dispose()
+	private OpendfScanner scanner;
+	
+	public NLConfiguration( IPreferenceStore store, OpendfColorManager colorManager )
 	{
-		Iterator e = fColorTable.values().iterator();
-		while (e.hasNext())
-			 ((Color) e.next()).dispose();
+		super( store );
+		scanner = new OpendfScanner( colorManager );
 	}
 	
-	public Color getColor(RGB rgb)
+	public OpendfScanner getScanner( )
 	{
-		Color color =  fColorTable.get(rgb);
-		if (color == null)
-		{
-			color = new Color( Display.getCurrent(), rgb);
-			fColorTable.put( rgb, color);
-		}
-		return color;
+		return scanner;
 	}
 }

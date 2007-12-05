@@ -38,21 +38,61 @@ ENDCOPYRIGHT
 
 package net.sf.opendf.eclipse.plugin.editors;
 
+import org.eclipse.jface.text.*;
+import org.eclipse.jface.text.presentation.*;
+import org.eclipse.jface.text.rules.*;
+import org.eclipse.jface.text.source.*;
+import org.eclipse.ui.editors.text.*;
 import net.sf.opendf.eclipse.plugin.editors.scanners.*;
 import org.eclipse.jface.preference.*;
 
-public class CALConfiguration extends OpendfConfiguration
+public abstract class OpendfConfiguration extends TextSourceViewerConfiguration
 {
-	private OpendfScanner scanner;
+	public abstract OpendfScanner getScanner();
 	
-	public CALConfiguration( IPreferenceStore store, OpendfColorManager colorManager )
+	public OpendfConfiguration( IPreferenceStore store )
 	{
 		super( store );
-		scanner = new OpendfScanner( colorManager );
+	}
+/*	
+	// No partitioner is attached, so the entire document will be one
+	// partition of the default type
+	public String[] getConfiguredContentTypes(ISourceViewer sourceViewer)
+	{
+		return new String[] { IDocument.DEFAULT_CONTENT_TYPE  };			
+	}
+*/
+	// Extend the default damager so that we compute damage properly.
+	// The default does not compute sufficient damage to cover extensive
+	// multi-line comment changes.
+	private class MajorDamage extends DefaultDamagerRepairer
+	{
+		MajorDamage( ITokenScanner scanner )
+	   {
+		   super( scanner );
+	   }
+	   
+	   public IRegion getDamageRegion( ITypedRegion partition, DocumentEvent e, boolean documentPartitioningChanged) 
+	   { 
+		   // For now, damage the whole document
+		   return new Region( partition.getOffset(), partition.getLength() );
+	   }
 	}
 	
-	public OpendfScanner getScanner( )
+	public IPresentationReconciler getPresentationReconciler(ISourceViewer sourceViewer)
 	{
-		return scanner;
+		PresentationReconciler reconciler = new PresentationReconciler();
+
+		MajorDamage dr = new MajorDamage( getScanner() );
+		
+		String[] configuredContentTypes = getConfiguredContentTypes( sourceViewer );
+		
+		for( int i = 0; i < configuredContentTypes.length; i++ )
+		{
+			reconciler.setDamager ( dr, configuredContentTypes[ i ] );
+			reconciler.setRepairer( dr, configuredContentTypes[ i ] );
+		}
+		
+		return reconciler;
 	}
 }

@@ -36,17 +36,17 @@ BEGINCOPYRIGHT X
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.eclipse.plugin.editors;
+package net.sf.opendf.eclipse.plugin.editors;
 
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.jface.text.*;
-import org.eclipse.ui.editors.text.FileDocumentProvider;
+import org.eclipse.swt.graphics.RGB;
 
-public class CALDocumentProvider extends FileDocumentProvider {
-	
-	protected IDocument createDocument(Object element) throws CoreException
-	{
-		IDocument document = super.createDocument(element);		
-		return document;
-	}
+public interface IOpendfColorDefaults
+{
+	RGB COMMENT    = new RGB( 0x00, 0x80, 0x00 ); // 50% green
+	RGB KEYWORD    = new RGB( 0x00, 0x00, 0xff ); // 100% blue
+	RGB CONSTANT   = new RGB( 0xb4, 0x00, 0x00 ); // 70% red
+	RGB IDENTIFIER = new RGB( 0x00, 0x00, 0x00 ); // black
+	RGB OPERATOR   = new RGB( 0xcd, 0x85, 0x3f ); // Peru from http://www.htmlhelp.com/cgi-bin/color.cgi
+	RGB SEPARATOR  = new RGB( 0xba, 0x55, 0xd3 ); // Medium Orchid from http://www.htmlhelp.com/cgi-bin/color.cgi
+	RGB DEFAULT    = new RGB( 0x00, 0x00, 0x00 ); // black
 }

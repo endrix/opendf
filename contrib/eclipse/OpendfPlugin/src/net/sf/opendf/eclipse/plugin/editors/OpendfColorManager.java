@@ -36,16 +36,35 @@ BEGINCOPYRIGHT X
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.eclipse.plugin.editors;
+package net.sf.opendf.eclipse.plugin.editors;
 
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.RGB;
+import org.eclipse.swt.widgets.Display;
 
-public interface ICALColorConstants {
-	RGB COMMENT    = new RGB( 0x00, 0x80, 0x00 ); // 50% green
-	RGB KEYWORD    = new RGB( 0x00, 0x00, 0xff ); // 100% blue
-	RGB CONSTANT   = new RGB( 0xb4, 0x00, 0x00 ); // 70% red
-	RGB IDENTIFIER = new RGB( 0x00, 0x00, 0x00 ); // black
-	RGB OPERATOR   = new RGB( 0xcd, 0x85, 0x3f ); // Peru from http://www.htmlhelp.com/cgi-bin/color.cgi
-	RGB SEPARATOR  = new RGB( 0xba, 0x55, 0xd3 ); // Medium Orchid from http://www.htmlhelp.com/cgi-bin/color.cgi
-	RGB DEFAULT    = new RGB( 0x00, 0x00, 0x00 ); // black
+public class OpendfColorManager
+{
+	protected Map< RGB, Color > fColorTable = new HashMap< RGB, Color >(10);
+
+	public void dispose()
+	{
+		Iterator e = fColorTable.values().iterator();
+		while (e.hasNext())
+			 ((Color) e.next()).dispose();
+	}
+	
+	public Color getColor( RGB rgb )
+	{
+		Color color =  fColorTable.get( rgb );
+		if (color == null)
+		{
+			color = new Color( Display.getCurrent(), rgb);
+			fColorTable.put( rgb, color );
+		}
+		return color;
+	}
 }

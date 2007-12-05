@@ -36,89 +36,41 @@ BEGINCOPYRIGHT X
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.eclipse.plugin.editors;
+package net.sf.opendf.eclipse.plugin.editors;
 
-import org.eclipse.ui.IEditorInput;
-import org.eclipse.ui.IFileEditorInput;
-import org.eclipse.ui.editors.text.TextEditor;
-import org.eclipse.ui.views.contentoutline.*;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.text.*;
+import org.eclipse.core.resources.IFile;
+import org.eclipse.ui.texteditor.ITextEditor;
 
-import net.sf.caltrop.eclipse.plugin.editors.outline.*;
+import net.sf.opendf.eclipse.plugin.editors.outline.*;
+import net.sf.opendf.eclipse.plugin.editors.checkers.*;
 
-public class CALEditor extends TextEditor
+public class CALEditor extends OpendfEditor
 {
-	private CALColorManager colorManager;
-    private CALDocumentProvider documentProvider;
-    private CALDocumentListener listener;
-	private CALContentOutlinePage outlinePage;
-
+	private OpendfColorManager colorManager;
+    	
 	public CALEditor()
 	{
 		super();
-		colorManager = new CALColorManager();
-		
+    colorManager = new OpendfColorManager();
 		setSourceViewerConfiguration( new CALConfiguration( getPreferenceStore(), colorManager ) );
-		// System.out.println(getSourceViewerConfiguration().getClass().toString());
-		
-		documentProvider = new CALDocumentProvider( );
-		setDocumentProvider( documentProvider );
-		
-		listener = null;
+		setDocumentProvider();
 	}
 	
-	// Use this callback to signal the parser thread to terminate (return)
 	public void dispose()
 	{
-		if( listener != null ) listener.kill();
 		colorManager.dispose();
 		super.dispose();
 	}
 
-	// Notifies us when there is an association to an input file
-	protected void doSetInput( IEditorInput input ) throws CoreException
-	{
+	public OpendfDocumentListener createDocumentListener( IFile file, IDocument document )
+  {
+    return new OpendfDocumentListener( new CALDocumentChecker( file, document ) );
+  }
 
-		try
-		{
-			super.doSetInput( input );
-			
-			String kind = "Actor";
-			if( input.getName().endsWith(".nl") ) kind = "Network";
-		
-			// Now we can start a listener since we have the associated input
-			IDocument document = documentProvider.getDocument( input );
-			listener = new CALDocumentListener( ((IFileEditorInput) input).getFile(), document, kind );
-			if( outlinePage != null )
-				listener.setOutliner( outlinePage );
-			
-			document.addDocumentListener( listener );
-		}
-		catch( ClassCastException e )
-		{
-			// No parsing support available when editing outside a project
-		}
-	}
+  public OpendfContentOutlinePage createOutlinePage( ITextEditor editor )
+  {
+    return new CALContentOutlinePage( editor );
+  }
 
-	public Object getAdapter( Class required )
-	{
-		
-		if( IContentOutlinePage.class.equals( required ) )
-		{
-			if( outlinePage == null )
-			{
-				outlinePage = new CALContentOutlinePage( this );
-				if( getEditorInput() != null )
-					outlinePage.setInput( getEditorInput() );
-
-				if( listener != null )
-					listener.setOutliner( outlinePage );
-			}
-			return outlinePage;
-		}
-
-		return super.getAdapter( required );
-		
-	}
 }
