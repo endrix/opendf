@@ -1,18 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <feature
-      id="net.sf.caltrop.eclipse.plugin.calfeature"
-      label="Caltrop Editor"
-      version="1.0.6"
-      provider-name="net.sf.caltrop">
+      id="net.sf.opendf.eclipse.feature"
+      label="Open Dataflow Plugin"
+      version="1.0.0"
+      provider-name="The Open Dataflow Project">
 
    <description>
-      CAL plug-in for Eclipse.
-Latest Features:
-* Problem marker tooltips now functional
-* Fixes Eclipse shutdown issue
-* Latest syntax fixes for NL and CAL.
-Known Issues:
-* most features unavailable when editing outside a project
+      Open Dataflow Project plugin
    </description>
 
    <copyright>
@@ -53,8 +47,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
    </license>
 
    <url>
-      <update label="Caltrop Editor" url="http://caltrop.sourceforge.net/eclipse"/>
-      <discovery label="Caltrop Site" url="http://caltrop.sourceforge.net"/>
+      <update label="Open Dataflow Project Update Site" url="http://opendf.sourceforge.net/eclipse"/>
+      <discovery label="Open Dataflow Project" url="http://opendf.sourceforge.net"/>
+      <discovery label="Open Dataflow Project Subversion Repository" url="http://opendf.svn.sourceforge.net"/>
    </url>
 
    <requires>
@@ -69,15 +64,15 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
    </requires>
 
    <plugin
-         id="net.sf.caltrop.eclipse.plugin.caldoc"
+         id="net.sf.opendf.eclipse.doc"
          download-size="485"
-         install-size="485"
+         install-size="0"
          version="0.0.0"/>
 
    <plugin
-         id="net.sf.caltrop.eclipse.plugin.caleditor"
-         download-size="4108"
-         install-size="4108"
+         id="net.sf.opendf.eclipse.plugin"
+         download-size="4290"
+         install-size="0"
          version="0.0.0"/>
 
 </feature>
