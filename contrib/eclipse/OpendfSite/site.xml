@@ -1,23 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <site>
-   <description url="http://caltrop.sourceforge.net/eclipse">
-      Eclipse download site for CAL
+   <description url="http://opendf.sourceforge.net/eclipse">
+      The Open Dataflow Project Update Site
    </description>
-   <feature url="features/net.sf.caltrop.eclipse.plugin.calfeature_1.0.3.jar" id="net.sf.caltrop.eclipse.plugin.calfeature" version="1.0.3">
-      <category name="caltrop"/>
+   <feature url="features/net.sf.opendf.eclipse.feature_1.0.0.jar" id="net.sf.opendf.eclipse.feature" version="1.0.0">
+      <category name="Open Dataflow Project Plugin"/>
    </feature>
-   <feature url="features/net.sf.caltrop.eclipse.plugin.calfeature_1.0.4.jar" id="net.sf.caltrop.eclipse.plugin.calfeature" version="1.0.4">
-      <category name="caltrop"/>
-   </feature>
-   <feature url="features/net.sf.caltrop.eclipse.plugin.calfeature_1.0.5.jar" id="net.sf.caltrop.eclipse.plugin.calfeature" version="1.0.5">
-      <category name="caltrop"/>
-   </feature>
-   <feature url="features/net.sf.caltrop.eclipse.plugin.calfeature_1.0.6.jar" id="net.sf.caltrop.eclipse.plugin.calfeature" version="1.0.6">
-      <category name="caltrop"/>
-   </feature>
-   <category-def name="caltrop" label="CAL Editor Plug-in">
+   <category-def name="Open Dataflow Project Plugin" label="net.sf.opendf.eclipse.basic">
       <description>
-         An editor for both CAL and NL that provides coloring and on-the-fly syntax, semantic checking of the document.
+         Provides CAL/NL editing capablity and documentation.
       </description>
    </category-def>
 </site>
