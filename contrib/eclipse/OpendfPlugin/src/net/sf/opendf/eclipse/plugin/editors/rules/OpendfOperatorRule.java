@@ -36,23 +36,23 @@ BEGINCOPYRIGHT X
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.eclipse.plugin.editors.rules;
+package net.sf.opendf.eclipse.plugin.editors.rules;
 
-import net.sf.caltrop.eclipse.plugin.editors.*;
+import net.sf.opendf.eclipse.plugin.editors.*;
 
 import org.eclipse.jface.text.TextAttribute;
 import org.eclipse.jface.text.rules.*;
 
-public class CALOperatorRule implements IRule
+public class OpendfOperatorRule implements IRule
 {
 	
 	IToken operatorToken;
 	IToken separatorToken;
 	
-    public CALOperatorRule( CALColorManager colorManager )
+    public OpendfOperatorRule( OpendfColorManager colorManager )
     {
-    	operatorToken = new Token( new TextAttribute( colorManager.getColor( ICALColorConstants.OPERATOR) ) );
-    	separatorToken = new Token( new TextAttribute( colorManager.getColor( ICALColorConstants.SEPARATOR ) ) );
+    	operatorToken = new Token( new TextAttribute( colorManager.getColor( IOpendfColorDefaults.OPERATOR) ) );
+    	separatorToken = new Token( new TextAttribute( colorManager.getColor( IOpendfColorDefaults.SEPARATOR ) ) );
     }
 
     private static final String operators  = "=+-*/<>!@$%^&#:?~|";

@@ -36,16 +36,16 @@ BEGINCOPYRIGHT X
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.eclipse.plugin.editors.rules;
+package net.sf.opendf.eclipse.plugin.editors.rules;
 
 import org.eclipse.jface.text.*;
 import org.eclipse.jface.text.rules.*;
-import net.sf.caltrop.eclipse.plugin.editors.*;
+import net.sf.opendf.eclipse.plugin.editors.*;
 import java.util.*;
 
 // An IRule to distinguish keywords, word constants, word operators and identifiers
 
-public class CALWordRule implements IRule
+public class OpendfWordRule implements IRule
 {
 
     private final static String[] keywords =
@@ -54,13 +54,16 @@ public class CALWordRule implements IRule
     	"action", "actor", "all",  "any", "at", "begin", "choose", "const",
 		"delay", "do", "else", "end", "endaction", "endactor", "endchoose", "endforeach",
 	    "endfunction", "endif", "endinitialize", "endinvariant", "endlambda", "endlet", "endpriority", "endproc", "endprocedure",
-	    "endschedule", "endwhile", "ensure", "for", "foreach", "fsm", "function", "guard", "if", "import",
+	    "endschedule", "endwhile", "ensure", "foreach", "fsm", "function", "guard", "import",
 	    "in", "initialize", "invariant", "lambda", "let", "map", "multi", "mutable", "old",
 	    "or", "priority", "proc", "procedure", "regexp", "repeat", "require", "schedule", "then",
-	    "time", "var", "while",
+	    "time", "while",
 	    
 	    // nl keywords
-	    "network", "entities", "structure"
+	    "network", "entities", "structure",
+	    
+	    // shared keywords
+	    "if", "for", "var"
 	};
 		
 	private final static String[] wordOperators =
@@ -80,16 +83,16 @@ public class CALWordRule implements IRule
 
 	private Map< String, IToken > map;
 	
-    public CALWordRule( CALColorManager colorManager )
+    public OpendfWordRule( OpendfColorManager colorManager )
     {
     	keywordToken =
-    		new Token( new TextAttribute( colorManager.getColor( ICALColorConstants.KEYWORD ) ) );
+    		new Token( new TextAttribute( colorManager.getColor( IOpendfColorDefaults.KEYWORD ) ) );
     	constantToken =
-    		new Token( new TextAttribute( colorManager.getColor( ICALColorConstants.CONSTANT ) ) );
+    		new Token( new TextAttribute( colorManager.getColor( IOpendfColorDefaults.CONSTANT ) ) );
     	operatorToken =
-    		new Token( new TextAttribute( colorManager.getColor( ICALColorConstants.OPERATOR ) ) );
+    		new Token( new TextAttribute( colorManager.getColor( IOpendfColorDefaults.OPERATOR ) ) );
     	identifierToken =
-    		new Token( new TextAttribute( colorManager.getColor( ICALColorConstants.IDENTIFIER ) ) );
+    		new Token( new TextAttribute( colorManager.getColor( IOpendfColorDefaults.IDENTIFIER ) ) );
 
     	map = new HashMap< String, IToken>();
     	

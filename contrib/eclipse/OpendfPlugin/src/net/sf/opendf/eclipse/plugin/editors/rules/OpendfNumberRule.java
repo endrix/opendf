@@ -36,15 +36,15 @@ BEGINCOPYRIGHT X
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.eclipse.plugin.editors.rules;
+package net.sf.opendf.eclipse.plugin.editors.rules;
 
-import net.sf.caltrop.eclipse.plugin.editors.CALColorManager;
-import net.sf.caltrop.eclipse.plugin.editors.ICALColorConstants;
+import net.sf.opendf.eclipse.plugin.editors.OpendfColorManager;
+import net.sf.opendf.eclipse.plugin.editors.IOpendfColorDefaults;
 
 import org.eclipse.jface.text.TextAttribute;
 import org.eclipse.jface.text.rules.*;
 
-public class CALNumberRule implements IRule
+public class OpendfNumberRule implements IRule
 {
 
 	private void unread( ICharacterScanner s, int n )
@@ -175,9 +175,9 @@ public class CALNumberRule implements IRule
 	
 	IToken success;
 	
-    public CALNumberRule( CALColorManager colorManager )
+    public OpendfNumberRule( OpendfColorManager colorManager )
     {
-    	success = new Token( new TextAttribute( colorManager.getColor( ICALColorConstants.CONSTANT ) ) );
+    	success = new Token( new TextAttribute( colorManager.getColor( IOpendfColorDefaults.CONSTANT ) ) );
     }
 			
 	public IToken evaluate( ICharacterScanner s )
