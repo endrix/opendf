@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
+<<<<<<< .mine
+	<name>OpenDFCore</name>
+=======
 	<name>OpendfCore</name>
+>>>>>>> .r337
 	<comment></comment>
 	<projects>
 	</projects>
