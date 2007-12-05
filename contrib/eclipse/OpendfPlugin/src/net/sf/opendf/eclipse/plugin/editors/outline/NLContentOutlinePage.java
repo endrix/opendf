@@ -41,17 +41,17 @@ package net.sf.opendf.eclipse.plugin.editors.outline;
 import org.eclipse.ui.texteditor.ITextEditor;
 import org.eclipse.ui.texteditor.IDocumentProvider;
 
-public class CALContentOutlinePage extends OpendfContentOutlinePage
+public class NLContentOutlinePage extends OpendfContentOutlinePage
 {
-
-	public CALContentOutlinePage( ITextEditor editor )
+	
+	public NLContentOutlinePage( ITextEditor editor )
 	{
 		super( editor );
 	}	
 
   public OpendfContentOutlineProvider createContentOutlineProvider( IDocumentProvider provider )
   {
-    return new CALContentOutlineProvider( provider );
+    return new NLContentOutlineProvider( provider );
   }
 
 }

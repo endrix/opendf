@@ -38,21 +38,81 @@ ENDCOPYRIGHT
 
 package net.sf.opendf.eclipse.plugin.editors.outline;
 
-import org.eclipse.ui.texteditor.ITextEditor;
-import org.eclipse.ui.texteditor.IDocumentProvider;
+import java.util.*;
 
-public class CALContentOutlinePage extends OpendfContentOutlinePage
+public class OpendfContentNode
 {
-
-	public CALContentOutlinePage( ITextEditor editor )
+	private String label;
+	private OpendfContentNode parent;
+	private ArrayList<OpendfContentNode> children;
+  
+  // Lines are 1-based, so 0 means "line range unavailable"
+	private int startLine;
+	private int endLine;
+	
+	public int getStart()
 	{
-		super( editor );
-	}	
+		return startLine;
+	}
+	
+	public int getEnd()
+	{
+		return endLine;
+	}
+	
+	public OpendfContentNode[] getChildren()
+	{
+		return children.toArray( new OpendfContentNode[ children.size() ] );
+	}
 
-  public OpendfContentOutlineProvider createContentOutlineProvider( IDocumentProvider provider )
+	public boolean hasChildren()
+	{
+		return children.size() > 0;
+	}
+	
+	public OpendfContentNode getParent()
+	{
+		return parent;
+	}
+	
+	public String getLabel()
+	{
+		return label;
+	}
+	
+	public OpendfContentNode( String s )
+	{
+		label = s;
+		children = new ArrayList<OpendfContentNode>();
+		startLine = 0;
+	}
+
+  public OpendfContentNode( String s, int start, int end )
   {
-    return new CALContentOutlineProvider( provider );
+    label = s;
+    children = new ArrayList<OpendfContentNode>();
+    startLine = start;
+    endLine = end;
+  }
+  
+  public OpendfContentNode addChild( String s )
+	{
+    OpendfContentNode child = new OpendfContentNode( s );
+		child.parent = this;
+		children.add( child );
+		return child;
+	}
+
+  public OpendfContentNode addChild( String s, int start, int end )
+  {
+    OpendfContentNode child = addChild( s );
+    child.setLineRange( start, end );
+    return child;
   }
 
+  private void setLineRange( int start, int end )
+  {
+    startLine = end == 0 ? 0 : start;
+    endLine = end;
+  }
 }
-

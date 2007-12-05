@@ -36,39 +36,49 @@ BEGINCOPYRIGHT X
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.eclipse.plugin.editors.outline;
+package net.sf.opendf.eclipse.plugin.editors.outline;
 
-import org.eclipse.jface.text.*;
+import net.sf.opendf.eclipse.plugin.OpendfPlugin;
+import org.eclipse.jface.text.IPositionUpdater;
+import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.BadLocationException;
+import org.eclipse.jface.text.DefaultPositionUpdater;
+import org.eclipse.jface.text.BadPositionCategoryException;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.texteditor.IDocumentProvider;
 
-public class CALOutlineContentProvider implements ITreeContentProvider
+// Note: unfortunately, jface also has a Document class!
+import org.w3c.dom.Document;
+
+public abstract class OpendfContentOutlineProvider implements ITreeContentProvider
 {
-	private CALContentNode root;
+  private OpendfContentNode root;
 	private IEditorInput input;
 	private IDocumentProvider documentProvider;
 
 	protected final static String TAG_POSITIONS = "__tag_positions";
 	protected IPositionUpdater positionUpdater = new DefaultPositionUpdater( TAG_POSITIONS );
 
-	public CALOutlineContentProvider( IDocumentProvider provider )
+  public abstract void updateDocument( Document document );
+  
+	public OpendfContentOutlineProvider( IDocumentProvider provider )
 	{
 		super();
 		documentProvider = provider;
 	}
 
-	public void setRoot( CALContentNode e )
+	protected void setRoot( OpendfContentNode e )
 	{
 		root = e;
 	}
 	
 	public Object[] getChildren( Object obj )
 	{	
-		CALContentNode[] children;
+		OpendfContentNode[] children;
 		
-		CALContentNode element = (obj == input) ? root : (CALContentNode) obj;
+		OpendfContentNode element = (obj == input) ? root : (OpendfContentNode) obj;
 		
 		if( element == null || (children = element.getChildren() ) == null ) return new Object[0];
 		
@@ -77,8 +87,8 @@ public class CALOutlineContentProvider implements ITreeContentProvider
 
 	public Object getParent( Object obj )
 	{
-		if( obj instanceof CALContentNode )
-			return ( (CALContentNode)obj ).getParent();
+		if( obj instanceof OpendfContentNode )
+			return ( (OpendfContentNode)obj ).getParent();
 		
 		return null;
 	}
@@ -87,7 +97,7 @@ public class CALOutlineContentProvider implements ITreeContentProvider
 	{
 		if( obj == input ) return true;
 		
-		return ((CALContentNode)obj ).hasChildren();
+		return ((OpendfContentNode)obj ).hasChildren();
 	}
 
 	public Object[] getElements( Object obj )
@@ -119,6 +129,7 @@ public class CALOutlineContentProvider implements ITreeContentProvider
 				}
 				catch( BadPositionCategoryException e )
 				{
+          OpendfPlugin.logErrorMessage( "Failed to remove position tags", e );
 				}
 				document.removePositionUpdater( positionUpdater );
 			}

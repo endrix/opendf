@@ -36,16 +36,16 @@ BEGINCOPYRIGHT X
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.eclipse.plugin.editors.outline;
+package net.sf.opendf.eclipse.plugin.editors.outline;
 
 import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.swt.graphics.Image;
 
-public class CALOutlineLabelProvider implements ILabelProvider
+public class OpendfOutlineLabelProvider implements ILabelProvider
 {
 
-	public CALOutlineLabelProvider()
+	public OpendfOutlineLabelProvider()
 	{
 		super();
 	}
@@ -57,9 +57,9 @@ public class CALOutlineLabelProvider implements ILabelProvider
 
 	public String getText( Object obj )
 	{
-		if( obj instanceof CALContentNode )
+		if( obj instanceof OpendfContentNode )
 		{
-			return ((CALContentNode) obj).getLabel();
+			return ((OpendfContentNode) obj).getLabel();
 		}
 		
 		return null;
