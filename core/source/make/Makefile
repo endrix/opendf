@@ -18,14 +18,14 @@ OPENDF_CLASSDIR = $(OPENDF_HOME)/classes
 OPENDF_CLASSPATH = $(OPENDF_CLASSDIR)$(CPS)$(OPENDF_HOME)/lib/saxon8.jar$(CPS)$(OPENDF_HOME)/lib/saxon8-dom.jar$(CPS)$(CONTRIB_DIR)/lib/PtPlot.jar
 JAVA_CUP_SOURCES = $(shell find $(OPENDF_HOME)/lib/source/java_cup -name "*.java")
 PTOLEMY_SOURCES = $(shell find $(OPENDF_HOME)/lib/source/ptolemy -name "*.java")
-OPENDF_LIB_SOURCES =  $(shell find $(OPENDF_HOME)/source/java/net/sf/caltrop/lib -name "*.java")
-OPENDF_ACTORC_SOURCES = $(shell find $(OPENDF_HOME)/source/java/net/sf/caltrop/actorc -name "*.java")
-OPENDF_UTIL_SOURCES = $(shell find $(OPENDF_HOME)/source/java/net/sf/caltrop/util -name "*.java")
-OPENDF_CAL_SOURCES = $(shell find $(OPENDF_HOME)/source/java/net/sf/caltrop/cal -name "*.java")
-OPENDF_NL_SOURCES = $(shell find $(OPENDF_HOME)/source/java/net/sf/caltrop/nl -name "*.java")
-OPENDF_HADES_SOURCES = $(shell find $(OPENDF_HOME)/source/java/net/sf/caltrop/hades -name "*.java")
-OPENDF_CLI_SOURCES = $(shell find $(OPENDF_HOME)/source/java/net/sf/caltrop/cli -name "*.java")
-OPENDF_XSLT_SOURCES = $(shell find $(OPENDF_HOME)/source/java/net/sf/caltrop/xslt -name "*.java")
+OPENDF_LIB_SOURCES =  $(shell find $(OPENDF_HOME)/source/java/net/sf/opendf/lib -name "*.java")
+OPENDF_ACTORC_SOURCES = $(shell find $(OPENDF_HOME)/source/java/net/sf/opendf/actorc -name "*.java")
+OPENDF_UTIL_SOURCES = $(shell find $(OPENDF_HOME)/source/java/net/sf/opendf/util -name "*.java")
+OPENDF_CAL_SOURCES = $(shell find $(OPENDF_HOME)/source/java/net/sf/opendf/cal -name "*.java")
+OPENDF_NL_SOURCES = $(shell find $(OPENDF_HOME)/source/java/net/sf/opendf/nl -name "*.java")
+OPENDF_HADES_SOURCES = $(shell find $(OPENDF_HOME)/source/java/net/sf/opendf/hades -name "*.java")
+OPENDF_CLI_SOURCES = $(shell find $(OPENDF_HOME)/source/java/net/sf/opendf/cli -name "*.java")
+OPENDF_XSLT_SOURCES = $(shell find $(OPENDF_HOME)/source/java/net/sf/opendf/xslt -name "*.java")
 
 CONTRIB_DIR = $(OPENDF_HOME)/../contrib/actorlib
 CONTRIB_SOURCES = $(shell find $(CONTRIB_DIR) -name "*.java")
@@ -44,7 +44,7 @@ clean:
 # hades: cal, nl, util
 # cli: hades, cal, nl, util
 
-cproot = $(OPENDF_CLASSDIR)/net/sf/caltrop
+cproot = $(OPENDF_CLASSDIR)/net/sf/opendf
 
 .PHONY = create_dir
 
