@@ -42,7 +42,7 @@ import java.util.*;
 
 import org.eclipse.core.resources.IFile;
 
-import net.sf.caltrop.cal.util.SourceReader;
+import net.sf.opendf.cal.util.SourceReader;
 import net.sf.opendf.eclipse.plugin.OpendfPlugin;
 import org.eclipse.jface.text.IDocument;
 
@@ -50,14 +50,14 @@ import org.w3c.dom.Document;
 
 import java.io.*;
 import javax.xml.transform.*;
-import net.sf.caltrop.util.xml.Util;
-import net.sf.caltrop.util.source.*;
+import net.sf.opendf.util.xml.Util;
+import net.sf.opendf.util.source.*;
 
 public class CALDocumentChecker extends OpendfDocumentChecker
 {
   private static final String[] checks = 
   {
-    "net/sf/caltrop/cal/checks/semanticChecks.xslt"
+    "net/sf/opendf/cal/checks/semanticChecks.xslt"
   };
   
   private List<Transformer> transforms;

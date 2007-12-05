@@ -38,7 +38,7 @@ ENDCOPYRIGHT
 
 package net.sf.opendf.eclipse.plugin.editors.checkers;
 
-import static net.sf.caltrop.util.xml.Util.xpathEvalElements;
+import static net.sf.opendf.util.xml.Util.xpathEvalElements;
 
 import java.util.*;
 
@@ -50,13 +50,13 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.BadLocationException;
-import net.sf.caltrop.util.source.*;
+import net.sf.opendf.util.source.*;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import javax.xml.transform.*;
-import net.sf.caltrop.util.xml.Util;
+import net.sf.opendf.util.xml.Util;
 import net.sf.opendf.eclipse.plugin.OpendfPlugin;
 
 public abstract class OpendfDocumentChecker

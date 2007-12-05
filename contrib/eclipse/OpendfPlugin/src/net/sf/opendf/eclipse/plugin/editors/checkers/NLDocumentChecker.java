@@ -49,9 +49,9 @@ import org.w3c.dom.Document;
 
 import java.io.*;
 import javax.xml.transform.*;
-import net.sf.caltrop.nl.util.Lib;
-import net.sf.caltrop.util.xml.Util;
-import net.sf.caltrop.util.source.*;
+import net.sf.opendf.nl.util.Lib;
+import net.sf.opendf.util.xml.Util;
+import net.sf.opendf.util.source.*;
 
 public class NLDocumentChecker extends OpendfDocumentChecker
 {

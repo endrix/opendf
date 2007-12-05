@@ -44,7 +44,7 @@ import org.w3c.dom.Document;
 
 import net.sf.opendf.eclipse.plugin.editors.outline.*;
 import net.sf.opendf.eclipse.plugin.editors.checkers.*;
-import net.sf.caltrop.util.source.*;
+import net.sf.opendf.util.source.*;
 
 public class OpendfDocumentListener implements IDocumentListener, Runnable
 {
