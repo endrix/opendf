@@ -19,7 +19,6 @@
 
 <xsl:stylesheet
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-  xmlns:calext="caltrop.dom.xalan.Extension"
   xmlns:math="http://exslt.org/math"
   xmlns:fn="http://www.w3.org/2004/10/xpath-functions"
   xmlns:sb="systembuilder"

@@ -42,11 +42,11 @@
     xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
     xmlns:xd="http://www.pnp-software.com/XSLTdoc"
     xmlns:math="http://exslt.org/math"
-    xmlns:cal="java:net.sf.caltrop.xslt.cal.CalmlEvaluator"  
+  xmlns:cal="java:net.sf.opendf.xslt.cal.CalmlEvaluator"  
     version="2.0">
   <xsl:output method="xml"/>
   
-  <xsl:include href="net/sf/caltrop/cal/checks/reportOffenders.xslt"/>
+  <xsl:include href="net/sf/opendf/cal/checks/reportOffenders.xslt"/>
   
   <xd:doc type="stylesheet">
     <xd:short>Replace certain expressions that are unchanging at run-time with its compile-time value.

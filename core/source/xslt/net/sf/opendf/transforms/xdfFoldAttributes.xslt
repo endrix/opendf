@@ -9,12 +9,12 @@
     version="1.1"
     xmlns:exsl="http://exslt.org/common"
     xmlns:set="http://exslt.org/sets"
-    xmlns:cal="java:net.sf.caltrop.xslt.cal.CalmlEvaluator"  
+    xmlns:cal="java:net.sf.opendf.xslt.cal.CalmlEvaluator"  
     extension-element-prefixes="exsl set">
     
     <xsl:output method="xml"/>
     
-    <xsl:param name="foldingConfig-uri" select="'net/sf/caltrop/transforms/xdfAttributeFoldingConfig.xml'"/>
+    <xsl:param name="foldingConfig-uri" select="'net/sf/opendf/transforms/xdfAttributeFoldingConfig.xml'"/>
     <xsl:variable name="config" select="document($foldingConfig-uri)/AttributeFolding"/>
     
     <xsl:template match="Connection">

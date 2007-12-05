@@ -15,7 +15,7 @@
 
   <xsl:output method="xml"/>
 
-    <xsl:param name="context-uri" select="'caltrop/context/Context.xml'"/>
+    <xsl:param name="context-uri" select="'opendf/context/Context.xml'"/>
     <xsl:variable name="context" select="document($context-uri)/Context"/>
     <!-- If you have no internet connection, use this line for debugging purposes instead:
         <xsl:param name="context" select="document('../../web/data/platforms/DefaultContext.xml')/Context"/>

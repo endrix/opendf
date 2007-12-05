@@ -96,7 +96,7 @@ ENDCOPYRIGHT
       resides in the same directory as the transformation.
     </xd:detail>
   </xd:doc>
-  <xsl:param name="def-directives-uri" select="'net/sf/caltrop/cal/transforms/xlim/DefaultDirectives.xml'"/>
+  <xsl:param name="def-directives-uri" select="'net/sf/opendf/cal/transforms/xlim/DefaultDirectives.xml'"/>
 
   <xd:doc>
     <xd:short>Filter the directives tree to include only those directives that

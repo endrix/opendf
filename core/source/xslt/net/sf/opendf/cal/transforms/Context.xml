@@ -1,6 +1,6 @@
 
 <Context name="Default">
-    <Profile name="net.sf.caltrop"/>
+    <Profile name="net.sf.opendf"/>
 
     <UnaryOp name="#" function="$size"/>
     <UnaryOp name="-" function="$negate"/>

@@ -3,15 +3,15 @@
     xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
     xmlns:xd="http://www.pnp-software.com/XSLTdoc"
 
-    xmlns:loading="java:net.sf.caltrop.util.Loading"  
-    xmlns:preproc="java:net.sf.caltrop.cal.util.SourceReader"  
-    xmlns:xnlext="java:net.sf.caltrop.xslt.nl.Elaborating"  
-    xmlns:cal="java:net.sf.caltrop.xslt.cal.CalmlEvaluator"  
+    xmlns:loading="java:net.sf.opendf.util.Loading"  
+    xmlns:preproc="java:net.sf.opendf.cal.util.SourceReader"  
+    xmlns:xnlext="java:net.sf.opendf.xslt.nl.Elaborating"  
+    xmlns:cal="java:net.sf.opendf.xslt.cal.CalmlEvaluator"  
     
     version="2.0">
     
     <xsl:output method="xml"/>
-    <xsl:include href="net/sf/caltrop/transforms/CopyRequiredDecls.xslt"/>
+    <xsl:include href="net/sf/opendf/transforms/CopyRequiredDecls.xslt"/>
     
     <xd:doc type="stylesheet">
         <xd:author>JWJ</xd:author>

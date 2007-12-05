@@ -5,7 +5,7 @@
   version="2.0">
   
   <xsl:output method="xml"/>
-  <xsl:include href="net/sf/caltrop/transforms/CopyRequiredDecls.xslt"/>
+  <xsl:include href="net/sf/opendf/transforms/CopyRequiredDecls.xslt"/>
   
   <xd:doc type="stylesheet">
     <xd:author>JWJ</xd:author>
