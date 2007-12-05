@@ -174,7 +174,7 @@ public class NLContentOutlineProvider extends OpendfContentOutlineProvider
       Comparator<Node> comparator = new nodeComparator( NAME_ATTR, null );
       Collections.sort( vars, comparator );
       
-      for( int i=0; i < vars.size(); i++ )
+      for( int i=0; i < entities.size(); i++ )
       {
         Element entity = (Element) entities.get(i);
         entityNode.addChild( entity.getAttribute( NAME_ATTR ), getStart( entity ), getEnd( entity ) );
