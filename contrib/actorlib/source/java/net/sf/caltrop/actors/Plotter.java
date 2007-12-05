@@ -38,10 +38,10 @@ BEGINCOPYRIGHT X,ETH
 ENDCOPYRIGHT
 */
 
-package net.sf.caltrop.actors;
+package net.sf.opendf.actors;
 
-import net.sf.caltrop.hades.des.*;
-import net.sf.caltrop.hades.des.schedule.*;
+import net.sf.opendf.hades.des.*;
+import net.sf.opendf.hades.des.schedule.*;
 import java.util.*;
 
 import ptolemy.plot.Plot;

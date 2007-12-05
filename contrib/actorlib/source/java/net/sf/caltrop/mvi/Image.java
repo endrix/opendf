@@ -1,4 +1,4 @@
-package net.sf.caltrop.mvi;
+package net.sf.opendf.mvi;
 
 /** A class for reading, displaying and writing static images.
 It is intended for use within CAL actor source.
