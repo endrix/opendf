@@ -32,7 +32,7 @@ EDW September 2002 Original
 EDW 18-Sep-2002 Lex # token too..
 
 */
-package net.sf.caltrop.cal.parser;
+package net.sf.opendf.cal.parser;
 
 import java_cup.runtime.Symbol;
 import java.lang.Integer;

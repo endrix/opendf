@@ -45,10 +45,10 @@ are also intended as sed script tragets.
 
 */
 
-package net.sf.caltrop.cal.parser;
+package net.sf.opendf.cal.parser;
 
-import net.sf.caltrop.util.source.ParserErrorException;
-import net.sf.caltrop.util.source.GenericError;
+import net.sf.opendf.util.source.ParserErrorException;
+import net.sf.opendf.util.source.GenericError;
 
 import java_cup.runtime.*;
 import org.w3c.dom.*;
@@ -181,7 +181,7 @@ parser code {:
     //
     public Document parseActor(String filename, boolean doDebug) throws ParserErrorException
     {
-        DOMImplementation domImpl = net.sf.caltrop.util.xml.Util.getDefaultImplementation().getDocumentBuilder().getDOMImplementation();
+        DOMImplementation domImpl = net.sf.opendf.util.xml.Util.getDefaultImplementation().getDocumentBuilder().getDOMImplementation();
         document = domImpl.createDocument("", "Actor", null);
         file = filename;
         debug = doDebug;
