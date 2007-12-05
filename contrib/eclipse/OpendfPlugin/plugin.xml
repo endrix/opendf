@@ -4,48 +4,19 @@
          point="org.eclipse.ui.editors">
       <editor
             name="CAL Editor"
-            extensions="cal, nl"
+            extensions="cal"
             icon="icons/caltropsmall.gif"
             contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
-            class="net.sf.caltrop.eclipse.plugin.editors.CALEditor"
-            id="net.sf.caltrop.eclipse.plugin.editors.CALEditor">
+            class="net.sf.opendf.eclipse.plugin.editors.CALEditor"
+            id="net.sf.opendf.eclipse.plugin.editors.CAL">
       </editor>
-   </extension>
-   <extension
-         point="org.eclipse.ui.actionSets">
-   </extension>
-   <extension
-         point="org.eclipse.help.toc">
-   </extension>
-   <extension
-         point="org.eclipse.ui.newWizards">
-   </extension>
-   <extension
-         point="org.eclipse.ui.popupMenus">
-   </extension>
-   <extension
-         point="org.eclipse.ui.preferencePages">
-   </extension>
-   <extension
-         point="org.eclipse.core.runtime.preferences">
-   </extension>
-   <extension
-         point="org.eclipse.ui.propertyPages">
-   </extension>
-   <extension
-         point="org.eclipse.ui.views">
-   </extension>
-   <extension
-         point="org.eclipse.ui.perspectiveExtensions">
-   </extension>
-   <extension
-         id="calerror"
-         name="CAL Error Marker"
-         point="org.eclipse.core.resources.markers">
-         <super type="org.eclipse.core.resources.problemmarker"/>
-	   <super type="org.eclipse.core.resources.textmarker"/>
-	   <persistent value="true"/>
-         
+      <editor
+            class="net.sf.opendf.eclipse.plugin.editors.NLEditor"
+            contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
+            extensions="nl"
+            icon="icons/caltropsmall.gif"
+            id="net.sf.opendf.eclipse.plugin.editors.NL"
+            name="NL Editor"/>
    </extension>
 
 </plugin>

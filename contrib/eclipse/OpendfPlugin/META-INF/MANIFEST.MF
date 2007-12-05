@@ -1,8 +1,8 @@
-Bundle-Name: CAL Plug-in
-Bundle-SymbolicName: net.sf.caltrop.eclipse.plugin.caleditor;singleton:=true
-Bundle-Version: 1.0.5
-Bundle-Activator: net.sf.caltrop.eclipse.plugin.CALPlugin
-Bundle-Vendor: Caltrop
+Bundle-Name: Open Dataflow Plugin
+Bundle-SymbolicName: net.sf.opendf.eclipse.plugin;singleton:=true
+Bundle-Version: 1.0.0
+Bundle-Activator: net.sf.opendf.eclipse.plugin.OpendfPlugin
+Bundle-Vendor: The Open Dataflow Project
 Bundle-Localization: plugin
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
@@ -13,19 +13,14 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.ui.ide,
  org.eclipse.ui.views
 Eclipse-LazyStart: true
-Export-Package:  net.sf.caltrop.eclipse.plugin,
- net.sf.caltrop.eclipse.plugin.editors,
- net.sf.caltrop.eclipse.plugin.editors.outline,
- net.sf.caltrop.eclipse.plugin.editors.rules,
- net.sf.caltrop.eclipse.plugin.editors.scanners
-Provide-Package: net.sf.caltrop.eclipse.plugin,
- net.sf.caltrop.eclipse.plugin.editors,
- net.sf.caltrop.eclipse.plugin.editors.outline,
- net.sf.caltrop.eclipse.plugin.editors.rules,
- net.sf.caltrop.eclipse.plugin.editors.scanners,
- net.sf.caltrop.xslt.cal
 Bundle-ClassPath: lib/saxon8.jar,
  lib/saxon8-dom.jar,
  lib/caltrop.jar,
  lib/PtPlot.jar,
- caleditor.jar
+ plugin.jar
+Provide-Package: net.sf.opendf.eclipse.plugin,
+ net.sf.opendf.eclipse.plugin.editors,
+ net.sf.opendf.eclipse.plugin.editors.checkers,
+ net.sf.opendf.eclipse.plugin.editors.outline,
+ net.sf.opendf.eclipse.plugin.editors.rules,
+ net.sf.opendf.eclipse.plugin.editors.scanners

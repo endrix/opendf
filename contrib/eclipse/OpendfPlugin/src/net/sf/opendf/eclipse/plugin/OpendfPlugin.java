@@ -53,8 +53,6 @@ public class OpendfPlugin extends AbstractUIPlugin {
 	public OpendfPlugin()
 	{
 		plugin = this;
-		// printLog( "CAL plugin started" );
-		// System.out.println( "Starting ...");
 	}
 
 	public static void logInfoMessage( String msg )
@@ -74,8 +72,8 @@ public class OpendfPlugin extends AbstractUIPlugin {
 
 	public void stop( BundleContext context ) throws Exception
 	{
+    plugin = null;
 		super.stop( context );
-		plugin = null;
 	}
 
 	public static OpendfPlugin getDefault()
