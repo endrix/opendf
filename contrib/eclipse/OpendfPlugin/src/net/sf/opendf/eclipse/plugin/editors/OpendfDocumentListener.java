@@ -109,7 +109,7 @@ public class OpendfDocumentListener implements IDocumentListener, Runnable
 	// Separate parser thread
 	public void run()
 	{
-    long parsingStamp = -1;    // Ensures parse on first doc change
+    long parsingStamp   = -1;    // Ensures parse on first doc change
     Document document = null;
     
 	  while( true )
@@ -122,7 +122,9 @@ public class OpendfDocumentListener implements IDocumentListener, Runnable
 
       // Send altered documents to the outliner
       if( outlinePage != null && document != null && outlinePage.getStamp() != parsingStamp )
+      {
         outlinePage.outlineDocument( document, parsingStamp );
+      }
  
       // Poll the document modification stamp
       long currentStamp = getStamp();

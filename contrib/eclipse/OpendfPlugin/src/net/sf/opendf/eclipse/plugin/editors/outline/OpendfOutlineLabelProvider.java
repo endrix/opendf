@@ -50,9 +50,14 @@ public class OpendfOutlineLabelProvider implements ILabelProvider
 		super();
 	}
 
-	public Image getImage( Object element )
+	public Image getImage( Object obj )
 	{
-		return null;
+    if( obj instanceof OpendfContentNode )
+    {
+      return ((OpendfContentNode) obj).getImage();
+    }
+    
+    return null;
 	}
 
 	public String getText( Object obj )

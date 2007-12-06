@@ -42,6 +42,8 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.TreeViewer;
+import org.eclipse.jface.viewers.ITreeViewerListener;
+import org.eclipse.jface.viewers.TreeExpansionEvent;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.ui.IEditorInput;
@@ -52,34 +54,56 @@ import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.ui.texteditor.IDocumentProvider;
 import org.eclipse.swt.widgets.Display;
 
-public abstract class OpendfContentOutlinePage extends ContentOutlinePage implements Runnable
+public abstract class OpendfContentOutlinePage extends ContentOutlinePage implements Runnable, ITreeViewerListener
 {
 	private ITextEditor editor;
 	private IEditorInput input;
-  
   private long stamp;
 	
 	public OpendfContentOutlinePage( ITextEditor ed )
 	{
 		super();
-		editor = ed;
     stamp = -1;
+		editor = ed;
  	}	
+  
+	public void setInput( Object obj )
+	{
+    // Must update the outline content when the editor input changes
+    stamp = -1;
+		input = (IEditorInput) obj;
+	}
 
   public long getStamp()
   {
     return stamp;
   }
   
-	public void setInput( Object obj )
-	{
-		input = (IEditorInput) obj;
-	}
-
   // This method creates a content outline provider specialized for the particular document type
 	public abstract OpendfContentOutlineProvider createContentOutlineProvider( IDocumentProvider provider );
+  
   OpendfContentOutlineProvider contentOutlineProvider;
   
+  public void treeCollapsed(TreeExpansionEvent event ) 
+  {
+    Object obj = event.getElement();
+    
+    if( obj instanceof OpendfContentNode )
+    {
+      ( (OpendfContentNode) obj).setExpanded( false );
+    }
+  }
+
+  public void treeExpanded(TreeExpansionEvent event) 
+  {
+    Object obj = event.getElement();
+    
+    if( obj instanceof OpendfContentNode )
+    {
+      ( (OpendfContentNode) obj).setExpanded( true );
+    }
+  }
+
 	public void createControl( Composite parent )
 	{
 		super.createControl(parent);
@@ -95,12 +119,11 @@ public abstract class OpendfContentOutlinePage extends ContentOutlinePage implem
 		viewer.setLabelProvider( outlineLabelProvider );
 		
 		viewer.addSelectionChangedListener( this );
-
+    viewer.addTreeListener( this );
+    
 		//control is created after input is set
 		if( input != null )
 			viewer.setInput( input );
-    
-    viewer.expandToLevel( TreeViewer.ALL_LEVELS );
 
 	}
 
@@ -150,7 +173,6 @@ public abstract class OpendfContentOutlinePage extends ContentOutlinePage implem
 	{
     // Pass the document to the worker thread that will update the outline
     documentToOutline = document;
-    stamp = s;
     
     // Start the worker and poll done flag
     setDone( false );
@@ -168,10 +190,12 @@ public abstract class OpendfContentOutlinePage extends ContentOutlinePage implem
         // I think we can ignore this one
       }
      }
+    
+    stamp = s;
 
 	}
 
-  // Used to pass arument between threads
+  // Used to pass argument between threads
   private Document documentToOutline;  
   
   public void run()
@@ -183,13 +207,13 @@ public abstract class OpendfContentOutlinePage extends ContentOutlinePage implem
     TreeViewer viewer = getTreeViewer();
 
     if( viewer != null )
-    {
+    {      
       Control control = viewer.getControl();
       if( control != null && !control.isDisposed() )
       {
         control.setRedraw( false );
         viewer.setInput( input );
-        viewer.expandToLevel( TreeViewer.ALL_LEVELS );
+        contentOutlineProvider.setExpandedState( viewer );
         control.setRedraw( true );
       }
     }

@@ -41,6 +41,7 @@ package net.sf.opendf.eclipse.plugin.editors.outline;
 import org.eclipse.ui.texteditor.IDocumentProvider;
 import org.w3c.dom.*;
 import java.util.*;
+import net.sf.opendf.eclipse.plugin.OpendfPlugin;
 
 public class NLContentOutlineProvider extends OpendfContentOutlineProvider
 {
@@ -149,12 +150,15 @@ public class NLContentOutlineProvider extends OpendfContentOutlineProvider
       }
     }
     
-    OpendfContentNode root = new OpendfContentNode( networkName, getStart( network ), getEnd( network ) );
-    
+    OpendfContentNode root = new OpendfContentNode( networkName, getStart( network ), getEnd( network ),
+                                   OpendfPlugin.getDefault().getImage( OpendfPlugin.IMAGE_network ) );
+    root.setExpanded( true );
+
     // List the variables in alphabetic order
     if( vars.size() > 0 )
     {
-      OpendfContentNode varNode = root.addChild( "Variables" );
+      OpendfContentNode varNode = root.addChild( "Variables",
+              OpendfPlugin.getDefault().getImage( OpendfPlugin.IMAGE_variable ) );
       
       Comparator<Node> comparator = new nodeComparator( NAME_ATTR, null );
       Collections.sort( vars, comparator );
@@ -162,14 +166,16 @@ public class NLContentOutlineProvider extends OpendfContentOutlineProvider
       for( int i=0; i < vars.size(); i++ )
       {
         Element var = (Element) vars.get(i);
-        varNode.addChild( var.getAttribute( NAME_ATTR ), getStart( var ), getEnd( var ) );
+        varNode.addChild( var.getAttribute( NAME_ATTR ), getStart( var ), getEnd( var ),
+            OpendfPlugin.getDefault().getImage( OpendfPlugin.IMAGE_variable ) );
       }
     }
 
     // List the entities in alphabetic order
     if( entities.size() > 0 )
     {
-      OpendfContentNode entityNode = root.addChild( "Entities" );
+      OpendfContentNode entityNode = root.addChild( "Entities",
+          OpendfPlugin.getDefault().getImage( OpendfPlugin.IMAGE_entity ) );
       
       Comparator<Node> comparator = new nodeComparator( NAME_ATTR, null );
       Collections.sort( vars, comparator );
@@ -177,7 +183,8 @@ public class NLContentOutlineProvider extends OpendfContentOutlineProvider
       for( int i=0; i < entities.size(); i++ )
       {
         Element entity = (Element) entities.get(i);
-        entityNode.addChild( entity.getAttribute( NAME_ATTR ), getStart( entity ), getEnd( entity ) );
+        entityNode.addChild( entity.getAttribute( NAME_ATTR ), getStart( entity ), getEnd( entity ),
+            OpendfPlugin.getDefault().getImage( OpendfPlugin.IMAGE_entity ) );
       }
     }
 

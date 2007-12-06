@@ -42,11 +42,41 @@ import org.eclipse.ui.plugin.*;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.osgi.framework.BundleContext;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.swt.graphics.Image;
+import java.util.*;
 
 public class OpendfPlugin extends AbstractUIPlugin {
 
 	public static final String ID = "net.sf.opendf.eclipse.plugin";
-	
+  
+  // indices into the imagePaths array
+  public static final int IMAGE_action       = 0;
+  public static final int IMAGE_actor        = 1;
+  public static final int IMAGE_entity       = 2;
+  public static final int IMAGE_fsm          = 3;
+  public static final int IMAGE_inequality   = 4;
+  public static final int IMAGE_network      = 5;
+  public static final int IMAGE_priority     = 6;
+  public static final int IMAGE_QID          = 7;
+  public static final int IMAGE_transition   = 8;
+  public static final int IMAGE_variable     = 9;
+
+  private static final String[] imagePaths =
+  {
+    "icons/action.gif",
+    "icons/actor.gif",
+    "icons/entity.gif",
+    "icons/fsm.gif",
+    "icons/inequality.gif",
+    "icons/network.gif",
+    "icons/priority.gif",
+    "icons/QID.gif",
+    "icons/transition.gif",
+    "icons/variable.gif"
+  };
+
+	private List<Image> images;
+  
 	//The shared instance.
 	private static OpendfPlugin plugin;
 	
@@ -68,10 +98,12 @@ public class OpendfPlugin extends AbstractUIPlugin {
 	public void start( BundleContext context ) throws Exception
 	{
 		super.start( context );
+    createImages();
 	}
 
 	public void stop( BundleContext context ) throws Exception
 	{
+    disposeImages();
     plugin = null;
 		super.stop( context );
 	}
@@ -92,4 +124,41 @@ public class OpendfPlugin extends AbstractUIPlugin {
 	{
 		return AbstractUIPlugin.imageDescriptorFromPlugin( ID, path );
 	}
+  
+  private void createImages()
+  {
+    images = new ArrayList<Image>( imagePaths.length );
+    
+    for( int i=0; i<imagePaths.length; i++ )
+    {
+      ImageDescriptor desc = getImageDescriptor( imagePaths[i] );
+      Image image = desc == null ? null : desc.createImage();
+      
+      images.add( image );
+    }
+  }
+  
+  private void disposeImages()
+  {
+    for( int i=0; i<images.size(); i++ )
+    {
+      Image image = images.get(i);
+      if( images != null )
+        image.dispose();
+    }
+  }
+  
+  public Image getImage( int i )
+  {
+    try
+    {
+      return images.get(i);
+    }
+    catch( Exception e )
+    {
+      logErrorMessage("Failed to find image ID " + i, e);
+    }
+    
+    return null;
+  }
 }

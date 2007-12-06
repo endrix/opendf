@@ -46,6 +46,7 @@ import org.eclipse.jface.text.DefaultPositionUpdater;
 import org.eclipse.jface.text.BadPositionCategoryException;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.texteditor.IDocumentProvider;
 
@@ -55,7 +56,7 @@ import org.w3c.dom.Document;
 public abstract class OpendfContentOutlineProvider implements ITreeContentProvider
 {
   private OpendfContentNode root;
-	private IEditorInput input;
+  private IEditorInput input;
 	private IDocumentProvider documentProvider;
 
 	protected final static String TAG_POSITIONS = "__tag_positions";
@@ -70,10 +71,18 @@ public abstract class OpendfContentOutlineProvider implements ITreeContentProvid
 	}
 
 	protected void setRoot( OpendfContentNode e )
-	{
-		root = e;
+	{    
+    // Copy over the expanded states
+    e.matchAndCopyExpanded( root );
+    root = e;
 	}
 	
+  public void setExpandedState( TreeViewer viewer )
+  {
+    if( root != null )
+      root.setExpandedState( viewer );
+  }
+ 
 	public Object[] getChildren( Object obj )
 	{	
 		OpendfContentNode[] children;

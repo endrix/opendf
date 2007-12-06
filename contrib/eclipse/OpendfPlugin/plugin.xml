@@ -5,7 +5,7 @@
       <editor
             name="CAL Editor"
             extensions="cal"
-            icon="icons/caltropsmall.gif"
+            icon="icons/actor.gif"
             contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
             class="net.sf.opendf.eclipse.plugin.editors.CALEditor"
             id="net.sf.opendf.eclipse.plugin.editors.CAL">
@@ -14,7 +14,7 @@
             class="net.sf.opendf.eclipse.plugin.editors.NLEditor"
             contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
             extensions="nl"
-            icon="icons/caltropsmall.gif"
+            icon="icons/network.gif"
             id="net.sf.opendf.eclipse.plugin.editors.NL"
             name="NL Editor"/>
    </extension>

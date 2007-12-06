@@ -41,6 +41,7 @@ package net.sf.opendf.eclipse.plugin.editors.outline;
 import org.eclipse.ui.texteditor.IDocumentProvider;
 import org.w3c.dom.*;
 import java.util.*;
+import net.sf.opendf.eclipse.plugin.OpendfPlugin;
 
 public class CALContentOutlineProvider extends OpendfContentOutlineProvider
 {
@@ -132,7 +133,9 @@ public class CALContentOutlineProvider extends OpendfContentOutlineProvider
     }
  
     OpendfContentNode root = new OpendfContentNode( "Actor " + actor.getAttribute( NAME_ATTR ),
-                                        getStart( actor ), getEnd( actor ) );
+                                        getStart( actor ), getEnd( actor ),
+                                        OpendfPlugin.getDefault().getImage( OpendfPlugin.IMAGE_actor ));
+    root.setExpanded( true );
 
     // ArrayLists to collect up the relevant parts of the dom tree
     ArrayList<Node> stateVars   = new ArrayList<Node>();
@@ -189,7 +192,8 @@ public class CALContentOutlineProvider extends OpendfContentOutlineProvider
     // List the state variables in alphabetic order
     if( stateVars.size() > 0 )
     {
-      OpendfContentNode stateNode = root.addChild( "State Variables" );
+      OpendfContentNode stateNode = root.addChild( "State Variables",
+          OpendfPlugin.getDefault().getImage( OpendfPlugin.IMAGE_variable ) );
       
       Comparator<Node> comparator = new nodeComparator( NAME_ATTR, null );
       Collections.sort( stateVars, comparator );
@@ -197,14 +201,16 @@ public class CALContentOutlineProvider extends OpendfContentOutlineProvider
       for( int i=0; i < stateVars.size(); i++ )
       {
         Element var = (Element) stateVars.get(i);
-        stateNode.addChild( var.getAttribute( NAME_ATTR ), getStart( var ), getEnd( var ) );
+        stateNode.addChild( var.getAttribute( NAME_ATTR ), getStart( var ), getEnd( var ),
+            OpendfPlugin.getDefault().getImage( OpendfPlugin.IMAGE_variable ) );
       }
     }
 
     // List the actions in alphabetic order
     if( actions.size() > 0 )
     {
-      OpendfContentNode actionNode = root.addChild( "Actions" );
+      OpendfContentNode actionNode = root.addChild( "Actions",
+          OpendfPlugin.getDefault().getImage( OpendfPlugin.IMAGE_action ) );
       
       Comparator<Node> comparator = new nodeComparator( NAME_ATTR, null );
       Collections.sort( actions, comparator );
@@ -213,7 +219,8 @@ public class CALContentOutlineProvider extends OpendfContentOutlineProvider
       { 
         Element a = (Element) actions.get(i);
         String name = a.getAttribute( NAME_ATTR );
-        actionNode.addChild( name.length() == 0 ? "(unnamed)" : name, getStart( a ), getEnd( a ) );
+        actionNode.addChild( name.length() == 0 ? "(unnamed)" : name, getStart( a ), getEnd( a ),
+            OpendfPlugin.getDefault().getImage( OpendfPlugin.IMAGE_action ) );
       }
     }
 
@@ -232,7 +239,8 @@ public class CALContentOutlineProvider extends OpendfContentOutlineProvider
     
       // Add the states in alphabetical order
       String s = fsm.getAttribute( INITIAL_STATE_ATTR );
-      OpendfContentNode fsmNode = root.addChild( "State Machine (start = " + s + ")", getStart( fsm ), getEnd( fsm ) );
+      OpendfContentNode fsmNode = root.addChild( "State Machine (start = " + s + ")", getStart( fsm ), getEnd( fsm ),
+          OpendfPlugin.getDefault().getImage( OpendfPlugin.IMAGE_fsm ) );
       
       // Now get a list of all the transitions sorted first on "from", then on "to"
       Comparator<Node> comparator = new nodeComparator( FROM_ATTR, TO_ATTR );
@@ -255,7 +263,8 @@ public class CALContentOutlineProvider extends OpendfContentOutlineProvider
           // New transition detected
           fromName = t.getAttribute( FROM_ATTR );
           toName   = t.getAttribute( TO_ATTR );
-          fromTo   = fsmNode.addChild( fromName + " --> " + toName );
+          fromTo   = fsmNode.addChild( fromName + " --> " + toName,
+              OpendfPlugin.getDefault().getImage( OpendfPlugin.IMAGE_transition ) );
         }
 
         // For each QID associated with the transition, list all matching actions
@@ -266,7 +275,11 @@ public class CALContentOutlineProvider extends OpendfContentOutlineProvider
           for( Node QID = ActionTag.getFirstChild(); QID != null; QID = QID.getNextSibling() )
           {
             if( ! QID.getNodeName().equals( QID_TAG ) ) continue;
-            addMatchingActions( fromTo, QID, actions );
+            
+            OpendfContentNode q = fromTo.addChild( "QID " + ((Element) QID).getAttribute( NAME_ATTR ),
+                OpendfPlugin.getDefault().getImage( OpendfPlugin.IMAGE_QID ) );
+
+            addMatchingActions( q, QID, actions );
           }
         }
       }
@@ -274,15 +287,18 @@ public class CALContentOutlineProvider extends OpendfContentOutlineProvider
 
     if( priorities.size() > 0 )
     {
-      OpendfContentNode priorityRoot = root.addChild( "Priorities" );
+      OpendfContentNode priorityRoot = root.addChild( "Priorities",
+          OpendfPlugin.getDefault().getImage( OpendfPlugin.IMAGE_priority ) );
       for( int i = 0; i < priorities.size(); i++ )
       {
-        OpendfContentNode inequality = priorityRoot.addChild( "Inequality" );
+        OpendfContentNode inequality = priorityRoot.addChild( "Inequality",
+            OpendfPlugin.getDefault().getImage( OpendfPlugin.IMAGE_inequality ) );
         for( Node QID = priorities.get(i).getFirstChild(); QID != null; QID = QID.getNextSibling() )
         {
           if( ! QID.getNodeName().equals( QID_TAG ) ) continue;
           
-          OpendfContentNode q = inequality.addChild( "QID " + ((Element) QID).getAttribute( NAME_ATTR ) );
+          OpendfContentNode q = inequality.addChild( "QID " + ((Element) QID).getAttribute( NAME_ATTR ),
+              OpendfPlugin.getDefault().getImage( OpendfPlugin.IMAGE_QID ) );
           addMatchingActions( q, QID, actions );
         }
       }
@@ -303,7 +319,8 @@ public class CALContentOutlineProvider extends OpendfContentOutlineProvider
       Element ae = (Element) actions.get(j);
       String  a  = ae.getAttribute( NAME_ATTR );
       if( a.equals( aname ) || a.startsWith( aprefix ))
-        n.addChild( a, getStart( ae ), getEnd( ae ) );
+        n.addChild( a, getStart( ae ), getEnd( ae ),
+            OpendfPlugin.getDefault().getImage( OpendfPlugin.IMAGE_action ) );
     }
   }
 }

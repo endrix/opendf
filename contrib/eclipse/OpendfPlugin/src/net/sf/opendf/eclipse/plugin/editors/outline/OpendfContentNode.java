@@ -39,6 +39,8 @@ ENDCOPYRIGHT
 package net.sf.opendf.eclipse.plugin.editors.outline;
 
 import java.util.*;
+import org.eclipse.jface.viewers.TreeViewer;
+import org.eclipse.swt.graphics.Image;
 
 public class OpendfContentNode
 {
@@ -47,9 +49,61 @@ public class OpendfContentNode
 	private ArrayList<OpendfContentNode> children;
   
   // Lines are 1-based, so 0 means "line range unavailable"
-	private int startLine;
-	private int endLine;
+	private int startLine    = 0;
+	private int endLine      = 0;
+  private boolean expanded = false;
+  private Image image;
 	
+  public void setExpanded( boolean e )
+  {
+    expanded = e;
+  }
+  
+  public boolean getExpanded()
+  {
+    return expanded;
+  }
+  
+  public void setExpandedState( TreeViewer viewer )
+  {
+    viewer.setExpandedState( this, expanded );
+    
+    for( int i=0; i<children.size(); i++ )
+      children.get(i).setExpandedState( viewer );
+  }
+
+    public Image getImage()
+    {
+      return image;
+    }
+    
+  // Copy the expanded flags from another content tree to the extent that the trees are the same
+  public boolean matchAndCopyExpanded( OpendfContentNode other )
+  {
+    if( other == null ) return false;
+    
+    if( ! label.equals( other.label ) ) return false;
+    
+    setExpanded( other.getExpanded() );
+    
+    int match = 0;
+    for( int i=0; i<children.size(); i++ )
+    {
+      OpendfContentNode thisChild = children.get(i);
+      
+      for( int j=match; j<other.children.size(); j++ )
+      {
+        if( thisChild.matchAndCopyExpanded( other.children.get(j) ) )
+        {  match = j+1;
+           break;
+        }
+      }
+      
+    }
+    
+    return true;
+  }
+  
 	public int getStart()
 	{
 		return startLine;
@@ -80,32 +134,34 @@ public class OpendfContentNode
 		return label;
 	}
 	
-	public OpendfContentNode( String s )
+	public OpendfContentNode( String s, Image img )
 	{
 		label = s;
 		children = new ArrayList<OpendfContentNode>();
 		startLine = 0;
+    image = img;
 	}
 
-  public OpendfContentNode( String s, int start, int end )
+  public OpendfContentNode( String s, int start, int end, Image img )
   {
     label = s;
     children = new ArrayList<OpendfContentNode>();
     startLine = start;
     endLine = end;
+    image = img;
   }
   
-  public OpendfContentNode addChild( String s )
+  public OpendfContentNode addChild( String s, Image img )
 	{
-    OpendfContentNode child = new OpendfContentNode( s );
+    OpendfContentNode child = new OpendfContentNode( s, img );
 		child.parent = this;
 		children.add( child );
 		return child;
 	}
 
-  public OpendfContentNode addChild( String s, int start, int end )
+  public OpendfContentNode addChild( String s, int start, int end, Image img )
   {
-    OpendfContentNode child = addChild( s );
+    OpendfContentNode child = addChild( s, img );
     child.setLineRange( start, end );
     return child;
   }

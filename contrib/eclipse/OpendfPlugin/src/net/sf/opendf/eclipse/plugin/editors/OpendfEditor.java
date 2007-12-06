@@ -56,7 +56,7 @@ public abstract class OpendfEditor extends TextEditor
 	public abstract OpendfDocumentListener     createDocumentListener( IFile file, IDocument document );
   public abstract OpendfContentOutlinePage   createOutlinePage( ITextEditor editor );
 
-	private FileDocumentProvider         documentProvider;
+	private FileDocumentProvider        documentProvider;
   private OpendfDocumentListener      documentListener;
   private OpendfContentOutlinePage    outlinePage;
 
@@ -94,7 +94,10 @@ public abstract class OpendfEditor extends TextEditor
 			documentListener = createDocumentListener( ((IFileEditorInput) input).getFile(), document );
       
 			if( outlinePage != null )
+      {
+        outlinePage.setInput( input );
 				documentListener.setOutlinePage( outlinePage );
+      }
 			
 			document.addDocumentListener( documentListener );
 		}

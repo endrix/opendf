@@ -1,6 +1,6 @@
 Bundle-Name: Open Dataflow Plugin
 Bundle-SymbolicName: net.sf.opendf.eclipse.plugin;singleton:=true
-Bundle-Version: 1.0.0
+Bundle-Version: 1.0.1
 Bundle-Activator: net.sf.opendf.eclipse.plugin.OpendfPlugin
 Bundle-Vendor: The Open Dataflow Project
 Bundle-Localization: plugin
