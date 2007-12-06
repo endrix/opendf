@@ -45,7 +45,7 @@ ENDCOPYRIGHT
 
 network Top () ==> :
 
-import entity net.sf.caltrop.actors.Plotter;
+import entity net.sf.opendf.actors.Plotter;
 
 var
 	noise = .1;

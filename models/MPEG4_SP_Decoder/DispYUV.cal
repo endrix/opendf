@@ -38,7 +38,6 @@ ENDCOPYRIGHT
 
 import ptolemy.media.Picture;
 import javax.swing.JFrame;
-import all caltrop.lib.BitOps;
 import java.lang.System;
 
 actor DispYUV [int] (string title,string file, int width,

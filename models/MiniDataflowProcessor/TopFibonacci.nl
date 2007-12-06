@@ -45,7 +45,7 @@ ENDCOPYRIGHT
 
 network TopFibonacci () ==> :
 
-import entity net.sf.caltrop.actors.Plotter;
+import entity net.sf.opendf.actors.Plotter;
 
 var
 	function Rop (op, r1, r2, rd) : (((r1 * 32) + r2) * 32 + rd) * 2048 + op end
