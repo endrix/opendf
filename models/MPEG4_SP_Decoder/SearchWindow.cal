@@ -50,7 +50,6 @@ actor SearchWindow (
     int MB_COORD_SZ,
     int BTYPE_SZ,
     int PIX_SZ,
-    int DATA_SZ,
     int INTRA,
     int INTER,
     int NEWVOP,
