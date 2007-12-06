@@ -72,8 +72,8 @@
         <!-- Compute dependency set (restricted to variables in same scope).
              First, take the free variables in the defining expression. -->
         <xsl:variable name="deps">
-            <xsl:for-each select="$V/Expr/Note[@kind='freeVar']">
-                <xsl:variable name="depname" select="@name"/>
+            <xsl:for-each select="$V/Expr/Note[@kind='freeVar'] | $V/Type//Expr[parent::Entry]/Note[@kind='freeVar']"> 
+                    <xsl:variable name="depname" select="@name"/>
 
                 <xsl:if test="$decls[@name=$depname]">
                     <Var name="{$depname}"/>
