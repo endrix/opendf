@@ -2,11 +2,16 @@
 <feature
       id="net.sf.opendf.eclipse.feature"
       label="Open Dataflow Plugin"
-      version="1.0.0"
+      version="1.0.1"
       provider-name="The Open Dataflow Project">
 
    <description>
       Open Dataflow Project plugin
+
+v1.0.1
+======
+Improved outlining including a redraw bug, preservation of expanded state and images.
+Changed .CAL and .NL images.
    </description>
 
    <copyright>
