@@ -47,6 +47,7 @@ import java.util.Map;
 
 import net.sf.opendf.cli.lib.ActorCClassFactory;
 import net.sf.opendf.cli.lib.CalActorClassFactory;
+import net.sf.opendf.cli.lib.UCalActorClassFactory;
 import net.sf.opendf.cli.lib.CalMLActorClassFactory;
 import net.sf.opendf.cli.lib.NLClassFactory;
 import net.sf.opendf.cli.lib.XDFClassFactory;
@@ -122,6 +123,7 @@ public class SimulationClassLoader extends ClassLoader {
 
 //		addModelClassFactory("pcalml", new PCalMLActorClassFactory());
 		addModelClassFactory("cal", new CalActorClassFactory(cachePath));
+		addModelClassFactory("ucal", new UCalActorClassFactory(cachePath));
 		addModelClassFactory("actorc", new ActorCClassFactory(cachePath));
 		addModelClassFactory("ac", new ActorCClassFactory(cachePath));
 		addModelClassFactory("calml", new CalMLActorClassFactory()); 
