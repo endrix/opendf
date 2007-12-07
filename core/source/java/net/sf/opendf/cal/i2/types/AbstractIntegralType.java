@@ -59,8 +59,7 @@ abstract public class AbstractIntegralType extends AbstractType implements Integ
 		if (this.hasSize()) {
 			b = b.and(this.getMask());
 			if (b.compareTo(this.maxValue()) > 0)
-				b = b.add(this.minValue);
-			// FIXME: This isn't quite right.
+				b = b.subtract(this.getCardinality());
 		}
 		return b;	
 	}
@@ -118,7 +117,7 @@ abstract public class AbstractIntegralType extends AbstractType implements Integ
 	
 	protected AbstractIntegralType(TypeClass typeClass) {
 		super (typeClass);
-		maxValue = minValue = null;
+		maxValue = minValue = cardinality = null;
 	}
 	
 	protected BigInteger  getMask() {
@@ -131,7 +130,15 @@ abstract public class AbstractIntegralType extends AbstractType implements Integ
 		return mask;
 	}
 	
+	protected BigInteger  getCardinality() {
+		if (cardinality == null) {
+			cardinality = BigInteger.ONE.shiftLeft(size());
+		}
+		return cardinality;
+	}
+	
 	private BigInteger  maxValue;
 	private BigInteger  minValue;
+	private BigInteger  cardinality;
 	private BigInteger  mask;
 }
