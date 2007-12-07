@@ -48,7 +48,7 @@ actor byte2bit () int(size=8) in8 ==> bool out :
 
   bool _CAL_tokenMonitor := true;
   
-  int(size=4) count := 0;
+  int(size=5) count := 0;
   int(size=9) buf;
 
   // Read in an new byte when needed
