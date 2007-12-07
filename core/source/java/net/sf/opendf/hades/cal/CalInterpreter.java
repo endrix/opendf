@@ -152,6 +152,12 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 				ignoreBufferBounds = true;
 			}
 			
+			globalTraceOn = false;
+			String globalTraceOnString = System.getProperty("CalFiringTrace");
+			if (globalTraceOnString != null && globalTraceOnString.trim().toLowerCase().equals("true")) {
+				globalTraceOn = true;
+			}
+			
 			bufferBlockRecord = false;
 			String bufferBlockRecordString = System.getProperty("CalBufferBlockRecord");
 			if (bufferBlockRecordString != null && bufferBlockRecordString.trim().toLowerCase().equals("true")) {
@@ -343,20 +349,8 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 					
 					nVoidFirings = 0;
 					firingCount += 1;
-					if (hasTraceVar) {
-						Object v = this.actorEnv.getByName(traceVarName);
-						if (theConfiguration.booleanValue(v)) {
-							Logging.user().info("<trace actor='" 
-									           + actor.getName() 
-									           + "' action='"
-									           + a[i].getID()
-									           + "'>"
-									           + "    " + actionDescription(a[i])
-									           + "\n    states: " + ((ndaStateSets != null) ? ndaStateSets[currentState].toString() : "<empty>") 
-									           + "\n    position: " + i
-									           + "\n    eligible actions:" + actionDescription(a)
-									           + "</trace>");
-						}
+					if (isTraceOn()) {
+						writeTraceInformation(a, i);
 					}
 					delayOutput = ai.hasDelay();
 					
@@ -805,6 +799,33 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 		return false;
 	}
 	
+	private boolean  isTraceOn() {
+		if (hasTraceVar) {
+			Object v = this.actorEnv.getByName(traceVarName);
+			if (theConfiguration.booleanValue(v)) {
+				return true;
+			}
+		}
+		if (globalTraceOn) {
+			return true;
+		}
+		
+		return false;
+	}
+	
+	private void writeTraceInformation(Action [] a, int i) {
+		Logging.user().info("<trace actor='" 
+		           + actor.getName() 
+		           + "' action='"
+		           + a[i].getID()
+		           + "'>"
+		           + "    " + actionDescription(a[i])
+		           + "\n    states: " + ((ndaStateSets != null) ? ndaStateSets[currentState].toString() : "<empty>") 
+		           + "\n    position: " + i
+		           + "\n    eligible actions:" + actionDescription(a)
+		           + "</trace>");
+	}
+	
 	private void  setupPortTypeChecking() {   // TYPEFIXME
 //		final String actorName = actor.getName();
 //		
@@ -966,8 +987,8 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 	protected AssertionHandler assertionHandler = null;
 	
 
-	//protected final static Platform thePlatform = DefaultTypedPlatform.thePlatform;
-	protected final static Platform thePlatform = DefaultUntypedPlatform.thePlatform;
+	protected final static Platform thePlatform = DefaultTypedPlatform.thePlatform;
+	//protected final static Platform thePlatform = DefaultUntypedPlatform.thePlatform;
 	protected final static Configuration  theConfiguration  = thePlatform.configuration();
 	
 	/**
@@ -1003,7 +1024,7 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 
 	
 	
-	
+	private   boolean	  globalTraceOn; 
 	private   boolean     hasTraceVar;
 	private   boolean     hasNDTrackerVar;
 	private   int         warnBigBuffers;

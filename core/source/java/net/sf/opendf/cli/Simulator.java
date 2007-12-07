@@ -146,6 +146,8 @@ public class Simulator {
 			} else if (args[i].equals("-bbr")) {
 				System.setProperty("CalBufferBlockRecord", "true");
 				bufferBlockRecord = true;
+			} else if (args[i].equals("-trace")) {
+				System.setProperty("CalFiringTrace", "true");
 			} else if (args[i].equals("-bq")) {
 				i += 1;
 				if (i >= args.length) usage();

@@ -59,7 +59,7 @@ abstract public class AbstractIntegralType extends AbstractType implements Integ
 		if (this.hasSize()) {
 			b = b.and(this.getMask());
 			if (b.compareTo(this.maxValue()) > 0)
-				b = b.negate();
+				b = b.add(this.minValue);
 			// FIXME: This isn't quite right.
 		}
 		return b;	
