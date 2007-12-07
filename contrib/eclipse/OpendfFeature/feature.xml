@@ -7,11 +7,11 @@
 
    <description>
       Open Dataflow Project plugin
-
 v1.0.1
 ======
-Improved outlining including a redraw bug, preservation of expanded state and images.
-Changed .CAL and .NL images.
+* Improved outlining including icons and preservation of expanded state.
+* Changed .CAL and .NL images.
+* Added to PDF documentation.
    </description>
 
    <copyright>
@@ -68,7 +68,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
    <plugin
          id="net.sf.opendf.eclipse.doc"
-         download-size="485"
+         download-size="2156"
          install-size="0"
          version="0.0.0"/>
 
