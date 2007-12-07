@@ -1,5 +1,6 @@
 package net.sf.opendf.cal.i2.types;
 
+import java.math.BigInteger;
 import java.util.Map;
 
 import net.sf.opendf.cal.ast.TypeExpr;
@@ -7,6 +8,22 @@ import net.sf.opendf.cal.i2.Evaluator;
 
 public class TheIntegerType extends AbstractIntegralType implements IntegralType {
 
+	//
+	//  Type
+	//
+	
+	public boolean  contains(Object v) {
+		return v instanceof BigInteger;
+	}
+	
+	public Object  convert(Object v) {
+		return v; // FIXME
+	}
+	
+	public boolean  convertible(Object v) {
+		return true;  // FIXME
+	}
+	
 	//
 	//  IntegralType
 	//
@@ -21,11 +38,6 @@ public class TheIntegerType extends AbstractIntegralType implements IntegralType
 		throw new RuntimeException("Cannot retrieve size of unbounded integer type.");
 	}
 
-	@Override
-	public int maxSize() {
-		throw new RuntimeException("Cannot retrieve max size of unbounded integer type.");
-	}
-	
 	//
 	//  RealType
 	//
