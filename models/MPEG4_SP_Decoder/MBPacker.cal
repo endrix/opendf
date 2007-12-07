@@ -50,7 +50,7 @@ actor MBPacker ( int PIX_SZ, int ADDR_SZ ) int(size=PIX_SZ) DI, int(size=ADDR_
   int TC = 6 * 64;
 
   int(size=10) pix_count := 0;
-  int(size=24) buf       := 0;
+  int(size=25) buf       := 0;
 
   // Just passed an entire macroblock
   tc: action ==>
