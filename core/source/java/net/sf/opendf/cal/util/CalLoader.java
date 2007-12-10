@@ -24,7 +24,7 @@ public class CalLoader implements SourceLoader {
 	public Node load(InputStream s) {
 		Reader r = new InputStreamReader(s);
 		try {
-			Document doc = SourceReader.parseActor(r);
+			Node doc = SourceReader.parseActor(r);
 			return saxonify(doc);
 		}
 		catch (Exception e) {

@@ -116,7 +116,7 @@ public class PrecompileCAL {
 			}
 			
 			Logging.user().fine("read ");
-			Document doc;
+			Node doc;
 			InputStream is = new FileInputStream(inFile);
 			if (isCal) {
 				doc = SourceReader.parseActor(new InputStreamReader(is));

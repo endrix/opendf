@@ -126,7 +126,7 @@ public class ASTFactory {
      * @param doc The CalML/DOM tree.
      * @return The corresponding actor.
      */
-    public static Actor buildActor(Document doc)
+    public static Actor buildActor(Node doc)
     {
         return buildPreprocessedActor(preprocessActor(doc));
     }
@@ -154,7 +154,7 @@ public class ASTFactory {
         return createActor(e);
      }
     
-    public static Node  preprocessActor(Document doc) {
+    public static Node  preprocessActor(Node doc) {
     	CheckReports reps = actorCheck(doc);
     	if (reps != null) {
     		int nErrors = (reps.errors == null) ? 0 : reps.errors.size();

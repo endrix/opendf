@@ -57,14 +57,14 @@ public class DefaultTypeSystem implements TypeSystem {
 
 	
 	private void initializeTypeClasses() {
-		addTypeClass(new BoundedIntegralTypeClass("short", this, true, 16));
-		addTypeClass(new BoundedIntegralTypeClass("ushort", this, false, 16));
-		addTypeClass(new BoundedIntegralTypeClass("int", this, true, 32));
-		addTypeClass(new BoundedIntegralTypeClass("uint", this, false, 32));
-		addTypeClass(new BoundedIntegralTypeClass("long", this, true, 64));
-		addTypeClass(new BoundedIntegralTypeClass("ulong", this, false, 64));
+		addTypeClass(new BoundedIntegralType.TheClass("short", this, true, 16));
+		addTypeClass(new BoundedIntegralType.TheClass("ushort", this, false, 16));
+		addTypeClass(new BoundedIntegralType.TheClass("int", this, true, 32));
+		addTypeClass(new BoundedIntegralType.TheClass("uint", this, false, 32));
+		addTypeClass(new BoundedIntegralType.TheClass("long", this, true, 64));
+		addTypeClass(new BoundedIntegralType.TheClass("ulong", this, false, 64));
 
-		addTypeClass(new BoundedIntegralTypeClass("byte", this, false, 8));
+		addTypeClass(new BoundedIntegralType.TheClass("byte", this, false, 8));
 //		addTypeClass(new TheIntegerType);
 	}
 	

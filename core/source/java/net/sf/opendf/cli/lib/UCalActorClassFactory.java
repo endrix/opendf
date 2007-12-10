@@ -88,7 +88,7 @@ public class UCalActorClassFactory extends AbstractCachingGenericInterpreterMode
 	@Override
 	protected Object readModelWhileCaching(InputStream is, OutputStream os)
     {
-        Document doc = null;
+        Node doc = null;
         try 
         {
             doc = SourceReader.parseActor(new InputStreamReader(is), getResourceName());

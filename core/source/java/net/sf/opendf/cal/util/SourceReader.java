@@ -99,7 +99,7 @@ public class SourceReader
         //"net/sf/opendf/cal/transforms/VariableSorter.xslt"
     };
     
-	public static Document parseActor(Reader s) throws MultiErrorException
+	public static Node parseActor(Reader s) throws MultiErrorException
     {
         return parseActor(s,"unknown");
     }
@@ -107,7 +107,7 @@ public class SourceReader
     /**
      * May throw Exception if failure occurs during parsing.
      */
-	public static Document parseActor(Reader s, String name) throws MultiErrorException
+	public static Node parseActor(Reader s, String name) throws MultiErrorException
 	{
         Document doc = null;
         Lexer calLexer = new Lexer(s);
@@ -135,8 +135,8 @@ public class SourceReader
 	    return doc;
 	}
 
-	public static Document parseActor(String s) throws MultiErrorException { return parseActor(s, "unknown"); }
-	public static Document parseActor(String s, String name) throws MultiErrorException
+	public static Node parseActor(String s) throws MultiErrorException { return parseActor(s, "unknown"); }
+	public static Node parseActor(String s, String name) throws MultiErrorException
 	{
 		return parseActor(new StringReader(s), name);
 	}
