@@ -57,7 +57,7 @@ import net.sf.opendf.cal.parser.Parser;
 import net.sf.opendf.util.source.MultiErrorException;
 
 import net.sf.opendf.util.xml.Util;
-import net.sf.opendf.util.logging.Logging;
+// import net.sf.opendf.util.logging.Logging;
 
 
 import org.w3c.dom.Document;
@@ -72,7 +72,7 @@ import org.w3c.dom.Node;
 
 public class SourceReader
 {
-    private static final boolean suppressActorChecks = System.getenv().containsKey("CAL_SUPPRESS_ACTOR_CHECKS");
+    // private static final boolean suppressActorChecks = System.getenv().containsKey("CAL_SUPPRESS_ACTOR_CHECKS");
 
     private static String [] actorPreprocessTransforms = {
         "net/sf/opendf/cal/transforms/BuildProductSchedule.xslt",
@@ -114,6 +114,21 @@ public class SourceReader
         Parser calParser = new Parser(calLexer);
         doc = calParser.parseActor(name);
 
+        // DBP: Semantic check results are now returned in-line
+        // Downstream processes must determine what to do with error notes
+        try
+        {
+          return Util.applyTransformsAsResources(doc, new String[]
+               {
+                 "net/sf/opendf/cal/checks/semanticChecks.xslt"
+               } );
+        }
+        catch ( Exception e )
+        {
+          throw new RuntimeException( e );
+        }
+        
+        /*
         if (!suppressActorChecks)
         {
             try
@@ -133,6 +148,7 @@ public class SourceReader
         }
         
 	    return doc;
+      */
 	}
 
 	public static Node parseActor(String s) throws MultiErrorException { return parseActor(s, "unknown"); }
