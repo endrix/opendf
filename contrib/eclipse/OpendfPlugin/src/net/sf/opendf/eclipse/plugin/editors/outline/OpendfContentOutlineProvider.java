@@ -51,7 +51,7 @@ import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.texteditor.IDocumentProvider;
 
 // Note: unfortunately, jface also has a Document class!
-import org.w3c.dom.Document;
+import org.w3c.dom.Node;
 
 public abstract class OpendfContentOutlineProvider implements ITreeContentProvider
 {
@@ -62,7 +62,7 @@ public abstract class OpendfContentOutlineProvider implements ITreeContentProvid
 	protected final static String TAG_POSITIONS = "__tag_positions";
 	protected IPositionUpdater positionUpdater = new DefaultPositionUpdater( TAG_POSITIONS );
 
-  public abstract void updateDocument( Document document );
+  public abstract void updateDocument( Node document );
   
 	public OpendfContentOutlineProvider( IDocumentProvider provider )
 	{

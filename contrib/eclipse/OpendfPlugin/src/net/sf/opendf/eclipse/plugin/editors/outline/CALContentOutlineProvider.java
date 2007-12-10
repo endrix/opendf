@@ -122,12 +122,14 @@ public class CALContentOutlineProvider extends OpendfContentOutlineProvider
     return end;
   }
   
-  public void updateDocument( Document document )
+  public void updateDocument( Node document )
   {
-    Element actor = document.getDocumentElement();
+    
+    Element actor = (Element) document.getFirstChild(); // .getDocumentElement();
      
     if( ! actor.getTagName().equals( ACTOR_TAG ) )
     {
+      System.out.println( actor.getTagName() );
       setRoot( null );
       return;
     }

@@ -49,7 +49,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.texteditor.ITextEditor;
 import org.eclipse.ui.views.contentoutline.ContentOutlinePage;
-import org.w3c.dom.Document;
+import org.w3c.dom.Node;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.ui.texteditor.IDocumentProvider;
 import org.eclipse.swt.widgets.Display;
@@ -169,7 +169,7 @@ public abstract class OpendfContentOutlinePage extends ContentOutlinePage implem
   
   // This is called from a thread other than the main UI thread, and
   // the update must be done in the main UI thread
-	public void outlineDocument( Document document, long s )
+	public void outlineDocument( Node document, long s )
 	{
     // Pass the document to the worker thread that will update the outline
     documentToOutline = document;
@@ -196,7 +196,7 @@ public abstract class OpendfContentOutlinePage extends ContentOutlinePage implem
 	}
 
   // Used to pass argument between threads
-  private Document documentToOutline;  
+  private Node documentToOutline;  
   
   public void run()
   {

@@ -38,34 +38,36 @@ ENDCOPYRIGHT
 
 package net.sf.opendf.eclipse.plugin.editors.checkers;
 
-import java.util.*;
+//import java.util.*;
 
 import org.eclipse.core.resources.IFile;
 
 import net.sf.opendf.cal.util.SourceReader;
-import net.sf.opendf.eclipse.plugin.OpendfPlugin;
+//import net.sf.opendf.eclipse.plugin.OpendfPlugin;
 import org.eclipse.jface.text.IDocument;
 
-import org.w3c.dom.Document;
+import org.w3c.dom.Node;
 
-import java.io.*;
-import javax.xml.transform.*;
-import net.sf.opendf.util.xml.Util;
+//import java.io.*;
+//import javax.xml.transform.*;
+//import net.sf.opendf.util.xml.Util;
 import net.sf.opendf.util.source.*;
 
 public class CALDocumentChecker extends OpendfDocumentChecker
 {
+  /*
   private static final String[] checks = 
   {
     "net/sf/opendf/cal/checks/semanticChecks.xslt"
   };
   
   private List<Transformer> transforms;
-  
+  */
   public CALDocumentChecker( IFile file, IDocument document )
   {
     super( file, document );
     
+    /*
     transforms = new ArrayList<Transformer>( checks.length );
     
     for( int i=0; i<checks.length; i++ )
@@ -80,16 +82,19 @@ public class CALDocumentChecker extends OpendfDocumentChecker
         OpendfPlugin.logErrorMessage( "Failed to construct CAL semantic checker " + checks[i], e );
       }
     }
+    */
   }
   
-  public Document parseDocument( ) throws MultiErrorException
+  public Node parseDocument( ) throws MultiErrorException
   {
     return SourceReader.parseActor( document.get() );
   }
   
+  /*
   public Transformer[] getSemanticChecks()
   {
     return transforms.toArray( new Transformer[] {} );
   }
+  */
  
 }

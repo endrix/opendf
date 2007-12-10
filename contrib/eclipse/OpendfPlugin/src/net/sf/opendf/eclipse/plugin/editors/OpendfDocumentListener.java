@@ -40,7 +40,7 @@ package net.sf.opendf.eclipse.plugin.editors;
 
 import org.eclipse.jface.text.IDocumentListener;
 import org.eclipse.jface.text.DocumentEvent;
-import org.w3c.dom.Document;
+import org.w3c.dom.Node;
 
 import net.sf.opendf.eclipse.plugin.editors.outline.*;
 import net.sf.opendf.eclipse.plugin.editors.checkers.*;
@@ -110,7 +110,7 @@ public class OpendfDocumentListener implements IDocumentListener, Runnable
 	public void run()
 	{
     long parsingStamp   = -1;    // Ensures parse on first doc change
-    Document document = null;
+    Node document = null;
     
 	  while( true )
 	  {  

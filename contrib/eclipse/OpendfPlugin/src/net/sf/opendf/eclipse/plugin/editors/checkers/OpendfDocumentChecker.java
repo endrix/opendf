@@ -74,8 +74,8 @@ public abstract class OpendfDocumentChecker
   }
   
   // Must be extended for either CAL or NL
-  public abstract Document parseDocument( ) throws MultiErrorException;
-  public abstract Transformer[] getSemanticChecks();
+  public abstract Node parseDocument( ) throws MultiErrorException;
+  // public abstract Transformer[] getSemanticChecks();
 
   public void postSyntaxErrors( MultiErrorException me )
   {
@@ -156,22 +156,22 @@ public abstract class OpendfDocumentChecker
     }
   }
   
-  public void checkSemanticsAndReport( Document document )
+  public void checkSemanticsAndReport( Node document )
   {
 
 	  try
     {
       file.deleteMarkers( null, true, IResource.DEPTH_ZERO );
 
-      Node result = Util.applyTransforms( (Node) document, getSemanticChecks() );
+      // Node result = Util.applyTransforms( (Node) document, getSemanticChecks() );
       
-  		List<Element> e = xpathEvalElements("//Note[@kind='Report'][@severity='Error']", result );
+  		List<Element> e = xpathEvalElements("//Note[@kind='Report'][@severity='Error']", document );
       reportList( e, IMarker.SEVERITY_ERROR );
           
-      e = xpathEvalElements( "/*/Note[@kind='Report'][@severity='Warning']", result );
+      e = xpathEvalElements( "/*/Note[@kind='Report'][@severity='Warning']", document );
       reportList( e, IMarker.SEVERITY_WARNING );
 		  
-      e = xpathEvalElements( "/*/Note[@kind='Report'][not( @severity='Error' ) ][not( @severity='Warning' ) ]", result );
+      e = xpathEvalElements( "/*/Note[@kind='Report'][not( @severity='Error' ) ][not( @severity='Warning' ) ]", document );
       reportList( e, IMarker.SEVERITY_INFO );
 		  
     }
