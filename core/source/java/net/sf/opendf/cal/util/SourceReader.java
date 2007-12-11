@@ -67,49 +67,24 @@ import org.w3c.dom.Node;
 
 
 /**
+ * A collection of static methods for parsing and reading actors, statements, and expressions in CAL.
+ * 
+ * There are parseXYZ and readXYZ methods. The parseXYZ methods parse a sequence of characters and 
+ * return the resulting DOM tree that represents the AST. The readXYZ methods are built on top of  
+ * 
  *  @author Jörn W. Janneck <janneck@eecs.berkeley.edu>
  */
 
 public class SourceReader
 {
-    // private static final boolean suppressActorChecks = System.getenv().containsKey("CAL_SUPPRESS_ACTOR_CHECKS");
-
-    private static String [] actorPreprocessTransforms = {
-        "net/sf/opendf/cal/transforms/BuildProductSchedule.xslt",
-        "net/sf/opendf/cal/transforms/CanonicalizePortTags.xslt",
-
-        // Copies Input Port Type to Input Decl
-        "net/sf/opendf/cal/transforms/AddInputTypes.xslt",
-
-        // Convert the old keyword to appropriate local var declaration
-        "net/sf/opendf/cal/transforms/ReplaceOld.xslt",
-        // Add $local to all local variables.
-        "net/sf/opendf/cal/transforms/RenameLocalVars.xslt",
-
-        // Defer inlining of fxn/procedure to the code generators
-        //"net/sf/opendf/cal/transforms/Inline.xslt",
-
-        // Done in elaborator after inlining
-        //"net/sf/opendf/cal/transforms/AddID.xslt",
-        //"net/sf/opendf/cal/transforms/VariableAnnotator.xslt",
-        //"net/sf/opendf/cal/transforms/ContextInfoAnnotator.xslt",
-        //"net/sf/opendf/cal/transforms/CanonicalizeOperators.xslt",
-        //"net/sf/opendf/cal/transforms/AnnotateFreeVars.xslt",
-        //"net/sf/opendf/cal/transforms/DependencyAnnotator.xslt",
-        //"net/sf/opendf/cal/transforms/VariableSorter.xslt"
-    };
     
-	public static Node parseActor(Reader s) throws MultiErrorException
-    {
-        return parseActor(s,"unknown");
-    }
+    //////////////////////////////////
+    //  Actor
+    //////////////////////////////////
     
-    /**
-     * May throw Exception if failure occurs during parsing.
-     */
 	public static Node parseActor(Reader s, String name) throws MultiErrorException
 	{
-        Document doc = null;
+        Node doc = null;
         Lexer calLexer = new Lexer(s);
         Parser calParser = new Parser(calLexer);
         doc = calParser.parseActor(name);
@@ -150,16 +125,49 @@ public class SourceReader
 	    return doc;
       */
 	}
+	public static Node parseActor(Reader s) throws MultiErrorException {
+        return parseActor(s,"unknown");
+    }
+    
 
-	public static Node parseActor(String s) throws MultiErrorException { return parseActor(s, "unknown"); }
-	public static Node parseActor(String s, String name) throws MultiErrorException
-	{
+	public static Node parseActor(String s) throws MultiErrorException { 
+		return parseActor(s, "unknown"); 
+	}
+
+	public static Node parseActor(String s, String name) throws MultiErrorException {
 		return parseActor(new StringReader(s), name);
 	}
 
-    /**
-     * Canonicalize Actor elements.
-     */
+	public static Actor readActor(Reader s, String name) throws MultiErrorException {
+		return ASTFactory.buildActor(parseActor(s, name));
+	}
+	
+	public static Actor readActor(Reader s) throws MultiErrorException { 
+		return readActor(s, "unknown"); 
+	}
+	
+	public static Actor readActor(String s) throws MultiErrorException { 
+		return readActor(s, "unknown"); 
+	}
+	
+	public static Actor readActor(String s, String name) throws MultiErrorException {
+		return readActor(new StringReader(s), name);
+	}
+	
+    //////////////////////////////////
+    //  CalML, and preprocessing
+    //////////////////////////////////
+    
+	public static Actor readActorML(InputStream s) {
+		try
+        {
+			Node  doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(s);
+			return ASTFactory.buildActor(doc);
+		} catch (Exception e) {
+			throw new RuntimeException("Cannot create actor AST.", e);
+		}
+	}
+	
     public static Node actorPreprocess (Node node)
     {
     	try {
@@ -169,14 +177,61 @@ public class SourceReader
     		throw new RuntimeException(e);
     	}
     }
+    
+	public static Actor  readPreprocessedActorML(InputStream s) {
+		try {
+			Node  doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(s);
+			return ASTFactory.buildPreprocessedActor(doc);
+		} catch (Exception e) {
+			throw new RuntimeException("Cannot create actor AST.", e);
+		}
+	}
+	
+    //////////////////////////////////
+    //  Expr
+    //////////////////////////////////
+    
+	public static Node parseExpr(Reader s) throws Exception {
+		Lexer calLexer = new Lexer(s);
+		CalExpressionParser calParser = new CalExpressionParser(calLexer);
+		return calParser.doParse();
+	}
+	
+	public static Node parseExpr(String s) throws Exception {
+		return parseExpr(new StringReader(s));
+	}
+	
+	public static Expression  readExpr(Reader s) {
+		try {
+			return ASTFactory.buildExpression(parseExpr(s));
+		} catch (Exception e) {
+			throw new RuntimeException("Cannot create expression AST.", e);
+		}
+	}
+		
+	public static Expression  readExpr(String s) {
+		return readExpr(new StringReader(s));
+	}
 
+	/**
+	 * @deprecated Use parseExpr(...) instead.
+	 */
 	public static Element  readExprDOM(Reader s) throws Exception {
 		Lexer calLexer = new Lexer(s);
 		CalExpressionParser calParser = new CalExpressionParser(calLexer);
-		Document doc = calParser.doParse();
-		return doc.getDocumentElement();
+		Node doc = calParser.doParse();
+		if (doc instanceof Element) {
+			return (Element)doc;
+		} else if (doc instanceof Document) {
+			return ((Document)doc).getDocumentElement();
+		} else {
+			return null;
+		}
 	}
 
+	/**
+	 * @deprecated Use parseExpr(...) instead.
+	 */
 	public static Element  readExprDOM(String s) {
 		try {
 			return readExprDOM(new StringReader(s));
@@ -187,76 +242,58 @@ public class SourceReader
 	}
 
 	
-	public static Actor readActor(Reader s) throws MultiErrorException { return readActor(s, "unknown"); }
-	public static Actor readActor(Reader s, String name) throws MultiErrorException
-    {
-		return ASTFactory.buildActor(parseActor(s, name));
+    //////////////////////////////////
+    //  Stmt
+    //////////////////////////////////
+    
+	public static Node parseStmt(Reader s) throws Exception {
+		Lexer calLexer = new Lexer(s);
+		CalStatementParser calParser = new CalStatementParser(calLexer);
+		return calParser.doParse();
 	}
 	
-	public static Actor readActor(String s) throws MultiErrorException { return readActor(s, "unknown"); }
-	public static Actor readActor(String s, String name) throws MultiErrorException
-    {
-		return readActor(new StringReader(s), name);
+	public static Node parseStmt(String s) throws Exception {
+		return parseStmt(new StringReader(s));
 	}
 	
-	public static Actor readActorML(InputStream s) {
-		try
-        {
-			Document  doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(s);
-			return ASTFactory.buildActor(doc);
-		} catch (Exception e) {
-			throw new RuntimeException("Cannot create actor AST.", e);
-		}
-	}
-	
-	public static Actor  readPreprocessedActorML(InputStream s) {
+	public static Statement [] readStmt(Reader s) {
 		try {
-			Document  doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(s);
-			return ASTFactory.buildPreprocessedActor(doc);
-		} catch (Exception e) {
-			throw new RuntimeException("Cannot create actor AST.", e);
-		}
-	}
-	
-	public static Expression  readExpr(String s) {
-		return readExpr(new StringReader(s));
-	}
-	
-	public static Expression  readExpr(Reader s) {
-		try {
-			return ASTFactory.buildExpression(parseExpr(s).getDocumentElement());
+			return ASTFactory.buildStatements(parseStmt(s));
 		} catch (Exception e) {
 			throw new RuntimeException("Cannot create expression AST.", e);
 		}
 	}
-	
-	public static Document parseExpr(String s) throws Exception
-    {
-		return parseExpr(new StringReader(s));
-	}
-	
-	public static Document parseExpr(Reader s) throws Exception
-    {
-		Lexer calLexer = new Lexer(s);
-		CalExpressionParser calParser = new CalExpressionParser(calLexer);
-		return calParser.doParse();
-	}
-	
 	
 	public static Statement [] readStmt(String s) {
 		return readStmt(new StringReader(s));
 	}
 	
-	public static Statement [] readStmt(Reader s) {
-		Lexer calLexer = new Lexer(s);
-		CalStatementParser calParser = new CalStatementParser(calLexer);
-		try {
-			return ASTFactory.buildStatements(calParser.doParse().getDocumentElement());
-		} catch (Exception e) {
-			throw new RuntimeException("Cannot create expression AST.", e);
-		}
-	}
 	
-	
+    // private static final boolean suppressActorChecks = System.getenv().containsKey("CAL_SUPPRESS_ACTOR_CHECKS");
+
+    private static String [] actorPreprocessTransforms = {
+        "net/sf/opendf/cal/transforms/BuildProductSchedule.xslt",
+        "net/sf/opendf/cal/transforms/CanonicalizePortTags.xslt",
+
+        // Copies Input Port Type to Input Decl
+        "net/sf/opendf/cal/transforms/AddInputTypes.xslt",
+
+        // Convert the old keyword to appropriate local var declaration
+        "net/sf/opendf/cal/transforms/ReplaceOld.xslt",
+        // Add $local to all local variables.
+        "net/sf/opendf/cal/transforms/RenameLocalVars.xslt",
+
+        // Defer inlining of fxn/procedure to the code generators
+        //"net/sf/opendf/cal/transforms/Inline.xslt",
+
+        // Done in elaborator after inlining
+        //"net/sf/opendf/cal/transforms/AddID.xslt",
+        //"net/sf/opendf/cal/transforms/VariableAnnotator.xslt",
+        //"net/sf/opendf/cal/transforms/ContextInfoAnnotator.xslt",
+        //"net/sf/opendf/cal/transforms/CanonicalizeOperators.xslt",
+        //"net/sf/opendf/cal/transforms/AnnotateFreeVars.xslt",
+        //"net/sf/opendf/cal/transforms/DependencyAnnotator.xslt",
+        //"net/sf/opendf/cal/transforms/VariableSorter.xslt"
+    };
 	
 }
