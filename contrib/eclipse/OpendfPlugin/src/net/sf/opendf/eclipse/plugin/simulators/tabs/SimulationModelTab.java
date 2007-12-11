@@ -6,6 +6,9 @@ import org.eclipse.debug.ui.AbstractLaunchConfigurationTab;
 import org.eclipse.swt.widgets.Composite;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Collections;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.ILaunchConfiguration;
@@ -46,22 +49,23 @@ import org.w3c.dom.Element;
 import static net.sf.opendf.util.xml.Util.xpathEvalElements;
 import net.sf.opendf.cal.util.CalWriter;
 
-public class SimulationMainTab extends OpendfConfigurationTab
+public class SimulationModelTab extends OpendfConfigurationTab
 
 {
   public static final String TAB_NAME          = "Main";
   
-  public static final String LABEL_TOPMODEL    = "Top Level Model:";
-  public static final String LABEL_BROWSE      = "Browse...";
-  public static final String LABEL_MODELDIALOG = "Select Top Level Model";
-  public static final String LABEL_MODELPATH   = "Model Path:";
-  public static final String LABEL_DEFAULT     = "Default";
-  public static final String LABEL_SPECIFY     = "Specify";
-  public static final String LABEL_PARAMETERS  = "Model Parameters:";
-  public static final String LABEL_NAME        = "Name";
-  public static final String LABEL_TYPE        = "Type";
-  public static final String LABEL_VALUE       = "Value";
-  public static final String LABEL_EDIT        = "Edit...";
+  public static final String LABEL_TOPMODEL      = "Top Level Model:";
+  public static final String LABEL_BROWSE        = "Browse...";
+  public static final String LABEL_MODELDIALOG   = "Select Top Level Model";
+  public static final String LABEL_MODELPATH     = "Model Path:";
+  public static final String LABEL_DEFAULT       = "Default";
+  public static final String LABEL_SPECIFY       = "Specify";
+  public static final String LABEL_PARAMETERS    = "Model Parameters:";
+  public static final String LABEL_NAME          = "Name";
+  public static final String LABEL_TYPE          = "Type";
+  public static final String LABEL_VALUE         = "Value";
+  public static final String LABEL_EDIT          = "Edit...";
+  public static final String LABEL_PATHSEPARATOR = "path separator is";
   
   public static final String KEY_MODELFILE        = "FILE";
   public static final String KEY_MODELDIR         = "DIR";
@@ -76,7 +80,7 @@ public class SimulationMainTab extends OpendfConfigurationTab
 
   Composite fParent;
   
-  public SimulationMainTab()
+  public SimulationModelTab()
   {
     super( TAB_NAME );
   }
@@ -88,6 +92,7 @@ public class SimulationMainTab extends OpendfConfigurationTab
   private Text specifyPath;
   private Table parameterTable;
   private TableColumn[] parameterColumns;
+  private Button editButton;
   
   public void createControl( Composite parent )
   {
@@ -181,11 +186,11 @@ public class SimulationMainTab extends OpendfConfigurationTab
       }
       
       // parameter edit button
-      // Browse button
-      Button editButton = new Button( parameterGroup, SWT.PUSH );
- //     SelectionListener edit = new editListener( null );
+      editButton = new Button( parameterGroup, SWT.PUSH );
       editButton.setText( LABEL_EDIT );
- //     editButton.addSelectionListener( edit );
+      editButton.setEnabled( false );
+      SelectionListener edit = new editListener( null );
+      editButton.addSelectionListener( edit );
 
       setErrorMessage("Ho ho ho");
    }
@@ -216,15 +221,27 @@ public class SimulationMainTab extends OpendfConfigurationTab
       
       if( file != null )
       {
+        String dir  = dialog.getFilterPath();
+        int dl = dir.length() + 1;
+        if( file.length() > dl )
+        {
+          // Strip off the directory part
+          file = file.substring( dl );
+        }
+        else
+        {
+          // Counldn't find a directory prefix ??
+          dir = "";
+        }
+        
         modelName.setText( file );
         setProperty( KEY_MODELFILE, file );
         
-        String dir = dialog.getFilterPath();
         defaultPath.setText( dir );
         setProperty( KEY_MODELDIR , dir );
       }
       
-      parseModel( file );
+      parseModel();
     }
   }
 
@@ -259,13 +276,24 @@ public class SimulationMainTab extends OpendfConfigurationTab
   }
   
   private String lastModelFile;
-  
-  private void parseModel( String file )
+ 
+  private class elementComparator implements Comparator<Element>
   {
-    if( file == null )
+    public int compare( Element a, Element b )
+    {
+      return a.getAttribute( "name" ).compareTo( b.getAttribute( "name" ) );
+    }
+  }
+  
+  private boolean parseModel()
+  {
+    String file = getProperty( KEY_MODELFILE );
+    String dir  = getProperty( KEY_MODELDIR );
+
+    if( file == null || dir == null )
     {
       setErrorMessage( "No top level model selected" );
-      return;
+      return false;
     }
     
     SourceLoader loader;
@@ -279,23 +307,22 @@ public class SimulationMainTab extends OpendfConfigurationTab
     else
     {
       setErrorMessage("Invalid top level model type");
-      return;
+      return false;
     }
 
     InputStream is;
     
     try
     {
-      is = new FileInputStream( new File( file ) );
+      is = new FileInputStream( new File( dir, file ) );
     }
     catch( Exception e )
     {
       setErrorMessage("Can't read top level model");
-      return;
+      return false;
     }
     
     java.util.List<Element> parameters;
-    java.util.List<Element> parameterTypes;
     java.util.List<Element> inputs;
     java.util.List<Element> outputs;
     
@@ -306,25 +333,26 @@ public class SimulationMainTab extends OpendfConfigurationTab
       if( xpathEvalElements("//Note[@kind='Report'][@severity='Error']", document ).size() > 0 )
       {
         setErrorMessage( "Top level model has errors" );
-        return;
+        return false;
       }
 
       parameters = xpathEvalElements( "(Actor|Network)/Decl[@kind='Parameter']|XDF/Parameter", document );
       inputs     = xpathEvalElements( "(XDF|Actor|Network)/Port[@kind='Input']"              , document );
       outputs    = xpathEvalElements( "(XDF|Actor|Network)/Port[@kind='Output']"             , document );
       
-      System.out.println("Model has "+parameters.size()+" parameters, "+inputs.size()+" inputs, "+outputs.size()+" outputs" );
-      updateLaunchConfigurationDialog();
     }
     catch( Exception e )
     {
       setErrorMessage("Top level model has errors");
-      return;
+      return false;
     }
     
     parameterTable.removeAll();
+    Collections.sort( parameters, new elementComparator() );
     
-    // Now get types for all parameters
+    java.util.List<String> keep = new ArrayList<String>();
+    
+    // Process the parameters, set up tab properties
     for( Element p: parameters )
     {
       Node n;
@@ -333,19 +361,75 @@ public class SimulationMainTab extends OpendfConfigurationTab
       
       TableItem item = new TableItem( parameterTable, SWT.None );
       
-      item.setText( 0, p.getAttribute("name"));
-      if( n != null )
-        item.setText( 1, CalWriter.CalmlToString( n ) );
+      String name = p.getAttribute("name");
+      String type = n == null ? null : CalWriter.CalmlToString( n ) ;
 
+      keep.add( name );
+      setProperty( KEY_PARAMETERTYPE + "." + name, type );
+      
+      item.setText( 0, name );
+      if( type != null )
+        item.setText( 1, type );
     }
+    
+    // Remove any properties that are no longer applicable
+    pruneProperties( KEY_PARAMETER    , keep );
+    pruneProperties( KEY_PARAMETERTYPE, keep );
+    
     for( int i = 0; i < parameterColumns.length; i++ )
     {
       parameterColumns[i].pack();
     }
 
+    int i = parameterTable.getSelectionIndex();
+    if( parameters.size() == 0 )
+    {
+      parameterTable.deselectAll();
+      editButton.setEnabled( false );
+    }
+    else
+    {
+      if( i < 0 )
+        parameterTable.setSelection( 0 );
+      else if( i >= parameters.size() )
+        parameterTable.setSelection( parameters.size() - 1 );
+      
+      editButton.setEnabled( true );
+    }
     
-    setErrorMessage( null );
+    // Process the inputs    
+    keep = new ArrayList<String>();
+    
+    // Now get types for all inputs, set up tab properties
+    for( Element in: inputs )
+    {
+      Node n;
+      for( n = ((Node )in).getFirstChild(); n != null; n = n.getNextSibling() )
+        if( n.getNodeName().equals("Type") ) break;
+      
+      String name = in.getAttribute("name");
+      String type = n == null ? null : CalWriter.CalmlToString( n ) ;
 
+      keep.add( name );
+      setProperty( KEY_INPUTTYPE + "." + name, type );
+    }
+    
+    pruneProperties( KEY_INPUT    , keep );
+    pruneProperties( KEY_INPUTTYPE, keep );
+
+    // Process the outputs    
+    keep = new ArrayList<String>();
+    
+    // Now get types for all inputs, set up tab properties
+    for( Element out: outputs )
+    {
+      keep.add( out.getAttribute("name") );
+    }
+    
+    pruneProperties( KEY_OUTPUT, keep );
+
+    setErrorMessage( null );
+    return true;
   }
  
 }

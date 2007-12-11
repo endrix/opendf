@@ -32,7 +32,7 @@ public abstract class OpendfConfigurationTabGroup extends AbstractLaunchConfigur
   {
     public void handleEvent( Event e )
     {
-      SimulationMainTab tab = (SimulationMainTab) e.widget.getData();
+      SimulationModelTab tab = (SimulationModelTab) e.widget.getData();
       if( tab != null )
         System.out.println( "Event " + e.type + " in tab " + tab.TAB_NAME );
     }

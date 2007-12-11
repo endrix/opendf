@@ -98,4 +98,10 @@ public abstract class OpendfConfigurationTab extends AbstractLaunchConfiguration
 
   }
   
+  public void setErrorMessage( String message )
+  {
+    super.setErrorMessage( message );
+    updateLaunchConfigurationDialog();
+  }
+  
 }

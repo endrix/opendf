@@ -12,7 +12,7 @@ public class SimulationTabGroup extends OpendfConfigurationTabGroup
   {
     OpendfConfigurationTab[] tabs =
     {
-      new SimulationMainTab()
+      new SimulationModelTab()
     };
     
     super.createTabs( dialog, mode, tabs );
