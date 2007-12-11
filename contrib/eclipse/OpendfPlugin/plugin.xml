@@ -18,5 +18,30 @@
             id="net.sf.opendf.eclipse.plugin.editors.NL"
             name="NL Editor"/>
    </extension>
+   <extension
+         id="net.sf.opendf.eclipse.plugin.simulation"
+         name="Dataflow Simulation"
+         point="org.eclipse.debug.core.launchConfigurationTypes">
+         <launchConfigurationType
+               delegate="net.sf.opendf.eclipse.plugin.simulators.OpendfSimulationDelegate"
+               id="net.sf.opendf.eclipse.plugin.simulation"
+               modes="run"
+               name="Dataflow Simulation"
+               public="true"/>
+   </extension>
+   <extension
+         point="org.eclipse.debug.ui.launchConfigurationTypeImages">
+      <launchConfigurationTypeImage
+            configTypeID="net.sf.opendf.eclipse.plugin.simulation"
+            icon="icons/entity.gif"
+            id="net.sf.opendf.eclipse.plugin.simulation.image"/>
+   </extension>
+   <extension
+         point="org.eclipse.debug.ui.launchConfigurationTabGroups">
+      <launchConfigurationTabGroup
+            class="net.sf.opendf.eclipse.plugin.simulators.tabs.SimulationTabGroup"
+            id="net.sf.opendf.eclipse.plugin.simulation.tabgroup"
+            type="net.sf.opendf.eclipse.plugin.simulation"/>
+   </extension>
 
 </plugin>
