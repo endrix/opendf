@@ -1,7 +1,6 @@
 package net.sf.opendf.math.matrix;
 
 import net.sf.opendf.math.util.Maths;
-import jama.util.*;
 
    /** Singular Value Decomposition.
    <P>

@@ -1,4 +1,4 @@
-package net.sf.opendf.math.matrix;
+package net.sf.opendf.math.cmatrix;
 
 import java.text.NumberFormat;
 import java.text.DecimalFormat;
@@ -11,6 +11,7 @@ import java.io.PrintWriter;
 import java.io.BufferedReader;
 import java.io.StreamTokenizer;
 
+import net.sf.opendf.math.Complex;
 import net.sf.opendf.math.util.Maths;
 
 
@@ -57,7 +58,7 @@ import net.sf.opendf.math.util.Maths;
 @version 5 August 1998
 */
 
-public class Matrix implements Cloneable, java.io.Serializable {
+public class CMatrix implements Cloneable, java.io.Serializable {
 
 /* ------------------------
    Class variables
@@ -66,7 +67,7 @@ public class Matrix implements Cloneable, java.io.Serializable {
    /** Array for internal storage of elements.
    @serial internal array storage.
    */
-   private double[][] A;
+   private Complex [][] A;
 
    /** Row and column dimensions.
    @serial row dimension.
@@ -83,10 +84,12 @@ public class Matrix implements Cloneable, java.io.Serializable {
    @param n    Number of colums.
    */
 
-   public Matrix (int m, int n) {
-      this.m = m;
-      this.n = n;
-      A = new double[m][n];
+   public CMatrix (int m, int n) {
+	   this (m, n, 0);
+   }
+   
+   public CMatrix(int m, int n, double s) {
+	   this (m, n, new Complex(s, 0));
    }
 
    /** Construct an m-by-n constant matrix.
@@ -95,10 +98,10 @@ public class Matrix implements Cloneable, java.io.Serializable {
    @param s    Fill the matrix with this scalar value.
    */
 
-   public Matrix (int m, int n, double s) {
+   public CMatrix (int m, int n, Complex s) {
       this.m = m;
       this.n = n;
-      A = new double[m][n];
+      A = new Complex[m][n];
       for (int i = 0; i < m; i++) {
          for (int j = 0; j < n; j++) {
             A[i][j] = s;
@@ -112,7 +115,7 @@ public class Matrix implements Cloneable, java.io.Serializable {
    @see        #constructWithCopy
    */
 
-   public Matrix (double[][] A) {
+   public CMatrix (Complex [][] A) {
       m = A.length;
       n = A[0].length;
       for (int i = 0; i < m; i++) {
@@ -129,68 +132,28 @@ public class Matrix implements Cloneable, java.io.Serializable {
    @param n    Number of colums.
    */
 
-   public Matrix (double[][] A, int m, int n) {
+   public CMatrix (Complex [][] A, int m, int n) {
       this.A = A;
       this.m = m;
       this.n = n;
    }
    
-   public Matrix (List<List<Number>> A) {
-	   this (createDoubleArray(A));
+   public CMatrix (List<List<Object>> A) {
+	   this (createArray(A));
    }
 
-   /** Construct a matrix from a one-dimensional packed array
-   @param vals One-dimensional array of doubles, packed by columns (ala Fortran).
-   @param m    Number of rows.
-   @exception  IllegalArgumentException Array length must be a multiple of m.
-   */
 
-   public Matrix (double vals[], int m) {
-      this.m = m;
-      n = (m != 0 ? vals.length/m : 0);
-      if (m*n != vals.length) {
-         throw new IllegalArgumentException("Array length must be a multiple of m.");
-      }
-      A = new double[m][n];
-      for (int i = 0; i < m; i++) {
-         for (int j = 0; j < n; j++) {
-            A[i][j] = vals[i+j*m];
-         }
-      }
-   }
 
 /* ------------------------
    Public Methods
  * ------------------------ */
 
-   /** Construct a matrix from a copy of a 2-D array.
-   @param A    Two-dimensional array of doubles.
-   @exception  IllegalArgumentException All rows must have the same length
-   */
-
-   public static Matrix constructWithCopy(double[][] A) {
-      int m = A.length;
-      int n = A[0].length;
-      Matrix X = new Matrix(m,n);
-      double[][] C = X.getArray();
-      for (int i = 0; i < m; i++) {
-         if (A[i].length != n) {
-            throw new IllegalArgumentException
-               ("All rows must have the same length.");
-         }
-         for (int j = 0; j < n; j++) {
-            C[i][j] = A[i][j];
-         }
-      }
-      return X;
-   }
-
    /** Make a deep copy of a matrix
    */
 
-   public Matrix copy () {
-      Matrix X = new Matrix(m,n);
-      double[][] C = X.getArray();
+   public CMatrix copy () {
+      CMatrix X = new CMatrix(m,n);
+      Complex [][] C = X.getArray();
       for (int i = 0; i < m; i++) {
          for (int j = 0; j < n; j++) {
             C[i][j] = A[i][j];
@@ -210,16 +173,16 @@ public class Matrix implements Cloneable, java.io.Serializable {
    @return     Pointer to the two-dimensional array of matrix elements.
    */
 
-   public double[][] getArray () {
+   public Complex [][] getArray () {
       return A;
    }
    
-   public List<List<Number>> getList() {
-	   List<List<Number>> res = new ArrayList<List<Number>>();
-	   for (double [] r : A) {
-		   List<Number> row = new ArrayList<Number>();
+   public List<List<Complex>> getList() {
+	   List<List<Complex>> res = new ArrayList<List<Complex>>();
+	   for (Complex [] r : A) {
+		   List<Complex> row = new ArrayList<Complex>();
 		   res.add(row);
-		   for (double v : r) {
+		   for (Complex v : r) {
 			   row.add(v);
 		   }
 	   }
@@ -230,8 +193,8 @@ public class Matrix implements Cloneable, java.io.Serializable {
    @return     Two-dimensional array copy of matrix elements.
    */
 
-   public double[][] getArrayCopy () {
-      double[][] C = new double[m][n];
+   public Complex[][] getArrayCopy () {
+      Complex[][] C = new Complex[m][n];
       for (int i = 0; i < m; i++) {
          for (int j = 0; j < n; j++) {
             C[i][j] = A[i][j];
@@ -240,33 +203,6 @@ public class Matrix implements Cloneable, java.io.Serializable {
       return C;
    }
 
-   /** Make a one-dimensional column packed copy of the internal array.
-   @return     Matrix elements packed in a one-dimensional array by columns.
-   */
-
-   public double[] getColumnPackedCopy () {
-      double[] vals = new double[m*n];
-      for (int i = 0; i < m; i++) {
-         for (int j = 0; j < n; j++) {
-            vals[i+j*m] = A[i][j];
-         }
-      }
-      return vals;
-   }
-
-   /** Make a one-dimensional row packed copy of the internal array.
-   @return     Matrix elements packed in a one-dimensional array by rows.
-   */
-
-   public double[] getRowPackedCopy () {
-      double[] vals = new double[m*n];
-      for (int i = 0; i < m; i++) {
-         for (int j = 0; j < n; j++) {
-            vals[i*n+j] = A[i][j];
-         }
-      }
-      return vals;
-   }
 
    /** Get row dimension.
    @return     m, the number of rows.
@@ -291,7 +227,7 @@ public class Matrix implements Cloneable, java.io.Serializable {
    @exception  ArrayIndexOutOfBoundsException
    */
 
-   public double get (int i, int j) {
+   public Complex get (int i, int j) {
       return A[i][j];
    }
 
@@ -304,9 +240,9 @@ public class Matrix implements Cloneable, java.io.Serializable {
    @exception  ArrayIndexOutOfBoundsException Submatrix indices
    */
 
-   public Matrix getMatrix (int i0, int i1, int j0, int j1) {
-      Matrix X = new Matrix(i1-i0+1,j1-j0+1);
-      double[][] B = X.getArray();
+   public CMatrix getMatrix (int i0, int i1, int j0, int j1) {
+      CMatrix X = new CMatrix(i1-i0+1,j1-j0+1);
+      Complex[][] B = X.getArray();
       try {
          for (int i = i0; i <= i1; i++) {
             for (int j = j0; j <= j1; j++) {
@@ -326,9 +262,9 @@ public class Matrix implements Cloneable, java.io.Serializable {
    @exception  ArrayIndexOutOfBoundsException Submatrix indices
    */
 
-   public Matrix getMatrix (int[] r, int[] c) {
-      Matrix X = new Matrix(r.length,c.length);
-      double[][] B = X.getArray();
+   public CMatrix getMatrix (int[] r, int[] c) {
+      CMatrix X = new CMatrix(r.length,c.length);
+      Complex[][] B = X.getArray();
       try {
          for (int i = 0; i < r.length; i++) {
             for (int j = 0; j < c.length; j++) {
@@ -349,9 +285,9 @@ public class Matrix implements Cloneable, java.io.Serializable {
    @exception  ArrayIndexOutOfBoundsException Submatrix indices
    */
 
-   public Matrix getMatrix (int i0, int i1, int[] c) {
-      Matrix X = new Matrix(i1-i0+1,c.length);
-      double[][] B = X.getArray();
+   public CMatrix getMatrix (int i0, int i1, int[] c) {
+      CMatrix X = new CMatrix(i1-i0+1,c.length);
+      Complex[][] B = X.getArray();
       try {
          for (int i = i0; i <= i1; i++) {
             for (int j = 0; j < c.length; j++) {
@@ -372,9 +308,9 @@ public class Matrix implements Cloneable, java.io.Serializable {
    @exception  ArrayIndexOutOfBoundsException Submatrix indices
    */
 
-   public Matrix getMatrix (int[] r, int j0, int j1) {
-      Matrix X = new Matrix(r.length,j1-j0+1);
-      double[][] B = X.getArray();
+   public CMatrix getMatrix (int[] r, int j0, int j1) {
+      CMatrix X = new CMatrix(r.length,j1-j0+1);
+      Complex[][] B = X.getArray();
       try {
          for (int i = 0; i < r.length; i++) {
             for (int j = j0; j <= j1; j++) {
@@ -394,7 +330,7 @@ public class Matrix implements Cloneable, java.io.Serializable {
    @exception  ArrayIndexOutOfBoundsException
    */
 
-   public void set (int i, int j, double s) {
+   public void set (int i, int j, Complex s) {
       A[i][j] = s;
    }
 
@@ -407,7 +343,7 @@ public class Matrix implements Cloneable, java.io.Serializable {
    @exception  ArrayIndexOutOfBoundsException Submatrix indices
    */
 
-   public void setMatrix (int i0, int i1, int j0, int j1, Matrix X) {
+   public void setMatrix (int i0, int i1, int j0, int j1, CMatrix X) {
       try {
          for (int i = i0; i <= i1; i++) {
             for (int j = j0; j <= j1; j++) {
@@ -426,7 +362,7 @@ public class Matrix implements Cloneable, java.io.Serializable {
    @exception  ArrayIndexOutOfBoundsException Submatrix indices
    */
 
-   public void setMatrix (int[] r, int[] c, Matrix X) {
+   public void setMatrix (int[] r, int[] c, CMatrix X) {
       try {
          for (int i = 0; i < r.length; i++) {
             for (int j = 0; j < c.length; j++) {
@@ -446,7 +382,7 @@ public class Matrix implements Cloneable, java.io.Serializable {
    @exception  ArrayIndexOutOfBoundsException Submatrix indices
    */
 
-   public void setMatrix (int[] r, int j0, int j1, Matrix X) {
+   public void setMatrix (int[] r, int j0, int j1, CMatrix X) {
       try {
          for (int i = 0; i < r.length; i++) {
             for (int j = j0; j <= j1; j++) {
@@ -466,7 +402,7 @@ public class Matrix implements Cloneable, java.io.Serializable {
    @exception  ArrayIndexOutOfBoundsException Submatrix indices
    */
 
-   public void setMatrix (int i0, int i1, int[] c, Matrix X) {
+   public void setMatrix (int i0, int i1, int[] c, CMatrix X) {
       try {
          for (int i = i0; i <= i1; i++) {
             for (int j = 0; j < c.length; j++) {
@@ -482,9 +418,9 @@ public class Matrix implements Cloneable, java.io.Serializable {
    @return    A'
    */
 
-   public Matrix transpose () {
-      Matrix X = new Matrix(n,m);
-      double[][] C = X.getArray();
+   public CMatrix transpose () {
+      CMatrix X = new CMatrix(n,m);
+      Complex[][] C = X.getArray();
       for (int i = 0; i < m; i++) {
          for (int j = 0; j < n; j++) {
             C[j][i] = A[i][j];
@@ -502,19 +438,11 @@ public class Matrix implements Cloneable, java.io.Serializable {
       for (int j = 0; j < n; j++) {
          double s = 0;
          for (int i = 0; i < m; i++) {
-            s += Math.abs(A[i][j]);
+            s += A[i][j].abs();
          }
          f = Math.max(f,s);
       }
       return f;
-   }
-
-   /** Two norm
-   @return    maximum singular value.
-   */
-
-   public double norm2 () {
-      return (new SingularValueDecomposition(this).norm2());
    }
 
    /** Infinity norm
@@ -526,37 +454,24 @@ public class Matrix implements Cloneable, java.io.Serializable {
       for (int i = 0; i < m; i++) {
          double s = 0;
          for (int j = 0; j < n; j++) {
-            s += Math.abs(A[i][j]);
+            s += A[i][j].abs();
          }
          f = Math.max(f,s);
       }
       return f;
    }
 
-   /** Frobenius norm
-   @return    sqrt of sum of squares of all elements.
-   */
-
-   public double normF () {
-      double f = 0;
-      for (int i = 0; i < m; i++) {
-         for (int j = 0; j < n; j++) {
-            f = Maths.hypot(f,A[i][j]);
-         }
-      }
-      return f;
-   }
 
    /**  Unary minus
    @return    -A
    */
 
-   public Matrix uminus () {
-      Matrix X = new Matrix(m,n);
-      double[][] C = X.getArray();
+   public CMatrix uminus () {
+      CMatrix X = new CMatrix(m,n);
+      Complex[][] C = X.getArray();
       for (int i = 0; i < m; i++) {
          for (int j = 0; j < n; j++) {
-            C[i][j] = -A[i][j];
+            C[i][j] = A[i][j].negate();
          }
       }
       return X;
@@ -567,13 +482,13 @@ public class Matrix implements Cloneable, java.io.Serializable {
    @return     A + B
    */
 
-   public Matrix plus (Matrix B) {
+   public CMatrix plus (CMatrix B) {
       checkMatrixDimensions(B);
-      Matrix X = new Matrix(m,n);
-      double[][] C = X.getArray();
+      CMatrix X = new CMatrix(m,n);
+      Complex[][] C = X.getArray();
       for (int i = 0; i < m; i++) {
          for (int j = 0; j < n; j++) {
-            C[i][j] = A[i][j] + B.A[i][j];
+            C[i][j] = A[i][j].add(B.A[i][j]);
          }
       }
       return X;
@@ -584,11 +499,11 @@ public class Matrix implements Cloneable, java.io.Serializable {
    @return     A + B
    */
 
-   public Matrix plusEquals (Matrix B) {
+   public CMatrix plusEquals (CMatrix B) {
       checkMatrixDimensions(B);
       for (int i = 0; i < m; i++) {
          for (int j = 0; j < n; j++) {
-            A[i][j] = A[i][j] + B.A[i][j];
+            A[i][j] = A[i][j].add(B.A[i][j]);
          }
       }
       return this;
@@ -599,13 +514,13 @@ public class Matrix implements Cloneable, java.io.Serializable {
    @return     A - B
    */
 
-   public Matrix minus (Matrix B) {
+   public CMatrix minus (CMatrix B) {
       checkMatrixDimensions(B);
-      Matrix X = new Matrix(m,n);
-      double[][] C = X.getArray();
+      CMatrix X = new CMatrix(m,n);
+      Complex[][] C = X.getArray();
       for (int i = 0; i < m; i++) {
          for (int j = 0; j < n; j++) {
-            C[i][j] = A[i][j] - B.A[i][j];
+            C[i][j] = A[i][j].subtract(B.A[i][j]);
          }
       }
       return X;
@@ -616,11 +531,11 @@ public class Matrix implements Cloneable, java.io.Serializable {
    @return     A - B
    */
 
-   public Matrix minusEquals (Matrix B) {
+   public CMatrix minusEquals (CMatrix B) {
       checkMatrixDimensions(B);
       for (int i = 0; i < m; i++) {
          for (int j = 0; j < n; j++) {
-            A[i][j] = A[i][j] - B.A[i][j];
+            A[i][j] = A[i][j].subtract(B.A[i][j]);
          }
       }
       return this;
@@ -631,13 +546,13 @@ public class Matrix implements Cloneable, java.io.Serializable {
    @return     A.*B
    */
 
-   public Matrix arrayTimes (Matrix B) {
+   public CMatrix arrayTimes (CMatrix B) {
       checkMatrixDimensions(B);
-      Matrix X = new Matrix(m,n);
-      double[][] C = X.getArray();
+      CMatrix X = new CMatrix(m,n);
+      Complex[][] C = X.getArray();
       for (int i = 0; i < m; i++) {
          for (int j = 0; j < n; j++) {
-            C[i][j] = A[i][j] * B.A[i][j];
+            C[i][j] = A[i][j].multiply(B.A[i][j]);
          }
       }
       return X;
@@ -648,11 +563,11 @@ public class Matrix implements Cloneable, java.io.Serializable {
    @return     A.*B
    */
 
-   public Matrix arrayTimesEquals (Matrix B) {
+   public CMatrix arrayTimesEquals (CMatrix B) {
       checkMatrixDimensions(B);
       for (int i = 0; i < m; i++) {
          for (int j = 0; j < n; j++) {
-            A[i][j] = A[i][j] * B.A[i][j];
+            A[i][j] = A[i][j].multiply(B.A[i][j]);
          }
       }
       return this;
@@ -663,13 +578,13 @@ public class Matrix implements Cloneable, java.io.Serializable {
    @return     A./B
    */
 
-   public Matrix arrayRightDivide (Matrix B) {
+   public CMatrix arrayRightDivide (CMatrix B) {
       checkMatrixDimensions(B);
-      Matrix X = new Matrix(m,n);
-      double[][] C = X.getArray();
+      CMatrix X = new CMatrix(m,n);
+      Complex[][] C = X.getArray();
       for (int i = 0; i < m; i++) {
          for (int j = 0; j < n; j++) {
-            C[i][j] = A[i][j] / B.A[i][j];
+            C[i][j] = A[i][j].divide(B.A[i][j]);
          }
       }
       return X;
@@ -680,11 +595,11 @@ public class Matrix implements Cloneable, java.io.Serializable {
    @return     A./B
    */
 
-   public Matrix arrayRightDivideEquals (Matrix B) {
+   public CMatrix arrayRightDivideEquals (CMatrix B) {
       checkMatrixDimensions(B);
       for (int i = 0; i < m; i++) {
          for (int j = 0; j < n; j++) {
-            A[i][j] = A[i][j] / B.A[i][j];
+            A[i][j] = A[i][j].divide(B.A[i][j]);
          }
       }
       return this;
@@ -695,13 +610,13 @@ public class Matrix implements Cloneable, java.io.Serializable {
    @return     A.\B
    */
 
-   public Matrix arrayLeftDivide (Matrix B) {
+   public CMatrix arrayLeftDivide (CMatrix B) {
       checkMatrixDimensions(B);
-      Matrix X = new Matrix(m,n);
-      double[][] C = X.getArray();
+      CMatrix X = new CMatrix(m,n);
+      Complex[][] C = X.getArray();
       for (int i = 0; i < m; i++) {
          for (int j = 0; j < n; j++) {
-            C[i][j] = B.A[i][j] / A[i][j];
+            C[i][j] = B.A[i][j].divide(A[i][j]);
          }
       }
       return X;
@@ -712,11 +627,11 @@ public class Matrix implements Cloneable, java.io.Serializable {
    @return     A.\B
    */
 
-   public Matrix arrayLeftDivideEquals (Matrix B) {
+   public CMatrix arrayLeftDivideEquals (CMatrix B) {
       checkMatrixDimensions(B);
       for (int i = 0; i < m; i++) {
          for (int j = 0; j < n; j++) {
-            A[i][j] = B.A[i][j] / A[i][j];
+            A[i][j] = B.A[i][j].divide(A[i][j]);
          }
       }
       return this;
@@ -727,26 +642,34 @@ public class Matrix implements Cloneable, java.io.Serializable {
    @return     s*A
    */
 
-   public Matrix times (double s) {
-      Matrix X = new Matrix(m,n);
-      double[][] C = X.getArray();
+   public CMatrix times (double s) {
+	   return times(new Complex(s, 0));
+   }
+   
+   public CMatrix times (Complex s) {
+      CMatrix X = new CMatrix(m,n);
+      Complex[][] C = X.getArray();
       for (int i = 0; i < m; i++) {
          for (int j = 0; j < n; j++) {
-            C[i][j] = s*A[i][j];
+            C[i][j] = s.multiply(A[i][j]);
          }
       }
       return X;
    }
 
+   public CMatrix timesEquals (double s) {
+	   return timesEquals(new Complex(s, 0));
+   }
+   
    /** Multiply a matrix by a scalar in place, A = s*A
    @param s    scalar
    @return     replace A by s*A
    */
 
-   public Matrix timesEquals (double s) {
+   public CMatrix timesEquals (Complex s) {
       for (int i = 0; i < m; i++) {
          for (int j = 0; j < n; j++) {
-            A[i][j] = s*A[i][j];
+            A[i][j] = s.multiply(A[i][j]);
          }
       }
       return this;
@@ -758,22 +681,22 @@ public class Matrix implements Cloneable, java.io.Serializable {
    @exception  IllegalArgumentException Matrix inner dimensions must agree.
    */
 
-   public Matrix times (Matrix B) {
+   public CMatrix times (CMatrix B) {
       if (B.m != n) {
          throw new IllegalArgumentException("Matrix inner dimensions must agree.");
       }
-      Matrix X = new Matrix(m,B.n);
-      double[][] C = X.getArray();
-      double[] Bcolj = new double[n];
+      CMatrix X = new CMatrix(m,B.n);
+      Complex[][] C = X.getArray();
+      Complex[] Bcolj = new Complex[n];
       for (int j = 0; j < B.n; j++) {
          for (int k = 0; k < n; k++) {
             Bcolj[k] = B.A[k][j];
          }
          for (int i = 0; i < m; i++) {
-            double[] Arowi = A[i];
-            double s = 0;
+            Complex [] Arowi = A[i];
+            Complex s = Complex.ZERO;
             for (int k = 0; k < n; k++) {
-               s += Arowi[k]*Bcolj[k];
+               s = s.add(Arowi[k].multiply(Bcolj[k]));
             }
             C[i][j] = s;
          }
@@ -781,110 +704,110 @@ public class Matrix implements Cloneable, java.io.Serializable {
       return X;
    }
 
-   /** LU Decomposition
-   @return     LUDecomposition
-   @see LUDecomposition
-   */
-
-   public LUDecomposition lu () {
-      return new LUDecomposition(this);
-   }
-
-   /** QR Decomposition
-   @return     QRDecomposition
-   @see QRDecomposition
-   */
-
-   public QRDecomposition qr () {
-      return new QRDecomposition(this);
-   }
-
-   /** Cholesky Decomposition
-   @return     CholeskyDecomposition
-   @see CholeskyDecomposition
-   */
-
-   public CholeskyDecomposition chol () {
-      return new CholeskyDecomposition(this);
-   }
-
-   /** Singular Value Decomposition
-   @return     SingularValueDecomposition
-   @see SingularValueDecomposition
-   */
-
-   public SingularValueDecomposition svd () {
-      return new SingularValueDecomposition(this);
-   }
-
-   /** Eigenvalue Decomposition
-   @return     EigenvalueDecomposition
-   @see EigenvalueDecomposition
-   */
-
-   public EigenvalueDecomposition eig () {
-      return new EigenvalueDecomposition(this);
-   }
-
-   /** Solve A*X = B
-   @param B    right hand side
-   @return     solution if A is square, least squares solution otherwise
-   */
-
-   public Matrix solve (Matrix B) {
-      return (m == n ? (new LUDecomposition(this)).solve(B) :
-                       (new QRDecomposition(this)).solve(B));
-   }
-
-   /** Solve X*A = B, which is also A'*X' = B'
-   @param B    right hand side
-   @return     solution if A is square, least squares solution otherwise.
-   */
-
-   public Matrix solveTranspose (Matrix B) {
-      return transpose().solve(B.transpose());
-   }
-
-   /** Matrix inverse or pseudoinverse
-   @return     inverse(A) if A is square, pseudoinverse otherwise.
-   */
-
-   public Matrix inverse () {
-      return solve(identity(m,m));
-   }
-
-   /** Matrix determinant
-   @return     determinant
-   */
-
-   public double det () {
-      return new LUDecomposition(this).det();
-   }
-
-   /** Matrix rank
-   @return     effective numerical rank, obtained from SVD.
-   */
-
-   public int rank () {
-      return new SingularValueDecomposition(this).rank();
-   }
-
-   /** Matrix condition (2 norm)
-   @return     ratio of largest to smallest singular value.
-   */
-
-   public double cond () {
-      return new SingularValueDecomposition(this).cond();
-   }
+//   /** LU Decomposition
+//   @return     LUDecomposition
+//   @see LUDecomposition
+//   */
+//
+//   public LUDecomposition lu () {
+//      return new LUDecomposition(this);
+//   }
+//
+//   /** QR Decomposition
+//   @return     QRDecomposition
+//   @see QRDecomposition
+//   */
+//
+//   public QRDecomposition qr () {
+//      return new QRDecomposition(this);
+//   }
+//
+//   /** Cholesky Decomposition
+//   @return     CholeskyDecomposition
+//   @see CholeskyDecomposition
+//   */
+//
+//   public CholeskyDecomposition chol () {
+//      return new CholeskyDecomposition(this);
+//   }
+//
+//   /** Singular Value Decomposition
+//   @return     SingularValueDecomposition
+//   @see SingularValueDecomposition
+//   */
+//
+//   public SingularValueDecomposition svd () {
+//      return new SingularValueDecomposition(this);
+//   }
+//
+//   /** Eigenvalue Decomposition
+//   @return     EigenvalueDecomposition
+//   @see EigenvalueDecomposition
+//   */
+//
+//   public EigenvalueDecomposition eig () {
+//      return new EigenvalueDecomposition(this);
+//   }
+//
+//   /** Solve A*X = B
+//   @param B    right hand side
+//   @return     solution if A is square, least squares solution otherwise
+//   */
+//
+//   public CMatrix solve (CMatrix B) {
+//      return (m == n ? (new LUDecomposition(this)).solve(B) :
+//                       (new QRDecomposition(this)).solve(B));
+//   }
+//
+//   /** Solve X*A = B, which is also A'*X' = B'
+//   @param B    right hand side
+//   @return     solution if A is square, least squares solution otherwise.
+//   */
+//
+//   public CMatrix solveTranspose (CMatrix B) {
+//      return transpose().solve(B.transpose());
+//   }
+//
+//   /** Matrix inverse or pseudoinverse
+//   @return     inverse(A) if A is square, pseudoinverse otherwise.
+//   */
+//
+//   public CMatrix inverse () {
+//      return solve(identity(m,m));
+//   }
+//
+//   /** Matrix determinant
+//   @return     determinant
+//   */
+//
+//   public double det () {
+//      return new LUDecomposition(this).det();
+//   }
+//
+//   /** Matrix rank
+//   @return     effective numerical rank, obtained from SVD.
+//   */
+//
+//   public int rank () {
+//      return new SingularValueDecomposition(this).rank();
+//   }
+//
+//   /** Matrix condition (2 norm)
+//   @return     ratio of largest to smallest singular value.
+//   */
+//
+//   public double cond () {
+//      return new SingularValueDecomposition(this).cond();
+//   }
 
    /** Matrix trace.
    @return     sum of the diagonal elements.
    */
 
-   public double trace () {
-      double t = 0;
+   public Complex trace () {
+      Complex t = Complex.ZERO;
       for (int i = 0; i < Math.min(m,n); i++) {
-         t += A[i][i];
+         t = t.add(A[i][i]);
       }
       return t;
    }
@@ -895,12 +818,12 @@ public class Matrix implements Cloneable, java.io.Serializable {
    @return     An m-by-n matrix with uniformly distributed random elements.
    */
 
-   public static Matrix random (int m, int n) {
-      Matrix A = new Matrix(m,n);
-      double[][] X = A.getArray();
+   public static CMatrix random (int m, int n) {
+      CMatrix A = new CMatrix(m,n);
+      Complex[][] X = A.getArray();
       for (int i = 0; i < m; i++) {
          for (int j = 0; j < n; j++) {
-            X[i][j] = Math.random();
+            X[i][j] = new Complex(Math.random(), Math.random());
          }
       }
       return A;
@@ -912,12 +835,12 @@ public class Matrix implements Cloneable, java.io.Serializable {
    @return     An m-by-n matrix with ones on the diagonal and zeros elsewhere.
    */
 
-   public static Matrix identity (int m, int n) {
-      Matrix A = new Matrix(m,n);
-      double[][] X = A.getArray();
+   public static CMatrix identity (int m, int n) {
+      CMatrix A = new CMatrix(m,n);
+      Complex[][] X = A.getArray();
       for (int i = 0; i < m; i++) {
          for (int j = 0; j < n; j++) {
-            X[i][j] = (i == j ? 1.0 : 0.0);
+            X[i][j] = (i == j ? Complex.ONE : Complex.ZERO);
          }
       }
       return A;
@@ -994,84 +917,38 @@ public class Matrix implements Cloneable, java.io.Serializable {
       output.println();   // end with blank line.
    }
 
-   /** Read a matrix from a stream.  The format is the same the print method,
-     * so printed matrices can be read back in (provided they were printed using
-     * US Locale).  Elements are separated by
-     * whitespace, all the elements for each row appear on a single line,
-     * the last row is followed by a blank line.
-   @param input the input stream.
-   */
-
-   public static Matrix read (BufferedReader input) throws java.io.IOException {
-      StreamTokenizer tokenizer= new StreamTokenizer(input);
-
-      // Although StreamTokenizer will parse numbers, it doesn't recognize
-      // scientific notation (E or D); however, Double.valueOf does.
-      // The strategy here is to disable StreamTokenizer's number parsing.
-      // We'll only get whitespace delimited words, EOL's and EOF's.
-      // These words should all be numbers, for Double.valueOf to parse.
-
-      tokenizer.resetSyntax();
-      tokenizer.wordChars(0,255);
-      tokenizer.whitespaceChars(0, ' ');
-      tokenizer.eolIsSignificant(true);
-      java.util.Vector v = new java.util.Vector();
-
-      // Ignore initial empty lines
-      while (tokenizer.nextToken() == StreamTokenizer.TT_EOL);
-      if (tokenizer.ttype == StreamTokenizer.TT_EOF)
-	throw new java.io.IOException("Unexpected EOF on matrix read.");
-      do {
-         v.addElement(Double.valueOf(tokenizer.sval)); // Read & store 1st row.
-      } while (tokenizer.nextToken() == StreamTokenizer.TT_WORD);
-
-      int n = v.size();  // Now we've got the number of columns!
-      double row[] = new double[n];
-      for (int j=0; j<n; j++)  // extract the elements of the 1st row.
-         row[j]=((Double)v.elementAt(j)).doubleValue();
-      v.removeAllElements();
-      v.addElement(row);  // Start storing rows instead of columns.
-      while (tokenizer.nextToken() == StreamTokenizer.TT_WORD) {
-         // While non-empty lines
-         v.addElement(row = new double[n]);
-         int j = 0;
-         do {
-            if (j >= n) throw new java.io.IOException
-               ("Row " + v.size() + " is too long.");
-            row[j++] = Double.valueOf(tokenizer.sval).doubleValue();
-         } while (tokenizer.nextToken() == StreamTokenizer.TT_WORD);
-         if (j < n) throw new java.io.IOException
-            ("Row " + v.size() + " is too short.");
-      }
-      int m = v.size();  // Now we've got the number of rows.
-      double[][] A = new double[m][];
-      v.copyInto(A);  // copy the rows out of the vector
-      return new Matrix(A);
-   }
-
-
 /* ------------------------
    Private Methods
  * ------------------------ */
 
    /** Check if size(A) == size(B) **/
 
-   private void checkMatrixDimensions (Matrix B) {
+   private void checkMatrixDimensions (CMatrix B) {
       if (B.m != m || B.n != n) {
          throw new IllegalArgumentException("Matrix dimensions must agree.");
       }
    }
    
-   private static double [][] createDoubleArray(List<List<Number>> A) {
-	   double [][] a = new double[A.size()][];
+   private static Complex [][] createArray(List<List<Object>> A) {
+	   Complex [][] a = new Complex[A.size()][];
 	   for (int i = 0; i < a.length; i++) {
-		   List<Number> R = A.get(i);
-		   double [] r = a[i] = new double[R.size()];
+		   List<Object> R = A.get(i);
+		   Complex [] r = a[i] = new Complex[R.size()];
 		   for (int j = 0; j < r.length; j++) {
-			   r[j] = R.get(j).doubleValue();
+			   r[j] = makeComplex(R.get(j));
 		   }
 	   }
 	   return a;
+   }
+   
+   private static Complex  makeComplex(Object v) {
+	   if (v instanceof Complex) {
+		   return (Complex)v;
+	   } else if (v instanceof Number) {
+		   return new Complex(((Number)v).doubleValue(), 0);
+	   } else {
+		   throw new RuntimeException("Must be either a Number or a Complex. (" + v + ")");
+	   }
    }
 
 }

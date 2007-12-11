@@ -1,7 +1,6 @@
 package net.sf.opendf.math.matrix;
 
 import net.sf.opendf.math.util.Maths;
-import jama.util.*;
 
 /** Eigenvalues and eigenvectors of a real matrix. 
 <P>
