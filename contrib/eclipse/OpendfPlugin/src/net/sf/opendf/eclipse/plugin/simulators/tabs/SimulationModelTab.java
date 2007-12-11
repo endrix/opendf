@@ -33,10 +33,13 @@ import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.jface.layout.*;
+import org.eclipse.jface.viewers.ColumnWeightData;
 
 import net.sf.opendf.eclipse.plugin.*;
 import net.sf.opendf.util.source.SourceLoader;
@@ -48,11 +51,12 @@ import org.w3c.dom.Node;
 import org.w3c.dom.Element;
 import static net.sf.opendf.util.xml.Util.xpathEvalElements;
 import net.sf.opendf.cal.util.CalWriter;
+import net.sf.opendf.cal.util.SourceReader;
 
 public class SimulationModelTab extends OpendfConfigurationTab
 
 {
-  public static final String TAB_NAME          = "Main";
+  public static final String TAB_NAME          = "Model";
   
   public static final String LABEL_TOPMODEL      = "Top Level Model:";
   public static final String LABEL_BROWSE        = "Browse...";
@@ -65,18 +69,37 @@ public class SimulationModelTab extends OpendfConfigurationTab
   public static final String LABEL_TYPE          = "Type";
   public static final String LABEL_VALUE         = "Value";
   public static final String LABEL_EDIT          = "Edit...";
-  public static final String LABEL_PATHSEPARATOR = "path separator is";
+  public static final String LABEL_PATHSEPARATOR = "path separator is ";
+  public static final String LABEL_EDITPARAMETER = "Edit parameter ";
+  public static final String LABEL_ACCEPT        = "Apply";
+  public static final String LABEL_CANCEL        = "Revert";
   
   public static final String KEY_MODELFILE        = "FILE";
   public static final String KEY_MODELDIR         = "DIR";
   public static final String KEY_MODELSEARCHPATH  = "PATH";
   public static final String KEY_USEDEFAULTPATH   = "USEDIR";
-  public static final String KEY_PARAMETER        = "PARAM";
+  public static final String KEY_PARAMETER        = "PARAM.NAME";
   public static final String KEY_PARAMETERTYPE    = "PARAM.TYPE";
-  public static final String KEY_INPUT            = "INPUT";
+  public static final String KEY_INPUT            = "INPUT.NAME";
   public static final String KEY_INPUTTYPE        = "INPUT.TYPE";
-  public static final String KEY_OUTPUT           = "OUTPUT";
+  public static final String KEY_OUTPUT           = "OUTPUT.NAME";
   public static final String KEY_OUTPUTTYPE       = "OUTPUT.TYPE";
+ 
+  public static final int PUSHBUTTON_WIDTH = 100;
+  public static final int NAME_INDEX  = 0;
+  public static final int TYPE_INDEX  = 1;
+  public static final int VALUE_INDEX = 2;
+  
+  
+  // Standard file dialog does not remember last filter used!
+  public static final String[] filters_nl     = { "*.nl"           , "*.cal"         , "*.xdf"                      };
+  public static final String[] filterNames_nl = { "Networks (*.nl)", "Actors (*.cal)", "Structural netlist (*.xdf)" };
+  
+  public static final String[] filters_cal     = { "*.cal"         , "*.nl"           , "*.xdf"                      };
+  public static final String[] filterNames_cal = { "Actors (*.cal)", "Networks (*.nl)", "Structural netlist (*.xdf)" };
+  
+  public static final String[] filters_xdf     = { "*.xdf"                     , "*.nl"           , "*.cal"          };
+  public static final String[] filterNames_xdf = { "Structural netlist (*.xdf)", "Networks (*.nl)", "Actors (*.cal)" };
 
   Composite fParent;
   
@@ -95,46 +118,86 @@ public class SimulationModelTab extends OpendfConfigurationTab
   private Button editButton;
   
   public void createControl( Composite parent )
-  {
-    GridLayout gl;
-    GridData gd;
-    
+  {    
     fParent = parent;
     
     Composite tab = new Composite(parent, SWT.NONE);
     setControl( tab );
-    gl = new GridLayout();
-    gl.numColumns = 1;
-    tab.setLayout( gl );
+    tab.setLayout( new GridLayout( 1, false ) );
 
     // Top Level Model Selection
     Group modelGroup = new Group( tab, SWT.NONE );
     modelGroup.setText( LABEL_TOPMODEL );
-    gd = new GridData( GridData.FILL_HORIZONTAL );
-    modelGroup.setLayoutData( gd );
-    gl = new GridLayout();
-    gl.numColumns = 2;
-    modelGroup.setLayout( gl );
+    modelGroup.setLayoutData( new GridData( GridData.FILL_HORIZONTAL ) );
+    modelGroup.setLayout( new GridLayout( 2, false ) );
     
       // Model name display
       modelName = new Text( modelGroup, SWT.LEFT | SWT.SINGLE | SWT.BORDER | SWT.READ_ONLY );
-      gd = new GridData( GridData.FILL_HORIZONTAL );
-      modelName.setLayoutData( gd );
+      modelName.setLayoutData( new GridData( GridData.FILL_HORIZONTAL ) );
       
       // Browse button
       Button browseButton = new Button( modelGroup, SWT.PUSH );
-      SelectionListener browser = new browseListener( null );
       browseButton.setText( LABEL_BROWSE );
-      browseButton.addSelectionListener( browser );
+      browseButton.addSelectionListener
+      (
+        new SelectionListener()
+        {
+          public void widgetDefaultSelected( SelectionEvent e ) {}
+
+          public void widgetSelected( SelectionEvent e )
+          {
+            String file = getProperty( KEY_MODELFILE );
+            
+            FileDialog dialog = new FileDialog( fParent.getShell(), SWT.OPEN | SWT.APPLICATION_MODAL );
+            dialog.setText( LABEL_MODELDIALOG );
+            dialog.setFilterPath( getProperty( KEY_MODELDIR ) );
+            dialog.setFileName( file );
+            
+            // Shuffle the filters so we start where we left off last time
+            if( file == null || file.endsWith( ".nl" ) )
+            {
+              dialog.setFilterExtensions( filters_nl );
+              dialog.setFilterNames( filterNames_nl );
+            }          
+            else if( file.endsWith( ".cal" ) )
+            {
+              dialog.setFilterExtensions( filters_cal );
+              dialog.setFilterNames( filterNames_cal );
+            }          
+            else
+            {
+              dialog.setFilterExtensions( filters_xdf );
+              dialog.setFilterNames( filterNames_xdf );
+            }
+
+            file = dialog.open() ;
+              
+            if( file != null )
+            {
+              String dir  = dialog.getFilterPath();
+              int dl = dir.length() + 1;
+              
+              // Get the base filename
+              if( file.length() > dl ) file = file.substring( dl );
+              else dir = "";    // ??
+                
+              modelName.setText( file );
+              setProperty( KEY_MODELFILE, file );
+                
+              defaultPath.setText( dir );
+              setProperty( KEY_MODELDIR , dir );
+              
+              parseModel();
+            }
+          }
+        }
+      );
       
     // Model Path Selection
     Group pathGroup = new Group( tab, SWT.NONE );
     pathGroup.setText( LABEL_MODELPATH );
-    gd = new GridData( GridData.FILL_HORIZONTAL );
-    pathGroup.setLayoutData( gd );
-    gl = new GridLayout();
-    gl.numColumns = 2;
-    pathGroup.setLayout( gl );
+    pathGroup.setLayoutData( new GridData( GridData.FILL_HORIZONTAL ) );
+    pathGroup.setLayout( new GridLayout( 2, false ) );
 
       // choose default model path
       defaultButton = new Button( pathGroup, SWT.RADIO );
@@ -145,8 +208,7 @@ public class SimulationModelTab extends OpendfConfigurationTab
       
       // display default model path
       defaultPath = new Text( pathGroup, SWT.LEFT | SWT.SINGLE | SWT.BORDER | SWT.READ_ONLY );
-      gd = new GridData( GridData.FILL_HORIZONTAL );
-      defaultPath.setLayoutData( gd );
+      defaultPath.setLayoutData( new GridData( GridData.FILL_HORIZONTAL ) );
 
       // choose custom model path
       specifyButton = new Button( pathGroup, SWT.RADIO );
@@ -158,133 +220,240 @@ public class SimulationModelTab extends OpendfConfigurationTab
       // specify custom model path
       specifyPath = new Text( pathGroup, SWT.LEFT | SWT.SINGLE | SWT.BORDER );
       specifyPath.setEnabled( false );
-      gd = new GridData( GridData.FILL_HORIZONTAL );
-      specifyPath.setLayoutData( gd );
+      specifyPath.setLayoutData( new GridData( GridData.FILL_HORIZONTAL ) );
 
+      // path separator indication
+      new Text( pathGroup, SWT.SINGLE | SWT.READ_ONLY ); // spacer
+      Text pathSeparator = new Text( pathGroup, SWT.SINGLE | SWT.CENTER | SWT.READ_ONLY );
+      pathSeparator.setText( LABEL_PATHSEPARATOR + "\"" + File.pathSeparator + "\"" );
+      pathSeparator.setLayoutData( new GridData( GridData.FILL_HORIZONTAL ) );
+      
     // Model Parameters
     Group parameterGroup = new Group( tab, SWT.NONE );
     parameterGroup.setText( LABEL_PARAMETERS );
-    gd = new GridData( GridData.FILL_BOTH );
-    parameterGroup.setLayoutData( gd );
-    gl = new GridLayout();
-    gl.numColumns = 2;
-    parameterGroup.setLayout( gl );
+    parameterGroup.setLayoutData( new GridData( GridData.FILL_BOTH ) );
+    parameterGroup.setLayout( new GridLayout( 2, false ) );
     
       // parameter display table
-      parameterTable = new Table( parameterGroup, SWT.SINGLE | SWT.BORDER | SWT.FULL_SELECTION );
-      gd = new GridData( GridData.FILL_BOTH );
-      parameterTable.setLayoutData( gd );
+      Composite tableHolder = new Composite( parameterGroup, SWT.NONE );
+      tableHolder.setLayoutData( new GridData( GridData.FILL_BOTH ) );
+      TableColumnLayout columnLayout = new TableColumnLayout();
+      
+      parameterTable = new Table( tableHolder, SWT.SINGLE | SWT.BORDER | SWT.FULL_SELECTION );
       parameterTable.setLinesVisible( true );
       parameterTable.setHeaderVisible( true );
+      
       String[] columnLabels = { LABEL_NAME, LABEL_TYPE, LABEL_VALUE };
-      parameterColumns = new TableColumn[ columnLabels.length ];
-      for( int i = 0; i < columnLabels.length; i++ )
+      parameterColumns = new TableColumn[ 3 ];
+      for( int i = 0; i < 3; i++ )
       {
         parameterColumns[i] = new TableColumn( parameterTable, SWT.LEFT, i );
         parameterColumns[i].setText( columnLabels[i] );
-        parameterColumns[i].pack();
+        // parameterColumns[i].pack();
+        columnLayout.setColumnData( parameterColumns[i], new ColumnWeightData( i == 2 ? 80 : 10, PUSHBUTTON_WIDTH ) );
       }
+      tableHolder.setLayout( columnLayout );
+      // parameterTable.pack();
       
       // parameter edit button
       editButton = new Button( parameterGroup, SWT.PUSH );
+      GridData buttonData = new GridData( );
+      buttonData.widthHint = PUSHBUTTON_WIDTH;
+      editButton.setLayoutData( buttonData );
       editButton.setText( LABEL_EDIT );
       editButton.setEnabled( false );
-      SelectionListener edit = new editListener( null );
-      editButton.addSelectionListener( edit );
+      editButton.addSelectionListener
+      ( new SelectionListener()
+        {
+          public void widgetSelected( SelectionEvent e )
+          {
+            parameterDialog dialog = new parameterDialog( editButton.getShell() );
+            dialog.open();
+          }
+                                             
+          public void widgetDefaultSelected( SelectionEvent e ) {}
+        }
+      );
 
-      setErrorMessage("Ho ho ho");
+      parseModel();
    }
 
-  private class browseListener implements SelectionListener
-  {
-    private FileDialog dialog;
-    
-    public browseListener( String dir )
-    {
-      String[] filters     = { "*.nl"           , "*.cal"         , "*.xdf"  };
-      String[] filterNames = { "Networks (*.nl)", "Actors (*.cal)", "Structural netlist (*.xdf)" };
-      dialog = new FileDialog( fParent.getShell(), SWT.OPEN | SWT.APPLICATION_MODAL );
-      dialog.setText( LABEL_MODELDIALOG );
-      dialog.setFilterExtensions( filters );
-      dialog.setFilterNames( filterNames );
-      dialog.setFilterPath( dir );
-    }
-    
-    public void widgetDefaultSelected( SelectionEvent e )
-    {
-     
-    }
-
-    public void widgetSelected( SelectionEvent e )
-    {
-      String file = dialog.open() ;
-      
-      if( file != null )
-      {
-        String dir  = dialog.getFilterPath();
-        int dl = dir.length() + 1;
-        if( file.length() > dl )
-        {
-          // Strip off the directory part
-          file = file.substring( dl );
-        }
-        else
-        {
-          // Counldn't find a directory prefix ??
-          dir = "";
-        }
-        
-        modelName.setText( file );
-        setProperty( KEY_MODELFILE, file );
-        
-        defaultPath.setText( dir );
-        setProperty( KEY_MODELDIR , dir );
-      }
-      
-      parseModel();
-    }
-  }
-
-  
   private class radioListener implements SelectionListener
   {
-    private FileDialog dialog;
     
-    public void widgetDefaultSelected( SelectionEvent e )
-    {
-     
-    }
+    public void widgetDefaultSelected( SelectionEvent e ) {}
 
     public void widgetSelected( SelectionEvent e )
     {
       int i = (Integer) e.widget.getData();
       
-      if( i == 0 )
+      boolean useDefault = i == 0;
+      defaultButton.setSelection( useDefault );
+      specifyButton.setSelection( ! useDefault );
+      specifyPath.setEnabled( ! useDefault );
+    }
+  }
+  
+  private class parameterDialog extends org.eclipse.swt.widgets.Dialog
+  {
+    public parameterDialog( Shell parent )
+    {
+      super( parent );
+    }
+    
+    private Shell shell;
+    private Text nameField;
+    private Text valueField;
+    private Button accept;
+    
+    public Object open()
+    {
+      // Parameter to edit
+      int i = parameterTable.getSelectionIndex();
+      String name = parameterTable.getItem( i ).getText( 0 );
+      String type = getProperty( KEY_PARAMETERTYPE + "." + name );
+      String value = getProperty( KEY_PARAMETER + "." + name );
+      
+      boolean validValue = false;
+      
+      if( value != null )
       {
-        // use the default model path
-        defaultButton.setSelection( true );
-        specifyButton.setSelection( false );
-        specifyPath.setEnabled( false );
+        try
+        {
+          if( SourceReader.parseExpr( value ) != null )
+            validValue = true;
+        }
+        catch( Exception e )
+        {
+          
+        }
+      }
+      
+      Shell parent = getParent();
+      shell = new Shell( parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL );
+      shell.setText( LABEL_EDITPARAMETER + name );
+      shell.setLayout( new GridLayout( 1, false ) );
+      
+      Composite textHolder = new Composite( shell, SWT.NONE );
+      textHolder.setLayoutData( new GridData( GridData.FILL_HORIZONTAL ) );
+      textHolder.setLayout( new GridLayout( 2, false ) );
+      
+      Text nameLabel = new Text( textHolder, SWT.SINGLE | SWT.LEFT | SWT.READ_ONLY );
+      nameLabel.setText( LABEL_NAME );
+      nameField = new Text( textHolder, SWT.SINGLE | SWT.LEFT | SWT.READ_ONLY );
+      nameField.setText( name );
+      nameField.setLayoutData( new GridData( GridData.FILL_HORIZONTAL ) );
+      
+      Text typeLabel = new Text( textHolder, SWT.SINGLE | SWT.LEFT | SWT.READ_ONLY );
+      typeLabel.setText( LABEL_TYPE );
+      Text typeField = new Text( textHolder, SWT.SINGLE | SWT.LEFT | SWT.READ_ONLY );
+      if( type != null ) typeField.setText( type );
+      typeField.setLayoutData( new GridData( GridData.FILL_HORIZONTAL ) );
+      
+      Text valueLabel = new Text( textHolder, SWT.SINGLE | SWT.LEFT | SWT.READ_ONLY );
+      valueLabel.setText( LABEL_VALUE );
+      valueField = new Text( textHolder, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
+      if( value == null )
+      {
+        String suggestion = valueSuggestion( name, type );
+        int start = suggestion.indexOf( valueReplacement );
+        int end = start + valueReplacement.length();
+        valueField.setText( suggestion );
+        valueField.setSelection( start, end );
       }
       else
-      {
-        defaultButton.setSelection( false );
-        specifyButton.setSelection( true );
-        specifyPath.setEnabled( true );        
+      { 
+        valueField.setText( value );
+        valueField.setSelection(0);
       }
+      GridData gd = new GridData( GridData.FILL_HORIZONTAL );
+      gd.minimumWidth = 250;
+      valueField.setLayoutData( gd );
+      valueField.pack();
+      valueField.setEnabled( true );
+      valueField.setFocus();
+      valueField.addModifyListener
+      (
+        new ModifyListener()
+        {
+          public void modifyText( ModifyEvent event )
+          {
+            try
+            {
+              if( SourceReader.parseExpr( valueField.getText() ) != null )
+                accept.setEnabled( true );
+            }
+            catch( Exception e ) { accept.setEnabled( false ); }
+          }
+        }
+      );
+      
+      //TODO: add a variable inserter pop-up
+
+      Composite buttonHolder = new Composite( shell, SWT.NONE );
+      buttonHolder.setLayoutData( new GridData( GridData.FILL_HORIZONTAL ) );
+      buttonHolder.setLayout( new GridLayout( 3, false ) );
+
+      Text indent = new Text( buttonHolder, SWT.SINGLE | SWT.READ_ONLY ); // spacer
+      indent.setLayoutData( new GridData( GridData.FILL_HORIZONTAL ) );
+      
+      accept = new Button( buttonHolder, SWT.PUSH );
+      GridData acceptData = new GridData();
+      acceptData.widthHint = PUSHBUTTON_WIDTH;
+      accept.setLayoutData( acceptData );
+      accept.setText( LABEL_ACCEPT );
+      accept.setEnabled( validValue );
+      accept.addSelectionListener
+      ( 
+        new SelectionListener()
+        {
+          public void widgetDefaultSelected( SelectionEvent e ) {}
+
+          public void widgetSelected( SelectionEvent e )
+          {
+            String value = valueField.getText();
+            setProperty( KEY_PARAMETER + "." + nameField.getText(), value );
+             
+            int i = parameterTable.getSelectionIndex();
+            if( i >= 0 )
+            {
+              parameterTable.getItem( i ).setText( VALUE_INDEX, value );
+              // parameterTable.pack();
+            }
+              
+            shell.close();
+          }
+        }
+      );
+
+      Button cancel = new Button( buttonHolder, SWT.PUSH );
+      GridData cancelData = new GridData();
+      cancelData.widthHint = PUSHBUTTON_WIDTH;
+      cancel.setLayoutData( cancelData );
+      cancel.setText( LABEL_CANCEL );
+      cancel.setEnabled( true );
+      cancel.addSelectionListener
+      ( 
+        new SelectionListener()
+        {
+          public void widgetDefaultSelected( SelectionEvent e ) {}
+          public void widgetSelected( SelectionEvent e ) { shell.close(); }
+        }
+      );
+
+      shell.pack();
+      shell.open();
+      Display display = parent.getDisplay();
+      while( !shell.isDisposed() )
+      {
+        if( !display.readAndDispatch() ) display.sleep();
+      }
+      
+      return null;
+      
     }
-  }
-  
-  private String lastModelFile;
- 
-  private class elementComparator implements Comparator<Element>
-  {
-    public int compare( Element a, Element b )
-    {
-      return a.getAttribute( "name" ).compareTo( b.getAttribute( "name" ) );
-    }
-  }
-  
+   }
+
   private boolean parseModel()
   {
     String file = getProperty( KEY_MODELFILE );
@@ -348,7 +517,15 @@ public class SimulationModelTab extends OpendfConfigurationTab
     }
     
     parameterTable.removeAll();
-    Collections.sort( parameters, new elementComparator() );
+    Collections.sort( parameters, 
+                      new Comparator<Element>()
+                      {
+                        public int compare( Element a, Element b )
+                        {
+                          return a.getAttribute( "name" ).compareTo( b.getAttribute( "name" ) );
+                        }
+                      }
+    );
     
     java.util.List<String> keep = new ArrayList<String>();
     
@@ -367,20 +544,24 @@ public class SimulationModelTab extends OpendfConfigurationTab
       keep.add( name );
       setProperty( KEY_PARAMETERTYPE + "." + name, type );
       
-      item.setText( 0, name );
+      item.setText( NAME_INDEX, name );
       if( type != null )
-        item.setText( 1, type );
+        item.setText( TYPE_INDEX, type );
+      
+      String value = getProperty( KEY_PARAMETER + "." + name );
+      if( value != null )
+        item.setText( VALUE_INDEX, value );
     }
     
     // Remove any properties that are no longer applicable
     pruneProperties( KEY_PARAMETER    , keep );
     pruneProperties( KEY_PARAMETERTYPE, keep );
-    
-    for( int i = 0; i < parameterColumns.length; i++ )
+  /*  
+    for( int i = 0; i < 2; i++ )
     {
       parameterColumns[i].pack();
     }
-
+*/
     int i = parameterTable.getSelectionIndex();
     if( parameters.size() == 0 )
     {

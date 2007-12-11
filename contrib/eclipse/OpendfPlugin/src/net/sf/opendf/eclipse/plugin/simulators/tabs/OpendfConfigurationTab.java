@@ -53,9 +53,23 @@ public abstract class OpendfConfigurationTab extends AbstractLaunchConfiguration
    // defaults   = defaultProperties;
   }
   
+  public static String valueReplacement = "$value$";
+  
+  public static String valueSuggestion( String name, String type )
+  {
+    // scalar value suggestion
+    if( type == null || ! type.contains( "type:" ) ) return valueReplacement;
+    
+    // list value suggestion
+    return  "[ " + valueReplacement + " : for i in 1 .. #" + name + "]";
+  }
+  
   protected void setProperty( String key, String value )
   {
-    properties.put( key, value );
+    if( value != null && value.length() == 0 )
+      properties.put( key, null );
+    else
+      properties.put( key, value );
   }
 
   protected String getProperty( String key )
@@ -74,7 +88,9 @@ public abstract class OpendfConfigurationTab extends AbstractLaunchConfiguration
     {
       String key = i.next();
       if( key.startsWith( dottedQualifier ) && ! keep.contains( key.substring( qualifierLength ) ) )
+      {
         i.remove();
+      }
     }
   }
   
