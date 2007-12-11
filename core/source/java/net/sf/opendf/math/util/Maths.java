@@ -1,4 +1,4 @@
-package jama.util;
+package net.sf.opendf.math.util;
 
 public class Maths {
 

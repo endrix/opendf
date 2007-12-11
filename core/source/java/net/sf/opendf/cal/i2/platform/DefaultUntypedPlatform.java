@@ -49,7 +49,7 @@ import net.sf.opendf.cal.i2.util.ProcedureOf2;
 import net.sf.opendf.cal.i2.util.ProcedureOf2Eval;
 import net.sf.opendf.cal.i2.util.ProcedureOf4;
 import net.sf.opendf.cal.i2.util.ReplacePrefixImportMapper;
-import net.sf.opendf.lib.Complex;
+import net.sf.opendf.math.Complex;
 
 public class DefaultUntypedPlatform implements Platform {
 

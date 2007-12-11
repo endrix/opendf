@@ -1,5 +1,6 @@
-package jama;
+package net.sf.opendf.math.matrix;
 
+import net.sf.opendf.math.util.Maths;
 import jama.util.*;
 
 /** QR Decomposition.

@@ -1,4 +1,4 @@
-package jama;
+package net.sf.opendf.math.matrix;
 
    /** LU Decomposition.
    <P>

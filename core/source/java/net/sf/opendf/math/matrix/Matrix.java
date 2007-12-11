@@ -1,4 +1,4 @@
-package jama;
+package net.sf.opendf.math.matrix;
 
 import jama.util.*;
 
@@ -12,6 +12,8 @@ import java.text.FieldPosition;
 import java.io.PrintWriter;
 import java.io.BufferedReader;
 import java.io.StreamTokenizer;
+
+import net.sf.opendf.math.util.Maths;
 
 
 /**

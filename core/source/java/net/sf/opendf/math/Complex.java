@@ -1,4 +1,4 @@
-package net.sf.opendf.lib;
+package net.sf.opendf.math;
 
 /*************************************************************************
  *  Compilation:  javac Complex.java
