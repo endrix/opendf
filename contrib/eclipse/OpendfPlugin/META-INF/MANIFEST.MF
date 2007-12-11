@@ -3,7 +3,7 @@ Bundle-SymbolicName: net.sf.opendf.eclipse.plugin;singleton:=true
 Bundle-Version: 1.0.1
 Bundle-Activator: net.sf.opendf.eclipse.plugin.OpendfPlugin
 Bundle-Vendor: The Open Dataflow Project
-Bundle-Localization: plugin
+Bundle-Localization: 
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
  org.eclipse.jface.text,
@@ -11,7 +11,9 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.ui.workbench.texteditor,
  org.eclipse.core.resources,
  org.eclipse.ui.ide,
- org.eclipse.ui.views
+ org.eclipse.ui.views,
+ org.eclipse.debug.core,
+ org.eclipse.debug.ui
 Eclipse-LazyStart: true
 Bundle-ClassPath: lib/saxon8.jar,
  lib/saxon8-dom.jar,
@@ -23,4 +25,6 @@ Provide-Package: net.sf.opendf.eclipse.plugin,
  net.sf.opendf.eclipse.plugin.editors.checkers,
  net.sf.opendf.eclipse.plugin.editors.outline,
  net.sf.opendf.eclipse.plugin.editors.rules,
- net.sf.opendf.eclipse.plugin.editors.scanners
+ net.sf.opendf.eclipse.plugin.editors.scanners,
+ net.sf.opendf.eclipse.plugin.simulators,
+ net.sf.opendf.eclipse.plugin.simulators.tabs
