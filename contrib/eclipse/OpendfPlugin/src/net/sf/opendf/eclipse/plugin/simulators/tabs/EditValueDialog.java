@@ -188,7 +188,10 @@ public class EditValueDialog extends org.eclipse.swt.widgets.Dialog
         {
           try
           {
-            if( SourceReader.parseExpr( valueField.getText() ) != null )
+            String value = valueField.getText();
+            
+            // accept zero-length string, or valid CAL expression
+            if( value != null && ( value.length() == 0 || SourceReader.parseExpr( valueField.getText() ) != null ) )
               accept.setEnabled( true );
           }
           catch( Exception e ) { accept.setEnabled( false ); }
@@ -328,13 +331,12 @@ public class EditValueDialog extends org.eclipse.swt.widgets.Dialog
     {
       shell = new Shell( parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL );
       shell.setText( LABEL_INSERTVARIABLE );
-      GridData shellData = new GridData();
-      shellData.widthHint = 250;
-      shell.setLayoutData( shellData );
       shell.setLayout( new GridLayout( 1, false ) );
       
       list = new List( shell, SWT.SINGLE | SWT.READ_ONLY | SWT.BORDER );
-      list.setLayoutData( new GridData( GridData.FILL_BOTH ) );
+      GridData listData = new GridData( GridData.FILL_BOTH );
+      listData.widthHint = 300;
+      list.setLayoutData( listData );
       for( String name : variables )
         list.add( name );
       list.setSelection( 0 );
@@ -345,7 +347,7 @@ public class EditValueDialog extends org.eclipse.swt.widgets.Dialog
       buttonHolder.setLayout( new GridLayout( 2, false ) );
 
       Button insert = new Button( buttonHolder, SWT.PUSH );
-      GridData insertData = new GridData();
+      GridData insertData = new GridData( GridData.HORIZONTAL_ALIGN_BEGINNING );
       insertData.widthHint = PUSHBUTTON_WIDTH;
       insert.setLayoutData( insertData );
       insert.setText( LABEL_INSERT );
@@ -366,7 +368,7 @@ public class EditValueDialog extends org.eclipse.swt.widgets.Dialog
       );
 
       Button cancel = new Button( buttonHolder, SWT.PUSH );
-      GridData cancelData = new GridData();
+      GridData cancelData = new GridData( GridData.HORIZONTAL_ALIGN_END );
       cancelData.widthHint = PUSHBUTTON_WIDTH;
       cancel.setLayoutData( cancelData );
       cancel.setText( LABEL_CANCEL );

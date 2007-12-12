@@ -319,7 +319,11 @@ public class SimulationModelTab extends OpendfConfigurationTab
             
             String value = (String) dialog.open();
             if( value != null )
-              parameterTable.getItem( i ).setText( VALUE_INDEX, value );
+            {
+              TableItem item = parameterTable.getItem( i );
+              item.setText( VALUE_INDEX, value );
+              item.setImage( VALUE_INDEX, null );
+            }
           }
                                              
           public void widgetDefaultSelected( SelectionEvent e ) {}
@@ -441,7 +445,16 @@ public class SimulationModelTab extends OpendfConfigurationTab
       
       String value = getProperty( KEY_PARAMETER + "." + name );
       if( value != null )
+      {
         item.setText( VALUE_INDEX, value );
+        item.setImage( VALUE_INDEX, null );
+      }
+      else
+      {
+        // this ensures that the name is in the map if it was not before.
+        setProperty( KEY_PARAMETER + "." + name, null );
+        item.setImage( VALUE_INDEX, errorImage );
+      }
     }
     
     // Remove any properties that are no longer applicable

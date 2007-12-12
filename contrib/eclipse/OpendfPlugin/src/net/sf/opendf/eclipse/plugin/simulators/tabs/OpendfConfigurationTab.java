@@ -81,6 +81,8 @@ public abstract class OpendfConfigurationTab extends AbstractLaunchConfiguration
   private String name;
   
   private Map<String,String> properties;
+  
+  public Image errorImage;
 
   public void setPropertyMap( Map<String,String> properties )
   {
@@ -92,6 +94,7 @@ public abstract class OpendfConfigurationTab extends AbstractLaunchConfiguration
     super();
     this.name  = name;
     properties = null;
+    errorImage = OpendfPlugin.getDefault().getImage( OpendfPlugin.IMAGE_error );
   }
   
   public static String valueReplacement = "$value$";
