@@ -549,10 +549,11 @@ public class SimulationModelTab extends OpendfConfigurationTab
  
   public boolean isValid( ILaunchConfiguration launchConfig )
   {
-    System.out.println( "isValid()" );
+    boolean valid = getProperty( KEY_MODELERRORS ) == null && checkParameters();
+    System.out.println( "isValid() " + valid );
     
     // tabParent.update();
-    return getProperty( KEY_MODELERRORS ) == null && checkParameters();
+    return valid;
   }
 
   private static final String MSG_BADMODELTYPE  = "Invalid top level model type";
