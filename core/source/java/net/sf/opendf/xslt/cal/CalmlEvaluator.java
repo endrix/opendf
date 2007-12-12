@@ -153,7 +153,7 @@ public class CalmlEvaluator
     public static Node parseExpression(String expr) throws Exception
     {
     	//Node n = Util.saxonify(SourceReader.parseExpr(expr).getDocumentElement());
-    	Node n = toSaxon(SourceReader.parseExpr(expr).getDocumentElement());
+    	Node n = toSaxon(SourceReader.parseExpr(expr));
 		reallyEmbarrassingHackToMakeThingsWork(n);
 		return xpathEvalNode("/Expression", n);
     }
