@@ -48,6 +48,7 @@ import static net.sf.opendf.cli.Util.initializeLocators;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.StringReader;
@@ -94,58 +95,44 @@ public class Simulator {
 	
 	public static void  main(String [] args) throws Exception
     {
-		String inFile = null;
-		String outFile = null;
-		double time = -1;
-		long nSteps = -1;
-		String [] modelPath = null;
-		String actorClass = null;
-		String cachePath = null;
-        Level userVerbosity = Logging.user().getLevel();
-        boolean elaborate = false;
-		boolean debug = false;
-        boolean interpretStimulus = true;
-        boolean bufferBlockRecord = false;
-		int maxErrs = 100;
-        
-		Map<String, String> params = new HashMap<String, String>();
-		
+		Configuration conf = new Configuration();
+        		
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].equals("-n")) {
-				if (nSteps >= 0) usage();
+				if (conf.nSteps >= 0) usage();
 				i += 1;
 				if (i >= args.length) usage();
-				nSteps = Long.parseLong(args[i]);
+				conf.nSteps = Long.parseLong(args[i]);
 			} else if (args[i].equals("-t")) {
-				if (time >= 0) usage();
+				if (conf.time >= 0) usage();
 				i += 1;
 				if (i >= args.length) usage();
-				time = Double.parseDouble(args[i]);				
+				conf.time = Double.parseDouble(args[i]);				
 			} else if (args[i].equals("-i")) {
-				if (inFile != null) usage();
+				if (conf.inFile != null) usage();
 				i += 1;
 				if (i >= args.length) usage();
-				inFile = args[i];
+				conf.inFile = args[i];
 			} else if (args[i].equals("-o")) {
-				if (outFile != null) usage();
+				if (conf.outFile != null) usage();
 				i += 1;
 				if (i >= args.length) usage();
-				outFile = args[i];
+				conf.outFile = args[i];
 			} else if (args[i].equals("--no-interpret-stimulus")) {
-                interpretStimulus = false;
+                conf.interpretStimulus = false;
 			} else if (args[i].equals("-e")) {
-				elaborate = true;
+				conf.elaborate = true;
 			} else if (args[i].equals("--max-errors")) {
 				i += 1;
 				if (i >= args.length) usage();
-				maxErrs = Integer.parseInt(args[i]);
+				conf.maxErrs = Integer.parseInt(args[i]);
 			} else if (args[i].equals("-ea")) {
 				System.setProperty("EnableAssertions", "true");
 			} else if (args[i].equals("-tc")) {
 				System.setProperty("EnableTypeChecking", "true");
 			} else if (args[i].equals("-bbr")) {
 				System.setProperty("CalBufferBlockRecord", "true");
-				bufferBlockRecord = true;
+				conf.bufferBlockRecord = true;
 			} else if (args[i].equals("-trace")) {
 				System.setProperty("CalFiringTrace", "true");
 			} else if (args[i].equals("-bq")) {
@@ -165,7 +152,7 @@ public class Simulator {
 				if ("".equals(v)) usage();
 				String expr = s.substring(n + 1);
 
-				params.put(v, expr);
+				conf.params.put(v, expr);
             } else if (args[i].equals("-qq")) {
                 Logging.user().setLevel(Level.OFF);
             } else if (args[i].equals("-q")) {
@@ -183,38 +170,122 @@ public class Simulator {
             } else if (args[i].equals("-debug0")) {
                 Logging.dbg().setLevel(Level.ALL);
 			} else if (args[i].equals("-cache")) {
-				if (cachePath != null) usage();
+				if (conf.cachePath != null) usage();
 				i += 1;
 				if (i >= args.length) usage();
-				cachePath = args[i];				
+				conf.cachePath = args[i];				
 			} else if (args[i].equals("-mp")) {
-				if (modelPath != null) usage();
+				if (conf.modelPath != null) usage();
 				i += 1;
 				if (i >= args.length) usage();
-				modelPath = extractPath(args[i]);
+				conf.modelPath = extractPath(args[i]);
             } else if (args[i].equals("--version")) {
                 VersionInfo.printVersion();
                 System.exit(0);
             }
             else if (!args[i].startsWith("-")) {
-				if (actorClass != null)	usage();
-				actorClass = args[i];
+				if (conf.actorClass != null)	usage();
+				conf.actorClass = args[i];
 			} else {
 				usage();
 			}
 		}
 		
-		if (actorClass == null) {
+		if (conf.actorClass == null) {
 			usage();
 		}
 		
+		execute(conf);
+    }
+	
+	/**
+	 * The object containing the configuration data for the main simulation loop.
+	 * 
+	 * @author jornj
+	 *
+	 */	
+	public static class Configuration {
+		/**
+		 * Path to the file containing the input stimuli, if any. Null if none. 
+		 */
+		public String inFile = null;
+		
+		/**
+		 * Path to the file receiving the output tokens, if any. Null if none.
+		 */
+		public String outFile = null;
+		
+		/**
+		 * Upper bound for the simulation time. No event with a time stamp beyond this 
+		 * time will be executed. Negative if no upper bound.
+		 */
+		public double time = -1;
+		
+		/**
+		 * Upper bound for the number of steps executed by the simulation. Negative is none.
+		 */
+		public long nSteps = -1;
+		
+		/**
+		 * The paths along which the simulator will try to locate the models. Any models not 
+		 * located in this path will be loaded as Java classes along the classpath.
+		 */
+		public String [] modelPath = null;
+		
+		/**
+		 * The class to be simulated.
+		 */
+		public String actorClass = null;
+		
+		/**
+		 * The path to the cache used to store preprocessed actors, to speed up loading.
+		 */
+		public String cachePath = null;
+		
+		/**
+		 * The logging level. Used to control the verbosity of the logged output.
+		 */
+		public Level userVerbosity = Logging.user().getLevel();
+		
+		/**
+		 * The flag used to control whether the model is fully elaborated prior to instantiation, 
+		 * or whether elaboration is part of the instantiation process.
+		 */
+		public boolean elaborate = false;
+		
+		/**
+		 * Flag controlling whether the stimulus file contains expressions that need to be
+		 * evaluated.
+		 */
+		public boolean interpretStimulus = true;
+		
+		/**
+		 * If true, the simulation will track actors blocking on output, and emit a list of 
+		 * output-blocked actors in case the system deadlocks.
+		 */
+		public boolean bufferBlockRecord = false;
+		
+		/**
+		 * Upper bound to the number of errors produced by the simulator.
+		 */
+		public int maxErrs = 100;		
+		
+		/**
+		 * The parameters of the model. The parameter values are stored as unevaluated strings,
+		 * the simulator will perform the evaluation.
+		 */
+		Map<String, String> params = new HashMap<String, String>();
+	}
+	
+	public static void execute(Configuration conf) throws IOException {
+		
 		Logging.user().info(NameString);
 
-        if (modelPath == null) {
-            modelPath = new String [] {"."};
+        if (conf.modelPath == null) {
+            conf.modelPath = new String [] {"."};
         }
-        Logging.user().info("Model Path: " + Arrays.asList(modelPath));
-        ClassLoader classLoader = new SimulationClassLoader(Simulator.class.getClassLoader(), modelPath, cachePath);
+        Logging.user().info("Model Path: " + Arrays.asList(conf.modelPath));
+        ClassLoader classLoader = new SimulationClassLoader(Simulator.class.getClassLoader(), conf.modelPath, conf.cachePath);
 
         Platform platform = DefaultPlatform.thePlatform;
 
@@ -223,12 +294,12 @@ public class Simulator {
         OutputStream os = null;
         try
         {
-            DiscreteEventComponent dec = createDEC(modelPath, actorClass,	elaborate, params, classLoader, platform);
+            DiscreteEventComponent dec = createDEC(conf.modelPath, conf.actorClass,	conf.elaborate, conf.params, classLoader, platform);
             
-            is = inFile == null ? new NullInputStream() : new FileInputStream(inFile);
-            os = outFile == null ? new NullOutputStream() : 
-            (".".equals(outFile) ? System.out : new FileOutputStream(outFile));
-            SequentialSimulatorCallback callback = interpretStimulus ? new EvaluatedStreamCallback(is, os, platform):new StreamIOCallback(is, os);
+            is = conf.inFile == null ? new NullInputStream() : new FileInputStream(conf.inFile);
+            os = conf.outFile == null ? new NullOutputStream() : 
+            (".".equals(conf.outFile) ? System.out : new FileOutputStream(conf.outFile));
+            SequentialSimulatorCallback callback = conf.interpretStimulus ? new EvaluatedStreamCallback(is, os, platform):new StreamIOCallback(is, os);
 
             sim = new SequentialSimulator(dec, callback);
         }
@@ -261,18 +332,18 @@ public class Simulator {
         try
         {
             while (sim.hasEvent() && 
-                (nSteps < 0 || stepCount < nSteps) &&
-                (time < 0 || currentTime <= time)) {
+                (conf.nSteps < 0 || stepCount < conf.nSteps) &&
+                (conf.time < 0 || currentTime <= conf.time)) {
                 sim.step();
                 stepCount += 1;
                 lastTime = currentTime;
                 currentTime = sim.currentTime();
-                if (simExcHandler.getErrorCount() >= maxErrs)
+                if (simExcHandler.getErrorCount() >= conf.maxErrs)
                 {
                     Logging.user().severe("Too many errors (" + simExcHandler.getErrorCount() + ")");
                     long endWallclockTime = System.currentTimeMillis();
                     long wcTime = endWallclockTime - beginWallclockTime;
-                    postSimulationMessage(userVerbosity, bufferBlockRecord, sim, stepCount, lastTime, wcTime);
+                    postSimulationMessage(conf.userVerbosity, conf.bufferBlockRecord, sim, stepCount, lastTime, wcTime);
                     System.exit(-1);
                 }
             }
@@ -289,7 +360,7 @@ public class Simulator {
         if (os != null)
         	os.close();
         
-        postSimulationMessage(userVerbosity, bufferBlockRecord, sim, stepCount, lastTime, wcTime);
+        postSimulationMessage(conf.userVerbosity, conf.bufferBlockRecord, sim, stepCount, lastTime, wcTime);
 	}
 	
 	private static DiscreteEventComponent createDEC(String[] modelPath, String actorClass, 
