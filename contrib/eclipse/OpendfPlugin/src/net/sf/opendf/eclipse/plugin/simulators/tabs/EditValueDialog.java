@@ -37,57 +37,16 @@ ENDCOPYRIGHT
 */
 package net.sf.opendf.eclipse.plugin.simulators.tabs;
 
-import org.eclipse.debug.core.ILaunchConfiguration;
-import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
-import org.eclipse.debug.ui.AbstractLaunchConfigurationTab;
 import org.eclipse.swt.widgets.Composite;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.Collections;
 
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.debug.core.ILaunchConfiguration;
-import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
-import org.eclipse.jface.dialogs.Dialog;
-import org.eclipse.jface.viewers.ColumnWeightData;
-import org.eclipse.jface.viewers.ILabelProviderListener;
-import org.eclipse.jface.viewers.IStructuredContentProvider;
-import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.jface.viewers.ITableLabelProvider;
-import org.eclipse.jface.viewers.TableLayout;
-import org.eclipse.jface.viewers.TableViewer;
-import org.eclipse.jface.viewers.Viewer;
-import org.eclipse.jface.viewers.ViewerComparator;
-import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
-import org.eclipse.swt.events.MouseAdapter;
-import org.eclipse.swt.events.MouseEvent;
-import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
-import org.eclipse.ui.PlatformUI;
-import org.eclipse.jface.layout.*;
-import org.eclipse.jface.viewers.ColumnWeightData;
-
-import net.sf.opendf.eclipse.plugin.*;
-import net.sf.opendf.util.source.SourceLoader;
-import net.sf.opendf.nl.util.NLLoader;
-import net.sf.opendf.cal.util.CalLoader;
-import net.sf.opendf.util.source.XDFLoader;
-import java.io.*;
-import org.w3c.dom.Node;
-import org.w3c.dom.Element;
-import static net.sf.opendf.util.xml.Util.xpathEvalElements;
-import net.sf.opendf.cal.util.CalWriter;
 import net.sf.opendf.cal.util.SourceReader;
 
 public class EditValueDialog extends org.eclipse.swt.widgets.Dialog
@@ -202,9 +161,9 @@ public class EditValueDialog extends org.eclipse.swt.widgets.Dialog
     buttonHolder.setLayoutData( new GridData( GridData.FILL_HORIZONTAL ) );
     buttonHolder.setLayout( new GridLayout( 4, false ) );
 
-    if( environmentKeyQualifier == null )
+    if( environmentKeyQualifier == null || tab.getKeys( environmentKeyQualifier ).size() < 2 )
     {
-      // No variable inserter
+      // No variable inserter requested
       new Text( buttonHolder, SWT.SINGLE | SWT.READ_ONLY );
     }
     else
@@ -225,7 +184,7 @@ public class EditValueDialog extends org.eclipse.swt.widgets.Dialog
           {
             java.util.List<String> variables = tab.getKeys( environmentKeyQualifier );
             
-            VariableDialog dialog = new VariableDialog( parent, variables );
+            VariableInsertionDialog dialog = new VariableInsertionDialog( parent, variables, variableName );
 
             String name = (String) dialog.open();
             if( name != null && name.length() > 0 )
@@ -256,6 +215,7 @@ public class EditValueDialog extends org.eclipse.swt.widgets.Dialog
         {
           returnValue = valueField.getText();
           tab.setProperty( valueKeyQualifier, variableName, returnValue );
+          tab.setDirty( true );
           shell.close();
         }
       }
@@ -287,110 +247,12 @@ public class EditValueDialog extends org.eclipse.swt.widgets.Dialog
     return returnValue;
   }
     
-  public static final int PUSHBUTTON_WIDTH = 100;  
-    
-  public static final String LABEL_TOPMODEL      = "Top Level Model:";
-  public static final String LABEL_BROWSE        = "Browse...";
-  public static final String LABEL_MODELDIALOG   = "Select Top Level Model";
-  public static final String LABEL_MODELPATH     = "Model Path:";
-  public static final String LABEL_DEFAULT       = "Default";
-  public static final String LABEL_SPECIFY       = "Specify";
-  public static final String LABEL_PARAMETERS    = "Model Parameters:";
-  public static final String LABEL_NAME          = "Name";
-  public static final String LABEL_TYPE          = "Type";
-  public static final String LABEL_VALUE         = "Value";
-  public static final String LABEL_EDIT          = "Edit...";
-  public static final String LABEL_PATHSEPARATOR = "path separator is ";
-  public static final String LABEL_EDITPARAMETER = "Edit Parameter ";
-  public static final String LABEL_APPLY         = "Apply";
-  public static final String LABEL_REVERT        = "Revert";
-  public static final String LABEL_VARIABLE      = "Variable...";
-  public static final String LABEL_INSERTVARIABLE= "Insert Variable Reference";
-  public static final String LABEL_INSERT        = "Insert";
-  public static final String LABEL_CANCEL        = "Cancel";
-  
-  private class VariableDialog extends org.eclipse.swt.widgets.Dialog
-  {
-
-    private java.util.List<String> variables;
-    private Shell parent;
-    private Shell shell;
-    
-    public VariableDialog( Shell parent, java.util.List<String> variables )
-    {
-      super( parent );
-    
-      this.parent = parent;
-      this.variables = variables;
-    }
- 
-    private String returnValue;
-    private List list;
-    
-    public Object open()
-    {
-      shell = new Shell( parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL );
-      shell.setText( LABEL_INSERTVARIABLE );
-      shell.setLayout( new GridLayout( 1, false ) );
-      
-      list = new List( shell, SWT.SINGLE | SWT.READ_ONLY | SWT.BORDER );
-      GridData listData = new GridData( GridData.FILL_BOTH );
-      listData.widthHint = 300;
-      list.setLayoutData( listData );
-      for( String name : variables )
-        list.add( name );
-      list.setSelection( 0 );
-      list.pack();
- 
-      Composite buttonHolder = new Composite( shell, SWT.NONE );
-      buttonHolder.setLayoutData( new GridData( GridData.FILL_HORIZONTAL ) );
-      buttonHolder.setLayout( new GridLayout( 2, false ) );
-
-      Button insert = new Button( buttonHolder, SWT.PUSH );
-      GridData insertData = new GridData( GridData.HORIZONTAL_ALIGN_BEGINNING );
-      insertData.widthHint = PUSHBUTTON_WIDTH;
-      insert.setLayoutData( insertData );
-      insert.setText( LABEL_INSERT );
-      insert.setEnabled( true );
-      insert.addSelectionListener
-      ( 
-        new SelectionListener()
-        {
-          public void widgetDefaultSelected( SelectionEvent e ) {}
-
-          public void widgetSelected( SelectionEvent e )
-          {
-            int i = list.getSelectionIndex();
-            returnValue = (i >= 0 ? list.getItem( i ): null);
-            shell.close();
-          }
-        }
-      );
-
-      Button cancel = new Button( buttonHolder, SWT.PUSH );
-      GridData cancelData = new GridData( GridData.HORIZONTAL_ALIGN_END );
-      cancelData.widthHint = PUSHBUTTON_WIDTH;
-      cancel.setLayoutData( cancelData );
-      cancel.setText( LABEL_CANCEL );
-      cancel.setEnabled( true );
-      cancel.addSelectionListener
-      ( 
-        new SelectionListener()
-        {
-          public void widgetDefaultSelected( SelectionEvent e ) {}
-          public void widgetSelected( SelectionEvent e ) { shell.close(); }
-        }
-      );
-
-      shell.pack();
-      shell.open();
-      Display display = parent.getDisplay();
-      while( !shell.isDisposed() )
-      {
-       if( !display.readAndDispatch() ) display.sleep();
-      }
-      
-      return returnValue;
-    }
-  }
+  private static final int PUSHBUTTON_WIDTH = 100;  
+  private static final String LABEL_NAME          = "Name";
+  private static final String LABEL_TYPE          = "Type";
+  private static final String LABEL_VALUE         = "Value";
+  private static final String LABEL_EDITPARAMETER = "Edit Parameter ";
+  private static final String LABEL_APPLY         = "Apply";
+  private static final String LABEL_REVERT        = "Revert";
+  private static final String LABEL_VARIABLE      = "Variable...";
 }

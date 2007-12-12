@@ -80,6 +80,8 @@ public abstract class OpendfConfigurationTab extends AbstractLaunchConfiguration
 {
   private String name;
   
+  protected static final String MASTER_KEY = "MODEL";
+  
   private Map<String,String> properties;
   
   public Image errorImage;
@@ -121,10 +123,19 @@ public abstract class OpendfConfigurationTab extends AbstractLaunchConfiguration
   {
     setProperty( qualifier + "." + name, value );
   }
-  
+
+  public void touchProperty( String qualifier, String name )
+  {
+    String fullKey = qualifier + "." + name;
+    
+    if(! properties.containsKey( fullKey ) )
+      setProperty( fullKey, null );
+  }
+
   public String getProperty( String key )
   {
     assert( properties != null );
+    
     return properties.get( key );
   }
   
@@ -203,11 +214,19 @@ public abstract class OpendfConfigurationTab extends AbstractLaunchConfiguration
 
   }
   
-  public void setErrorMessage( String message )
+  public void setErrorMessage( String key, String message )
   {
     super.setErrorMessage( message );
     updateLaunchConfigurationDialog();
+    
+    if( key != null )
+      setProperty( key, message );
   }
   
+  protected void setDirty( boolean dirty )
+  {
+    super.setDirty( dirty );
+    updateLaunchConfigurationDialog();
+  }
   
 }
