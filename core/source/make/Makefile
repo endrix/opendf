@@ -21,6 +21,7 @@ PTOLEMY_SOURCES = $(shell find $(OPENDF_HOME)/lib/source/ptolemy -name "*.java")
 OPENDF_LIB_SOURCES =  $(shell find $(OPENDF_HOME)/source/java/net/sf/opendf/lib -name "*.java")
 OPENDF_ACTORC_SOURCES = $(shell find $(OPENDF_HOME)/source/java/net/sf/opendf/actorc -name "*.java")
 OPENDF_UTIL_SOURCES = $(shell find $(OPENDF_HOME)/source/java/net/sf/opendf/util -name "*.java")
+OPENDF_MATH_SOURCES = $(shell find $(OPENDF_HOME)/source/java/net/sf/opendf/math -name "*.java")
 OPENDF_CAL_SOURCES = $(shell find $(OPENDF_HOME)/source/java/net/sf/opendf/cal -name "*.java")
 OPENDF_NL_SOURCES = $(shell find $(OPENDF_HOME)/source/java/net/sf/opendf/nl -name "*.java")
 OPENDF_HADES_SOURCES = $(shell find $(OPENDF_HOME)/source/java/net/sf/opendf/hades -name "*.java")
@@ -61,7 +62,7 @@ ptolemy:
 	$(JAVAC) -classpath "$(OPENDF_CLASSPATH)" -d $(OPENDF_CLASSDIR) $(PTOLEMY_SOURCES)
 
 util: create_dir java_cup 
-	$(JAVAC) -classpath "$(OPENDF_CLASSPATH)" -d $(OPENDF_CLASSDIR) $(OPENDF_LIB_SOURCES) $(OPENDF_UTIL_SOURCES) $(OPENDF_CAL_SOURCES) $(OPENDF_NL_SOURCES) $(OPENDF_ACTORC_SOURCES)
+	$(JAVAC) -classpath "$(OPENDF_CLASSPATH)" -d $(OPENDF_CLASSDIR) $(OPENDF_LIB_SOURCES) $(OPENDF_UTIL_SOURCES) $(OPENDF_MATH_SOURCES) $(OPENDF_CAL_SOURCES) $(OPENDF_NL_SOURCES) $(OPENDF_ACTORC_SOURCES)
 #	$(JAVAC) -classpath "$(OPENDF_CLASSPATH)" -d $(OPENDF_CLASSDIR) $(OPENDF_UTIL_SOURCES)
 
 #cal: util java_cup
