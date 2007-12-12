@@ -214,9 +214,9 @@ public abstract class OpendfConfigurationTab extends AbstractLaunchConfiguration
 
   }
   
-  public void setErrorMessage( String key, String message )
+  public void setErrors( String key, String message )
   {
-    super.setErrorMessage( message );
+    setErrorMessage( message );
     updateLaunchConfigurationDialog();
     
     if( key != null )

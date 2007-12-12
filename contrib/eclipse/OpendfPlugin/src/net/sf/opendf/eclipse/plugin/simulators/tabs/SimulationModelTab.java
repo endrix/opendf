@@ -156,14 +156,11 @@ public class SimulationModelTab extends OpendfConfigurationTab
   
   private OpendfConfigurationTab thisTab;
   
-
   private Composite tabParent;
 
   public void createControl( Composite parent )
   {        
     tabParent = parent;
-    
-    System.out.println("Dialog class " + getLaunchConfigurationDialog().getClass().toString() );
     
     Composite tab = new Composite(parent, SWT.NONE);
     setControl( tab );
@@ -271,7 +268,7 @@ public class SimulationModelTab extends OpendfConfigurationTab
           public void modifyText( ModifyEvent e )
           {
             thisTab.setProperty( KEY_MODELSEARCHPATH, specifyPath.getText() );
-            thisTab.setDirty( true );
+            // thisTab.setDirty( true );
           }
         }
       );
@@ -335,7 +332,7 @@ public class SimulationModelTab extends OpendfConfigurationTab
               TableItem item = parameterTable.getItem( i );
               item.setText( VALUE_INDEX, value );
               item.setImage( VALUE_INDEX, null );
-              checkParameters();
+              setErrors( KEY_MODELERRORS, checkParameters() ? null : MSG_MISSINGPARAMS );
               setDirty( true );
             }            
           }
@@ -367,7 +364,7 @@ public class SimulationModelTab extends OpendfConfigurationTab
       if( last != useDefault )
       {
         thisTab.setProperty( KEY_USEDEFAULTPATH, useDefault ? "true" : "false" );
-        thisTab.setDirty( true );
+        // thisTab.setDirty( true );
       }
     }
   }
@@ -385,9 +382,7 @@ public class SimulationModelTab extends OpendfConfigurationTab
         break;
       }
     }
-    
-    setErrorMessage( KEY_MODELERRORS, invalid ? MSG_MISSINGPARAMS : null );
-    
+     
     return ! invalid;
   }
  
@@ -401,7 +396,7 @@ public class SimulationModelTab extends OpendfConfigurationTab
 
     if( file == null || dir == null )
     {
-      setErrorMessage( KEY_MODELERRORS, MSG_NOMODEL );
+      setErrors( KEY_MODELERRORS, MSG_NOMODEL );
       return;
     }
     
@@ -415,7 +410,7 @@ public class SimulationModelTab extends OpendfConfigurationTab
       loader = new XDFLoader();
     else
     {
-      setErrorMessage( KEY_MODELERRORS, MSG_BADMODELTYPE );
+      setErrors( KEY_MODELERRORS, MSG_BADMODELTYPE );
       return;
     }
 
@@ -427,7 +422,7 @@ public class SimulationModelTab extends OpendfConfigurationTab
     }
     catch( Exception e )
     {
-      setErrorMessage( KEY_MODELERRORS, MSG_CANTREAD );
+      setErrors( KEY_MODELERRORS, MSG_CANTREAD );
       return;
     }
     
@@ -441,7 +436,7 @@ public class SimulationModelTab extends OpendfConfigurationTab
  
       if( xpathEvalElements("//Note[@kind='Report'][@severity='Error']", document ).size() > 0 )
       {
-        setErrorMessage( KEY_MODELERRORS, MSG_MODELERRORS );
+        setErrors( KEY_MODELERRORS, MSG_MODELERRORS );
         return;
       }
 
@@ -452,7 +447,7 @@ public class SimulationModelTab extends OpendfConfigurationTab
     }
     catch( Exception e )
     {
-      setErrorMessage( KEY_MODELERRORS, MSG_MODELERRORS );
+      setErrors( KEY_MODELERRORS, MSG_MODELERRORS );
       return;
     }
 
@@ -460,7 +455,7 @@ public class SimulationModelTab extends OpendfConfigurationTab
     bindKeys( inputs    , KEY_INPUT    , KEY_INPUTTYPE     );
     bindKeys( outputs   , KEY_OUTPUT   , KEY_OUTPUTTYPE    );
     
-    setErrorMessage( KEY_MODELERRORS, null );
+    setErrors( KEY_MODELERRORS, null );
     
     loadParameterTable();
   }    
@@ -540,18 +535,22 @@ public class SimulationModelTab extends OpendfConfigurationTab
       
       editButton.setEnabled( true );
     }
+    System.out.println( "in loadParameterTable()" );
     
-    checkParameters( );
+    setErrors( KEY_MODELERRORS, checkParameters() ? null : MSG_MISSINGPARAMS );
   }
  
   public boolean canSave()
   {
+    System.out.println( "canSave()" );
     // This tab can always be saved
     return true;
   }
  
   public boolean isValid( ILaunchConfiguration launchConfig )
   {
+    System.out.println( "isValid()" );
+    
     // tabParent.update();
     return getProperty( KEY_MODELERRORS ) == null && checkParameters();
   }
