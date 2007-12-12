@@ -1,3 +1,40 @@
+/* 
+BEGINCOPYRIGHT X
+  
+  Copyright (c) 2007, Xilinx Inc.
+  All rights reserved.
+  
+  Redistribution and use in source and binary forms, 
+  with or without modification, are permitted provided 
+  that the following conditions are met:
+  - Redistributions of source code must retain the above 
+    copyright notice, this list of conditions and the 
+    following disclaimer.
+  - Redistributions in binary form must reproduce the 
+    above copyright notice, this list of conditions and 
+    the following disclaimer in the documentation and/or 
+    other materials provided with the distribution.
+  - Neither the name of the copyright holder nor the names 
+    of its contributors may be used to endorse or promote 
+    products derived from this software without specific 
+    prior written permission.
+  
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND 
+  CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, 
+  INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF 
+  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE 
+  DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
+  CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, 
+  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT 
+  NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; 
+  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) 
+  HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
+  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
+  OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
+  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+  
+ENDCOPYRIGHT
+*/
 package net.sf.opendf.eclipse.plugin.simulators.tabs;
 
 import org.eclipse.debug.core.ILaunchConfiguration;
@@ -106,6 +143,8 @@ public class SimulationModelTab extends OpendfConfigurationTab
   public SimulationModelTab()
   {
     super( TAB_NAME );
+    
+    thisTab = this;
   }
   
   private Text modelName;
@@ -116,6 +155,8 @@ public class SimulationModelTab extends OpendfConfigurationTab
   private Table parameterTable;
   private TableColumn[] parameterColumns;
   private Button editButton;
+  
+  private OpendfConfigurationTab thisTab;
   
   public void createControl( Composite parent )
   {    
@@ -254,7 +295,7 @@ public class SimulationModelTab extends OpendfConfigurationTab
       }
       tableHolder.setLayout( columnLayout );
       // parameterTable.pack();
-      
+       
       // parameter edit button
       editButton = new Button( parameterGroup, SWT.PUSH );
       GridData buttonData = new GridData( );
@@ -267,8 +308,18 @@ public class SimulationModelTab extends OpendfConfigurationTab
         {
           public void widgetSelected( SelectionEvent e )
           {
-            parameterDialog dialog = new parameterDialog( editButton.getShell() );
-            dialog.open();
+            int i = parameterTable.getSelectionIndex();
+            
+            if( i < 0 ) return;
+            
+            String name = parameterTable.getItem( i ).getText( 0 );
+
+            EditValueDialog dialog = new EditValueDialog( editButton.getShell(), thisTab, name, 
+                KEY_PARAMETERTYPE, KEY_PARAMETER, KEY_PARAMETER );
+            
+            String value = (String) dialog.open();
+            if( value != null )
+              parameterTable.getItem( i ).setText( VALUE_INDEX, value );
           }
                                              
           public void widgetDefaultSelected( SelectionEvent e ) {}
@@ -293,167 +344,7 @@ public class SimulationModelTab extends OpendfConfigurationTab
       specifyPath.setEnabled( ! useDefault );
     }
   }
-  
-  private class parameterDialog extends org.eclipse.swt.widgets.Dialog
-  {
-    public parameterDialog( Shell parent )
-    {
-      super( parent );
-    }
-    
-    private Shell shell;
-    private Text nameField;
-    private Text valueField;
-    private Button accept;
-    
-    public Object open()
-    {
-      // Parameter to edit
-      int i = parameterTable.getSelectionIndex();
-      String name = parameterTable.getItem( i ).getText( 0 );
-      String type = getProperty( KEY_PARAMETERTYPE + "." + name );
-      String value = getProperty( KEY_PARAMETER + "." + name );
-      
-      boolean validValue = false;
-      
-      if( value != null )
-      {
-        try
-        {
-          if( SourceReader.parseExpr( value ) != null )
-            validValue = true;
-        }
-        catch( Exception e )
-        {
-          
-        }
-      }
-      
-      Shell parent = getParent();
-      shell = new Shell( parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL );
-      shell.setText( LABEL_EDITPARAMETER + name );
-      shell.setLayout( new GridLayout( 1, false ) );
-      
-      Composite textHolder = new Composite( shell, SWT.NONE );
-      textHolder.setLayoutData( new GridData( GridData.FILL_HORIZONTAL ) );
-      textHolder.setLayout( new GridLayout( 2, false ) );
-      
-      Text nameLabel = new Text( textHolder, SWT.SINGLE | SWT.LEFT | SWT.READ_ONLY );
-      nameLabel.setText( LABEL_NAME );
-      nameField = new Text( textHolder, SWT.SINGLE | SWT.LEFT | SWT.READ_ONLY );
-      nameField.setText( name );
-      nameField.setLayoutData( new GridData( GridData.FILL_HORIZONTAL ) );
-      
-      Text typeLabel = new Text( textHolder, SWT.SINGLE | SWT.LEFT | SWT.READ_ONLY );
-      typeLabel.setText( LABEL_TYPE );
-      Text typeField = new Text( textHolder, SWT.SINGLE | SWT.LEFT | SWT.READ_ONLY );
-      if( type != null ) typeField.setText( type );
-      typeField.setLayoutData( new GridData( GridData.FILL_HORIZONTAL ) );
-      
-      Text valueLabel = new Text( textHolder, SWT.SINGLE | SWT.LEFT | SWT.READ_ONLY );
-      valueLabel.setText( LABEL_VALUE );
-      valueField = new Text( textHolder, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
-      if( value == null )
-      {
-        String suggestion = valueSuggestion( name, type );
-        int start = suggestion.indexOf( valueReplacement );
-        int end = start + valueReplacement.length();
-        valueField.setText( suggestion );
-        valueField.setSelection( start, end );
-      }
-      else
-      { 
-        valueField.setText( value );
-        valueField.setSelection(0);
-      }
-      GridData gd = new GridData( GridData.FILL_HORIZONTAL );
-      gd.minimumWidth = 250;
-      valueField.setLayoutData( gd );
-      valueField.pack();
-      valueField.setEnabled( true );
-      valueField.setFocus();
-      valueField.addModifyListener
-      (
-        new ModifyListener()
-        {
-          public void modifyText( ModifyEvent event )
-          {
-            try
-            {
-              if( SourceReader.parseExpr( valueField.getText() ) != null )
-                accept.setEnabled( true );
-            }
-            catch( Exception e ) { accept.setEnabled( false ); }
-          }
-        }
-      );
-      
-      //TODO: add a variable inserter pop-up
-
-      Composite buttonHolder = new Composite( shell, SWT.NONE );
-      buttonHolder.setLayoutData( new GridData( GridData.FILL_HORIZONTAL ) );
-      buttonHolder.setLayout( new GridLayout( 3, false ) );
-
-      Text indent = new Text( buttonHolder, SWT.SINGLE | SWT.READ_ONLY ); // spacer
-      indent.setLayoutData( new GridData( GridData.FILL_HORIZONTAL ) );
-      
-      accept = new Button( buttonHolder, SWT.PUSH );
-      GridData acceptData = new GridData();
-      acceptData.widthHint = PUSHBUTTON_WIDTH;
-      accept.setLayoutData( acceptData );
-      accept.setText( LABEL_ACCEPT );
-      accept.setEnabled( validValue );
-      accept.addSelectionListener
-      ( 
-        new SelectionListener()
-        {
-          public void widgetDefaultSelected( SelectionEvent e ) {}
-
-          public void widgetSelected( SelectionEvent e )
-          {
-            String value = valueField.getText();
-            setProperty( KEY_PARAMETER + "." + nameField.getText(), value );
-             
-            int i = parameterTable.getSelectionIndex();
-            if( i >= 0 )
-            {
-              parameterTable.getItem( i ).setText( VALUE_INDEX, value );
-              // parameterTable.pack();
-            }
-              
-            shell.close();
-          }
-        }
-      );
-
-      Button cancel = new Button( buttonHolder, SWT.PUSH );
-      GridData cancelData = new GridData();
-      cancelData.widthHint = PUSHBUTTON_WIDTH;
-      cancel.setLayoutData( cancelData );
-      cancel.setText( LABEL_CANCEL );
-      cancel.setEnabled( true );
-      cancel.addSelectionListener
-      ( 
-        new SelectionListener()
-        {
-          public void widgetDefaultSelected( SelectionEvent e ) {}
-          public void widgetSelected( SelectionEvent e ) { shell.close(); }
-        }
-      );
-
-      shell.pack();
-      shell.open();
-      Display display = parent.getDisplay();
-      while( !shell.isDisposed() )
-      {
-        if( !display.readAndDispatch() ) display.sleep();
-      }
-      
-      return null;
-      
-    }
-   }
-
+ 
   private boolean parseModel()
   {
     String file = getProperty( KEY_MODELFILE );

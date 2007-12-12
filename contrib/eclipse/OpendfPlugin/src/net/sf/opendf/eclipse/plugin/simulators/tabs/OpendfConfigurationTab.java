@@ -1,3 +1,41 @@
+/* 
+BEGINCOPYRIGHT X
+  
+  Copyright (c) 2007, Xilinx Inc.
+  All rights reserved.
+  
+  Redistribution and use in source and binary forms, 
+  with or without modification, are permitted provided 
+  that the following conditions are met:
+  - Redistributions of source code must retain the above 
+    copyright notice, this list of conditions and the 
+    following disclaimer.
+  - Redistributions in binary form must reproduce the 
+    above copyright notice, this list of conditions and 
+    the following disclaimer in the documentation and/or 
+    other materials provided with the distribution.
+  - Neither the name of the copyright holder nor the names 
+    of its contributors may be used to endorse or promote 
+    products derived from this software without specific 
+    prior written permission.
+  
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND 
+  CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, 
+  INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF 
+  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE 
+  DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
+  CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, 
+  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT 
+  NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; 
+  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) 
+  HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
+  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
+  OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
+  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+  
+ENDCOPYRIGHT
+*/
+
 package net.sf.opendf.eclipse.plugin.simulators.tabs;
 
 import org.eclipse.debug.core.ILaunchConfiguration;
@@ -43,14 +81,17 @@ public abstract class OpendfConfigurationTab extends AbstractLaunchConfiguration
   private String name;
   
   private Map<String,String> properties;
- // private Map<String,String> defaults;
+
+  public void setPropertyMap( Map<String,String> properties )
+  {
+    this.properties = properties;
+  }
   
   public OpendfConfigurationTab( String name /* , Map<String,String> defaultProperties */ )
   {
     super();
     this.name  = name;
-    properties = new HashMap<String,String> ();
-   // defaults   = defaultProperties;
+    properties = null;
   }
   
   public static String valueReplacement = "$value$";
@@ -64,22 +105,36 @@ public abstract class OpendfConfigurationTab extends AbstractLaunchConfiguration
     return  "[ " + valueReplacement + " : for i in 1 .. #" + name + "]";
   }
   
-  protected void setProperty( String key, String value )
+  public void setProperty( String key, String value )
   {
+    assert( properties != null );
     if( value != null && value.length() == 0 )
       properties.put( key, null );
     else
       properties.put( key, value );
   }
 
-  protected String getProperty( String key )
+  public void setProperty( String qualifier, String name, String value )
   {
+    setProperty( qualifier + "." + name, value );
+  }
+  
+  public String getProperty( String key )
+  {
+    assert( properties != null );
     return properties.get( key );
+  }
+  
+  public String getProperty( String qualifier, String name )
+  {
+    return getProperty( qualifier + "." + name );
   }
 
   // Remove all keys matching a qualifier that do not appear in a keep list.
-  protected void pruneProperties( String qualifier, List<String> keep )
+  public void pruneProperties( String qualifier, List<String> keep )
   {
+    assert( properties != null );
+
     String dottedQualifier = qualifier + ".";
     int qualifierLength = dottedQualifier.length();
     Iterator<String> i = properties.keySet().iterator();
@@ -92,6 +147,37 @@ public abstract class OpendfConfigurationTab extends AbstractLaunchConfiguration
         i.remove();
       }
     }
+  }
+
+  // Return all keys matching a qualifier
+  public java.util.List<String> getKeys( String qualifier )
+  {
+    assert( properties != null );
+
+    java.util.List<String> keys = new java.util.ArrayList<String>();
+ 
+    Iterator<String> i = properties.keySet().iterator();
+
+    String dottedQualifier = qualifier + ".";
+
+    while( i.hasNext() )
+    {
+      String key = i.next();
+      if( key.startsWith( dottedQualifier ) )
+        keys.add( key.substring( dottedQualifier.length() ) );
+    }
+
+    Collections.sort( keys, 
+        new Comparator<String>()
+        {
+          public int compare( String a, String b )
+          {
+            return a.compareTo( b );
+          }
+        }
+    );
+
+    return keys;
   }
   
   public String getName()
@@ -119,5 +205,6 @@ public abstract class OpendfConfigurationTab extends AbstractLaunchConfiguration
     super.setErrorMessage( message );
     updateLaunchConfigurationDialog();
   }
+  
   
 }
