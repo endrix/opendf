@@ -50,16 +50,17 @@ public class OpendfPlugin extends AbstractUIPlugin {
 	public static final String ID = "net.sf.opendf.eclipse.plugin";
   
   // indices into the imagePaths array
-  public static final int IMAGE_action       = 0;
-  public static final int IMAGE_actor        = 1;
-  public static final int IMAGE_entity       = 2;
-  public static final int IMAGE_fsm          = 3;
-  public static final int IMAGE_inequality   = 4;
-  public static final int IMAGE_network      = 5;
-  public static final int IMAGE_priority     = 6;
-  public static final int IMAGE_QID          = 7;
-  public static final int IMAGE_transition   = 8;
-  public static final int IMAGE_variable     = 9;
+  public static final int IMAGE_action       =  0;
+  public static final int IMAGE_actor        =  1;
+  public static final int IMAGE_entity       =  2;
+  public static final int IMAGE_fsm          =  3;
+  public static final int IMAGE_inequality   =  4;
+  public static final int IMAGE_network      =  5;
+  public static final int IMAGE_priority     =  6;
+  public static final int IMAGE_QID          =  7;
+  public static final int IMAGE_transition   =  8;
+  public static final int IMAGE_variable     =  9;
+  public static final int IMAGE_error        = 10;
 
   private static final String[] imagePaths =
   {
@@ -72,8 +73,9 @@ public class OpendfPlugin extends AbstractUIPlugin {
     "icons/priority.gif",
     "icons/QID.gif",
     "icons/transition.gif",
-    "icons/variable.gif"
-  };
+    "icons/variable.gif",
+    "icons/error.gif"
+     };
 
 	private List<Image> images;
   
