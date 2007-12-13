@@ -46,7 +46,7 @@ import all caltrop.lib.BitOps;
 actor Transpose ( int sz )
    int(size=sz) X0, int(size=sz) X1, int(size=sz) X2, int(size=sz) X3 ==> int(size=sz) Y0, int(size=sz) Y1 :
 
-  List[ List[ List[ int(size=sz) ] ] ] mem := 
+  list[ list[ list[ int(size=sz) ] ] ] mem := 
      [  [  [0 : for k in Integers(1, 8)]  : for j in Integers(1, 8)]   : for i in Integers(1, 2) ];
 
   int rcount := 0;

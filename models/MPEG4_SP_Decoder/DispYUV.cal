@@ -41,7 +41,7 @@ import javax.swing.JFrame;
 import java.lang.System;
 
 actor DispYUV [int] (string title,string file, int width,
-        int height, int doCompare ) List[int] B ==>  : 
+        int height, int doCompare ) list[int] B ==>  : 
 
   lastTime := 0;
 
@@ -65,9 +65,9 @@ actor DispYUV [int] (string title,string file, int width,
     [ v : for i in Integers( 1, size ) ]
   end
 
-  List[ int ] yframe := initList( 0, ysize  );
-  List[ int ] uframe := initList( 0, uvsize );
-  List[ int ] vframe := initList( 0, uvsize );
+  list[ int ] yframe := initList( 0, ysize  );
+  list[ int ] uframe := initList( 0, uvsize );
+  list[ int ] vframe := initList( 0, uvsize );
 
   procedure readFrame()
   var
