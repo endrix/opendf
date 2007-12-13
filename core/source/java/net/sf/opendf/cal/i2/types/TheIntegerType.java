@@ -80,11 +80,13 @@ public class TheIntegerType extends AbstractIntegralType implements IntegralType
 	public static class TheClass extends AbstractTypeClass {
 
 		public Type createType(TypeExpr te, Evaluator eval) {
-			return new TheIntegerType(this);
+			return singletonIntegerType;
 		}
 
 		public TheClass (String name, TypeSystem ts) {
 			super(name, ts);
 		}
+		
+		private Type singletonIntegerType = new TheIntegerType(this);
 	}
 }

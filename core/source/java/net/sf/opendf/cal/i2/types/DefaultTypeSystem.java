@@ -21,10 +21,14 @@ public class DefaultTypeSystem implements TypeSystem {
 		if (te == null) {
 			return null;
 		}
-		TypeClass tc = typeClasses.get(te.getName());
+		String name = te.getName();
+		if (name == null || "".equals(name.trim())) {
+			// FIXME: also issue warning
+			return null;			
+		}
+		TypeClass tc = typeClasses.get(name);
 		if (tc == null) {
-			// FIXME: throw exception --- undefined type class.
-			return null;
+			tc = new JavaType.TheClass(name, this);
 		}
 		return tc.createType(te, eval);
 	}
@@ -54,9 +58,10 @@ public class DefaultTypeSystem implements TypeSystem {
 	}
 		
 	private Map<String, TypeClass> typeClasses = new HashMap<String, TypeClass>();
-
 	
 	private void initializeTypeClasses() {
+		addTypeClass(new TheBooleanType.TheClass("bool", this));
+		
 		addTypeClass(new BoundedIntegralType.TheClass("short", this, true, 16));
 		addTypeClass(new BoundedIntegralType.TheClass("ushort", this, false, 16));
 		addTypeClass(new BoundedIntegralType.TheClass("int", this, true, 32));
