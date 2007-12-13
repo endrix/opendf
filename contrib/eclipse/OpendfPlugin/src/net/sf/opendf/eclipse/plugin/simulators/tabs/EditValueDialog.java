@@ -43,7 +43,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
@@ -98,7 +98,7 @@ public class EditValueDialog extends org.eclipse.swt.widgets.Dialog
     }
       
     shell = new Shell( parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL );
-    shell.setText( LABEL_EDITPARAMETER + variableName );
+    shell.setText( LABEL_EDIT + variableName );
     shell.setLayout( new GridLayout( 1, false ) );
       
     Composite textHolder = new Composite( shell, SWT.NONE );
@@ -176,10 +176,8 @@ public class EditValueDialog extends org.eclipse.swt.widgets.Dialog
       insert.setEnabled( true );
       insert.addSelectionListener
       ( 
-        new SelectionListener()
+        new SelectionAdapter()
         {
-          public void widgetDefaultSelected( SelectionEvent e ) {}
-
           public void widgetSelected( SelectionEvent e )
           {
             java.util.List<String> variables = tab.getKeys( environmentKeyQualifier );
@@ -207,15 +205,12 @@ public class EditValueDialog extends org.eclipse.swt.widgets.Dialog
     accept.setEnabled( validValue );
     accept.addSelectionListener
     ( 
-      new SelectionListener()
+      new SelectionAdapter()
       {
-        public void widgetDefaultSelected( SelectionEvent e ) {}
-
         public void widgetSelected( SelectionEvent e )
         {
           returnValue = valueField.getText();
           tab.setProperty( valueKeyQualifier, variableName, returnValue );
-          tab.setDirty( true );
           shell.close();
         }
       }
@@ -229,9 +224,8 @@ public class EditValueDialog extends org.eclipse.swt.widgets.Dialog
     cancel.setEnabled( true );
     cancel.addSelectionListener
     ( 
-      new SelectionListener()
+      new SelectionAdapter()
       {
-        public void widgetDefaultSelected( SelectionEvent e ) {}
         public void widgetSelected( SelectionEvent e ) { shell.close(); }
       }
     );
@@ -251,7 +245,7 @@ public class EditValueDialog extends org.eclipse.swt.widgets.Dialog
   private static final String LABEL_NAME          = "Name";
   private static final String LABEL_TYPE          = "Type";
   private static final String LABEL_VALUE         = "Value";
-  private static final String LABEL_EDITPARAMETER = "Edit Parameter ";
+  private static final String LABEL_EDIT          = "Edit ";
   private static final String LABEL_APPLY         = "Apply";
   private static final String LABEL_REVERT        = "Revert";
   private static final String LABEL_VARIABLE      = "Variable...";

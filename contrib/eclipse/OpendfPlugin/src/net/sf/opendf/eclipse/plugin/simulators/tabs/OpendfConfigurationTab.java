@@ -42,8 +42,7 @@ import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.debug.ui.AbstractLaunchConfigurationTab;
 import org.eclipse.swt.widgets.Composite;
-import java.util.HashMap;
-import java.util.Map;
+
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.ILaunchConfiguration;
@@ -80,23 +79,20 @@ public abstract class OpendfConfigurationTab extends AbstractLaunchConfiguration
 {
   private String name;
   
-  protected static final String MASTER_KEY = "MODEL";
-  
   private Map<String,String> properties;
   
   public Image errorImage;
-
-  public void setPropertyMap( Map<String,String> properties )
-  {
-    this.properties = properties;
-  }
   
-  public OpendfConfigurationTab( String name /* , Map<String,String> defaultProperties */ )
+  private String uniqueId;
+  
+  public OpendfConfigurationTab( String name )
   {
     super();
     this.name  = name;
-    properties = null;
+
+    properties = new HashMap< String, String >();
     errorImage = OpendfPlugin.getDefault().getImage( OpendfPlugin.IMAGE_error );
+    uniqueId = OpendfPlugin.ID;
   }
   
   public static String valueReplacement = "$value$";
@@ -156,13 +152,18 @@ public abstract class OpendfConfigurationTab extends AbstractLaunchConfiguration
     while( i.hasNext() )
     {
       String key = i.next();
-      if( key.startsWith( dottedQualifier ) && ! keep.contains( key.substring( qualifierLength ) ) )
-      {
+      if( ! key.startsWith( dottedQualifier ) ) continue;
+      
+      if( keep == null || ! keep.contains( key.substring( qualifierLength ) ) )
         i.remove();
-      }
     }
   }
 
+  public void updateLaunchConfigurationDialog()
+  {
+    super.updateLaunchConfigurationDialog();
+  }
+    
   // Return all keys matching a qualifier
   public java.util.List<String> getKeys( String qualifier )
   {
@@ -198,35 +199,21 @@ public abstract class OpendfConfigurationTab extends AbstractLaunchConfiguration
   {
     return name;
   }
-  
-  public void initializeFrom(ILaunchConfiguration configuration) {
-    // TODO Auto-generated method stub
 
-  }
-
-  public void performApply(ILaunchConfigurationWorkingCopy configuration) {
-    // TODO Auto-generated method stub
-
-  }
-
-  public void setDefaults(ILaunchConfigurationWorkingCopy configuration) {
-    // TODO Auto-generated method stub
-
-  }
-  
-  public void setErrors( String key, String message )
+  public String export()
   {
-    setErrorMessage( message );
-    updateLaunchConfigurationDialog();
-    
-    if( key != null )
-      setProperty( key, message );
+    return uniqueId;
   }
   
-  protected void setDirty( boolean dirty )
+  public String export( String key )
   {
-    super.setDirty( dirty );
-    updateLaunchConfigurationDialog();
+    return uniqueId + "." + name + "." + key;
   }
+
   
+  public String export( String tabName, String key )
+  {
+    return uniqueId + "." + tabName + "." + key;
+  }
+
 }

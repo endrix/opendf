@@ -45,23 +45,14 @@ import org.eclipse.swt.widgets.*;
 import java.util.*;
 
 public abstract class OpendfConfigurationTabGroup extends AbstractLaunchConfigurationTabGroup
-{
-  private OpendfConfigurationTab[] tabs;
-  
-  private Map<String, String> properties;
-  
+{  
   public void createTabs( ILaunchConfigurationDialog dialog, String mode, OpendfConfigurationTab[] tabs  )
-  {
-    this.tabs = tabs;
-    
+  {   
     ILaunchConfigurationTab[] launchTabs = new ILaunchConfigurationTab[ tabs.length + 1];
     int i;
     
-    properties = new HashMap<String, String>();
-    
     for( i = 0; i < tabs.length; i++ )
     {
-      tabs[ i ].setPropertyMap( properties );
       launchTabs[ i ] = tabs[ i ];
     };
     

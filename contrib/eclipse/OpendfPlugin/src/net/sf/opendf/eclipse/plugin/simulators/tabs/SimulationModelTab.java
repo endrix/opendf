@@ -89,6 +89,7 @@ import org.w3c.dom.Element;
 import static net.sf.opendf.util.xml.Util.xpathEvalElements;
 import net.sf.opendf.cal.util.CalWriter;
 import net.sf.opendf.cal.util.SourceReader;
+import java.util.Iterator;
 
 public class SimulationModelTab extends OpendfConfigurationTab
 
@@ -107,21 +108,20 @@ public class SimulationModelTab extends OpendfConfigurationTab
   private static final String LABEL_VALUE         = "Value";
   private static final String LABEL_EDIT          = "Edit...";
   private static final String LABEL_PATHSEPARATOR = "path separator is ";
-  private static final String LABEL_EDITPARAMETER = "Edit parameter ";
-  private static final String LABEL_ACCEPT        = "Apply";
-  private static final String LABEL_CANCEL        = "Revert";
   
-  private static final String KEY_MODELFILE        = MASTER_KEY + "." + "FILE";
-  private static final String KEY_MODELERRORS      = MASTER_KEY + "." + "ERRORS";
-  private static final String KEY_MODELDIR         = MASTER_KEY + "." + "DIR";
-  private static final String KEY_MODELSEARCHPATH  = MASTER_KEY + "." + "PATH";
-  private static final String KEY_USEDEFAULTPATH   = MASTER_KEY + "." + "USEDIR";
-  private static final String KEY_PARAMETER        = MASTER_KEY + "." + "PARAM.NAME";
-  private static final String KEY_PARAMETERTYPE    = MASTER_KEY + "." + "PARAM.TYPE";
-  private static final String KEY_INPUT            = MASTER_KEY + "." + "INPUT.NAME";
-  private static final String KEY_INPUTTYPE        = MASTER_KEY + "." + "INPUT.TYPE";
-  private static final String KEY_OUTPUT           = MASTER_KEY + "." + "OUTPUT.NAME";
-  private static final String KEY_OUTPUTTYPE       = MASTER_KEY + "." + "OUTPUT.TYPE";
+  // These are local keys. They can be made unique for the configuration with export()
+  private static final String KEY_MODELFILE        = "FILE";
+  private static final String KEY_MODELERRORS      = "ERRORS";
+  private static final String KEY_MODELDIR         = "DIR";
+  private static final String KEY_MODELSEARCHPATH  = "PATH";
+  private static final String KEY_USEDEFAULTPATH   = "USEDIR";
+  
+  public static final String KEY_PARAMETER        = "PNAME";
+  public static final String KEY_PARAMETERTYPE    = "PTYPE";
+  public static final String KEY_INPUT            = "INAME";
+  public static final String KEY_INPUTTYPE        = "ITYPE";
+  public static final String KEY_OUTPUT           = "ONAME";
+  public static final String KEY_OUTPUTTYPE       = "OTYPE";
  
   private static final int PUSHBUTTON_WIDTH = 100;
   private static final int NAME_INDEX  = 0;
@@ -151,7 +151,6 @@ public class SimulationModelTab extends OpendfConfigurationTab
   private Button specifyButton;
   private Text specifyPath;
   private Table parameterTable;
-  private TableColumn[] parameterColumns;
   private Button editButton;
   
   private OpendfConfigurationTab thisTab;
@@ -181,10 +180,8 @@ public class SimulationModelTab extends OpendfConfigurationTab
       browseButton.setText( LABEL_BROWSE );
       browseButton.addSelectionListener
       (
-        new SelectionListener()
+        new SelectionAdapter()
         {
-          public void widgetDefaultSelected( SelectionEvent e ) {}
-
           public void widgetSelected( SelectionEvent e )
           {
             String file = getProperty( KEY_MODELFILE );
@@ -192,7 +189,7 @@ public class SimulationModelTab extends OpendfConfigurationTab
             FileDialog dialog = new FileDialog( tabParent.getShell(), SWT.OPEN | SWT.APPLICATION_MODAL );
             dialog.setText( LABEL_MODELDIALOG );
             dialog.setFilterPath( getProperty( KEY_MODELDIR ) );
-            dialog.setFileName( file );
+            dialog.setFileName( file ); // null OK
             
             // Shuffle the filters so we start where we left off last time
             if( file == null || file.endsWith( ".nl" ) )
@@ -228,7 +225,8 @@ public class SimulationModelTab extends OpendfConfigurationTab
               defaultPath.setText( dir );
               setProperty( KEY_MODELDIR , dir );
               
-              loadModel();
+              //loadModel();
+              updateLaunchConfigurationDialog();
             }
           }
         }
@@ -268,7 +266,7 @@ public class SimulationModelTab extends OpendfConfigurationTab
           public void modifyText( ModifyEvent e )
           {
             thisTab.setProperty( KEY_MODELSEARCHPATH, specifyPath.getText() );
-            // thisTab.setDirty( true );
+            updateLaunchConfigurationDialog();
           }
         }
       );
@@ -295,12 +293,11 @@ public class SimulationModelTab extends OpendfConfigurationTab
       parameterTable.setHeaderVisible( true );
       
       String[] columnLabels = { LABEL_NAME, LABEL_TYPE, LABEL_VALUE };
-      parameterColumns = new TableColumn[ 3 ];
+      TableColumn[] parameterColumns = new TableColumn[ 3 ];
       for( int i = 0; i < 3; i++ )
       {
         parameterColumns[i] = new TableColumn( parameterTable, SWT.LEFT, i );
         parameterColumns[i].setText( columnLabels[i] );
-        // parameterColumns[i].pack();
         columnLayout.setColumnData( parameterColumns[i], new ColumnWeightData( i == 2 ? 80 : 10, PUSHBUTTON_WIDTH ) );
       }
       tableHolder.setLayout( columnLayout );
@@ -313,7 +310,7 @@ public class SimulationModelTab extends OpendfConfigurationTab
       editButton.setText( LABEL_EDIT );
       editButton.setEnabled( false );
       editButton.addSelectionListener
-      ( new SelectionListener()
+      ( new SelectionAdapter()
         {
           public void widgetSelected( SelectionEvent e )
           {
@@ -332,24 +329,20 @@ public class SimulationModelTab extends OpendfConfigurationTab
               TableItem item = parameterTable.getItem( i );
               item.setText( VALUE_INDEX, value );
               item.setImage( VALUE_INDEX, null );
-              setErrors( KEY_MODELERRORS, checkParameters() ? null : MSG_MISSINGPARAMS );
-              setDirty( true );
+              // setErrors( KEY_MODELERRORS, checkParameters() ? null : MSG_MISSINGPARAMS );
+              updateLaunchConfigurationDialog();
             }            
           }
-                                             
-          public void widgetDefaultSelected( SelectionEvent e ) {}
-        }
+         }
       );
 
       // Always reread the model when tab is created
-      loadModel();
+      //loadModel();
    }
 
-  private class radioListener implements SelectionListener
+  private class radioListener extends SelectionAdapter
   {
     
-    public void widgetDefaultSelected( SelectionEvent e ) {}
-
     public void widgetSelected( SelectionEvent e )
     {
       int i = (Integer) e.widget.getData();
@@ -359,15 +352,88 @@ public class SimulationModelTab extends OpendfConfigurationTab
       specifyButton.setSelection( ! useDefault );
       specifyPath.setEnabled( ! useDefault );
       
-      boolean last = thisTab.getProperty( KEY_USEDEFAULTPATH ) == "true";
-      
-      if( last != useDefault )
-      {
-        thisTab.setProperty( KEY_USEDEFAULTPATH, useDefault ? "true" : "false" );
-        // thisTab.setDirty( true );
-      }
+      thisTab.setProperty( KEY_USEDEFAULTPATH, useDefault ? "true" : "false" );
+      updateLaunchConfigurationDialog();
     }
   }
+  
+  /* 
+      widgets and keys to be managed by life-cycle methods
+
+     widget type        name               related key(s)
+     ===========    =============          ==============
+     
+        Text         modelName              KEY_MODELFILE
+        Text         defaultPath            KEY_MODELDIR
+        Button       defaultButton          KEY_USEDEFAULTPATH
+        Button       specifyButton          
+        Text         specifyPath            KEY_MODELSEARCHPATH
+        Table        parameterTable         KEY_PARAMETER, KEY_PARAMETER
+                                            KEY_MODELERRORS
+                                            KEY_INPUT, KEY_INPUTTYPE
+                                            KEY_OUTPUT, KEY_OUTPUTTYPE
+        Button       editButton
+  */
+
+  // called potentially before controls exist
+  public void setDefaults( ILaunchConfigurationWorkingCopy conf )
+  {
+    // just null out the related keys
+    try
+    {
+      Iterator<String> i = conf.getAttributes().keySet().iterator();
+      while( i.hasNext() )
+      {
+        String key = i.next();
+        if( key.startsWith( idPrefix() ) )
+          conf.setAttribute( key, (String) null );
+      }
+    }
+    catch( CoreException e ) { }
+
+  }
+  
+  // this is called the first time
+  public void initializeFrom( ILaunchConfiguration conf )
+  {
+    String name = null;
+    String dir  = null;
+    String path = null;
+    String def  = "true";
+    
+    try
+    {
+      name = conf.getAttribute( idPrefix() + KEY_MODELFILE, (String) null );
+      dir  = conf.getAttribute( idPrefix() + KEY_MODELFILE, (String) null );
+      path = conf.getAttribute( idPrefix() + KEY_MODELFILE, (String) null );
+      def  = conf.getAttribute( idPrefix() + KEY_MODELFILE, (String) null );
+    }
+    catch( CoreException e ) { }
+    
+    // we have to re-parse the selected model
+    loadModel();
+    
+  //  modelName.setText( "" );
+   // defaultPath.setText( "" );
+  //  defaultButton.setEnabled( true );
+  }
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
   
   private boolean checkParameters( )
   {
@@ -388,15 +454,15 @@ public class SimulationModelTab extends OpendfConfigurationTab
  
   private void loadModel()
   {
-    setDirty( true );
-    parameterTable.removeAll();
-
     String file = getProperty( KEY_MODELFILE );
+    modelName.setText( file == null ? "" : file );
+      
     String dir  = getProperty( KEY_MODELDIR );
+    defaultPath.setText( dir== null ? "" : dir );
 
     if( file == null || dir == null )
     {
-      setErrors( KEY_MODELERRORS, MSG_NOMODEL );
+      setProperty( KEY_MODELERRORS, MSG_NOMODEL );
       return;
     }
     
@@ -410,7 +476,7 @@ public class SimulationModelTab extends OpendfConfigurationTab
       loader = new XDFLoader();
     else
     {
-      setErrors( KEY_MODELERRORS, MSG_BADMODELTYPE );
+      setProperty( KEY_MODELERRORS, MSG_BADMODELTYPE );
       return;
     }
 
@@ -422,7 +488,7 @@ public class SimulationModelTab extends OpendfConfigurationTab
     }
     catch( Exception e )
     {
-      setErrors( KEY_MODELERRORS, MSG_CANTREAD );
+      setProperty( KEY_MODELERRORS, MSG_CANTREAD );
       return;
     }
     
@@ -436,7 +502,7 @@ public class SimulationModelTab extends OpendfConfigurationTab
  
       if( xpathEvalElements("//Note[@kind='Report'][@severity='Error']", document ).size() > 0 )
       {
-        setErrors( KEY_MODELERRORS, MSG_MODELERRORS );
+        setProperty( KEY_MODELERRORS, MSG_MODELERRORS );
         return;
       }
 
@@ -447,7 +513,7 @@ public class SimulationModelTab extends OpendfConfigurationTab
     }
     catch( Exception e )
     {
-      setErrors( KEY_MODELERRORS, MSG_MODELERRORS );
+      setProperty( KEY_MODELERRORS, MSG_MODELERRORS );
       return;
     }
 
@@ -455,9 +521,8 @@ public class SimulationModelTab extends OpendfConfigurationTab
     bindKeys( inputs    , KEY_INPUT    , KEY_INPUTTYPE     );
     bindKeys( outputs   , KEY_OUTPUT   , KEY_OUTPUTTYPE    );
     
-    setErrors( KEY_MODELERRORS, null );
+    setProperty( KEY_MODELERRORS, null );
     
-    loadParameterTable();
   }    
  
   private void bindKeys( java.util.List<Element> elements, String valueKey, String typeKey )
@@ -486,6 +551,8 @@ public class SimulationModelTab extends OpendfConfigurationTab
   
   private void loadParameterTable()
   {
+    parameterTable.removeAll();
+
     java.util.List<String> names = getKeys( KEY_PARAMETER );
     Collections.sort( names, 
                       new Comparator<String>()
@@ -538,13 +605,6 @@ public class SimulationModelTab extends OpendfConfigurationTab
     System.out.println( "in loadParameterTable()" );
     
     setErrors( KEY_MODELERRORS, checkParameters() ? null : MSG_MISSINGPARAMS );
-  }
- 
-  public boolean canSave()
-  {
-    System.out.println( "canSave()" );
-    // This tab can always be saved
-    return true;
   }
  
   public boolean isValid( ILaunchConfiguration launchConfig )
