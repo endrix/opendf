@@ -19,10 +19,13 @@ public class TheIntegerType extends AbstractIntegralType implements IntegralType
 	public Object  convert(Object v) {
 		if (v instanceof BigInteger)
 			return v;
-		if (v instanceof Number) {
+		if ((v instanceof Long)
+				|| (v instanceof Integer)
+				|| (v instanceof Short)
+				|| (v instanceof Byte)) {
 			return BigInteger.valueOf(((Number)v).longValue());
 		}
-		throw new RuntimeException("Cannot convert to integer: " + v);
+		throw new TypeConversionException(this, v);
 	}
 	
 	public boolean  convertible(Object v) {

@@ -21,7 +21,11 @@ public class JavaType extends AbstractType {
 
 	@Override
 	public Object convert(Object v) {
-		return v;
+		if (contains(v)) {
+			return v;
+		} else {
+			throw new TypeConversionException(this, v);
+		}
 	}
 
 	@Override
@@ -36,6 +40,10 @@ public class JavaType extends AbstractType {
 	public JavaType(TheClass typeClass, Class c) {
 		super(typeClass);
 		this.javaClass = c;
+	}
+	
+	public String toString() {
+		return this.getTypeClass().getName() + "(javaClass=\"" + javaClass.getName() + "\")";
 	}
 	
 	private Class javaClass ;
@@ -59,7 +67,6 @@ public class JavaType extends AbstractType {
 		
 		public TheClass(String name, TypeSystem typeSystem) {
 			super(name, typeSystem);
-			System.err.println("Creating JAVA class: " + name);
 		}
 	}
 

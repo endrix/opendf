@@ -11,17 +11,7 @@ public class TheBooleanType extends AbstractType {
 	
 	@Override
 	public boolean contains(Object v) {
-		return v instanceof Boolean;
-	}
-
-	@Override
-	public Object convert(Object v) {
-		return v;
-	}
-
-	@Override
-	public boolean convertible(Object v) {
-		return contains(v);
+		return v == null || v instanceof Boolean;
 	}
 	
 	//

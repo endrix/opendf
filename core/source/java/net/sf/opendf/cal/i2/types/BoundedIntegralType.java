@@ -52,7 +52,7 @@ public class BoundedIntegralType extends AbstractIntegralType implements Integra
 		else if (v instanceof Byte) 
 			b = BigInteger.valueOf(((Byte)v).intValue());
 		else
-			throw new RuntimeException("Cannot convert to '" + v + "' to integral type. (" + v.getClass().getName() + ")");
+			throw new TypeConversionException(this, v);
 
 		b = b.and(this.getMask());
 		if (b.compareTo(this.maxValue()) > 0)
@@ -95,11 +95,14 @@ public class BoundedIntegralType extends AbstractIntegralType implements Integra
 	// Ctor
 	//
 	
-
 	private BoundedIntegralType(TheClass typeClass, int sz) {
 		super(typeClass);
 		this.size = sz;
 		this.typeClass = typeClass;
+	}
+	
+	public String toString() {
+		return this.getTypeClass().getName() + "(size=" + size + ")";
 	}
 	
 	//
