@@ -137,9 +137,10 @@ public class ValueTable
     );
   }
 
-  private void clear()
+  public void clear()
   {
     table.clearAll();
+    editButton.setEnabled( false );
   }
   
   public void update()
@@ -188,5 +189,12 @@ public class ValueTable
     
     // fill in any values that exist
     update();
+    
+    // Set initial selection
+    if( names.size() > 0 )
+    {
+      table.select( 0 );
+      editButton.setEnabled( true );
+    }
   }
 }

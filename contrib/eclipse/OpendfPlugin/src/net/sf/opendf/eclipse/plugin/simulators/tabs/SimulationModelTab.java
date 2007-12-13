@@ -39,44 +39,16 @@ package net.sf.opendf.eclipse.plugin.simulators.tabs;
 
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
-import org.eclipse.debug.ui.AbstractLaunchConfigurationTab;
 import org.eclipse.swt.widgets.Composite;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.Collections;
-
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.debug.core.ILaunchConfiguration;
-import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
-import org.eclipse.jface.dialogs.Dialog;
-import org.eclipse.jface.viewers.ColumnWeightData;
-import org.eclipse.jface.viewers.ILabelProviderListener;
-import org.eclipse.jface.viewers.IStructuredContentProvider;
-import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.jface.viewers.ITableLabelProvider;
-import org.eclipse.jface.viewers.TableLayout;
-import org.eclipse.jface.viewers.TableViewer;
-import org.eclipse.jface.viewers.Viewer;
-import org.eclipse.jface.viewers.ViewerComparator;
-import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
-import org.eclipse.swt.events.MouseAdapter;
-import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
-import org.eclipse.ui.PlatformUI;
-import org.eclipse.jface.layout.*;
-import org.eclipse.jface.viewers.ColumnWeightData;
 
 import net.sf.opendf.eclipse.plugin.*;
 import net.sf.opendf.util.source.SourceLoader;
@@ -88,25 +60,18 @@ import org.w3c.dom.Node;
 import org.w3c.dom.Element;
 import static net.sf.opendf.util.xml.Util.xpathEvalElements;
 import net.sf.opendf.cal.util.CalWriter;
-import net.sf.opendf.cal.util.SourceReader;
-import java.util.Iterator;
 
 public class SimulationModelTab extends OpendfConfigurationTab
 
 {
-  private static final String TAB_NAME          = "Model";
+  private static final String TAB_NAME            = "Model";
   
   private static final String LABEL_TOPMODEL      = "Top Level Model:";
-  private static final String LABEL_BROWSE        = "Browse...";
   private static final String LABEL_MODELDIALOG   = "Select Top Level Model";
   private static final String LABEL_MODELPATH     = "Model Path:";
   private static final String LABEL_DEFAULT       = "Default";
   private static final String LABEL_SPECIFY       = "Specify";
   private static final String LABEL_PARAMETERS    = "Model Parameters:";
-  private static final String LABEL_NAME          = "Name";
-  private static final String LABEL_TYPE          = "Type";
-  private static final String LABEL_VALUE         = "Value";
-  private static final String LABEL_EDIT          = "Edit...";
   private static final String LABEL_PATHSEPARATOR = "path separator is ";
   
   // These are local keys. They can be made unique for the configuration with export()
@@ -115,29 +80,18 @@ public class SimulationModelTab extends OpendfConfigurationTab
   private static final String KEY_MODELDIR         = "DIR";
   private static final String KEY_MODELSEARCHPATH  = "PATH";
   private static final String KEY_USEDEFAULTPATH   = "USEDIR";
-  
+
   public static final String KEY_PARAMETER        = "PNAME";
   public static final String KEY_PARAMETERTYPE    = "PTYPE";
   public static final String KEY_INPUT            = "INAME";
   public static final String KEY_INPUTTYPE        = "ITYPE";
   public static final String KEY_OUTPUT           = "ONAME";
   public static final String KEY_OUTPUTTYPE       = "OTYPE";
- 
-  private static final int PUSHBUTTON_WIDTH = 100;
-  private static final int NAME_INDEX  = 0;
-  private static final int TYPE_INDEX  = 1;
-  private static final int VALUE_INDEX = 2;
 
   // Standard file dialog does not remember last filter used!
-  private static final String[] filters_nl     = { "*.nl"           , "*.cal"         , "*.xdf"                     , "*.*" };
-  private static final String[] filterNames_nl = { "Networks (*.nl)", "Actors (*.cal)", "Structural netlist (*.xdf)", "All files (*.*)" };
-  
-  private static final String[] filters_cal     = { "*.cal"         , "*.nl"           , "*.xdf"                     , "*.*"  };
-  private static final String[] filterNames_cal = { "Actors (*.cal)", "Networks (*.nl)", "Structural netlist (*.xdf)", "All files (*.*)" };
-  
-  private static final String[] filters_xdf     = { "*.xdf"                     , "*.nl"           , "*.cal"         , "*.*"  };
-  private static final String[] filterNames_xdf = { "Structural netlist (*.xdf)", "Networks (*.nl)", "Actors (*.cal)", "All files (*.*)" };
-  
+  private static final String[] filters     = { "*.nl"           , "*.cal"         , "*.xdf"                     , "*.*" };
+  private static final String[] filterNames = { "Networks (*.nl)", "Actors (*.cal)", "Structural netlist (*.xdf)", "All files (*.*)" };
+ 
   public SimulationModelTab()
   {
     super( TAB_NAME );
@@ -150,17 +104,13 @@ public class SimulationModelTab extends OpendfConfigurationTab
   private Button defaultButton;
   private Button specifyButton;
   private Text specifyPath;
-  private Table parameterTable;
-  private Button editButton;
+  private ValueTable parameterTable;
+
   
   private OpendfConfigurationTab thisTab;
-  
-  private Composite tabParent;
 
   public void createControl( Composite parent )
   {        
-    tabParent = parent;
-    
     Composite tab = new Composite(parent, SWT.NONE);
     setControl( tab );
     tab.setLayout( new GridLayout( 1, false ) );
@@ -176,61 +126,8 @@ public class SimulationModelTab extends OpendfConfigurationTab
       modelName.setLayoutData( new GridData( GridData.FILL_HORIZONTAL ) );
       
       // Browse button
-      Button browseButton = new Button( modelGroup, SWT.PUSH );
-      browseButton.setText( LABEL_BROWSE );
-      browseButton.addSelectionListener
-      (
-        new SelectionAdapter()
-        {
-          public void widgetSelected( SelectionEvent e )
-          {
-            String file = getProperty( KEY_MODELFILE );
-            
-            FileDialog dialog = new FileDialog( tabParent.getShell(), SWT.OPEN | SWT.APPLICATION_MODAL );
-            dialog.setText( LABEL_MODELDIALOG );
-            dialog.setFilterPath( getProperty( KEY_MODELDIR ) );
-            dialog.setFileName( file ); // null OK
-            
-            // Shuffle the filters so we start where we left off last time
-            if( file == null || file.endsWith( ".nl" ) )
-            {
-              dialog.setFilterExtensions( filters_nl );
-              dialog.setFilterNames( filterNames_nl );
-            }          
-            else if( file.endsWith( ".cal" ) )
-            {
-              dialog.setFilterExtensions( filters_cal );
-              dialog.setFilterNames( filterNames_cal );
-            }          
-            else
-            {
-              dialog.setFilterExtensions( filters_xdf );
-              dialog.setFilterNames( filterNames_xdf );
-            }
-
-            file = dialog.open() ;
-              
-            if( file != null )
-            {
-              String dir  = dialog.getFilterPath();
-              int dl = dir.length() + 1;
-              
-              // Get the base filename
-              if( file.length() > dl ) file = file.substring( dl );
-              else dir = "";    // ??
-                
-              modelName.setText( file );
-              setProperty( KEY_MODELFILE, file );
-                
-              defaultPath.setText( dir );
-              setProperty( KEY_MODELDIR , dir );
-              
-              //loadModel();
-              updateLaunchConfigurationDialog();
-            }
-          }
-        }
-      );
+      new BrowseButton( this, modelGroup, LABEL_MODELDIALOG, KEY_MODELFILE,
+          KEY_MODELDIR, filters, filterNames );
       
     // Model Path Selection
     Group pathGroup = new Group( tab, SWT.NONE );
@@ -278,66 +175,9 @@ public class SimulationModelTab extends OpendfConfigurationTab
       pathSeparator.setLayoutData( new GridData( GridData.FILL_HORIZONTAL ) );
       
     // Model Parameters
-    Group parameterGroup = new Group( tab, SWT.NONE );
-    parameterGroup.setText( LABEL_PARAMETERS );
-    parameterGroup.setLayoutData( new GridData( GridData.FILL_BOTH ) );
-    parameterGroup.setLayout( new GridLayout( 2, false ) );
-    
-      // parameter display table
-      Composite tableHolder = new Composite( parameterGroup, SWT.NONE );
-      tableHolder.setLayoutData( new GridData( GridData.FILL_BOTH ) );
-      TableColumnLayout columnLayout = new TableColumnLayout();
-      
-      parameterTable = new Table( tableHolder, SWT.SINGLE | SWT.BORDER | SWT.FULL_SELECTION );
-      parameterTable.setLinesVisible( true );
-      parameterTable.setHeaderVisible( true );
-      
-      String[] columnLabels = { LABEL_NAME, LABEL_TYPE, LABEL_VALUE };
-      TableColumn[] parameterColumns = new TableColumn[ 3 ];
-      for( int i = 0; i < 3; i++ )
-      {
-        parameterColumns[i] = new TableColumn( parameterTable, SWT.LEFT, i );
-        parameterColumns[i].setText( columnLabels[i] );
-        columnLayout.setColumnData( parameterColumns[i], new ColumnWeightData( i == 2 ? 80 : 10, PUSHBUTTON_WIDTH ) );
-      }
-      tableHolder.setLayout( columnLayout );
-       
-      // parameter edit button
-      editButton = new Button( parameterGroup, SWT.PUSH );
-      GridData buttonData = new GridData( );
-      buttonData.widthHint = PUSHBUTTON_WIDTH;
-      editButton.setLayoutData( buttonData );
-      editButton.setText( LABEL_EDIT );
-      editButton.setEnabled( false );
-      editButton.addSelectionListener
-      ( new SelectionAdapter()
-        {
-          public void widgetSelected( SelectionEvent e )
-          {
-            int i = parameterTable.getSelectionIndex();
-            
-            if( i < 0 ) return;
-            
-            String name = parameterTable.getItem( i ).getText( 0 );
-
-            EditValueDialog dialog = new EditValueDialog( editButton.getShell(), thisTab, name, 
-                KEY_PARAMETERTYPE, KEY_PARAMETER, KEY_PARAMETER );
-            
-            String value = (String) dialog.open();
-            if( value != null )
-            {
-              TableItem item = parameterTable.getItem( i );
-              item.setText( VALUE_INDEX, value );
-              item.setImage( VALUE_INDEX, null );
-              // setErrors( KEY_MODELERRORS, checkParameters() ? null : MSG_MISSINGPARAMS );
-              updateLaunchConfigurationDialog();
-            }            
-          }
-         }
-      );
-
-      // Always reread the model when tab is created
-      //loadModel();
+    parameterTable = new ValueTable( this, tab, LABEL_PARAMETERS, 
+          KEY_PARAMETER, KEY_PARAMETERTYPE, KEY_MODELERRORS );
+ 
    }
 
   private class radioListener extends SelectionAdapter
@@ -345,115 +185,115 @@ public class SimulationModelTab extends OpendfConfigurationTab
     
     public void widgetSelected( SelectionEvent e )
     {
-      int i = (Integer) e.widget.getData();
-      
-      boolean useDefault = i == 0;
-      defaultButton.setSelection( useDefault );
-      specifyButton.setSelection( ! useDefault );
-      specifyPath.setEnabled( ! useDefault );
-      
-      thisTab.setProperty( KEY_USEDEFAULTPATH, useDefault ? "true" : "false" );
-      updateLaunchConfigurationDialog();
+      if( (Integer) e.widget.getData() == 0 )
+      {
+         boolean useDefault = defaultButton.getSelection();
+         thisTab.setProperty( KEY_USEDEFAULTPATH, useDefault ? "true" : "false" );
+         updateLaunchConfigurationDialog();
+      }
     }
   }
   
-  /* 
-      widgets and keys to be managed by life-cycle methods
-
-     widget type        name               related key(s)
-     ===========    =============          ==============
-     
-        Text         modelName              KEY_MODELFILE
-        Text         defaultPath            KEY_MODELDIR
-        Button       defaultButton          KEY_USEDEFAULTPATH
-        Button       specifyButton          
-        Text         specifyPath            KEY_MODELSEARCHPATH
-        Table        parameterTable         KEY_PARAMETER, KEY_PARAMETER
-                                            KEY_MODELERRORS
-                                            KEY_INPUT, KEY_INPUTTYPE
-                                            KEY_OUTPUT, KEY_OUTPUTTYPE
-        Button       editButton
-  */
-
-  // called potentially before controls exist
   public void setDefaults( ILaunchConfigurationWorkingCopy conf )
   {
-    // just null out the related keys
-    try
-    {
-      Iterator<String> i = conf.getAttributes().keySet().iterator();
-      while( i.hasNext() )
-      {
-        String key = i.next();
-        if( key.startsWith( idPrefix() ) )
-          conf.setAttribute( key, (String) null );
-      }
-    }
-    catch( CoreException e ) { }
+    super.setDefaults( conf );
+    
+    // over-ride the default behavior (null)
+    setProperty( KEY_USEDEFAULTPATH, "true" );
+    conf.setAttribute( export( KEY_USEDEFAULTPATH ), "true" );
+    
+    System.out.println( "KEY_USEDEFAULTPATH = " + getProperty( KEY_USEDEFAULTPATH ) + " in setDefaults()");
 
   }
   
   // this is called the first time
   public void initializeFrom( ILaunchConfiguration conf )
   {
-    String name = null;
-    String dir  = null;
-    String path = null;
-    String def  = "true";
-    
-    try
-    {
-      name = conf.getAttribute( idPrefix() + KEY_MODELFILE, (String) null );
-      dir  = conf.getAttribute( idPrefix() + KEY_MODELFILE, (String) null );
-      path = conf.getAttribute( idPrefix() + KEY_MODELFILE, (String) null );
-      def  = conf.getAttribute( idPrefix() + KEY_MODELFILE, (String) null );
-    }
-    catch( CoreException e ) { }
-    
-    // we have to re-parse the selected model
+    // import all relevant attributes
+    super.initializeFrom( conf );
+
+    System.out.println( "KEY_USEDEFAULTPATH = " + getProperty( KEY_USEDEFAULTPATH ) + " in initializeFrom()");
+    System.out.println( "KEY_MODELSEARCHPATH = " + getProperty( KEY_MODELSEARCHPATH ) + " in initializeFrom()");
+
+    // Must parse the model
     loadModel();
-    
-  //  modelName.setText( "" );
-   // defaultPath.setText( "" );
-  //  defaultButton.setEnabled( true );
+    updateWidgets();
   }
 
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  private boolean checkParameters( )
+  // this is called the first time
+  public void performApply( ILaunchConfigurationWorkingCopy conf )
   {
-    boolean invalid = false;
-    
-    for( String key: getKeys( KEY_PARAMETER ) )
+    String oldModel = null;    
+    String oldDir   = null;    
+    String newModel = getProperty( KEY_MODELFILE );    
+    String newDir   = getProperty( KEY_MODELDIR  );
+
+    System.out.println( "KEY_USEDEFAULTPATH = " + getProperty( KEY_USEDEFAULTPATH ) + " in performApply()");
+
+    try
     {
-      String value = getProperty( KEY_PARAMETER, key );
-      if( value == null || value.length() == 0 )
-      {
-        invalid = true;
-        break;
-      }
+       oldModel = conf.getAttribute( export( KEY_MODELFILE ), (String) null );    
+       oldDir   = conf.getAttribute( export( KEY_MODELDIR  ), (String) null );    
     }
-     
-    return ! invalid;
+    catch( CoreException e )
+    { 
+      OpendfPlugin.logErrorMessage( "Exception in performApply() for tab " + TAB_NAME, e );
+    }
+    
+    if( oldModel == null || oldDir == null || !oldModel.equals( newModel ) ||
+        !oldDir.equals( newDir ) )
+    {
+      // re-parse required
+      loadModel();
+    }
+    else
+    {
+      // just update the parameter table
+      parameterTable.update();
+    }
+   
+    updateWidgets();
+    
+    // export all the attributes
+    super.performApply( conf );
   }
- 
+
+  // update local widgets
+  public void updateWidgets()
+  {
+    String snew;
+    String sold;
+    
+    snew = getProperty( KEY_MODELFILE );
+    modelName.setText( snew == null ? "" : snew );
+    
+    snew = getProperty( KEY_MODELDIR );
+    defaultPath.setText( snew == null ? "" : snew );
+    
+    snew = getProperty( KEY_USEDEFAULTPATH );
+    System.out.println( "KEY_USEDEFAULTPATH = " + getProperty( KEY_USEDEFAULTPATH ) + " in updateWidgets()");
+    boolean b = ( snew == null || snew.equals( "true" ) );
+    defaultButton.setSelection( b );
+    specifyButton.setSelection( ! b );
+    specifyPath.setEnabled( ! b );
+
+    snew = getProperty( KEY_MODELSEARCHPATH );
+    sold = specifyPath.getText();
+    // be careful not to trigger an infinite loop!
+    if( snew == null )
+    { 
+      System.out.println("Here");
+      if( sold != null && sold.length() > 0 ) specifyPath.setText( "" );
+    }
+    else if( ! snew.equals( sold ) ) specifyPath.setText( snew );
+
+    setErrorMessage( getProperty( KEY_MODELERRORS ) );
+  }
+
   private void loadModel()
   {
+    parameterTable.clear();
+
     String file = getProperty( KEY_MODELFILE );
     modelName.setText( file == null ? "" : file );
       
@@ -517,17 +357,18 @@ public class SimulationModelTab extends OpendfConfigurationTab
       return;
     }
 
-    bindKeys( parameters, KEY_PARAMETER, KEY_PARAMETERTYPE );
-    bindKeys( inputs    , KEY_INPUT    , KEY_INPUTTYPE     );
-    bindKeys( outputs   , KEY_OUTPUT   , KEY_OUTPUTTYPE    );
+    createKeys( parameters, KEY_PARAMETER, KEY_PARAMETERTYPE );
+    createKeys( inputs    , KEY_INPUT    , KEY_INPUTTYPE     );
+    createKeys( outputs   , KEY_OUTPUT   , KEY_OUTPUTTYPE    );
     
     setProperty( KEY_MODELERRORS, null );
     
+    parameterTable.load();
   }    
  
-  private void bindKeys( java.util.List<Element> elements, String valueKey, String typeKey )
+  private void createKeys( java.util.List<Element> elements, String valueKey, String typeKey )
   {
-    java.util.List<String> keep = new ArrayList<String>();
+    java.util.List<String> keep = new java.util.ArrayList<String>();
 
     for( Element e: elements )
     {
@@ -548,77 +389,14 @@ public class SimulationModelTab extends OpendfConfigurationTab
     pruneProperties( valueKey, keep );
     pruneProperties( typeKey , keep );
   }
-  
-  private void loadParameterTable()
-  {
-    parameterTable.removeAll();
-
-    java.util.List<String> names = getKeys( KEY_PARAMETER );
-    Collections.sort( names, 
-                      new Comparator<String>()
-                      {
-                        public int compare( String a, String b )
-                        {
-                          return a.compareTo( b );
-                        }
-                      }
-    );
- 
-    // Process the parameters, set up tab properties
-    for( String name: names )
-    {
-      String value = getProperty( KEY_PARAMETER, name );
-      String type  = getProperty( KEY_PARAMETERTYPE, name );
-      
-      TableItem item = new TableItem( parameterTable, SWT.None );
- 
-      item.setText( NAME_INDEX, name );
-      if( type != null )
-        item.setText( TYPE_INDEX, type );
-
-      if( value != null )
-      {
-        item.setText( VALUE_INDEX, value );
-        item.setImage( VALUE_INDEX, null );
-      }
-      else
-      {
-        item.setImage( VALUE_INDEX, errorImage );
-      }
-    }
-    
-    if( names.size() == 0 )
-    {
-      parameterTable.deselectAll();
-      editButton.setEnabled( false );
-    }
-    else
-    {
-      int i = parameterTable.getSelectionIndex();
-      if( i < 0 )
-        parameterTable.setSelection( 0 );
-      else if( i >= names.size() )
-        parameterTable.setSelection( names.size() - 1 );
-      
-      editButton.setEnabled( true );
-    }
-    System.out.println( "in loadParameterTable()" );
-    
-    setErrors( KEY_MODELERRORS, checkParameters() ? null : MSG_MISSINGPARAMS );
-  }
  
   public boolean isValid( ILaunchConfiguration launchConfig )
   {
-    boolean valid = getProperty( KEY_MODELERRORS ) == null && checkParameters();
-    System.out.println( "isValid() " + valid );
-    
-    // tabParent.update();
-    return valid;
+    return getProperty( KEY_MODELERRORS ) == null;
   }
 
   private static final String MSG_BADMODELTYPE  = "Invalid top level model type";
   private static final String MSG_NOMODEL       = "No top level model selected";
   private static final String MSG_CANTREAD      = "Can't read top level model";
   private static final String MSG_MODELERRORS   = "Top level model has errors";
-  private static final String MSG_MISSINGPARAMS = "Missing model parameter values";
 }

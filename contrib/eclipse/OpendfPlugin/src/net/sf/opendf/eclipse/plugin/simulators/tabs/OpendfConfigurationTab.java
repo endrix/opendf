@@ -159,38 +159,39 @@ public abstract class OpendfConfigurationTab extends AbstractLaunchConfiguration
     }
   }
 
+  // promote to public so that controls can do this
   public void updateLaunchConfigurationDialog()
   {
     super.updateLaunchConfigurationDialog();
   }
-    
+
   // Return all keys matching a qualifier
-  public java.util.List<String> getKeys( String qualifier )
+  public java.util.Set<String> getKeys( )
   {
     assert( properties != null );
 
-    java.util.List<String> keys = new java.util.ArrayList<String>();
- 
-    Iterator<String> i = properties.keySet().iterator();
+    return properties.keySet();
+  }
 
+  // Return all keys matching a qualifier
+  public void clearKeys()
+  {
+    assert( properties != null );
+
+    properties.clear();
+  }
+  
+  // Return all keys matching a qualifier
+  public java.util.List<String> getKeys( String qualifier )
+  {
+    java.util.List<String> keys = new java.util.ArrayList<String>();
     String dottedQualifier = qualifier + ".";
 
-    while( i.hasNext() )
+    for( String key : getKeys() )
     {
-      String key = i.next();
       if( key.startsWith( dottedQualifier ) )
         keys.add( key.substring( dottedQualifier.length() ) );
     }
-
-    Collections.sort( keys, 
-        new Comparator<String>()
-        {
-          public int compare( String a, String b )
-          {
-            return a.compareTo( b );
-          }
-        }
-    );
 
     return keys;
   }
@@ -200,20 +201,73 @@ public abstract class OpendfConfigurationTab extends AbstractLaunchConfiguration
     return name;
   }
 
+  // Base key for all items managed by this tab 
   public String export()
   {
-    return uniqueId;
+    return uniqueId + "." + name;
   }
   
+  // Fully qualified key
   public String export( String key )
   {
-    return uniqueId + "." + name + "." + key;
+    return export() + "." + key;
   }
-
   
-  public String export( String tabName, String key )
+  // called potentially before controls exist
+  public void setDefaults( ILaunchConfigurationWorkingCopy conf )
   {
-    return uniqueId + "." + tabName + "." + key;
+    System.out.println("In super.setDefaults()");
+        
+    // null out this tab's keys
+    try
+    {
+      String qualifier = export() + ".";
+      for( Object obj : conf.getAttributes().keySet() )
+      {
+        String key = (String) obj;
+        if( key.startsWith( qualifier ) )
+          conf.setAttribute( key, (String) null );
+      }
+    }
+    catch( CoreException e )
+    { 
+      OpendfPlugin.logErrorMessage( "Exception in setDefaults() for tab " + name, e );
+    }
+  }
+  
+  // this is called to set the tab the first time
+  public void initializeFrom( ILaunchConfiguration conf )
+  {
+    clearKeys();
+    
+    // import all relevant attributes
+    try
+    {
+      String qualifier = export() + ".";
+      for( Object obj : conf.getAttributes().keySet() )
+      {
+        String key = (String) obj;
+        if( key.startsWith( qualifier ) )
+        {
+          setProperty( key.substring( qualifier.length() ), 
+                       conf.getAttribute( key, (String) null ) );
+          System.out.println("importing " + key + " = " + conf.getAttribute( key, (String) null ) );
+        }
+      }
+    }
+    catch( CoreException e )
+    { 
+      OpendfPlugin.logErrorMessage( "Exception in initializeFrom() for tab " + name, e );
+    }
   }
 
+  // this is called for every update
+  public void performApply( ILaunchConfigurationWorkingCopy conf )
+  {
+    // export all attributes
+    for( String key: getKeys() )
+    {
+      conf.setAttribute( export( key ), getProperty( key ) );
+    }
+  }
 }

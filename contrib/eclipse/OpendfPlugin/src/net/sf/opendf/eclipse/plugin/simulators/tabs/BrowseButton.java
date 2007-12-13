@@ -46,7 +46,6 @@ public class BrowseButton
 
 {
   private static final String LABEL_BROWSE        = "Browse...";
-  private static final String LABEL_MODELDIALOG   = "Select Top Level Model";
 
   private static final int PUSHBUTTON_WIDTH = 100;
   
@@ -58,9 +57,12 @@ public class BrowseButton
   private String dirKey;
   private Composite parent;  
   
-  public BrowseButton( OpendfConfigurationTab t, Composite par, String fKey, String dKey, String[] f, String[] fn )
+  private String label;
+  
+  public BrowseButton( OpendfConfigurationTab t, Composite par, String l, String fKey, String dKey, String[] f, String[] fn )
   {        
     tab = t;
+    label = l;
     fileKey = fKey;
     dirKey  = dKey;
     
@@ -84,7 +86,7 @@ public class BrowseButton
           String file = tab.getProperty( fileKey );
             
           FileDialog dialog = new FileDialog( parent.getShell(), SWT.OPEN | SWT.APPLICATION_MODAL );
-          dialog.setText( LABEL_MODELDIALOG );
+          dialog.setText( label );
           dialog.setFilterPath( tab.getProperty( dirKey ) );
           dialog.setFileName( file ); // null OK
             
@@ -96,8 +98,12 @@ public class BrowseButton
           // If the extension does not match any on the list, use the last one (usually *.*)
           int found = 0;
           while( file != null && found != filters.length - 1 )
+          {
             if( file.endsWith( filters[found].substring( filters[found].indexOf( '.' ) ) ) )
               break;
+            
+            found ++;
+          }
           
           f_shuffle [0] = filters[found];
           fn_shuffle[0] = filterNames[found];

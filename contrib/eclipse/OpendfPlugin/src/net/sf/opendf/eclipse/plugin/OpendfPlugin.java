@@ -62,6 +62,11 @@ public class OpendfPlugin extends AbstractUIPlugin {
   public static final int IMAGE_variable     =  9;
   public static final int IMAGE_error        = 10;
 
+  public static String getId()
+  {
+    return ID;
+  }
+  
   private static final String[] imagePaths =
   {
     "icons/action.gif",
