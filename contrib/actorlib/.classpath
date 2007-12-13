@@ -2,7 +2,7 @@
 <classpath>
 	<classpathentry kind="src" path="source/java"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/OpendfCore"/>
 	<classpathentry kind="lib" path="lib/PtPlot.jar"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/OpenDFCore"/>
 	<classpathentry kind="output" path="classes"/>
 </classpath>
