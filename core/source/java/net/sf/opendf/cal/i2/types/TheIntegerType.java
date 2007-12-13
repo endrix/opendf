@@ -17,11 +17,24 @@ public class TheIntegerType extends AbstractIntegralType implements IntegralType
 	}
 	
 	public Object  convert(Object v) {
-		return v; // FIXME
+		if (v instanceof BigInteger)
+			return v;
+		if (v instanceof Number) {
+			return BigInteger.valueOf(((Number)v).longValue());
+		}
+		throw new RuntimeException("Cannot convert to integer: " + v);
 	}
 	
 	public boolean  convertible(Object v) {
-		return true;  // FIXME
+		if (contains(v))
+			return true;
+		if ((v instanceof Long)
+			|| (v instanceof Integer)
+			|| (v instanceof Short)
+			|| (v instanceof Byte))
+			return true;
+		
+		return false;
 	}
 	
 	//
@@ -70,8 +83,8 @@ public class TheIntegerType extends AbstractIntegralType implements IntegralType
 			return new TheIntegerType(this);
 		}
 
-		public TheClass (TypeSystem ts) {
-			super("integer", ts);
+		public TheClass (String name, TypeSystem ts) {
+			super(name, ts);
 		}
 	}
 }

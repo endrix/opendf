@@ -118,7 +118,6 @@ public class BoundedIntegralType extends AbstractIntegralType implements Integra
 
 		@Override
 		public Type createType(TypeExpr te, Evaluator eval) {
-			Map<String, Expression> vp = te.getValueParameters();
 			int sz = getIntParameter(te, vpSize, getMaxSize(), eval);
 			return new BoundedIntegralType(this, sz);
 		}

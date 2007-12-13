@@ -65,7 +65,9 @@ public class DefaultTypeSystem implements TypeSystem {
 		addTypeClass(new BoundedIntegralType.TheClass("ulong", this, false, 64));
 
 		addTypeClass(new BoundedIntegralType.TheClass("byte", this, false, 8));
-//		addTypeClass(new TheIntegerType);
+		addTypeClass(new TheIntegerType.TheClass("integer", this));
+		
+		addTypeClass(new ListType.TheClass("list", this));
 	}
 	
 	private void addTypeClass(TypeClass tc) {

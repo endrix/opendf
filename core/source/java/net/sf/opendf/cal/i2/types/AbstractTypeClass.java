@@ -37,6 +37,19 @@ public abstract class AbstractTypeClass implements TypeClass {
 		Object v = eval.valueOf(e);
 		return eval.getConfiguration().intValue(v);
 	}
+	
+	protected Type getTypeParameter(TypeExpr te, String name, Type defaultValue, Evaluator eval) {
+		Map<String, TypeExpr> tp = te.getTypeParameters();
+		if (tp == null) {
+			return defaultValue;
+		}
+		TypeExpr e = tp.get(name);
+		if (e == null) {
+			return defaultValue;
+		}
+		
+		return typeSystem.evaluate(e, eval);
+	}
 
 	private String 		name;
 	private TypeSystem	typeSystem;
