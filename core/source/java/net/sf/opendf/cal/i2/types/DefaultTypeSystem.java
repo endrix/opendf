@@ -72,6 +72,9 @@ public class DefaultTypeSystem implements TypeSystem {
 		addTypeClass(new BoundedIntegralType.TheClass("byte", this, false, 8));
 		addTypeClass(new TheIntegerType.TheClass("integer", this));
 		
+		addTypeClass(new TheRealType.TheClass("real", this));
+		addTypeClass(new TheComplexType.TheClass("complex", this));
+		
 		addTypeClass(new ListType.TheClass("list", this));
 	}
 	

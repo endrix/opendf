@@ -5,30 +5,31 @@ import java.util.Map;
 import net.sf.opendf.cal.ast.Expression;
 import net.sf.opendf.cal.ast.TypeExpr;
 import net.sf.opendf.cal.i2.Evaluator;
+import net.sf.opendf.math.Complex;
 
-public class ComplexType extends AbstractType implements NumericType {
+public class TheComplexType extends AbstractType implements NumericType {
 
 	public boolean contains(Object v) {
-		// TODO Auto-generated method stub
-		return false;
+		return v instanceof Complex;
 	}
 
 	public Object convert(Object v) {
-		// TODO Auto-generated method stub
-		return null;
+		if (v instanceof Complex)
+			return v;
+		if (v instanceof Number)
+			return new Complex(((Number)v).doubleValue(), 0);
+		throw new TypeConversionException(this, v);
 	}
 
 	public boolean convertible(Object v) {
-		// TODO Auto-generated method stub
+		if (contains(v))
+			return true;
+		if (v instanceof Number)
+			return true;
 		return false;
 	}
 
-	public TypeClass getTypeClass() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	private ComplexType(TheClass tc) {
+	private TheComplexType(TheClass tc) {
 		super(tc);
 	}
 	
@@ -40,11 +41,14 @@ public class ComplexType extends AbstractType implements NumericType {
 
 		@Override
 		public Type createType(TypeExpr te, Evaluator eval) {
-			return new ComplexType(this);
+			return singletonType;
 		}
 		
 		public TheClass(String name, TypeSystem typeSystem) {
 			super(name, typeSystem);
+			singletonType = new TheComplexType(this);
 		}
+		
+		private Type singletonType;
 	}	
 }
