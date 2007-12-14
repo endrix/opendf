@@ -43,6 +43,8 @@ import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
+import java.util.Collections;
+import java.util.Comparator;
 
 public class VariableInsertionDialog extends org.eclipse.swt.widgets.Dialog
 {
@@ -73,7 +75,13 @@ public class VariableInsertionDialog extends org.eclipse.swt.widgets.Dialog
     GridData listData = new GridData( GridData.FILL_BOTH );
     listData.widthHint = 300;
     list.setLayoutData( listData );
-    
+ 
+    Collections.sort
+    ( 
+      variables, 
+      new Comparator<String>() { public int compare( String a, String b ) { return a.compareTo( b ); } }
+    );
+
     for( String name : variables )
       if( ! name.equals( exclude ) ) list.add( name );
     

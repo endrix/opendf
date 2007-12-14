@@ -139,7 +139,7 @@ public class ValueTable
 
   public void clear()
   {
-    table.clearAll();
+    table.removeAll();
     editButton.setEnabled( false );
   }
   

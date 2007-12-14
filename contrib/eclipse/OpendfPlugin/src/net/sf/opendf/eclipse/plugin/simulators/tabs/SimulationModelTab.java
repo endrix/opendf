@@ -201,9 +201,6 @@ public class SimulationModelTab extends OpendfConfigurationTab
     // over-ride the default behavior (null)
     setProperty( KEY_USEDEFAULTPATH, "true" );
     conf.setAttribute( export( KEY_USEDEFAULTPATH ), "true" );
-    
-    System.out.println( "KEY_USEDEFAULTPATH = " + getProperty( KEY_USEDEFAULTPATH ) + " in setDefaults()");
-
   }
   
   // this is called the first time
@@ -211,9 +208,6 @@ public class SimulationModelTab extends OpendfConfigurationTab
   {
     // import all relevant attributes
     super.initializeFrom( conf );
-
-    System.out.println( "KEY_USEDEFAULTPATH = " + getProperty( KEY_USEDEFAULTPATH ) + " in initializeFrom()");
-    System.out.println( "KEY_MODELSEARCHPATH = " + getProperty( KEY_MODELSEARCHPATH ) + " in initializeFrom()");
 
     // Must parse the model
     loadModel();
@@ -227,8 +221,6 @@ public class SimulationModelTab extends OpendfConfigurationTab
     String oldDir   = null;    
     String newModel = getProperty( KEY_MODELFILE );    
     String newDir   = getProperty( KEY_MODELDIR  );
-
-    System.out.println( "KEY_USEDEFAULTPATH = " + getProperty( KEY_USEDEFAULTPATH ) + " in performApply()");
 
     try
     {
@@ -245,6 +237,8 @@ public class SimulationModelTab extends OpendfConfigurationTab
     {
       // re-parse required
       loadModel();
+      
+      clearConfiguration( conf );
     }
     else
     {
@@ -258,7 +252,8 @@ public class SimulationModelTab extends OpendfConfigurationTab
     super.performApply( conf );
   }
 
-  // update local widgets
+  // Update local widgets but be careful with widgets that have Listeners to
+  // prevent unnecessary cascading or recursive calls to performApply()
   public void updateWidgets()
   {
     String snew;
@@ -270,19 +265,22 @@ public class SimulationModelTab extends OpendfConfigurationTab
     snew = getProperty( KEY_MODELDIR );
     defaultPath.setText( snew == null ? "" : snew );
     
+    // The model path selection is listened to
     snew = getProperty( KEY_USEDEFAULTPATH );
-    System.out.println( "KEY_USEDEFAULTPATH = " + getProperty( KEY_USEDEFAULTPATH ) + " in updateWidgets()");
-    boolean b = ( snew == null || snew.equals( "true" ) );
-    defaultButton.setSelection( b );
-    specifyButton.setSelection( ! b );
-    specifyPath.setEnabled( ! b );
+    boolean bnew = ( snew == null || snew.equals( "true" ) );
+    boolean bold = defaultButton.getSelection();
+    if( bnew != bold )
+    { 
+      defaultButton.setSelection( bnew );
+      specifyButton.setSelection( ! bnew );
+    }
+    specifyPath.setEnabled( ! bnew );
 
+    // This has a modify Listener
     snew = getProperty( KEY_MODELSEARCHPATH );
     sold = specifyPath.getText();
-    // be careful not to trigger an infinite loop!
     if( snew == null )
     { 
-      System.out.println("Here");
       if( sold != null && sold.length() > 0 ) specifyPath.setText( "" );
     }
     else if( ! snew.equals( sold ) ) specifyPath.setText( snew );

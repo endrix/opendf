@@ -41,37 +41,8 @@ package net.sf.opendf.eclipse.plugin.simulators.tabs;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.debug.ui.AbstractLaunchConfigurationTab;
-import org.eclipse.swt.widgets.Composite;
-
-
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.debug.core.ILaunchConfiguration;
-import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
-import org.eclipse.jface.dialogs.Dialog;
-import org.eclipse.jface.viewers.ColumnWeightData;
-import org.eclipse.jface.viewers.ILabelProviderListener;
-import org.eclipse.jface.viewers.IStructuredContentProvider;
-import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.jface.viewers.ITableLabelProvider;
-import org.eclipse.jface.viewers.TableLayout;
-import org.eclipse.jface.viewers.TableViewer;
-import org.eclipse.jface.viewers.Viewer;
-import org.eclipse.jface.viewers.ViewerComparator;
-import org.eclipse.jface.window.Window;
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.ModifyEvent;
-import org.eclipse.swt.events.ModifyListener;
-import org.eclipse.swt.events.MouseAdapter;
-import org.eclipse.swt.events.MouseEvent;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
-// import org.eclipse.swt.widgets.*;
-import org.eclipse.ui.PlatformUI;
-
 import net.sf.opendf.eclipse.plugin.*;
 import java.util.*;
 
@@ -84,7 +55,7 @@ public abstract class OpendfConfigurationTab extends AbstractLaunchConfiguration
   public Image errorImage;
   
   private String uniqueId;
-  
+
   public OpendfConfigurationTab( String name )
   {
     super();
@@ -213,11 +184,8 @@ public abstract class OpendfConfigurationTab extends AbstractLaunchConfiguration
     return export() + "." + key;
   }
   
-  // called potentially before controls exist
-  public void setDefaults( ILaunchConfigurationWorkingCopy conf )
+  public void clearConfiguration( ILaunchConfigurationWorkingCopy conf )
   {
-    System.out.println("In super.setDefaults()");
-        
     // null out this tab's keys
     try
     {
@@ -233,6 +201,12 @@ public abstract class OpendfConfigurationTab extends AbstractLaunchConfiguration
     { 
       OpendfPlugin.logErrorMessage( "Exception in setDefaults() for tab " + name, e );
     }
+  }
+  
+  // called potentially before controls exist
+  public void setDefaults( ILaunchConfigurationWorkingCopy conf )
+  {
+    clearConfiguration( conf );
   }
   
   // this is called to set the tab the first time
@@ -251,7 +225,7 @@ public abstract class OpendfConfigurationTab extends AbstractLaunchConfiguration
         {
           setProperty( key.substring( qualifier.length() ), 
                        conf.getAttribute( key, (String) null ) );
-          System.out.println("importing " + key + " = " + conf.getAttribute( key, (String) null ) );
+          // System.out.println("importing " + key + " = " + conf.getAttribute( key, (String) null ) );
         }
       }
     }
