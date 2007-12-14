@@ -11,9 +11,11 @@ import java.io.StringReader;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.Transformer;
@@ -89,6 +91,8 @@ public class CalmlEvaluator
 	}
 	
 	public static boolean  isDefined (String var, Node env) throws Exception {
+		if (specialVariables.contains(var))
+			return true;
 		try {	  
 			Environment thisEnv = createConstantPropagationEnvironment(env, emptyDocument());
 			boolean result;
@@ -106,6 +110,11 @@ public class CalmlEvaluator
 			throw new RuntimeException("Cannot evaluate expression.", th);
 		}
 
+	}
+	
+	private static Set<String> specialVariables = new HashSet<String>();
+	static {
+		specialVariables.add("this");
 	}
 
     /**
