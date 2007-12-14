@@ -42,19 +42,68 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.model.ILaunchConfigurationDelegate;
+import net.sf.opendf.cli.PhasedSimulator;
 
-public class OpendfSimulationDelegate implements ILaunchConfigurationDelegate {
+public class OpendfSimulationDelegate implements ILaunchConfigurationDelegate 
+{
 
   public void launch(ILaunchConfiguration configuration, String mode,
       ILaunch launch, IProgressMonitor monitor) throws CoreException 
   {
-    // TODO Auto-generated method stub
-    System.out.println("OpendfSimulationDelegate --> " + launch.getClass().toString() );
-    
-    monitor.beginTask( "Dataflow Simulation", 1 );
+    monitor.beginTask( "Dataflow Simulation", 5 );
+
+    monitor.setTaskName( "Setup" );
+
+    PhasedSimulator simulator = new PhasedSimulator();
+
+    // if( ! simulator.setArgs( args ) )
+    // { 
+    //  
+    // }
+
+    monitor.worked( 1 );
     monitor.setTaskName( "Elaboration" );
+
+    if( ! simulator.elaborate() )
+    {
+      monitor.done();
+      return;
+    }
+    
+    monitor.worked( 1 );
+    monitor.setTaskName( "Initialization" );
+    
+    simulator.initialize();
+
+    monitor.worked( 1 );
+    monitor.setTaskName( "Simulation" );
+
     while( true )
-      if( monitor.isCanceled() ) break;
+    {
+      int result = simulator.advanceSimulation( 5000 );
+      
+      if( monitor.isCanceled() )
+      {
+        monitor.done();
+        return;
+      }
+      
+      if( result != PhasedSimulator.RUNNING )
+      {
+        if( result == PhasedSimulator.FAILED )
+        {
+          monitor.done();
+          return;
+        }
+        
+        break;
+      }
+    }
+
+    monitor.worked( 1 );
+    monitor.setTaskName( "Cleanup" );
+    
+    simulator.cleanup();
     
     monitor.done();
   }
