@@ -1060,11 +1060,7 @@ public class DefaultUntypedPlatform implements Platform {
 	}
 	
 	private static Object  createComplex(double re, double im) {
-		if (im == 0) {
-			return new Double(re);
-		} else {
-			return new Complex(re, im);
-		}
+		return new Complex(re, im);
 	}
 	
 	private static Object createReal(double d) {

@@ -60,11 +60,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import net.sf.opendf.cal.i2.util.FunctionOf2;
 import net.sf.opendf.cal.interpreter.Context;
 import net.sf.opendf.cal.interpreter.Function;
 import net.sf.opendf.cal.interpreter.InterpreterException;
 import net.sf.opendf.cal.interpreter.Procedure;
 import net.sf.opendf.cal.interpreter.environment.Environment;
+import net.sf.opendf.math.Complex;
 
 
 /**
@@ -1120,6 +1122,26 @@ public class DefaultPlatform implements Platform {
         		return 0;
         	}
         }));
+        
+        env.bind("complex", context().createFunction(new Function() {
+            public Object apply(Object[] args) {
+                try {
+                	double a = ((Number)args[0]).doubleValue();
+                	double b = ((Number)args[1]).doubleValue();
+                	return new Complex(a, b);
+                } catch (Exception ex) {
+                    throw new InterpreterException("Function 'complex': Cannot apply (to " + args[0] + " and " + args[1] + ").", ex);
+                }
+            }
+
+            public int arity() {
+                return 2;
+            }
+        }));
+
+
+		
+
 
         return env;
     }
