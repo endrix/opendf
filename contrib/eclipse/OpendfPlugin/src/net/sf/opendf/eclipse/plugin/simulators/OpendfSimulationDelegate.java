@@ -49,7 +49,14 @@ public class OpendfSimulationDelegate implements ILaunchConfigurationDelegate {
       ILaunch launch, IProgressMonitor monitor) throws CoreException 
   {
     // TODO Auto-generated method stub
-    System.out.println("OpendfSimulationDelegate");
+    System.out.println("OpendfSimulationDelegate --> " + launch.getClass().toString() );
+    
+    monitor.beginTask( "Dataflow Simulation", 1 );
+    monitor.setTaskName( "Elaboration" );
+    while( true )
+      if( monitor.isCanceled() ) break;
+    
+    monitor.done();
   }
 
 }

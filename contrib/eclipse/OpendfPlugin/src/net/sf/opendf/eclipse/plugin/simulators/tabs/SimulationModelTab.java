@@ -64,7 +64,7 @@ import net.sf.opendf.cal.util.CalWriter;
 public class SimulationModelTab extends OpendfConfigurationTab
 
 {
-  private static final String TAB_NAME            = "Model";
+  public static final String TAB_NAME            = "Model";
   
   private static final String LABEL_TOPMODEL      = "Top Level Model:";
   private static final String LABEL_MODELDIALOG   = "Select Top Level Model";
@@ -75,11 +75,11 @@ public class SimulationModelTab extends OpendfConfigurationTab
   private static final String LABEL_PATHSEPARATOR = "path separator is ";
   
   // These are local keys. They can be made unique for the configuration with export()
-  private static final String KEY_MODELFILE        = "FILE";
-  private static final String KEY_MODELERRORS      = "ERRORS";
-  private static final String KEY_MODELDIR         = "DIR";
-  private static final String KEY_MODELSEARCHPATH  = "PATH";
-  private static final String KEY_USEDEFAULTPATH   = "USEDIR";
+  public static final String KEY_MODELFILE        = "FILE";
+  public static final String KEY_MODELERRORS      = "ERRORS";
+  public static final String KEY_MODELDIR         = "DIR";
+  public static final String KEY_MODELSEARCHPATH  = "PATH";
+  public static final String KEY_USEDEFAULTPATH   = "USEDIR";
 
   public static final String KEY_PARAMETER        = "PNAME";
   public static final String KEY_PARAMETERTYPE    = "PTYPE";
