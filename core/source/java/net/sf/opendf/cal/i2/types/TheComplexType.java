@@ -9,18 +9,23 @@ import net.sf.opendf.math.Complex;
 
 public class TheComplexType extends AbstractType implements NumericType {
 
+	@Override
 	public boolean contains(Object v) {
 		return v instanceof Complex;
 	}
 
+	@Override
 	public Object convert(Object v) {
-		if (v instanceof Complex)
-			return v;
-		if (v instanceof Number)
+		if (v instanceof Complex) {
+			return v;			
+		}
+		if (v instanceof Number) {
 			return new Complex(((Number)v).doubleValue(), 0);
+		}
 		throw new TypeConversionException(this, v);
 	}
 
+	@Override
 	public boolean convertible(Object v) {
 		if (contains(v))
 			return true;

@@ -82,7 +82,7 @@ public class DynamicEnvironmentFrame extends AbstractEnvironment {
 			v = type.convert(v);
 		}
 		vars.add(var);
-		values.add(value);
+		values.add(v);
 		types.add(type);
 		
 		return vars.size() - 1;
