@@ -201,6 +201,8 @@ public class SimulationModelTab extends OpendfConfigurationTab
     // over-ride the default behavior (null)
     setProperty( KEY_USEDEFAULTPATH, "true" );
     conf.setAttribute( export( KEY_USEDEFAULTPATH ), "true" );
+    
+    setSimulationArguments( conf );
   }
   
   // this is called the first time
@@ -212,6 +214,30 @@ public class SimulationModelTab extends OpendfConfigurationTab
     // Must parse the model
     loadModel();
     updateWidgets();
+  }
+  
+  private void setSimulationArguments( ILaunchConfigurationWorkingCopy conf )
+  {
+    String arg1 = "SIM.ARG1";
+    String arg2 = "SIM.ARG2";
+    
+    // map to simulation arguments
+    
+    // model
+    String name = getProperty( KEY_MODELFILE );
+    if( name != null ) conf.setAttribute( Export( arg1, "1" ),
+         name.substring( 0, name.lastIndexOf( '.' ) ) );
+    
+    // path
+    String useDefault = getProperty( KEY_USEDEFAULTPATH );
+    String dir;
+    if( useDefault == null || useDefault.equals( "true" ))
+      dir = getProperty( KEY_MODELDIR );
+    else
+      dir = getProperty( KEY_MODELSEARCHPATH );
+    if( dir != null ) conf.setAttribute( Export( arg2, "-mp" ), dir );
+    
+    conf.setAttribute( Export( arg1, "2" ), "-bbr" );
   }
 
   // this is called the first time
@@ -247,6 +273,9 @@ public class SimulationModelTab extends OpendfConfigurationTab
     }
    
     updateWidgets();
+    
+    setSimulationArguments( conf );
+
     
     // export all the attributes
     super.performApply( conf );

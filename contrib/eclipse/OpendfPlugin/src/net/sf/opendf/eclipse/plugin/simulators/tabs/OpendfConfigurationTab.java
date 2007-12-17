@@ -54,8 +54,16 @@ public abstract class OpendfConfigurationTab extends AbstractLaunchConfiguration
   
   public Image errorImage;
   
-  private String uniqueId;
+  private static String uniqueId()
+  {
+    return OpendfPlugin.ID;
+  }
 
+  public static String Export( String tabName, String key )
+  {
+    return uniqueId() + "." + tabName + "." + key;
+  }
+  
   public OpendfConfigurationTab( String name )
   {
     super();
@@ -63,7 +71,6 @@ public abstract class OpendfConfigurationTab extends AbstractLaunchConfiguration
 
     properties = new HashMap< String, String >();
     errorImage = OpendfPlugin.getDefault().getImage( OpendfPlugin.IMAGE_error );
-    uniqueId = OpendfPlugin.ID;
   }
   
   public static String valueReplacement = "$value$";
@@ -175,7 +182,7 @@ public abstract class OpendfConfigurationTab extends AbstractLaunchConfiguration
   // Base key for all items managed by this tab 
   public String export()
   {
-    return uniqueId + "." + name;
+    return uniqueId() + "." + name;
   }
   
   // Fully qualified key
