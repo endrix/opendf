@@ -50,6 +50,10 @@ import net.sf.opendf.cal.main.Cal2CalML;
 import net.sf.opendf.util.logging.Logging;
 import net.sf.opendf.util.source.MultiErrorException;
 import net.sf.opendf.util.exception.*;
+import net.sf.opendf.xslt.util.*;
+
+import org.w3c.dom.Node;
+import org.w3c.dom.Element;
 
 /**
  * DRCChecker is a front end tools that process CAL which simply
@@ -68,8 +72,7 @@ public class DRCChecker extends XSLTTransformRunner
     
     private static String[] calmlCheckers = {
     	"net/sf/opendf/cal/checks/semanticChecks.xslt",
-    	// provide counts, terminate-on-error
-    	"net/sf/opendf/cal/checks/problemSummary.xslt"
+        "net/sf/opendf/cal/checks/callbackProblemSummary.xslt"        
     };
     private static String[] simCheckers = {}; // TBD
     private static String[] synthCheckers = {}; // TBD
@@ -253,7 +256,9 @@ public class DRCChecker extends XSLTTransformRunner
         final File nullOut = genIntermediateFile("null", "out");
         try
         {
+            XSLTProcessCallbacks.registerProblemListener(reportListener);
             runReadXMLWriteXML(rXwXRunFlags, this.inputFile, nullOut, checks);
+            XSLTProcessCallbacks.removeProblemListener(reportListener); // cleanup
         } catch (SubProcessException se)
         {
             Throwable throwable = se;
@@ -278,46 +283,6 @@ public class DRCChecker extends XSLTTransformRunner
         this.setPreserveFiles(preserve);
     }
 
-    /*
-    public static void checkDocument (Document calmldoc)
-    {
-        final List<String> checkList = new ArrayList();
-        if ((level & BASELINE) != 0)
-            for (int i=0; i < calmlCheckers.length; i++) checkList.add(calmlCheckers[i]);
-        if ((level & SIMULATION) != 0)
-            for (int i=0; i < simCheckers.length; i++) checkList.add(simCheckers[i]);
-        if ((level & SYNTHESIS) != 0)
-            for (int i=0; i < synthCheckers.length; i++) checkList.add(synthCheckers[i]);
-        String[] checks = new String[checkList.size()];
-        checks = checkList.toArray(checks);
-
-        try
-        {
-            final Document result = Util.applyTransformsAsResources(calmldoc, checks);
-            // No need to print result doc.
-        } catch (SubProcessException se)
-        {
-            Throwable throwable = se;
-            while(throwable != null)
-            {
-                if (throwable instanceof net.sf.saxon.instruct.TerminationException)
-                {
-                    Logging.user().severe("File " + this.inputFile.getName() + " contains errors.  Please fix these errors and recompile");
-                    this.passed = false;
-                    break;
-                }
-                throwable = throwable.getCause();
-            }
-            // If we didn't find the reason we were looking for,
-            // re-throw the sub process exception.  Its truly an error 
-            if (throwable == null) 
-            {
-                throw se;
-            }
-        }
-        
-    }
-    */    
     private static void usage (PrintStream ps)
     {
         ps.println("Usage: java DRCChecker [options] file."+CALMLEXT);
@@ -329,6 +294,29 @@ public class DRCChecker extends XSLTTransformRunner
         ps.println("  --sim:   perform the simulation DRC checks (not yet supported)");
         ps.println("  --synth: perform the code-generation DRC checks (not yet supported)");
     }
+
+    private final ProblemListenerIF reportListener = new ProblemListenerIF()
+        {
+            public void report (Node report, String message)
+            {
+                try
+                {
+                    Node reportNode = net.sf.opendf.util.xml.Util.xpathEvalElement("Note[@kind='Report']", report);
+                    
+                    String severity = ((Element)report).getAttribute("severity");
+                    String id = ((Element)report).getAttribute("id");
+                    
+                    String msg = message + "[" + id +"]";
+                    if (severity.toUpperCase().equals("ERROR")) { Logging.user().severe(msg); }
+                    else if (severity.toUpperCase().startsWith("WARN")) { Logging.user().warning(msg); }
+                    else { Logging.user().info(severity + ": " + msg); }
+                }
+                catch (Exception e)
+                {
+                    Logging.user().severe(message);
+                }
+            }
+        };
     
 }
 

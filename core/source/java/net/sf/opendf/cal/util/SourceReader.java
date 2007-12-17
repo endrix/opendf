@@ -88,42 +88,23 @@ public class SourceReader
         Lexer calLexer = new Lexer(s);
         Parser calParser = new Parser(calLexer);
         doc = calParser.parseActor(name);
-
+        
         // DBP: Semantic check results are now returned in-line
         // Downstream processes must determine what to do with error notes
         try
         {
-          return Util.applyTransformsAsResources(doc, new String[]
-               {
-                 "net/sf/opendf/cal/checks/semanticChecks.xslt"
-               } );
+            doc = Util.applyTransformsAsResources(doc,
+                new String[] { "net/sf/opendf/cal/checks/semanticChecks.xslt"} );
+        
+            // Ensure that any issues get reported back to the calling
+            // context according to registered listeners
+            Util.applyTransformsAsResources(doc, new String[] {"net/sf/opendf/cal/checks/callbackProblemSummary.xslt"} );
+            return doc;
         }
         catch ( Exception e )
         {
           throw new RuntimeException( e );
         }
-        
-        /*
-        if (!suppressActorChecks)
-        {
-            try
-            {
-                // Basic error checking...
-                Node res = Util.applyTransformsAsResources(doc, new String[] {
-                    "net/sf/opendf/cal/checks/semanticChecks.xslt",
-                    // provide counts, terminate-on-error
-                    "net/sf/opendf/cal/checks/problemSummary.xslt"
-                });
-            }
-            catch (Exception e)
-            {
-                // Catching exceptions keeps the XSLT fatal message from
-                // terminating the process.
-            }
-        }
-        
-	    return doc;
-      */
 	}
 	public static Node parseActor(Reader s) throws MultiErrorException {
         return parseActor(s,"unknown");

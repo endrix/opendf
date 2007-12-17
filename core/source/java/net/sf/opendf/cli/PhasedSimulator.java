@@ -59,6 +59,7 @@ import java.util.Map;
 import java.util.logging.Level;
 
 import org.w3c.dom.Node;
+import org.w3c.dom.Element;
 
 import net.sf.opendf.cal.interpreter.ExprEvaluator;
 import net.sf.opendf.cal.interpreter.environment.Environment;
@@ -80,6 +81,7 @@ import net.sf.opendf.hades.util.NullOutputStream;
 import net.sf.opendf.util.logging.Logging;
 import net.sf.opendf.hades.des.schedule.SchedulerObserver;
 import net.sf.opendf.hades.des.EventProcessor;
+import net.sf.opendf.xslt.util.*;
 
 public class PhasedSimulator {
 
@@ -103,6 +105,13 @@ public class PhasedSimulator {
   private boolean done;
   private boolean dusted;
   private boolean failed;
+    // A list of string identifiers used in the XML semantic checks to
+    // identify issues.  Any id contained in this list will NOT be
+    // displayed to the user.  Note that ids are hierarchical, thus a
+    // generated message from the check will be tested to see if it
+    // _starts_with_ any id from this list.  If so it will be
+    // suppressed. 
+    private final List<String> suppressIDs = new ArrayList();
 
   public PhasedSimulator()
   {
@@ -233,6 +242,10 @@ public class PhasedSimulator {
       if (modelPath != null) return false;
       modelPath = extractPath(arg1);
     }
+    else if (arg0.equals("--suppress-message"))
+    {
+        this.suppressIDs.add(arg1);
+    }
     else return false;
     
     return true;
@@ -267,9 +280,13 @@ public class PhasedSimulator {
 	{
     if( elaborated ) throw new RuntimeException( "Already elaborated" );
     elaborated = true;
-	  
+    
     if (modelPath == null)  modelPath = new String [] {"."};
     Logging.user().info("Model Path: " + Arrays.asList(modelPath));
+    
+    // Register a listener which will report any issues in loading
+    // back to the user.
+    XSLTProcessCallbacks.registerProblemListener(reportListener);
     
     ClassLoader classLoader = new SimulationClassLoader(Simulator.class.getClassLoader(), modelPath, cachePath);
 
@@ -300,8 +317,12 @@ public class PhasedSimulator {
       ExceptionHandler handler = new ReportingExceptionHandler();
       handler.process(t);
       failed = true;
+      XSLTProcessCallbacks.removeProblemListener(reportListener); // cleanup
       return false;
     }
+    
+    // No longer needed.
+    XSLTProcessCallbacks.removeProblemListener(reportListener);
     
     return true;
 	}
@@ -567,5 +588,46 @@ public class PhasedSimulator {
     		return 0;
     	}    	
     };
+
+    // A listener that is registered to pick up semantic check reports
+    // from CAL or NL source reading.  This class allows suppression
+    // of any report based on values passed in via --suppress-message
+    private final ProblemListenerIF reportListener = new ProblemListenerIF()
+        {
+            public void report (Node report, String message)
+            {
+                try
+                {
+                    Node reportNode = net.sf.opendf.util.xml.Util.xpathEvalElement("Note[@kind='Report']", report);
+                    
+                    String severity = ((Element)report).getAttribute("severity");
+                    String id = ((Element)report).getAttribute("id");
+
+                    boolean suppress = false;
+                    for (String suppressable : PhasedSimulator.this.suppressIDs)
+                    {
+                        if (id.startsWith(suppressable))
+                        {
+                            suppress = true;
+                            break;
+                        }
+                    }
+                    
+                    if (!suppress)
+                    {
+                        String msg = message + "[" + id +"]";
+                        if (severity.toUpperCase().equals("ERROR")) { Logging.user().severe(msg); }
+                        else if (severity.toUpperCase().startsWith("WARN")) { Logging.user().warning(msg); }
+                        else { Logging.user().info(severity + ": " + msg); }
+                    }
+                }
+                catch (Exception e)
+                {
+                    Logging.user().severe(message);
+                }
+            }
+        };
+
+    
 }
 

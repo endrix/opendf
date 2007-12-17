@@ -72,44 +72,37 @@ public class SourceReader
 {
     private static final boolean suppressActorChecks = System.getenv().containsKey("CAL_SUPPRESS_ACTOR_CHECKS");
         
-	public static Document parseActor(Reader s) throws MultiErrorException
-    {
-        return parseActor(s,"unknown");
-    }
     
     /**
      * May throw Exception if failure occurs during parsing.
      */
-	public static Document parseActor(Reader s, String name) throws MultiErrorException
+	public static Node parseActor(Reader s, String name) throws MultiErrorException
 	{
-        Document doc = null;
+        Node doc = null;
         Lexer calLexer = new Lexer(s);
         Parser calParser = new Parser(calLexer);
         doc = calParser.parseActor(name);
-
-        if (!suppressActorChecks)
-        {
-            try
-            {
-                // Basic error checking...
-                Node res = Util.applyTransformsAsResources(doc, new String[] {
-                    "net/sf/opendf/cal/checks/semanticChecks.xslt",
-                    // provide counts, terminate-on-error
-                    "net/sf/opendf/cal/checks/problemSummary.xslt"
-                });
-            }
-            catch (Exception e)
-            {
-                // Catching exceptions keeps the XSLT fatal message from
-                // terminating the process.
-            }
-        }
         
-	    return doc;
+        // DBP: Semantic check results are now returned in-line
+        // Downstream processes must determine what to do with error notes
+        try
+        {
+            doc = Util.applyTransformsAsResources(doc,
+                new String[] { "net/sf/opendf/cal/checks/semanticChecks.xslt"} );
+            // Ensure that any issues get reported back to the calling
+            // context according to registered listeners
+            Util.applyTransformsAsResources(doc, new String[] {"net/sf/opendf/cal/checks/callbackProblemSummary.xslt"} );
+            return doc;
+        }
+        catch (Exception e)
+        {
+            throw new RuntimeException( e );
+        }
 	}
 
-	public static Document parseActor(String s) throws MultiErrorException { return parseActor(s, "unknown"); }
-	public static Document parseActor(String s, String name) throws MultiErrorException
+	public static Node parseActor(Reader s) throws MultiErrorException { return parseActor(s,"unknown"); }
+	public static Node parseActor(String s) throws MultiErrorException { return parseActor(s, "unknown"); }
+	public static Node parseActor(String s, String name) throws MultiErrorException
 	{
 		return parseActor(new StringReader(s), name);
 	}
