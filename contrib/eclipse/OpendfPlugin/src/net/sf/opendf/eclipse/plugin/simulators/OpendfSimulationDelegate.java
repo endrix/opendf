@@ -43,6 +43,7 @@ import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.model.ILaunchConfigurationDelegate;
 import net.sf.opendf.cli.PhasedSimulator;
+import net.sf.opendf.eclipse.plugin.simulators.tabs.*;
 
 public class OpendfSimulationDelegate implements ILaunchConfigurationDelegate 
 {
@@ -54,12 +55,33 @@ public class OpendfSimulationDelegate implements ILaunchConfigurationDelegate
 
     monitor.setTaskName( "Setup" );
 
+    System.out.println( "cwd is " + System.getProperty( "user.dir" ));
+    
     PhasedSimulator simulator = new PhasedSimulator();
 
-    // if( ! simulator.setArgs( args ) )
-    // { 
-    //  
-    // }
+    String arg1 = OpendfConfigurationTab.Export( "SIM.ARG1", "" );
+    String arg2 = OpendfConfigurationTab.Export( "SIM.ARG2", "" );
+    int l = arg2.length();
+    
+    for( Object obj: configuration.getAttributes().keySet() )
+    {
+      String key = (String) obj;
+      
+      if( key.startsWith( arg1 ) )
+      {
+        String value = configuration.getAttribute( key, (String) null );
+        simulator.setArg( value );
+        System.out.println("set arg " + value );
+      }
+      else if( key.startsWith( arg2 ) )
+      {
+        String name = key.substring( l ); 
+        String value = configuration.getAttribute( key, (String) null );
+        simulator.setArg( name, value );
+        System.out.println("set arg " + name + ", " + value );
+      }
+
+    }
 
     monitor.worked( 1 );
     monitor.setTaskName( "Elaboration" );
