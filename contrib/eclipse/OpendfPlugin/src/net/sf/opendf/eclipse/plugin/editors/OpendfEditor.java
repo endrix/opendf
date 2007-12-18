@@ -42,7 +42,6 @@ import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.editors.text.TextEditor;
 import org.eclipse.ui.texteditor.ITextEditor;
-import org.eclipse.ui.editors.text.FileDocumentProvider;
 import org.eclipse.ui.views.contentoutline.*;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.text.*;
@@ -56,66 +55,70 @@ public abstract class OpendfEditor extends TextEditor
 	public abstract OpendfDocumentListener     createDocumentListener( IFile file, IDocument document );
   public abstract OpendfContentOutlinePage   createOutlinePage( ITextEditor editor );
 
-	private FileDocumentProvider        documentProvider;
-  private OpendfDocumentListener      documentListener;
+	private OpendfDocumentListener      documentListener;
   private OpendfContentOutlinePage    outlinePage;
-
-  public void setDocumentProvider()
-  {
-		documentProvider = new FileDocumentProvider( );
-		super.setDocumentProvider( documentProvider );
-  }
     
+  protected OpendfColorManager colorManager;
+
 	public OpendfEditor()
 	{
 		super();
-    
+		
 		documentListener = null;
     outlinePage      = null;
+    
+    colorManager = new OpendfColorManager();
 	}
-	
+  
 	// Use this callback to signal the parser thread to terminate (return)
 	public void dispose()
 	{
 		if( documentListener != null ) documentListener.kill();
+    colorManager.dispose();
 		super.dispose();
 	}
 
 	// Notifies us when there is an association to an input file
 	protected void doSetInput( IEditorInput input ) throws CoreException
 	{
-
-		try
-		{
-			super.doSetInput( input );
-
-			// Now we can start a listener since we have the associated input
-      IDocument document = documentProvider.getDocument( input );
-			documentListener = createDocumentListener( ((IFileEditorInput) input).getFile(), document );
+    super.doSetInput( input );
+		
+    IFile file;
+    
+		if( input instanceof IFileEditorInput )
+		{		  
+		  file = ((IFileEditorInput) input).getFile();
+		}
+	  else
+	  {
+	    // No suitable document provider exists for a file outside a project
+	    file = null;
+	    
+	    OpendfPlugin.logInfoMessage( "No document checking available when editing outside a project" );
+	    setContentDescription( "Document checking disabled - import this file into a project" );
+	  }
+	    
+	  // Now we can start a listener since we have the associated input
+    IDocument document = getDocumentProvider().getDocument( input );
+	  documentListener = createDocumentListener( file, document );
       
-			if( outlinePage != null )
-      {
-        outlinePage.setInput( input );
-				documentListener.setOutlinePage( outlinePage );
-      }
+	  if( outlinePage != null )
+    {
+      outlinePage.setInput( input );
+		  documentListener.setOutlinePage( outlinePage );
+    }
 			
-			document.addDocumentListener( documentListener );
-		}
-		catch( ClassCastException e )
-		{
-			OpendfPlugin.logInfoMessage( "No parsing support available when editing outside a project" );
-		}
+		document.addDocumentListener( documentListener );
 	}
 
 	public Object getAdapter( Class required )
 	{
-		
 		if( IContentOutlinePage.class.equals( required ) )
 		{
 			if( outlinePage == null )
 			{
 				outlinePage = createOutlinePage( this );
-				if( getEditorInput() != null )
+				if( getEditorInput() != null /* && getEditorInput() instanceof IFileEditorInput */ )
 					outlinePage.setInput( getEditorInput() );
 
 				if( documentListener != null )

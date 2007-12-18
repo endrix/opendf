@@ -39,13 +39,14 @@ ENDCOPYRIGHT
 package net.sf.opendf.eclipse.plugin;
 
 import org.eclipse.ui.plugin.*;
+import org.eclipse.ui.console.*;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.osgi.framework.BundleContext;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.swt.graphics.Image;
 import java.util.*;
 
-public class OpendfPlugin extends AbstractUIPlugin {
+public class OpendfPlugin extends ConsolePlugin {
 
 	public static final String ID = "net.sf.opendf.eclipse.plugin";
   
@@ -167,5 +168,25 @@ public class OpendfPlugin extends AbstractUIPlugin {
     }
     
     return null;
+  }
+  
+  public MessageConsole findConsole( String name )
+  {
+    IConsoleManager manager = getConsoleManager();
+    IConsole existing[] = manager.getConsoles();
+    
+    for( int i=0; i< existing.length; i++ )
+    {
+      if( name.equals( existing[i].getName() ) )
+      {
+        return (MessageConsole) existing[i];
+      }
+    }
+    
+    MessageConsole console = new MessageConsole( name, null );
+    manager.addConsoles( new IConsole[]{ console } );
+    
+    return console;
+    
   }
 }

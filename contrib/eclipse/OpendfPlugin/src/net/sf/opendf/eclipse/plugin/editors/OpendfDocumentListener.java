@@ -115,16 +115,15 @@ public class OpendfDocumentListener implements IDocumentListener, Runnable
 	  while( true )
 	  {  
 		  // Terminate the parser in an orderly fashion when the document is closed
-		  if( isTerminated() )
-		  {
-			  return;
-		  }
+		  if( isTerminated() ) return;
 
       // Send altered documents to the outliner
       if( outlinePage != null && document != null && outlinePage.getStamp() != parsingStamp )
       {
         outlinePage.outlineDocument( document, parsingStamp );
       }
+
+      if( isTerminated() ) return;
  
       // Poll the document modification stamp
       long currentStamp = getStamp();
@@ -139,6 +138,8 @@ public class OpendfDocumentListener implements IDocumentListener, Runnable
         // We can ignore this one
       }
 
+      if( isTerminated() ) return;
+
       // If document has changed during the sleep interval do not parse
       if( getStamp() != currentStamp ) continue;
       
@@ -148,6 +149,7 @@ public class OpendfDocumentListener implements IDocumentListener, Runnable
       try
       {        
         document = documentChecker.parseDocument();
+        if( isTerminated() ) return;
         
         if( currentStamp == getStamp() )
         {
@@ -162,6 +164,8 @@ public class OpendfDocumentListener implements IDocumentListener, Runnable
       }
       catch( MultiErrorException syntaxErrors )
       {
+        if( isTerminated() ) return;
+
         // There were syntax errors
         document = null;
         

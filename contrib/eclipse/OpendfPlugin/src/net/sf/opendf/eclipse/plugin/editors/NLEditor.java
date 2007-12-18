@@ -47,20 +47,11 @@ import net.sf.opendf.eclipse.plugin.editors.checkers.*;
 
 public class NLEditor extends OpendfEditor
 {
-  private OpendfColorManager colorManager;
       
   public NLEditor()
   {
     super();
-    colorManager = new OpendfColorManager();
-    setSourceViewerConfiguration( new NLConfiguration( getPreferenceStore(), colorManager ) );
-    setDocumentProvider();
-  }
-  
-  public void dispose()
-  {
-    colorManager.dispose();
-    super.dispose();
+     setSourceViewerConfiguration( new NLConfiguration( getPreferenceStore(), colorManager ) );
   }
 
   public OpendfDocumentListener createDocumentListener( IFile file, IDocument document )

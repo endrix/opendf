@@ -46,21 +46,11 @@ import net.sf.opendf.eclipse.plugin.editors.outline.*;
 import net.sf.opendf.eclipse.plugin.editors.checkers.*;
 
 public class CALEditor extends OpendfEditor
-{
-	private OpendfColorManager colorManager;
-    	
+{    	
 	public CALEditor()
 	{
 		super();
-    colorManager = new OpendfColorManager();
 		setSourceViewerConfiguration( new CALConfiguration( getPreferenceStore(), colorManager ) );
-		setDocumentProvider();
-	}
-	
-	public void dispose()
-	{
-		colorManager.dispose();
-		super.dispose();
 	}
 
 	public OpendfDocumentListener createDocumentListener( IFile file, IDocument document )
