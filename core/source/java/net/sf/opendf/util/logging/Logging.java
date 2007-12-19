@@ -65,7 +65,10 @@ public class Logging
     private static Logger USER = null;
 
     private static Logger SIMSTATE = null;
-    
+
+    // user-generated simulation output
+    private static Logger SIMOUT = null;
+
     /** A Logger {@link Level} which forces output to happen
      * regardless of the specified level. */
     public static final Level FORCE = new XCALLoggingLevel("FORCE", Level.OFF.intValue());
@@ -100,6 +103,21 @@ public class Logging
         return USER;
     }
 
+    /**
+     * Returns a non-null Logger instance that is used for output of
+     * user-generated messages from simulation.
+     *
+     * @return a non-null {@link Logger}
+     */
+    public static Logger simout ()
+    {
+        if (SIMOUT == null)
+        {
+            init();
+        }
+        return SIMOUT;
+    }
+
     public static void setUserLevel (Level level)
     {
         if (USER == null)
@@ -113,7 +131,14 @@ public class Logging
             init();
         DBG.setLevel(level);
     }
-    
+
+    public static void setSimoutLevel (Level level)
+    {
+        if (SIMOUT == null)
+            init();
+        SIMOUT.setLevel(level);
+    }
+
     /**
      * Returns a non-null Logger instance that is used for output of
      * simulation status messages.
@@ -139,7 +164,8 @@ public class Logging
         DBG = Logger.getLogger("xcal.debug");
         USER = Logger.getLogger("xcal.user");
         SIMSTATE = Logger.getLogger("xcal.simstate");
-
+        SIMOUT = Logger.getLogger("xcal.simout");
+        
         // Check to see if we have explicit setting of the default
         // levels.  If not, then set some appropriate levels now
         if (System.getProperty("java.util.logging.config.file") == null &&
@@ -151,6 +177,8 @@ public class Logging
                 USER.setLevel(Level.INFO);
             if (SIMSTATE.getLevel() == null)
                 SIMSTATE.setLevel(Level.INFO);
+            if (SIMOUT.getLevel() == null)
+              SIMOUT.setLevel(Level.INFO);
         }
         
         // The parent Loggers are the root which, by default, have the
@@ -163,7 +191,10 @@ public class Logging
 
         SIMSTATE.setUseParentHandlers(false);
         SIMSTATE.addHandler(new FlushedStreamHandler(System.out, new DebugLogFormatter(true, "simstate")));
-    }
+
+        SIMOUT.setUseParentHandlers(false);
+        SIMOUT.addHandler(new FlushedStreamHandler(System.out, new DebugLogFormatter(true, "simout")));
+}
 
     /**
      * Sub-class allowing us to specify the name and level
