@@ -46,7 +46,8 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.swt.graphics.Image;
 import java.util.*;
 
-public class OpendfPlugin extends ConsolePlugin {
+public class OpendfPlugin extends AbstractUIPlugin
+{
 
 	public static final String ID = "net.sf.opendf.eclipse.plugin";
   
@@ -155,10 +156,10 @@ public class OpendfPlugin extends ConsolePlugin {
         image.dispose();
     }
   }
-  
+
   public Image getImage( int i )
   {
-    try
+     try
     {
       return images.get(i);
     }
@@ -172,7 +173,7 @@ public class OpendfPlugin extends ConsolePlugin {
   
   public MessageConsole findConsole( String name )
   {
-    IConsoleManager manager = getConsoleManager();
+    IConsoleManager manager = ConsolePlugin.getDefault().getConsoleManager();
     IConsole existing[] = manager.getConsoles();
     
     for( int i=0; i< existing.length; i++ )
