@@ -44,7 +44,9 @@ import org.eclipse.jface.resource.ImageDescriptor;
 import org.osgi.framework.BundleContext;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Color;
 import java.util.*;
+import org.eclipse.swt.SWT;
 
 public class OpendfPlugin extends AbstractUIPlugin
 {
@@ -103,7 +105,7 @@ public class OpendfPlugin extends AbstractUIPlugin
   {
     plugin.getLog().log( new Status( Status.ERROR, ID, Status.OK, msg, exception ));  
   }
-
+  
 	public void start( BundleContext context ) throws Exception
 	{
 		super.start( context );

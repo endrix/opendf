@@ -118,7 +118,7 @@ public abstract class OpendfEditor extends TextEditor
 			if( outlinePage == null )
 			{
 				outlinePage = createOutlinePage( this );
-				if( getEditorInput() != null /* && getEditorInput() instanceof IFileEditorInput */ )
+				if( getEditorInput() != null )
 					outlinePage.setInput( getEditorInput() );
 
 				if( documentListener != null )
