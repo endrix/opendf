@@ -67,6 +67,7 @@ import net.sf.opendf.cal.interpreter.InterpreterException;
 import net.sf.opendf.cal.interpreter.Procedure;
 import net.sf.opendf.cal.interpreter.environment.Environment;
 import net.sf.opendf.math.Complex;
+import net.sf.opendf.util.logging.*;
 
 
 /**
@@ -211,6 +212,8 @@ public class DefaultPlatform implements Platform {
         
         env.bind("print", context().createProcedure(new Procedure() {
             public void call(Object[] args) {
+                // TODO get rid of excess newline
+                Logging.simout().info( args[0].toString() );
                 System.out.print(args[0]);
             }
 
@@ -221,7 +224,8 @@ public class DefaultPlatform implements Platform {
 
         env.bind("println", context().createProcedure(new Procedure() {
             public void call(Object[] args) {
-                System.out.println(args[0]);
+              Logging.simout().info( args[0].toString() );
+              System.out.println(args[0]);
             }
 
             public int arity() {
@@ -263,9 +267,10 @@ public class DefaultPlatform implements Platform {
                 public Object apply(Object[] args) {
                     try {
                         System.out.println(args[0]);
+                        Logging.simout().info( args[0].toString() );
                         return args[0];
                     } catch (Exception ex) {
-                        throw new InterpreterException("Function '$not': Cannot apply.", ex);
+                        throw new InterpreterException("Function 'SOP': Cannot apply.", ex);
                     }
                 }
 
