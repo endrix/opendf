@@ -2,14 +2,20 @@
 <feature
       id="net.sf.opendf.eclipse.feature"
       label="Open Dataflow Plugin"
-      version="1.0.1"
+      version="1.1.0"
       provider-name="The Open Dataflow Project">
 
    <description>
       Open Dataflow Project plugin
-v1.0.1
-======
-* Improved outlining including icons and preservation of expanded state.
+
+V1.1.0
+===============================================
+* make dataflow simulator available from the std Eclipse run dialog.
+
+V1.0.1
+===============================================
+* Improved outlining including icons and preservation of expanded
+state.
 * Changed .CAL and .NL images.
 * Added to PDF documentation.
    </description>
