@@ -298,13 +298,6 @@ public class Util {
         return doc;
     }
 
-    private static TransformerFactory createTransformerFactory ()
-    {
-        TransformerFactory xff = TransformerFactory.newInstance();
-        xff.setURIResolver(new ClasspathURIResolver(Util.class.getClassLoader(), xff.getURIResolver()));
-        return xff;
-    }
-    
     public static Transformer createTransformer(String fileName) throws Exception {
         File file = new File(fileName);
         TransformerFactory xff = createTransformerFactory();
@@ -415,6 +408,11 @@ public class Util {
         return doc;
     }
 
+    private static TransformerFactory createTransformerFactory ()
+    {
+    	return createTransformerFactory(getSaxonImplementation());
+    }
+    
     private static TransformerFactory createTransformerFactory (XmlImplementation xmlImpl)
     {
         TransformerFactory xff = xmlImpl.getTransformerFactory();
