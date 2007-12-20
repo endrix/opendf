@@ -50,6 +50,7 @@ import net.sf.opendf.cal.i2.util.ProcedureOf2Eval;
 import net.sf.opendf.cal.i2.util.ProcedureOf4;
 import net.sf.opendf.cal.i2.util.ReplacePrefixImportMapper;
 import net.sf.opendf.math.Complex;
+import net.sf.opendf.util.logging.Logging;
 
 public class DefaultUntypedPlatform implements Platform {
 
@@ -156,7 +157,8 @@ public class DefaultUntypedPlatform implements Platform {
 
 		env.bind("println", new ProcedureOf1() {
 			public void p(Object a) {
-				System.out.println(a);
+				Logging.simout().info(String.valueOf(a));
+				//System.out.println(a);
 		    }
 		}, null);
 
@@ -249,7 +251,8 @@ public class DefaultUntypedPlatform implements Platform {
 		env.bind("SOP", new FunctionOf1() {
 
 			public Object f(Object a) {
-				System.out.println(a);
+				Logging.simout().info(String.valueOf(a));
+				//System.out.println(a);
 				return a;
 			}
 		}, null);
