@@ -24,6 +24,7 @@
          point="org.eclipse.debug.core.launchConfigurationTypes">
          <launchConfigurationType
                delegate="net.sf.opendf.eclipse.plugin.simulators.OpendfSimulationDelegate"
+               delegateName="Dataflow Simulation"
                id="net.sf.opendf.eclipse.plugin.simulation"
                modes="run"
                name="Dataflow Simulation"

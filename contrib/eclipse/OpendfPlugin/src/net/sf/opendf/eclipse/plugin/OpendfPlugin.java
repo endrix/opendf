@@ -51,7 +51,7 @@ import org.eclipse.swt.SWT;
 public class OpendfPlugin extends AbstractUIPlugin
 {
 
-	public static final String ID = "net.sf.opendf.eclipse.plugin";
+	public static final String ID = "net.sf.opendf.eclipse.OpendfEditorPlugin";
   
   // indices into the imagePaths array
   public static final int IMAGE_action       =  0;
@@ -110,7 +110,7 @@ public class OpendfPlugin extends AbstractUIPlugin
 	{
 		super.start( context );
     createImages();
-	}
+ 	}
 
 	public void stop( BundleContext context ) throws Exception
 	{
