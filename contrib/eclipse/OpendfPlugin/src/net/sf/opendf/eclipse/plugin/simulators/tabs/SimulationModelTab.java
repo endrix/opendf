@@ -208,6 +208,8 @@ public class SimulationModelTab extends OpendfConfigurationTab
   // this is called the first time
   public void initializeFrom( ILaunchConfiguration conf )
   {
+    System.out.println("initializeFrom");
+    
     // import all relevant attributes
     super.initializeFrom( conf );
 
@@ -237,12 +239,20 @@ public class SimulationModelTab extends OpendfConfigurationTab
       dir = getProperty( KEY_MODELSEARCHPATH );
     if( dir != null ) conf.setAttribute( Export( arg2, "-mp" ), dir );
     
+    // Parameter defines
+    for( String param : getKeys( KEY_PARAMETER ) )
+    {
+      conf.setAttribute( Export( arg2, "-D" + param ), getProperty( KEY_PARAMETER, param ) );
+    }
+    
     conf.setAttribute( Export( arg1, "2" ), "-bbr" );
   }
 
   // this is called the first time
   public void performApply( ILaunchConfigurationWorkingCopy conf )
   {
+    System.out.println("performApply");
+
     String oldModel = null;    
     String oldDir   = null;    
     String newModel = getProperty( KEY_MODELFILE );    

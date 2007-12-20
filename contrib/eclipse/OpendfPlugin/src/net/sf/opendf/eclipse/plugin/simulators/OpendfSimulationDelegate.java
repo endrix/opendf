@@ -130,11 +130,6 @@ public class OpendfSimulationDelegate implements ILaunchConfigurationDelegate
   public void launch(ILaunchConfiguration configuration, String mode,
       ILaunch launch, IProgressMonitor monitor ) throws CoreException 
   {
-    theWork( configuration, monitor );
-  }
-  
-  private void theWork( ILaunchConfiguration configuration, IProgressMonitor monitor ) throws CoreException 
-  {
     attachConsole();
     
     monitor.beginTask( "Dataflow Simulation", 5 );
@@ -165,6 +160,13 @@ public class OpendfSimulationDelegate implements ILaunchConfigurationDelegate
         {
           String name = key.substring( l ); 
           String value = configuration.getAttribute( key, (String) null );
+          
+          if( name.startsWith("-D") )
+          {
+            value = name.substring( 2 ) + "=" + value;
+            name = "-D";
+          }
+          
           simulator.setArg( name, value );
           info.print(" " + name + " " + value );
         }
@@ -216,6 +218,7 @@ public class OpendfSimulationDelegate implements ILaunchConfigurationDelegate
       {
         if( result == PhasedSimulator.FAILED )
         {
+          error.println("Simulation failed");
           status.println("Closing simulator");
           detachConsole();
           monitor.done();
