@@ -1,0 +1,15 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Hardware Compiler Plug-in
+Bundle-SymbolicName: net.sf.opendf.eclipse.HardwareCompiler;singleton:=true
+Bundle-Version: 1.0.0
+Bundle-Activator: net.sf.opendf.eclipse.plugin.hardwarecompiler.Activator
+Bundle-Vendor: The Open Dataflow Project
+Require-Bundle: org.eclipse.ui,
+ org.eclipse.core.runtime,
+ net.sf.opendf.eclipse.OpendfEditorPlugin,
+ org.eclipse.debug.core,
+ net.sf.opendf.OpendfCorePlugin,
+ org.eclipse.ui.console,
+ org.eclipse.debug.ui
+Eclipse-LazyStart: true

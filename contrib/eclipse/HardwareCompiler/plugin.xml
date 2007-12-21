@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.2"?>
+<plugin>
+   <extension
+         id="net.sf.opendf.eclipse.plugin.compilation"
+         name="Dataflow Compilation"
+         point="org.eclipse.debug.core.launchConfigurationTypes">
+      <launchConfigurationType
+            delegate="net.sf.opendf.eclipse.plugin.hardwarecompiler.OpendfCompilationDelegate"
+            delegateName="Dataflow Compilation"
+            id="net.sf.opendf.eclipse.plugin.compilation"
+            modes="run"
+            name="Dataflow Compilation"
+            public="true">
+      </launchConfigurationType>
+   </extension>
+   <extension
+         point="org.eclipse.debug.ui.launchConfigurationTypeImages">
+      <launchConfigurationTypeImage
+            configTypeID="net.sf.opendf.eclipse.plugin.compilation"
+            icon="icons/entity.gif"
+            id="net.sf.opendf.eclipse.plugin.compilation.image">
+      </launchConfigurationTypeImage>
+   </extension>
+   <extension
+         id="net.sf.opendf.eclipse.plugin.compilation"
+         name="Dataflow Compilation"
+         point="org.eclipse.debug.ui.launchConfigurationTabGroups">
+      <launchConfigurationTabGroup
+            class="net.sf.opendf.eclipse.plugin.hardwarecompiler.CompilationTabGroup"
+            description="DataflowCompiler"
+            id="net.sf.opendf.eclipse.plugin.compilation.tabgroup"
+            type="net.sf.opendf.eclipse.plugin.compilation">
+      </launchConfigurationTabGroup>
+   </extension>
+
+</plugin>
