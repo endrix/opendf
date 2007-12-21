@@ -153,7 +153,7 @@ public class OpendfCompilationDelegate implements ILaunchConfigurationDelegate
     attachConsole();
     
     monitor.beginTask( "Dataflow Compilation", 5 );
-    status.println("Starting dataflow simulator" );
+    status.println("Starting dataflow compiler" );
     
     monitor.setTaskName( "Setup" );
 
@@ -216,8 +216,8 @@ public class OpendfCompilationDelegate implements ILaunchConfigurationDelegate
     // simulator.initialize();
 
     monitor.worked( 1 );
-    monitor.setTaskName( "Simulation" );
-    status.println( "Simulating ..." );
+    monitor.setTaskName( "Compilation" );
+    status.println( "Compiling ..." );
       
     // int result;
       
