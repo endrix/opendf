@@ -5,8 +5,7 @@ Bundle-SymbolicName: net.sf.opendf.OpendfCorePlugin
 Bundle-Version: 1.0.0
 Bundle-Activator: net.sf.opendf.eclipse.coreplugin.Activator
 Bundle-Vendor: The Open Dataflow Project
-Require-Bundle: org.eclipse.core.runtime,
- net.sf.opendf.SaxonPlugin
+Require-Bundle: org.eclipse.core.runtime
 Eclipse-LazyStart: true
 Export-Package: java_cup,
  java_cup.runtime,
@@ -70,4 +69,6 @@ Export-Package: java_cup,
  net.sf.opendf.xslt.util,
  ptolemy.media
 Bundle-ClassPath: .,
- source/xslt/
+ source/xslt/,
+ lib/saxon8.jar,
+ lib/saxon8-dom.jar

@@ -5,5 +5,7 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
 	<classpathentry exported="true" kind="lib" path="source/xslt"/>
+	<classpathentry kind="lib" path="lib/saxon8.jar"/>
+	<classpathentry kind="lib" path="lib/saxon8-dom.jar"/>
 	<classpathentry kind="output" path="classes"/>
 </classpath>
