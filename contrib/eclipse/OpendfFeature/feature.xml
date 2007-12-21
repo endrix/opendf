@@ -7,10 +7,10 @@
 
    <description>
       Open Dataflow Project plugin
-
 V1.1.0
 ===============================================
 * make dataflow simulator available from the std Eclipse run dialog.
+* fix problems opening files outside project
 
 V1.0.1
 ===============================================
@@ -62,14 +62,15 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
    </url>
 
    <requires>
-      <import plugin="org.eclipse.ui"/>
       <import plugin="org.eclipse.core.runtime"/>
+      <import plugin="org.eclipse.debug.ui"/>
       <import plugin="org.eclipse.jface.text"/>
+      <import plugin="org.eclipse.ui"/>
+      <import plugin="org.eclipse.ui.console"/>
       <import plugin="org.eclipse.ui.editors"/>
-      <import plugin="org.eclipse.ui.workbench.texteditor"/>
-      <import plugin="org.eclipse.core.resources"/>
       <import plugin="org.eclipse.ui.ide"/>
       <import plugin="org.eclipse.ui.views"/>
+      <import plugin="org.eclipse.ui.workbench.texteditor"/>
    </requires>
 
    <plugin
@@ -79,9 +80,17 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
          version="0.0.0"/>
 
    <plugin
-         id="net.sf.opendf.eclipse.plugin"
-         download-size="4290"
+         id="net.sf.opendf.OpendfCorePlugin"
+         download-size="0"
          install-size="0"
-         version="0.0.0"/>
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="net.sf.opendf.eclipse.OpendfEditorPlugin"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
 
 </feature>
