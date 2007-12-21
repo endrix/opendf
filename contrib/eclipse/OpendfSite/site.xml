@@ -3,9 +3,6 @@
    <description url="http://opendf.sourceforge.net/eclipse">
       The Open Dataflow Project Update Site
    </description>
-   <feature url="features/net.sf.opendf.eclipse.feature_1.0.0.jar" id="net.sf.opendf.eclipse.feature" version="1.0.0">
-      <category name="Open Dataflow Project Plugin"/>
-   </feature>
    <feature url="features/net.sf.opendf.eclipse.feature_1.0.1.jar" id="net.sf.opendf.eclipse.feature" version="1.0.1">
       <category name="Open Dataflow Project Plugin"/>
    </feature>
