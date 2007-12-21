@@ -43,6 +43,6 @@ actor Upsample (n) In ==> Out:
 		n > 0
 	end
 
-	action [a] ==> [[a : for i in Integers(1, n)]] repeat n end
+	action [a] ==> [[a : for i in 1 .. n]] repeat n end
 end
 
