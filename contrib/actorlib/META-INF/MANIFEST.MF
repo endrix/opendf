@@ -7,10 +7,12 @@ Bundle-Vendor: The Open Dataflow Project
 Eclipse-LazyStart: true
 Bundle-ClassPath: .,
  lib/PtPlot.jar
-Require-Bundle: net.sf.opendf.OpendfCorePlugin
+Require-Bundle: org.eclipse.core.runtime,
+ net.sf.opendf.OpendfCorePlugin
 Export-Package: net.sf.opendf.actors,
  net.sf.opendf.mvi,
  ptolemy.plot,
  ptolemy.plot.compat,
  ptolemy.plot.demo,
  ptolemy.plot.plotml
+Bundle-Activator: net.sf.opendf.eclipse.actorlibplugin.Activator
