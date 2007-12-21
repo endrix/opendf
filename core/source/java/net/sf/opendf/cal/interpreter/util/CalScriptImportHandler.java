@@ -106,7 +106,7 @@ public class CalScriptImportHandler extends AbstractImportHandler {
 			in = classLoader.getResourceAsStream(scriptName);
 			if (in == null)
 				return null;
-			Shell shell = new Shell(platform, new HashMap(), in, NullOutputStream.devNull, NullOutputStream.devNull, false);
+			Shell shell = null ; //new Shell(platform, new HashMap(), in, NullOutputStream.devNull, NullOutputStream.devNull, false);
 			return shell.executeAll();	
 		} catch (Exception ex) {
 			return null;

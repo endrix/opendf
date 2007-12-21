@@ -52,9 +52,9 @@ import java.util.Map;
 import java.util.Set;
 
 import net.sf.opendf.cal.ast.Decl;
+import net.sf.opendf.cal.i2.Environment;
 import net.sf.opendf.cal.i2.InterpreterException;
-import net.sf.opendf.cal.interpreter.environment.Environment;
-import net.sf.opendf.cal.interpreter.util.Platform;
+import net.sf.opendf.cal.i2.util.Platform;
 import net.sf.opendf.hades.cal.OldEnvironmentWrapper;
 import net.sf.opendf.hades.des.DiscreteEventComponent;
 import net.sf.opendf.hades.des.components.ParameterDescriptor;
@@ -210,10 +210,10 @@ public class XNLModelInterface implements ModelInterface {
 			ClassLoader myLoader = (loader == null) ? this.getClass().getClassLoader() : loader;
 			Platform myPlatform = getPlatform(myLoader);
 			
-			Environment thisEnv = myPlatform.createGlobalEnvironment(new OldEnvironmentWrapper(env, myPlatform.context()));
+			Environment thisEnv = myPlatform.createGlobalEnvironment(new OldEnvironmentWrapper(env, myPlatform.configuration()));
 			Document xdfModel = net.sf.opendf.nl.Network.translate((Document)modelSource, 
 					                                                          thisEnv, 
-					                                                          myPlatform.context());
+					                                                          myPlatform.configuration());
 
 			try
             {

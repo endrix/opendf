@@ -49,7 +49,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import net.sf.opendf.cal.interpreter.util.Platform;
+import net.sf.opendf.cal.i2.util.Platform;
 import net.sf.opendf.hades.des.DiscreteEventComponent;
 import net.sf.opendf.hades.des.components.AtomicConnectorDescriptor;
 import net.sf.opendf.hades.des.components.ParameterDescriptor;

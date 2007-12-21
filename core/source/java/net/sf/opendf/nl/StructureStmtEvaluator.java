@@ -52,14 +52,14 @@ import java.util.Map;
 import net.sf.opendf.cal.ast.Decl;
 import net.sf.opendf.cal.ast.Expression;
 import net.sf.opendf.cal.ast.GeneratorFilter;
-import net.sf.opendf.cal.interpreter.Context;
-import net.sf.opendf.cal.interpreter.ExprEvaluator;
-import net.sf.opendf.cal.interpreter.environment.Environment;
-import net.sf.opendf.cal.interpreter.generator.CollectionGenerator;
-import net.sf.opendf.cal.interpreter.generator.Filter;
-import net.sf.opendf.cal.interpreter.generator.Generator;
-import net.sf.opendf.cal.interpreter.generator.Seed;
-import net.sf.opendf.cal.interpreter.generator.VariableGenerator;
+import net.sf.opendf.cal.i2.Configuration;
+import net.sf.opendf.cal.i2.Environment;
+import net.sf.opendf.cal.i2.Evaluator;
+import net.sf.opendf.cal.i2.generator.CollectionGenerator;
+import net.sf.opendf.cal.i2.generator.Filter;
+import net.sf.opendf.cal.i2.generator.Generator;
+import net.sf.opendf.cal.i2.generator.Seed;
+import net.sf.opendf.cal.i2.generator.VariableGenerator;
 import net.sf.opendf.cal.interpreter.util.ASTFactory;
 import net.sf.opendf.nl.util.DOMFactory;
 import net.sf.opendf.nl.util.IDGenerator;
@@ -101,7 +101,7 @@ public class StructureStmtEvaluator {
 					Decl [] ds = gs[i].getVariables();
 					for (int j = 0; j < ds.length; j++) {
 						VariableGCB vgcb = new VariableGCB(cgcb);
-						g = new VariableGenerator(g, context, ds[j].getName(), GeneratorCollectionVar, vgcb);
+						g = new VariableGenerator(g, ds[j].getName(), GeneratorCollectionVar, vgcb);
 					}
 					Expression [] filters = gs[i].getFilters();
 					if (filters != null) {
@@ -128,7 +128,7 @@ public class StructureStmtEvaluator {
 
 		private final static String GeneratorCollectionVar = "$generator$collection$";
 
-		public StructureStmtEvaluator(Environment env, Context context, Callback callback, Map<String, Object> entityEnv, IDGenerator idgen) {
+		public StructureStmtEvaluator(Environment env, Configuration context, Callback callback, Map<String, Object> entityEnv, IDGenerator idgen) {
 			this.env = env;
 			this.entityEnv = entityEnv;
 			this.context = context;
@@ -142,7 +142,7 @@ public class StructureStmtEvaluator {
 		private Map<String, Object>			entityEnv;
 		private Environment 				env;
 		private CascadedMap<String, String>	substitutions;
-		private Context						context;
+		private Configuration						context;
 		private Callback					callback;
 		private IDGenerator					idgen;
 		
@@ -163,8 +163,8 @@ public class StructureStmtEvaluator {
 		
 		private Object  evaluateExpr(Element expr) {
 			Expression e = ASTFactory.buildExpression(expr);
-			ExprEvaluator eval = new ExprEvaluator(context, env);
-			return eval.evaluate(e);
+			Evaluator eval = new Evaluator(env, context);
+			return eval.valueOf(e);
 		}
 		
 		private String [] evalPortSpec(Element ps, Environment env) {

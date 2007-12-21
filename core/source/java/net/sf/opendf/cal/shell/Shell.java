@@ -58,21 +58,24 @@ import java.util.Set;
 
 import net.sf.opendf.cal.ast.Expression;
 import net.sf.opendf.cal.ast.Statement;
-import net.sf.opendf.cal.interpreter.Context;
-import net.sf.opendf.cal.interpreter.ExprEvaluator;
-import net.sf.opendf.cal.interpreter.StmtEvaluator;
-import net.sf.opendf.cal.interpreter.environment.AccessLoggingEnvironment;
-import net.sf.opendf.cal.interpreter.environment.AutoBindEnvironment;
-import net.sf.opendf.cal.interpreter.environment.CacheEnvironment;
-import net.sf.opendf.cal.interpreter.environment.Environment;
-import net.sf.opendf.cal.interpreter.environment.ImportEnvironment;
-import net.sf.opendf.cal.interpreter.util.CalScriptImportHandler;
-import net.sf.opendf.cal.interpreter.util.ClassLoadingImportHandler;
-import net.sf.opendf.cal.interpreter.util.DefaultPlatform;
-import net.sf.opendf.cal.interpreter.util.EnvironmentFactoryImportHandler;
-import net.sf.opendf.cal.interpreter.util.ImportHandler;
+import net.sf.opendf.cal.i2.Configuration;
+import net.sf.opendf.cal.i2.Environment;
+import net.sf.opendf.cal.i2.Evaluator;
+import net.sf.opendf.cal.i2.Executor;
+import net.sf.opendf.cal.i2.environment.AccessLoggingEnvironment;
+import net.sf.opendf.cal.i2.environment.AutoBindEnvironment;
+import net.sf.opendf.cal.i2.environment.CacheEnvironment;
+import net.sf.opendf.cal.i2.environment.DynamicEnvironmentFrame;
+import net.sf.opendf.cal.i2.environment.EnvironmentFrame;
+import net.sf.opendf.cal.i2.environment.ImportEnvironment;
+import net.sf.opendf.cal.i2.platform.DefaultTypedPlatform;
+import net.sf.opendf.cal.i2.util.CalScriptImportHandler;
+import net.sf.opendf.cal.i2.util.ClassLoadingImportHandler;
+import net.sf.opendf.cal.i2.util.EnvironmentFactoryImportHandler;
+import net.sf.opendf.cal.i2.util.ImportHandler;
+import net.sf.opendf.cal.i2.util.Platform;
 import net.sf.opendf.cal.interpreter.util.NullOutputStream;
-import net.sf.opendf.cal.interpreter.util.Platform;
+
 import net.sf.opendf.cal.util.SourceReader;
 
 
@@ -149,7 +152,7 @@ public class Shell {
      * @param interactive If true, prompts and results will be printed.
      */
 
-    public Shell(Platform platform, Map bindings,
+    public Shell(net.sf.opendf.cal.i2.util.Platform platform, Map bindings,
                  InputStream in, OutputStream out, OutputStream err,
                  boolean interactive) {
 
@@ -272,10 +275,10 @@ public class Shell {
 
         loggingEnv.clearLogs();
 
-        StmtEvaluator sEval = new StmtEvaluator(context, loggingEnv);
+        Executor sEval = new Executor(configuration, loggingEnv);
         for (int j = 0; j < s.length; j++) {
             try {
-                sEval.evaluate(s[j]);
+                sEval.execute(s[j]);
             } catch (Exception e) {
                 errorWriter.println("error at [" + j + "]: " + e.getMessage());
                 if (shellDebug)
@@ -299,14 +302,14 @@ public class Shell {
 
     private void  initializeShellState() {
         if (platform == null)
-            platform = new DefaultPlatform();
+            platform = new DefaultTypedPlatform();
 
-        context = platform.context();
+        configuration = platform.configuration();
 
-        importEnv = new ImportEnvironment(context, Shell.class.getClassLoader());
-        cacheEnv = new CacheEnvironment(importEnv, context);
+        importEnv = new ImportEnvironment(configuration, Shell.class.getClassLoader());
+        cacheEnv = new CacheEnvironment(importEnv);
         globalEnv = platform.createGlobalEnvironment(cacheEnv);
-        shellStateEnv = new AutoBindEnvironment(globalEnv, context);
+        shellStateEnv = new AutoBindEnvironment(globalEnv);
         loggingEnv = new AccessLoggingEnvironment(shellStateEnv);
     }
 
@@ -329,7 +332,7 @@ public class Shell {
 
         for (Iterator i = m.keySet().iterator(); i.hasNext(); ) {
             Object k = i.next();
-            shellStateEnv.set(k, m.get(k));
+            shellStateEnv.bind(k, m.get(k), null);
         }
     }
 
@@ -358,11 +361,11 @@ public class Shell {
 
     private Platform     platform = null;
 
-    private Context                  context;
+    private Configuration            configuration;
     private ImportEnvironment        importEnv;
     private CacheEnvironment         cacheEnv;
     private Environment              globalEnv;
-    private Environment              shellStateEnv;
+    private DynamicEnvironmentFrame  shellStateEnv;
     private AccessLoggingEnvironment loggingEnv;
 
     private PrintWriter  outputWriter;
@@ -386,10 +389,10 @@ public class Shell {
         shellCommands.put("", new Command () {
 
             public void execute(String s) throws Exception {
-                ExprEvaluator eval = new ExprEvaluator(context, shellStateEnv);
+                Evaluator eval = new Evaluator(shellStateEnv, configuration);
                 Expression e = SourceReader.readExpr(s);
 
-                Object value = eval.evaluate(e);
+                Object value = eval.valueOf(e);
                 outputWriter.println("result: " + value);
             }
         });
@@ -399,7 +402,7 @@ public class Shell {
             public void execute(String s) throws Exception {
                 for (Iterator i = shellStateEnv.localVars().iterator(); i.hasNext(); ) {
                     Object var = i.next();
-                    outputWriter.write(var + " <- " + shellStateEnv.get(var) + "\n");
+                    outputWriter.write(var + " <- " + shellStateEnv.getByName(var) + "\n");
                 }
             }
         });

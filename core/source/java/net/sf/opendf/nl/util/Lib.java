@@ -51,6 +51,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import net.sf.opendf.cal.i2.Configuration;
 import net.sf.opendf.cal.interpreter.Context;
 import net.sf.opendf.nl.parser.Lexer;
 import net.sf.opendf.nl.parser.Parser;
@@ -127,7 +128,7 @@ public class Lib {
 		}
 	}
 	
-	public static Element  renderObject(Object a, Context context, DOMFactory dom) {
+	public static Element  renderObject(Object a, Configuration context, DOMFactory dom) {
 		
 		Element expr = dom.createElement("Expr");
 		
@@ -138,7 +139,7 @@ public class Lib {
 		} else if (context.isInteger(a)) {
 			expr.setAttribute("kind", "Literal");
 			expr.setAttribute("literal-kind", "Integer");
-			expr.setAttribute("value", context.asBigInteger(a).toString());
+			expr.setAttribute("value", context.integerValue(a).toString());
 		} else if (context.isReal(a)) {
 			expr.setAttribute("kind", "Literal");
 			expr.setAttribute("literal-kind", "Real");

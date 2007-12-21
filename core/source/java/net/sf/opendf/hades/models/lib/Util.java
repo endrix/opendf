@@ -38,7 +38,7 @@ ENDCOPYRIGHT
 
 package net.sf.opendf.hades.models.lib;
 
-import static net.sf.opendf.cal.interpreter.util.ImportUtil.handleImportList;
+import static net.sf.opendf.cal.i2.util.ImportUtil.handleImportList;
 import static net.sf.opendf.util.xml.Util.xpathEvalElement;
 import static net.sf.opendf.util.xml.Util.xpathEvalNodes;
 
@@ -48,15 +48,16 @@ import java.util.Map;
 import java.util.logging.Level;
 
 import net.sf.opendf.cal.ast.Import;
-import net.sf.opendf.cal.interpreter.Context;
-import net.sf.opendf.cal.interpreter.ExprEvaluator;
-import net.sf.opendf.cal.interpreter.SimpleThunk;
-import net.sf.opendf.cal.interpreter.environment.Environment;
+import net.sf.opendf.cal.i2.Configuration;
+import net.sf.opendf.cal.i2.Environment;
+import net.sf.opendf.cal.i2.Evaluator;
+import net.sf.opendf.cal.i2.environment.DynamicEnvironmentFrame;
+import net.sf.opendf.cal.i2.environment.Thunk;
+import net.sf.opendf.cal.i2.platform.DefaultTypedPlatform;
+import net.sf.opendf.cal.i2.util.ImportHandler;
+import net.sf.opendf.cal.i2.util.ImportMapper;
+import net.sf.opendf.cal.i2.util.Platform;
 import net.sf.opendf.cal.interpreter.util.ASTFactory;
-import net.sf.opendf.cal.interpreter.util.DefaultPlatform;
-import net.sf.opendf.cal.interpreter.util.ImportHandler;
-import net.sf.opendf.cal.interpreter.util.ImportMapper;
-import net.sf.opendf.cal.interpreter.util.Platform;
 import net.sf.opendf.cal.util.SourceReader;
 import net.sf.opendf.hades.cal.OldEnvironmentWrapper;
 import net.sf.opendf.hades.des.DiscreteEventComponent;
@@ -83,7 +84,7 @@ public class Util {
 		String platformName = System.getProperty("CalPlatform");
 		Platform myPlatform;
 		if (platformName == null) {
-			myPlatform = DefaultPlatform.thePlatform;
+			myPlatform = DefaultTypedPlatform.thePlatform;
 		} else {
 			try {
 				myPlatform = (Platform)XDFModelInterface.class.getClassLoader().loadClass(platformName).newInstance();
@@ -118,13 +119,13 @@ public class Util {
 		Environment localEnv = handleImportList(platform.createGlobalEnvironment(), importHandlers, imports, importMappers);
 
 		localEnv = createEnvironment(xpathEvalNodes("/XDF/Decl[@kind='Variable']", source), env, platform);
-		Context context = platform.context();
+		Configuration context = platform.configuration();
 
 		//
 		//		add processes
 		//
 
-		ExprEvaluator evaluator = new ExprEvaluator(context, localEnv);
+		Evaluator evaluator = new Evaluator(localEnv, context);
 
 		Map instanceMap = new HashMap();
 
@@ -147,7 +148,7 @@ public class Util {
 				//       environments, and since we use an ordinary map to pass the value down, we
 				//       need to evaluate it eagerly. Perhaps at some later point we could build
 				//       an implementation of Map that does lazy evaluation.
-				Object val = evaluator.evaluate(expr);
+				Object val = evaluator.valueOf(expr);
 				pars.put(name, val);
 			}
 
@@ -193,7 +194,7 @@ public class Util {
 						Object val = null;
 						if (eVal != null) {
 							net.sf.opendf.cal.ast.Expression expr = ASTFactory.buildExpression(eVal);
-							val = evaluator.evaluate(expr);
+							val = evaluator.valueOf(expr);
 						}
 						((Attributable)port).set(eAttr.getAttribute(attrName), val);
 					}
@@ -270,9 +271,9 @@ public class Util {
 // 		}
 	}
 	
-	private  static net.sf.opendf.cal.interpreter.environment.Environment  createEnvironment(NodeList decls, Map env, Platform platform) {
-		net.sf.opendf.cal.interpreter.environment.Environment wrappedEnv = new OldEnvironmentWrapper(env, platform.createGlobalEnvironment(), platform.context());
-		net.sf.opendf.cal.interpreter.environment.Environment localEnv = platform.context().newEnvironmentFrame(wrappedEnv);
+	private  static Environment  createEnvironment(NodeList decls, Map env, Platform platform) {
+		Environment wrappedEnv = new OldEnvironmentWrapper(env, platform.createGlobalEnvironment(), platform.configuration());
+		DynamicEnvironmentFrame localEnv = new DynamicEnvironmentFrame(wrappedEnv);
 		
 		// FIXME: handle imports
 		
@@ -283,7 +284,7 @@ public class Util {
 			net.sf.opendf.cal.ast.Expression expr = ASTFactory.buildExpression(eVal);
 			// NOTE: In order to allow out-of-order declaration of variables, we need to lazily evaluate
 			//       them. Therefore, thunks are used in building the local environment.
-			localEnv.bind(name, new SimpleThunk(expr, platform.context(), localEnv));
+			localEnv.bind(name, new Thunk(expr, new Evaluator(localEnv, platform.configuration()), localEnv), null);
 		}
 
 		return localEnv;

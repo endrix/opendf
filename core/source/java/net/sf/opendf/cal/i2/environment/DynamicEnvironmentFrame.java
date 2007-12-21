@@ -2,8 +2,10 @@ package net.sf.opendf.cal.i2.environment;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import net.sf.opendf.cal.i2.Environment;
 import net.sf.opendf.cal.i2.InterpreterException;
@@ -86,6 +88,13 @@ public class DynamicEnvironmentFrame extends AbstractEnvironment {
 		types.add(type);
 		
 		return vars.size() - 1;
+	}
+	
+	public Set  localVars() {
+		Set s = new HashSet();
+		for (Object v : vars)
+			s.add(v);
+		return s;
 	}
 	
 	public Map	localBindings() {

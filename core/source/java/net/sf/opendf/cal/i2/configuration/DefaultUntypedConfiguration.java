@@ -116,6 +116,44 @@ public class DefaultUntypedConfiguration implements Configuration {
 	public int intValue(Object v) {
 		return ((Number)v).intValue();
 	}
+	
+	public BigInteger  integerValue(Object v) {
+		if (v instanceof BigInteger) {
+			return (BigInteger)v;
+		} else {
+			return BigInteger.valueOf(((Number)v).longValue());
+		}
+	}
+	
+	public double  realValue(Object v) {
+		return ((Number)v).doubleValue();
+	}
+	
+	public String  stringValue(Object v) {
+		return String.valueOf(v);
+	}
+
+	public boolean isBoolean(Object a) {
+		return a instanceof Boolean;
+	}
+	
+	public boolean isInteger(Object a) {
+		return a instanceof BigInteger || a instanceof Long || a instanceof Integer || a instanceof Short;
+	}
+	
+	public boolean isReal(Object a) {
+		return a instanceof Number;
+	}
+	
+	public boolean isString(Object a) {
+		return a instanceof String;
+	}
+	
+	public boolean isList(Object a) {
+		return a instanceof List;
+	}
+	
+
 
 	public Object cond(Evaluator evaluator, ExprIf expr) {
 		if (booleanValue(evaluator.valueOf(expr.getCondition()))) {

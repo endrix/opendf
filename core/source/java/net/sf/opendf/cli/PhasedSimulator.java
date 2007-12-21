@@ -61,10 +61,11 @@ import java.util.logging.Level;
 import org.w3c.dom.Node;
 import org.w3c.dom.Element;
 
-import net.sf.opendf.cal.interpreter.ExprEvaluator;
-import net.sf.opendf.cal.interpreter.environment.Environment;
-import net.sf.opendf.cal.interpreter.util.DefaultPlatform;
-import net.sf.opendf.cal.interpreter.util.Platform;
+import net.sf.opendf.cal.i2.Environment;
+import net.sf.opendf.cal.i2.Evaluator;
+import net.sf.opendf.cal.i2.environment.DynamicEnvironmentFrame;
+import net.sf.opendf.cal.i2.platform.DefaultTypedPlatform;
+import net.sf.opendf.cal.i2.util.Platform;
 import net.sf.opendf.cal.util.SourceReader;
 import net.sf.opendf.cli.lib.EvaluatedStreamCallback;
 import net.sf.opendf.util.exception.ExceptionHandler;
@@ -290,7 +291,7 @@ public class PhasedSimulator {
     
     ClassLoader classLoader = new SimulationClassLoader(Simulator.class.getClassLoader(), modelPath, cachePath);
 
-    Platform platform = DefaultPlatform.thePlatform;
+    Platform platform = DefaultTypedPlatform.thePlatform;
 
     InputStream is = null;
     os = null;
@@ -448,15 +449,15 @@ public class PhasedSimulator {
                 
                 dec = createNetworkDEC(res, classLoader);
           } else {
-                Environment env = platform.context().newEnvironmentFrame(platform.createGlobalEnvironment());
-                env.bind("__ClassLoader", platform.context().fromJavaObject(classLoader));
-                ExprEvaluator evaluator = new ExprEvaluator(platform.context(), env);
+                DynamicEnvironmentFrame env = new DynamicEnvironmentFrame(platform.createGlobalEnvironment());
+                env.bind("__ClassLoader", platform.configuration().convertJavaResult(classLoader), null);
+                Evaluator evaluator = new Evaluator(env, platform.configuration());
             
                 Map paramValues = new HashMap();
                 paramValues.put("__ClassLoader", classLoader);
                 for (String var : params.keySet()) {
               
-                    Object value = evaluator.evaluate(SourceReader.readExpr(new StringReader((String)params.get(var))));
+                    Object value = evaluator.valueOf(SourceReader.readExpr(new StringReader((String)params.get(var))));
                         
                     paramValues.put(var, value);
                 }

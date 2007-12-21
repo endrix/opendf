@@ -57,12 +57,14 @@ import java.util.Map;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import net.sf.opendf.cal.ast.Expression;
-import net.sf.opendf.cal.interpreter.Context;
-import net.sf.opendf.cal.interpreter.ExprEvaluator;
-import net.sf.opendf.cal.interpreter.SimpleThunk;
-import net.sf.opendf.cal.interpreter.environment.Environment;
+import net.sf.opendf.cal.i2.Configuration;
+import net.sf.opendf.cal.i2.Environment;
+import net.sf.opendf.cal.i2.Evaluator;
+import net.sf.opendf.cal.i2.environment.DynamicEnvironmentFrame;
+import net.sf.opendf.cal.i2.environment.Thunk;
+import net.sf.opendf.cal.i2.platform.DefaultTypedPlatform;
+import net.sf.opendf.cal.i2.util.Platform;
 import net.sf.opendf.cal.interpreter.util.ASTFactory;
-import net.sf.opendf.cal.interpreter.util.Platform;
 import net.sf.opendf.cal.util.SourceReader;
 import net.sf.opendf.nl.util.DOMFactory;
 import net.sf.opendf.nl.util.IDGenerator;
@@ -207,7 +209,7 @@ public class Network {
 	private static final String  valSingle = "single";
 	
 	
-	public static Document  translate(Node nldoc, Environment env, Context context) {
+	public static Document  translate(Node nldoc, Environment env, Configuration context) {
 		Network n = new Network();
 		
 		Element name = xpathEvalElement("/Network/QID", nldoc);
@@ -228,7 +230,7 @@ public class Network {
 		
 		for (Element pd : xpathEvalElements("/Network/Decl[@kind='Parameter']", nldoc)) {
 			String var = pd.getAttribute(attrName);
-			Object val = env.get(var);
+			Object val = env.getByName(var);
 			addDeclarationToNetwork(var, renderObject(val, context, Network.domFactory), n);
 		}
 		
@@ -245,8 +247,8 @@ public class Network {
 		//
 		
 		NodeList vars = xpathEvalNodes("/Network/Decl[@kind='Variable']", nldoc);
-		Environment localEnv = context.newEnvironmentFrame(env);
-		ExprEvaluator eval = new ExprEvaluator(context, localEnv);
+		DynamicEnvironmentFrame localEnv = new DynamicEnvironmentFrame(env);
+		Evaluator eval = new Evaluator(localEnv, context);
 		for (int i = 0; i < vars.getLength(); i++) {
 			Element v = (Element)vars.item(i);
 			n.addNetworkElement((Element)n.importNode(v));
@@ -255,7 +257,7 @@ public class Network {
 			// NOTE: In order to allow out-of-order declaration of variables, we need to lazily evaluate
 			//       them. Therefore, thunks are used in building the local environment.
 			String nm = v.getAttribute("name");
-			localEnv.bind(nm, new SimpleThunk(expr, context, localEnv));
+			localEnv.bind(nm, new Thunk(expr, new Evaluator(localEnv, context), localEnv), null);
 		}
 				
 		//
@@ -290,7 +292,7 @@ public class Network {
  		
  		NodeList structureStmts = xpathEvalNodes("/Network/StructureStmt", nldoc);
  		StructureStmtEvaluator.Callback sseCallback = n.new MySSECallback();
- 		StructureStmtEvaluator sse = new StructureStmtEvaluator(localEnv,context, sseCallback, entityNames, idgen);
+ 		StructureStmtEvaluator sse = new StructureStmtEvaluator(localEnv, context, sseCallback, entityNames, idgen);
  		for (int i = 0; i < structureStmts.getLength(); i++) {
  			Element e = (Element) structureStmts.item(i);
  			sse.execute(e);
@@ -485,14 +487,14 @@ public class Network {
 		FileInputStream inputStream = new FileInputStream(fileName);
 		Document doc = Lib.readNL(fileName);
 
-		Platform platform = net.sf.opendf.cal.interpreter.util.DefaultPlatform.thePlatform;
-		Context context =  platform.context(); // FIXME: make this parametric
+		Platform platform = DefaultTypedPlatform.thePlatform;
+		Configuration context =  platform.configuration(); // FIXME: make this parametric
 
-		Environment env = context.newEnvironmentFrame(platform.createGlobalEnvironment());
-		ExprEvaluator evaluator = new ExprEvaluator(platform.context(), env);
+		DynamicEnvironmentFrame env = new DynamicEnvironmentFrame(platform.createGlobalEnvironment());
+		Evaluator evaluator = new Evaluator(env, platform.configuration());
 		for (String v : params.keySet()) {
-			Object value = evaluator.evaluate(SourceReader.readExpr(new StringReader((String)params.get(v))));
-			env.bind(v, value);
+			Object value = evaluator.valueOf(SourceReader.readExpr(new StringReader((String)params.get(v))));
+			env.bind(v, value, null);
 		}
 
 		String result = Util.createXML(translate(doc, env, context));

@@ -1,5 +1,6 @@
 package net.sf.opendf.cal.i2;
 
+import java.math.BigInteger;
 import java.util.List;
 
 import net.sf.opendf.cal.ast.ExprIf;
@@ -29,7 +30,17 @@ public interface Configuration {
 	
 	boolean booleanValue(Object v);
 	int     intValue(Object v);
+	BigInteger     integerValue(Object v);
+	double  realValue(Object v);
+	String  stringValue(Object v);
 	List    getList(Object v);
+	
+	
+	boolean isBoolean(Object a);
+	boolean isInteger(Object a);
+	boolean isReal(Object a);
+	boolean isString(Object a);
+	boolean isList(Object a);
 	
 	Object  cond(Evaluator evaluator, ExprIf expr);
 	

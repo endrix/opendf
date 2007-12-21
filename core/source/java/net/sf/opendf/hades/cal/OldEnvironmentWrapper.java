@@ -42,11 +42,11 @@ package net.sf.opendf.hades.cal;
 import java.util.Map;
 import java.util.Set;
 
-import net.sf.opendf.cal.interpreter.Context;
-import net.sf.opendf.cal.interpreter.InterpreterException;
-import net.sf.opendf.cal.interpreter.UndefinedVariableException;
-import net.sf.opendf.cal.interpreter.environment.AbstractEnvironment;
-import net.sf.opendf.cal.interpreter.environment.Environment;
+import net.sf.opendf.cal.i2.Configuration;
+import net.sf.opendf.cal.i2.Environment;
+import net.sf.opendf.cal.i2.ObjectSink;
+import net.sf.opendf.cal.i2.environment.AbstractEnvironment;
+import net.sf.opendf.cal.i2.types.Type;
 import net.sf.opendf.cal.interpreter.environment.HashEnvironment;
 
 
@@ -60,54 +60,62 @@ import net.sf.opendf.cal.interpreter.environment.HashEnvironment;
  */
 
 public class OldEnvironmentWrapper extends AbstractEnvironment {
+
 	
-	public Object get(Object variable) {
-		
-		if (outsideEnv.keySet().contains(variable)) {
-			return context.fromJavaObject(outsideEnv.get(variable));
-		} else if (parent != null) {
-			return parent.get(variable);
+	@Override
+	protected int localGet(Object var, ObjectSink s) {
+		if (outsideEnv.keySet().contains(var)) {
+			s.putObject(configuration.convertJavaResult(outsideEnv.get(var)));
+			return (int)NOPOS;
 		} else {
-			throw new UndefinedVariableException("Variable: "  + variable);
+			return (int)UNDEFINED;
 		}
 	}
-	
-	public void set(Object variable, Object value) {
+
+	@Override
+	protected void localGetByPos(int pos, ObjectSink s) {
+	}
+
+	@Override
+	protected Object localGetVariableName(int varPos) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	protected Type localGetVariableType(int varPos) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	protected int localSet(Object var, Object value) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	protected void localSetByPos(int varPos, Object value) {
+		// TODO Auto-generated method stub
 		
-		try {
-			outsideEnv.put(variable, value);
-		} catch (InterpreterException e) {
-			parent.set(variable, value);
-		}
 	}
 	
-	public void bind(Object variable, Object value) {
-		
-		outsideEnv.put(variable, value);
-	}
-	
-	public Set localVars() {
-		
-		return outsideEnv.keySet();
-	}
-	
-	public Environment newFrame(Environment parent) {
-		
-		return parent.newFrame(this);
-	}
-	
+	@Override
 	public void freezeLocal() {
+		// TODO Auto-generated method stub
+		
 	}
+
 	
-	public OldEnvironmentWrapper(Map outsideEnv, Environment parent, Context context) {
-		super(parent, context);
+	public OldEnvironmentWrapper(Map outsideEnv, Environment parent, Configuration configuration) {
+		super(parent);
 		
 		this.outsideEnv = outsideEnv;
-		this.context = context;
+		this.configuration = configuration;
 	}
 	
-	public OldEnvironmentWrapper(Map outsideEnv, Context context) {
-		this (outsideEnv, new HashEnvironment(context), context);
+	public OldEnvironmentWrapper(Map outsideEnv, Configuration configuration) {
+		this (outsideEnv, null, configuration);
 	}
 	
 	//
@@ -115,5 +123,5 @@ public class OldEnvironmentWrapper extends AbstractEnvironment {
 	//
 	
 	private Map outsideEnv;
-	private Context context;
+	private Configuration configuration;
 }

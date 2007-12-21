@@ -1,5 +1,8 @@
 package net.sf.opendf.cal.i2.environment;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import net.sf.opendf.cal.i2.Environment;
 import net.sf.opendf.cal.i2.ObjectSink;
 import net.sf.opendf.cal.i2.types.Type;
@@ -61,6 +64,17 @@ public class EnvironmentFrame extends AbstractEnvironment {
 	@Override
 	protected Type localGetVariableType(int varPos) {
 		return types[varPos];
+	}
+	
+	//
+	//  EnvironmentFrame
+	//
+	
+	public Map  localBindings() {
+		Map m = new HashMap();
+		for (int i = 0; i < vars.length; i++)
+			m.put(vars[i], values[i]);
+		return m;
 	}
 	
 	

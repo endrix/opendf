@@ -53,14 +53,14 @@ import java.util.Map;
 import net.sf.opendf.cal.ast.Decl;
 import net.sf.opendf.cal.ast.Expression;
 import net.sf.opendf.cal.ast.GeneratorFilter;
-import net.sf.opendf.cal.interpreter.Context;
-import net.sf.opendf.cal.interpreter.ExprEvaluator;
-import net.sf.opendf.cal.interpreter.environment.Environment;
-import net.sf.opendf.cal.interpreter.generator.CollectionGenerator;
-import net.sf.opendf.cal.interpreter.generator.Filter;
-import net.sf.opendf.cal.interpreter.generator.Generator;
-import net.sf.opendf.cal.interpreter.generator.Seed;
-import net.sf.opendf.cal.interpreter.generator.VariableGenerator;
+import net.sf.opendf.cal.i2.Configuration;
+import net.sf.opendf.cal.i2.Environment;
+import net.sf.opendf.cal.i2.Evaluator;
+import net.sf.opendf.cal.i2.generator.CollectionGenerator;
+import net.sf.opendf.cal.i2.generator.Filter;
+import net.sf.opendf.cal.i2.generator.Generator;
+import net.sf.opendf.cal.i2.generator.Seed;
+import net.sf.opendf.cal.i2.generator.VariableGenerator;
 import net.sf.opendf.cal.interpreter.util.ASTFactory;
 import net.sf.opendf.nl.util.DOMFactory;
 import net.sf.opendf.nl.util.IDGenerator;
@@ -103,7 +103,7 @@ public class EntityExprEvaluator {
 	    			Decl [] ds = gs[i].getVariables();
 	    			for (int j = 0; j < ds.length; j++) {
 	    				VariableGCB vgcb = new VariableGCB(cgcb);
-	    				g = new VariableGenerator(g, context, ds[j].getName(), GeneratorCollectionVar, vgcb);
+	    				g = new VariableGenerator(g, ds[j].getName(), GeneratorCollectionVar, vgcb);
 	    			}
 	    			Expression [] filters = gs[i].getFilters();
 	    			if (filters != null) {
@@ -135,8 +135,8 @@ public class EntityExprEvaluator {
 			}
 		} else if(valIf.equals(kind)) {
 			Expression cond = ASTFactory.buildExpression(xpathEvalElement("Expr", expr));
-			ExprEvaluator evaluator = new ExprEvaluator(context, env);
-			boolean b = context.booleanValue(evaluator.evaluate(cond));
+			Evaluator evaluator = new Evaluator(env, context);
+			boolean b = context.booleanValue(evaluator.valueOf(cond));
 			List<Element> branches = xpathEvalElements("EntityExpr", expr);
 			assert branches.size() == 2;
 			
@@ -148,7 +148,7 @@ public class EntityExprEvaluator {
 
 	private final static String GeneratorCollectionVar = "$generator$collection$";
 
-	public EntityExprEvaluator(Environment env, Context context, Callback callback, Map<String, ClassName> entityClassMap, IDGenerator idgen) {
+	public EntityExprEvaluator(Environment env, Configuration context, Callback callback, Map<String, ClassName> entityClassMap, IDGenerator idgen) {
 		this.env = env;
 		this.context = context;
 		this.callback = callback;
@@ -165,7 +165,7 @@ public class EntityExprEvaluator {
 	}
 	
 	private Environment 			env;
-	private Context 				context;
+	private Configuration			context;
 	private Callback				callback;
 	private CascadedMap<String, String>		substitutions;
 	private IDGenerator				idgen;

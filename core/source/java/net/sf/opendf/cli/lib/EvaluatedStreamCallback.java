@@ -45,9 +45,9 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 
 import net.sf.opendf.cal.ast.Expression;
-import net.sf.opendf.cal.interpreter.ExprEvaluator;
-import net.sf.opendf.cal.interpreter.environment.Environment;
-import net.sf.opendf.cal.interpreter.util.Platform;
+import net.sf.opendf.cal.i2.Environment;
+import net.sf.opendf.cal.i2.Evaluator;
+import net.sf.opendf.cal.i2.util.Platform;
 import net.sf.opendf.cal.util.SourceReader;
 import net.sf.opendf.hades.simulation.IOCallback;
 import net.sf.opendf.util.logging.Logging;
@@ -158,10 +158,10 @@ public class EvaluatedStreamCallback extends IOCallback
         }
 
         Object evaluatedValue = null;
-    	ExprEvaluator eval = new ExprEvaluator(this.platform.context(), this.evalEnvironment);
+    	Evaluator eval = new Evaluator(this.evalEnvironment, this.platform.configuration());
         try
         {
-            evaluatedValue = eval.evaluate(expr);
+            evaluatedValue = eval.valueOf(expr);
         }
         catch (Exception e)
         {
