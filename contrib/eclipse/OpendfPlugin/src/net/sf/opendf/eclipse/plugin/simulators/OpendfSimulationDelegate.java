@@ -56,6 +56,27 @@ import java.lang.Runnable;
 
 public class OpendfSimulationDelegate implements ILaunchConfigurationDelegate 
 {
+  
+  public static MessageConsole findOrCreateConsole( String name )
+  {
+    IConsoleManager manager = ConsolePlugin.getDefault().getConsoleManager();
+    IConsole existing[] = manager.getConsoles();
+    
+    for( int i=0; i< existing.length; i++ )
+    {
+      if( name.equals( existing[i].getName() ) )
+      {
+        return (MessageConsole) existing[i];
+      }
+    }
+    
+    MessageConsole console = new MessageConsole( name, null );
+    manager.addConsoles( new IConsole[]{ console } );
+    
+    return console;
+    
+  }
+  
   private MessageConsoleStream status;  // Launch progress
   private MessageConsoleStream error;   // Simulator error messages
   private MessageConsoleStream info;    // Simulator info messages
@@ -69,8 +90,8 @@ public class OpendfSimulationDelegate implements ILaunchConfigurationDelegate
   
   private void attachConsole()
   {
-    MessageConsole outputConsole = OpendfPlugin.getDefault().findConsole( "Simulation Output" );
-    statusConsole = OpendfPlugin.getDefault().findConsole( "Simulation Status" );
+    MessageConsole outputConsole = findOrCreateConsole( "Simulation Output" );
+    statusConsole = findOrCreateConsole( "Simulation Status" );
     
     status = statusConsole.newMessageStream();
     error  = statusConsole.newMessageStream();

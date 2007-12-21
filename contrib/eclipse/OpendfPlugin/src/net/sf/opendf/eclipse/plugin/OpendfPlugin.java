@@ -44,9 +44,7 @@ import org.eclipse.jface.resource.ImageDescriptor;
 import org.osgi.framework.BundleContext;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Color;
 import java.util.*;
-import org.eclipse.swt.SWT;
 
 public class OpendfPlugin extends AbstractUIPlugin
 {
@@ -172,24 +170,5 @@ public class OpendfPlugin extends AbstractUIPlugin
     
     return null;
   }
-  
-  public MessageConsole findConsole( String name )
-  {
-    IConsoleManager manager = ConsolePlugin.getDefault().getConsoleManager();
-    IConsole existing[] = manager.getConsoles();
-    
-    for( int i=0; i< existing.length; i++ )
-    {
-      if( name.equals( existing[i].getName() ) )
-      {
-        return (MessageConsole) existing[i];
-      }
-    }
-    
-    MessageConsole console = new MessageConsole( name, null );
-    manager.addConsoles( new IConsole[]{ console } );
-    
-    return console;
-    
-  }
+
 }

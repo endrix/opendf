@@ -113,9 +113,14 @@ public class NLContentOutlineProvider extends OpendfContentOutlineProvider
     
     return end;
   }  
-  public void updateDocument( Node document )
+  public void updateDocument( Node docNode )
   {
-    Element network = (Element) document.getFirstChild(); // .getDocumentElement();
+    
+    if( ! ( docNode instanceof Document ) ) return;
+    
+    Document document = (Document) docNode;
+ 
+    Element network = (Element) document.getDocumentElement();
 
     if( ! network.getTagName().equals( NETWORK_TAG ) )
     {
