@@ -32,7 +32,7 @@ public class Lib {
 		pw.println("<step ID='" + s.getID() 
 				+ "' actor-name='" + s.getActorClassName()
 				+ "' actor-id='" + s.getActorId() 
-				+ "' action='" + s.getAction() + "'>");
+				+ "' action='" + s.getActionId() + "'>");
 		for (Iterator i = s.preset().iterator(); i.hasNext(); ) {
 			Integer n = (Integer)i.next();
 			pw.println("<dependency source='" + n + "'/>");

@@ -53,7 +53,7 @@ public class StatTrace {
 		for (Iterator i = t.stepsIterator(); i.hasNext(); ) {
 			Integer sid = (Integer)i.next();
 			Step s = t.getStep(sid);
-			StatKey k = new StatKey(s.getActorClassName(), s.getActorId(), s.getAction(), s.getTag());
+			StatKey k = new StatKey(s.getActorClassName(), s.getActorId(), s.getActionId(), s.getTag());
 			Long n = (Long)m.get(k);
 			long count = (n == null) ? 0 : n.longValue();
 			m.put(k, new Long(count + 1));

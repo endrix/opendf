@@ -20,16 +20,19 @@ public class Trace {
 	public void addStep(Step s) {
 		steps.put(s.getID(), s);
 		if (rootId == null)
-			rootId = (Integer)s.getID();
+			rootId = s.getID();
 	}
 	
-	public Set removeInitialStep(Step s) {
+	public SortedMap<Integer, Step>  getSteps() {
+		return steps;
+	}
+	
+	public Set<Step> removeInitialStep(Step s) {
 		if (!s.preset().isEmpty())
 			throw new RuntimeException("Attempting to remove non-initial step.");
 		
-		Set newInitialSteps = new HashSet();
-		for (Iterator i = s.postset().iterator(); i.hasNext(); ) {
-			Integer id = (Integer)i.next();
+		Set<Step> newInitialSteps = new HashSet<Step>();
+		for (Integer id : s.postset()) {
 			Step b = getStep(id);
 			b.removePreStep(s);
 			if (b.preset().isEmpty())
@@ -42,10 +45,9 @@ public class Trace {
 	}
 	
 	public Set initialSteps() {
-		Set is = new HashSet();
-		for (Iterator i = steps.keySet().iterator(); i.hasNext(); ) {
-			Object sid = i.next();
-			Step s = (Step)steps.get(sid);
+		Set<Step> is = new HashSet<Step>();
+		for (Integer sid : steps.keySet()) {
+			Step s = steps.get(sid);
 			if (s.preset().isEmpty())
 				is.add(s);
 		}
@@ -81,7 +83,7 @@ public class Trace {
 		return getStep(rootId);
 	}
 	
-	public Iterator stepsIterator() {
+	public Iterator<Integer> stepsIterator() {
 		return steps.keySet().iterator();
 	}
 	
@@ -91,13 +93,13 @@ public class Trace {
 	
 	public Trace(boolean reduceDeps) {
 		this.reduceDeps = reduceDeps;
-		steps = new TreeMap();
-		deps = new ArrayList();
+		steps = new TreeMap<Integer, Step>();
+		deps = new ArrayList<Dependency>();
 	}
 		
 
-	private SortedMap  steps;
-	private List deps;
+	private SortedMap<Integer, Step>  steps;
+	private List<Dependency> deps;
 	private Integer rootId = null;
 	private boolean reduceDeps;
 }

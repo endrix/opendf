@@ -17,7 +17,7 @@ import java.util.TreeSet;
 
 public class Step {
 	
-	public Integer  getID() {
+	public int  getID() {
 		return id;
 	}
 	
@@ -29,8 +29,16 @@ public class Step {
 		return actorId;
 	}
 	
-	public int  getAction() {
+	public int  getActionId() {
 		return action;
+	}
+	
+	public Action getAction() {
+		return new Action(this);
+	}
+	
+	public ActionClass  getActionClass() {
+		return new ActionClass(actorClassName, action);
 	}
 	
 	public String  getKind() { 
@@ -41,9 +49,9 @@ public class Step {
 		return tag;
 	}
 	
-	public void  addPreStep(Integer stepID) {
+	public void  addPreStep(int stepID) {
 		if (preset == null)
-			preset = new TreeSet();
+			preset = new TreeSet<Integer>();
 		preset.add(stepID);
 	}
 	
@@ -51,7 +59,7 @@ public class Step {
 		addPreStep(s.getID());
 	}
 	
-	public void  removePreStep(Integer stepID) {
+	public void  removePreStep(int stepID) {
 		if (preset == null || !preset.contains(stepID))
 			throw new RuntimeException("Attempting to remove non-existing prestep.");
 		preset.remove(stepID);
@@ -63,7 +71,7 @@ public class Step {
 	
 	public void  addPostStep(Integer stepID) {
 		if (postset == null)
-			postset = new TreeSet();
+			postset = new TreeSet<Integer>();
 		postset.add(stepID);
 	}
 	
@@ -97,11 +105,11 @@ public class Step {
 		return precedes(s.getID());
 	}
 	
-	public Set preset() {
+	public Set<Integer> preset() {
 		return (preset == null) ? Collections.EMPTY_SET : preset;
 	}
 	
-	public Set postset() {
+	public Set<Integer> postset() {
 		return (postset == null) ? Collections.EMPTY_SET : postset;
 	}
 	
@@ -137,15 +145,15 @@ public class Step {
 	
 	
 	
-	public  Step(Integer id, String actorClassName, int actorId, int action, String kind, String tag) {
+	public  Step(int id, String actorClassName, int actorId, int action, String kind, String tag) {
 		this (id, actorClassName, actorId, action, null, kind, tag);
 	}
 	
-	public  Step(Integer id, String actorClassName, int actorId, int action, String kind, String tag, boolean reduceDependencies) {
+	public  Step(int id, String actorClassName, int actorId, int action, String kind, String tag, boolean reduceDependencies) {
 		this (id, actorClassName, actorId, action, null, kind, tag);
 	}
 	
-	public  Step(Integer id, String actorClassName, int actorId, int action, String specialKind, String kind, String tag) {
+	public  Step(int id, String actorClassName, int actorId, int action, String specialKind, String kind, String tag) {
 		this.id = id;
 		this.actorClassName = actorClassName;
 		this.actorId = actorId;
@@ -156,7 +164,7 @@ public class Step {
 		this.tag = tag;
 	}
 	
-	private Integer id;
+	private int id;
 	private String actorClassName;
 	private int  actorId;
 	private int  action;
@@ -165,9 +173,11 @@ public class Step {
 	private String kind;
 	private String tag;
 
-	private Set   preset = null;
-	private Set   postset = null;
+	private Set<Integer>   preset = null;
+	private Set<Integer>   postset = null;
 	
 	private Map   attributes = null;
+	
+	
 }
 

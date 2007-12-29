@@ -1,6 +1,6 @@
 package net.sf.opendf.profiler.schedule.data;
 
-import net.sf.opendf.profiler.schedule.data.ActionClass;
+import net.sf.opendf.profiler.data.ActionClass;
 import net.sf.opendf.profiler.schedule.Duration;
 
 /**

@@ -9,13 +9,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import net.sf.opendf.profiler.schedule.data.Action;
-import net.sf.opendf.profiler.schedule.data.ActionClass;
 import net.sf.opendf.profiler.schedule.data.ClassMapping;
 import net.sf.opendf.profiler.schedule.data.InstanceMapping;
 import net.sf.opendf.profiler.schedule.data.Resource;
 import net.sf.opendf.profiler.schedule.data.ResourceConfiguration;
 import net.sf.opendf.profiler.schedule.data.ResourceConstraint;
+import net.sf.opendf.profiler.data.Action;
+import net.sf.opendf.profiler.data.ActionClass;
 import net.sf.opendf.profiler.data.Step;
 
 /**
@@ -45,7 +45,7 @@ public class BasicResourceScheduler implements ResourceScheduler {
 				// if resource not currently assigned
 				assignResource(s, r);
 				
-				Action a = new Action(s.getActorId(), s.getActorClassName(), s.getAction());
+				Action a = new Action(s.getActorId(), s.getActorClassName(), s.getActionId());
 				List imappings = (List)this.instanceMapping.get(a);
 				if (imappings != null) {
 					for (Iterator j = imappings.iterator(); j.hasNext(); ) {
@@ -55,7 +55,7 @@ public class BasicResourceScheduler implements ResourceScheduler {
 						}
 					}
 				}
-				ClassMapping cm = (ClassMapping)classMapping.get(new ActionClass(s.getActorClassName(), s.getAction()));
+				ClassMapping cm = (ClassMapping)classMapping.get(new ActionClass(s.getActorClassName(), s.getActionId()));
 				// assert cm == null || r.classID == cm.resourceClassID; FIXME: allow client-side multiplexing
 				return new ResourceRequestResult(currentTime.add(cm == null ? Duration.ONE : cm.initiationInterval), currentTime.add(cm == null ? Duration.ONE : cm.latency), r);			
 			}
@@ -153,7 +153,7 @@ public class BasicResourceScheduler implements ResourceScheduler {
 	
 	private ResourceRequestResult  findFreeResource(Step s, Time tm) {
 		
-		Action a = new Action(s.getActorId(), s.getActorClassName(), s.getAction());
+		Action a = new Action(s.getActorId(), s.getActorClassName(), s.getActionId());
 		List imappings = (List)this.instanceMapping.get(a);
 		if (imappings != null) {
 			for (Iterator i = imappings.iterator(); i.hasNext(); ) {
@@ -173,10 +173,10 @@ public class BasicResourceScheduler implements ResourceScheduler {
 		
 		// no instance mappings, or none of the instance-mapped resources were available
 		
-		ClassMapping cm = (ClassMapping)classMapping.get(new ActionClass(s.getActorClassName(), s.getAction()));
+		ClassMapping cm = (ClassMapping)classMapping.get(new ActionClass(s.getActorClassName(), s.getActionId()));
 		
 		if (cm == null && imappings == null) {
-			cm = new ClassMapping(s.getActorClassName(), s.getAction(), "DEFAULT--" + s.getActorClassName() + ":" + s.getAction(), Duration.ONE);
+			cm = new ClassMapping(s.getActorClassName(), s.getActionId(), "DEFAULT--" + s.getActorClassName() + ":" + s.getActionId(), Duration.ONE);
 		}
 		else if (imappings != null) 
 			return new ResourceRequestResult();
@@ -225,7 +225,7 @@ public class BasicResourceScheduler implements ResourceScheduler {
 		
 		currentAssignment.put(s,r);
 		revCurrentAssignment.put(r,s);
-		Action a = new Action(s.getActorId(), s.getActorClassName(), s.getAction());
+		Action a = new Action(s.getActorId(), s.getActorClassName(), s.getActionId());
 
 		Set resources = (Set)mapping.get(a);
 		if (resources == null) {

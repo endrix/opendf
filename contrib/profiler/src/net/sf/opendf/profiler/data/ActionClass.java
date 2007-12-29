@@ -1,11 +1,11 @@
-package net.sf.opendf.profiler.schedule.data;
+package net.sf.opendf.profiler.data;
 
 /**
  * 
  * @author jornj
  */
 
-public class ActionClass {
+public class ActionClass implements Comparable<ActionClass> {
 	public String		actorClassName;
 	public int          action;
 	
@@ -28,5 +28,15 @@ public class ActionClass {
 	public String  toString() {
 		return "(" + actorClassName + ":" + action + ")";
 	}
+
+
+	public int compareTo(ActionClass o) {
+		int n = actorClassName.compareTo(o.actorClassName);
+		if (n == 0)
+			return action - o.action;
+		else
+			return n;
+	}
+
 }
 
