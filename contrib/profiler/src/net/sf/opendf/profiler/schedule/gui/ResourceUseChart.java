@@ -38,7 +38,6 @@ import org.xml.sax.helpers.DefaultHandler;
 import net.sf.opendf.profiler.schedule.data.ClassMapping;
 import net.sf.opendf.profiler.schedule.data.Resource;
 import net.sf.opendf.profiler.schedule.data.ResourceConstraint;
-import net.sf.opendf.profiler.schedule.gui.GanttDemo2.MilliDateFormat;
 import net.sf.opendf.util.logging.Logging;
 
 
