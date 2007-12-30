@@ -15,7 +15,7 @@ import java.util.TreeMap;
  * @author jornj
  */
 
-public class Trace {
+public class Trace extends AttributeCarrier {
 	
 	public void addStep(Step s) {
 		steps.put(s.getID(), s);
@@ -86,20 +86,22 @@ public class Trace {
 	public Iterator<Integer> stepsIterator() {
 		return steps.keySet().iterator();
 	}
-	
+		
 	public Trace() {
-		this (true);
-	}
-	
-	public Trace(boolean reduceDeps) {
-		this.reduceDeps = reduceDeps;
 		steps = new TreeMap<Integer, Step>();
-		deps = new ArrayList<Dependency>();
 	}
 		
-
 	private SortedMap<Integer, Step>  steps;
-	private List<Dependency> deps;
 	private Integer rootId = null;
-	private boolean reduceDeps;
+	
+	@Override
+	public Object clone() {
+		Trace t = new Trace();
+		t.cloneAttributes(this);
+		t.rootId = rootId;
+		for (Integer id : steps.keySet()) {
+			t.steps.put(id, (Step)steps.get(id).clone());
+		}
+		return t;
+	}
 }

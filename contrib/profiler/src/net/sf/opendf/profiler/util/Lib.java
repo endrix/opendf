@@ -6,10 +6,13 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.List;
 
 import net.sf.opendf.profiler.data.Dependency;
 import net.sf.opendf.profiler.data.Step;
 import net.sf.opendf.profiler.data.Trace;
+import net.sf.opendf.profiler.data.Action;
+import net.sf.opendf.profiler.data.ActionClass;
 
 /**
  * 
@@ -38,12 +41,56 @@ public class Lib {
 			pw.println("<dependency source='" + n + "'/>");
 		}
 		Map a = s.attributes();
-		for (Iterator i = a.keySet().iterator(); i.hasNext(); ) {
-			Object k = i.next();
-			pw.println("<attribute name='" + k + "' value='" + a.get(k) + "'/>");
+		for (Object k : a.keySet()) {
+			Object v = a.get(k);
+			pw.println("<attribute name='" + k + "'>");
+			writeObject(pw, v);
+			pw.println("</attribute>");
 		}
 		pw.println("</step>");
-		
+	}
+	
+	private static void  writeObject(PrintWriter pw, Object v) {
+		if (v instanceof Integer) {
+			pw.println("  <Integer value='" + v.toString() + "'/>");	
+		} else if (v instanceof Number) {
+			pw.println("  <Real value='" + v + "'/>");
+		} else if (v instanceof String) {
+			pw.println("  <String value='" + v + "'/>");
+		} else if (v instanceof List) {
+			pw.println("  <List>");
+			for (Object e : (List)v) {
+				writeObject(pw, e);
+			}
+			pw.println("  </List>");
+		} else if (v instanceof Set) {
+			pw.println("  <Set>");
+			for (Object e : (Set)v) {
+				writeObject(pw, e);
+			}
+			pw.println("  </Set>");
+		} else if (v instanceof Map) {
+			pw.println("  <Map>");
+			for (Object k : ((Map)v).keySet()) {
+				pw.println("  <Mapping>");
+				writeObject(pw, k);
+				writeObject(pw, ((Map)v).get(k));
+				pw.println("  </Mapping>");				
+			}
+			pw.println("  </Map>");
+		} else if (v instanceof Action) {
+			Action a = (Action)v;
+			pw.println("  <Action actorID='" + a.actorID +  "' actionID='" + a.actionClass.action + "' actorClass='" + a.actionClass.actorClassName + "'/>");
+		} else if (v instanceof ActionClass) {
+			ActionClass ac = (ActionClass)v;
+			pw.println("  <ActionClass actionID='" + ac.action + "' actorClass='" + ac.actorClassName + "'/>");
+		} else {
+			if (v == null) {
+				pw.println("  <Null/>");
+			} else {
+				pw.println("  <Object class='" + v.getClass().getName() + "' toString='" + v.toString() + "'/>");
+			}
+		}
 	}
 	
 	public static void  inputSequentializeTrace(Trace t, String sourceClassName, int sourceID) {

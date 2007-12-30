@@ -11,7 +11,7 @@ import java.util.Set;
 import net.sf.opendf.profiler.schedule.data.ResourceConfiguration;
 import net.sf.opendf.profiler.data.Step;
 import net.sf.opendf.profiler.data.Trace;
-import net.sf.opendf.profiler.parser.TraceParser;
+import net.sf.opendf.profiler.io.TraceParser;
 import net.sf.opendf.profiler.schedule.BasicResourceScheduler;
 import net.sf.opendf.profiler.schedule.ResourceScheduler;
 import net.sf.opendf.profiler.schedule.ScheduleOutput;

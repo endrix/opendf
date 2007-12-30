@@ -15,7 +15,7 @@ import java.util.TreeSet;
  * @author jornj
  */
 
-public class Step {
+public class Step extends AttributeCarrier {
 	
 	public int  getID() {
 		return id;
@@ -113,43 +113,9 @@ public class Step {
 		return (postset == null) ? Collections.EMPTY_SET : postset;
 	}
 	
-	public void setAttribute(Object k, Object v) {
-		if (attributes == null) {
-			attributes = new HashMap();
-		}
-		attributes.put(k, v);
-	}
-	
-	public Object getAttribute(Object k) {
-		if (attributes == null) {
-			return null;
-		} else {
-			return attributes.get(k);
-		}
-	}
-	
-	public boolean hasAttribute(Object k) {
-		if (attributes == null)
-			return false;
-		return attributes.containsKey(k);
-	}
-	
-	public Map  attributes() {
-		if (attributes == null) {
-			return Collections.EMPTY_MAP;
-		} else {
-			return attributes;
-		}
-	}
-	
-	
 	
 	
 	public  Step(int id, String actorClassName, int actorId, int action, String kind, String tag) {
-		this (id, actorClassName, actorId, action, null, kind, tag);
-	}
-	
-	public  Step(int id, String actorClassName, int actorId, int action, String kind, String tag, boolean reduceDependencies) {
 		this (id, actorClassName, actorId, action, null, kind, tag);
 	}
 	
@@ -176,8 +142,14 @@ public class Step {
 	private Set<Integer>   preset = null;
 	private Set<Integer>   postset = null;
 	
-	private Map   attributes = null;
-	
-	
+	public Object clone() {
+		Step s = new Step(id, actorClassName, actorId, action, specialKind, kind, tag);
+		s.cloneAttributes(this);
+		s.preset = new HashSet<Integer>();
+		if (preset != null) s.preset.addAll(preset);
+		s.postset = new HashSet<Integer>();
+		if (postset != null) s.postset.addAll(postset);
+		return s;
+	}
 }
 

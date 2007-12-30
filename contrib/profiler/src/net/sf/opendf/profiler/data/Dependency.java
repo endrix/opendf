@@ -6,7 +6,7 @@ import java.util.Map;
  * 
  * @author jornj
  */
-public class Dependency {
+public class Dependency extends AttributeCarrier {
 	
 	public Integer  getSource() {
 		return source;

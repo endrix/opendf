@@ -10,7 +10,7 @@ import java.util.Set;
 
 import net.sf.opendf.profiler.data.Step;
 import net.sf.opendf.profiler.data.Trace;
-import net.sf.opendf.profiler.parser.TraceParser;
+import net.sf.opendf.profiler.io.TraceParser;
 
 /**
  * 
