@@ -29,7 +29,7 @@ OPENDF_CLI_SOURCES = $(shell find $(OPENDF_HOME)/source/java/net/sf/opendf/cli -
 OPENDF_XSLT_SOURCES = $(shell find $(OPENDF_HOME)/source/java/net/sf/opendf/xslt -name "*.java")
 
 CONTRIB_DIR = $(OPENDF_HOME)/../contrib/actorlib
-CONTRIB_SOURCES = $(shell find $(CONTRIB_DIR) -name "*.java")
+CONTRIB_SOURCES = $(shell find $(CONTRIB_DIR) -name "eclipse" -prune -o -name "*.java" -print)
 
 jar: $(OPENDF_CLASSDIR)
 	cd $(OPENDF_CLASSDIR) ; $(JAR) -xvf ../../contrib/actorlib/lib/PtPlot.jar
