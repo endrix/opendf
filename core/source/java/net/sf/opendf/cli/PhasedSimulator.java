@@ -287,7 +287,7 @@ public class PhasedSimulator {
     
     // Register a listener which will report any issues in loading
     // back to the user.
-    XSLTProcessCallbacks.registerProblemListener(reportListener);
+    XSLTProcessCallbacks.registerListener(XSLTProcessCallbacks.SEMANTIC_CHECKS, reportListener);
     
     ClassLoader classLoader = new SimulationClassLoader(Simulator.class.getClassLoader(), modelPath, cachePath);
 
@@ -318,12 +318,13 @@ public class PhasedSimulator {
       ExceptionHandler handler = new ReportingExceptionHandler();
       handler.process(t);
       failed = true;
-      XSLTProcessCallbacks.removeProblemListener(reportListener); // cleanup
+      // Cleanup
+      XSLTProcessCallbacks.removeListener(XSLTProcessCallbacks.SEMANTIC_CHECKS, reportListener);
       return false;
     }
     
     // No longer needed.
-    XSLTProcessCallbacks.removeProblemListener(reportListener);
+    XSLTProcessCallbacks.removeListener(XSLTProcessCallbacks.SEMANTIC_CHECKS, reportListener);
     
     return true;
 	}
@@ -441,13 +442,13 @@ public class PhasedSimulator {
     DiscreteEventComponent dec = null;
         try {
           if (elaborate) {
-            Node res = Util.elaborate(actorClass, modelPath, classLoader, params);
-            
-                res = applyTransformsAsResources(res, Elaborator.postElaborationTransformNames);
+              Node res = Util.elaborate(actorClass, modelPath, classLoader, params, false, false);
+              
+//               res = applyTransformsAsResources(res, Elaborator.postElaborationTransformNames);
                 
-                Logging.user().info("Network successfully elaborated.");
-                
-                dec = createNetworkDEC(res, classLoader);
+              Logging.user().info("Network successfully elaborated.");
+              
+              dec = createNetworkDEC(res, classLoader);
           } else {
                 DynamicEnvironmentFrame env = new DynamicEnvironmentFrame(platform.createGlobalEnvironment());
                 env.bind("__ClassLoader", platform.configuration().convertJavaResult(classLoader), null);
@@ -593,7 +594,7 @@ public class PhasedSimulator {
     // A listener that is registered to pick up semantic check reports
     // from CAL or NL source reading.  This class allows suppression
     // of any report based on values passed in via --suppress-message
-    private final ProblemListenerIF reportListener = new ProblemListenerIF()
+    private final NodeListenerIF reportListener = new NodeListenerIF()
         {
             public void report (Node report, String message)
             {

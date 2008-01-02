@@ -3,11 +3,10 @@ package net.sf.opendf.cli;
 import static net.sf.opendf.cli.Util.createActorParameters;
 import static net.sf.opendf.cli.Util.initializeLocators;
 import static net.sf.opendf.util.xml.Util.applyTransformAsResource;
+import static net.sf.opendf.util.xml.Util.applyTransformsAsResources;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -24,7 +23,7 @@ import org.w3c.dom.Node;
 
 public class Util {
 
-	static Node createActorParameters(Map<String, String> params) throws ParserConfigurationException {
+	public static Node createActorParameters(Map<String, String> params) throws ParserConfigurationException {
         DOMImplementation domImpl = net.sf.opendf.util.xml.Util.getDefaultImplementation().getDocumentBuilder().getDOMImplementation();
 	    Document doc = domImpl.createDocument("", "Parameters", null);
 	    
@@ -38,7 +37,7 @@ public class Util {
 		return doc.getDocumentElement();
 	}
 
-	static String []  extractPath(String p) {
+	public static String []  extractPath(String p) {
 		List<String> paths = new ArrayList<String>();
 		boolean done = false;
 		String r = p;
@@ -60,7 +59,7 @@ public class Util {
 		return paths.toArray(new String [paths.size()]);
 	}
 
-	static void  initializeLocators(String [] modelPath, ClassLoader classLoader) {
+	public static void  initializeLocators(String [] modelPath, ClassLoader classLoader) {
 	
 		StreamLocator [] sl = new StreamLocator[modelPath.length + 1];
 		for (int i = 0; i < modelPath.length; i++) {
@@ -71,7 +70,9 @@ public class Util {
 		Loading.setLocators(sl);
 	}
 	
-	static Node elaborate(String networkClass, String [] modelPath, ClassLoader classLoader, Map<String, String> params) throws Exception {
+	public static Node elaborate(String networkClass, String [] modelPath, ClassLoader classLoader, Map<String, String> params, boolean postProcess, boolean inline) throws Exception
+    {
+
 		initializeLocators(modelPath, classLoader);
 
 		Node doc = Loading.loadActorSource(networkClass);
@@ -83,11 +84,65 @@ public class Util {
 			    new String [] {"actorParameters"}, new Object [] {createActorParameters(params)});
 
         res = applyTransformAsResource(res, elaborationTransformName);
+        res = applyTransformsAsResources(res, postElaborationTransformNames);
+
+        if (postProcess)
+        {
+            List<String> postElabXForms = new ArrayList();
+            if (inline) postElabXForms.addAll(Arrays.asList(inlineTransforms));
+            postElabXForms.addAll(Arrays.asList(postInlineTransforms));
+            String[] postElabXFormsArray = postElabXForms.toArray(new String[1]);
+            res = applyTransformsAsResources(res, postElabXFormsArray);
+        }
 
         return res;
 	}
 
     private static final String inlineParametersTransformName = "net/sf/opendf/transforms/InlineParameters.xslt";
     private static final String elaborationTransformName = "net/sf/opendf/transforms/Elaborate.xslt";
+	static final String [] postElaborationTransformNames = {
+		"net/sf/opendf/transforms/xdfFlatten.xslt",
+
+        // For now the conversion of xmlElement to attributes must be
+        // done before the attribute folding.  The TypedContext does
+        // not yet handle Maps in evaluation making it impossible to
+        // extract the data from the folding function.
+		"net/sf/opendf/transforms/xdfBuildXMLAttribute.xslt",
+		"net/sf/opendf/transforms/xdfFoldAttributes.xslt",
+        
+        "net/sf/opendf/cal/transforms/xlim/AddDirectives.xslt"
+    };
+    static final String [] inlineTransforms = { "net/sf/opendf/cal/transforms/Inline.xslt" };
+    static final String [] postInlineTransforms = {
+        "net/sf/opendf/cal/transforms/AddID.xslt",
+        "net/sf/opendf/cal/transforms/xlim/SetActorParameters.xslt",
+        
+        // Apply transforms to set up conditions for expr evaluation.
+        // These are duplicated in the Actor context (where it is done
+        // during initial loading) but they need to be run for
+        // expressions in the XDF domain (including those introduced
+        // by attribute folding).
+        "net/sf/opendf/cal/transforms/ContextInfoAnnotator.xslt",  // Adds an attribute to Unary/Binary Ops with the function name for each operator (bitand for &, $eq for =, etc)
+        "net/sf/opendf/cal/transforms/CanonicalizeOperators.xslt", // Converts Unary/Binary Ops to the attributed named function application.
+        "net/sf/opendf/cal/transforms/AnnotateFreeVars.xslt",      // Generate freeVar notes indicating the name of each free variable
+        "net/sf/opendf/cal/transforms/DependencyAnnotator.xslt",   // Adds a dependency note indicating the name of vars (same scope) it depends on (and if they are lazy).  Requied for the VariableSorter
+        "net/sf/opendf/cal/transforms/VariableSorter.xslt",        // Re-orders variable declarations based on dependencies
+        
+        // EvaluateConstantExpressions depends on the annotations
+        // provided by AnnotateDecls.
+        "net/sf/opendf/cal/transforms/VariableAnnotator.xslt",     // Adds var-ref notes w/ id of the Decl for that var
+        "net/sf/opendf/cal/transforms/xlim/AnnotateDecls.xslt",    // Adds declAnn notes with id of the enclosing scope
+        "net/sf/opendf/cal/transforms/EvaluateNetworkExpressions.xslt", // Evaluates non-typed constants in attributes and parameters
+        "net/sf/opendf/cal/transforms/EvaluateConstantExpressions.xslt",
+
+        // Do not report errors at this point.  There may be some
+        // based on a lack of type information.  This will be resolved
+        // by the code generators by adding default type information
+        //"net/sf/opendf/cal/checks/problemSummary.xslt",
+        // Since we are ignoring them (for now) strip them out
+        "net/sf/opendf/cal/transforms/stripExprEvalReports.xslt",
+        
+        "net/sf/opendf/cal/transforms/EliminateDeadCode.xslt",
+	};
 
 }

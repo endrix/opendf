@@ -42,9 +42,13 @@ package net.sf.opendf.cli;
 import net.sf.opendf.cal.main.Cal2CalML;
 import net.sf.opendf.util.logging.Logging;
 import net.sf.opendf.util.exception.*;
+import net.sf.opendf.util.xml.Util;
 
 import java.util.*;
 import java.io.*;
+
+import javax.xml.parsers.DocumentBuilderFactory;
+import org.w3c.dom.Node;
 
 /**
  * SSAGenerator converts CAL source code (or CALML) to a Static Single
@@ -107,6 +111,7 @@ public class SSAGenerator extends XSLTTransformRunner
     /**
      * The non-null input file name.
      */
+    private String inputFileName = null;
     private File inputFile;
 
     /**
@@ -116,7 +121,6 @@ public class SSAGenerator extends XSLTTransformRunner
      */
     protected SSAGenerator (String[] args) throws FileNotFoundException
     {
-        String inputFileName = null;
         final List<String> unparsedArgs = parseBaselineArguments(args);
         for (Iterator iter = unparsedArgs.iterator(); iter.hasNext();)
         {
@@ -126,9 +130,9 @@ public class SSAGenerator extends XSLTTransformRunner
                 usage(System.out);
                 System.exit(-1);
             }
-            else if (inputFileName == null)
+            else if (this.inputFileName == null)
             {
-                inputFileName = arg;
+                this.inputFileName = arg;
             }
             else
             {
@@ -136,18 +140,6 @@ public class SSAGenerator extends XSLTTransformRunner
                 System.exit(-1);
             }
         }
-
-        if (inputFileName == null)
-        {
-            throw new FileNotFoundException("No input file name specified");
-        }
-        
-        this.inputFile = new File(inputFileName);
-        if (!inputFile.exists())
-        {
-            throw new FileNotFoundException("Could not find input file \""+inputFileName+"\" (at " + inputFile.getAbsolutePath() + ")");
-        }
-        setRunDir(inputFile.getAbsoluteFile().getParentFile());
     }
     
     
@@ -172,6 +164,23 @@ public class SSAGenerator extends XSLTTransformRunner
         }
     }
 
+    protected void initialize () throws SubProcessException
+    {
+        if (this.inputFileName == null)
+        {
+            throw new SubProcessException("Null input file name", new FileNotFoundException("No input file name specified"));
+        }
+        
+        this.inputFile = new File(this.inputFileName);
+        
+        if (!this.inputFile.exists())
+        {
+            throw new SubProcessException("Input file does not exist", new FileNotFoundException("Could not find input file \""+this.inputFileName+"\" (at " + this.inputFile.getAbsolutePath() + ")"));
+        }
+        
+        setRunDir(this.inputFile.getAbsoluteFile().getParentFile());
+    }
+
     protected String[] getParserTransforms ()
     {
         return this.parserTransforms;
@@ -193,6 +202,8 @@ public class SSAGenerator extends XSLTTransformRunner
      */
     protected void runTransforms () throws SubProcessException
     {
+        initialize();
+        
         Logging.user().info("Compiling " + this.inputFile);
         
         final String[] rXwXRunFlags;
@@ -234,6 +245,17 @@ public class SSAGenerator extends XSLTTransformRunner
             throw new IllegalArgumentException("Input file name \""+this.inputFile.getName()+"\" must have "+CALEXT+" or "+CALMLEXT+" extension to filename");
         }
 
+        final Node calmlNode;
+        try
+        {
+            calmlNode = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(calml);
+        }
+        catch (Exception e)
+        {
+            throw new SubProcessException("Could not build XML for input CALML", e);
+        }
+
+        /*
         // Parser *.calml -> *.pcalml
         final File pcalml = genIntermediateFile(prefix, "pcalml");
         runReadXMLWriteXML(rXwXRunFlags, calml, pcalml, getParserTransforms());
@@ -245,7 +267,32 @@ public class SSAGenerator extends XSLTTransformRunner
         // xlim *.ssacalml -> *.xlim
         final File xlim = new File(this.getRunDir(), prefix + ".xlim");
         runReadXMLWriteXML(rXwXRunFlags, ssacalml, xlim, getXlimTransforms());
+        */
+        Node xlim = calmlToXlim(calmlNode, this.getRunDir(), prefix, this.isPreserveFiles());
+        // ensure that we write out the xlim
+        writeFile(new File(this.getRunDir(), prefix+".xlim"), Util.createXML(xlim));
     }
+
+    public Node calmlToXlim (Node calml, File rundir, String prefix, boolean saveIntermediate)
+    {
+        final Node xlim;
+        try
+        {
+            final Node pcalml = Util.applyTransformsAsResources(calml, getParserTransforms());
+            if (saveIntermediate) writeFile(new File(rundir, prefix+".pcalml"), Util.createXML(pcalml));
+            
+            final Node ssacalml = Util.applyTransformsAsResources(pcalml, getSSATransforms());
+            if (saveIntermediate) writeFile(new File(rundir, prefix+".ssacalml"), Util.createXML(ssacalml));
+            
+            xlim = Util.applyTransformsAsResources(ssacalml, getXlimTransforms());
+            if (saveIntermediate) writeFile(new File(rundir, prefix+".xlim"), Util.createXML(xlim));
+        } catch (Exception e) {
+            throw new RuntimeException("Could not complete CALML to XLIM tranformation", e);
+        }
+        
+        return xlim;
+    }
+    
     
     private static void usage (PrintStream ps)
     {

@@ -39,10 +39,7 @@ ENDCOPYRIGHT
 
 package net.sf.opendf.cli;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.PrintStream;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -416,6 +413,22 @@ public abstract class XSLTTransformRunner
         }
         throw new RuntimeException("File creation failed");
     }
+
+    protected static void writeFile(File file, String s)
+    {
+        try
+        {
+            PrintWriter pw = new PrintWriter(new FileOutputStream(file));
+            pw.print(s);
+            pw.close();
+        }
+        catch (IOException ioe)
+        {
+            throw new RuntimeException(ioe);
+        }
+    }
+
+
 
     /**
      * The exception class that is thrown on any error.

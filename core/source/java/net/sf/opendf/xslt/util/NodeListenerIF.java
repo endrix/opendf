@@ -17,7 +17,7 @@ import org.w3c.dom.Node;
  * <p>Created: Mon Dec 17 08:55:08 2007
  *
  */
-public interface ProblemListenerIF
+public interface NodeListenerIF
 {
     /**
      * Called once for each relevent Note in the source XML.

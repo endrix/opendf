@@ -46,7 +46,6 @@ import static net.sf.opendf.util.xml.Util.createTransformer;
 import static net.sf.opendf.util.xml.Util.createXML;
 import static net.sf.opendf.cli.Util.elaborate;
 import static net.sf.opendf.cli.Util.extractPath;
-import static net.sf.opendf.cli.Util.createActorParameters;
 import static net.sf.opendf.cli.Util.initializeLocators;
 
 import java.io.FileOutputStream;
@@ -148,36 +147,14 @@ public class Elaborator {
         if (modelPath == null) {
             modelPath = new String [] {"."};
         }
+
         Logging.user().info("Model Path: " + Arrays.asList(modelPath));
 						
         ClassLoader classLoader = new SimulationClassLoader(Simulator.class.getClassLoader(), modelPath, cachePath);
 		initializeLocators(modelPath, Elaborator.class.getClassLoader());
 
 		try {
-            Node res = null;
-            res = elaborate(networkClass, modelPath, classLoader, params);
-
-            if (Logging.dbg().isLoggable(Level.FINE))
-            {
-                try{
-                    java.io.PrintWriter pw = new java.io.PrintWriter(new java.io.FileOutputStream(networkClass + ".exdf"));
-                    pw.print(createXML(res));
-                    pw.flush();
-                }catch (Exception e){System.out.println("Could not create intermediate XML for debug: " + networkClass + ".exdf");}
-            }
-            
-            if (postProcessing) {
-                List<String> postElabXForms = new ArrayList();
-                postElabXForms.addAll(Arrays.asList(postElaborationTransformNames));
-                if (doInlining) postElabXForms.addAll(Arrays.asList(inlineTransforms));
-                postElabXForms.addAll(Arrays.asList(postInlineTransforms));
-                String[] postElabXFormsArray = postElabXForms.toArray(new String[1]);
-                //res = applyTransformsAsResources(res, postElaborationTransformNames);
-                res = applyTransformsAsResources(res, postElabXFormsArray);
-            }
-            
-			String result = createXML(res);
-	
+            // Create the output stream first (fail fast on io issues)
 			OutputStream os = null;
 			boolean closeStream = false;
 			if (outputFileName == null || ".".equals(outputFileName)) {
@@ -187,11 +164,25 @@ public class Elaborator {
 				closeStream = true;
 			}
 			PrintWriter pw = new PrintWriter(os);
-			pw.print(result);
-			if (closeStream)
-				pw.close();
-			else
-				pw.flush();
+            
+            Node res = elaborate(networkClass, modelPath, classLoader, params, postProcessing, doInlining);
+
+            String xmlRes = createXML(res);
+            
+            if (Logging.dbg().isLoggable(Level.FINE))
+            {
+                try{
+                    PrintWriter upw = new PrintWriter(new FileOutputStream(networkClass + ".exdf"));
+                    upw.print(xmlRes);
+                    upw.flush();
+                }
+                catch (Exception e){System.out.println("Could not output intermediate XML for debug: " + networkClass + ".exdf");}
+            }
+            
+			pw.print(xmlRes);
+            
+			if (closeStream) pw.close();
+			else pw.flush();
 			
 			Logging.user().info("Network '" + networkClass + "' successfully elaborated.");
 		}
@@ -222,53 +213,5 @@ public class Elaborator {
 	}
 
 
-	static final String [] postElaborationTransformNames = {
-		"net/sf/opendf/transforms/xdfFlatten.xslt",
-
-        // For now the conversion of xmlElement to attributes must be
-        // done before the attribute folding.  The TypedContext does
-        // not yet handle Maps in evaluation making it impossible to
-        // extract the data from the folding function.
-		"net/sf/opendf/transforms/xdfBuildXMLAttribute.xslt",
-		"net/sf/opendf/transforms/xdfFoldAttributes.xslt",
-        
-        "net/sf/opendf/cal/transforms/xlim/AddDirectives.xslt"
-    };
-    
-    static final String [] inlineTransforms = {
-        "net/sf/opendf/cal/transforms/Inline.xslt"
-    };
-    
-    static final String [] postInlineTransforms = {
-        "net/sf/opendf/cal/transforms/AddID.xslt",
-        "net/sf/opendf/cal/transforms/xlim/SetActorParameters.xslt",
-        
-        // Apply transforms to set up conditions for expr evaluation.
-        // These are duplicated in the Actor context (where it is done
-        // during initial loading) but they need to be run for
-        // expressions in the XDF domain (including those introduced
-        // by attribute folding).
-        "net/sf/opendf/cal/transforms/ContextInfoAnnotator.xslt",  // Adds an attribute to Unary/Binary Ops with the function name for each operator (bitand for &, $eq for =, etc)
-        "net/sf/opendf/cal/transforms/CanonicalizeOperators.xslt", // Converts Unary/Binary Ops to the attributed named function application.
-        "net/sf/opendf/cal/transforms/AnnotateFreeVars.xslt",      // Generate freeVar notes indicating the name of each free variable
-        "net/sf/opendf/cal/transforms/DependencyAnnotator.xslt",   // Adds a dependency note indicating the name of vars (same scope) it depends on (and if they are lazy).  Requied for the VariableSorter
-        "net/sf/opendf/cal/transforms/VariableSorter.xslt",        // Re-orders variable declarations based on dependencies
-        
-        // EvaluateConstantExpressions depends on the annotations
-        // provided by AnnotateDecls.
-        "net/sf/opendf/cal/transforms/VariableAnnotator.xslt",     // Adds var-ref notes w/ id of the Decl for that var
-        "net/sf/opendf/cal/transforms/xlim/AnnotateDecls.xslt",    // Adds declAnn notes with id of the enclosing scope
-        "net/sf/opendf/cal/transforms/EvaluateNetworkExpressions.xslt", // Evaluates non-typed constants in attributes and parameters
-        "net/sf/opendf/cal/transforms/EvaluateConstantExpressions.xslt",
-
-        // Do not report errors at this point.  There may be some
-        // based on a lack of type information.  This will be resolved
-        // by the code generators by adding default type information
-        //"net/sf/opendf/cal/checks/problemSummary.xslt",
-        // Since we are ignoring them (for now) strip them out
-        "net/sf/opendf/cal/transforms/stripExprEvalReports.xslt",
-        
-        "net/sf/opendf/cal/transforms/EliminateDeadCode.xslt",
-	};
 }
 

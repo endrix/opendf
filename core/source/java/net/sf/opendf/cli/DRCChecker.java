@@ -256,9 +256,9 @@ public class DRCChecker extends XSLTTransformRunner
         final File nullOut = genIntermediateFile("null", "out");
         try
         {
-            XSLTProcessCallbacks.registerProblemListener(reportListener);
+            XSLTProcessCallbacks.registerListener(XSLTProcessCallbacks.SEMANTIC_CHECKS, reportListener);
             runReadXMLWriteXML(rXwXRunFlags, this.inputFile, nullOut, checks);
-            XSLTProcessCallbacks.removeProblemListener(reportListener); // cleanup
+            XSLTProcessCallbacks.removeListener(XSLTProcessCallbacks.SEMANTIC_CHECKS, reportListener);
         } catch (SubProcessException se)
         {
             Throwable throwable = se;
@@ -295,7 +295,7 @@ public class DRCChecker extends XSLTTransformRunner
         ps.println("  --synth: perform the code-generation DRC checks (not yet supported)");
     }
 
-    private final ProblemListenerIF reportListener = new ProblemListenerIF()
+    private final NodeListenerIF reportListener = new NodeListenerIF()
         {
             public void report (Node report, String message)
             {
