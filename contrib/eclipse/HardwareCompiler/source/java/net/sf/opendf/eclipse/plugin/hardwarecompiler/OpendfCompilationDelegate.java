@@ -34,11 +34,13 @@ BEGINCOPYRIGHT X
   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   
 ENDCOPYRIGHT
-*/
+ */
 package net.sf.opendf.eclipse.plugin.hardwarecompiler;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.model.ILaunchConfigurationDelegate;
@@ -49,222 +51,266 @@ import org.eclipse.ui.*;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.*;
 import org.eclipse.swt.*;
+
+import com.xilinx.systembuilder.cli_private.PrefMap;
+import com.xilinx.systembuilder.cli_private.Synthesizer;
+
 import net.sf.opendf.util.logging.*;
+
+import java.util.*;
 import java.util.logging.*;
 import java.lang.Runnable;
 
-public class OpendfCompilationDelegate implements ILaunchConfigurationDelegate 
+public class OpendfCompilationDelegate implements ILaunchConfigurationDelegate
 {
-  
-  public static MessageConsole findOrCreateConsole( String name )
-  {
-    IConsoleManager manager = ConsolePlugin.getDefault().getConsoleManager();
-    IConsole existing[] = manager.getConsoles();
-    
-    for( int i=0; i< existing.length; i++ )
+
+    private MessageConsoleStream status; // Launch progress
+    private MessageConsoleStream error; // Simulator error messages
+    private MessageConsoleStream info; // Simulator info messages
+    private MessageConsoleStream output; // Simulation output
+
+    private Handler errorHandler;
+    private Handler infoHandler;
+    private Handler outputHandler;
+
+    private MessageConsole statusConsole;
+
+    public void launch (ILaunchConfiguration configuration, String mode,
+            ILaunch launch, IProgressMonitor monitor) throws CoreException
     {
-      if( name.equals( existing[i].getName() ) )
-      {
-        return (MessageConsole) existing[i];
-      }
-    }
-    
-    MessageConsole console = new MessageConsole( name, null );
-    manager.addConsoles( new IConsole[]{ console } );
-    
-    return console;
-    
-  }
-  
-  private MessageConsoleStream status;  // Launch progress
-  private MessageConsoleStream error;   // Simulator error messages
-  private MessageConsoleStream info;    // Simulator info messages
-  private MessageConsoleStream output;  // Simulation output
+        attachConsole();
 
-  private Handler errorHandler;
-  private Handler infoHandler;
-  private Handler outputHandler;
-  
-  private MessageConsole statusConsole;
-  
-  private void attachConsole()
-  {
-    MessageConsole outputConsole = findOrCreateConsole( "Compilation Output" );
-    statusConsole = findOrCreateConsole( "Compilation Status" );
-    
-    status = statusConsole.newMessageStream();
-    error  = statusConsole.newMessageStream();
-    info   = statusConsole.newMessageStream();
-    output = outputConsole.newMessageStream();
+        monitor.beginTask("Dataflow HDL Compilation", 5);
+        status.println("Starting dataflow HDL compiler");
 
-    // Now do some work in the UI thread
-    Display display = OpendfPlugin.getDefault().getWorkbench().getDisplay();
-    
-    display.syncExec
-    (
-      new Runnable()
-      {
-        public void run()
-        {
-          IWorkbench bench = OpendfPlugin.getDefault().getWorkbench();
-          Color red  = bench.getDisplay().getSystemColor( SWT.COLOR_RED );
-          Color blue = bench.getDisplay().getSystemColor( SWT.COLOR_BLUE );
-          
-          status.setColor( blue );
-          status.setFontStyle( SWT.BOLD );
+        monitor.setTaskName("Setup");
 
-          error.setColor( red );
-          
-          // make the status console visible
-          try
-          {
-            IWorkbenchWindow win = bench.getActiveWorkbenchWindow();
-            IWorkbenchPage page = win.getActivePage();
-            IConsoleView view = (IConsoleView) page.showView( IConsoleConstants.ID_CONSOLE_VIEW );
-            view.display( statusConsole );
-          }
-          catch( Exception e )
-          {
-            OpendfPlugin.logErrorMessage( "Failed to make console visible", e );
-          }
-        }
-      }
-    );
-    
-    errorHandler  = new FlushedStreamHandler( error , new BasicLogFormatter() );
-    infoHandler   = new FlushedStreamHandler( info  , new BasicLogFormatter() );
-    outputHandler = new FlushedStreamHandler( output, new BasicLogFormatter() );
-    
-    Logging.dbg().addHandler( errorHandler );
-    Logging.user().addHandler( infoHandler );
-    Logging.simout().addHandler( outputHandler );
-  }
-  
-  private void detachConsole()
-  {
-    Logging.dbg().removeHandler( errorHandler );
-    Logging.user().removeHandler( infoHandler );
-    Logging.simout().removeHandler( outputHandler );
-  }
-  
-  public void launch(ILaunchConfiguration configuration, String mode,
-      ILaunch launch, IProgressMonitor monitor ) throws CoreException 
-  {
-    attachConsole();
-    
-    monitor.beginTask( "Dataflow Compilation", 5 );
-    status.println("Starting dataflow compiler" );
-    
-    monitor.setTaskName( "Setup" );
-
-    // PhasedSimulator simulator = new PhasedSimulator();
-
-    String arg1Prefix = OpendfConfigurationTab.Export( "SIM.ARG1", "" );
-    String arg2Prefix = OpendfConfigurationTab.Export( "SIM.ARG2", "" );
-    int l = arg2Prefix.length();
-      
-    info.print( "compilation command: sb ");
-    try
-    {
-      for( Object obj: configuration.getAttributes().keySet() )
-      {
-        String key = (String) obj;
-         
-        if( key.startsWith( arg1Prefix ) )
-        {
-          String value = configuration.getAttribute( key, (String) null );
-          // simulator.setArg( value );
-          info.print( " " + value );
-        }
-        else if( key.startsWith( arg2Prefix ) )
-        {
-          String name = key.substring( l ); 
-          String value = configuration.getAttribute( key, (String) null );
-          
-          if( name.startsWith("-D") )
-          {
-            value = name.substring( 2 ) + "=" + value;
-            name = "-D";
-          }
-          
-          // simulator.setArg( name, value );
-          info.print(" " + name + " " + value );
-        }
-
-      }
-    }
-    catch( CoreException e ) {}
-    info.println();
-    
-    monitor.worked( 1 );
-    monitor.setTaskName( "Elaboration" );
-    status.println( "Elaborating ..." );
-  /*    
-    if( ! simulator.elaborate() )
-    {
-      error.println( "Elaboration failed" );
-      status.println("Closing simulator");
-      detachConsole();
-      monitor.done();
-      return;
-    }
-    */  
-    monitor.worked( 1 );
-    monitor.setTaskName( "Initialization" );
-    status.println( "Initializing ..." );
-      
-    // simulator.initialize();
-
-    monitor.worked( 1 );
-    monitor.setTaskName( "Compilation" );
-    status.println( "Compiling ..." );
-      
-    // int result;
-      
-    while( true )
-    {
-      // result = simulator.advanceSimulation( 5000 );
+        PrefMap synthPrefs = new PrefMap();
+        synthPrefs.set(PrefMap.OUTPUT_ACTOR_DIR, "Actorx");
+        synthPrefs.set(PrefMap.CACHE_PATH, "cache");
         
-      if( monitor.isCanceled() )
-      {
-        error.println("Cancellation requested");
-        status.println("Closing compiler");
-        detachConsole();
-        monitor.done();
-        return;
-      }
-        /*
-      if( result != PhasedSimulator.RUNNING )
-      {
-        if( result == PhasedSimulator.FAILED )
+        Map<String, String> prefCorrelation = new HashMap();
+        prefCorrelation.put(SimulationModelTab.Export(SimulationModelTab.TAB_NAME, SimulationModelTab.KEY_MODELDIR), PrefMap.MODEL_PATH);
+        prefCorrelation.put(SimulationModelTab.Export(SimulationModelTab.TAB_NAME, SimulationModelTab.KEY_MODELFILE), PrefMap.TOP_LEVEL_NAME);
+
+        info.println(prefCorrelation.toString());
+        String arg1Prefix = OpendfConfigurationTab.Export("SIM.ARG1", "");
+        String arg2Prefix = OpendfConfigurationTab.Export("SIM.ARG2", "");
+        int l = arg2Prefix.length();
+
+        try
         {
-          error.println("Simulation failed");
-          status.println("Closing simulator");
-          detachConsole();
-          monitor.done();
-          return;
+            for (Object obj : configuration.getAttributes().keySet())
+            {
+                String key = (String) obj;
+                String value = configuration.getAttribute(key, (String)null);
+                if (prefCorrelation.containsKey(key))
+                {
+                    String prefKey = prefCorrelation.get(key);
+                    if (prefKey.equals(PrefMap.TOP_LEVEL_NAME))
+                    {
+                        String topLevelName = value;
+                        if (topLevelName.indexOf('.') >= 0)
+                            topLevelName = topLevelName.substring(0, topLevelName.lastIndexOf('.'));
+                        synthPrefs.set(PrefMap.TOP_LEVEL_NAME, topLevelName);
+                        info.println("Set top level model name to " + topLevelName);
+                    }
+                    else
+                    {
+                        synthPrefs.set(prefKey, value);
+                        info.println("Set "+prefKey+"name to " + value);                        
+                    }
+                }
+                else
+                {
+                    info.println("Unknown Key " + key + " value " + value);
+                }
+
+                /*
+                if (key.startsWith(arg1Prefix))
+                {
+                    String value = configuration.getAttribute(key,
+                            (String) null);
+                    // simulator.setArg( value );
+                    info.print("IDM x" + value + "x");
+                } else if (key.startsWith(arg2Prefix))
+                {
+                    String name = key.substring(l);
+                    String value = configuration.getAttribute(key,
+                            (String) null);
+
+                    if (name.startsWith("-D"))
+                    {
+                        value = name.substring(2) + "=" + value;
+                        name = "-D";
+                    }
+
+                    // simulator.setArg( name, value );
+                    info.print(" X" + name + " " + value +"X");
+                }
+                */
+            }
+        } catch (CoreException e)
+        {
+            info.println("Exception during argument processing " + e);
         }
-          
-        break;
-      }
-      */
+        info.println();
+
+        Synthesizer synth = new Synthesizer(synthPrefs);
+
+        monitor.worked(1);
+        monitor.setTaskName("Elaboration");
+        status.println("Elaborating ...");
+        try{
+            synth.synthElaborate();
+        }catch (Exception e){
+            throw new CoreException(new Status(IStatus.ERROR, Activator.PLUGIN_ID, "HDL Compilation Elaboration failed", e));
+        }
+        
+        /*
+         * if( ! simulator.elaborate() ) { error.println( "Elaboration failed" );
+         * status.println("Closing simulator"); detachConsole(); monitor.done();
+         * return; }
+         */
+        monitor.worked(1);
+        monitor.setTaskName("Top level VHDL Generation");
+        status.println("Generating top level VHDL ...");
+        try {
+            synth.generateNetworkHDL();
+        }catch (Exception e) {
+            throw new CoreException(new Status(IStatus.ERROR, Activator.PLUGIN_ID, "HDL top level VDHL generation failed", e));        
+        }
+        
+        
+        // simulator.initialize();
+
+        monitor.worked(1);
+        monitor.setTaskName("Compilation");
+        status.println("Compiling " + synth.remainingInstances() + " instances ...");
+
+        // int result;
+
+        try
+        {
+            boolean remaining = synth.generateNextInstanceHDL();
+            while (remaining)
+            {
+                remaining = synth.generateNextInstanceHDL();
+
+                // result = simulator.advanceSimulation( 5000 );
+
+                if (monitor.isCanceled())
+                {
+                    error.println("Cancellation requested");
+                    status.println("Closing compiler");
+                    detachConsole();
+                    monitor.done();
+                    return;
+                }
+                /*
+                 * if( result != PhasedSimulator.RUNNING ) { if( result ==
+                 * PhasedSimulator.FAILED ) { error.println("Simulation failed");
+                 * status.println("Closing simulator"); detachConsole();
+                 * monitor.done(); return; }
+                 * 
+                 * break; }
+                 */
+            }
+        } catch (Exception e){
+            throw new CoreException(new Status(IStatus.ERROR, Activator.PLUGIN_ID, "HDL instance HDL generation failed", e));
+        }
+        /*
+         * if( result == PhasedSimulator.COMPLETED ) status.println("Compiler
+         * ran to completion"); else status.println("Compiler reached error
+         * limit");
+         * 
+         * monitor.worked( 1 ); monitor.setTaskName( "Compiler" ); //
+         * simulator.cleanup();
+         * 
+         * status.println("Closing simulator");
+         * 
+         * detachConsole(); monitor.done();
+         */
     }
-/*
-    if( result == PhasedSimulator.COMPLETED )
-      status.println("Compiler ran to completion");
-    else
-      status.println("Compiler reached error limit");
+
+    private static MessageConsole findOrCreateConsole (String name)
+    {
+        IConsoleManager manager = ConsolePlugin.getDefault()
+                .getConsoleManager();
+        IConsole existing[] = manager.getConsoles();
+
+        for (int i = 0; i < existing.length; i++)
+        {
+            if (name.equals(existing[i].getName()))
+            {
+                return (MessageConsole) existing[i];
+            }
+        }
+
+        MessageConsole console = new MessageConsole(name, null);
+        manager.addConsoles(new IConsole[] { console });
+
+        return console;
+
+    }
+
     
-    monitor.worked( 1 );
-    monitor.setTaskName( "Compiler" );
-      
-    // simulator.cleanup();
-       
-    status.println("Closing simulator");
-    
-    detachConsole();
-    monitor.done();
-    */
-  }
+    private void attachConsole ()
+    {
+        MessageConsole outputConsole = findOrCreateConsole("Compilation Output");
+        statusConsole = findOrCreateConsole("Compilation Status");
+
+        status = statusConsole.newMessageStream();
+        error = statusConsole.newMessageStream();
+        info = statusConsole.newMessageStream();
+        output = outputConsole.newMessageStream();
+
+        // Now do some work in the UI thread
+        Display display = OpendfPlugin.getDefault().getWorkbench().getDisplay();
+
+        display.syncExec(new Runnable() {
+            public void run ()
+            {
+                IWorkbench bench = OpendfPlugin.getDefault().getWorkbench();
+                Color red = bench.getDisplay().getSystemColor(SWT.COLOR_RED);
+                Color blue = bench.getDisplay().getSystemColor(SWT.COLOR_BLUE);
+
+                status.setColor(blue);
+                status.setFontStyle(SWT.BOLD);
+
+                error.setColor(red);
+
+                // make the status console visible
+                try
+                {
+                    IWorkbenchWindow win = bench.getActiveWorkbenchWindow();
+                    IWorkbenchPage page = win.getActivePage();
+                    IConsoleView view = (IConsoleView) page
+                            .showView(IConsoleConstants.ID_CONSOLE_VIEW);
+                    view.display(statusConsole);
+                } catch (Exception e)
+                {
+                    OpendfPlugin.logErrorMessage(
+                            "Failed to make console visible", e);
+                }
+            }
+        });
+
+        errorHandler = new FlushedStreamHandler(error, new BasicLogFormatter());
+        infoHandler = new FlushedStreamHandler(info, new BasicLogFormatter());
+        outputHandler = new FlushedStreamHandler(output,
+                new BasicLogFormatter());
+
+        Logging.dbg().addHandler(errorHandler);
+        Logging.user().addHandler(infoHandler);
+        Logging.simout().addHandler(outputHandler);
+    }
+
+    private void detachConsole ()
+    {
+        Logging.dbg().removeHandler(errorHandler);
+        Logging.user().removeHandler(infoHandler);
+        Logging.simout().removeHandler(outputHandler);
+    }
 
 }
