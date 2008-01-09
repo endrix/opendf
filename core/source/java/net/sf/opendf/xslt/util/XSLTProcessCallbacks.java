@@ -92,6 +92,30 @@ public class XSLTProcessCallbacks
             listener.report(actor, message);
         }
     }
+ 
+    /**
+     * Returns a String which is the hexification of the input string (number).
+     * @param s a String formatted number
+     * @return the equivalent hexidecimal string.
+     */
+    public static String hexify(String s) {
+        StringBuffer sb = new StringBuffer();
+        byte [] ba = s.getBytes();
+        for (int i = 0; i < ba.length; i++) {
+            int n = (((int)ba[i]) + 256) % 256;
+            sb.append(hexChar(n / 16));
+            sb.append(hexChar(n % 16));
+        }
+        return sb.toString();
+    }
     
+    private static char hexChar(int b) {
+        if (b < 10) {
+            return (char)('0' + b);
+        } else {
+            return (char)('A' - 10 + b);
+        }
+    }
+        
 }
 

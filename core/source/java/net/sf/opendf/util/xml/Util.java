@@ -70,6 +70,8 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
 
+import net.sf.opendf.util.io.ClassLoaderStreamLocator;
+import net.sf.opendf.util.io.StreamLocator;
 import net.sf.opendf.util.logging.Logging;
 import java.util.logging.Level;
 import net.sf.opendf.util.exception.LocatableException;
@@ -166,36 +168,45 @@ public class Util {
 	}
 
 	
+    public static Node applyTransforms(Node document, Transformer [] xfs) throws Exception {
+        Node doc = document;
+        for (Transformer xf : xfs) {
+            doc = applyTransform(doc, xf);
+        }
+        return doc;
+    }
+    
     public static Node applyTransforms(Node document, 
             String baseInputURI, String baseOutputURI, String [] fileNames)
+            throws Exception {
+        return applyTransforms(document, baseInputURI, baseOutputURI, fileNames, getSaxonImplementation());
+    }
+
+    public static Node applyTransforms(Node document, String [] fileNames) throws Exception {
+        return applyTransforms(document, fileNames, getSaxonImplementation());
+    }
+
+    public static Node applyTransforms(Node document, String [] fileNames, 
+            XmlImplementation xmlImpl) throws Exception {
+        return applyTransforms(document, null, null, fileNames, xmlImpl);
+    }
+    
+    public static Node applyTransforms(Node document, 
+            String baseInputURI, String baseOutputURI, 
+            String [] fileNames, XmlImplementation xmlImpl)
             throws Exception {
         Node doc = document;
         for (int i = 0; i < fileNames.length; i++) {
             File file = new File(fileNames[i]);
             Logging.user().fine("Applying transformation " + file.getName());
-            Transformer xf = createTransformer(fileNames[i]);
+            Transformer xf = createTransformer(fileNames[i], xmlImpl);
             DOMResult res = new DOMResult();
-            res.setSystemId(baseInputURI);
-            doc = applyTransform(xf, new DOMSource(doc, baseOutputURI), res);
-        }
-        return doc;
-    }
-
-    public static Node applyTransforms(Node document, String [] fileNames) throws Exception {
-        Node doc = document;
-        for (int i = 0; i < fileNames.length; i++) {
-            File file = new File(fileNames[i]);
-            Logging.user().fine("Applying transformation " + file.getName());
-            Transformer xf = createTransformer(fileNames[i]);
-            doc = applyTransform(xf, new DOMSource(doc), new DOMResult());
-        }
-        return doc;
-    }
-
-    public static Node applyTransforms(Node document, Transformer [] xfs) throws Exception {
-        Node doc = document;
-        for (Transformer xf : xfs) {
-        	doc = applyTransform(doc, xf);
+            if (baseInputURI != null)
+            {
+                res.setSystemId(baseInputURI);
+            }
+            DOMSource src = (baseOutputURI == null) ? new DOMSource(doc):new DOMSource(doc, baseOutputURI);
+            doc = applyTransform(xf, src, res);
         }
         return doc;
     }
@@ -230,13 +241,17 @@ public class Util {
         return res.getNode();
     }
     
-    public static Node applyTransformsAsResources(Node document, String [] resNames) throws Exception {
+    public static Node applyTransformsAsResources(Node document, String [] resNames, 
+            XmlImplementation xmlImpl, StreamLocator resourceLocator) throws Exception {
         Node doc = document;
         for (int i = 0; i < resNames.length; i++) {
-            InputStream is = Util.class.getClassLoader().getResourceAsStream(resNames[i]);
+            InputStream is = resourceLocator.getAsStream(resNames[i]);
             Transformer xf;
             try {
-                xf = createTransformer(is);
+                // IDM.  The transformer should use the same resource Locator as the
+                // loaded resources on the assumption that the resources and the things
+                // they reference are co-located.
+                xf = createTransformer(is, xmlImpl, resourceLocator);
             } catch (Throwable e) {
                 Logging.dbg().throwing("Util", "applyTransformsAsResources", e);
                 throw new LocatableException.Internal(e, "creating " + resNames[i]);
@@ -245,17 +260,7 @@ public class Util {
             }
             DOMResult res = new DOMResult();
             try {
-//                 xf.transform(new DOMSource(doc), res);
-//                 doc = (Node)res.getNode();
                 doc = applyTransform(xf, new DOMSource(doc), res);
-
-//                 try{
-//                     java.io.PrintWriter pw = new java.io.PrintWriter(
-//                         new java.io.FileOutputStream(i + resNames[i].replaceAll("/","_") + ".xdf"));
-//                     pw.print(createXML(doc));
-//                     pw.flush();
-//                 }catch (Exception e){System.out.println("Could not create intermediate XML for debug: ");}
-
             } catch (Throwable e) {
                 Logging.dbg().throwing("Util", "applyTransformsAsResources", e);
                 throw new LocatableException.Internal(e, "applying " + resNames[i]);
@@ -263,183 +268,124 @@ public class Util {
         }
         return doc;
     }
+    /*
+    public static Node applyTransformsAsResources(Node document, String [] resNames) throws Exception 
+    {
+        return applyTransformsAsResources(document, resNames, getDefaultLocator());
+    }
+    */
+    public static Node applyTransformsAsResources(Node document, String [] resNames, 
+            StreamLocator resourceLocator) throws Exception {
+        return applyTransformsAsResources(document, resNames, getSaxonImplementation(), resourceLocator);
+    }
 
+    
+    public static Node applyTransformAsResource(Node document, String resName, 
+            String [] parNames, Object [] parValues, 
+            XmlImplementation xmlImpl, StreamLocator resourceLocator) throws Exception {
+        assert parNames.length == parValues.length;
+        
+        Node doc = document;
+
+        InputStream is = resourceLocator.getAsStream(resName);
+        Transformer xf;
+        try {
+            // IDM.  The transformer should use the same resource Locator as the
+            // loaded resources on the assumption that the resources and the things
+            // they reference are co-located.
+            xf = createTransformer(is, xmlImpl, resourceLocator);
+        } catch (Throwable e) {
+            Logging.dbg().throwing("Util", "applyTransformAsResource", e);
+            throw new LocatableException.Internal(e, "creating " + resName);
+        } finally {
+            if (is != null) is.close();
+        }
+        for (int i = 0; i < parNames.length; i++) {
+            xf.setParameter(parNames[i], parValues[i]);
+        }
+        DOMResult res = new DOMResult();
+        try {
+//          xf.transform(new DOMSource(doc), res);
+//          doc = (Node)res.getNode();
+            doc = applyTransform(xf, new DOMSource(doc), res);
+        } catch (Throwable e) {
+            Logging.dbg().throwing("Util", "applyTransformAsResource", e);
+            throw new LocatableException.Internal(e, "applying " + resName);
+        }
+        return doc;
+    }
+    
+    /*
     public static Node applyTransformAsResource(Node document, String resName) throws Exception { 
-    	return applyTransformAsResource(document, resName, new String[] {}, new Object [] {});
+    	return applyTransformAsResource(document, resName, getDefaultLocator());
     }
-
-    public static Node applyTransformAsResource(Node document, String resName, String [] parNames, Object [] parValues) throws Exception {
-    	assert parNames.length == parValues.length;
-    	
-        Node doc = document;
-
-        InputStream is = Util.class.getClassLoader().getResourceAsStream(resName);
-        Transformer xf;
-        try {
-        	xf = createTransformer(is);
-        } catch (Throwable e) {
-        	Logging.dbg().throwing("Util", "applyTransformsAsResources", e);
-        	throw new LocatableException.Internal(e, "creating " + resName);
-        } finally {
-        	if (is != null) is.close();
-        }
-        for (int i = 0; i < parNames.length; i++) {
-        	xf.setParameter(parNames[i], parValues[i]);
-        }
-        DOMResult res = new DOMResult();
-        try {
-//         	xf.transform(new DOMSource(doc), res);
-//         	doc = (Node)res.getNode();
-            doc = applyTransform(xf, new DOMSource(doc), res);
-        } catch (Throwable e) {
-        	Logging.dbg().throwing("Util", "applyTransformsAsResources", e);
-        	throw new LocatableException.Internal(e, "applying " + resName);
-        }
-        return doc;
+    */
+    public static Node applyTransformAsResource (Node document, String resName, 
+            StreamLocator resourceLocator) throws Exception {
+        return applyTransformAsResource(document, resName, getSaxonImplementation(), resourceLocator);
+    }    
+    public static Node applyTransformAsResource (Node document, String resName, 
+            XmlImplementation xmlImpl, StreamLocator resourceLocator) throws Exception {
+        return applyTransformAsResource(document, resName, new String[]{}, new Object[]{}, xmlImpl, resourceLocator);
     }
-
-    public static Transformer createTransformer(String fileName) throws Exception {
-        File file = new File(fileName);
-        TransformerFactory xff = createTransformerFactory();
-        Transformer xf = xff.newTransformer(new StreamSource(file));
-        return xf;
+    /*
+    public static Node applyTransformAsResource(Node document, String resName, 
+            String [] parNames, Object [] parValues) throws Exception {
+        return applyTransformAsResource(document, resName, parNames, parValues, getDefaultLocator()); 
     }
-
-    public static Transformer createTransformer(InputStream is) throws Exception {
-        TransformerFactory xff = createTransformerFactory();
-        Transformer xf = xff.newTransformer(new StreamSource(is));
-        is.close();
-        return xf;
+    */
+    
+    public static Node applyTransformAsResource(Node document, String resName, 
+            String [] parNames, Object [] parValues, 
+            StreamLocator resourceLocator) throws Exception {
+        return applyTransformAsResource(document, resName, parNames, parValues, getSaxonImplementation(), resourceLocator);
+    }
+    /*
+    public static Node applyTransformAsResource(Node document, String resName, 
+            XmlImplementation xmlImpl) throws Exception { 
+        return applyTransformAsResource(document, resName, new String[] {}, new Object [] {}, xmlImpl);
     }
     
+    public static Node applyTransformAsResource(Node document, String resName, 
+            String [] parNames, Object [] parValues, 
+            XmlImplementation xmlImpl) throws Exception {
+        return applyTransformAsResource(document, resName, parNames, parValues, xmlImpl, getDefaultLocator());
+    }    
+    */
     
-    
-    //
-    //
-    //  new style transformation functions: Using XmlImplementation
-    //
-    //
-    
-    
-    public static Node applyTransforms(Node document, 
-            String baseInputURI, String baseOutputURI, String [] fileNames, XmlImplementation xmlImpl)
-            throws Exception {
-        Node doc = document;
-        for (int i = 0; i < fileNames.length; i++) {
-            File file = new File(fileNames[i]);
-            Logging.user().fine("Applying transformation " + file.getName());
-            Transformer xf = createTransformer(fileNames[i], xmlImpl);
-            DOMResult res = new DOMResult();
-            res.setSystemId(baseInputURI);
-            doc = applyTransform(xf, new DOMSource(doc, baseOutputURI), res);
-        }
-        return doc;
-    }
-
-    public static Node applyTransforms(Node document, String [] fileNames, XmlImplementation xmlImpl) throws Exception {
-        Node doc = document;
-        for (int i = 0; i < fileNames.length; i++) {
-            File file = new File(fileNames[i]);
-            Logging.user().fine("Applying transformation " + file.getName());
-            Transformer xf = createTransformer(fileNames[i], xmlImpl);
-            doc = applyTransform(xf, new DOMSource(doc), new DOMResult());
-        }
-        return doc;
-    }
-    
-    public static Node applyTransformsAsResources(Node document, String [] resNames, XmlImplementation xmlImpl) throws Exception {
-        Node doc = document;
-        for (int i = 0; i < resNames.length; i++) {
-            InputStream is = Util.class.getClassLoader().getResourceAsStream(resNames[i]);
-            Transformer xf;
-            try {
-                xf = createTransformer(is, xmlImpl);
-            } catch (Throwable e) {
-                Logging.dbg().throwing("Util", "applyTransformsAsResources", e);
-                throw new LocatableException.Internal(e, "creating " + resNames[i]);
-            } finally {
-                if (is != null) is.close();
-            }
-            DOMResult res = new DOMResult();
-            try {
-//                 xf.transform(new DOMSource(doc), res);
-//                 doc = (Node)res.getNode();
-                doc = applyTransform(xf, new DOMSource(doc), res);
-            } catch (Throwable e) {
-                Logging.dbg().throwing("Util", "applyTransformsAsResources", e);
-                throw new LocatableException.Internal(e, "applying " + resNames[i]);
-            }
-        }
-        return doc;
-    }
-    
-
-    public static Node applyTransformAsResource(Node document, String resName, XmlImplementation xmlImpl) throws Exception { 
-    	return applyTransformAsResource(document, resName, new String[] {}, new Object [] {}, xmlImpl);
-    }
-
-    public static Node applyTransformAsResource(Node document, String resName, String [] parNames, Object [] parValues, XmlImplementation xmlImpl) throws Exception {
-    	assert parNames.length == parValues.length;
-    	
-        Node doc = document;
-
-        InputStream is = Util.class.getClassLoader().getResourceAsStream(resName);
-        Transformer xf;
-        try {
-        	xf = createTransformer(is, xmlImpl);
-        } catch (Throwable e) {
-        	Logging.dbg().throwing("Util", "applyTransformsAsResources", e);
-        	throw new LocatableException.Internal(e, "creating " + resName);
-        } finally {
-        	if (is != null) is.close();
-        }
-        for (int i = 0; i < parNames.length; i++) {
-        	xf.setParameter(parNames[i], parValues[i]);
-        }
-        DOMResult res = new DOMResult();
-        try {
-//         	xf.transform(new DOMSource(doc), res);
-//         	doc = (Node)res.getNode();
-            doc = applyTransform(xf, new DOMSource(doc), res);
-        } catch (Throwable e) {
-        	Logging.dbg().throwing("Util", "applyTransformsAsResources", e);
-        	throw new LocatableException.Internal(e, "applying " + resName);
-        }
-        return doc;
-    }
-
-    private static TransformerFactory createTransformerFactory ()
+    private static TransformerFactory createTransformerFactory (XmlImplementation xmlImpl, StreamLocator resourceLocator)
     {
-    	return createTransformerFactory(getSaxonImplementation());
-    }
-    
-    private static TransformerFactory createTransformerFactory (XmlImplementation xmlImpl)
-    {
+        System.out.println("Creating transformer factory with Locator " + resourceLocator);
         TransformerFactory xff = xmlImpl.getTransformerFactory();
-        xff.setURIResolver(new ClasspathURIResolver(Util.class.getClassLoader(), xff.getURIResolver()));
+        xff.setURIResolver(new StreamLocatorURIResolver(resourceLocator, xff.getURIResolver()));
         return xff;
     }
     
-    public static Transformer createTransformer(String fileName, XmlImplementation xmlImpl) throws Exception {
+    public static Transformer createTransformer(String fileName) throws Exception {
+        return createTransformer(fileName, getSaxonImplementation(), getDefaultLocator());
+    }
+
+    public static Transformer createTransformer(InputStream is) throws Exception {
+        return createTransformer(is, getSaxonImplementation(), getDefaultLocator());
+    }
+
+    public static Transformer createTransformer (String fileName, XmlImplementation xmlImpl) throws Exception {
+        return createTransformer(fileName, xmlImpl, getDefaultLocator());
+    }
+    public static Transformer createTransformer (InputStream is, XmlImplementation xmlImpl) throws Exception {
+        return createTransformer(is, xmlImpl, getDefaultLocator());
+    }    
+    public static Transformer createTransformer(String fileName, XmlImplementation xmlImpl, StreamLocator resourceLocator) throws Exception {
         File file = new File(fileName);
-        TransformerFactory xff = createTransformerFactory(xmlImpl);
+        TransformerFactory xff = createTransformerFactory(xmlImpl, resourceLocator);
         Transformer xf = xff.newTransformer(new StreamSource(file));
         return xf;
     }
-
-    public static Transformer createTransformer(InputStream is, XmlImplementation xmlImpl) throws Exception {
-        TransformerFactory xff = createTransformerFactory(xmlImpl);
+    public static Transformer createTransformer(InputStream is, XmlImplementation xmlImpl, StreamLocator resourceLocator) throws Exception {
+        TransformerFactory xff = createTransformerFactory(xmlImpl, resourceLocator);
         Transformer xf = xff.newTransformer(new StreamSource(is));
         is.close();
         return xf;
-    }
-
-    public static String getURLforURI (String href)
-    {
-        TransformerFactory xff = createTransformerFactory();
-        ClasspathURIResolver resolver = (ClasspathURIResolver)xff.getURIResolver();
-        URL location = resolver.getLocation(href);
-        return location == null ? "":location.getPath();
     }
 
     // For jdk1.5
@@ -548,6 +494,11 @@ public class Util {
     
     public static XmlImplementation  getDefaultImplementation() {
     	return defaultImpl;
+    }
+    
+    private static StreamLocator getDefaultLocator () 
+    {
+        return new ClassLoaderStreamLocator(Util.class.getClassLoader());
     }
     
         

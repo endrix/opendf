@@ -48,6 +48,7 @@ import java.io.PrintWriter;
 
 import net.sf.opendf.cal.parser.Lexer;
 import net.sf.opendf.cal.parser.Parser;
+import net.sf.opendf.util.io.ClassLoaderStreamLocator;
 import net.sf.opendf.util.logging.Logging;
 import net.sf.opendf.util.source.GenericError;
 import net.sf.opendf.util.source.MultiErrorException;
@@ -118,7 +119,7 @@ public class ReadCALWriteXML {
         try
         {
             if (xformsAreResource)
-                doc = Util.applyTransformsAsResources(doc, xfs);
+                doc = Util.applyTransformsAsResources(doc, xfs, new ClassLoaderStreamLocator(ReadCALWriteXML.class.getClassLoader()));
             else
                 doc = Util.applyTransforms(doc, xfs);
         }

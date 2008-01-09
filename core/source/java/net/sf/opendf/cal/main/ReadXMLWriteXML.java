@@ -46,6 +46,7 @@ import java.io.PrintWriter;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 
+import net.sf.opendf.util.io.ClassLoaderStreamLocator;
 import net.sf.opendf.util.logging.Logging;
 import net.sf.opendf.util.xml.Util;
 
@@ -89,7 +90,7 @@ public class ReadXMLWriteXML {
         }
         Node doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(new File(args[argNo + 0]));
         if (xformsAreResource)
-            doc = Util.applyTransformsAsResources(doc, xfs);
+            doc = Util.applyTransformsAsResources(doc, xfs, new ClassLoaderStreamLocator(ReadXMLWriteXML.class.getClassLoader()));
         else
             doc = Util.applyTransforms(doc, xfs);
         String result = Util.createXML(doc);

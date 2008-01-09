@@ -40,6 +40,9 @@ ENDCOPYRIGHT
 package net.sf.opendf.cli;
 
 import net.sf.opendf.cal.main.Cal2CalML;
+import net.sf.opendf.util.io.ClassLoaderStreamLocator;
+import net.sf.opendf.util.io.MultiLocatorStreamLocator;
+import net.sf.opendf.util.io.StreamLocator;
 import net.sf.opendf.util.logging.Logging;
 import net.sf.opendf.util.exception.*;
 import net.sf.opendf.util.xml.Util;
@@ -276,15 +279,24 @@ public class SSAGenerator extends XSLTTransformRunner
     public Node calmlToXlim (Node calml, File rundir, String prefix, boolean saveIntermediate)
     {
         final Node xlim;
+        // The stream locator must handle resources referenced in this class AND in
+        // any subclass (as provided via getXXXTransforms()).
+        final StreamLocator locator = new MultiLocatorStreamLocator(
+                new StreamLocator[]{
+                        new ClassLoaderStreamLocator(SSAGenerator.class.getClassLoader()),
+                        new ClassLoaderStreamLocator(getClass().getClassLoader())
+                }
+                );
         try
         {
-            final Node pcalml = Util.applyTransformsAsResources(calml, getParserTransforms());
+            // Because this class may be subclassed, ensure that the obtained resources are located based on the classloader for the subclass
+            final Node pcalml = Util.applyTransformsAsResources(calml, getParserTransforms(), locator);
             if (saveIntermediate) writeFile(new File(rundir, prefix+".pcalml"), Util.createXML(pcalml));
             
-            final Node ssacalml = Util.applyTransformsAsResources(pcalml, getSSATransforms());
+            final Node ssacalml = Util.applyTransformsAsResources(pcalml, getSSATransforms(), locator);
             if (saveIntermediate) writeFile(new File(rundir, prefix+".ssacalml"), Util.createXML(ssacalml));
             
-            xlim = Util.applyTransformsAsResources(ssacalml, getXlimTransforms());
+            xlim = Util.applyTransformsAsResources(ssacalml, getXlimTransforms(), locator);
             if (saveIntermediate) writeFile(new File(rundir, prefix+".xlim"), Util.createXML(xlim));
         } catch (Exception e) {
             throw new RuntimeException("Could not complete CALML to XLIM tranformation", e);

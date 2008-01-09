@@ -14,6 +14,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import net.sf.opendf.util.Loading;
 import net.sf.opendf.util.io.ClassLoaderStreamLocator;
 import net.sf.opendf.util.io.DirectoryStreamLocator;
+import net.sf.opendf.util.io.MultiLocatorStreamLocator;
 import net.sf.opendf.util.io.StreamLocator;
 
 import org.w3c.dom.DOMImplementation;
@@ -59,7 +60,7 @@ public class Util {
 		return paths.toArray(new String [paths.size()]);
 	}
 
-	public static void  initializeLocators(String [] modelPath, ClassLoader classLoader) {
+	public static StreamLocator[] initializeLocators(String [] modelPath, ClassLoader classLoader) {
 	
 		StreamLocator [] sl = new StreamLocator[modelPath.length + 1];
 		for (int i = 0; i < modelPath.length; i++) {
@@ -68,23 +69,24 @@ public class Util {
 		sl[modelPath.length] =	new ClassLoaderStreamLocator(classLoader);
 	
 		Loading.setLocators(sl);
+		return sl;
 	}
 	
 	public static Node elaborate(String networkClass, String [] modelPath, ClassLoader classLoader, Map<String, String> params, boolean postProcess, boolean inline) throws Exception
     {
-
-		initializeLocators(modelPath, classLoader);
-
+		StreamLocator locator = new MultiLocatorStreamLocator(initializeLocators(modelPath, classLoader));
+		
 		Node doc = Loading.loadActorSource(networkClass);
 		if (doc == null) {
             throw new ClassNotFoundException("Could not load network class '" + networkClass + "'.");
 		}
 		
         Node res = applyTransformAsResource(doc, inlineParametersTransformName, 
-			    new String [] {"actorParameters"}, new Object [] {createActorParameters(params)});
+			    new String [] {"actorParameters"}, new Object [] {createActorParameters(params)}, 
+			    locator);
 
-        res = applyTransformAsResource(res, elaborationTransformName);
-        res = applyTransformsAsResources(res, postElaborationTransformNames);
+        res = applyTransformAsResource(res, elaborationTransformName, locator);
+        res = applyTransformsAsResources(res, postElaborationTransformNames, locator);
 
         if (postProcess)
         {
@@ -92,7 +94,7 @@ public class Util {
             if (inline) postElabXForms.addAll(Arrays.asList(inlineTransforms));
             postElabXForms.addAll(Arrays.asList(postInlineTransforms));
             String[] postElabXFormsArray = postElabXForms.toArray(new String[1]);
-            res = applyTransformsAsResources(res, postElabXFormsArray);
+            res = applyTransformsAsResources(res, postElabXFormsArray, locator);
         }
 
         return res;

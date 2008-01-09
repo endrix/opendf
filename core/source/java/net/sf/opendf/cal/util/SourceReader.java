@@ -54,6 +54,8 @@ import net.sf.opendf.cal.parser.CalExpressionParser;
 import net.sf.opendf.cal.parser.CalStatementParser;
 import net.sf.opendf.cal.parser.Lexer;
 import net.sf.opendf.cal.parser.Parser;
+import net.sf.opendf.util.io.ClassLoaderStreamLocator;
+import net.sf.opendf.util.io.StreamLocator;
 import net.sf.opendf.util.source.MultiErrorException;
 
 import net.sf.opendf.util.xml.Util;
@@ -72,12 +74,12 @@ import org.w3c.dom.Node;
  * There are parseXYZ and readXYZ methods. The parseXYZ methods parse a sequence of characters and 
  * return the resulting DOM tree that represents the AST. The readXYZ methods are built on top of  
  * 
- *  @author Jörn W. Janneck <janneck@eecs.berkeley.edu>
+ *  @author Jï¿½rn W. Janneck <janneck@eecs.berkeley.edu>
  */
 
 public class SourceReader
 {
-    
+    private static StreamLocator locator = new ClassLoaderStreamLocator(SourceReader.class.getClassLoader());
     //////////////////////////////////
     //  Actor
     //////////////////////////////////
@@ -94,11 +96,11 @@ public class SourceReader
         try
         {
             doc = Util.applyTransformsAsResources(doc,
-                new String[] { "net/sf/opendf/cal/checks/semanticChecks.xslt"} );
+                new String[] { "net/sf/opendf/cal/checks/semanticChecks.xslt"}, locator);
         
             // Ensure that any issues get reported back to the calling
             // context according to registered listeners
-            Util.applyTransformsAsResources(doc, new String[] {"net/sf/opendf/cal/checks/callbackProblemSummary.xslt"} );
+            Util.applyTransformsAsResources(doc, new String[] {"net/sf/opendf/cal/checks/callbackProblemSummary.xslt"}, locator);
             return doc;
         }
         catch ( Exception e )
@@ -152,7 +154,7 @@ public class SourceReader
     public static Node actorPreprocess (Node node)
     {
     	try {
-    		Node result = Util.applyTransformsAsResources(node, actorPreprocessTransforms);
+    		Node result = Util.applyTransformsAsResources(node, actorPreprocessTransforms, locator);
     		return result;
     	} catch (Exception e) {
     		throw new RuntimeException(e);

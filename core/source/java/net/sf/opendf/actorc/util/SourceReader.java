@@ -55,6 +55,8 @@ import net.sf.opendf.cal.interpreter.util.ASTFactory;
 import net.sf.opendf.util.source.MultiErrorException;
 
 import net.sf.opendf.util.xml.Util;
+import net.sf.opendf.util.io.ClassLoaderStreamLocator;
+import net.sf.opendf.util.io.StreamLocator;
 import net.sf.opendf.util.logging.Logging;
 
 
@@ -65,7 +67,7 @@ import org.w3c.dom.Node;
 
 
 /**
- *  @author Jörn W. Janneck <janneck@eecs.berkeley.edu>
+ *  @author Jï¿½rn W. Janneck <janneck@eecs.berkeley.edu>
  */
 
 public class SourceReader
@@ -82,16 +84,16 @@ public class SourceReader
         Lexer calLexer = new Lexer(s);
         Parser calParser = new Parser(calLexer);
         doc = calParser.parseActor(name);
-        
+        final StreamLocator locator = new ClassLoaderStreamLocator(SourceReader.class.getClassLoader());
         // DBP: Semantic check results are now returned in-line
         // Downstream processes must determine what to do with error notes
         try
         {
             doc = Util.applyTransformsAsResources(doc,
-                new String[] { "net/sf/opendf/cal/checks/semanticChecks.xslt"} );
+                new String[] { "net/sf/opendf/cal/checks/semanticChecks.xslt"}, locator);
             // Ensure that any issues get reported back to the calling
             // context according to registered listeners
-            Util.applyTransformsAsResources(doc, new String[] {"net/sf/opendf/cal/checks/callbackProblemSummary.xslt"} );
+            Util.applyTransformsAsResources(doc, new String[] {"net/sf/opendf/cal/checks/callbackProblemSummary.xslt"}, locator);
             return doc;
         }
         catch (Exception e)
