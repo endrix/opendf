@@ -67,8 +67,10 @@ Export-Package: java_cup,
  net.sf.opendf.xslt.cal.lib,
  net.sf.opendf.xslt.nl,
  net.sf.opendf.xslt.util,
+ net.sf.saxon,
  ptolemy.media
 Bundle-ClassPath: .,
  source/xslt/,
  lib/saxon8.jar,
- lib/saxon8-dom.jar
+ lib/saxon8-dom.jar,
+ lib/PtPlot.jar
