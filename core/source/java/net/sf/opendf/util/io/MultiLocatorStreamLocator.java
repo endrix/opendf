@@ -16,7 +16,7 @@ public class MultiLocatorStreamLocator implements StreamLocator
     {
         this.locators = locators;
     }
-    @Override
+
     public InputStream getAsStream (String name)
     {
         for (int i=0; i < this.locators.length; i++)
