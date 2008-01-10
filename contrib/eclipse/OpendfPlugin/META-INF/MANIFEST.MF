@@ -13,8 +13,7 @@ Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.ui.ide,
  org.eclipse.ui.views,
  org.eclipse.ui.workbench.texteditor,
- net.sf.opendf.OpendfCorePlugin,
- net.sf.opendf.ActorlibPlugin
+ net.sf.opendf.OpendfCorePlugin
 Eclipse-LazyStart: true
 Provide-Package: net.sf.opendf.eclipse.plugin,
  net.sf.opendf.eclipse.plugin.editors,
