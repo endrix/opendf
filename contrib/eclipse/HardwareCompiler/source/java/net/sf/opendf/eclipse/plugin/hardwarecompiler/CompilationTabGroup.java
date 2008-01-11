@@ -37,6 +37,7 @@ ENDCOPYRIGHT
 */
 package net.sf.opendf.eclipse.plugin.hardwarecompiler;
 
+import org.eclipse.debug.ui.AbstractLaunchConfigurationTab;
 import org.eclipse.debug.ui.ILaunchConfigurationDialog;
 import org.eclipse.debug.ui.ILaunchConfigurationTab;
 import org.eclipse.debug.ui.CommonTab;
@@ -46,14 +47,15 @@ import net.sf.opendf.eclipse.plugin.simulators.tabs.*;
 public class CompilationTabGroup extends OpendfConfigurationTabGroup
 {
 
-  public void createTabs( ILaunchConfigurationDialog dialog, String mode  )
-  {
-    OpendfConfigurationTab[] tabs =
+    public void createTabs( ILaunchConfigurationDialog dialog, String mode  )
     {
-      new SimulationModelTab()
-    };
-    
-    super.createTabs( dialog, mode, tabs );
-  }
+        AbstractLaunchConfigurationTab[] tabs =
+        {
+                new SimulationModelTab(),
+                new SynthesisConfigTab()
+        };
+
+        super.createTabs( dialog, mode, tabs );
+    }
   
 }

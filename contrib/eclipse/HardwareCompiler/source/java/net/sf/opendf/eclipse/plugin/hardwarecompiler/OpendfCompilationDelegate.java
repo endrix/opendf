@@ -79,8 +79,8 @@ public class OpendfCompilationDelegate implements ILaunchConfigurationDelegate
             ILaunch launch, IProgressMonitor monitor) throws CoreException
     {
         attachConsole();
-
-        monitor.beginTask("Dataflow HDL Compilation", 5);
+        final int MONITOR_STEPS = 1000; 
+        monitor.beginTask("Dataflow HDL Compilation", MONITOR_STEPS);
         status.println("Starting dataflow HDL compiler");
 
         monitor.setTaskName("Setup");
@@ -90,14 +90,21 @@ public class OpendfCompilationDelegate implements ILaunchConfigurationDelegate
         synthPrefs.set(PrefMap.CACHE_PATH, "cache");
         
         Map<String, String> prefCorrelation = new HashMap();
+        String modelDirKey = SimulationModelTab.Export(SimulationModelTab.TAB_NAME, SimulationModelTab.KEY_MODELDIR);
+        String modelPathKey = SimulationModelTab.Export(SimulationModelTab.TAB_NAME, SimulationModelTab.KEY_MODELSEARCHPATH);        
+        String useDirKey = SimulationModelTab.Export(SimulationModelTab.TAB_NAME, SimulationModelTab.KEY_USEDEFAULTPATH);        
         prefCorrelation.put(SimulationModelTab.Export(SimulationModelTab.TAB_NAME, SimulationModelTab.KEY_MODELDIR), PrefMap.MODEL_PATH);
         prefCorrelation.put(SimulationModelTab.Export(SimulationModelTab.TAB_NAME, SimulationModelTab.KEY_MODELFILE), PrefMap.TOP_LEVEL_NAME);
 
+        
         info.println(prefCorrelation.toString());
         String arg1Prefix = OpendfConfigurationTab.Export("SIM.ARG1", "");
         String arg2Prefix = OpendfConfigurationTab.Export("SIM.ARG2", "");
         int l = arg2Prefix.length();
 
+        String modelDir = "";
+        String modelPath = "";
+        boolean useDir = true;
         try
         {
             for (Object obj : configuration.getAttributes().keySet())
@@ -106,6 +113,7 @@ public class OpendfCompilationDelegate implements ILaunchConfigurationDelegate
                 String value = configuration.getAttribute(key, (String)null);
                 if (prefCorrelation.containsKey(key))
                 {
+                    info.println("Known Key " + key + " value " + value);
                     String prefKey = prefCorrelation.get(key);
                     if (prefKey.equals(PrefMap.TOP_LEVEL_NAME))
                     {
@@ -121,35 +129,19 @@ public class OpendfCompilationDelegate implements ILaunchConfigurationDelegate
                         info.println("Set "+prefKey+"name to " + value);                        
                     }
                 }
+                else if (key.equals(modelDirKey)) { modelDir = value; }
+                else if (key.equals(modelPathKey)) { modelPath = value; }
+                else if (key.equals(useDirKey)) { useDir = "TRUE".equalsIgnoreCase(value); }
                 else
                 {
                     info.println("Unknown Key " + key + " value " + value);
                 }
-
-                /*
-                if (key.startsWith(arg1Prefix))
-                {
-                    String value = configuration.getAttribute(key,
-                            (String) null);
-                    // simulator.setArg( value );
-                    info.print("IDM x" + value + "x");
-                } else if (key.startsWith(arg2Prefix))
-                {
-                    String name = key.substring(l);
-                    String value = configuration.getAttribute(key,
-                            (String) null);
-
-                    if (name.startsWith("-D"))
-                    {
-                        value = name.substring(2) + "=" + value;
-                        name = "-D";
-                    }
-
-                    // simulator.setArg( name, value );
-                    info.print(" X" + name + " " + value +"X");
-                }
-                */
             }
+            if (useDir)
+                synthPrefs.set(PrefMap.MODEL_PATH, modelDir);
+            else
+                synthPrefs.set(PrefMap.MODEL_PATH, modelPath);
+                
         } catch (CoreException e)
         {
             info.println("Exception during argument processing " + e);
@@ -164,30 +156,42 @@ public class OpendfCompilationDelegate implements ILaunchConfigurationDelegate
         try{
             synth.synthElaborate();
         }catch (Exception e){
+            status.println("Error Elaborating Network");
+            detachConsole();
             throw new CoreException(new Status(IStatus.ERROR, Activator.PLUGIN_ID, "HDL Compilation Elaboration failed", e));
         }
-        
+        monitor.worked(99);
+        if (monitor.isCanceled())
+        {
+            cancel(monitor);
+            return;
+        }
+
         /*
          * if( ! simulator.elaborate() ) { error.println( "Elaboration failed" );
          * status.println("Closing simulator"); detachConsole(); monitor.done();
          * return; }
          */
-        monitor.worked(1);
         monitor.setTaskName("Top level VHDL Generation");
         status.println("Generating top level VHDL ...");
         try {
             synth.generateNetworkHDL();
         }catch (Exception e) {
+            status.println("Error generating HDL Network");
+            detachConsole();
             throw new CoreException(new Status(IStatus.ERROR, Activator.PLUGIN_ID, "HDL top level VDHL generation failed", e));        
         }
+        monitor.worked(100);
+        if (monitor.isCanceled())
+        {
+            cancel(monitor);
+            return;
+        }
         
-        
-        // simulator.initialize();
-
-        monitor.worked(1);
         monitor.setTaskName("Compilation");
         status.println("Compiling " + synth.remainingInstances() + " instances ...");
 
+        final int instanceWorkUnit = 800 / synth.remainingInstances();  
         // int result;
 
         try
@@ -196,15 +200,13 @@ public class OpendfCompilationDelegate implements ILaunchConfigurationDelegate
             while (remaining)
             {
                 remaining = synth.generateNextInstanceHDL();
+                monitor.worked(instanceWorkUnit);
 
                 // result = simulator.advanceSimulation( 5000 );
 
                 if (monitor.isCanceled())
                 {
-                    error.println("Cancellation requested");
-                    status.println("Closing compiler");
-                    detachConsole();
-                    monitor.done();
+                    cancel(monitor);
                     return;
                 }
                 /*
@@ -217,8 +219,19 @@ public class OpendfCompilationDelegate implements ILaunchConfigurationDelegate
                  */
             }
         } catch (Exception e){
+            status.println("Error Generating HDL Instances");
+            detachConsole();
+            Throwable t = e;
+            while (t != null)
+            {
+                status.println(t.toString());
+                t = t.getCause();
+            }
             throw new CoreException(new Status(IStatus.ERROR, Activator.PLUGIN_ID, "HDL instance HDL generation failed", e));
         }
+        
+        detachConsole();
+        monitor.done();
         /*
          * if( result == PhasedSimulator.COMPLETED ) status.println("Compiler
          * ran to completion"); else status.println("Compiler reached error
@@ -306,6 +319,14 @@ public class OpendfCompilationDelegate implements ILaunchConfigurationDelegate
         Logging.simout().addHandler(outputHandler);
     }
 
+    private void cancel (IProgressMonitor monitor)
+    {
+        error.println("Cancellation requested");
+        status.print("Canceled.  Closing compiler");
+        detachConsole();
+        monitor.done();
+    }
+    
     private void detachConsole ()
     {
         Logging.dbg().removeHandler(errorHandler);
