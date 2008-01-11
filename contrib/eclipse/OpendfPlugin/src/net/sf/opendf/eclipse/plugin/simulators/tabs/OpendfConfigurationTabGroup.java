@@ -37,6 +37,7 @@ ENDCOPYRIGHT
 */
 package net.sf.opendf.eclipse.plugin.simulators.tabs;
 
+import org.eclipse.debug.ui.AbstractLaunchConfigurationTab;
 import org.eclipse.debug.ui.ILaunchConfigurationDialog;
 import org.eclipse.debug.ui.ILaunchConfigurationTab;
 import org.eclipse.debug.ui.CommonTab;
@@ -46,7 +47,7 @@ import java.util.*;
 
 public abstract class OpendfConfigurationTabGroup extends AbstractLaunchConfigurationTabGroup
 {  
-  public void createTabs( ILaunchConfigurationDialog dialog, String mode, OpendfConfigurationTab[] tabs  )
+  public void createTabs( ILaunchConfigurationDialog dialog, String mode, AbstractLaunchConfigurationTab[] tabs  )
   {   
     ILaunchConfigurationTab[] launchTabs = new ILaunchConfigurationTab[ tabs.length + 1];
     int i;

@@ -23,4 +23,3 @@ Provide-Package: net.sf.opendf.eclipse.plugin,
  net.sf.opendf.eclipse.plugin.editors.scanners,
  net.sf.opendf.eclipse.plugin.simulators,
  net.sf.opendf.eclipse.plugin.simulators.tabs
-Bundle-ClassPath: .
