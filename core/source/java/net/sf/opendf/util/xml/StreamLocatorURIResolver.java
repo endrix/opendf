@@ -17,7 +17,6 @@ class StreamLocatorURIResolver implements URIResolver {
 
     public Source resolve(String href, String base) throws TransformerException
     {
-        System.out.println("StreamLocatorURIResolver resolving " + href + " with base " + base + " from locator " + locator + " and resolver " + resolver);
         InputStream s = locator.getAsStream(href);
      
         if (s == null) {

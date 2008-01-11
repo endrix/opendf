@@ -355,7 +355,6 @@ public class Util {
     
     private static TransformerFactory createTransformerFactory (XmlImplementation xmlImpl, StreamLocator resourceLocator)
     {
-        System.out.println("Creating transformer factory with Locator " + resourceLocator);
         TransformerFactory xff = xmlImpl.getTransformerFactory();
         xff.setURIResolver(new StreamLocatorURIResolver(resourceLocator, xff.getURIResolver()));
         return xff;
