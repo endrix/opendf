@@ -69,7 +69,7 @@ public class SynthesisConfigTab extends AbstractLaunchConfigurationTab
                 // Update the run directory whenever the top file is updated
                 AbstractConfig runDirConfig = configs.get(ConfigGroup.RUN_DIR);
                 if (!runDirConfig.isUserSpecified())
-                    runDirConfig.setValue(((ConfigFile)configs.get(ConfigGroup.TOP_MODEL_FILE)).getValueFile().getParent());
+                    runDirConfig.setValue(((ConfigFile)configs.get(ConfigGroup.TOP_MODEL_FILE)).getValueFile().getParent(), false);
                 runDir.updateValue();
                 
                 // Update the output file name
@@ -81,13 +81,13 @@ public class SynthesisConfigTab extends AbstractLaunchConfigurationTab
                     fileName = fileName.substring(0, fileName.lastIndexOf('.'));
                     String ext = oFileConfig.getFilters().isEmpty() ? "":oFileConfig.getFilters().keySet().iterator().next();
                     fileName += ext.substring(ext.lastIndexOf('.')); 
-                    oFileConfig.setValue(fileName);
+                    oFileConfig.setValue(fileName, false);
                 }
                 oFile.updateValue();
-
             }
         });
-        // Register a listener to detect when a control has changed
+        // Register a listener to detect when a control has changed and cause the tab status 
+        // to be updated.  This will allow the "apply" and "revert" buttons to work as expected
         ConfigModificationListener modifyListener = new ConfigModificationListener(){
             public void registerModification (int type) {
                 SynthesisConfigTab.this.updateLaunchConfigurationDialog();
@@ -108,53 +108,12 @@ public class SynthesisConfigTab extends AbstractLaunchConfigurationTab
     public void initializeFrom (ILaunchConfiguration configuration)
     {
         // First, update the configs.  Then push it to the controls
-        Map<String, AbstractConfig> configMap = configs.getConfigs();
-        for (String key : configMap.keySet())
-        {
-            try
-            {
-            switch (configMap.get(key).getType())
-            {
-            case AbstractConfig.TYPE_BOOL :
-                ConfigBoolean cfgb = (ConfigBoolean)configMap.get(key);
-                cfgb.setValue(configuration.getAttribute(key, cfgb.getValue()));
-                break;
-            case AbstractConfig.TYPE_STRING:
-                ConfigString cfgst = (ConfigString)configMap.get(key);
-                cfgst.setValue(configuration.getAttribute(key, cfgst.getValue()));
-                break;
-            case AbstractConfig.TYPE_FILE:
-                ConfigFile cfgf = (ConfigFile)configMap.get(key);
-                cfgf.setValue(configuration.getAttribute(key, cfgf.getValue()));
-                break;
-            case AbstractConfig.TYPE_DIR:
-                ConfigFile.Dir cfgd = (ConfigFile.Dir)configMap.get(key);
-                cfgd.setValue(configuration.getAttribute(key, cfgd.getValue()));
-                break;
-            case AbstractConfig.TYPE_INT :
-                ConfigInt cfgi = (ConfigInt)configMap.get(key);
-                cfgi.setValue(configuration.getAttribute(key, cfgi.getValue()));
-                break;
-            case AbstractConfig.TYPE_LIST :
-                ConfigList cfgl = (ConfigList)configMap.get(key);
-                cfgl.setValue(configuration.getAttribute(key, cfgl.getValue()));
-                break;
-            case AbstractConfig.TYPE_MAP :
-                ConfigMap cfgm = (ConfigMap)configMap.get(key);
-                cfgm.setValue(configuration.getAttribute(key, cfgm.getValue()));
-                break;
-            case AbstractConfig.TYPE_SET :
-                ConfigSet cfgs = (ConfigSet)configMap.get(key);
-                cfgs.setValue(configuration.getAttribute(key, cfgs.getValue()));
-                break;
-            default :
-                System.out.println("Unknown config type " + configMap.get(key).getType() + " for " + key);
-            }
-            }catch (CoreException ce)
-            {
-                System.out.println("Could not update configuration due to: " + ce);
-            }
+        try {
+            configs.updateConfig(configuration, false);
+        }catch (CoreException ce) {
+            System.out.println("Could not update configuration due to: " + ce);
         }
+        
         for (UpdatableControlIF controlIF : controls)
         {
             controlIF.updateValue();
@@ -167,6 +126,10 @@ public class SynthesisConfigTab extends AbstractLaunchConfigurationTab
         Map<String, AbstractConfig> configMap = configs.getConfigs();
         for (String key : configMap.keySet())
         {
+            // Only update the configs with user specified values
+            if (!configMap.get(key).isUserSpecified())
+                continue;
+            
             if (configMap.get(key).getType() == AbstractConfig.TYPE_BOOL) 
                 configuration.setAttribute(key, ((ConfigBoolean)configMap.get(key)).getValue());
             else if (configMap.get(key).getType() == AbstractConfig.TYPE_FILE) 

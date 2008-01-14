@@ -7,6 +7,7 @@ public class ConfigList extends AbstractConfig
 {
     private final List defaultValue;
     private List value = Collections.EMPTY_LIST;
+    private boolean userSpecified = false;
     
     public ConfigList (String id, String name, String cla, String desc, boolean required, List defaultValue)
     {
@@ -14,7 +15,7 @@ public class ConfigList extends AbstractConfig
         this.defaultValue = defaultValue;
     }
 
-    public void setValue (String s)
+    public void setValue (String s, boolean userSpecified)
     {
         StringTokenizer st = new StringTokenizer(s, File.pathSeparator);
         List<String> paths = new ArrayList();
@@ -22,12 +23,13 @@ public class ConfigList extends AbstractConfig
         {
             paths.add(st.nextToken());
         }
-        setValue(paths);
+        setValue(paths, userSpecified);
     }
-    public void setValue (List l)
+    public void setValue (List l, boolean userSpecified)
     {
         assert l != null : "Cannot set config list to null";
         this.value = l;
+        this.userSpecified = userSpecified;
     }
     
     public List getValue ()
@@ -39,6 +41,7 @@ public class ConfigList extends AbstractConfig
     public void unset ()
     {
         this.value = Collections.EMPTY_LIST;
+        this.userSpecified = false;
     }
     
     @Override
@@ -50,7 +53,7 @@ public class ConfigList extends AbstractConfig
     @Override
     public boolean isUserSpecified ()
     {
-        return this.value.size() > 0;
+        return this.userSpecified;
     }
 
 }

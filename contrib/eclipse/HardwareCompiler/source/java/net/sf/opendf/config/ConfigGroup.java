@@ -2,6 +2,9 @@ package net.sf.opendf.config;
 
 import java.util.*;
 
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.debug.core.ILaunchConfiguration;
+
 public class ConfigGroup
 {
     public static final String TOP_MODEL_NAME = "model.top.name";
@@ -96,6 +99,52 @@ public class ConfigGroup
     public AbstractConfig get (String key)
     {
         return configs.get(key);
+    }
+    
+    public void updateConfig (ILaunchConfiguration configuration, boolean isUserUpdate) throws CoreException
+    {
+        // First, update the configs.  Then push it to the controls
+        Map<String, AbstractConfig> configMap = this.getConfigs();
+        for (String key : configMap.keySet())
+        {
+            switch (configMap.get(key).getType())
+            {
+            case AbstractConfig.TYPE_BOOL:
+                ConfigBoolean cfgb = (ConfigBoolean)configMap.get(key);
+                cfgb.setValue(configuration.getAttribute(key, cfgb.getValue()), isUserUpdate);
+                break;
+            case AbstractConfig.TYPE_STRING:
+                ConfigString cfgst = (ConfigString)configMap.get(key);
+                cfgst.setValue(configuration.getAttribute(key, cfgst.getValue()), isUserUpdate);
+                break;
+            case AbstractConfig.TYPE_FILE:
+                ConfigFile cfgf = (ConfigFile)configMap.get(key);
+                cfgf.setValue(configuration.getAttribute(key, cfgf.getValue()), isUserUpdate);
+                break;
+            case AbstractConfig.TYPE_DIR:
+                ConfigFile.Dir cfgd = (ConfigFile.Dir)configMap.get(key);
+                cfgd.setValue(configuration.getAttribute(key, cfgd.getValue()), isUserUpdate);
+                break;
+            case AbstractConfig.TYPE_INT :
+                ConfigInt cfgi = (ConfigInt)configMap.get(key);
+                cfgi.setValue(configuration.getAttribute(key, cfgi.getValue()), isUserUpdate);
+                break;
+            case AbstractConfig.TYPE_LIST :
+                ConfigList cfgl = (ConfigList)configMap.get(key);
+                cfgl.setValue(configuration.getAttribute(key, cfgl.getValue()), isUserUpdate);
+                break;
+            case AbstractConfig.TYPE_MAP :
+                ConfigMap cfgm = (ConfigMap)configMap.get(key);
+                cfgm.setValue(configuration.getAttribute(key, cfgm.getValue()), isUserUpdate);
+                break;
+            case AbstractConfig.TYPE_SET :
+                ConfigSet cfgs = (ConfigSet)configMap.get(key);
+                cfgs.setValue(configuration.getAttribute(key, cfgs.getValue()), isUserUpdate);
+                break;
+            default :
+                System.out.println("Unknown config type " + configMap.get(key).getType() + " for " + key);
+            }
+        }
     }
     
     private static class ConfigNonEmptyString extends ConfigString

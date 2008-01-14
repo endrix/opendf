@@ -4,6 +4,7 @@ public class ConfigString extends AbstractConfig
 {
     private final String defaultValue;
     private String value = null;
+    private boolean userSpecified = false;
     
     public ConfigString (String id, String name, String cla, String desc, boolean required, String defaultValue)
     {
@@ -12,10 +13,11 @@ public class ConfigString extends AbstractConfig
         this.defaultValue = defaultValue;
     }
     
-    public void setValue (String value)
+    public void setValue (String value, boolean userSpecified)
     {
         assert value != null : "Cannot specify null value for config string";
         this.value = value;
+        this.userSpecified = userSpecified;
     }
     
     public String getValue ()
@@ -33,12 +35,13 @@ public class ConfigString extends AbstractConfig
     public void unset ()
     {
         this.value = null;
+        this.userSpecified = false;
     }
     
     @Override
     public boolean isUserSpecified ()
     {
-        return this.value != null && !this.defaultValue.equals(this.value);
+        return this.userSpecified;
     }
 
 }

@@ -6,6 +6,7 @@ public class ConfigMap extends AbstractConfig
 {
     private final Map defaultValue;
     private Map value = Collections.EMPTY_MAP;
+    private boolean userSpecified = false;
     
     public ConfigMap (String id, String name, String cla, String desc, boolean required, Map defaultValue)
     {
@@ -13,10 +14,11 @@ public class ConfigMap extends AbstractConfig
         this.defaultValue = defaultValue;
     }
 
-    public void setValue (Map m)
+    public void setValue (Map m, boolean userSpecified)
     {
         assert m != null : "Cannot set config map to null";
         this.value = m;
+        this.userSpecified = userSpecified;
     }
     
     public Map getValue ()
@@ -34,12 +36,13 @@ public class ConfigMap extends AbstractConfig
     public void unset ()
     {
         this.value = Collections.EMPTY_MAP;
+        this.userSpecified = false;
     }
     
     @Override
     public boolean isUserSpecified ()
     {
-        return this.value.size() > 0;
+        return this.userSpecified;
     }
 
 }

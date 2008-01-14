@@ -63,7 +63,7 @@ public class ControlRenderingFactory
                     List list = new ArrayList();
                     while (st.hasMoreTokens())
                         list.add(st.nextToken());
-                    configHandle.setValue(list);
+                    configHandle.setValue(list, true);
                 } } 
         };
  
@@ -109,7 +109,7 @@ public class ControlRenderingFactory
                 if (textBox.getText() == null || textBox.getText().length() == 0)
                     configHandle.unset();
                 else
-                    configHandle.setValue(textBox.getText());
+                    configHandle.setValue(textBox.getText(), true);
             }
         };
 
@@ -151,7 +151,7 @@ public class ControlRenderingFactory
                 if (textBox.getText() == null || textBox.getText().length() == 0)
                     configHandle.unset();
                 else
-                    configHandle.setValue(textBox.getText());
+                    configHandle.setValue(textBox.getText(), true);
             } 
         };
  
@@ -212,7 +212,7 @@ public class ControlRenderingFactory
                         }
                         if (absoluteFile != null) // null if 'cancel' from dialog
                         {
-                            configHandle.setValue(absoluteFile);
+                            configHandle.setValue(absoluteFile, true);
                             cif.updateValue();
                             cif.modificationNotify(ConfigModificationListener.TEXT_MODIFICATION);
                         }
@@ -238,7 +238,7 @@ public class ControlRenderingFactory
         final SelectionListener selListener = new SelectionListener(){
             public void widgetDefaultSelected(SelectionEvent e) {}
             public void widgetSelected(SelectionEvent e) {
-                configHandle.setValue(select.getSelection());
+                configHandle.setValue(select.getSelection(), true);
             } 
         };
  
@@ -278,7 +278,7 @@ public class ControlRenderingFactory
                 if (textBox.getText() == null || textBox.getText().length() == 0)
                     configHandle.unset();
                 else
-                    configHandle.setValue(textBox.getText());
+                    configHandle.setValue(textBox.getText(), true);
             } 
         };
  

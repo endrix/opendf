@@ -20,6 +20,15 @@ public abstract class AbstractConfig
     private String desc;
     private String cla;
     
+    /**
+     * Constructs a new configuration element.
+     * 
+     * @param id
+     * @param name
+     * @param cla
+     * @param desc
+     * @param required set to true if the user must specify this configuration.
+     */
     public AbstractConfig (String id, String name, String cla, String desc, boolean required)
     {
         this.isRequired = required;
@@ -35,33 +44,26 @@ public abstract class AbstractConfig
     public String getCLA () { return this.cla; }
     
     /**
-     * Throws UnsupportedOperationException unless overidden in a subclass
+     * Retrieve the configuration value as an object.  The type of object will depend on the 
+     * configuration type as specified by {@link getType}.
+     * @return
      */
-    public void setValue (int value) { throw new UnsupportedOperationException("int is an unsupported value type for " + getClass()); }
+    public abstract Object getValue ();
+
     /**
-     * Throws UnsupportedOperationException unless overidden in a subclass
+     * Set the config to the specified value.  The boolean parameter is used to differentiate 
+     * between internal configuration settings and those explicitly specified by the user. 
+     * 
+     * @param value
+     * @param userSpecified
      */
-    public void setValue (String value) { throw new UnsupportedOperationException("String is an unsupported value type for " + getClass()); }
-    /**
-     * Throws UnsupportedOperationException unless overidden in a subclass
-     */
-    public void setValue (boolean value) { throw new UnsupportedOperationException("boolean is an unsupported value type for " + getClass()); }
-    /**
-     * Throws UnsupportedOperationException unless overidden in a subclass
-     */
-    public void setValue (List value) { throw new UnsupportedOperationException("List is an unsupported value type for " + getClass()); }
-    /**
-     * Throws UnsupportedOperationException unless overidden in a subclass
-     */
-    public void setValue (Set value) { throw new UnsupportedOperationException("Set is an unsupported value type for " + getClass()); }
-    /**
-     * Throws UnsupportedOperationException unless overidden in a subclass
-     */
-    public void setValue (Map value) { throw new UnsupportedOperationException("Map is an unsupported value type for " + getClass()); }
-    /**
-     * Throws UnsupportedOperationException unless overidden in a subclass
-     */
-    public void setValue (File value) { throw new UnsupportedOperationException("File is an unsupported value type for " + getClass()); }
+    public void setValue (int value, boolean userSpecified) { throw new UnsupportedOperationException("int is an unsupported value type for " + getClass()); }
+    public void setValue (String value, boolean userSpecified) { throw new UnsupportedOperationException("String is an unsupported value type for " + getClass()); }
+    public void setValue (boolean value, boolean userSpecified) { throw new UnsupportedOperationException("boolean is an unsupported value type for " + getClass()); }
+    public void setValue (List value, boolean userSpecified) { throw new UnsupportedOperationException("List is an unsupported value type for " + getClass()); }
+    public void setValue (Set value, boolean userSpecified) { throw new UnsupportedOperationException("Set is an unsupported value type for " + getClass()); }
+    public void setValue (Map value, boolean userSpecified) { throw new UnsupportedOperationException("Map is an unsupported value type for " + getClass()); }
+    public void setValue (File value, boolean userSpecified) { throw new UnsupportedOperationException("File is an unsupported value type for " + getClass()); }
 
     /**
      * Specifies the number of additional arguments required for this configuration.

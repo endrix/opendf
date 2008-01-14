@@ -12,13 +12,13 @@ public class ConfigBoolean extends AbstractConfig
         this.defaultValue = defaultValue;
     }
 
-    public void setValue (boolean value)
+    public void setValue (boolean value, boolean userSpecified)
     {
         this.value = value;
-        this.userSpecified = true;
+        this.userSpecified = userSpecified;
     }
     
-    public boolean getValue ()
+    public Boolean getValue ()
     {
         return isUserSpecified() ? this.value : this.defaultValue;
     }

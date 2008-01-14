@@ -44,9 +44,15 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.model.ILaunchConfigurationDelegate;
+
+import net.sf.opendf.config.ConfigGroup;
 import net.sf.opendf.eclipse.plugin.simulators.tabs.*;
 import org.eclipse.ui.console.*;
 import net.sf.opendf.eclipse.plugin.*;
+import net.sf.opendf.util.logging.BasicLogFormatter;
+import net.sf.opendf.util.logging.FlushedStreamHandler;
+import net.sf.opendf.util.logging.Logging;
+
 import org.eclipse.ui.*;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.*;
@@ -54,8 +60,6 @@ import org.eclipse.swt.*;
 
 import com.xilinx.systembuilder.cli_private.PrefMap;
 import com.xilinx.systembuilder.cli_private.Synthesizer;
-
-import net.sf.opendf.util.logging.*;
 
 import java.util.*;
 import java.util.logging.*;
@@ -85,6 +89,12 @@ public class OpendfCompilationDelegate implements ILaunchConfigurationDelegate
 
         monitor.setTaskName("Setup");
 
+        ConfigGroup synthConfigs = new ConfigGroup();
+        // Update the configs with the user settings.  Assume that any values in the
+        // configuration have been set by the user.
+        synthConfigs.updateConfig(configuration, true);
+        
+        /*
         PrefMap synthPrefs = new PrefMap();
         synthPrefs.set(PrefMap.OUTPUT_ACTOR_DIR, "Actorx");
         synthPrefs.set(PrefMap.CACHE_PATH, "cache");
@@ -96,7 +106,6 @@ public class OpendfCompilationDelegate implements ILaunchConfigurationDelegate
         prefCorrelation.put(SimulationModelTab.Export(SimulationModelTab.TAB_NAME, SimulationModelTab.KEY_MODELDIR), PrefMap.MODEL_PATH);
         prefCorrelation.put(SimulationModelTab.Export(SimulationModelTab.TAB_NAME, SimulationModelTab.KEY_MODELFILE), PrefMap.TOP_LEVEL_NAME);
 
-        
         info.println(prefCorrelation.toString());
         String arg1Prefix = OpendfConfigurationTab.Export("SIM.ARG1", "");
         String arg2Prefix = OpendfConfigurationTab.Export("SIM.ARG2", "");
@@ -147,8 +156,10 @@ public class OpendfCompilationDelegate implements ILaunchConfigurationDelegate
             info.println("Exception during argument processing " + e);
         }
         info.println();
-
+        
         Synthesizer synth = new Synthesizer(synthPrefs);
+         */
+        Synthesizer synth = new Synthesizer(null);
 
         monitor.worked(1);
         monitor.setTaskName("Elaboration");

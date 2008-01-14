@@ -12,13 +12,13 @@ public class ConfigInt extends AbstractConfig
         this.defaultValue = defaultValue;
     }
 
-    public void setValue (int value)
+    public void setValue (int value, boolean userSpecified)
     {
         this.value = value;
-        this.userSpecified = true;
+        this.userSpecified = userSpecified;
     }
     
-    public int getValue ()
+    public Integer getValue ()
     {
         return isUserSpecified() ? this.value : this.defaultValue;
     }
