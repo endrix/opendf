@@ -95,6 +95,7 @@ import net.sf.opendf.hades.des.util.OutputBlockRecord;
 import net.sf.opendf.hades.des.util.StateChangeEvent;
 import net.sf.opendf.hades.des.util.StateChangeListener;
 import net.sf.opendf.hades.des.util.StateChangeProvider;
+import net.sf.opendf.util.IndentedTextBuffer;
 import net.sf.opendf.util.logging.Logging;
 import net.sf.opendf.util.exception.LocatableException;
 
@@ -350,7 +351,7 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 					nVoidFirings = 0;
 					firingCount += 1;
 					if (isTraceOn()) {
-						writeTraceInformation(a, i);
+						beginWriteTrace(a, i);
 					}
 					delayOutput = ai.hasDelay();
 					
@@ -379,7 +380,10 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 						flushOutputChannels();
 						scheduleActor();					
 					}
-					animationPostfireHandler.modifiedAnimationState();					
+					animationPostfireHandler.modifiedAnimationState();
+					if (isTraceOn()) {
+						endWriteTrace(a, i);
+					}
 					return true;
 				} else {
 					ai.actionClear();
@@ -404,6 +408,15 @@ implements EventProcessor, LocationMap, StateChangeProvider {
         + ((a.getTag() != null) ? "---action tag: " + a.getTag().toString() : "");
 	}
 	
+	private void actionXmlDescription(IndentedTextBuffer txt, Action a) {
+		txt.addLine("<Action id='"
+        + a.getID() 
+        + "' begin-line='" + a.getAttribute("text-begin-line") 
+        + "' end-line='" + a.getAttribute("text-end-line") 
+        + "'" + ((a.getTag() != null) ? " tag='" + a.getTag().toString() + "'": "")
+        + "/>");
+	}
+
 	private String  actionDescription(Action [] a) {
 		StringBuffer s = new StringBuffer();
 		for (int i = 0; i < a.length; i++) {
@@ -416,6 +429,13 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 		}
 		return s.toString();
 	}
+	
+	private void  actionXmlDescription(IndentedTextBuffer txt, Action [] a) {
+		for (int i = 0; i < a.length; i++) {
+			actionXmlDescription(txt, a[i]);
+		}
+	}
+
 	
 	protected void commitInputChannels() {
 		for (Iterator i = inputPortMap.keySet().iterator(); i.hasNext(); ) {
@@ -813,17 +833,46 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 		return false;
 	}
 	
-	private void writeTraceInformation(Action [] a, int i) {
-		Logging.user().info("<trace actor='" 
-		           + actor.getName() 
-		           + "' action='"
-		           + a[i].getID()
-		           + "'>"
-		           + "    " + actionDescription(a[i])
-		           + "\n    states: " + ((ndaStateSets != null) ? ndaStateSets[currentState].toString() : "<empty>") 
-		           + "\n    position: " + i
-		           + "\n    eligible actions:" + actionDescription(a)
-		           + "</trace>");
+	private void beginWriteTrace(Action [] a, int i) {
+		savedCurrentState = currentState;
+	}
+	
+	private int savedCurrentState;
+	
+	private void endWriteTrace(Action [] a, int i) {
+		IndentedTextBuffer txt = new IndentedTextBuffer();
+		txt.addLine("<Step actor='" + actor.getName() + "' action='" + a[i].getID() + "' hashCode='" + this.hashCode() + "'>");
+		txt.indent();
+  		  actionXmlDescription(txt, a[i]);
+  		  if (!ndaStateSets[savedCurrentState].isEmpty()) {
+			  txt.addLine("<StartStates>");
+			  txt.indent();
+			    for (Object s : ndaStateSets[savedCurrentState]) {
+			    	txt.addLine("<State name='" + s + "'/>");
+			    }
+			  txt.unindent();
+		      txt.addLine("</StartStates>");
+  		  }
+  		  if (!ndaStateSets[currentState].isEmpty()) {
+			  txt.addLine("<EndStates>");
+			  txt.indent();
+			    for (Object s : ndaStateSets[currentState]) {
+			    	txt.addLine("<State name='" + s + "'/>");
+			    }
+			  txt.unindent();
+		      txt.addLine("</EndStates>");
+  		  }
+  		  if (a.length > 1) {
+			  txt.addLine("<EligibleActions>");
+			  txt.indent();
+			    actionXmlDescription(txt, a);
+			  txt.unindent();
+		      txt.addLine("</EligibleActions>");
+  		  }
+	    txt.unindent();
+	    txt.addLine("</Step>");
+	      
+	    Logging.user().info(txt.getString());
 	}
 	
 	private void  setupPortTypeChecking() {   // TYPEFIXME
