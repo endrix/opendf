@@ -844,7 +844,7 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 		txt.addLine("<Step actor='" + actor.getName() + "' action='" + a[i].getID() + "' hashCode='" + this.hashCode() + "'>");
 		txt.indent();
   		  actionXmlDescription(txt, a[i]);
-  		  if (!ndaStateSets[savedCurrentState].isEmpty()) {
+  		  if (ndaStateSets != null && !ndaStateSets[savedCurrentState].isEmpty()) {
 			  txt.addLine("<StartStates>");
 			  txt.indent();
 			    for (Object s : ndaStateSets[savedCurrentState]) {
@@ -853,7 +853,7 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 			  txt.unindent();
 		      txt.addLine("</StartStates>");
   		  }
-  		  if (!ndaStateSets[currentState].isEmpty()) {
+  		  if (ndaStateSets != null && !ndaStateSets[currentState].isEmpty()) {
 			  txt.addLine("<EndStates>");
 			  txt.indent();
 			    for (Object s : ndaStateSets[currentState]) {
@@ -1357,8 +1357,8 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 		//
 		
 		public boolean  set(Object name, Object value) {
-			if (attrBufferSize.equals(name) && value instanceof Integer) {
-				bufferSize = ((Integer)value).intValue();
+			if (attrBufferSize.equals(name) && value instanceof Number) {
+				bufferSize = ((Number)value).intValue();
 				if (bufferSize == 0)
 					bufferSize = 1;
 				return true;
