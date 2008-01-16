@@ -1357,11 +1357,23 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 		//
 		
 		public boolean  set(Object name, Object value) {
-			if (attrBufferSize.equals(name) && value instanceof Number) {
-				bufferSize = ((Number)value).intValue();
-				if (bufferSize == 0)
-					bufferSize = 1;
-				return true;
+			if (attrBufferSize.equals(name)) {
+				if (value instanceof Number) {
+					bufferSize = ((Number)value).intValue();
+					if (bufferSize == 0)
+						bufferSize = 1;
+					return true;
+				} else {
+					Logging.user().warning("Channel '" + actor.getName() + "." + name + "': attempting to set bufferSize attribute to non-number. (" +  value + ")");
+				}
+			} else if (attrInitialTokens.equals(name)) {
+				if (value instanceof List) {
+					for (Object t : ((List)value)) {
+						addToken(t);
+					}
+				} else {
+					Logging.user().warning("Channel '" + actor.getName() + "." + name + "': initialTokens attribute must be a list. (" +  value + ")");
+				}
 			}
 			return false;
 		}
@@ -1371,20 +1383,11 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 		//
 		
 	    public void	message(MessageEvent evt) {
-			tokens.add(evt.value);
-			try {
-				if (listener != null) {
-					listener.notify(evt.value);
-				}
-			} catch (Exception e) {e.printStackTrace(); System.out.println("Uh-oh");}
-			tokensQueued += 1;
+	    	addToken(evt.value);
 			scheduleActor();
 			animationPostfireHandler.modifiedAnimationState();
 			if (warnBigBuffers > 0 && tokens.size() > warnBigBuffers)
 				Logging.user().warning("Channel '" + actor.getName() + "." + name + "', big queue (W): " + tokensQueued);
-			if (bufferFull()) {
-				notifyControl(CE_BLOCK);
-			}
 	    }
 	   
 		//
@@ -1402,6 +1405,19 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 		
 		public List  getTokenList() {
 			return Collections.unmodifiableList(tokens);
+		}
+		
+		protected void addToken (Object token) {
+			tokens.add(token);
+			try {
+				if (listener != null) {
+					listener.notify(token);
+				}
+			} catch (Exception e) {e.printStackTrace(); System.out.println("Uh-oh");}
+			tokensQueued += 1;
+			if (bufferFull()) {
+				notifyControl(CE_BLOCK);
+			}
 		}
 		
 		protected boolean bufferFull() {
@@ -1431,6 +1447,7 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 		protected TokenListener listener;
 		
 		private final String attrBufferSize = "bufferSize";
+		private final String attrInitialTokens = "initialTokens";
 
 		protected final ControlEvent CE_BLOCK = new ControlEvent(this, ControlEvent.BLOCK);
 		protected final ControlEvent CE_UNBLOCK = new ControlEvent(this, ControlEvent.UNBLOCK);
