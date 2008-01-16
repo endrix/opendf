@@ -46,6 +46,7 @@ import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.model.ILaunchConfigurationDelegate;
 
 import net.sf.opendf.config.ConfigGroup;
+import net.sf.opendf.eclipse.plugin.config.ConfigUpdateWrapper;
 import net.sf.opendf.eclipse.plugin.simulators.tabs.*;
 import org.eclipse.ui.console.*;
 import net.sf.opendf.eclipse.plugin.*;
@@ -92,7 +93,7 @@ public class OpendfCompilationDelegate implements ILaunchConfigurationDelegate
         ConfigGroup synthConfigs = new ConfigGroup();
         // Update the configs with the user settings.  Assume that any values in the
         // configuration have been set by the user.
-        synthConfigs.updateConfig(configuration, true);
+        synthConfigs.updateConfig(new ConfigUpdateWrapper(configuration));
         
         /*
         PrefMap synthPrefs = new PrefMap();
@@ -159,7 +160,7 @@ public class OpendfCompilationDelegate implements ILaunchConfigurationDelegate
         
         Synthesizer synth = new Synthesizer(synthPrefs);
          */
-        Synthesizer synth = new Synthesizer(null);
+        Synthesizer synth = new Synthesizer(synthConfigs);
 
         monitor.worked(1);
         monitor.setTaskName("Elaboration");

@@ -1,11 +1,51 @@
+/* 
+BEGINCOPYRIGHT X
+  
+  Copyright (c) 2008, Xilinx Inc.
+  All rights reserved.
+  
+  Redistribution and use in source and binary forms, 
+  with or without modification, are permitted provided 
+  that the following conditions are met:
+  - Redistributions of source code must retain the above 
+    copyright notice, this list of conditions and the 
+    following disclaimer.
+  - Redistributions in binary form must reproduce the 
+    above copyright notice, this list of conditions and 
+    the following disclaimer in the documentation and/or 
+    other materials provided with the distribution.
+  - Neither the name of the copyright holder nor the names 
+    of its contributors may be used to endorse or promote 
+    products derived from this software without specific 
+    prior written permission.
+  
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND 
+  CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, 
+  INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF 
+  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE 
+  DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
+  CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, 
+  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT 
+  NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; 
+  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) 
+  HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
+  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
+  OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
+  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+  
+ENDCOPYRIGHT
+*/
 package net.sf.opendf.eclipse.plugin.hardwarecompiler;
 
+import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 import net.sf.opendf.config.*;
 import net.sf.opendf.eclipse.plugin.config.ConfigModificationListener;
+import net.sf.opendf.eclipse.plugin.config.ConfigUpdateWrapper;
 import net.sf.opendf.eclipse.plugin.config.ControlRenderingFactory;
 import net.sf.opendf.eclipse.plugin.config.UpdatableControlIF;
 
@@ -14,9 +54,16 @@ import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.debug.ui.AbstractLaunchConfigurationTab;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.ScrolledComposite;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.FileDialog;
+import org.eclipse.swt.widgets.Group;
 
 public class SynthesisConfigTab extends AbstractLaunchConfigurationTab
 {
@@ -42,50 +89,96 @@ public class SynthesisConfigTab extends AbstractLaunchConfigurationTab
             /*
              * Create the -D config and a renderer which takes in values
              * Copy over the calml parsing
-             * Update the compilation delegate to use the config values
              */
-        // Create a composite in which to put all the controls.  You can organize it however you would like.
-        Composite tab = new Composite(parent, SWT.NONE);
-        setControl( tab );
+        // Create a scrolling composite in which to put all the controls.  You can organize it however you would like.
+        ScrolledComposite tabScroller = new ScrolledComposite(parent, SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER);
+        tabScroller.setLayoutData( new GridData( GridData.FILL_HORIZONTAL ) );
+        tabScroller.setLayout( new GridLayout( 1, false ) );
+        tabScroller.setExpandHorizontal(true);
+        tabScroller.setExpandVertical(true);
+        Composite tab = new Composite(tabScroller, SWT.NONE);
         tab.setLayoutData( new GridData( GridData.FILL_HORIZONTAL ) );
-        tab.setLayout( new GridLayout( 2, false ) );
+        tab.setLayout( new GridLayout( 1, false ) );
+        
+        setControl( tabScroller );
+        tabScroller.setContent(tab);
+
+        final Composite group1 = new Composite(tab, SWT.SHADOW_IN);
+        group1.setLayoutData( new GridData( GridData.FILL_HORIZONTAL ) );
+        group1.setLayout( new GridLayout( 1, false ) );
+        final Composite group2 = new Composite(tab, SWT.SHADOW_IN);
+        //group2.setLayoutData( new GridData( GridData.FILL_HORIZONTAL ) );
+        group2.setLayoutData( new GridData(SWT.FILL, SWT.BEGINNING, true,true) );
+        group2.setLayout( new GridLayout( 2, true ) );
 
         // Add the relevant controls for selecting parameters
-        // Top model name is derived from the top model file.
-        //controls.add(ControlRenderingFactory.renderConfig(configs.get(ConfigGroup.TOP_MODEL_NAME), tab));
-        final UpdatableControlIF topFile = ControlRenderingFactory.renderConfigFileSelect((ConfigFile)configs.get(ConfigGroup.TOP_MODEL_FILE), tab); 
-        final UpdatableControlIF runDir = ControlRenderingFactory.renderConfigFileSelect((ConfigFile)configs.get(ConfigGroup.RUN_DIR), tab); 
-        final UpdatableControlIF oFile = ControlRenderingFactory.renderConfigFileSelect((ConfigFile)configs.get(ConfigGroup.OUTPUT_FILE_NAME), tab); 
-        controls.add(topFile);
+        final UpdatableControlIF topFile = ControlRenderingFactory.fileSelectButton(group1, "Set top model from file selection", false, (ConfigFile)configs.get(ConfigGroup.TOP_MODEL_FILE));
+        
+        final UpdatableControlIF runDir = ControlRenderingFactory.renderConfigFileSelect((ConfigFile)configs.get(ConfigGroup.RUN_DIR), group2, true, true); 
+        final UpdatableControlIF modelPath = ControlRenderingFactory.renderConfig(configs.get(ConfigGroup.MODEL_PATH), group2); 
+        final UpdatableControlIF topName = ControlRenderingFactory.renderConfig(configs.get(ConfigGroup.TOP_MODEL_NAME), group2); 
+        final UpdatableControlIF oFile = ControlRenderingFactory.renderConfigFileSelect((ConfigFile)configs.get(ConfigGroup.OUTPUT_FILE), group2, false, true); 
+        
+        controls.add(modelPath);
         controls.add(runDir);
-        controls.add(ControlRenderingFactory.renderConfig(configs.get(ConfigGroup.GEN_HDL_SIM_MODEL), tab));
-        controls.add(ControlRenderingFactory.renderConfig(configs.get(ConfigGroup.CACHE_DIR), tab));
         controls.add(oFile);
-        controls.add(ControlRenderingFactory.renderConfig(configs.get(ConfigGroup.ACTOR_OUTPUT_DIR), tab));
-        controls.add(ControlRenderingFactory.renderConfig(configs.get(ConfigGroup.MODEL_PATH), tab));
+        controls.add(topName);
+        controls.add(ControlRenderingFactory.renderConfig(configs.get(ConfigGroup.CACHE_DIR), group2));
+        controls.add(ControlRenderingFactory.renderConfig(configs.get(ConfigGroup.ACTOR_OUTPUT_DIR), group2));
+        controls.add(ControlRenderingFactory.renderConfig(configs.get(ConfigGroup.GEN_HDL_SIM_MODEL), group2));
+        controls.add(ControlRenderingFactory.renderConfig(configs.get(ConfigGroup.ENABLE_ASSERTIONS), group2));
 
+        // If the user uses the button to set the model by file selection, overide any values in 
+        // the relevent fields
         topFile.addModifyListener(new ConfigModificationListener(){
             public void registerModification (int type) {
+                                // Set to false to only update in case of no user setting.
+                final boolean forceUpdate = true;
+                
+                ConfigFile topFileConfig = (ConfigFile)configs.get(ConfigGroup.TOP_MODEL_FILE);
+                // In case of spurious events ignore them (possible?)
+                if (!topFileConfig.isUserSpecified())
+                    return;
+                
                 // Update the run directory whenever the top file is updated
                 AbstractConfig runDirConfig = configs.get(ConfigGroup.RUN_DIR);
-                if (!runDirConfig.isUserSpecified())
-                    runDirConfig.setValue(((ConfigFile)configs.get(ConfigGroup.TOP_MODEL_FILE)).getValueFile().getParent(), false);
+                if (forceUpdate || !runDirConfig.isUserSpecified())
+                    runDirConfig.setValue(topFileConfig.getValueFile().getParent(), true);
                 runDir.updateValue();
+
+                AbstractConfig topNameConfig = configs.get(ConfigGroup.TOP_MODEL_NAME);
+                if (forceUpdate || !topNameConfig.isUserSpecified())
+                {
+                    String name = topFileConfig.getValueFile().getName();
+                    name = name.indexOf('.') > 0 ? name.substring(0, name.lastIndexOf('.')):name;
+                    topNameConfig.setValue(name, true);
+                }
+                topName.updateValue();
                 
                 // Update the output file name
-                ConfigFile oFileConfig = (ConfigFile)configs.get(ConfigGroup.OUTPUT_FILE_NAME);
-                if (!oFileConfig.isUserSpecified())
+                ConfigFile oFileConfig = (ConfigFile)configs.get(ConfigGroup.OUTPUT_FILE);
+                if (forceUpdate || !oFileConfig.isUserSpecified())
                 {
                     // Convert the file name to the right extension
-                    String fileName = ((ConfigFile)configs.get(ConfigGroup.TOP_MODEL_FILE)).getValueFile().getAbsolutePath();
+                    String fileName = topFileConfig.getValueFile().getName();
                     fileName = fileName.substring(0, fileName.lastIndexOf('.'));
                     String ext = oFileConfig.getFilters().isEmpty() ? "":oFileConfig.getFilters().keySet().iterator().next();
                     fileName += ext.substring(ext.lastIndexOf('.')); 
-                    oFileConfig.setValue(fileName, false);
+                    oFileConfig.setValue(fileName, true);
                 }
                 oFile.updateValue();
+                
+                // Ensure that the model path contains '.'
+                ConfigList modelPathConfig = (ConfigList)configs.get(ConfigGroup.MODEL_PATH);
+                if (!modelPathConfig.getValue().contains("."))
+                {
+                    // The contract for setValue on collections is to append
+                    modelPathConfig.addValue(Collections.singletonList("."), modelPathConfig.isUserSpecified());
+                }
+                modelPath.updateValue();
             }
         });
+        
         // Register a listener to detect when a control has changed and cause the tab status 
         // to be updated.  This will allow the "apply" and "revert" buttons to work as expected
         ConfigModificationListener modifyListener = new ConfigModificationListener(){
@@ -96,6 +189,8 @@ public class SynthesisConfigTab extends AbstractLaunchConfigurationTab
         {
             control.addModifyListener(modifyListener);
         }
+
+        tabScroller.setMinSize(tab.computeSize(SWT.DEFAULT, SWT.DEFAULT));
     }
 
     @Override
@@ -108,11 +203,7 @@ public class SynthesisConfigTab extends AbstractLaunchConfigurationTab
     public void initializeFrom (ILaunchConfiguration configuration)
     {
         // First, update the configs.  Then push it to the controls
-        try {
-            configs.updateConfig(configuration, false);
-        }catch (CoreException ce) {
-            System.out.println("Could not update configuration due to: " + ce);
-        }
+        configs.updateConfig(new ConfigUpdateWrapper(configuration));
         
         for (UpdatableControlIF controlIF : controls)
         {
@@ -123,33 +214,8 @@ public class SynthesisConfigTab extends AbstractLaunchConfigurationTab
     @Override
     public void performApply (ILaunchConfigurationWorkingCopy configuration)
     {
-        Map<String, AbstractConfig> configMap = configs.getConfigs();
-        for (String key : configMap.keySet())
-        {
-            // Only update the configs with user specified values
-            if (!configMap.get(key).isUserSpecified())
-                continue;
-            
-            if (configMap.get(key).getType() == AbstractConfig.TYPE_BOOL) 
-                configuration.setAttribute(key, ((ConfigBoolean)configMap.get(key)).getValue());
-            else if (configMap.get(key).getType() == AbstractConfig.TYPE_FILE) 
-                configuration.setAttribute(key, ((ConfigFile)configMap.get(key)).getValue());
-            else if (configMap.get(key).getType() == AbstractConfig.TYPE_DIR) 
-                configuration.setAttribute(key, ((ConfigFile.Dir)configMap.get(key)).getValue());
-            else if (configMap.get(key).getType() == AbstractConfig.TYPE_STRING) 
-                configuration.setAttribute(key, ((ConfigString)configMap.get(key)).getValue());
-            else if (configMap.get(key).getType() == AbstractConfig.TYPE_INT)
-                configuration.setAttribute(key, ((ConfigInt)configMap.get(key)).getValue());
-            else if (configMap.get(key).getType() == AbstractConfig.TYPE_LIST) 
-                configuration.setAttribute(key, ((ConfigList)configMap.get(key)).getValue());
-            else if (configMap.get(key).getType() == AbstractConfig.TYPE_MAP) 
-                configuration.setAttribute(key, ((ConfigMap)configMap.get(key)).getValue());
-            else if (configMap.get(key).getType() == AbstractConfig.TYPE_SET) 
-                // The configuration does not have a Set attribute.  Repack it as a list
-                configuration.setAttribute(key, new ArrayList(((ConfigSet)configMap.get(key)).getValue()));
-            else
-                throw new RuntimeException("Unknown configuration type " + configMap.get(key).getType() + " for " + key);
-        }
+        configs.pushConfig(new ConfigUpdateWrapper(configuration));
+        configs.debug(System.out);
     }
 
     @Override
