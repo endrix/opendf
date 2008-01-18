@@ -117,7 +117,6 @@ public abstract class OpendfConfigTab extends AbstractLaunchConfigurationTab
         defaults.setToolTipText("Restore default values for configuration values.");
         
         // Add the listener which will revert all configs to their default values.
-        setDefaultConfigs(configs);
         defaults.addSelectionListener(new SelectionListener() {
             public void widgetDefaultSelected(SelectionEvent e) {}
             public void widgetSelected(SelectionEvent e)
@@ -126,6 +125,7 @@ public abstract class OpendfConfigTab extends AbstractLaunchConfigurationTab
                 {
                     OpendfConfigTab.this.configs.get(key).unset();
                 }
+                setDefaultConfigs(configs);
                 for (UpdatableControlIF control : controls.values())
                     control.updateValue();
                 OpendfConfigTab.this.updateLaunchConfigurationDialog();

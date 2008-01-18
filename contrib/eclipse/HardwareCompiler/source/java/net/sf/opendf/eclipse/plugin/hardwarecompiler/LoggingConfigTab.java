@@ -37,29 +37,15 @@ ENDCOPYRIGHT
 */
 package net.sf.opendf.eclipse.plugin.hardwarecompiler;
 
-import java.util.*;
 
 import net.sf.opendf.config.*;
-import net.sf.opendf.config.AbstractConfig.ConfigError;
-import net.sf.opendf.eclipse.plugin.config.ConfigModificationListener;
-import net.sf.opendf.eclipse.plugin.config.ConfigUpdateWrapper;
-import net.sf.opendf.eclipse.plugin.config.ControlRenderingFactory;
-import net.sf.opendf.eclipse.plugin.config.TopModelParamParse;
-import net.sf.opendf.eclipse.plugin.config.UpdatableControlIF;
-import net.sf.opendf.eclipse.plugin.config.TopModelParamParse.ModelParameter;
-import net.sf.opendf.util.logging.Logging;
 
-import org.eclipse.debug.core.ILaunchConfiguration;
-import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
-import org.eclipse.debug.ui.AbstractLaunchConfigurationTab;
+import net.sf.opendf.eclipse.plugin.config.ControlRenderingFactory;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.layout.RowData;
-import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
