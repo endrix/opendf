@@ -51,7 +51,8 @@ public class CompilationTabGroup extends OpendfConfigurationTabGroup
     {
         AbstractLaunchConfigurationTab[] tabs =
         {
-                new SynthesisConfigTab()
+                new SynthesisConfigTab(),
+                new LoggingConfigTab()
         };
 
         super.createTabs( dialog, mode, tabs );

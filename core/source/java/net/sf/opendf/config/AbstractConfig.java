@@ -42,14 +42,15 @@ import java.io.*;
 
 public abstract class AbstractConfig implements Cloneable
 {
-    public static final int TYPE_INT    = 1;
-    public static final int TYPE_STRING = 2;
-    public static final int TYPE_BOOL   = 3;
-    public static final int TYPE_LIST   = 4;
-    public static final int TYPE_SET    = 5;
-    public static final int TYPE_MAP    = 6;
-    public static final int TYPE_FILE   = 7;
-    public static final int TYPE_DIR    = 8;
+    public static final int TYPE_INT     = 1;
+    public static final int TYPE_STRING  = 2;
+    public static final int TYPE_PICKONE = 3;
+    public static final int TYPE_BOOL    = 4;
+    public static final int TYPE_LIST    = 5;
+    public static final int TYPE_SET     = 6;
+    public static final int TYPE_MAP     = 7;
+    public static final int TYPE_FILE    = 8;
+    public static final int TYPE_DIR     = 9;
     
     private boolean isRequired = false;
     private String id;

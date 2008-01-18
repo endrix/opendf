@@ -50,15 +50,20 @@ import org.eclipse.swt.events.*;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.ToolBar;
+import org.eclipse.swt.widgets.ToolItem;
 
 /**
  * A utility class for rendering AbstractConfig objects into appropriate UI widgets on a 
@@ -80,6 +85,7 @@ public class ControlRenderingFactory
     {
         if (config.getType() == AbstractConfig.TYPE_FILE) return renderConfig((ConfigFile)config, parent);
         else if (config.getType() == AbstractConfig.TYPE_DIR) return renderConfig((ConfigFile)config, parent);
+        else if (config.getType() == AbstractConfig.TYPE_PICKONE) return renderConfig((ConfigStringPickOne)config, parent);
         else if (config.getType() == AbstractConfig.TYPE_STRING) return renderConfig((ConfigString)config, parent);
         else if (config.getType() == AbstractConfig.TYPE_BOOL) return renderConfig((ConfigBoolean)config, parent);
         else if (config.getType() == AbstractConfig.TYPE_LIST) return renderConfig((ConfigList)config, parent);
@@ -237,18 +243,14 @@ public class ControlRenderingFactory
         
         final ModifyListener modListener = new ModifyListener() {
             public void modifyText (ModifyEvent e) {
-                if (textBox.getText() == null || textBox.getText().length() == 0)
-                    configHandle.unset();
-                else
-                {
-                    StringTokenizer st = new StringTokenizer(textBox.getText(), Text.DELIMITER);
-                    List list = new ArrayList();
-                    while (st.hasMoreTokens())
-                        list.add(st.nextToken());
-                    configHandle.setValue(list, true);
-                    // update the context when this control has changed
-                    cif.modificationNotify(ConfigModificationListener.TEXT_MODIFICATION);
-                } } 
+                StringTokenizer st = new StringTokenizer(textBox.getText(), Text.DELIMITER);
+                List list = new ArrayList();
+                while (st.hasMoreTokens())
+                    list.add(st.nextToken());
+                configHandle.setValue(list, true);
+                // update the context when this control has changed
+                cif.modificationNotify(ConfigModificationListener.TEXT_MODIFICATION);
+            } 
         };
  
         textBox.addModifyListener(modListener);
@@ -289,10 +291,7 @@ public class ControlRenderingFactory
 
         final ModifyListener modListener = new ModifyListener() {
             public void modifyText (ModifyEvent e) {
-                if (textBox.getText() == null || textBox.getText().length() == 0)
-                    configHandle.unset();
-                else
-                    configHandle.setValue(textBox.getText(), true);
+                configHandle.setValue(textBox.getText(), true);
                 // update the context when this control has changed
                 cif.modificationNotify(ConfigModificationListener.TEXT_MODIFICATION);
             } 
@@ -414,10 +413,7 @@ public class ControlRenderingFactory
         
         final ModifyListener modListener = new ModifyListener() {
             public void modifyText (ModifyEvent e) {
-                if (textBox.getText() == null || textBox.getText().length() == 0)
-                    configHandle.unset();
-                else
-                    configHandle.setValue(textBox.getText(), true);
+                configHandle.setValue(textBox.getText(), true);
                 cif.modificationNotify(ConfigModificationListener.TEXT_MODIFICATION);
             } 
         };
@@ -430,6 +426,45 @@ public class ControlRenderingFactory
                     public void verifyText (VerifyEvent e){}
                 });
         */
+        return cif;
+    }
+    
+    public static UpdatableControlIF renderConfig (ConfigStringPickOne config, Composite parent)
+    {
+        final ConfigStringPickOne configHandle = config;
+        
+        final Group group = new Group(parent, SWT.SHADOW_IN);
+        group.setText(configHandle.getName());
+        group.setLayoutData( new GridData( GridData.FILL_HORIZONTAL ) );
+        group.setLayout( new GridLayout( 1, false ) );
+
+        final Combo dropDown = new Combo(group, SWT.DROP_DOWN | SWT.READ_ONLY);
+        dropDown.setEnabled(true);
+        dropDown.setText(config.getName());
+        for (String element : config.getAllowable())
+            dropDown.add(element);
+        dropDown.pack(true);
+        
+        final ConfigUpdatableControl cif = new ConfigUpdatableControl()
+        {
+            public Control getControl () { return group; }
+            public void updateValue () {
+                dropDown.clearSelection();
+                dropDown.select(configHandle.getAllowable().indexOf(configHandle.getValue()));
+            }
+        };
+
+        dropDown.addSelectionListener(
+                new SelectionListener(){
+                    public void widgetDefaultSelected(SelectionEvent e) {}
+                    public void widgetSelected(SelectionEvent e) {
+                        configHandle.setValue(dropDown.getItems()[dropDown.getSelectionIndex()],true);
+                        cif.modificationNotify(ConfigModificationListener.TEXT_MODIFICATION);
+                    }}
+        );
+        
+        cif.updateValue();
+
         return cif;
     }
     
@@ -540,7 +575,8 @@ public class ControlRenderingFactory
         @Override
         public void addModifyListener (ConfigModificationListener listener)
         {
-            this.listeners.add(listener);
+            if (!this.listeners.contains(listener))
+                this.listeners.add(listener);
         }
         public void modificationNotify (int type)
         {

@@ -39,15 +39,14 @@ package net.sf.opendf.eclipse.plugin.hardwarecompiler;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.model.ILaunchConfigurationDelegate;
 
+import net.sf.opendf.config.ConfigBoolean;
 import net.sf.opendf.config.ConfigGroup;
+import net.sf.opendf.config.ConfigString;
 import net.sf.opendf.eclipse.plugin.config.ConfigUpdateWrapper;
-import net.sf.opendf.eclipse.plugin.simulators.tabs.*;
 import org.eclipse.ui.console.*;
 import net.sf.opendf.eclipse.plugin.*;
 import net.sf.opendf.util.exception.ReportingExceptionHandler;
@@ -60,7 +59,6 @@ import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.*;
 import org.eclipse.swt.*;
 
-import com.xilinx.systembuilder.cli_private.PrefMap;
 import com.xilinx.systembuilder.cli_private.Synthesizer;
 
 import java.util.*;
@@ -92,18 +90,20 @@ public class OpendfCompilationDelegate implements ILaunchConfigurationDelegate
     public void launch (ILaunchConfiguration configuration, String mode,
             ILaunch launch, IProgressMonitor monitor) throws CoreException
     {
-        attachConsole();
         final int MONITOR_STEPS = 1000; 
+
+        ConfigGroup synthConfigs = new ConfigGroup();
+        // Update the configs with the user settings.  Assume that any values in the
+        // configuration have been set by the user.
+        synthConfigs.updateConfig(new ConfigUpdateWrapper(configuration), synthConfigs.getConfigs().keySet());
+        
+        attachConsole(synthConfigs);
+        
         monitor.beginTask("Dataflow HDL Compilation", MONITOR_STEPS);
         status.println("Starting dataflow HDL compiler");
 
         monitor.setTaskName("Setup");
 
-        ConfigGroup synthConfigs = new ConfigGroup();
-        // Update the configs with the user settings.  Assume that any values in the
-        // configuration have been set by the user.
-        synthConfigs.updateConfig(new ConfigUpdateWrapper(configuration));
-        
         Synthesizer synth = new Synthesizer(synthConfigs);
 
         monitor.worked(1);
@@ -113,8 +113,12 @@ public class OpendfCompilationDelegate implements ILaunchConfigurationDelegate
             synth.synthElaborate();
         }catch (Exception e){
             status.println("Error Elaborating Network");
+            (new ReportingExceptionHandler()).process(e);
             detachConsole();
-            throw new CoreException(new Status(IStatus.ERROR, Activator.PLUGIN_ID, "HDL Compilation Elaboration failed", e));
+            monitor.done();
+            launch.terminate();
+            return;
+            //throw new CoreException(new Status(IStatus.ERROR, Activator.PLUGIN_ID, "HDL Compilation Elaboration failed", e));
         }
         monitor.worked(99);
         if (monitor.isCanceled())
@@ -134,9 +138,14 @@ public class OpendfCompilationDelegate implements ILaunchConfigurationDelegate
             synth.generateNetworkHDL();
         }catch (Exception e) {
             status.println("Error generating HDL Network");
-            e.printStackTrace();
+            (new ReportingExceptionHandler()).process(e);
             detachConsole();
-            throw new CoreException(new Status(IStatus.ERROR, Activator.PLUGIN_ID, "HDL top level VDHL generation failed", e));        
+            monitor.done();
+            launch.terminate();
+            return;
+            //e.printStackTrace();
+            //detachConsole();
+            //throw new CoreException(new Status(IStatus.ERROR, Activator.PLUGIN_ID, "HDL top level VDHL generation failed", e));        
         }
         monitor.worked(100);
         if (monitor.isCanceled())
@@ -166,41 +175,20 @@ public class OpendfCompilationDelegate implements ILaunchConfigurationDelegate
                     cancel(monitor);
                     return;
                 }
-                /*
-                 * if( result != PhasedSimulator.RUNNING ) { if( result ==
-                 * PhasedSimulator.FAILED ) { error.println("Simulation failed");
-                 * status.println("Closing simulator"); detachConsole();
-                 * monitor.done(); return; }
-                 * 
-                 * break; }
-                 */
             }
         } catch (Exception e){
             status.println("Error Generating HDL Instances");
+            (new ReportingExceptionHandler()).process(e);
             detachConsole();
-            Throwable t = e;
-            while (t != null)
-            {
-                status.println(t.toString());
-                t = t.getCause();
-            }
-            throw new CoreException(new Status(IStatus.ERROR, Activator.PLUGIN_ID, "HDL instance HDL generation failed", e));
+            monitor.done();
+            launch.terminate();
+            return;
+            //throw new CoreException(new Status(IStatus.ERROR, Activator.PLUGIN_ID, "HDL instance HDL generation failed", e));
         }
-        
+
+        status.println("Compilation complete");
         detachConsole();
         monitor.done();
-        /*
-         * if( result == PhasedSimulator.COMPLETED ) status.println("Compiler
-         * ran to completion"); else status.println("Compiler reached error
-         * limit");
-         * 
-         * monitor.worked( 1 ); monitor.setTaskName( "Compiler" ); //
-         * simulator.cleanup();
-         * 
-         * status.println("Closing simulator");
-         * 
-         * detachConsole(); monitor.done();
-         */
     }
 
     private static MessageConsole findOrCreateConsole (String name)
@@ -224,8 +212,11 @@ public class OpendfCompilationDelegate implements ILaunchConfigurationDelegate
 
     }
 
+    private Level origUserLevel=Logging.user().getLevel();
+    private Level origSimLevel=Logging.simout().getLevel();
+    private Level origDbgLevel=Logging.dbg().getLevel();
     
-    private void attachConsole ()
+    private void attachConsole (ConfigGroup configs)
     {
         MessageConsole outputConsole = findOrCreateConsole("Compilation Output");
         statusConsole = findOrCreateConsole("Compilation Status");
@@ -274,6 +265,23 @@ public class OpendfCompilationDelegate implements ILaunchConfigurationDelegate
         Logging.dbg().addHandler(errorHandler);
         Logging.user().addHandler(infoHandler);
         Logging.simout().addHandler(outputHandler);
+        
+        //Logging.dbg().setLevel(Level.ALL);
+        if (configs.get(ConfigGroup.LOG_LEVEL_USER).isUserSpecified())
+        {
+            this.origUserLevel = Logging.user().getLevel();
+            Logging.user().setLevel(Level.parse(((ConfigString)configs.get(ConfigGroup.LOG_LEVEL_USER)).getValue()));
+        }
+        if (configs.get(ConfigGroup.LOG_LEVEL_SIM).isUserSpecified())
+        {
+            this.origSimLevel = Logging.user().getLevel();
+            Logging.simout().setLevel(Level.parse(((ConfigString)configs.get(ConfigGroup.LOG_LEVEL_SIM)).getValue()));
+        }
+        if (configs.get(ConfigGroup.LOG_LEVEL_DBG).isUserSpecified())
+        {
+            this.origDbgLevel = Logging.user().getLevel();
+            Logging.dbg().setLevel(Level.parse(((ConfigString)configs.get(ConfigGroup.LOG_LEVEL_DBG)).getValue()));
+        }
     }
 
     private void cancel (IProgressMonitor monitor)
@@ -289,6 +297,10 @@ public class OpendfCompilationDelegate implements ILaunchConfigurationDelegate
         Logging.dbg().removeHandler(errorHandler);
         Logging.user().removeHandler(infoHandler);
         Logging.simout().removeHandler(outputHandler);
+        
+        Logging.user().setLevel(this.origUserLevel);
+        Logging.simout().setLevel(this.origSimLevel);
+        Logging.dbg().setLevel(this.origDbgLevel);
     }
 
 }

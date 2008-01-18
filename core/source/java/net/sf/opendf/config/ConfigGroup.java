@@ -41,6 +41,8 @@ import java.io.File;
 import java.io.PrintStream;
 import java.util.*;
 
+import net.sf.opendf.util.logging.Logging;
+
 public class ConfigGroup implements Cloneable
 {
     /** The top model file is only valid as a user specification.  Other configurations
@@ -58,10 +60,10 @@ public class ConfigGroup implements Cloneable
     public static final String TOP_MODEL_PARAMS= "model.top.parameters";
     
     public static final String ENABLE_ASSERTIONS = "assertions.enable";
-    public static final String VERBOSE = "verbose";
-    public static final String QUIET = "quiet";
-    
-    
+    public static final String LOG_LEVEL_USER = "logging.user.level";
+    public static final String LOG_LEVEL_DBG  = "logging.dbg.level";
+    public static final String LOG_LEVEL_SIM = "logging.sim.level";
+        
     private Map<String, AbstractConfig> configs = new HashMap();
     
     public ConfigGroup ()
@@ -135,6 +137,28 @@ public class ConfigGroup implements Cloneable
                 false, // required
                 Collections.EMPTY_MAP // default
         ));
+    
+        configs.put(LOG_LEVEL_USER, new ConfigStringPickOne.ConfigLogLevels(LOG_LEVEL_USER, "User Log Level",
+                "-userlog", 
+                "Specify the level of messages directed to user console.", 
+                false, // required 
+                Logging.user().getLevel().getName() // default
+                ) );
+
+        configs.put(LOG_LEVEL_DBG, new ConfigStringPickOne.ConfigLogLevels(LOG_LEVEL_DBG, "Debug Log Level",
+                "-dbglog", 
+                "Specify the level of debug messages directed to console.", 
+                false, // required 
+                Logging.dbg().getLevel().getName() // default
+                ) );
+
+        configs.put(LOG_LEVEL_SIM, new ConfigStringPickOne.ConfigLogLevels(LOG_LEVEL_SIM, "Simulation Log Level",
+                "-simlog", 
+                "Specify the level of simulation messages directed to console.", 
+                false, // required 
+                Logging.simout().getLevel().getName() // default
+                ) );
+
     };
     
     /**
@@ -151,22 +175,22 @@ public class ConfigGroup implements Cloneable
         return configs.get(key);
     }
     
-    public void updateConfig (ConfigUpdateIF configuration)
+    public void updateConfig (ConfigUpdateIF configuration, Collection<String> keys)
     {
         Map<String, AbstractConfig> configMap = this.getConfigs();
-        for (String key : configMap.keySet())
+        for (String key : keys)
         {
+            assert configMap.containsKey(key) : "Key does not exist in the configuration. ";
             switch (configMap.get(key).getType())
             {
             case AbstractConfig.TYPE_BOOL:
                 configuration.importConfig((ConfigBoolean)configMap.get(key));
                 break;
             case AbstractConfig.TYPE_STRING:
+            case AbstractConfig.TYPE_PICKONE:
                 configuration.importConfig((ConfigString)configMap.get(key));
                 break;
             case AbstractConfig.TYPE_FILE:
-                configuration.importConfig((ConfigFile)configMap.get(key));
-                break;
             case AbstractConfig.TYPE_DIR:
                 configuration.importConfig((ConfigFile)configMap.get(key));
                 break;
@@ -188,22 +212,22 @@ public class ConfigGroup implements Cloneable
         }
     }
 
-    public void pushConfig (ConfigUpdateIF configuration)
+    public void pushConfig (ConfigUpdateIF configuration, Collection<String> keys)
     {
         Map<String, AbstractConfig> configMap = this.getConfigs();
-        for (String key : configMap.keySet())
+        for (String key : keys)
         {
+            assert configMap.containsKey(key) : "Key does not exist in the configuration. ";
             switch (configMap.get(key).getType())
             {
             case AbstractConfig.TYPE_BOOL:
                 configuration.exportConfig((ConfigBoolean)configMap.get(key));
                 break;
             case AbstractConfig.TYPE_STRING:
+            case AbstractConfig.TYPE_PICKONE:
                 configuration.exportConfig((ConfigString)configMap.get(key));
                 break;
             case AbstractConfig.TYPE_FILE:
-                configuration.exportConfig((ConfigFile)configMap.get(key));
-                break;
             case AbstractConfig.TYPE_DIR:
                 configuration.exportConfig((ConfigFile)configMap.get(key));
                 break;
@@ -280,8 +304,9 @@ public class ConfigGroup implements Cloneable
                 aoDir.setValue(makeAbsolute(runDir, aoDir.getValueFile()), aoDir.isUserSpecified());
             }
             
+            // Make the cache directory absolute only if it is not empty (and not already absolute)
             ConfigFile cacheDir = (ConfigFile)canon.get(CACHE_DIR);
-            if (!cacheDir.getValueFile().isAbsolute())
+            if (!"".equals(cacheDir.getValue()) && !cacheDir.getValueFile().isAbsolute())
             {
                 cacheDir.setValue(makeAbsolute(runDir, cacheDir.getValueFile()), cacheDir.isUserSpecified());
             }
