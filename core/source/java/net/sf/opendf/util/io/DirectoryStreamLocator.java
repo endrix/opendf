@@ -27,4 +27,9 @@ public class DirectoryStreamLocator implements StreamLocator {
 	}
 
 	private String dirpath;
+	
+	public String toString ()
+	{
+	    return super.toString() + "[" + this.dirpath + "]";
+	}
 }

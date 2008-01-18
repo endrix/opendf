@@ -60,10 +60,10 @@ public abstract class AbstractConfig implements Cloneable
     /**
      * Constructs a new configuration element.
      * 
-     * @param id
-     * @param name
-     * @param cla
-     * @param desc
+     * @param id an internally used identifier that is unique across all configs in a ConfigGroup
+     * @param name a user visible, short, name for the config
+     * @param cla the command line argument used to specify this config (including any leading -)
+     * @param desc a longer description of the config.
      * @param required set to true if the user must specify this configuration.
      */
     public AbstractConfig (String id, String name, String cla, String desc, boolean required)
@@ -118,7 +118,15 @@ public abstract class AbstractConfig implements Cloneable
     
     public boolean validate ()
     {
-        return this.isRequired && isUserSpecified();
+        return getErrors().size() == 0;
+    }
+    
+    public List<ConfigError> getErrors ()
+    {
+        if (!this.isRequired  || isUserSpecified())
+            return Collections.EMPTY_LIST;
+        else
+            return Collections.singletonList(new ConfigError("Config '"+getName()+"' is required but not user specified.", null));
     }
     
     /**
@@ -138,5 +146,32 @@ public abstract class AbstractConfig implements Cloneable
     public String toString ()
     {
         return super.toString().replaceAll("net.sf.opendf.config.","") + " " + getID() +"<usr:"+isUserSpecified()+"> =" + getValue();
+    }
+    
+    public static class ConfigError
+    {
+        private String message = "unknown";
+        private Object data = null;
+        
+        ConfigError (String msg, Object dat)
+        {
+            this.message = msg;
+            this.data = dat;
+        }
+        /**
+         * Gets a String indication of the error.
+         * @return
+         */
+        public String getMessage () { return this.message; }
+        /**
+         * Returns an object associated with the error, may be used for providing additional information regarding the error condition.
+         * @return an Object, may be  null
+         */
+        public Object getData () { return this.data; }
+        
+        public String toString ()
+        {
+            return super.toString().replaceAll("net.sf.opendf.config.","") + " <" + getMessage() + ">";
+        }
     }
 }

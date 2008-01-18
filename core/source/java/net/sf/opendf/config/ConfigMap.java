@@ -105,5 +105,9 @@ public class ConfigMap extends AbstractConfig
         return config;
     }
         
-    
+    public static class MapError
+    {
+        public Object key;
+        protected MapError (Object key) { this.key = key; }
+    }
 }

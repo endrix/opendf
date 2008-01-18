@@ -84,9 +84,9 @@ public class ConfigFile extends ConfigString
         return new File(getValue());
     }
 
-    public boolean validate ()
+    public List<ConfigError> getErrors ()
     {
-        if (!super.validate()) return false;
+        List<ConfigError> errs = new ArrayList(super.getErrors());
 
         // If the user has specified the file, check any specified filter extensions
         boolean validExtension = true;
@@ -102,7 +102,9 @@ public class ConfigFile extends ConfigString
                 }
             }
         }
-        return validExtension;
+        if (!validExtension)
+            errs.add(new ConfigError("Filename extension invalid.  Expecting one of: "+this.filters.keySet().toString(), null));
+        return errs;
     }
     
     @Override

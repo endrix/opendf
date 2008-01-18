@@ -50,6 +50,7 @@ import net.sf.opendf.eclipse.plugin.config.ConfigUpdateWrapper;
 import net.sf.opendf.eclipse.plugin.simulators.tabs.*;
 import org.eclipse.ui.console.*;
 import net.sf.opendf.eclipse.plugin.*;
+import net.sf.opendf.util.exception.ReportingExceptionHandler;
 import net.sf.opendf.util.logging.BasicLogFormatter;
 import net.sf.opendf.util.logging.FlushedStreamHandler;
 import net.sf.opendf.util.logging.Logging;
@@ -66,6 +67,14 @@ import java.util.*;
 import java.util.logging.*;
 import java.lang.Runnable;
 
+/**
+ * Front end for HDL compilation of network.  Does not yet support compilation of CAL directly 
+ * (must be instantiated in a network).
+ * TODO: Handle exceptions with graceful reporting.
+ * 
+ * @author imiller
+ *
+ */
 public class OpendfCompilationDelegate implements ILaunchConfigurationDelegate
 {
 
@@ -95,71 +104,6 @@ public class OpendfCompilationDelegate implements ILaunchConfigurationDelegate
         // configuration have been set by the user.
         synthConfigs.updateConfig(new ConfigUpdateWrapper(configuration));
         
-        /*
-        PrefMap synthPrefs = new PrefMap();
-        synthPrefs.set(PrefMap.OUTPUT_ACTOR_DIR, "Actorx");
-        synthPrefs.set(PrefMap.CACHE_PATH, "cache");
-        
-        Map<String, String> prefCorrelation = new HashMap();
-        String modelDirKey = SimulationModelTab.Export(SimulationModelTab.TAB_NAME, SimulationModelTab.KEY_MODELDIR);
-        String modelPathKey = SimulationModelTab.Export(SimulationModelTab.TAB_NAME, SimulationModelTab.KEY_MODELSEARCHPATH);        
-        String useDirKey = SimulationModelTab.Export(SimulationModelTab.TAB_NAME, SimulationModelTab.KEY_USEDEFAULTPATH);        
-        prefCorrelation.put(SimulationModelTab.Export(SimulationModelTab.TAB_NAME, SimulationModelTab.KEY_MODELDIR), PrefMap.MODEL_PATH);
-        prefCorrelation.put(SimulationModelTab.Export(SimulationModelTab.TAB_NAME, SimulationModelTab.KEY_MODELFILE), PrefMap.TOP_LEVEL_NAME);
-
-        info.println(prefCorrelation.toString());
-        String arg1Prefix = OpendfConfigurationTab.Export("SIM.ARG1", "");
-        String arg2Prefix = OpendfConfigurationTab.Export("SIM.ARG2", "");
-        int l = arg2Prefix.length();
-
-        String modelDir = "";
-        String modelPath = "";
-        boolean useDir = true;
-        try
-        {
-            for (Object obj : configuration.getAttributes().keySet())
-            {
-                String key = (String) obj;
-                String value = configuration.getAttribute(key, (String)null);
-                if (prefCorrelation.containsKey(key))
-                {
-                    info.println("Known Key " + key + " value " + value);
-                    String prefKey = prefCorrelation.get(key);
-                    if (prefKey.equals(PrefMap.TOP_LEVEL_NAME))
-                    {
-                        String topLevelName = value;
-                        if (topLevelName.indexOf('.') >= 0)
-                            topLevelName = topLevelName.substring(0, topLevelName.lastIndexOf('.'));
-                        synthPrefs.set(PrefMap.TOP_LEVEL_NAME, topLevelName);
-                        info.println("Set top level model name to " + topLevelName);
-                    }
-                    else
-                    {
-                        synthPrefs.set(prefKey, value);
-                        info.println("Set "+prefKey+"name to " + value);                        
-                    }
-                }
-                else if (key.equals(modelDirKey)) { modelDir = value; }
-                else if (key.equals(modelPathKey)) { modelPath = value; }
-                else if (key.equals(useDirKey)) { useDir = "TRUE".equalsIgnoreCase(value); }
-                else
-                {
-                    info.println("Unknown Key " + key + " value " + value);
-                }
-            }
-            if (useDir)
-                synthPrefs.set(PrefMap.MODEL_PATH, modelDir);
-            else
-                synthPrefs.set(PrefMap.MODEL_PATH, modelPath);
-                
-        } catch (CoreException e)
-        {
-            info.println("Exception during argument processing " + e);
-        }
-        info.println();
-        
-        Synthesizer synth = new Synthesizer(synthPrefs);
-         */
         Synthesizer synth = new Synthesizer(synthConfigs);
 
         monitor.worked(1);
@@ -190,6 +134,7 @@ public class OpendfCompilationDelegate implements ILaunchConfigurationDelegate
             synth.generateNetworkHDL();
         }catch (Exception e) {
             status.println("Error generating HDL Network");
+            e.printStackTrace();
             detachConsole();
             throw new CoreException(new Status(IStatus.ERROR, Activator.PLUGIN_ID, "HDL top level VDHL generation failed", e));        
         }

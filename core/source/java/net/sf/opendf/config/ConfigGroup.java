@@ -40,9 +40,6 @@ package net.sf.opendf.config;
 import java.io.File;
 import java.io.PrintStream;
 import java.util.*;
-import java.util.logging.Logger;
-
-import org.eclipse.core.runtime.CoreException;
 
 public class ConfigGroup implements Cloneable
 {
@@ -132,7 +129,7 @@ public class ConfigGroup implements Cloneable
                 false // default
         ));
         
-        configs.put(TOP_MODEL_PARAMS, new ConfigMap(TOP_MODEL_PARAMS, "Model Parameters",
+        configs.put(TOP_MODEL_PARAMS, new ModelParameterMap(TOP_MODEL_PARAMS, "Model Parameters",
                 "-D", // cla
                 "Specify top level model parameters <key>=<value>",
                 false, // required
@@ -326,7 +323,7 @@ public class ConfigGroup implements Cloneable
         ps.println(super.toString());
         for (String key : this.configs.keySet())
         {
-            ps.println(key + "=>" + this.configs.get(key));
+            ps.println("\t" + key + "=>" + this.configs.get(key));
         }
     }
     public String toString ()

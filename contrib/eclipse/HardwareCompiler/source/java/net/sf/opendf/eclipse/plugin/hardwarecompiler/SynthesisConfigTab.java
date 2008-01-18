@@ -37,33 +37,27 @@ ENDCOPYRIGHT
 */
 package net.sf.opendf.eclipse.plugin.hardwarecompiler;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import net.sf.opendf.config.*;
+import net.sf.opendf.config.AbstractConfig.ConfigError;
 import net.sf.opendf.eclipse.plugin.config.ConfigModificationListener;
 import net.sf.opendf.eclipse.plugin.config.ConfigUpdateWrapper;
 import net.sf.opendf.eclipse.plugin.config.ControlRenderingFactory;
+import net.sf.opendf.eclipse.plugin.config.TopModelParamParse;
 import net.sf.opendf.eclipse.plugin.config.UpdatableControlIF;
+import net.sf.opendf.eclipse.plugin.config.TopModelParamParse.ModelParameter;
+import net.sf.opendf.util.logging.Logging;
 
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.debug.ui.AbstractLaunchConfigurationTab;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.FileDialog;
-import org.eclipse.swt.widgets.Group;
+
 
 public class SynthesisConfigTab extends AbstractLaunchConfigurationTab
 {
@@ -75,7 +69,7 @@ public class SynthesisConfigTab extends AbstractLaunchConfigurationTab
      */
     private ConfigGroup configs;
     private List<UpdatableControlIF> controls = new ArrayList<UpdatableControlIF>();
-    
+        
     public SynthesisConfigTab()
     {
         super();
@@ -85,11 +79,6 @@ public class SynthesisConfigTab extends AbstractLaunchConfigurationTab
     @Override
     public void createControl (Composite parent)
     {
-        //IDM TODO:
-            /*
-             * Create the -D config and a renderer which takes in values
-             * Copy over the calml parsing
-             */
         // Create a scrolling composite in which to put all the controls.  You can organize it however you would like.
         ScrolledComposite tabScroller = new ScrolledComposite(parent, SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER);
         tabScroller.setLayoutData( new GridData( GridData.FILL_HORIZONTAL ) );
@@ -103,36 +92,45 @@ public class SynthesisConfigTab extends AbstractLaunchConfigurationTab
         setControl( tabScroller );
         tabScroller.setContent(tab);
 
-        final Composite group1 = new Composite(tab, SWT.SHADOW_IN);
-        group1.setLayoutData( new GridData( GridData.FILL_HORIZONTAL ) );
-        group1.setLayout( new GridLayout( 1, false ) );
+        // Add the relevant controls for selecting parameters
+        final UpdatableControlIF topFile = ControlRenderingFactory.fileSelectButton(tab, "Set top model from file selection", false, (ConfigFile)configs.get(ConfigGroup.TOP_MODEL_FILE));
+        
         final Composite group2 = new Composite(tab, SWT.SHADOW_IN);
         //group2.setLayoutData( new GridData( GridData.FILL_HORIZONTAL ) );
         group2.setLayoutData( new GridData(SWT.FILL, SWT.BEGINNING, true,true) );
         group2.setLayout( new GridLayout( 2, true ) );
+        
+        final Composite leftCol = new Composite(group2, SWT.NONE);
+        leftCol.setLayoutData( new GridData(SWT.FILL, SWT.BEGINNING, true,true) );
+        leftCol.setLayout( new GridLayout( 1, true ) );
 
-        // Add the relevant controls for selecting parameters
-        final UpdatableControlIF topFile = ControlRenderingFactory.fileSelectButton(group1, "Set top model from file selection", false, (ConfigFile)configs.get(ConfigGroup.TOP_MODEL_FILE));
+        final Composite rightCol = new Composite(group2, SWT.NONE);
+        rightCol.setLayoutData( new GridData(SWT.FILL, SWT.BEGINNING, true,true) );
+        rightCol.setLayout( new GridLayout( 1, true ) );
+
+        final UpdatableControlIF runDir = ControlRenderingFactory.renderConfigFileSelect((ConfigFile)configs.get(ConfigGroup.RUN_DIR), leftCol, true, true); 
+        final UpdatableControlIF topName = ControlRenderingFactory.renderConfig(configs.get(ConfigGroup.TOP_MODEL_NAME), leftCol); 
+        final UpdatableControlIF oFile = ControlRenderingFactory.renderConfigFileSelect((ConfigFile)configs.get(ConfigGroup.OUTPUT_FILE), leftCol, false, true); 
+        controls.add(ControlRenderingFactory.renderConfig(configs.get(ConfigGroup.ACTOR_OUTPUT_DIR), leftCol));
+        controls.add(ControlRenderingFactory.renderConfig(configs.get(ConfigGroup.CACHE_DIR), leftCol));
+        controls.add(ControlRenderingFactory.renderConfig(configs.get(ConfigGroup.GEN_HDL_SIM_MODEL), leftCol));
+        controls.add(ControlRenderingFactory.renderConfig(configs.get(ConfigGroup.ENABLE_ASSERTIONS), leftCol));
+
+        final UpdatableControlIF modelPath = ControlRenderingFactory.renderConfig(configs.get(ConfigGroup.MODEL_PATH), rightCol); 
+        final UpdatableControlIF modelParams = ControlRenderingFactory.renderConfig(configs.get(ConfigGroup.TOP_MODEL_PARAMS), rightCol); 
         
-        final UpdatableControlIF runDir = ControlRenderingFactory.renderConfigFileSelect((ConfigFile)configs.get(ConfigGroup.RUN_DIR), group2, true, true); 
-        final UpdatableControlIF modelPath = ControlRenderingFactory.renderConfig(configs.get(ConfigGroup.MODEL_PATH), group2); 
-        final UpdatableControlIF topName = ControlRenderingFactory.renderConfig(configs.get(ConfigGroup.TOP_MODEL_NAME), group2); 
-        final UpdatableControlIF oFile = ControlRenderingFactory.renderConfigFileSelect((ConfigFile)configs.get(ConfigGroup.OUTPUT_FILE), group2, false, true); 
-        
+        controls.add(topFile);
         controls.add(modelPath);
         controls.add(runDir);
         controls.add(oFile);
         controls.add(topName);
-        controls.add(ControlRenderingFactory.renderConfig(configs.get(ConfigGroup.CACHE_DIR), group2));
-        controls.add(ControlRenderingFactory.renderConfig(configs.get(ConfigGroup.ACTOR_OUTPUT_DIR), group2));
-        controls.add(ControlRenderingFactory.renderConfig(configs.get(ConfigGroup.GEN_HDL_SIM_MODEL), group2));
-        controls.add(ControlRenderingFactory.renderConfig(configs.get(ConfigGroup.ENABLE_ASSERTIONS), group2));
+        controls.add(modelParams);
 
         // If the user uses the button to set the model by file selection, overide any values in 
         // the relevent fields
         topFile.addModifyListener(new ConfigModificationListener(){
             public void registerModification (int type) {
-                                // Set to false to only update in case of no user setting.
+                // Set to false to only update in case of no user setting.
                 final boolean forceUpdate = true;
                 
                 ConfigFile topFileConfig = (ConfigFile)configs.get(ConfigGroup.TOP_MODEL_FILE);
@@ -141,12 +139,13 @@ public class SynthesisConfigTab extends AbstractLaunchConfigurationTab
                     return;
                 
                 // Update the run directory whenever the top file is updated
-                AbstractConfig runDirConfig = configs.get(ConfigGroup.RUN_DIR);
+                ConfigFile runDirConfig = (ConfigFile)configs.get(ConfigGroup.RUN_DIR);
                 if (forceUpdate || !runDirConfig.isUserSpecified())
                     runDirConfig.setValue(topFileConfig.getValueFile().getParent(), true);
                 runDir.updateValue();
 
-                AbstractConfig topNameConfig = configs.get(ConfigGroup.TOP_MODEL_NAME);
+                // Update the top level model name
+                ConfigString topNameConfig = (ConfigString)configs.get(ConfigGroup.TOP_MODEL_NAME);
                 if (forceUpdate || !topNameConfig.isUserSpecified())
                 {
                     String name = topFileConfig.getValueFile().getName();
@@ -168,14 +167,31 @@ public class SynthesisConfigTab extends AbstractLaunchConfigurationTab
                 }
                 oFile.updateValue();
                 
-                // Ensure that the model path contains '.'
+                // Ensure that the model path contains the run directory
                 ConfigList modelPathConfig = (ConfigList)configs.get(ConfigGroup.MODEL_PATH);
-                if (!modelPathConfig.getValue().contains("."))
+                if (!modelPathConfig.getValue().contains(runDirConfig.getValue()))
                 {
                     // The contract for setValue on collections is to append
-                    modelPathConfig.addValue(Collections.singletonList("."), modelPathConfig.isUserSpecified());
+                    modelPathConfig.addValue(Collections.singletonList(runDirConfig.getValue()), modelPathConfig.isUserSpecified());
                 }
                 modelPath.updateValue();
+                
+                // Update the model parameters
+                ConfigMap paramsConfig = (ConfigMap)configs.get(ConfigGroup.TOP_MODEL_PARAMS);
+                if (forceUpdate || !paramsConfig.isUserSpecified())
+                {
+                    String[] modelPathArr = (String[])modelPathConfig.getValue().toArray(new String[0]);
+                    try {
+                        List<TopModelParamParse.ModelParameter> params = TopModelParamParse.parseModel(topNameConfig.getValue(), modelPathArr);
+                        Map map = new HashMap();
+                        for (ModelParameter mp : params)
+                            map.put(mp.getName(), mp.getValue());
+                        paramsConfig.setValue(map, false);
+                    } catch (TopModelParamParse.ModelAnalysisException exc) {
+                        Logging.dbg().severe("Error loading top model " + exc);
+                    }
+                }
+                modelParams.updateValue();
             }
         });
         
@@ -196,7 +212,7 @@ public class SynthesisConfigTab extends AbstractLaunchConfigurationTab
     @Override
     public String getName ()
     {
-        return "Synthesis";
+        return "HDL Compile";
     }
 
     @Override
@@ -210,19 +226,56 @@ public class SynthesisConfigTab extends AbstractLaunchConfigurationTab
             controlIF.updateValue();
         }
     }
-
+    
     @Override
     public void performApply (ILaunchConfigurationWorkingCopy configuration)
     {
         configs.pushConfig(new ConfigUpdateWrapper(configuration));
-        configs.debug(System.out);
     }
-
+    
     @Override
     public void setDefaults (ILaunchConfigurationWorkingCopy configuration)
     {
         // May be called before the control is created
-        // TODO Auto-generated method stub
+        configs.pushConfig(new ConfigUpdateWrapper(configuration));
+    }
+
+    @Override
+    public boolean isValid (ILaunchConfiguration config)
+    {
+        // Test the specified configuration for errors
+        if (!super.isValid(config)) return false;
+
+        // Construct a new configuration view for testing
+        ConfigGroup group = new ConfigGroup();
+        // Set the specified launch config values into the test config
+        group.updateConfig(new ConfigUpdateWrapper(config));
+        // Canonicalize to ensure that any values are pushed as far as they can go
+        group = group.canonicalize();
+        // Test for errors
+        List<ConfigError> errors = new ArrayList();
+        for (AbstractConfig cfg : group.getConfigs().values())
+        {
+            if (!cfg.validate())
+            {
+                errors.addAll(cfg.getErrors());
+            }
+        }
+        
+        if (errors.isEmpty())
+            setErrorMessage(null);
+        else
+        {
+            for (ConfigError err : errors)
+                Logging.dbg().info(err.toString());
+            
+            String msg = "There " + (errors.size() == 1 ? "is ":"are ") + errors.size() + " error" + 
+                    (errors.size() == 1 ? "":"s") + ":  ";
+            msg += errors.get(0).getMessage();
+            setErrorMessage(msg);
+        }
+        
+        return errors.isEmpty();
     }
 
 }

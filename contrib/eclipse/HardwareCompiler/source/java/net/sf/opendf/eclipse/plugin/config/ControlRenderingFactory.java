@@ -42,7 +42,10 @@ import java.util.*;
 
 import net.sf.opendf.config.*;
 
+import org.eclipse.jface.layout.TableColumnLayout;
+import org.eclipse.jface.viewers.ColumnWeightData;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.TableEditor;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -52,6 +55,9 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.TableColumn;
+import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 
 /**
@@ -64,6 +70,12 @@ import org.eclipse.swt.widgets.Text;
 public class ControlRenderingFactory
 {
 
+    /**
+     * Render the specified config into an appropriate type of {@link Control} widget.
+     * @param config
+     * @param parent
+     * @return
+     */
     public static UpdatableControlIF renderConfig (AbstractConfig config, Composite parent)
     {
         if (config.getType() == AbstractConfig.TYPE_FILE) return renderConfig((ConfigFile)config, parent);
@@ -71,12 +83,131 @@ public class ControlRenderingFactory
         else if (config.getType() == AbstractConfig.TYPE_STRING) return renderConfig((ConfigString)config, parent);
         else if (config.getType() == AbstractConfig.TYPE_BOOL) return renderConfig((ConfigBoolean)config, parent);
         else if (config.getType() == AbstractConfig.TYPE_LIST) return renderConfig((ConfigList)config, parent);
+        else if (config.getType() == AbstractConfig.TYPE_MAP) return renderConfig((ConfigMap)config, parent);
         return null;
     }
 
     public static UpdatableControlIF renderConfig (ConfigMap config, Composite parent)
     {
-        return null;
+        final ConfigMap configHandle = config;
+        final int nameKey = 0;
+        final int valueKey = 1;
+        
+        // A group to provide the border and config name
+        final Group group = new Group(parent, SWT.SHADOW_IN);
+        group.setText(configHandle.getName());
+        group.setLayoutData( new GridData( GridData.FILL_BOTH ) );
+        group.setLayout( new GridLayout( 1, false ) );
+        
+        // A composite to hold the table layout
+        final Composite tableHolder = new Composite( group, SWT.NONE );
+        tableHolder.setLayoutData(new GridData( GridData.FILL_BOTH ));
+        TableColumnLayout columnLayout = new TableColumnLayout();
+        tableHolder.setLayout( columnLayout );
+          
+        // The table
+        final Table table = new Table( tableHolder, SWT.SINGLE | SWT.BORDER | SWT.FULL_SELECTION | SWT.VIRTUAL );
+        table.setLayoutData(new GridData(GridData.FILL_BOTH));
+        table.setToolTipText(config.getDescription());
+        table.setLinesVisible( false );
+        table.setHeaderVisible( true );
+          
+        final String[] columnLabels = { "Parameter", "Value"};
+        TableColumn[] columns = new TableColumn[ columnLabels.length ];
+        for( int i = 0; i < columnLabels.length ; i++ )
+        {
+          columns[i] = new TableColumn( table, SWT.LEFT, i );
+          columns[i].setText( columnLabels[i] );
+          columnLayout.setColumnData( columns[i], new ColumnWeightData( i == 1 ? 80 : 10, 100) );
+        }
+        
+        final ConfigUpdatableControl cif = new ConfigUpdatableControl()
+        {
+            public Control getControl () { return tableHolder; }
+            // The method called when the backing config has changed, in order to update the table.
+            // Removes all entries and re-adds them (after sorting by string).
+            public void updateValue () {
+                table.removeAll();
+                Map<String, String> params = configHandle.getValue();
+                // Ensuring that there is at least 1 row ensures a minimum size for the table
+                // Not sure how else to ensure this...
+                if (params.isEmpty()) params = Collections.singletonMap("", " ");
+                ArrayList<String> keys = new ArrayList(params.keySet());
+                Collections.sort(keys);
+                for (String key : keys)
+                {
+                    TableItem item = new TableItem(table, SWT.NONE);
+                    item.setText(new String[]{key, params.get(key)});
+                }
+
+                table.getColumn(nameKey).pack();
+                table.getColumn(valueKey).pack();
+            };
+        };
+        
+        // The listener which is responsible for updating the config based on changes to the table
+        final ModifyListener modListener = new ModifyListener() {
+            public void modifyText (ModifyEvent e) {
+                Map map = new LinkedHashMap();
+                TableItem[] items = table.getItems();
+                for (int i=0; i < items.length; i++)
+                {
+                    if (items[i].getText(nameKey).equals("")) continue;
+                    map.put(items[i].getText(nameKey), items[i].getText(valueKey));
+                }
+                configHandle.setValue(map, true);
+                // Notify the context that a change to the control has occurred
+                cif.modificationNotify(ConfigModificationListener.TEXT_MODIFICATION);
+            }
+        };
+
+        // Call update to display the initial value
+        cif.updateValue();
+
+        // Generate a cell editor to allow parameter values to be directly specified
+        final TableEditor editor = new TableEditor(table);
+        editor.horizontalAlignment = SWT.LEFT;
+        editor.grabHorizontal = true;
+        editor.minimumWidth = 50;
+        
+        table.addSelectionListener(new SelectionListener() {
+            public void widgetDefaultSelected (SelectionEvent e) {}
+            public void widgetSelected (SelectionEvent e)
+            {
+                // Clean up any previous editor control
+                Control oldEditor = editor.getEditor();
+                if (oldEditor != null) oldEditor.dispose();
+
+                // Identify the selected row
+                TableItem item = (TableItem)e.item;
+                if (item == null) return;
+                // Disallow editing of an empty row (occurs when there are no parameters)
+                if (item.getText(nameKey).equals("")) return;
+
+                // The control that will be the editor must be a child of the Table
+                Text newEditor = new Text(table, SWT.NONE);
+                newEditor.setText(item.getText(valueKey));
+                newEditor.addModifyListener(new ModifyListener() {
+                    public void modifyText(ModifyEvent e) {
+                        editor.getItem().setText(valueKey, ((Text)editor.getEditor()).getText());
+                    }
+                });
+                newEditor.addModifyListener(modListener);
+                newEditor.selectAll();
+                newEditor.setFocus();
+                editor.setEditor(newEditor, item, valueKey);
+                
+                newEditor.addFocusListener(new FocusListener(){
+                    public void focusGained(FocusEvent e) {} 
+                    public void focusLost(FocusEvent e) {
+                        // When we lose focus, ditch the editor
+                        if (editor.getEditor() != null)
+                            editor.getEditor().dispose();
+                    } });
+            }
+        });
+
+        return cif;
     }
     
     public static UpdatableControlIF renderConfig (ConfigList config, Composite parent)
@@ -92,25 +223,6 @@ public class ControlRenderingFactory
         textBox.setToolTipText(config.getDescription());
         textBox.setLayoutData(new GridData( GridData.FILL_HORIZONTAL));
 
-        final ModifyListener modListener = new ModifyListener() {
-            public void modifyText (ModifyEvent e) {
-                if (textBox.getText() == null || textBox.getText().length() == 0)
-                    configHandle.unset();
-                else
-                {
-                    System.out.println("Config value (pre) is " + configHandle.getValue());
-                    System.out.println("Config list text box is " + textBox.getText());
-                    StringTokenizer st = new StringTokenizer(textBox.getText(), Text.DELIMITER);
-                    List list = new ArrayList();
-                    while (st.hasMoreTokens())
-                        list.add(st.nextToken());
-                    configHandle.setValue(list, true);
-                    System.out.println("Config value (post) is " + configHandle.getValue());
-                } } 
-        };
- 
-        textBox.addModifyListener(modListener);
-        
         final ConfigUpdatableControl cif = new ConfigUpdatableControl()
         {
             public Control getControl () { return group; }
@@ -119,17 +231,30 @@ public class ControlRenderingFactory
                 String s = iter.hasNext() ? iter.next().toString():"";
                 while (iter.hasNext())
                     s += Text.DELIMITER + iter.next().toString();
-                // Remove the listener to avoid updating the config based on the update
-                textBox.removeModifyListener(modListener);
                 textBox.setText(s);
-                textBox.addModifyListener(modListener);
             };
         };
         
+        final ModifyListener modListener = new ModifyListener() {
+            public void modifyText (ModifyEvent e) {
+                if (textBox.getText() == null || textBox.getText().length() == 0)
+                    configHandle.unset();
+                else
+                {
+                    StringTokenizer st = new StringTokenizer(textBox.getText(), Text.DELIMITER);
+                    List list = new ArrayList();
+                    while (st.hasMoreTokens())
+                        list.add(st.nextToken());
+                    configHandle.setValue(list, true);
+                    // update the context when this control has changed
+                    cif.modificationNotify(ConfigModificationListener.TEXT_MODIFICATION);
+                } } 
+        };
+ 
+        textBox.addModifyListener(modListener);
+        
         cif.updateValue();
 
-        addChangeListener(textBox, cif, ConfigModificationListener.TEXT_MODIFICATION);
-        
         return cif;
     }
     
@@ -153,34 +278,31 @@ public class ControlRenderingFactory
         textBox.setToolTipText(config.getDescription());
         textBox.setLayoutData(new GridData( GridData.FILL_HORIZONTAL));
 
+        final ConfigUpdatableControl cif = new ConfigUpdatableControl()
+        {
+            public Control getControl () { return group; }
+            public void updateValue () {
+                if (showFull) textBox.setText(configHandle.getValue());
+                else textBox.setText(configHandle.getValueFile().getName());
+                };
+        };
+
         final ModifyListener modListener = new ModifyListener() {
             public void modifyText (ModifyEvent e) {
                 if (textBox.getText() == null || textBox.getText().length() == 0)
                     configHandle.unset();
                 else
                     configHandle.setValue(textBox.getText(), true);
+                // update the context when this control has changed
+                cif.modificationNotify(ConfigModificationListener.TEXT_MODIFICATION);
             } 
         };
  
         textBox.addModifyListener(modListener);
         
-        final ConfigUpdatableControl cif = new ConfigUpdatableControl()
-        {
-            public Control getControl () { return group; }
-            public void updateValue () {
-                // Remove the listener to avoid updating the config based on the update
-                textBox.removeModifyListener(modListener);
-                if (showFull)
-                    textBox.setText(configHandle.getValue());
-                else
-                    textBox.setText(configHandle.getValueFile().getName());
-                textBox.addModifyListener(modListener);
-                };
-        };
         cif.updateValue();
-        
-        addChangeListener(textBox, cif, ConfigModificationListener.TEXT_MODIFICATION);
 
+        // Conditionally generate a file browsing button
         if (withBrowse)
         {
             final Button browse = new Button(group, SWT.PUSH | SWT.CENTER);
@@ -206,8 +328,7 @@ public class ControlRenderingFactory
 
                                 if (selected.getAbsoluteFile().getParent() != null)
                                 {
-                                    String filterPath = selected.getAbsoluteFile().getParent();
-                                    fileSelector.setFilterPath(filterPath);
+                                    fileSelector.setFilterPath(selected.getAbsoluteFile().getParent());
                                 }
                                 absoluteFile = fileSelector.open();
                             } else {
@@ -220,6 +341,8 @@ public class ControlRenderingFactory
                             {
                                 configHandle.setValue(absoluteFile, true);
                                 cif.updateValue();
+                                // The user has specified a new value for the config.  Notify the context that 
+                                // the change has occurred
                                 cif.modificationNotify(ConfigModificationListener.TEXT_MODIFICATION);
                             }
                         } } );
@@ -233,6 +356,12 @@ public class ControlRenderingFactory
         return cif;
     }
 
+    /**
+     * Generates a checkbox control for the element.
+     * @param config
+     * @param parent
+     * @return
+     */
     public static UpdatableControlIF renderConfig (ConfigBoolean config, Composite parent)
     {
         final ConfigBoolean configHandle = config;
@@ -242,27 +371,24 @@ public class ControlRenderingFactory
         select.setToolTipText(config.getDescription());
         select.setSelection(configHandle.getValue());
 
+        final ConfigUpdatableControl cif = new ConfigUpdatableControl()
+        {
+            public Control getControl () { return select; }
+            public void updateValue () {
+                select.setSelection(configHandle.getValue()); 
+                };
+        };
+        
         final SelectionListener selListener = new SelectionListener(){
             public void widgetDefaultSelected(SelectionEvent e) {}
             public void widgetSelected(SelectionEvent e) {
                 configHandle.setValue(select.getSelection(), true);
+                cif.modificationNotify(ConfigModificationListener.BUTTON_SELECTION);
             } 
         };
  
         select.addSelectionListener(selListener);
         
-        final ConfigUpdatableControl cif = new ConfigUpdatableControl()
-        {
-            public Control getControl () { return select; }
-            public void updateValue () {
-                select.removeSelectionListener(selListener);
-                select.setSelection(configHandle.getValue()); 
-                select.addSelectionListener(selListener);
-                };
-        };
-        
-        addChangeListener(select, cif, ConfigModificationListener.BUTTON_SELECTION);
-
         return cif;
     }
     
@@ -280,29 +406,24 @@ public class ControlRenderingFactory
         textBox.setLayoutData(new GridData( GridData.FILL_HORIZONTAL));
         textBox.setText(configHandle.getValue());
 
+        final ConfigUpdatableControl cif = new ConfigUpdatableControl()
+        {
+            public Control getControl () { return group; }
+            public void updateValue () { textBox.setText(configHandle.getValue()); };
+        };
+        
         final ModifyListener modListener = new ModifyListener() {
             public void modifyText (ModifyEvent e) {
                 if (textBox.getText() == null || textBox.getText().length() == 0)
                     configHandle.unset();
                 else
                     configHandle.setValue(textBox.getText(), true);
+                cif.modificationNotify(ConfigModificationListener.TEXT_MODIFICATION);
             } 
         };
  
         textBox.addModifyListener(modListener);
         
-        final ConfigUpdatableControl cif = new ConfigUpdatableControl()
-        {
-            public Control getControl () { return group; }
-            public void updateValue () { 
-                textBox.removeModifyListener(modListener);
-                textBox.setText(configHandle.getValue()); 
-                textBox.addModifyListener(modListener);
-                };
-        };
-        
-        addChangeListener(textBox, cif, ConfigModificationListener.TEXT_MODIFICATION);
-
         /*
         textBox.addVerifyListener(
                 new VerifyListener(){
@@ -360,8 +481,8 @@ public class ControlRenderingFactory
                         }
                         if (absoluteFile != null) // null if 'cancel' from dialog
                         {
-                            cif.modificationNotify(ConfigModificationListener.TEXT_MODIFICATION);
                             configHandle.setValue(absoluteFile, true);
+                            cif.modificationNotify(ConfigModificationListener.TEXT_MODIFICATION);
                         }
                     } } );
         
@@ -370,33 +491,6 @@ public class ControlRenderingFactory
     }
     
     
-    /**
-     *  FocusListeners are used to detect when the control widget loses focus.  This event 
-     *  is taken as the opportunity to notify entities that are listening for changes to that 
-     *  widget. 
-     *  
-     * @param control
-     * @param cif
-     * @param type
-     */
-    private static void addChangeListener (Control control, ConfigUpdatableControl cif, int type)
-    {
-        final ConfigUpdatableControl cifHandle = cif;
-        final int typeHandle = type;
-        control.addFocusListener(new FocusListener(){
-            public void focusGained (FocusEvent e){}
-            public void focusLost (FocusEvent e){
-                cifHandle.modificationNotify(typeHandle);
-            }});
-        if (control instanceof Text)
-        {
-            ((Text)control).addModifyListener(new ModifyListener(){
-                public void modifyText (ModifyEvent e){
-                    cifHandle.modificationNotify(typeHandle);
-                }});
-        }
-    }
-
     /**
      * Queries the config for a list of valid extensions, then orders them according to the
      * preferred extension (making sure it is first if it is non null).  To be nice to users
