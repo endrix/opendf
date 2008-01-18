@@ -51,7 +51,6 @@ public class CompilationTabGroup extends OpendfConfigurationTabGroup
     {
         AbstractLaunchConfigurationTab[] tabs =
         {
-                new SimulationModelTab(),
                 new SynthesisConfigTab()
         };
 
