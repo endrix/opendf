@@ -9,7 +9,13 @@
         <!-- <DefaultValue value="1"/> -->
         <FoldingFunction value="lambda (L) : accumulate(lambda (x, y) : if x > y then x else y end end, 0, L) end"/>
     </ConnectionAttribute>
-
+    
+    <ConnectionAttribute attrName="initialTokens" attrKind="Value">
+        <!-- <DefaultValue value="1"/> -->
+        <FoldingFunction value="lambda (L) : accumulate(lambda (x, y) : y + x end, [], L) end"/>
+        <!--<FoldingFunction value="lambda (L) : L end"/> -->
+    </ConnectionAttribute>
+    
     <ConnectionAttribute attrName="queuetap" attrKind="Value">
         <FoldingFunction value="lambda (L) : accumulate(lambda (x, y) : x or y end, false, L) end"/>
     </ConnectionAttribute>

@@ -124,7 +124,7 @@ public class PhasedSimulator {
     actorClass = null;
     cachePath = null;
     userVerbosity = Logging.user().getLevel();
-    elaborate = false;
+    elaborate = true; // JWJ: Should be true by default, to enable proper attribute processing.
     // debug = false;
     interpretStimulus = true;
     bufferBlockRecord = false;
@@ -144,7 +144,7 @@ public class PhasedSimulator {
     if( elaborated ) throw new RuntimeException( "Too late to set args" );
     
     if (arg.equals("--no-interpret-stimulus")) interpretStimulus = false;
-    else if (arg.equals("-e")) elaborate = true;
+    else if (arg.equals("-ne")) elaborate = false;
     else if (arg.equals("-ea")) System.setProperty("EnableAssertions", "true");
     else if (arg.equals("-tc")) System.setProperty("EnableTypeChecking", "true");
     else if (arg.equals("-bbr"))

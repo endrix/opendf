@@ -526,6 +526,8 @@ public class TypedPlatform implements Platform {
         			} else {
             			throw new RuntimeException("Cannot add types: " + a + ", " + b + ".");
         			}	
+        		} else if (Type.nameString.equals(a.getName())) {
+        			return Type.typeString;
         		} else {
         			throw new RuntimeException("Cannot add types: " + a + ", " + b + ".");
         		}
