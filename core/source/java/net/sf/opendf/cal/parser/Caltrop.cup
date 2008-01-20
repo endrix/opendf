@@ -118,17 +118,52 @@ action code {:
         element.setAttribute("kind", kind);
         return element;
     }
+    
     private void addTextRange(Element e, int s1left, int s1right, int s2left, int s2right) {
     	try {
 			e.setAttribute("text-begin-line", Integer.toString(s1left));
 			e.setAttribute("text-begin-col", Integer.toString(s1right));
 			e.setAttribute("text-end-line", Integer.toString(s2left));
 			e.setAttribute("text-end-col", Integer.toString(s2right));
-		} catch (Exception exc)
-    {
+		} catch (Exception exc) {
 			throw new CalParserException(exc.getMessage());
 		}
     }
+    
+    private void addTextRange(Element e, Element start, int s2left, int s2right) {
+    	try {
+			e.setAttribute("text-begin-line", start.getAttribute("text-begin-line"));
+			e.setAttribute("text-begin-col", start.getAttribute("text-begin-col"));
+			e.setAttribute("text-end-line", Integer.toString(s2left));
+			e.setAttribute("text-end-col", Integer.toString(s2right));
+		} catch (Exception exc) {
+			throw new CalParserException(exc.getMessage());
+		}
+    }
+    
+    private void addTextRange(Element e, int s1left, int s1right, Element end) {
+    	try {
+			e.setAttribute("text-begin-line", Integer.toString(s1left));
+			e.setAttribute("text-begin-col", Integer.toString(s1right));
+			e.setAttribute("text-end-line", end.getAttribute("text-end-line"));
+			e.setAttribute("text-end-col", end.getAttribute("text-end-col"));
+		} catch (Exception exc) {
+			throw new CalParserException(exc.getMessage());
+		}
+    }
+    
+    private void addTextRange(Element e, Element start, Element end) {
+    	try {
+			e.setAttribute("text-begin-line", start.getAttribute("text-begin-line"));
+			e.setAttribute("text-begin-col", start.getAttribute("text-begin-col"));
+			e.setAttribute("text-end-line", end.getAttribute("text-end-line"));
+			e.setAttribute("text-end-col", end.getAttribute("text-end-col"));
+		} catch (Exception exc) {
+			throw new CalParserException(exc.getMessage());
+		}
+    }
+    
+    
     private void error(String message)
     {
         parser.report_error(message);
@@ -821,8 +856,8 @@ decl_variables ::=
     ;
 
 decl_variable_function ::=
-        FUNCTION id:id LPAR decl_parameters_opt:p RPAR function_ret_type_opt:t
-            var_decl_variables_opt:v /*ZZZ*/ COLON expression:e end_function
+        FUNCTION:startSymbol id:id LPAR decl_parameters_opt:p RPAR function_ret_type_opt:t
+            var_decl_variables_opt:v /*ZZZ*/ COLON expression:e end_function:endSymbol
             {:  Element decl = createElement("Decl" , "Variable");
                 Element type = createElement("Type", "Function");
                 Element lambda = createElement("Expr", "Lambda");
@@ -847,6 +882,7 @@ decl_variable_function ::=
                 setAttribute(type, "infer", "true");
                 appendChildren(lambda, v);
                 appendChild(lambda, e);
+                addTextRange(decl, startSymbolleft, startSymbolright, endSymbolleft, endSymbolright);
                 RESULT = decl; :}
     |   FUNCTION:k error end_function {: error("Illegal function declaration.", k, kleft, kright); RESULT = null; :}
     ;
@@ -858,8 +894,8 @@ function_ret_type_opt ::=
     ;
 
 decl_variable_procedure ::=
-        PROCEDURE id:id LPAR decl_parameters_opt:p RPAR
-            var_decl_variables_opt:v BEGIN statements:s end_procedure
+        PROCEDURE:startSymbol id:id LPAR decl_parameters_opt:p RPAR
+            var_decl_variables_opt:v BEGIN statements:s end_procedure:endSymbol
             {:  Element decl = createElement("Decl" , "Variable");
                 Element type = createElement("Type", "Procedure" );
                 Element proc = createElement("Expr", "Proc");
@@ -882,6 +918,7 @@ decl_variable_procedure ::=
                 setAttribute(type, "infer", "true");
                 appendChildren(proc, v);
                 appendChildren(proc, s);
+                addTextRange(decl, startSymbolleft, startSymbolright, endSymbolleft, endSymbolright);
                 RESULT = decl; :}
     |   PROCEDURE:k error end_procedure {: error("Illegal procedure declaration.", k, kleft, kright); RESULT = null; :}
     ;
@@ -890,20 +927,22 @@ decl_variable_state ::=
         decl_variable_state_head:d
             {: setAttribute(d, "assignable", "Yes"); RESULT = d; :}
     |   decl_variable_state_head:d COLON_EQUALS expression:e
-            {: setAttribute(d, "assignable", "Yes"); RESULT = appendChild(d, e); :}
+            {: setAttribute(d, "assignable", "Yes"); addTextRange(d, d, e); RESULT = appendChild(d, e); :}
     |   decl_variable_state_head:d EQUALS expression:e
-            {: RESULT = appendChild(d, e); :}
+            {: addTextRange(d, d, e); RESULT = appendChild(d, e); :}
     |   MUTABLE decl_variable_state_head:d EQUALS expression:e
-            {: setAttribute(d, "mutable", "Yes"); RESULT = appendChild(d, e); :}
+            {: setAttribute(d, "mutable", "Yes"); addTextRange(d, d, e); RESULT = appendChild(d, e); :}
     ;
 decl_variable_state_head ::=
         id:i
             {:  Element decl = createElement("Decl" , "Variable");
                 setName(decl, i);
+                addTextRange(decl, ileft, iright, ileft, iright);
                 RESULT = decl; :}
     |   type_expr:t id:i
             {:  Element decl = createElement("Decl" , "Variable");
                 setName(decl, i);
+                addTextRange(decl, t, ileft, iright);
                 RESULT = appendChild(decl, t); :}
     ;
 
@@ -992,42 +1031,59 @@ expressions_opt ::=
 
 expr_binary ::=
         expr_unary:e1 binary_expression_op:o expr_unary:e2
-            {: RESULT = appendChild(createElement("Expr", "BinOpSeq"), e1, o, e2); :}
+            {: 
+                Element expr = createElement("Expr", "BinOpSeq");
+                addTextRange(expr, e1, e2);
+                RESULT = appendChild(expr, e1, o, e2); 
+            :}
     |   expr_binary:e binary_expression_op:o expr_unary:e2
-            {: RESULT = appendChild(e, o, e2); :}
+            {: addTextRange(e, e, e2); RESULT = appendChild(e, o, e2); :}
     ;
 
 expr_if ::=
-        IF expression:i THEN expression:t ELSE expression:f end_if
-            {: RESULT = appendChild(createElement("Expr", "If"), i, t, f); :}
+        IF:startSymbol expression:i THEN expression:t ELSE expression:f end_if:endSymbol
+            {: 
+                Element expr = appendChild(createElement("Expr", "If"), i, t, f); 
+                addTextRange(expr, startSymbolleft, startSymbolright, endSymbolleft, endSymbolright);
+                RESULT = expr;
+            :}
     |   IF:k error end_if {: error("Illegal if expression.", k, kleft, kright); RESULT = null; :}
     ;
 
 expr_lambda ::=
-        const_opt:c LAMBDA LPAR decl_parameters_opt:d RPAR function_ret_type_opt:t
-            var_decl_variables_opt:v /*ZZZ*/ COLON expression:b end_lambda
+        const_opt:c LAMBDA:startSymbol LPAR decl_parameters_opt:d RPAR function_ret_type_opt:t
+            var_decl_variables_opt:v /*ZZZ*/ COLON expression:b end_lambda:endSymbol
             {:  Element e = createElement("Expr", "Lambda");
                 if (c != null) setAttribute(e, "const", "Yes");
                 appendChildren(e, d);
                 appendChild(e, t);
                 appendChildren(e, v);
-                RESULT = appendChild(e, b); :}
+                addTextRange(e, startSymbolleft, startSymbolright, endSymbolleft, endSymbolright);
+                RESULT = appendChild(e, b); 
+            :}
 //    |   LAMBDA:k error end_lambda {: error("Illegal lambda expression.", k, kleft, kright); RESULT = null; :}
     ;
 
 expr_let ::=
-        LET decl_variables:v /*ZZZ*/ COLON expression:b end_let
+        LET:startSymbol decl_variables:v /*ZZZ*/ COLON expression:b end_let:endSymbol
             {:  Element e = createElement("Expr", "Let");
                 appendChildren(e, v);
+                addTextRange(e, startSymbolleft, startSymbolright, endSymbolleft, endSymbolright);
                 RESULT = appendChild(e, b); :}
     |   LET:k error end_let {: error("Illegal let expression.", k, kleft, kright); RESULT = null; :}
     ;
 
 expr_list ::=
-        LBRACK RBRACK {: RESULT = createElement("Expr", "List"); :}
-     |  LBRACK expressions:l colon_generators_opt:g  RBRACK
+        LBRACK:startSymbol RBRACK:endSymbol 
+        	{: 
+        	    Element e = createElement("Expr", "List");
+                addTextRange(e, startSymbolleft, startSymbolright, endSymbolleft, endSymbolright);
+				RESULT = e;        	     
+        	:}
+     |  LBRACK:startSymbol expressions:l colon_generators_opt:g  RBRACK:endSymbol
             {:  Element e = createElement("Expr", "List");
                 appendChildren(e, l);
+                addTextRange(e, startSymbolleft, startSymbolright, endSymbolleft, endSymbolright);
                 RESULT = appendChildren(e, g);
             :}
     ;
@@ -1036,46 +1092,71 @@ expr_literal ::=
         character:v
             {:  Element e = createElement("Expr", "Literal");
                 setAttribute(e, "literal-kind", "Character");
+                addTextRange(e, vleft, vright, vleft, vright);
                 RESULT = setAttribute(e, "value", v); :}
-    |   FALSE
+    |   FALSE:v
             {:  Element e = createElement("Expr", "Literal");
                 setAttribute(e, "literal-kind", "Boolean");
+                addTextRange(e, vleft, vright, vleft, vright);
                 RESULT = setAttribute(e, "value", "0"); :}
     |   Integer:v
             {:  Element e = createElement("Expr", "Literal");
                 setAttribute(e, "literal-kind", "Integer");
+                addTextRange(e, vleft, vright, vleft, vright);
                 RESULT = setAttribute(e, "value", v); :}
-    |   NULL
-            {:  RESULT = setAttribute(createElement("Expr", "Literal"), "literal-kind", "Null"); :}
+    |   NULL:v
+            {:  
+            	Element e = createElement("Expr", "Literal");
+                addTextRange(e, vleft, vright, vleft, vright);
+            	RESULT = setAttribute(e, "literal-kind", "Null"); :}
     |   Real:v
             {:  Element e = createElement("Expr", "Literal");
                 setAttribute(e, "literal-kind", "Real");
+                addTextRange(e, vleft, vright, vleft, vright);
                 RESULT = setAttribute(e, "value", v); :}
     |   string:v
             {:  Element e = createElement("Expr", "Literal");
                 setAttribute(e, "literal-kind", "String");
+                addTextRange(e, vleft, vright, vleft, vright);
                 RESULT = setAttribute(e, "value", v); :}
-    |   TRUE
+    |   TRUE:v
             {:  Element e = createElement("Expr", "Literal");
                 setAttribute(e, "literal-kind", "Boolean");
+                addTextRange(e, vleft, vright, vleft, vright);
                 RESULT = setAttribute(e, "value", "1"); :}
     ;
 
 expr_map ::=
-        MAP LBRACE RBRACE {: RESULT = createElement("Expr", "Map"); :}
-    |   MAP LBRACE mappings:m colon_generators_opt:g RBRACE
-            {: RESULT = appendChildren(appendChildren(createElement("Expr", "Map"), m), g); :}
+        MAP:startSymbol LBRACE RBRACE:endSymbol 
+        	{: 
+        		Element e = createElement("Expr", "Map"); 
+                addTextRange(e, startSymbolleft, startSymbolright, endSymbolleft, endSymbolright);
+				RESULT = e;
+        	:}
+    |   MAP:startSymbol LBRACE mappings:m colon_generators_opt:g RBRACE:endSymbol
+            {: 
+            	Element e = appendChildren(appendChildren(createElement("Expr", "Map"), m), g); 
+                addTextRange(e, startSymbolleft, startSymbolright, endSymbolleft, endSymbolright);
+            	RESULT = e;
+            :}
     ;
 
 expr_postfix ::=
         expr_primary:e {: RESULT = e; :}
-    |   expr_postfix:c LPAR expressions_opt:i RPAR
+    |   expr_postfix:c LPAR expressions_opt:i RPAR:endSymbol
             {:  Element e = appendChild(createElement("Expr", "Application"), c);
+            	addTextRange(e, c, endSymbolleft, endSymbolright);
                 RESULT = appendChild(e, appendChildren(createElement("Args"), i)); :}
-    |   expr_postfix:c LBRACK expressions_opt:i RBRACK
+    |   expr_postfix:c LBRACK expressions_opt:i RBRACK:endSymbol
             {:  Element e = appendChild(createElement("Expr", "Indexer"), c);
+            	addTextRange(e, c, endSymbolleft, endSymbolright);
                 RESULT = appendChild(e, appendChildren(createElement("Args"), i)); :}
-    |   expr_postfix:c DOT id:id {: RESULT = appendChild(setName(createElement("Expr", "Entry"), id), c); :}
+    |   expr_postfix:c DOT id:id 
+    		{: 
+    			Element e = appendChild(setName(createElement("Expr", "Entry"), id), c); 
+            	addTextRange(e, c, idleft, idright);
+    			RESULT = e;
+    		:}
     ;
 
 expr_primary ::=
@@ -1093,27 +1174,37 @@ expr_primary ::=
     ;
 
 expr_proc ::=
-        PROC LPAR decl_parameters_opt:d RPAR var_decl_variables_opt:v BEGIN statements:s end_proc
+        PROC:startSymbol LPAR decl_parameters_opt:d RPAR var_decl_variables_opt:v BEGIN statements:s end_proc:endSymbol
             {:  Element e = createElement("Expr", "Proc");
                 appendChildren(e, d);
                 appendChildren(e, v);
                 appendChildren(e, s);
+                addTextRange(e, startSymbolleft, startSymbolright, endSymbolleft, endSymbolright);
                 RESULT = e; :}
     |   PROC:k error end_procedure {: error("Illegal proc expression.", k, kleft, kright); RESULT = null; :}
     ;
 
 expr_set ::=
-        LBRACE RBRACE {: RESULT = createElement("Expr", "Set"); :}
-    |   LBRACE expressions:m colon_generators_opt:g RBRACE
+        LBRACE:startSymbol RBRACE:endSymbol 
+        	{: 
+        		Element e = createElement("Expr", "Set"); 
+                addTextRange(e, startSymbolleft, startSymbolright, endSymbolleft, endSymbolright);
+        		RESULT = e;
+        	:}
+    |   LBRACE:startSymbol expressions:m colon_generators_opt:g RBRACE:endSymbol
             {:  Element e = createElement("Expr", "Set");
                 appendChildren(e, m);
                 appendChildren(e, g);
+                addTextRange(e, startSymbolleft, startSymbolright, endSymbolleft, endSymbolright);
                 RESULT = e; :}
     ;
 
 expr_tuple ::=
-        LPAR RPAR
-            {:  RESULT = createElement("Expr", "TaggedTuple"); :}
+        LPAR:startSymbol RPAR:endSymbol
+            {:  Element e = createElement("Expr", "TaggedTuple"); 
+                addTextRange(e, startSymbolleft, startSymbolright, endSymbolleft, endSymbolright);
+            	RESULT = e;
+            :}
     |   expr_tuple_tagged_head:e RPAR
             {:  RESULT = e; :}
     ;
@@ -1125,21 +1216,30 @@ expr_tuple_tagged_head ::=
 expr_unary ::=
         expr_postfix:e {: RESULT = e; :}
     |   unary_expression_op:o expr_postfix:e
-            {: RESULT = appendChild(createElement("Expr", "UnaryOp"), o, e); :}
+            {: Element expr = appendChild(createElement("Expr", "UnaryOp"), o, e); 
+                addTextRange(expr, oleft, oright, e);
+            	RESULT = expr;
+            :}
     ;
 
 expr_var ::=
-        id:id {: RESULT = setName(createElement("Expr", "Var"), id); :}
-    |   OLD id:id
+        id:id 
+        	{: Element e = setName(createElement("Expr", "Var"), id);
+                addTextRange(e, idleft, idright, idleft, idright);
+        		RESULT = e; 
+        	:}
+    |   OLD:startSymbol id:id
             {:  Element e = createElement("Expr", "Var");
                 setName(e, id);
+                addTextRange(e, startSymbolleft, startSymbolright, idleft, idright);
                 RESULT = setAttribute(e, "old", "Yes"); :}
     ;
 
 generator ::=
-        for_each decl_generators:g generator_in_opt:i
+        for_each:startSymbol decl_generators:g generator_in_opt:i
             {:  Element element = createElement("Generator");
                 appendChildren(element, g);
+                addTextRange(element, startSymbolleft, startSymbolright, element);
                 RESULT = appendChild(element, i); :}
     |   for_each type_expr:type decl_generators:g generator_in_opt:i
             {:  Element element = createElement("Generator");
@@ -1179,38 +1279,48 @@ imports_opt ::=
     ;
 
 import_ ::=
-        IMPORT ALL qid:i SEMI
+        IMPORT:startSymbol ALL qid:i SEMI:endSymbol
             {:  Element element = createElement("Import");
                 setAttribute(element, "kind", "package");
+                addTextRange(element, startSymbolleft, startSymbolright, endSymbolleft, endSymbolright);
                 RESULT = appendChild(element, i); :}
-    |   IMPORT qid:i SEMI
+    |   IMPORT:startSymbol qid:i SEMI:endSymbol
             {:  Element element = createElement("Import");
                 setAttribute(element, "kind", "single");
+                addTextRange(element, startSymbolleft, startSymbolright, endSymbolleft, endSymbolright);
                 RESULT = appendChild(element, i); :}
-    |   IMPORT qid:i EQUALS id:name SEMI
+    |   IMPORT:startSymbol qid:i EQUALS id:name SEMI:endSymbol
             {:  Element element = createElement("Import");
                 setAttribute(element, "kind", "single");
                 setAttribute(element, "alias", name);
+                addTextRange(element, startSymbolleft, startSymbolright, endSymbolleft, endSymbolright);
                 RESULT = appendChild(element, i); :}
     |   IMPORT:k error SEMI {: error("Illegal import declaration.", k, kleft, kright); RESULT = null; :}
     ;
 
 initializer ::=
-        INITIALIZE EQUALS_EQUALS_GT outputs_opt:o guards_opt:g var_decl_variables_opt:v do_statements_opt:s end_initialize
+        INITIALIZE:startSymbol EQUALS_EQUALS_GT outputs_opt:o 
+        guards_opt:g var_decl_variables_opt:v do_statements_opt:s end_initialize:endSymbol
             {:  Element action = createElement("Initializer");
                 appendChildren(action, o);
                 appendChild(action, g);
                 appendChildren(action, v);
                 appendChildren(action, s);
+                addTextRange(action, startSymbolleft, startSymbolright, endSymbolleft, endSymbolright);
                 RESULT = action; :}
-    |   INITIALIZE guards_opt:g VAR decl_variables:v do_statements_opt:s end_initialize
+    |   INITIALIZE:startSymbol guards_opt:g VAR decl_variables:v do_statements_opt:s end_initialize:endSymbol
             {:  Element action = createElement("Initializer");
                 appendChild(action, g);
                 appendChildren(action, v);
                 appendChildren(action, s);
+                addTextRange(action, startSymbolleft, startSymbolright, endSymbolleft, endSymbolright);
                 RESULT = action; :}
-    |   INITIALIZE do_opt statements:s end_initialize
-            {:   RESULT = appendChildren(createElement("Initializer"), s); :}
+    |   INITIALIZE:startSymbol do_opt statements:s end_initialize:endSymbol
+            {:   
+            	Element e = appendChildren(createElement("Initializer"), s); 
+                addTextRange(e, startSymbolleft, startSymbolright, endSymbolleft, endSymbolright);
+            	RESULT = e;
+            :}
     |   INITIALIZE end_initialize
             {:  RESULT = createElement("Initializer"); :}
 //    |   INITIALIZE:k error end_initialize {: error("Illegal initializer.", k, kleft, kright); RESULT = null; :}
@@ -1218,7 +1328,10 @@ initializer ::=
 
 input ::=
         input_body:input repeat_opt:r  channel_opt:c
-            {:  RESULT = appendChild(input, c, r); :}
+            {:  
+            	Element e = appendChild(input, c, r); 
+            	RESULT = e;
+            :}
     |   id:id COLON input_body:input repeat_opt:r channel_opt:c
             {:  setAttribute(input, "port", id);
                 RESULT = appendChild(input, c, r); :}
@@ -1226,10 +1339,16 @@ input ::=
 input_body ::=
         decl_input:d
             {:  RESULT = appendChild(createElement("Input", "Sequence"), d); :}
-    |   LBRACK RBRACK
-            {:  RESULT = createElement("Input", "Elements"); :}
-    |   LBRACK decl_inputs:d RBRACK
-            {:  RESULT = appendChildren(createElement("Input", "Elements"), d); :}
+    |   LBRACK:startSymbol RBRACK:endSymbol
+            {:  Element e = createElement("Input", "Elements"); 
+                addTextRange(e, startSymbolleft, startSymbolright, endSymbolleft, endSymbolright);
+            	RESULT = e;
+            :}
+    |   LBRACK:startSymbol decl_inputs:d RBRACK:endSymbol
+            {:  Element e = appendChildren(createElement("Input", "Elements"), d); 
+                addTextRange(e, startSymbolleft, startSymbolright, endSymbolleft, endSymbolright);
+            	RESULT = e;
+            :}
 //    |   LBRACK decl_inputs:d VBAR decl_input:t RBRACK             // The old tail syntax.
 //            {:  Element input = createElement("Input", "Sequence");
 //                appendChildren(input, d);
@@ -1260,10 +1379,11 @@ mappings ::=
     ;
 
 output ::=
-        label_opt:id LBRACK expressions_opt:e RBRACK repeat_opt:r channel_opt:c
+        label_opt:id LBRACK:startSymbol expressions_opt:e RBRACK:endSymbol repeat_opt:r channel_opt:c
             {:  Element output = createElement("Output");
                 setAttribute(output, "port", id);
                 appendChildren(output, e);
+                addTextRange(output, startSymbolleft, startSymbolright, endSymbolleft, endSymbolright);
                 RESULT = appendChild(output, c, r); :}
     ;
 outputs ::=
@@ -1277,7 +1397,12 @@ outputs_opt ::=
 
 package_name_opt ::=
         /* empty */ {: RESULT = null; :}
-    |   PACKAGE package_name:n SEMI {: RESULT = setName(createElement("Package"), n); :}
+    |   PACKAGE:startSymbol package_name:n SEMI:endSymbol 
+    		{: 
+    			Element e = setName(createElement("Package"), n); 
+                addTextRange(e, startSymbolleft, startSymbolright, endSymbolleft, endSymbolright);
+    			RESULT = e;
+    		:}
     |   PACKAGE:k error SEMI {: error("Illegal package declaration.", k, kleft, kright); RESULT = null; :}
     ;
 package_name ::=
@@ -1357,6 +1482,7 @@ priority_clause ::=
 			Element e = createElement("Priority");
 			appendChildren(e, ts);
 			appendChild(e, t);
+			addTextRange(e, (Element)ts.get(0), t);
 			RESULT = e;
 		:}
 	;
@@ -1381,12 +1507,13 @@ schedule ::=
     ;
 
 schedule_fsm ::=
-    SCHEDULE FSM Id:s0 COLON schedule_fsm_transitions:ts end_schedule 
+    SCHEDULE:startSymbol FSM Id:s0 COLON schedule_fsm_transitions:ts end_schedule:endSymbol 
     {:
     	Element t = createElement("Schedule");
     	setAttribute(t, "kind", "fsm");
     	setAttribute(t, "initial-state", s0);
     	appendChildren(t, ts);
+        addTextRange(t, startSymbolleft, startSymbolright, endSymbolleft, endSymbolright);
     	RESULT = t;
     :}
     ;
@@ -1401,12 +1528,13 @@ schedule_fsm_transitions ::=
     ;
      
 schedule_fsm_transition ::=
-    Id:s0 LPAR schedule_fsm_tags:tags RPAR DASH_DASH_GT Id:s1 SEMI
+    Id:s0 LPAR schedule_fsm_tags:tags RPAR DASH_DASH_GT Id:s1 SEMI:endSymbol
     {:
         Element t = createElement("Transition");
         setAttribute(t, "from", s0);
         setAttribute(t, "to", s1);
 		appendChild(t, tags);   
+        addTextRange(t, s0left, s0right, endSymbolleft, endSymbolright);
 		RESULT = t;
 	:}    
     ;
@@ -1416,6 +1544,7 @@ schedule_fsm_tags ::=
 		{: 
 			Element ts = createElement("ActionTags"); 
 			appendChild(ts, q);
+            addTextRange(ts, q, q);
 			RESULT = ts;
 		:}
 	|	schedule_fsm_tags:ts COMMA qid:q
@@ -1426,11 +1555,12 @@ schedule_fsm_tags ::=
 	;
 
 schedule_regexp ::=
-	    SCHEDULE REGEXP schedule_expression:e end_schedule 
+	    SCHEDULE:startSymbol REGEXP schedule_expression:e end_schedule:endSymbol 
 	    {:
 	    	Element t = createElement("Schedule");
 	    	setAttribute(t, "kind", "regexp"); 
 	    	appendChild(t, e);
+            addTextRange(t, startSymbolleft, startSymbolright, endSymbolleft, endSymbolright);
 	    	RESULT = t; 
 	    :}
     |   SCHEDULE:k error end_schedule {: error("Illegal schedule.", k, kleft, kright); RESULT = null; :}
@@ -1506,7 +1636,7 @@ statement ::=
     |   stmt_assign: s {: RESULT = s; :}
     |   stmt_call: s {: RESULT = s; :}
     |   stmt_choose: s {: RESULT = s; :}
-    |   stmt_guarded: s {: RESULT = s; :}
+//    |   stmt_guarded: s {: RESULT = s; :}
     |   stmt_block: s {: RESULT = s; :}
     |   stmt_if: s {: RESULT = s; :}
     |   stmt_while: s {: RESULT = s; :}
@@ -1523,12 +1653,16 @@ statements_opt ::=
     ;
 
 stmt_assign ::=
-        stmt_assign_head:statement COLON_EQUALS expression:e SEMI
-            {:  RESULT = appendChild(statement, e); :}
+        stmt_assign_head:statement COLON_EQUALS expression:e SEMI:endSymbol
+            {:  
+            	addTextRange(statement, statement, endSymbolleft, endSymbolright);
+            	RESULT = appendChild(statement, e); 
+            :}
     ;
 stmt_assign_head ::=
         expr_primary:e
             {:  Element s = createElement("Stmt", "Assign");
+                addTextRange(s, e, e);
                 Attr name = e.getAttributeNode("name");
                 if (name == null) {
                     error("Left-hand side of assignment must be name or indexed name.","",eleft,eright);
@@ -1536,8 +1670,9 @@ stmt_assign_head ::=
                 }
                 else                                        // Preserved functionality
                     RESULT = setName(s, name.getValue()); :}
-    |   expr_postfix:e LBRACK expressions_opt:i RBRACK
+    |   expr_postfix:e LBRACK expressions_opt:i RBRACK:endSymbol
             {:  Element s = createElement("Stmt", "Assign");
+                addTextRange(s, e, endSymbolleft, endSymbolright);
                 Element args = appendChildren(createElement("Args"), i);
                 Attr name = e.getAttributeNode("name");
                 if (name == null) {
@@ -1548,6 +1683,7 @@ stmt_assign_head ::=
                     RESULT = appendChild(setName(s, name.getValue()), args); :}
     |   expr_postfix:c DOT id:id
             {:  Element s = createElement("Stmt", "Assign");
+                addTextRange(s, c, idleft, idright);
                 Attr name = c.getAttributeNode("name");
                 setName(s, name.getValue());
                 Element e = setName(createElement("Entry", "Field"), id);
@@ -1556,78 +1692,94 @@ stmt_assign_head ::=
     ;
 
 stmt_choose ::=
-        CHOOSE generators:g var_decl_variables_opt:v DO statements:s end_choose
+        CHOOSE:startSymbol generators:g var_decl_variables_opt:v DO statements:s end_choose:endSymbol
             {:  Element statement = createElement("Stmt", "Choose");
                 appendChildren(statement, g);
                 Element body  = createElement("Stmt", "Block");
                 appendChildren(body, v);
                 appendChildren(body, s);
+                addTextRange(statement, startSymbolleft, startSymbolright, endSymbolleft, endSymbolright);
                 RESULT = appendChild(statement, body); :}
     |   CHOOSE:k error end_choose {: error("Illegal foreach statement.", k, kleft, kright); RESULT = null; :}
     ;
 
 stmt_block ::=
-        BEGIN var_decl_variables_opt:v DO statements:s end_begin
+        BEGIN:startSymbol var_decl_variables_opt:v DO statements:s end_begin:endSymbol
             {:  Element statement = createElement("Stmt", "Block");
                 appendChildren(statement, v);
                 appendChildren(statement, s);
+                addTextRange(statement, startSymbolleft, startSymbolright, endSymbolleft, endSymbolright);
                 RESULT = statement; :}
-    |   BEGIN statements:s end_begin
+    |   BEGIN:startSymbol statements:s end_begin:endSymbol
             {:  Element statement = createElement("Stmt", "Block");
                 appendChildren(statement, s);
+                addTextRange(statement, startSymbolleft, startSymbolright, endSymbolleft, endSymbolright);
                 RESULT = statement; :}
     |   BEGIN:k error end_begin {: error("Illegal block.", k, kleft, kright); RESULT = null; :}
     ;
 
 stmt_call ::=
-        expr_postfix:c LPAR expressions_opt:i RPAR SEMI
+        expr_postfix:c LPAR expressions_opt:i RPAR SEMI:endSymbol
             {:  Element e = createElement("Stmt", "Call");
                 Attr a = c.getAttributeNode("kind");
                 if ((a != null) && a.getValue().equals("Tuple") && (c.getChildNodes().getLength() == 1))
                     appendChild(e, c.getFirstChild());            // Lose syntactical parentheses
                 else
                     appendChild(e, c);
+                addTextRange(e, c, endSymbolleft, endSymbolright);
                 RESULT = appendChild(e, appendChildren(createElement("Args"), i)); :}
     ;
 
 stmt_foreach ::=
-        generators:g var_decl_variables_opt:v DO statements:s end_foreach   // FIXME: par/seq
+        generators:g var_decl_variables_opt:v DO statements:s end_foreach:endSymbol   // FIXME: par/seq
             {:  Element statement = createElement("Stmt", "Foreach");
                 appendChildren(statement, g);
                 Element body = createElement("Stmt", "Block");
                 appendChildren(body, v);
                 appendChildren(body, s);
+                addTextRange(statement, (Element)g.get(0), endSymbolleft, endSymbolright);
                 RESULT = appendChild(statement, body); :}
     |   for_each:k error end_foreach {: error("Illegal foreach statement.", k, kleft, kright); RESULT = null; :}
     ;
 
-stmt_guarded ::=
-        stmt_guarded_head:statement end_assign {: RESULT = statement; :}
-    |   ASSIGN:k error end_assign {: error("Illegal guarded assignment statement.", k, kleft, kright); RESULT = null; :}
-    ;
-stmt_guarded_head ::=
-        ASSIGN expressions:e TO
-            {:  RESULT = appendChildren(createElement("Stmt", "Guarded"), e); :}
-    |   stmt_guarded_head:statement clause_guard:clause
-            {:  RESULT = appendChild(statement, clause); :}
-    |   stmt_guarded_head:statement clause_default:clause
-            {:  RESULT = appendChild(statement, clause); :}
-    ;
+//stmt_guarded ::=
+//        stmt_guarded_head:statement end_assign {: RESULT = statement; :}
+//    |   ASSIGN:k error end_assign {: error("Illegal guarded assignment statement.", k, kleft, kright); RESULT = null; :}
+//    ;
+//stmt_guarded_head ::=
+//        ASSIGN expressions:e TO
+//            {:  RESULT = appendChildren(createElement("Stmt", "Guarded"), e); :}
+//    |   stmt_guarded_head:statement clause_guard:clause
+//            {:  RESULT = appendChild(statement, clause); :}
+//    |   stmt_guarded_head:statement clause_default:clause
+//            {:  RESULT = appendChild(statement, clause); :}
+//    ;
 
 stmt_if ::=
-        IF expression:i THEN body:t end_if
-            {:  RESULT = appendChild(createElement("Stmt", "If"), i, t); :}
-    |   IF expression:i THEN body:t ELSE body:f end_if
-            {:  RESULT = appendChild(createElement("Stmt", "If"), i, t, f); :}
+        IF:startSymbol expression:i THEN body:t end_if:endSymbol
+            {:  
+            	Element e = appendChild(createElement("Stmt", "If"), i, t); 
+                addTextRange(e, startSymbolleft, startSymbolright, endSymbolleft, endSymbolright);
+          		RESULT = e;
+          	:}
+    |   IF:startSymbol expression:i THEN body:t ELSE body:f end_if:endSymbol
+            {:  
+            	Element e = appendChild(createElement("Stmt", "If"), i, t, f);
+                addTextRange(e, startSymbolleft, startSymbolright, endSymbolleft, endSymbolright);
+            	RESULT = e; 
+            :}
 //    |   IF:k error end_if {: error("Illegal if statement.", k, kleft, kright); RESULT = null; :}
     ;
 
 stmt_while ::=
-        WHILE expression:i var_decl_variables_opt:v DO statements_opt:s end_while
+        WHILE:startSymbol expression:i var_decl_variables_opt:v DO statements_opt:s end_while:endSymbol
             {:  Element body = createElement("Stmt", "Block");
                 appendChildren(body, v);
                 appendChildren(body, s);
-                RESULT = appendChild(createElement("Stmt", "While"), i, body); :}
+                Element e = appendChild(createElement("Stmt", "While"), i, body); 
+                addTextRange(e, startSymbolleft, startSymbolright, endSymbolleft, endSymbolright);
+                RESULT = e;
+           	:}
     |   WHILE:k error end_while {: error("Illegal while statement.", k, kleft, kright); RESULT = null; :}
     ;
 
@@ -1646,25 +1798,39 @@ type_expr ::=
     ;
 
 type_function ::=
-        LBRACK entry_types_opt:e RBRACK
-            {:  RESULT = appendChildren(createElement("Type", "Procedure" ), e); :}
-    |   LBRACK entry_types_opt:e DASH_DASH_GT RBRACK
-            {:  RESULT = appendChildren(createElement("Type", "Procedure"), e); :}
-    |   LBRACK entry_types_opt:e DASH_DASH_GT type_expr:t RBRACK
-            {:  RESULT = appendChild(appendChildren(createElement("Type", "Function"), e), t); :}
+        LBRACK:startSymbol entry_types_opt:e RBRACK:endSymbol
+            {:  
+            	Element tp = appendChildren(createElement("Type", "Procedure" ), e); 
+                addTextRange(tp, startSymbolleft, startSymbolright, endSymbolleft, endSymbolright);
+            	RESULT = tp;
+            :}
+    |   LBRACK:startSymbol entry_types_opt:e DASH_DASH_GT RBRACK:endSymbol
+            {:  
+            	Element tp = appendChildren(createElement("Type", "Procedure"), e); 
+                addTextRange(tp, startSymbolleft, startSymbolright, endSymbolleft, endSymbolright);
+            	RESULT = tp;
+            :}
+    |   LBRACK:startSymbol entry_types_opt:e DASH_DASH_GT type_expr:t RBRACK:endSymbol
+            {:  
+            	Element tp = appendChild(appendChildren(createElement("Type", "Function"), e), t); 
+                addTextRange(tp, startSymbolleft, startSymbolright, endSymbolleft, endSymbolright);
+            	RESULT = tp;
+            :}
     ;
 
 type_list ::=
-        id:id LBRACK entry_types_opt:e RBRACK
+        id:id LBRACK entry_types_opt:e RBRACK:endSymbol
             {:  Element type = createElement("Type" /*, "List" */);
                 setName(type, id);
+                addTextRange(type, idleft, idright, endSymbolleft, endSymbolright);
                 RESULT = appendChildren(type, e); :}
     ;
 
 type_map ::=
-        id:id LPAR entry_taggeds_opt:e RPAR
+        id:id LPAR entry_taggeds_opt:e RPAR:endSymbol
             {:  Element type = createElement("Type" /*, "Map" */);
                 setName(type, id);
+                addTextRange(type, idleft, idright, endSymbolleft, endSymbolright);
                 RESULT = appendChildren(type, e); :}
     ;
 
