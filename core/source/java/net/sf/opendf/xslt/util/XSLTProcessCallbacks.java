@@ -35,7 +35,6 @@ public class XSLTProcessCallbacks
     public static void registerListener (int type, NodeListenerIF listener)
     {
         if (listener == null) throw new IllegalArgumentException("Cannot register a null listener");
-        System.out.println("Registering " + type + " listener " + listener);
         List<NodeListenerIF> listeners = nodeListeners.get(type);
         if (listeners == null)
         {
