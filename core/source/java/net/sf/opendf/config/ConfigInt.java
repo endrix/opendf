@@ -37,11 +37,16 @@ ENDCOPYRIGHT
 */
 package net.sf.opendf.config;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class ConfigInt extends AbstractConfig
 {
     private final int defaultValue;
     private int value = -1;
     private boolean userSpecified = false;
+    private String error = null;
+    private int radix = 10;
     
     public ConfigInt (String id, String name, String cla, String desc, boolean required, int defaultValue)
     {
@@ -50,8 +55,32 @@ public class ConfigInt extends AbstractConfig
         unset();
     }
 
+    public void setValue (String value, boolean userSpecified)
+    {
+        // Allow correctly formatted decimal and hex strings
+        try
+        {
+            String valueString = value;
+            if (value.startsWith("0x") || value.startsWith("0X"))
+            {
+                this.radix = 16;
+                valueString = valueString.substring(2);
+            }
+            else
+            {
+                this.radix = 10;
+            }
+            
+            setValue(Integer.parseInt(valueString, radix), userSpecified);
+        }catch (NumberFormatException nfe)
+        {
+            this.error = nfe.toString();
+        }
+    }
+    
     public void setValue (int value, boolean userSpecified)
     {
+        this.error = null;
         this.value = value;
         this.userSpecified = userSpecified;
     }
@@ -59,6 +88,18 @@ public class ConfigInt extends AbstractConfig
     public Integer getValue ()
     {
         return this.value;
+    }
+
+    /**
+     * Returns a String view of the value specified in this config based on the radix used
+     * when setting the value (only applies on setValue(String, boolean)).
+     * 
+     * @return
+     */
+    public String getValueString ()
+    {
+        String vString = Integer.toString(getValue(), radix); 
+        return (this.radix == 16 ? "0x":"") + vString;
     }
     
     @Override
@@ -80,4 +121,11 @@ public class ConfigInt extends AbstractConfig
         return this.userSpecified;
     }
 
+    public List<ConfigError> getErrors ()
+    {
+        List<ConfigError> errs = new ArrayList(super.getErrors());
+        if (this.error != null)
+            errs.add(new ConfigError(this.error, null));
+        return errs;
+    }
 }

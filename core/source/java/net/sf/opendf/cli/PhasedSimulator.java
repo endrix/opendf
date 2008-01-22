@@ -38,7 +38,6 @@ ENDCOPYRIGHT
 
 package net.sf.opendf.cli;
 
-import static net.sf.opendf.util.xml.Util.applyTransformsAsResources;
 import static net.sf.opendf.cli.Util.extractPath;
 
 import java.io.FileInputStream;
@@ -68,6 +67,7 @@ import net.sf.opendf.cal.i2.platform.DefaultTypedPlatform;
 import net.sf.opendf.cal.i2.util.Platform;
 import net.sf.opendf.cal.util.SourceReader;
 import net.sf.opendf.cli.lib.EvaluatedStreamCallback;
+import net.sf.opendf.config.*;
 import net.sf.opendf.util.exception.ExceptionHandler;
 import net.sf.opendf.util.exception.ReportingExceptionHandler;
 import net.sf.opendf.hades.des.DiscreteEventComponent;
@@ -86,7 +86,9 @@ import net.sf.opendf.xslt.util.*;
 
 public class PhasedSimulator {
 
+    // Stimulus input file
   private String inFile;
+  // Results output file
   private String outFile;
   private double time;
   private long nSteps;
@@ -114,22 +116,47 @@ public class PhasedSimulator {
     // suppressed. 
     private final List<String> suppressIDs = new ArrayList();
 
-  public PhasedSimulator()
+  public PhasedSimulator(ConfigGroup conf)
   {
-    inFile = null;
-    outFile = null;
-    time = -1;
-    nSteps = -1;
-    modelPath = null;
-    actorClass = null;
-    cachePath = null;
-    userVerbosity = Logging.user().getLevel();
-    elaborate = true; // JWJ: Should be true by default, to enable proper attribute processing.
+      ConfigGroup configs = conf.canonicalize();
+      
+    inFile = ((ConfigFile)configs.get(ConfigGroup.SIM_INPUT_FILE)).getValue();
+    if ("".equals(inFile)) inFile = null;
+    outFile = ((ConfigFile)configs.get(ConfigGroup.SIM_OUTPUT_FILE)).getValue();
+    if ("".equals(outFile)) outFile = null;
+    cachePath = ((ConfigFile)configs.get(ConfigGroup.CACHE_DIR)).getValue();
+    if ("".equals(cachePath)) cachePath = null;
+    
+    time = ((ConfigInt)configs.get(ConfigGroup.SIM_TIME)).getValue().intValue();
+    nSteps = ((ConfigInt)configs.get(ConfigGroup.SIM_STEPS)).getValue().intValue();
+
+    modelPath = (String[])((ConfigList)configs.get(ConfigGroup.MODEL_PATH)).getValue().toArray(new String[0]);
+    actorClass = ((ConfigString)configs.get(ConfigGroup.TOP_MODEL_NAME)).getValue();
+    
     // debug = false;
-    interpretStimulus = true;
-    bufferBlockRecord = false;
-    maxErrs = 100;
-    params = new HashMap<String, String>();
+    elaborate = ((ConfigBoolean)configs.get(ConfigGroup.SIM_ELABORATE)).getValue().booleanValue();
+    interpretStimulus = ((ConfigBoolean)configs.get(ConfigGroup.SIM_INTERPRET_STIMULUS)).getValue().booleanValue();
+    maxErrs = ((ConfigInt)configs.get(ConfigGroup.SIM_MAX_ERRORS)).getValue().intValue();
+    params = ((ConfigMap)configs.get(ConfigGroup.TOP_MODEL_PARAMS)).getValue();
+
+    if (((ConfigBoolean)configs.get(ConfigGroup.SIM_BUFFER_IGNORE)).getValue().booleanValue())
+        System.setProperty("CalBufferIgnoreBounds", "true");
+    if (((ConfigBoolean)configs.get(ConfigGroup.SIM_TRACE)).getValue().booleanValue())
+        System.setProperty("CalFiringTrace", "true");
+    if (((ConfigBoolean)configs.get(ConfigGroup.ENABLE_ASSERTIONS)).getValue().booleanValue())
+        System.setProperty("EnableAssertions", "true");
+    if (((ConfigBoolean)configs.get(ConfigGroup.SIM_TYPE_CHECK)).getValue().booleanValue())
+        System.setProperty("EnableTypeChecking", "true");
+    bufferBlockRecord = ((ConfigBoolean)configs.get(ConfigGroup.SIM_BUFFER_RECORD)).getValue().booleanValue();
+    if (bufferBlockRecord) System.setProperty("CalBufferBlockRecord", "true");
+
+    ConfigInt bufferSizeWarningLevel = (ConfigInt)configs.get(ConfigGroup.SIM_BUFFER_SIZE_WARNING);
+    if (bufferSizeWarningLevel.isUserSpecified() && bufferSizeWarningLevel.getValue() >= 0)
+        System.setProperty("CalBufferWarning", bufferSizeWarningLevel.getValueString());
+    
+    this.suppressIDs.addAll(((ConfigList)configs.get(ConfigGroup.MESSAGE_SUPPRESS_IDS)).getValue());
+    
+    userVerbosity = Level.parse(((ConfigStringPickOne)configs.get(ConfigGroup.LOG_LEVEL_USER)).getValue());
     
     elaborated = false;
     initialized = false;
@@ -138,22 +165,12 @@ public class PhasedSimulator {
     failed = false;
   }
   
+  /*
   // all one token arguments
   public boolean setArg( String arg )
   {
     if( elaborated ) throw new RuntimeException( "Too late to set args" );
     
-    if (arg.equals("--no-interpret-stimulus")) interpretStimulus = false;
-    else if (arg.equals("-ne")) elaborate = false;
-    else if (arg.equals("-ea")) System.setProperty("EnableAssertions", "true");
-    else if (arg.equals("-tc")) System.setProperty("EnableTypeChecking", "true");
-    else if (arg.equals("-bbr"))
-    {
-      System.setProperty("CalBufferBlockRecord", "true");
-      bufferBlockRecord = true;
-    } 
-    else if (arg.equals("-trace")) System.setProperty("CalFiringTrace", "true");
-    else if (arg.equals("-bi")) System.setProperty("CalBufferIgnoreBounds", "true");
     else if (arg.equals("-qq")) Logging.user().setLevel(Level.OFF);
     else if (arg.equals("-q"))
     {
@@ -168,111 +185,9 @@ public class PhasedSimulator {
     else if (arg.equals("-v")) Logging.user().setLevel(Level.ALL);                
     else if (arg.equals("-debug")) Logging.user().setLevel(Level.ALL);
     else if (arg.equals("-debug0")) Logging.dbg().setLevel(Level.ALL);
-    else if (! arg.startsWith("-"))
-    {
-      if (actorClass != null) return false;
-      actorClass = arg;
-    } 
-    else return false;
-    
-    return true;
   }
 
-  // all two token arguments
-  
-  // note: --version not supported here
-  
-  public boolean setArg( String arg0, String arg1 )
-  {
-
-    if( elaborated ) throw new RuntimeException( "Too late to set args" );
-
-    // All numerical arguments
-    try
-    {
-      if( arg0.startsWith( "-n" ))
-      {
-        if (nSteps >= 0) return false;
-        nSteps = Long.parseLong( arg1 );
-        return true;
-      }
-      
-      if (arg0.startsWith("-t"))
-      {
-        if (time >= 0) return false;
-        time = Double.parseDouble( arg1 );       
-        return true;
-      }
-      if (arg0.equals("--max-errors"))
-      {
-        maxErrs = Integer.parseInt(arg1);
-        return true;
-      } 
-    }
-    catch( NumberFormatException e ) { return false; }
-
-    if (arg0.equals("-i"))
-    {
-       if (inFile != null) return false;
-       inFile = arg1;
-    }
-    else if (arg0.equals("-o"))
-    {
-      if (outFile != null) return false;
-      outFile = arg1;
-    }
-    else if (arg0.equals("-bq")) System.setProperty("CalBufferWarning", arg1);
-    else if (arg0.equals("-D")) 
-    {
-      String s = arg1.trim();
-      int n = s.indexOf('=');
-      if (n < 0) return false;
-
-      String v = s.substring(0, n).trim();
-      if ("".equals(v)) return false;
-      String expr = s.substring(n + 1);
-      params.put(v, expr);
-    }
-    else if (arg0.equals("-cache"))
-    {
-      if (cachePath != null) return false;
-      cachePath = arg1;        
-    }
-    else if (arg0.equals("-mp"))
-    {
-      if (modelPath != null) return false;
-      modelPath = extractPath(arg1);
-    }
-    else if (arg0.equals("--suppress-message"))
-    {
-        this.suppressIDs.add(arg1);
-    }
-    else return false;
-    
-    return true;
-  }
-  
-	public boolean setArgs( String[] args )
-  {
-    if( elaborated ) throw new RuntimeException( "Too late to set args" );
-
-	  for (int i = 0; i < args.length; i++ )
-	  {
-      if( setArg( args[i] ) ) continue;
-      
-      if( i < args.length - 1 && setArg( args[i], args[i+1] ) )
-      {
-        i ++;
-        continue;
-      }
-      
-      return false;
-	  }
-	  
-	  Logging.user().info(NameString);
-	  return true;
-  }
-	
+*/	
   private SequentialSimulator sim;
 
   private OutputStream os;
@@ -444,8 +359,6 @@ public class PhasedSimulator {
           if (elaborate) {
               Node res = Util.elaborate(actorClass, modelPath, classLoader, params, false, false);
               
-//               res = applyTransformsAsResources(res, Elaborator.postElaborationTransformNames);
-                
               Logging.user().info("Network successfully elaborated.");
               
               dec = createNetworkDEC(res, classLoader);

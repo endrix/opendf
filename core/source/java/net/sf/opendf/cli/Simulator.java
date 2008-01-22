@@ -39,87 +39,47 @@ ENDCOPYRIGHT
 package net.sf.opendf.cli;
 
 import java.util.*;
+import java.util.logging.Level;
 
-// import net.sf.opendf.xslt.util.*;
-// import net.sf.opendf.util.logging.Logging;
-// import org.w3c.dom.*;
+import net.sf.opendf.config.*;
+import net.sf.opendf.config.AbstractConfig.ConfigError;
+import net.sf.opendf.util.logging.Logging;
 
 public class Simulator
 {  
   public static void main(String [] args)
   {
-    PhasedSimulator simulator = new PhasedSimulator();
-
-    for( int i=0; i<args.length; i++ )
-      if (args[i].equals("--version"))
-      { 
-        VersionInfo.printVersion();
-        System.exit( 0 );
+      ConfigGroup configuration = new SimulationConfigGroup();
+      ConfigCLIParseFactory.parseCLI(args, configuration);
+      
+      if (((ConfigBoolean)configuration.get(ConfigGroup.VERSION)).getValue().booleanValue())
+      {
+          configuration.usage(Logging.user(), Level.INFO);
+          return;
       }
 
-    if( ! simulator.setArgs(args) )
-    { 
-      usage();
-      System.exit(-1);
-    }
+      boolean valid = true;
+      for (AbstractConfig cfg : configuration.getConfigs().values())
+      {
+          if (!cfg.validate())
+          {
+              for (ConfigError err : cfg.getErrors())
+              {
+                  Logging.user().severe(err.getMessage());
+                  valid = false;
+              }
+          }
+      }
+      
+      if (!valid)
+          return;
+          
+    PhasedSimulator simulator = new PhasedSimulator(configuration);
 
-//     final List<String> suppressIDs = new ArrayList();
-//     suppressIDs.add("priorityChecks.priorityQID.timingDependent");
-//     ProblemListenerIF reportListener = new ProblemListenerIF()
-//         {
-//             public void report (Node report, String message)
-//             {
-//                 try
-//                 {
-//                     Node reportNode = net.sf.opendf.util.xml.Util.xpathEvalElement("Note[@kind='Report']", report);
-                    
-//                     String severity = ((Element)report).getAttribute("severity");
-//                     String id = ((Element)report).getAttribute("id");
-
-//                     boolean suppress = false;
-//                     for (String suppressable : suppressIDs)
-//                     {
-//                         if (suppressable.startsWith(id))
-//                         {
-//                             suppress = true;
-//                             break;
-//                         }
-//                     }
-                    
-//                     if (!suppress)
-//                     {
-//                         if (severity.toUpperCase().equals("ERROR"))
-//                         {
-//                             Logging.user().severe("IDM"+message);
-//                         }
-//                         else if (severity.toUpperCase().startsWith("WARN"))
-//                         {
-//                             Logging.user().warning("IDM"+message);
-//                         }
-//                         else
-//                         {
-//                             Logging.user().info("IDM"+severity + ": " + message);
-//                         }
-//                     }
-//                 }
-//                 catch (Exception e)
-//                 {
-//                     Logging.user().info("IDM"+" " + message);
-//                 }
-//             }
-//         };
-
-//     // Register a listener which will report any issues in loading
-//     // back to the user.
-//     XSLTProcessCallbacks.registerProblemListener(reportListener);
-    
     if( ! simulator.elaborate() ) System.exit(-1);
     
     simulator.initialize();
 
-//     // No longer needed.
-//     XSLTProcessCallbacks.removeProblemListener(reportListener);
-    
     int result = simulator.advanceSimulation( -1 );
     
     if( result == PhasedSimulator.FAILED ) System.exit(-1);

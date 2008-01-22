@@ -42,6 +42,7 @@ import java.util.*;
 import net.sf.opendf.config.*;
 import net.sf.opendf.eclipse.plugin.config.ConfigModificationListener;
 import net.sf.opendf.eclipse.plugin.config.ControlRenderingFactory;
+import net.sf.opendf.eclipse.plugin.config.OpendfConfigTab;
 import net.sf.opendf.eclipse.plugin.config.TopModelParamParse;
 import net.sf.opendf.eclipse.plugin.config.UpdatableControlIF;
 import net.sf.opendf.eclipse.plugin.config.TopModelParamParse.ModelParameter;
@@ -71,7 +72,7 @@ import org.eclipse.swt.widgets.Composite;
  * @author imiller
  *
  */
-public class SynthesisConfigTab extends OpendfConfigTab //AbstractLaunchConfigurationTab
+public class SynthesisConfigTab extends OpendfConfigTab
 {
     /**
      * This instance of the ConfigGroup is used ONLY for obtaining the set 
@@ -86,9 +87,7 @@ public class SynthesisConfigTab extends OpendfConfigTab //AbstractLaunchConfigur
         
     public SynthesisConfigTab()
     {
-        super();
-        //this.configs = new ConfigGroup();
-        //setDefaultConfigs(configs);
+        super(new SynthesisConfigGroup());
     }
     
     @Override
@@ -113,9 +112,7 @@ public class SynthesisConfigTab extends OpendfConfigTab //AbstractLaunchConfigur
 
         // Add the relevant controls for selecting parameters
         final UpdatableControlIF topFile = ControlRenderingFactory.fileSelectButton(buttons, "Set top model from file selection", false, (ConfigFile)getConfigs().get(ConfigGroup.TOP_MODEL_FILE));
-        final Button defaults = new Button(buttons, SWT.PUSH | SWT.CENTER); 
-        defaults.setText("set defaults");
-        defaults.setToolTipText("Restore default values for configuration values.");
+        final Button defaults = this.getDefaultButton(buttons);
         
         final Composite group2 = new Composite(tab, SWT.SHADOW_IN);
         //group2.setLayoutData( new GridData( GridData.FILL_HORIZONTAL ) );
@@ -132,7 +129,7 @@ public class SynthesisConfigTab extends OpendfConfigTab //AbstractLaunchConfigur
 
         final UpdatableControlIF runDir = ControlRenderingFactory.renderConfigFileSelect((ConfigFile)getConfigs().get(ConfigGroup.RUN_DIR), leftCol, true, true); 
         final UpdatableControlIF topName = ControlRenderingFactory.renderConfig(getConfigs().get(ConfigGroup.TOP_MODEL_NAME), leftCol); 
-        final UpdatableControlIF oFile = ControlRenderingFactory.renderConfigFileSelect((ConfigFile)getConfigs().get(ConfigGroup.OUTPUT_FILE), leftCol, false, true); 
+        final UpdatableControlIF oFile = ControlRenderingFactory.renderConfigFileSelect((ConfigFile)getConfigs().get(ConfigGroup.HDL_OUTPUT_FILE), leftCol, false, true); 
         addControl(ConfigGroup.ACTOR_OUTPUT_DIR, ControlRenderingFactory.renderConfig(getConfigs().get(ConfigGroup.ACTOR_OUTPUT_DIR), leftCol));
         addControl(ConfigGroup.CACHE_DIR, ControlRenderingFactory.renderConfig(getConfigs().get(ConfigGroup.CACHE_DIR), leftCol));
         addControl(ConfigGroup.GEN_HDL_SIM_MODEL, ControlRenderingFactory.renderConfig(getConfigs().get(ConfigGroup.GEN_HDL_SIM_MODEL), leftCol));
@@ -144,7 +141,7 @@ public class SynthesisConfigTab extends OpendfConfigTab //AbstractLaunchConfigur
         
         addControl(ConfigGroup.MODEL_PATH, modelPath);
         addControl(ConfigGroup.RUN_DIR, runDir);
-        addControl(ConfigGroup.OUTPUT_FILE, oFile);
+        addControl(ConfigGroup.HDL_OUTPUT_FILE, oFile);
         addControl(ConfigGroup.TOP_MODEL_NAME, topName);
         addControl(ConfigGroup.TOP_MODEL_PARAMS, modelParams);
 
@@ -177,7 +174,7 @@ public class SynthesisConfigTab extends OpendfConfigTab //AbstractLaunchConfigur
                 topName.updateValue();
                 
                 // Update the output file name
-                ConfigFile oFileConfig = (ConfigFile)getConfigs().get(ConfigGroup.OUTPUT_FILE);
+                ConfigFile oFileConfig = (ConfigFile)getConfigs().get(ConfigGroup.HDL_OUTPUT_FILE);
                 if (forceUpdate || !oFileConfig.isUserSpecified())
                 {
                     // Convert the file name to the right extension

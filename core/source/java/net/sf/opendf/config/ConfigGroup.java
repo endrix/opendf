@@ -40,34 +40,137 @@ package net.sf.opendf.config;
 import java.io.File;
 import java.io.PrintStream;
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import net.sf.opendf.util.logging.Logging;
 
-public class ConfigGroup implements Cloneable
+public abstract class ConfigGroup implements Cloneable
 {
     /** The top model file is only valid as a user specification.  Other configurations
      * may be derived from its value (eg run dir, top model name, etc).  The top model name
      * and the model path should be used for loading the design.  
      */
     public static final String TOP_MODEL_FILE = "model.top.file";
-    public static final String TOP_MODEL_NAME = "model.top.name";
-    public static final String RUN_DIR = "config.run.dir";
-    public static final String OUTPUT_FILE= "output.file.name";
-    public static final String ACTOR_OUTPUT_DIR = "output.actor.dir";
-    public static final String CACHE_DIR = "cache.dir";
-    public static final String GEN_HDL_SIM_MODEL = "output.hdl.simmodel";
-    public static final String MODEL_PATH = "model.search.path";
-    public static final String TOP_MODEL_PARAMS= "model.top.parameters";
     
-    public static final String ENABLE_ASSERTIONS = "assertions.enable";
+    // Common for all configs
+    public static final String VERSION = "version";
     public static final String LOG_LEVEL_USER = "logging.user.level";
     public static final String LOG_LEVEL_DBG  = "logging.dbg.level";
     public static final String LOG_LEVEL_SIM = "logging.sim.level";
+    // These are private as they are NOT intended to be directly accessed
+    private static final String QQ = "logging.quiet.all";
+    private static final String Q = "logging.quiet.some";
+    private static final String VV = "logging.verbose.all";
+    private static final String V = "logging.verbose.some";
+    
+    public static final String TOP_MODEL_NAME = "model.top.name";
+    public static final String RUN_DIR = "config.run.dir";
+    public static final String CACHE_DIR = "cache.dir";
+    public static final String MODEL_PATH = "model.search.path";
+    public static final String TOP_MODEL_PARAMS = "model.top.parameters";
+    public static final String MESSAGE_SUPPRESS_IDS = "logging.message.suppress.ids";
+    
+    // Simulation only
+    public static final String SIM_ELABORATE = "sim.elaborate";
+    public static final String SIM_INPUT_FILE = "sim.input.stimulus.file";
+    public static final String SIM_INTERPRET_STIMULUS = "sim.input.stimulus.interpret";
+    public static final String SIM_OUTPUT_FILE = "sim.output.results.file";
+    public static final String SIM_TIME = "sim.max.time";
+    public static final String SIM_STEPS = "sim.max.steps";
+    public static final String SIM_MAX_ERRORS = "sim.max.errors";
+    public static final String SIM_BUFFER_IGNORE = "sim.buffer.bounds.ignore";
+    public static final String SIM_BUFFER_RECORD = "sim.bbr";
+    public static final String SIM_BUFFER_SIZE_WARNING = "sim.buffer.size.warning";
+    public static final String SIM_TRACE = "sim.trace";
+    public static final String SIM_TYPE_CHECK = "sim.types.check";
+    
+    // synthesis only
+    public static final String HDL_OUTPUT_FILE= "synth.output.file.name";
+    public static final String ACTOR_OUTPUT_DIR = "synth.output.actor.dir";
+    public static final String GEN_HDL_SIM_MODEL = "synth.output.hdl.simmodel";
+    
+    public static final String ENABLE_ASSERTIONS = "assertions.enable";
         
     private Map<String, AbstractConfig> configs = new HashMap();
     
     public ConfigGroup ()
     {
+        registerConfig(VERSION, new ConfigBoolean(VERSION, "Version", 
+                "--version", 
+                "Report version id and usage information and then terminate",
+                false, // required
+                false // default
+                ) );
+        
+        registerConfig(LOG_LEVEL_USER, new ConfigStringPickOne.ConfigLogLevels(LOG_LEVEL_USER, "User Log Level",
+                "-userlog", 
+                "Specify the level of messages directed to user console.", 
+                false, // required 
+                Logging.user().getLevel().getName() // default
+                ) );
+
+        registerConfig(LOG_LEVEL_DBG, new ConfigStringPickOne.ConfigLogLevels(LOG_LEVEL_DBG, "Debug Log Level",
+                "-dbglog", 
+                "Specify the level of debug messages directed to console.", 
+                false, // required 
+                Logging.dbg().getLevel().getName() // default
+                ) );
+
+        registerConfig(LOG_LEVEL_SIM, new ConfigStringPickOne.ConfigLogLevels(LOG_LEVEL_SIM, "Simulation Log Level",
+                "-simlog", 
+                "Specify the level of simulation messages directed to console.", 
+                false, // required 
+                Logging.simout().getLevel().getName() // default
+                ) );
+        
+        registerConfig(Q, new ConfigLoggingComposite(Q, "Run Quiet",
+                "-q",
+                "Run with minimal output to console",
+                false, // required
+                new ConfigString[]{
+                (ConfigString)this.get(LOG_LEVEL_USER),
+                (ConfigString)this.get(LOG_LEVEL_DBG)
+                //, (ConfigString)this.getConfigs(LOG_LEVEL_SIM) 
+                },
+                Level.WARNING.getName()
+                ) );
+        registerConfig(QQ, new ConfigLoggingComposite(QQ, "Run Silent",
+                "-qq",
+                "Run with no output to console",
+                false, // required
+                new ConfigString[]{
+                (ConfigString)this.get(LOG_LEVEL_USER),
+                (ConfigString)this.get(LOG_LEVEL_DBG)
+                //, (ConfigString)this.getConfigs(LOG_LEVEL_SIM) 
+                },
+                Level.OFF.getName()
+                ) );
+        registerConfig(V, new ConfigLoggingComposite(V, "Verbose",
+                "-v",
+                "Verbose output",
+                false, // required
+                new ConfigString[]{
+                (ConfigString)this.get(LOG_LEVEL_USER),
+                (ConfigString)this.get(LOG_LEVEL_DBG)
+                //, (ConfigString)this.getConfigs(LOG_LEVEL_SIM) 
+                },
+                Level.FINE.getName()
+                ) );
+        registerConfig(VV, new ConfigLoggingComposite(VV, "Very Verbose",
+                "-vv",
+                "Extremely Verbose output",
+                false, // required
+                new ConfigString[]{
+                (ConfigString)this.get(LOG_LEVEL_USER),
+                (ConfigString)this.get(LOG_LEVEL_DBG)
+                //, (ConfigString)this.getConfigs(LOG_LEVEL_SIM) 
+                },
+                Level.ALL.getName()
+                ) );
+        
+        
+        
         final ConfigFile topFile = new ConfigFile (TOP_MODEL_FILE, "Top Model File", 
                 "", // cla 
                 "Specifies the top level model file to be compiled", 
@@ -76,90 +179,64 @@ public class ConfigGroup implements Cloneable
         topFile.addFilter("*.nl", "Network");
         topFile.addFilter("*.cal", "CAL Source");
         topFile.addFilter("*.xdf", "Structural Network");
-        configs.put(TOP_MODEL_FILE,  topFile);
+        registerConfig(TOP_MODEL_FILE,  topFile);
         
-        configs.put(TOP_MODEL_NAME,new ConfigNonEmptyString (TOP_MODEL_NAME, "Top Model Name", 
+        registerConfig(TOP_MODEL_NAME,new ConfigNonEmptyString (TOP_MODEL_NAME, "Top Model Name", 
                 "", // cla 
                 "Specifies the top level model file for compilation", 
                 true, // required 
                 "" // default
         )); 
         
-        configs.put(RUN_DIR, new ConfigFile.Dir (RUN_DIR, "Compilation working directory (run directory)",
+        registerConfig(RUN_DIR, new ConfigFile.Dir (RUN_DIR, "Working Directory (run directory)",
                 "-rundir", 
                 "Specify the working directory for compilation.  It is from this directory that relative paths are based from.",
                 false,
                 "."
         ));
-        final ConfigFile oFile =  new ConfigFile (OUTPUT_FILE, "Output File",
-                "-o", 
-                "Specify the compilation output file location",
-                false
-        );
-        oFile.addFilter("*.vhd", "VHDL");
-        configs.put(OUTPUT_FILE, oFile);
 
-        configs.put(ACTOR_OUTPUT_DIR, new ConfigFile (ACTOR_OUTPUT_DIR, "Actor output directory",
-                "-ao",
-                "The directory into which compiled actor instances are written",
-                false,
-                "Actors"
-        ));
-        configs.put(CACHE_DIR, new ConfigFile (CACHE_DIR, "Cache directory",
+        registerConfig(CACHE_DIR, new ConfigFile (CACHE_DIR, "Cache Directory",
                 "-cache",
-                "The directory used for storing cache files.  Cacheing is disabled if unspecified.",
+                "The directory used for storing cache files.  Caching is disabled if unspecified.",
                 false,
                 "cache"
         ));
-        configs.put(GEN_HDL_SIM_MODEL, new ConfigBoolean (GEN_HDL_SIM_MODEL, "Generate HDL sim model",
-                "--genSimModel", // cla
-                "Generate an HDL simulation model and test fixture",
-                false, // required
-                false // default
-        ));
-        configs.put(MODEL_PATH, new ConfigList (MODEL_PATH, "Model search path",
+        
+        registerConfig(MODEL_PATH, new ConfigList (MODEL_PATH, "Model Search Path",
                 "-mp", // cla
                 "Specification of the model search path",
                 false, // required
                 Collections.singletonList(".")// default
         ));
         
-        configs.put(ENABLE_ASSERTIONS, new ConfigBoolean (ENABLE_ASSERTIONS, "Enable Assertions",
-                "-ea", // cla
-                "Turns on CAL assertion checking",
-                false, // required
-                false // default
-        ));
-        
-        configs.put(TOP_MODEL_PARAMS, new ModelParameterMap(TOP_MODEL_PARAMS, "Model Parameters",
+        registerConfig(TOP_MODEL_PARAMS, new ModelParameterMap(TOP_MODEL_PARAMS, "Model Parameters",
                 "-D", // cla
                 "Specify top level model parameters <key>=<value>",
                 false, // required
                 Collections.EMPTY_MAP // default
         ));
     
-        configs.put(LOG_LEVEL_USER, new ConfigStringPickOne.ConfigLogLevels(LOG_LEVEL_USER, "User Log Level",
-                "-userlog", 
-                "Specify the level of messages directed to user console.", 
-                false, // required 
-                Logging.user().getLevel().getName() // default
-                ) );
-
-        configs.put(LOG_LEVEL_DBG, new ConfigStringPickOne.ConfigLogLevels(LOG_LEVEL_DBG, "Debug Log Level",
-                "-dbglog", 
-                "Specify the level of debug messages directed to console.", 
-                false, // required 
-                Logging.dbg().getLevel().getName() // default
-                ) );
-
-        configs.put(LOG_LEVEL_SIM, new ConfigStringPickOne.ConfigLogLevels(LOG_LEVEL_SIM, "Simulation Log Level",
-                "-simlog", 
-                "Specify the level of simulation messages directed to console.", 
-                false, // required 
-                Logging.simout().getLevel().getName() // default
-                ) );
-
+        
+        registerConfig(MESSAGE_SUPPRESS_IDS, new ConfigList (MESSAGE_SUPPRESS_IDS, "Suppressable Messages",
+                "--suppress-message", // cla
+                "Messages with the specified prefix are suppressed",
+                false, // required
+                Collections.EMPTY_LIST //default
+        ));
+        
+        ///////////////////////////////
+        //
+        // Simulation configs
+        //
+        ///////////////////////////////
     };
+    
+    protected void registerConfig (String key, AbstractConfig cfg)
+    {
+        this.configs.put(key, cfg);
+    }
+    
+    public abstract ConfigGroup getEmptyConfigGroup ();
     
     /**
      * Returns an unmodifiable view of the configs.
@@ -274,13 +351,6 @@ public class ConfigGroup implements Cloneable
             topName.setValue(name, true); // (needs to be true for oFile test)
         }
         
-        // If the top model name is specified push it to the output file name (if unspecified)
-        ConfigFile oFile = (ConfigFile)canon.get(OUTPUT_FILE);
-        if (!oFile.isUserSpecified() && topName.isUserSpecified())
-        {
-            oFile.setValue(topName.getValue() + ".vhd", false);
-        }
-        
         // Turn relative paths into absolute paths based on run directory
         File runDir = ((ConfigFile)canon.get(RUN_DIR)).getValueFile();
         if (runDir.getPath().length() > 0)
@@ -290,18 +360,6 @@ public class ConfigGroup implements Cloneable
                 ConfigFile runDirConfig = (ConfigFile)canon.get(RUN_DIR);
                 runDirConfig.setValue(runDir.getAbsoluteFile(), runDirConfig.isUserSpecified());
                 runDir = runDirConfig.getValueFile();
-            }
-            
-            ConfigFile oDir = (ConfigFile)canon.get(OUTPUT_FILE);
-            if (!oDir.getValueFile().isAbsolute())
-            {
-                oDir.setValue(makeAbsolute(runDir, oDir.getValueFile()), oDir.isUserSpecified());
-            }
-            
-            ConfigFile aoDir = (ConfigFile)canon.get(ACTOR_OUTPUT_DIR);
-            if (!aoDir.getValueFile().isAbsolute())
-            {
-                aoDir.setValue(makeAbsolute(runDir, aoDir.getValueFile()), aoDir.isUserSpecified());
             }
             
             // Make the cache directory absolute only if it is not empty (and not already absolute)
@@ -328,10 +386,22 @@ public class ConfigGroup implements Cloneable
         return canon;
     }
     
-    private static File makeAbsolute (File parent, File child)
+    protected static File makeAbsolute (File parent, File child)
     {
         File full = new File(parent, child.getPath());
         return full.getAbsoluteFile();
+    }
+    
+    public void usage (Logger logger, Level level)
+    {
+        for (String key : getConfigs().keySet())
+        {
+            AbstractConfig cfg = getConfigs().get(key);
+            String arg = "";
+            for (int i=0; i < cfg.numArgs(); i++)
+                arg += " <value>";
+            logger.log(level, "\t" + cfg.getCLA() + arg + "\t" + cfg.getDescription());
+        }
     }
     
     public Object clone () throws CloneNotSupportedException
@@ -339,7 +409,7 @@ public class ConfigGroup implements Cloneable
         ConfigGroup config = (ConfigGroup)super.clone();
         config.configs = new HashMap();
         for (String key : this.configs.keySet())
-            config.configs.put(key, (AbstractConfig)this.configs.get(key).clone());
+            config.registerConfig(key, (AbstractConfig)this.configs.get(key).clone());
         return config;
     }
 
@@ -351,6 +421,7 @@ public class ConfigGroup implements Cloneable
             ps.println("\t" + key + "=>" + this.configs.get(key));
         }
     }
+    
     public String toString ()
     {
         return super.toString() + "(" + this.configs + ")";
@@ -372,4 +443,31 @@ public class ConfigGroup implements Cloneable
         }
     }
 
+    private static class ConfigLoggingComposite extends ConfigBoolean
+    {
+        private List<ConfigString> loggers;
+        private String specValue;
+        public ConfigLoggingComposite(String id, String name, String cla, String desc,
+                boolean required, ConfigString[] channels, String value)
+        {
+            super(id, name, cla, desc, required, false);
+            this.loggers = new ArrayList();
+            for (int i=0; i < channels.length; i++) loggers.add(channels[i]);
+            this.specValue = value;
+        }
+
+        public void setValue (boolean value, boolean userSpecified)
+        {
+            super.setValue(value, userSpecified);
+
+            if (value)
+            {
+                for (ConfigString cfg : this.loggers)
+                {
+                    cfg.setValue(this.specValue, userSpecified);
+                }
+            }
+        }
+    }
+    
 }
