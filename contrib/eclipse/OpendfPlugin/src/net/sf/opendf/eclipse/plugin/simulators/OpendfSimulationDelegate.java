@@ -1,9 +1,9 @@
 /* 
 BEGINCOPYRIGHT X
-  
-  Copyright (c) 2007, Xilinx Inc.
+
+  Copyright (c) 2007-2008, Xilinx Inc.
   All rights reserved.
-  
+
   Redistribution and use in source and binary forms, 
   with or without modification, are permitted provided 
   that the following conditions are met:
@@ -18,7 +18,7 @@ BEGINCOPYRIGHT X
     of its contributors may be used to endorse or promote 
     products derived from this software without specific 
     prior written permission.
-  
+
   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND 
   CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, 
   INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF 
@@ -32,238 +32,106 @@ BEGINCOPYRIGHT X
   CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
   OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-  
+
 ENDCOPYRIGHT
-*/
+ */
 package net.sf.opendf.eclipse.plugin.simulators;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
-import org.eclipse.debug.core.model.ILaunchConfigurationDelegate;
 import net.sf.opendf.cli.PhasedSimulator;
-import net.sf.opendf.eclipse.plugin.simulators.tabs.*;
-import org.eclipse.ui.console.*;
-import net.sf.opendf.eclipse.plugin.*;
-import org.eclipse.ui.*;
-import org.eclipse.swt.graphics.*;
-import org.eclipse.swt.widgets.*;
-import org.eclipse.swt.*;
-import net.sf.opendf.util.logging.*;
-import java.util.logging.*;
-import java.lang.Runnable;
+import net.sf.opendf.config.*;
+import net.sf.opendf.eclipse.plugin.config.ConfigUpdateWrapper;
+import net.sf.opendf.eclipse.plugin.config.OpendfConfigLaunchDelegate;
 
-public class OpendfSimulationDelegate implements ILaunchConfigurationDelegate 
+public class OpendfSimulationDelegate extends OpendfConfigLaunchDelegate
 {
-  
-  public static MessageConsole findOrCreateConsole( String name )
-  {
-    IConsoleManager manager = ConsolePlugin.getDefault().getConsoleManager();
-    IConsole existing[] = manager.getConsoles();
-    
-    for( int i=0; i< existing.length; i++ )
-    {
-      if( name.equals( existing[i].getName() ) )
-      {
-        return (MessageConsole) existing[i];
-      }
-    }
-    
-    MessageConsole console = new MessageConsole( name, null );
-    manager.addConsoles( new IConsole[]{ console } );
-    
-    return console;
-    
-  }
-  
-  private MessageConsoleStream status;  // Launch progress
-  private MessageConsoleStream error;   // Simulator error messages
-  private MessageConsoleStream info;    // Simulator info messages
-  private MessageConsoleStream output;  // Simulation output
 
-  private Handler errorHandler;
-  private Handler infoHandler;
-  private Handler outputHandler;
-  
-  private MessageConsole statusConsole;
-  
-  private void attachConsole()
-  {
-    MessageConsole outputConsole = findOrCreateConsole( "Simulation Output" );
-    statusConsole = findOrCreateConsole( "Simulation Status" );
-    
-    status = statusConsole.newMessageStream();
-    error  = statusConsole.newMessageStream();
-    info   = statusConsole.newMessageStream();
-    output = outputConsole.newMessageStream();
+    public void launch(ILaunchConfiguration configuration, String mode,
+            ILaunch launch, IProgressMonitor monitor ) throws CoreException 
+            {
+        ConfigGroup configs = new SimulationConfigGroup();
+        // Update all the configs with the user settings.
+        configs.updateConfig(new ConfigUpdateWrapper(configuration), configs.getConfigs().keySet());
 
-    // Now do some work in the UI thread
-    Display display = OpendfPlugin.getDefault().getWorkbench().getDisplay();
-    
-    display.syncExec
-    (
-      new Runnable()
-      {
-        public void run()
+        attachConsole(configs);
+
+        monitor.beginTask( "Dataflow Simulation", 5 );
+        status().println("Starting dataflow simulator" );
+
+        monitor.setTaskName( "Setup" );
+
+        PhasedSimulator simulator = new PhasedSimulator(configs);
+
+        monitor.worked( 1 );
+        monitor.setTaskName( "Elaboration" );
+        status().println( "Elaborating ..." );
+
+        if( ! simulator.elaborate() )
         {
-          IWorkbench bench = OpendfPlugin.getDefault().getWorkbench();
-          Color red  = bench.getDisplay().getSystemColor( SWT.COLOR_RED );
-          Color blue = bench.getDisplay().getSystemColor( SWT.COLOR_BLUE );
-          
-          status.setColor( blue );
-          status.setFontStyle( SWT.BOLD );
-
-          error.setColor( red );
-          
-          // make the status console visible
-          try
-          {
-            IWorkbenchWindow win = bench.getActiveWorkbenchWindow();
-            IWorkbenchPage page = win.getActivePage();
-            IConsoleView view = (IConsoleView) page.showView( IConsoleConstants.ID_CONSOLE_VIEW );
-            view.display( statusConsole );
-          }
-          catch( Exception e )
-          {
-            OpendfPlugin.logErrorMessage( "Failed to make console visible", e );
-          }
-        }
-      }
-    );
-    
-    errorHandler  = new FlushedStreamHandler( error , new BasicLogFormatter() );
-    infoHandler   = new FlushedStreamHandler( info  , new BasicLogFormatter() );
-    outputHandler = new FlushedStreamHandler( output, new BasicLogFormatter() );
-    
-    Logging.dbg().addHandler( errorHandler );
-    Logging.user().addHandler( infoHandler );
-    Logging.simout().addHandler( outputHandler );
-  }
-  
-  private void detachConsole()
-  {
-    Logging.dbg().removeHandler( errorHandler );
-    Logging.user().removeHandler( infoHandler );
-    Logging.simout().removeHandler( outputHandler );
-  }
-  
-  public void launch(ILaunchConfiguration configuration, String mode,
-      ILaunch launch, IProgressMonitor monitor ) throws CoreException 
-  {
-    attachConsole();
-    
-    monitor.beginTask( "Dataflow Simulation", 5 );
-    status.println("Starting dataflow simulator" );
-    
-    monitor.setTaskName( "Setup" );
-
-    PhasedSimulator simulator = new PhasedSimulator();
-
-    String arg1Prefix = OpendfConfigurationTab.Export( "SIM.ARG1", "" );
-    String arg2Prefix = OpendfConfigurationTab.Export( "SIM.ARG2", "" );
-    int l = arg2Prefix.length();
-      
-    info.print( "simulation command: sb sim");
-    try
-    {
-      for( Object obj: configuration.getAttributes().keySet() )
-      {
-        String key = (String) obj;
-         
-        if( key.startsWith( arg1Prefix ) )
-        {
-          String value = configuration.getAttribute( key, (String) null );
-          simulator.setArg( value );
-          info.print( " " + value );
-        }
-        else if( key.startsWith( arg2Prefix ) )
-        {
-          String name = key.substring( l ); 
-          String value = configuration.getAttribute( key, (String) null );
-          
-          if( name.startsWith("-D") )
-          {
-            value = name.substring( 2 ) + "=" + value;
-            name = "-D";
-          }
-          
-          simulator.setArg( name, value );
-          info.print(" " + name + " " + value );
+            error().println( "Elaboration failed" );
+            status().println("Closing simulator");
+            detachConsole();
+            monitor.done();
+            return;
         }
 
-      }
-    }
-    catch( CoreException e ) {}
-    info.println();
-    
-    monitor.worked( 1 );
-    monitor.setTaskName( "Elaboration" );
-    status.println( "Elaborating ..." );
-      
-    if( ! simulator.elaborate() )
-    {
-      error.println( "Elaboration failed" );
-      status.println("Closing simulator");
-      detachConsole();
-      monitor.done();
-      return;
-    }
-      
-    monitor.worked( 1 );
-    monitor.setTaskName( "Initialization" );
-    status.println( "Initializing ..." );
-      
-    simulator.initialize();
+        monitor.worked( 1 );
+        monitor.setTaskName( "Initialization" );
+        status().println( "Initializing ..." );
 
-    monitor.worked( 1 );
-    monitor.setTaskName( "Simulation" );
-    status.println( "Simulating ..." );
-      
-    int result;
-      
-    while( true )
-    {
-      result = simulator.advanceSimulation( 5000 );
-        
-      if( monitor.isCanceled() )
-      {
-        error.println("Cancellation requested");
-        status.println("Closing simulator");
+        simulator.initialize();
+
+        monitor.worked( 1 );
+        monitor.setTaskName( "Simulation" );
+        status().println( "Simulating ..." );
+
+        int result;
+
+        while( true )
+        {
+            result = simulator.advanceSimulation( 5000 );
+
+            if( monitor.isCanceled() )
+            {
+                error().println("Cancellation requested");
+                status().println("Closing simulator");
+                detachConsole();
+                monitor.done();
+                return;
+            }
+
+            if( result != PhasedSimulator.RUNNING )
+            {
+                if( result == PhasedSimulator.FAILED )
+                {
+                    error().println("Simulation failed");
+                    status().println("Closing simulator");
+                    detachConsole();
+                    monitor.done();
+                    return;
+                }
+
+                break;
+            }
+        }
+
+        if( result == PhasedSimulator.COMPLETED )
+            status().println("Simulation ran to completion");
+        else
+            status().println("Simulation reached error limit");
+
+        monitor.worked( 1 );
+        monitor.setTaskName( "Cleanup" );
+
+        simulator.cleanup();
+
+        status().println("Closing simulator");
+
         detachConsole();
         monitor.done();
-        return;
-      }
-        
-      if( result != PhasedSimulator.RUNNING )
-      {
-        if( result == PhasedSimulator.FAILED )
-        {
-          error.println("Simulation failed");
-          status.println("Closing simulator");
-          detachConsole();
-          monitor.done();
-          return;
-        }
-          
-        break;
-      }
-    }
-
-    if( result == PhasedSimulator.COMPLETED )
-      status.println("Simulation ran to completion");
-    else
-      status.println("Simulation reached error limit");
-    
-    monitor.worked( 1 );
-    monitor.setTaskName( "Cleanup" );
-      
-    simulator.cleanup();
-       
-    status.println("Closing simulator");
-    
-    detachConsole();
-    monitor.done();
-  }
+            }
 
 }
