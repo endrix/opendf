@@ -13,6 +13,7 @@ endif
 
 OPENDF_HOME = ../..
 JAR_NAME = opendf.jar
+PTPLOT_CP = $(OPENDF_HOME)/lib/PtPlot.jar
 JFREECHART_CP = $(OPENDF_HOME)/../../jfreechart-1.0.6/jfreechart-1.0.6.jar$(CPS)$(OPENDF_HOME)/../../jfreechart-1.0.6/lib/jcommon-1.0.10.jar
 OPENDF_CLASSDIR = $(OPENDF_HOME)/classes
 OPENDF_CLASSPATH = $(OPENDF_CLASSDIR)$(CPS)$(OPENDF_HOME)/lib/saxon8.jar$(CPS)$(OPENDF_HOME)/lib/saxon8-dom.jar$(CPS)$(CONTRIB_DIR)/lib/PtPlot.jar
@@ -21,6 +22,7 @@ PTOLEMY_SOURCES = $(shell find $(OPENDF_HOME)/lib/source/ptolemy -name "*.java")
 OPENDF_LIB_SOURCES =  $(shell find $(OPENDF_HOME)/source/java/net/sf/opendf/lib -name "*.java")
 OPENDF_ACTORC_SOURCES = $(shell find $(OPENDF_HOME)/source/java/net/sf/opendf/actorc -name "*.java")
 OPENDF_UTIL_SOURCES = $(shell find $(OPENDF_HOME)/source/java/net/sf/opendf/util -name "*.java")
+OPENDF_CONFIG_SOURCES = $(shell find $(OPENDF_HOME)/source/java/net/sf/opendf/config -name "*.java")
 OPENDF_MATH_SOURCES = $(shell find $(OPENDF_HOME)/source/java/net/sf/opendf/math -name "*.java")
 OPENDF_CAL_SOURCES = $(shell find $(OPENDF_HOME)/source/java/net/sf/opendf/cal -name "*.java")
 OPENDF_NL_SOURCES = $(shell find $(OPENDF_HOME)/source/java/net/sf/opendf/nl -name "*.java")
@@ -28,8 +30,9 @@ OPENDF_HADES_SOURCES = $(shell find $(OPENDF_HOME)/source/java/net/sf/opendf/had
 OPENDF_CLI_SOURCES = $(shell find $(OPENDF_HOME)/source/java/net/sf/opendf/cli -name "*.java")
 OPENDF_XSLT_SOURCES = $(shell find $(OPENDF_HOME)/source/java/net/sf/opendf/xslt -name "*.java")
 
-CONTRIB_DIR = $(OPENDF_HOME)/../contrib/actorlib
-CONTRIB_SOURCES = $(shell find $(CONTRIB_DIR) -name "eclipse" -prune -o -name "*.java" -print)
+#CONTRIB_DIR = $(OPENDF_HOME)/../contrib/actorlib
+#CONTRIB_SOURCES = $(shell find $(CONTRIB_DIR) -name "eclipse" -prune -o -name "*.java" -print)
+CONTRIB_SOURCES = $(shell find $(OPENDF_HOME)/source/java/net/sf/opendf/actors -name "*.java")
 
 jar: $(OPENDF_CLASSDIR)
 	cd $(OPENDF_CLASSDIR) ; $(JAR) -xvf ../../contrib/actorlib/lib/PtPlot.jar
@@ -71,10 +74,13 @@ util: create_dir java_cup
 #nl: util cal java_cup
 #	$(JAVAC) -classpath "$(OPENDF_CLASSPATH)" -d $(OPENDF_CLASSDIR) $(OPENDF_NL_SOURCES)
 
+config: util
+	$(JAVAC) -classpath "$(OPENDF_CLASSPATH)" -d $(OPENDF_CLASSDIR) $(OPENDF_CONFIG_SOURCES)
+
 hades: util
 	$(JAVAC) -classpath "$(OPENDF_CLASSPATH)" -d $(OPENDF_CLASSDIR) $(OPENDF_HADES_SOURCES)
 
-cli: util  hades java_cup xslt
+cli: util config hades java_cup xslt
 	$(JAVAC) -classpath "$(OPENDF_CLASSPATH):$(JFREECHART_CP)" -d $(OPENDF_CLASSDIR) $(OPENDF_CLI_SOURCES)
 
 xslt:
@@ -83,4 +89,4 @@ xslt:
 
 contrib:
 	mkdir -p $(OPENDF_CLASSDIR)
-	$(JAVAC) -d $(OPENDF_CLASSDIR) -classpath "$(OPENDF_CLASSPATH)" $(CONTRIB_SOURCES)
+	$(JAVAC) -d $(OPENDF_CLASSDIR) -classpath "$(OPENDF_CLASSPATH)$(CPS)$(PTPLOT_CP)" $(CONTRIB_SOURCES)

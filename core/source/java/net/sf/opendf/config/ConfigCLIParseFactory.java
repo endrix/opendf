@@ -80,21 +80,38 @@ public class ConfigCLIParseFactory
         List<String> unparsedArgs = new ArrayList();
 
         Map<String, AbstractConfig> claMap = new HashMap();
+        // negateMap is a mapping of boolean configs to a key prefixed
+        // with -no- or --no- depending on the original cla.
+        Map<String, AbstractConfig> negateMap = new HashMap();
         for (String key : configs.getConfigs().keySet())
         {
-            if (configs.get(key).getCLA().length() > 0)
+            AbstractConfig cfg = configs.get(key);
+            if (cfg.getCLA().length() > 0)
             {
-                claMap.put(configs.get(key).getCLA(), configs.get(key));
+                claMap.put(cfg.getCLA(), cfg);
+                if ((cfg.getType() == AbstractConfig.TYPE_BOOL) &&
+                    cfg.numArgs() == 0)
+                {
+                    String negKey = ((ConfigBoolean)cfg).getNegatedKey();
+                    negateMap.put(negKey, cfg);
+                }
             }
         }
-        System.out.println("CLAMap " + claMap);
+        Logging.dbg().fine("CLAMap(pre) " + claMap);
+        Logging.dbg().fine("negate map(pre) " + negateMap);
         
         while (!varArgs.isEmpty())
         {
             String arg = varArgs.remove(0);
-            System.out.println("Parsing " + arg);
+            Logging.dbg().info("Parsing " + arg);
             AbstractConfig config = claMap.get(arg);
-            System.out.println("Parsing " + arg);
+            Logging.dbg().info("Parsing " + arg);
+            boolean negate = false;
+            if (config == null)
+            {
+                config = negateMap.get(arg);
+                negate = config != null;
+            }
             if (config == null)
             {
                 Logging.dbg().warning("Unknown command line argument: " + arg);
@@ -128,7 +145,8 @@ public class ConfigCLIParseFactory
             switch (config.getType())
             {
             case AbstractConfig.TYPE_BOOL : assert additional.length == 0 : "Boolean config expects 0 additional tokens";
-                ((ConfigBoolean)config).setValue(true, true);
+                if (!negate) ((ConfigBoolean)config).setValue(true, true);
+                else ((ConfigBoolean)config).setValue(false, true);
                 break;
             case AbstractConfig.TYPE_DIR : assert additional.length == 1 : "Dir config expects 1 additional tokens";
                 ((ConfigFile)config).setValue(additional[0], true);
@@ -160,6 +178,9 @@ public class ConfigCLIParseFactory
                 break;
             }
         }
+        
+        Logging.dbg().fine("CLAMap(post) " + claMap);
+        Logging.dbg().fine("Unparsed: " + unparsedArgs);
         return unparsedArgs;
     }
     

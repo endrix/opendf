@@ -50,7 +50,7 @@ public class Simulator
   public static void main(String [] args)
   {
       ConfigGroup configuration = new SimulationConfigGroup();
-      ConfigCLIParseFactory.parseCLI(args, configuration);
+      List<String> unparsed = ConfigCLIParseFactory.parseCLI(args, configuration);
       
       if (((ConfigBoolean)configuration.get(ConfigGroup.VERSION)).getValue().booleanValue())
       {
@@ -58,7 +58,22 @@ public class Simulator
           return;
       }
 
-      boolean valid = true;
+      ConfigString topName = (ConfigString)configuration.get(ConfigGroup.TOP_MODEL_NAME);
+      if (!topName.isUserSpecified())
+      {
+          // Take the first unparsed arg with no leading '-'.
+          for (String arg : new ArrayList<String>(unparsed))
+          {
+              if (!arg.startsWith("-"))
+              {
+                  unparsed.remove(arg);
+                  topName.setValue(arg, true);
+              }
+          }
+      }
+      
+        
+      boolean valid = unparsed.isEmpty();
       for (AbstractConfig cfg : configuration.getConfigs().values())
       {
           if (!cfg.validate())
@@ -72,7 +87,12 @@ public class Simulator
       }
       
       if (!valid)
+      {
+          Logging.user().info("Unknown args: " + unparsed);
+          configuration.usage(Logging.user(), Level.INFO);
           return;
+      }
+      
           
     PhasedSimulator simulator = new PhasedSimulator(configuration);
 

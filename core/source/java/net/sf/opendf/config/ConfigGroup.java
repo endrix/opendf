@@ -394,14 +394,46 @@ public abstract class ConfigGroup implements Cloneable
     
     public void usage (Logger logger, Level level)
     {
+        final int colSpacing = 5;
+        final String valueString = " <value>";
+
+        final Map<String, AbstractConfig> byCLA = new HashMap();
+        // Calculate the max width of any entry in the first column
+        int firstColumnWidth = 0;
         for (String key : getConfigs().keySet())
         {
             AbstractConfig cfg = getConfigs().get(key);
-            String arg = "";
-            for (int i=0; i < cfg.numArgs(); i++)
-                arg += " <value>";
-            logger.log(level, "\t" + cfg.getCLA() + arg + "\t" + cfg.getDescription());
+            firstColumnWidth = Math.max(firstColumnWidth,
+                cfg.getCLA().length() + (cfg.numArgs()*valueString.length()));
+            byCLA.put(cfg.getCLA(), cfg);
         }
+
+
+        // Print out the two column display
+        //for (String key : getConfigs().keySet())
+        List<String>clas = new ArrayList(byCLA.keySet());
+        Collections.sort(clas);
+        for (String arg : clas)
+        {
+            //AbstractConfig cfg = getConfigs().get(key);
+            //String arg = cfg.getCLA();
+            AbstractConfig cfg = byCLA.get(arg);
+            if ("".equals(arg))
+            {
+                for (int i=0; i < cfg.numArgs(); i++)
+                    arg += "\'string\'" + (i == cfg.numArgs()-1 ? "":" ");
+            }
+            else
+            {
+                for (int i=0; i < cfg.numArgs(); i++)
+                    arg += " <value>";
+            }
+            for (int i=arg.length(); i < firstColumnWidth+colSpacing; i++)
+                arg += " ";
+            String desc = cfg.getDescription() + " [" + cfg.getName() +"]";
+            logger.log(level, "\t" + arg + "\t" + desc);
+        }
+        logger.log(level, "Boolean options may be negated with -no-xxx or --no-xxx");
     }
     
     public Object clone () throws CloneNotSupportedException

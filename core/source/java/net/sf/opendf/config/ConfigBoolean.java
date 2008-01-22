@@ -88,4 +88,26 @@ public class ConfigBoolean extends AbstractConfig
         return this.userSpecified;
     }
 
+    /**
+     * Returns the negated form of the command line argument (CLA) for
+     * this boolean config.
+     *
+     */
+    public String getNegatedKey ()
+    {
+        int cnt = 0;
+        String test = this.getCLA();
+        while (test.startsWith("-"))
+        {
+            cnt++;
+            test = test.substring(1);
+        }
+        
+        String negKey = "";
+        for (int i=0; i < cnt; i++)
+            negKey += "-";
+        negKey = negKey + "no-" + test;
+        return negKey;
+    }
+    
 }
