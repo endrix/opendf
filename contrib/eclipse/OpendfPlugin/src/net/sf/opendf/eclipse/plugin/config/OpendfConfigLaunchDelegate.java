@@ -21,11 +21,10 @@ public abstract class OpendfConfigLaunchDelegate implements ILaunchConfiguration
     private MessageConsoleStream info; // Simulator info messages
     private MessageConsoleStream output; // Simulation output
 
-    private Handler errorHandler;
     private Handler infoHandler;
     private Handler outputHandler;
+    private Handler dbgHandler;
 
-    private MessageConsole statusConsole;
 
     private Level origUserLevel=Logging.user().getLevel();
     private Level origSimLevel=Logging.simout().getLevel();
@@ -36,13 +35,26 @@ public abstract class OpendfConfigLaunchDelegate implements ILaunchConfiguration
     
     protected void attachConsole (ConfigGroup configs)
     {
-        MessageConsole outputConsole = findOrCreateConsole("Compilation Output");
-        statusConsole = findOrCreateConsole("Compilation Status");
+        // First update the loggers with the specified level.
+        this.origUserLevel = Logging.user().getLevel();
+        this.origSimLevel = Logging.user().getLevel();
+        this.origDbgLevel = Logging.user().getLevel();
+        if (configs.get(ConfigGroup.LOG_LEVEL_USER).isUserSpecified())
+            Logging.user().setLevel(Level.parse(((ConfigString)configs.get(ConfigGroup.LOG_LEVEL_USER)).getValue()));
+        if (configs.get(ConfigGroup.LOG_LEVEL_SIM).isUserSpecified())
+            Logging.simout().setLevel(Level.parse(((ConfigString)configs.get(ConfigGroup.LOG_LEVEL_SIM)).getValue()));
+        if (configs.get(ConfigGroup.LOG_LEVEL_DBG).isUserSpecified())
+            Logging.dbg().setLevel(Level.parse(((ConfigString)configs.get(ConfigGroup.LOG_LEVEL_DBG)).getValue()));
 
+        final MessageConsole outputConsole = findOrCreateConsole("Compilation Output");
+        final MessageConsole statusConsole = findOrCreateConsole("Compilation Status");
+        final MessageConsole dbgConsole = Logging.dbg().isLoggable(Level.INFO) ? findOrCreateConsole("Compilation debug"):statusConsole; 
+            
         status = statusConsole.newMessageStream();
         error = statusConsole.newMessageStream();
         info = statusConsole.newMessageStream();
         output = outputConsole.newMessageStream();
+        final MessageConsoleStream dbg = dbgConsole.newMessageStream();
 
         // Now do some work in the UI thread
         Display display = OpendfPlugin.getDefault().getWorkbench().getDisplay();
@@ -58,14 +70,16 @@ public abstract class OpendfConfigLaunchDelegate implements ILaunchConfiguration
                 status.setFontStyle(SWT.BOLD);
 
                 error.setColor(red);
+                // If we are debugging to the user status console, use red
+                if (dbgConsole == statusConsole)
+                    dbg.setColor(red);
 
                 // make the status console visible
                 try
                 {
                     IWorkbenchWindow win = bench.getActiveWorkbenchWindow();
                     IWorkbenchPage page = win.getActivePage();
-                    IConsoleView view = (IConsoleView) page
-                            .showView(IConsoleConstants.ID_CONSOLE_VIEW);
+                    IConsoleView view = (IConsoleView) page.showView(IConsoleConstants.ID_CONSOLE_VIEW);
                     view.display(statusConsole);
                 } catch (Exception e)
                 {
@@ -75,36 +89,23 @@ public abstract class OpendfConfigLaunchDelegate implements ILaunchConfiguration
             }
         });
 
-        errorHandler = new FlushedStreamHandler(error, new BasicLogFormatter());
+        dbgHandler = new FlushedStreamHandler(dbg, new BasicLogFormatter());
         infoHandler = new FlushedStreamHandler(info, new BasicLogFormatter());
-        outputHandler = new FlushedStreamHandler(output,
-                new BasicLogFormatter());
+        outputHandler = new FlushedStreamHandler(output, new BasicLogFormatter());
 
-        Logging.dbg().addHandler(errorHandler);
+        Logging.removeDefaultHandler(Logging.dbg());
+        Logging.removeDefaultHandler(Logging.user());
+        Logging.removeDefaultHandler(Logging.simout());
+        
+        Logging.dbg().addHandler(dbgHandler);
         Logging.user().addHandler(infoHandler);
         Logging.simout().addHandler(outputHandler);
         
-        //Logging.dbg().setLevel(Level.ALL);
-        if (configs.get(ConfigGroup.LOG_LEVEL_USER).isUserSpecified())
-        {
-            this.origUserLevel = Logging.user().getLevel();
-            Logging.user().setLevel(Level.parse(((ConfigString)configs.get(ConfigGroup.LOG_LEVEL_USER)).getValue()));
-        }
-        if (configs.get(ConfigGroup.LOG_LEVEL_SIM).isUserSpecified())
-        {
-            this.origSimLevel = Logging.user().getLevel();
-            Logging.simout().setLevel(Level.parse(((ConfigString)configs.get(ConfigGroup.LOG_LEVEL_SIM)).getValue()));
-        }
-        if (configs.get(ConfigGroup.LOG_LEVEL_DBG).isUserSpecified())
-        {
-            this.origDbgLevel = Logging.user().getLevel();
-            Logging.dbg().setLevel(Level.parse(((ConfigString)configs.get(ConfigGroup.LOG_LEVEL_DBG)).getValue()));
-        }
     }
 
     protected void detachConsole ()
     {
-        Logging.dbg().removeHandler(errorHandler);
+        Logging.dbg().removeHandler(dbgHandler);
         Logging.user().removeHandler(infoHandler);
         Logging.simout().removeHandler(outputHandler);
         

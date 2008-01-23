@@ -39,6 +39,7 @@ ENDCOPYRIGHT
 
 package net.sf.opendf.util.logging;
 
+import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -168,33 +169,62 @@ public class Logging
         
         // Check to see if we have explicit setting of the default
         // levels.  If not, then set some appropriate levels now
-        if (System.getProperty("java.util.logging.config.file") == null &&
-            System.getProperty("java.util.logging.config.class") == null)
-        {
-            if (DBG.getLevel() == null)
-                DBG.setLevel(Level.SEVERE);
-            if (USER.getLevel() == null)
-                USER.setLevel(Level.INFO);
-            if (SIMSTATE.getLevel() == null)
-                SIMSTATE.setLevel(Level.INFO);
-            if (SIMOUT.getLevel() == null)
-              SIMOUT.setLevel(Level.INFO);
-        }
+//        if (System.getProperty("java.util.logging.config.file") == null &&
+//            System.getProperty("java.util.logging.config.class") == null)
+//        {
+//        }
+        // Always set default levels.  If the user has set them in a config file they will be non null already
+        if (DBG.getLevel() == null)      DBG.setLevel(Level.SEVERE);
+        if (USER.getLevel() == null)     USER.setLevel(Level.INFO);
+        if (SIMSTATE.getLevel() == null) SIMSTATE.setLevel(Level.INFO);
+        if (SIMOUT.getLevel() == null)   SIMOUT.setLevel(Level.INFO);
         
         // The parent Loggers are the root which, by default, have the
         // ConsoleHandler defined which sends all output to std err.
         USER.setUseParentHandlers(false);
-        USER.addHandler(new FlushedStreamHandler(System.out, new BasicLogFormatter()));
+        addDefaultHandler(USER);
 
         DBG.setUseParentHandlers(false);
-        DBG.addHandler(new FlushedStreamHandler(System.out, new DebugLogFormatter(true, "dbg")));
+        addDefaultHandler(DBG);
 
         SIMSTATE.setUseParentHandlers(false);
-        SIMSTATE.addHandler(new FlushedStreamHandler(System.out, new DebugLogFormatter(true, "simstate")));
+        addDefaultHandler(SIMSTATE);
 
         SIMOUT.setUseParentHandlers(false);
-        SIMOUT.addHandler(new FlushedStreamHandler(System.out, new DebugLogFormatter(true, "simout")));
-}
+        addDefaultHandler(SIMOUT);
+    }
+    
+    /**
+     * Removes the default handler if the logger is known to this class and 
+     * the handler is registered, otherwise it fails silently
+     * @param logger
+     */
+    public static void removeDefaultHandler (Logger logger)
+    {
+        if (logger == user()) user().removeHandler(DEFAULT_USER_HANDLER);
+        if (logger == simout()) simout().removeHandler(DEFAULT_SIM_HANDLER);
+        if (logger == dbg()) dbg().removeHandler(DEFAULT_DBG_HANDLER);
+        if (logger == simState()) simState().removeHandler(DEFAULT_SIMSTATE_HANDLER);
+    }
+    /**
+     * Adds the default handler to the logger if the logger is known.  It is safe to call 
+     * this method multiple times as it will not doubly add the handler. 
+     * @param logger
+     */
+    public static void addDefaultHandler (Logger logger)
+    {
+        // Remove it first to avoid duplication
+        removeDefaultHandler(logger);
+        if (logger == user()) user().addHandler(DEFAULT_USER_HANDLER);
+        if (logger == simout()) simout().addHandler(DEFAULT_SIM_HANDLER);
+        if (logger == dbg()) dbg().addHandler(DEFAULT_DBG_HANDLER);
+        if (logger == simState()) simState().addHandler(DEFAULT_SIMSTATE_HANDLER);
+    }
+    
+    private static final Handler DEFAULT_USER_HANDLER = new FlushedStreamHandler(System.out, new BasicLogFormatter()); 
+    private static final Handler DEFAULT_DBG_HANDLER = new FlushedStreamHandler(System.out, new DebugLogFormatter(true, "dbg")); 
+    private static final Handler DEFAULT_SIMSTATE_HANDLER = new FlushedStreamHandler(System.out, new DebugLogFormatter(true, "simstate")); 
+    private static final Handler DEFAULT_SIM_HANDLER = new FlushedStreamHandler(System.out,  new DebugLogFormatter(true, "simout"));
 
     /**
      * Sub-class allowing us to specify the name and level

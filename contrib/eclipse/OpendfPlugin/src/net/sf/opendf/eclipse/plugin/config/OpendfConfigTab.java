@@ -155,6 +155,7 @@ public abstract class OpendfConfigTab extends AbstractLaunchConfigurationTab
     @Override
     public void performApply (ILaunchConfigurationWorkingCopy configuration)
     {
+        // Push configs from the configs class to the launch configuration
         this.configs.pushConfig(new ConfigUpdateWrapper(configuration), this.controls.keySet());
     }
     
