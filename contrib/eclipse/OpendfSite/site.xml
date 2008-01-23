@@ -12,7 +12,10 @@
    <feature url="features/net.sf.opendf.eclipse.hwcompiler_1.0.0.jar" id="net.sf.opendf.eclipse.hwcompiler" version="1.0.0">
       <category name="Open Dataflow Project Plugin"/>
    </feature>
-   <feature url="features/net.sf.opendf.eclipse.feature_1.2.0.jar" id="net.sf.opendf.eclipse.feature" version="1.2.0" patch="true">
+   <feature url="features/net.sf.opendf.eclipse.feature_1.2.0.jar" id="net.sf.opendf.eclipse.feature" version="1.2.0">
+      <category name="Open Dataflow Project Plugin"/>
+   </feature>
+   <feature url="features/net.sf.opendf.eclipse.feature_1.2.1.jar" id="net.sf.opendf.eclipse.feature" version="1.2.1">
       <category name="Open Dataflow Project Plugin"/>
    </feature>
    <category-def name="Open Dataflow Project Plugin" label="net.sf.opendf.eclipse.basic">
