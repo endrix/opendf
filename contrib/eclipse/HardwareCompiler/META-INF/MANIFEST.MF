@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Hardware Compiler Plug-in
 Bundle-SymbolicName: net.sf.opendf.eclipse.HardwareCompiler;singleton:=true
-Bundle-Version: 1.0.0
+Bundle-Version: 1.0.1
 Bundle-Activator: net.sf.opendf.eclipse.plugin.hardwarecompiler.Activator
 Bundle-Vendor: The Open Dataflow Project
 Require-Bundle: org.eclipse.ui,
