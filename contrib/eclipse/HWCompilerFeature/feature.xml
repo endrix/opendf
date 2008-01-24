@@ -54,14 +54,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
    </url>
 
    <requires>
-      <import feature="com.xilinx.df.core" version="1.0.0" match="greaterOrEqual"/>
-      <import feature="net.sf.opendf.eclipse.feature" version="1.1.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.ui"/>
       <import plugin="org.eclipse.core.runtime"/>
-      <import plugin="org.eclipse.debug.core"/>
       <import plugin="com.xilinx.systembuilder.SystemBuilder"/>
-      <import plugin="org.eclipse.ui.console"/>
       <import plugin="org.eclipse.debug.ui"/>
+      <import plugin="org.eclipse.ui.console"/>
       <import plugin="org.eclipse.jface.text"/>
       <import plugin="org.eclipse.ui.editors"/>
       <import plugin="org.eclipse.ui.ide"/>
