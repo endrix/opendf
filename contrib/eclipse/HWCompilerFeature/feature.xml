@@ -50,7 +50,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
    <url>
       <update label="Open Dataflow Project Update Site" url="http://opendf.sourceforge.net/eclipse"/>
-      <discovery label="Open Dataflow Project" url="http://opendf.sourceforge.net"/>
+      <discovery label="Open Dataflow Project" url="http://opendf.sourceforge.net/eclipse"/>
    </url>
 
    <requires>
