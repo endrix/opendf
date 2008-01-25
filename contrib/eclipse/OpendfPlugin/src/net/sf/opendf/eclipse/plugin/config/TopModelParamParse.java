@@ -57,8 +57,6 @@ public class TopModelParamParse
     public static List<ModelParameter> parseModel (String topModel, String[] modelPath) throws ModelAnalysisException
     {
         StreamLocator[] sl = Util.initializeLocators(modelPath, TopModelParamParse.class.getClassLoader());
-        for (int i=0; i < sl.length; i++)
-            System.out.println("Stream locator:were " + sl[i]);
         
         Node document = Loading.loadActorSource(topModel);
         if (document == null)
