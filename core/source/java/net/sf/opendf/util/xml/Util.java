@@ -39,6 +39,8 @@ ENDCOPYRIGHT
 package net.sf.opendf.util.xml;
 
 
+import java.io.PrintWriter;
+import java.io.FileOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -263,6 +265,17 @@ public class Util {
                 doc = applyTransform(xf, new DOMSource(doc), res);
             } catch (Throwable e) {
                 Logging.dbg().throwing("Util", "applyTransformsAsResources", e);
+                if (Logging.dbg().isLoggable(Level.FINER))
+                {
+                    try
+                    {
+                        File outFile = File.createTempFile("err.xform",".xml");
+                        Logging.dbg().finer("Writing last XML Document to " + outFile);
+                        PrintWriter pw = new PrintWriter(new FileOutputStream(outFile));
+                        pw.print(createXML(doc));
+                        pw.close();
+                    } catch (IOException ioe) {}
+                }
                 throw new LocatableException.Internal(e, "applying " + resNames[i]);
             }
         }

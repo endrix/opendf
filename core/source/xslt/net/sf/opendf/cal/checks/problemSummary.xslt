@@ -26,7 +26,12 @@
        <xsl:message>
         <xsl:text>Error </xsl:text>
         <xsl:value-of select="@id"/><xsl:text>: </xsl:text>
-        <xsl:value-of select="normalize-space( text() )"/>
+        <!-- The text() function returns a list of text elements as
+             separated by child elements.  In our usage of the Error/Warning
+             notes, there will be only one non-whitespace text element. -->
+        <xsl:for-each select="text()">
+          <xsl:value-of select="normalize-space()"/>
+        </xsl:for-each>
         <xsl:text>: </xsl:text>
         <xsl:value-of select="@subject"/>
         <xsl:value-of select="@detail"/>
@@ -37,7 +42,12 @@
       <xsl:message>
         <xsl:text>Warning </xsl:text>
         <xsl:value-of select="@id"/><xsl:text>: </xsl:text>
-        <xsl:value-of select="normalize-space( text() )"/>
+        <!-- The text() function returns a list of text elements as
+             separated by child elements.  In our usage of the Error/Warning
+             notes, there will be only one non-whitespace text element. -->
+        <xsl:for-each select="text()">
+          <xsl:value-of select="normalize-space()"/>
+        </xsl:for-each>
         <xsl:text>: </xsl:text>
         <xsl:value-of select="@subject"/>
         <xsl:value-of select="@detail"/>
