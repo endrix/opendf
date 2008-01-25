@@ -66,7 +66,7 @@ public class OpendfCompilationDelegate extends OpendfConfigLaunchDelegate
     public void launch (ILaunchConfiguration configuration, String mode,
             ILaunch launch, IProgressMonitor monitor) throws CoreException
     {
-        final int MONITOR_STEPS = 1000; 
+        final int MONITOR_STEPS = 1000;
 
         ConfigGroup synthConfigs = new SynthesisConfigGroup();
         // Update the configs with the user settings.  Assume that any values in the
@@ -133,7 +133,8 @@ public class OpendfCompilationDelegate extends OpendfConfigLaunchDelegate
         monitor.setTaskName("Compilation");
         status().println("Compiling " + synth.remainingInstances() + " instances ...");
 
-        final int instanceWorkUnit = 800 / synth.remainingInstances();  
+        final double instanceWorkUnit = 800.0 / synth.remainingInstances();  
+        double worked = 0;
         // int result;
 
         try
@@ -142,7 +143,13 @@ public class OpendfCompilationDelegate extends OpendfConfigLaunchDelegate
             while (remaining)
             {
                 remaining = synth.generateNextInstanceHDL();
-                monitor.worked(instanceWorkUnit);
+                worked += instanceWorkUnit;
+                if (worked >= 1.0)
+                {
+                    int wInt = (int)worked;
+                    monitor.worked(wInt);
+                    worked = worked - wInt;
+                }
 
                 // result = simulator.advanceSimulation( 5000 );
 
