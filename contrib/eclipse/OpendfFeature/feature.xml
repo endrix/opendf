@@ -83,21 +83,21 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
    <plugin
          id="net.sf.opendf.eclipse.doc"
-         download-size="2156"
-         install-size="0"
+         download-size="2208"
+         install-size="4156"
          version="0.0.0"/>
 
    <plugin
          id="net.sf.opendf.OpendfCorePlugin"
-         download-size="0"
-         install-size="0"
+         download-size="4536"
+         install-size="4536"
          version="0.0.0"
          unpack="false"/>
 
    <plugin
          id="net.sf.opendf.eclipse.OpendfEditorPlugin"
-         download-size="0"
-         install-size="0"
+         download-size="132"
+         install-size="132"
          version="0.0.0"
          unpack="false"/>
 
