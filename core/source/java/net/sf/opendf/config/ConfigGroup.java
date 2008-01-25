@@ -124,6 +124,7 @@ public abstract class ConfigGroup implements Cloneable
                 Logging.simout().getLevel().getName() // default
                 ) );
         
+        // This config exists for short-cut setting of logging via the command line.
         registerConfig(Q, new ConfigLoggingComposite(Q, "Run Quiet",
                 "-q",
                 "Run with minimal output to console",
@@ -135,6 +136,7 @@ public abstract class ConfigGroup implements Cloneable
                 },
                 Level.WARNING.getName()
                 ) );
+        // This config exists for short-cut setting of logging via the command line.
         registerConfig(QQ, new ConfigLoggingComposite(QQ, "Run Silent",
                 "-qq",
                 "Run with no output to console",
@@ -146,6 +148,7 @@ public abstract class ConfigGroup implements Cloneable
                 },
                 Level.OFF.getName()
                 ) );
+        // This config exists for short-cut setting of logging via the command line.
         registerConfig(V, new ConfigLoggingComposite(V, "Verbose",
                 "-v",
                 "Verbose output",
@@ -157,6 +160,7 @@ public abstract class ConfigGroup implements Cloneable
                 },
                 Level.FINE.getName()
                 ) );
+        // This config exists for short-cut setting of logging via the command line.
         registerConfig(VV, new ConfigLoggingComposite(VV, "Very Verbose",
                 "-vv",
                 "Extremely Verbose output",
