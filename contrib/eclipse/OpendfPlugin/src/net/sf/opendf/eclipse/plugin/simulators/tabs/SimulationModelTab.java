@@ -110,7 +110,7 @@ public class SimulationModelTab extends OpendfConfigTab
         addControl(ConfigGroup.SIM_MAX_ERRORS, ControlRenderingFactory.renderConfig(getConfigs().get(ConfigGroup.SIM_MAX_ERRORS), leftColShort));
         addControl(ConfigGroup.SIM_BUFFER_SIZE_WARNING, ControlRenderingFactory.renderConfig(getConfigs().get(ConfigGroup.SIM_BUFFER_SIZE_WARNING), leftColShort));
         
-        addControl(ConfigGroup.SIM_ELABORATE, ControlRenderingFactory.renderConfig(getConfigs().get(ConfigGroup.SIM_ELABORATE), leftColShort));
+        addControl(ConfigGroup.ELABORATE_TOP, ControlRenderingFactory.renderConfig(getConfigs().get(ConfigGroup.ELABORATE_TOP), leftColShort));
         addControl(ConfigGroup.ENABLE_ASSERTIONS, ControlRenderingFactory.renderConfig(getConfigs().get(ConfigGroup.ENABLE_ASSERTIONS), leftColShort));
         addControl(ConfigGroup.SIM_BUFFER_IGNORE, ControlRenderingFactory.renderConfig(getConfigs().get(ConfigGroup.SIM_BUFFER_IGNORE), leftColShort));
         addControl(ConfigGroup.SIM_BUFFER_RECORD, ControlRenderingFactory.renderConfig(getConfigs().get(ConfigGroup.SIM_BUFFER_RECORD), leftColShort));

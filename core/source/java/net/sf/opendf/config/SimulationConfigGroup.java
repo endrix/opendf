@@ -59,12 +59,6 @@ public class SimulationConfigGroup extends ConfigGroup
                 false, // required
                 false // default
         ));
-        registerConfig(SIM_ELABORATE, new ConfigBoolean(SIM_ELABORATE, "Elaborate", 
-                "-e",
-                "Elaborate the top model prior to simulation",
-                false, // required
-                true // default
-                ));
         registerConfig(SIM_INPUT_FILE, new ConfigFile(SIM_INPUT_FILE, "Input Stimulus File", 
                 "-i",
                 "File containing input stimulus for simulation",

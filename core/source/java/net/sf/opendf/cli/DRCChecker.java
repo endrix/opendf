@@ -47,6 +47,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import net.sf.opendf.cal.main.Cal2CalML;
+import net.sf.opendf.config.*;
 import net.sf.opendf.util.logging.Logging;
 import net.sf.opendf.util.source.MultiErrorException;
 import net.sf.opendf.util.exception.*;
@@ -100,56 +101,21 @@ public class DRCChecker extends XSLTTransformRunner
     /** A flag indicating the result of the checks as pass/fail */
     private boolean passed = true;
     
+    private final NodeListenerIF reportListener;
+    
     /**
      * Creates a new DRCChecker object and parses the input
      * arguments, using them to set up an appropriate compilation
      * environment.
      */
-    private DRCChecker (String[] args) throws FileNotFoundException
+    private DRCChecker (ConfigGroup configs) throws FileNotFoundException
     {
-        String inputFileName = null;
-        final List<String> unparsedArgs = parseBaselineArguments(args);
-        for (Iterator iter = unparsedArgs.iterator(); iter.hasNext();)
-        {
-            String arg = (String)iter.next();
-            if (arg.startsWith("--basic"))
-            {
-                this.level = BASELINE;
-            }
-            else if (arg.startsWith("--sim"))
-            {
-                Logging.user().warning("Simulation checks not yet supported, doing baseline only");
-            }
-            else if (arg.startsWith("--synth"))
-            {
-                Logging.user().warning("Synthesis checks not yet supported, doing baseline only");
-            }
-            else if (arg.startsWith("-")) // catch unknown options
-            {
-                usage(System.out);
-                System.exit(-1);
-            }
-            else if (inputFileName == null)
-            {
-                inputFileName = arg;
-            }
-            else
-            {
-                usage(System.out);
-                System.exit(-1);
-            }
-        }
-
-        if (inputFileName == null)
-        {
-            throw new FileNotFoundException("No input file name specified");
-        }
+        super(configs);
         
-        this.inputFile = new File(inputFileName);
-        if (!inputFile.exists())
-        {
-            throw new FileNotFoundException("Could not find input file \""+inputFileName+"\" (at " + inputFile.getAbsolutePath() + ")");
-        }
+        this.inputFile= ((ConfigFile)configs.get(ConfigGroup.TOP_MODEL_FILE)).getValueFile();
+        List<String> ids = (List<String>)((ConfigList)configs.get(ConfigGroup.MESSAGE_SUPPRESS_IDS)).getValue();
+        this.reportListener = new NodeErrorListener(ids);
+        
         setRunDir(inputFile.getAbsoluteFile().getParentFile());
     }
     
@@ -164,7 +130,10 @@ public class DRCChecker extends XSLTTransformRunner
         
         try
         {
-            drc = new DRCChecker(args);
+            ConfigGroup configuration = new TransformationConfigGroup(); 
+            configuration = parseConfig(args, configuration);
+            configuration.debug(System.out);
+            drc = new DRCChecker(configuration);
             drc.runTransforms();
         }
         catch (Exception e) // in 'main'
@@ -295,6 +264,7 @@ public class DRCChecker extends XSLTTransformRunner
         ps.println("  --synth: perform the code-generation DRC checks (not yet supported)");
     }
 
+    /*
     private final NodeListenerIF reportListener = new NodeListenerIF()
         {
             public void report (Node report, String message)
@@ -317,6 +287,6 @@ public class DRCChecker extends XSLTTransformRunner
                 }
             }
         };
-    
+    */
 }
 

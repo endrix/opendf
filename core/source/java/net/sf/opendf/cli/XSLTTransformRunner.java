@@ -46,6 +46,8 @@ import java.util.logging.Level;
 
 import net.sf.opendf.cal.main.ReadXMLWriteText;
 import net.sf.opendf.cal.main.ReadXMLWriteXML;
+import net.sf.opendf.config.*;
+import net.sf.opendf.config.AbstractConfig.ConfigError;
 import net.sf.opendf.util.logging.Logging;
 import net.sf.opendf.util.exception.*;
 
@@ -72,9 +74,21 @@ public abstract class XSLTTransformRunner
      * transformations are running */ 
     private File runDir;
 
+    protected XSLTTransformRunner (ConfigGroup configs)
+    {
+        this.runDir = ((ConfigFile)configs.get(ConfigGroup.RUN_DIR)).getValueFile();
+        this.preserveFiles = ((ConfigBoolean)configs.get(ConfigGroup.XSLT_PRESERVE_INTERMEDIATE)).getValue().booleanValue();
+        try {
+            String runfast = System.getProperty("opendf.debug.xslt.runfast");
+            this.runfast = runfast == null ? true:runfast.toUpperCase().startsWith("T");
+        } catch (SecurityException se) {
+            this.runfast = true;
+        }
+    }
     /**
      * Build a new XSLTTransformRunner
      */
+    /*
     protected XSLTTransformRunner () throws FileNotFoundException
     {
         try
@@ -88,7 +102,8 @@ public abstract class XSLTTransformRunner
             throw new FileNotFoundException("Insufficient permissions to determine current run dir");
         }
     }
-
+    */
+    
     /**
      * Run the sequence of transformations defined by the specific subclass
      */
@@ -167,7 +182,6 @@ public abstract class XSLTTransformRunner
         final List unparsed = new ArrayList();
         int i=0;
         boolean version = false;
-        Level userVerbosity = Logging.user().getLevel();
         while (i < args.length)
         {
             if (args[i].equals("-q"))
@@ -428,6 +442,71 @@ public abstract class XSLTTransformRunner
         }
     }
 
+    protected static ConfigGroup parseConfig (String args[], ConfigGroup configuration) throws InvalidConfigurationException
+    {
+        List<String> unparsed = ConfigCLIParseFactory.parseCLI(args, configuration);
+        Logging.dbg().fine("Unparsed CLI: " + unparsed);
+
+        if (((ConfigBoolean)configuration.get(ConfigGroup.VERSION)).getValue().booleanValue())
+        {
+            configuration.usage(Logging.user(), Level.INFO);
+            throw new InvalidConfigurationException(configuration.get(ConfigGroup.VERSION).getCLA()+" specified");
+        }
+        
+        //ConfigString topName = (ConfigString)configuration.get(ConfigGroup.TOP_MODEL_NAME);
+        ConfigFile topFile = (ConfigFile)configuration.get(ConfigGroup.TOP_MODEL_FILE);
+        if (!topFile.isUserSpecified())
+        {
+            // Take the first unparsed arg with no leading '-'.
+            for (String arg : new ArrayList<String>(unparsed))
+            {
+                if (!arg.startsWith("-"))
+                {
+                    unparsed.remove(arg);
+                    topFile.setValue(arg, true);
+                }
+            }
+        }
+        
+        configuration = configuration.canonicalize();
+
+        boolean valid = unparsed.isEmpty();
+        for (AbstractConfig cfg : configuration.getConfigs().values())
+        {
+            if (!cfg.validate())
+            {
+                for (ConfigError err : cfg.getErrors())
+                {
+                    Logging.user().severe(err.getMessage());
+                    valid = false;
+                }
+            }
+        }
+      
+        if (!valid)
+        {
+            if (unparsed.size() > 0)
+                Logging.user().info("Unknown args: " + unparsed);
+            configuration.usage(Logging.user(), Level.INFO);
+            throw new InvalidConfigurationException("Unknown arguments"); 
+        }
+        
+        if (Logging.dbg().isLoggable(Level.INFO))
+        {
+            Logging.dbg().info("Canonicalized configuration: ");
+            configuration.debug(System.out);
+        }
+        
+        return configuration;
+    }
+    
+    protected static class InvalidConfigurationException extends Exception
+    {
+        public InvalidConfigurationException (String msg)
+        {
+            super(msg);
+        }
+    }
 
 
     /**

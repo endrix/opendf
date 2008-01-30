@@ -55,6 +55,12 @@ public class SynthesisConfigGroup extends ConfigGroup
         );
         oFile.addFilter("*.vhd", "VHDL");
         registerConfig(HDL_OUTPUT_FILE, oFile);
+        
+        // Modify the config group to set elaboration post processing and inlining to true.
+        ConfigBoolean postProcess = ((ConfigBoolean)get(ConfigGroup.ELABORATE_PP));
+        postProcess.setValue(true, false);
+        ConfigBoolean inline = ((ConfigBoolean)get(ConfigGroup.ELABORATE_INLINE));
+        inline.setValue(true, false);
 
         registerConfig(ACTOR_OUTPUT_DIR, new ConfigFile (ACTOR_OUTPUT_DIR, "Actor Output Directory",
                 "-ao",

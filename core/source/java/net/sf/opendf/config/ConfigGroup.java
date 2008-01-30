@@ -70,9 +70,11 @@ public abstract class ConfigGroup implements Cloneable
     public static final String MODEL_PATH = "model.search.path";
     public static final String TOP_MODEL_PARAMS = "model.top.parameters";
     public static final String MESSAGE_SUPPRESS_IDS = "logging.message.suppress.ids";
+    public static final String ELABORATE_TOP = "model.elaborate";
+    public static final String ELABORATE_PP = "model.elaborate.postprocess";
+    public static final String ELABORATE_INLINE = "model.elaborate.inline";
     
     // Simulation only
-    public static final String SIM_ELABORATE = "sim.elaborate";
     public static final String SIM_INPUT_FILE = "sim.input.stimulus.file";
     public static final String SIM_INTERPRET_STIMULUS = "sim.input.stimulus.interpret";
     public static final String SIM_OUTPUT_FILE = "sim.output.results.file";
@@ -84,14 +86,16 @@ public abstract class ConfigGroup implements Cloneable
     public static final String SIM_BUFFER_SIZE_WARNING = "sim.buffer.size.warning";
     public static final String SIM_TRACE = "sim.trace";
     public static final String SIM_TYPE_CHECK = "sim.types.check";
+    public static final String ENABLE_ASSERTIONS = "assertions.enable";
     
     // synthesis only
     public static final String HDL_OUTPUT_FILE= "synth.output.file.name";
     public static final String ACTOR_OUTPUT_DIR = "synth.output.actor.dir";
     public static final String GEN_HDL_SIM_MODEL = "synth.output.hdl.simmodel";
+
+    // XSLT Transformations only
+    public static final String XSLT_PRESERVE_INTERMEDIATE = "xslt.transform.preserve";
     
-    public static final String ENABLE_ASSERTIONS = "assertions.enable";
-        
     private Map<String, AbstractConfig> configs = new HashMap();
     
     public ConfigGroup ()
@@ -227,12 +231,27 @@ public abstract class ConfigGroup implements Cloneable
                 false, // required
                 Collections.EMPTY_LIST //default
         ));
+
+        registerConfig(ELABORATE_TOP, new ConfigBoolean(ELABORATE_TOP, "Elaborate", 
+                "-e",
+                "Elaborate the top model prior to simulation",
+                false, // required
+                true // default
+                ));
         
-        ///////////////////////////////
-        //
-        // Simulation configs
-        //
-        ///////////////////////////////
+        registerConfig(ELABORATE_PP, new ConfigBoolean(ELABORATE_PP, "Elaboration Post Process", 
+                "-pp",
+                "Peform post processing after elaboration",
+                false, // required
+                false // default
+                ));
+        
+        registerConfig(ELABORATE_INLINE, new ConfigBoolean(ELABORATE_INLINE, "Elaboration Inline Code", 
+                "-inline",
+                "Inline Actor source into elaborated network",
+                false, // required
+                false // default
+                ));
     };
     
     protected void registerConfig (String key, AbstractConfig cfg)
@@ -256,6 +275,12 @@ public abstract class ConfigGroup implements Cloneable
         return configs.get(key);
     }
     
+    /**
+     * Update this ConfigGroup from the data in the specified configuration. 
+     * 
+     * @param configuration
+     * @param keys a Collection of which configuration entries to update
+     */
     public void updateConfig (ConfigUpdateIF configuration, Collection<String> keys)
     {
         Map<String, AbstractConfig> configMap = this.getConfigs();
@@ -293,6 +318,12 @@ public abstract class ConfigGroup implements Cloneable
         }
     }
 
+    /**
+     * Push the values in this ConfigGroup to the specified configuration.
+     * 
+     * @param configuration
+     * @param keys
+     */
     public void pushConfig (ConfigUpdateIF configuration, Collection<String> keys)
     {
         Map<String, AbstractConfig> configMap = this.getConfigs();

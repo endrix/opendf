@@ -39,37 +39,150 @@ package net.sf.opendf.cli;
 	ENDCOPYRIGHT
  */
 
-import static net.sf.opendf.util.xml.Util.applyTransform;
-import static net.sf.opendf.util.xml.Util.applyTransformAsResource;
-import static net.sf.opendf.util.xml.Util.applyTransformsAsResources;
-import static net.sf.opendf.util.xml.Util.createTransformer;
 import static net.sf.opendf.util.xml.Util.createXML;
 import static net.sf.opendf.cli.Util.elaborate;
 import static net.sf.opendf.cli.Util.extractPath;
 import static net.sf.opendf.cli.Util.initializeLocators;
 
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.*;
 import java.util.logging.Level;
 
-import javax.xml.transform.Transformer;
-
-import net.sf.opendf.util.Loading;
-import net.sf.opendf.util.io.ClassLoaderStreamLocator;
-import net.sf.opendf.util.io.DirectoryStreamLocator;
-import net.sf.opendf.util.io.StreamLocator;
+import net.sf.opendf.config.*;
+import net.sf.opendf.config.AbstractConfig.ConfigError;
 import net.sf.opendf.util.logging.Logging;
-import net.sf.opendf.util.xml.Util;
 import net.sf.opendf.util.exception.*;
+import net.sf.opendf.xslt.util.NodeListenerIF;
+import net.sf.opendf.xslt.util.XSLTProcessCallbacks;
 
 import org.w3c.dom.Node;
 
 
 public class Elaborator {
 
-	public static void main (String [] args) throws Exception {
+    public static void main (String args[]) throws Exception 
+    {
+        ConfigGroup configs = new ElaborationConfigGroup();
+        
+        List<String> unparsed = ConfigCLIParseFactory.parseCLI(args, configs);
+        Logging.dbg().fine("Unparsed Synthesizer CLI: " + unparsed);
+
+        if (((ConfigBoolean)configs.get(ConfigGroup.VERSION)).getValue().booleanValue())
+        {
+            configs.usage(Logging.user(), Level.INFO);
+            return;
+        }
+        
+        ConfigString topName = (ConfigString)configs.get(ConfigGroup.TOP_MODEL_NAME);
+        if (!topName.isUserSpecified())
+        {
+            // Take the first unparsed arg with no leading '-'.
+            for (String arg : new ArrayList<String>(unparsed))
+            {
+                if (!arg.startsWith("-"))
+                {
+                    unparsed.remove(arg);
+                    topName.setValue(arg, true);
+                }
+            }
+        }
+
+        boolean valid = unparsed.isEmpty();
+        for (AbstractConfig cfg : configs.getConfigs().values())
+        {
+            if (!cfg.validate())
+            {
+                for (ConfigError err : cfg.getErrors())
+                {
+                    Logging.user().severe(err.getMessage());
+                    valid = false;
+                }
+            }
+        }
+      
+        if (!valid)
+        {
+            Logging.user().info("Unknown args: " + unparsed);
+            configs.usage(Logging.user(), Level.INFO);
+            return;
+        }
+        
+        configs = configs.canonicalize();
+        if (Logging.dbg().isLoggable(Level.INFO))
+        {
+            Logging.dbg().info("Canonicalized configuration: ");
+            configs.debug(System.out);
+        }
+        
+        try
+        {
+            // Create the output stream first (fail fast on io issues)
+            String outputFileName = ((ConfigFile)configs.get(ConfigGroup.HDL_OUTPUT_FILE)).getValue();
+            OutputStream os = null;
+            boolean closeStream = false;
+            if (outputFileName == null || ".".equals(outputFileName)) {
+                os = System.out;
+            } else {
+                os = new FileOutputStream(outputFileName);
+                closeStream = true;
+            }
+            PrintWriter pw = new PrintWriter(os);
+            
+            final ConfigFile cachePathConfig = (ConfigFile)configs.get(ConfigGroup.CACHE_DIR);
+            String cachePath = cachePathConfig.getValue();
+            if ("".equals(cachePathConfig.getValue()))
+            {
+                cachePath = null;
+            }
+            else if (!cachePathConfig.getValueFile().exists())
+            {
+                Logging.user().warning("Creating non existant cache directory " + cachePathConfig.getValueFile().getAbsolutePath());
+                if (!cachePathConfig.getValueFile().mkdirs())
+                {
+                    Logging.user().warning("Could not create cache dir, continuing compilation without caching");
+                    cachePath = null;
+                }
+            }
+            
+            String[] modelPath = (String[])((ConfigList)configs.get(ConfigGroup.MODEL_PATH)).getValue().toArray(new String[0]);
+            ClassLoader classLoader = new SimulationClassLoader(Simulator.class.getClassLoader(), modelPath, cachePath);
+
+            Node result = Elaborator.elaborateModel(configs, null, classLoader);
+            
+            String xmlRes = createXML(result);
+            
+            String networkClass = ((ConfigString)configs.get(ConfigGroup.TOP_MODEL_NAME)).getValue();
+            if (Logging.dbg().isLoggable(Level.FINE))
+            {
+                try{
+                    PrintWriter upw = new PrintWriter(new FileOutputStream(networkClass + ".exdf"));
+                    upw.print(xmlRes);
+                    upw.flush();
+                }
+                catch (Exception e){System.out.println("Could not output intermediate XML for debug: " + networkClass + ".exdf");}
+            }
+            
+            pw.print(xmlRes);
+            
+            if (closeStream) pw.close();
+            else pw.flush();
+            
+            Logging.user().info("Network '" + networkClass + "' successfully elaborated.");
+
+        }
+        catch (Exception e)
+        {
+            Logging.user().info("Exception received " + e);
+            e.printStackTrace();
+            (new ReportingExceptionHandler()).process(e);
+        }
+        
+    }
+    
+	private static void _main (String [] args) throws Exception {
 		String networkClass = null;
 		String outputFileName = null;
 		String cachePath = null;
@@ -155,15 +268,15 @@ public class Elaborator {
 
 		try {
             // Create the output stream first (fail fast on io issues)
-			OutputStream os = null;
-			boolean closeStream = false;
-			if (outputFileName == null || ".".equals(outputFileName)) {
-				os = System.out;
-			} else {
-				os = new FileOutputStream(outputFileName);
-				closeStream = true;
-			}
-			PrintWriter pw = new PrintWriter(os);
+            OutputStream os = null;
+            boolean closeStream = false;
+            if (outputFileName == null || ".".equals(outputFileName)) {
+                os = System.out;
+            } else {
+                os = new FileOutputStream(outputFileName);
+                closeStream = true;
+            }
+            PrintWriter pw = new PrintWriter(os);
             
             Node res = elaborate(networkClass, modelPath, classLoader, params, postProcessing, doInlining);
 
@@ -179,12 +292,12 @@ public class Elaborator {
                 catch (Exception e){System.out.println("Could not output intermediate XML for debug: " + networkClass + ".exdf");}
             }
             
-			pw.print(xmlRes);
+            pw.print(xmlRes);
             
-			if (closeStream) pw.close();
-			else pw.flush();
-			
-			Logging.user().info("Network '" + networkClass + "' successfully elaborated.");
+            if (closeStream) pw.close();
+            else pw.flush();
+            
+            Logging.user().info("Network '" + networkClass + "' successfully elaborated.");
 		}
         catch (Throwable t)
         {
@@ -194,6 +307,72 @@ public class Elaborator {
         
 	}
 
+	/**
+	 * Returns the elaborated model as specified by the configuration.  If the listener is non-null, that 
+	 * listener is used to report back any problems during loading, otherwise a new 
+	 * {@link NodeErrorListener} is created based on the config.  
+	 * 
+	 * @param config
+	 * @param listener the class used to report errors during elaboration.  May be null in which case the default of NodeErrorListener will be used.
+	 * @return the elaborated network as a Node.
+	 */
+    public static Node elaborateModel (ConfigGroup config, NodeListenerIF listener, ClassLoader defaultClassloader) throws Exception
+	{
+        Logging.user().severe("New elaboration");
+	    NodeListenerIF reportListener = listener;
+	    if (reportListener == null)
+	    {
+	        List<String> ids = (List<String>)((ConfigList)config.get(ConfigGroup.MESSAGE_SUPPRESS_IDS)).getValue();
+	        reportListener = new NodeErrorListener(ids);
+	    }
+
+	    boolean doCache = true; 
+	    final ConfigFile cachePathConfig = (ConfigFile)config.get(ConfigGroup.CACHE_DIR);
+        if ("".equals(cachePathConfig.getValue()))
+        {
+            doCache = false;
+        }
+        else if (!cachePathConfig.getValueFile().exists())
+        {
+            Logging.user().warning("Creating non existant cache directory " + cachePathConfig.getValueFile().getAbsolutePath());
+            if (!cachePathConfig.getValueFile().mkdirs())
+            {
+                Logging.user().warning("Could not create cache dir, continuing compilation without caching");
+                doCache = false;
+            }
+        }
+	    
+        // Register a listener which will report any issues in loading
+        // back to the user.
+        XSLTProcessCallbacks.registerListener(XSLTProcessCallbacks.SEMANTIC_CHECKS, reportListener);
+
+        final Node elaboratedNode;
+        try
+        {
+            String[] modelPath = (String[])((ConfigList)config.get(ConfigGroup.MODEL_PATH)).getValue().toArray(new String[0]);
+            String cachePath = config.get(ConfigGroup.CACHE_DIR).getValue().toString();
+            String topClass = config.get(ConfigGroup.TOP_MODEL_NAME).getValue().toString();
+            Map<String, String> params = ((ConfigMap)config.get(ConfigGroup.TOP_MODEL_PARAMS)).getValue();
+            boolean postProcess = ((ConfigBoolean)config.get(ConfigGroup.ELABORATE_PP)).getValue().booleanValue();
+            boolean inline = ((ConfigBoolean)config.get(ConfigGroup.ELABORATE_INLINE)).getValue().booleanValue();
+
+            ClassLoader classLoader = new SimulationClassLoader(defaultClassloader, modelPath, doCache?cachePath:null);
+            initializeLocators(modelPath, defaultClassloader);
+
+            // networkClass, modelpath, classloader, params, post process, inline
+            elaboratedNode = elaborate(topClass, modelPath, classLoader, params, postProcess, inline);
+            
+        } catch (Exception e) {
+            // clean up after ourselves.
+            XSLTProcessCallbacks.removeListener(XSLTProcessCallbacks.SEMANTIC_CHECKS, reportListener);
+            throw e;
+        }
+        
+        // No longer needed.
+        XSLTProcessCallbacks.removeListener(XSLTProcessCallbacks.SEMANTIC_CHECKS, reportListener);
+	    return elaboratedNode;
+	}
+	
 	static private void usage(String message) {
 		System.err.println(message);
 		usage();
@@ -212,6 +391,60 @@ public class Elaborator {
         System.out.println("  --version           Display Version information and quit");
 	}
 
+    private static class ElaborationConfigGroup extends ConfigGroup
+    {
+        public ElaborationConfigGroup ()
+        {
+            super();
+            
+            final ConfigFile oFile =  new ConfigFile (HDL_OUTPUT_FILE, "Output File",
+                    "-o", 
+                    "Specify the compilation output file location",
+                    false
+            );
+            oFile.addFilter("*.xdf", "XDF");
+            registerConfig(HDL_OUTPUT_FILE, oFile);
+            
+            // Modify the config group to set elaboration post processing and inlining to true.
+            ConfigBoolean postProcess = ((ConfigBoolean)get(ConfigGroup.ELABORATE_PP));
+            postProcess.setValue(true, false);
+            ConfigBoolean inline = ((ConfigBoolean)get(ConfigGroup.ELABORATE_INLINE));
+            inline.setValue(true, false);
+        }
+        
+        public ConfigGroup getEmptyConfigGroup () { return new ElaborationConfigGroup(); }
+        
+        @Override
+        public ConfigGroup canonicalize ()
+        {
+            ConfigGroup canon = super.canonicalize();
+            
+            // If the top model name is specified push it to the output file name (if unspecified)
+            ConfigString topName = (ConfigString)canon.get(TOP_MODEL_NAME);
+            ConfigFile oFile = (ConfigFile)canon.get(HDL_OUTPUT_FILE);
+            if (!oFile.isUserSpecified() && topName.isUserSpecified())
+            {
+                oFile.setValue(topName.getValue() + ".xdf", false);
+            }
+            
+            // Turn relative paths into absolute paths based on run directory
+            File runDir = ((ConfigFile)canon.get(RUN_DIR)).getValueFile();
+            if (runDir.getPath().length() > 0)
+            {
+                // The super class should have already made the run dir absolute.
+                assert runDir.isAbsolute() : "Unexpected condition.  Run dir not absolute.";
+                
+                ConfigFile oDir = (ConfigFile)canon.get(HDL_OUTPUT_FILE);
+                if (!oDir.getValueFile().isAbsolute())
+                {
+                    oDir.setValue(makeAbsolute(runDir, oDir.getValueFile()), oDir.isUserSpecified());
+                }
+            }
+            
+            return canon;
+        }
 
+    }
+    
 }
 

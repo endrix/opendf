@@ -39,18 +39,30 @@ ENDCOPYRIGHT
 
 package net.sf.opendf.cli;
 
-import net.sf.opendf.cal.main.Cal2CalML;
+import static net.sf.opendf.cli.Util.elaborate;
+import static net.sf.opendf.cli.Util.initializeLocators;
+
+import java.io.File;
+import java.io.PrintStream;
+import java.util.List;
+import java.util.Map;
+
+import net.sf.opendf.config.ConfigBoolean;
+import net.sf.opendf.config.ConfigFile;
+import net.sf.opendf.config.ConfigGroup;
+import net.sf.opendf.config.ConfigList;
+import net.sf.opendf.config.ConfigMap;
+import net.sf.opendf.config.TransformationConfigGroup;
+import net.sf.opendf.util.exception.ExceptionHandler;
+import net.sf.opendf.util.exception.ReportingExceptionHandler;
 import net.sf.opendf.util.io.ClassLoaderStreamLocator;
 import net.sf.opendf.util.io.MultiLocatorStreamLocator;
 import net.sf.opendf.util.io.StreamLocator;
 import net.sf.opendf.util.logging.Logging;
-import net.sf.opendf.util.exception.*;
 import net.sf.opendf.util.xml.Util;
+import net.sf.opendf.xslt.util.NodeListenerIF;
+import net.sf.opendf.xslt.util.XSLTProcessCallbacks;
 
-import java.util.*;
-import java.io.*;
-
-import javax.xml.parsers.DocumentBuilderFactory;
 import org.w3c.dom.Node;
 
 /**
@@ -68,7 +80,7 @@ public class SSAGenerator extends XSLTTransformRunner
     private static final String CALEXT = ".cal";
     private static final String CALMLEXT = ".calml";
     
-    private static String[] parserTransforms = {
+        private static String[] parserTransforms = {
         "net/sf/opendf/cal/transforms/CanonicalizePortTags.xslt",
         "net/sf/opendf/cal/transforms/AddInputTypes.xslt",
         "net/sf/opendf/cal/transforms/ReplaceOld.xslt",
@@ -93,7 +105,7 @@ public class SSAGenerator extends XSLTTransformRunner
         "net/sf/opendf/cal/transforms/xlim/AnnotateDecls.xslt",
 
         "net/sf/opendf/cal/transforms/EvaluateConstantExpressions.xslt",
-        "net/sf/opendf/cal/checks/problemSummary.xslt",
+        "net/sf/opendf/cal/checks/callbackProblemSummary.xslt",
         "net/sf/opendf/cal/transforms/EliminateDeadCode.xslt",
         "net/sf/opendf/cal/transforms/AddID.xslt",
         
@@ -112,35 +124,50 @@ public class SSAGenerator extends XSLTTransformRunner
     private static String[] rXwXFlags = {"-r"};
     
     /**
-     * The non-null input file name.
+     * The non-null input file.
      */
-    private String inputFileName = null;
     private File inputFile;
 
+    /**
+     * The configuration is necessary for setting up elaboration of the model.
+     */
+    private final ConfigGroup configs;
+    
+    private boolean doCache; 
+    
+    // A listener that is registered to pick up semantic check reports
+    // from CAL or NL source reading.  This class allows suppression
+    // of any report based on values passed in via --suppress-message
+    private final NodeListenerIF reportListener;
+    
     /**
      * Creates a new SSAGenerator object and parses the input
      * arguments, using them to set up an appropriate compilation
      * environment.
      */
-    protected SSAGenerator (String[] args) throws FileNotFoundException
+    //protected SSAGenerator (String[] args) throws FileNotFoundException
+    protected SSAGenerator (ConfigGroup configs)
     {
-        final List<String> unparsedArgs = parseBaselineArguments(args);
-        for (Iterator iter = unparsedArgs.iterator(); iter.hasNext();)
+        super(configs);
+        this.configs = configs;
+        this.inputFile= ((ConfigFile)configs.get(ConfigGroup.TOP_MODEL_FILE)).getValueFile();
+        List<String> ids = (List<String>)((ConfigList)configs.get(ConfigGroup.MESSAGE_SUPPRESS_IDS)).getValue();
+        this.reportListener = new NodeErrorListener(ids);
+        setRunDir(this.inputFile.getAbsoluteFile().getParentFile());
+        
+        final ConfigFile cachePath = (ConfigFile)this.configs.get(ConfigGroup.CACHE_DIR);
+        this.doCache = true;
+        if ("".equals(cachePath.getValue()))
         {
-            String arg = (String)iter.next();
-            if (arg.startsWith("-")) // catch unknown options
+            this.doCache = false;
+        }
+        else if (!cachePath.getValueFile().exists())
+        {
+            Logging.user().warning("Creating non existant cache directory " + cachePath.getValueFile().getAbsolutePath());
+            if (!cachePath.getValueFile().mkdirs())
             {
-                usage(System.out);
-                System.exit(-1);
-            }
-            else if (this.inputFileName == null)
-            {
-                this.inputFileName = arg;
-            }
-            else
-            {
-                usage(System.out);
-                System.exit(-1);
+                Logging.user().warning("Could not create cache dir, continuing compilation without caching");
+                this.doCache = false;
             }
         }
     }
@@ -154,9 +181,19 @@ public class SSAGenerator extends XSLTTransformRunner
      */
     public static void main (String args[])
     {
+        ConfigGroup configuration = new TransformationConfigGroup();
         try
         {
-            SSAGenerator codeGen = new SSAGenerator(args);
+            configuration = parseConfig(args, configuration);
+        } catch (InvalidConfigurationException ice)
+        {
+            Logging.user().severe("Could not parse command line: " + ice.getMessage());
+            return;
+        }
+        
+        try
+        {
+            SSAGenerator codeGen = new SSAGenerator(configuration);
             codeGen.runTransforms();
         }
         catch (Exception e)
@@ -165,23 +202,6 @@ public class SSAGenerator extends XSLTTransformRunner
             handler.process(e);
             System.exit(-1);
         }
-    }
-
-    protected void initialize () throws SubProcessException
-    {
-        if (this.inputFileName == null)
-        {
-            throw new SubProcessException("Null input file name", new FileNotFoundException("No input file name specified"));
-        }
-        
-        this.inputFile = new File(this.inputFileName);
-        
-        if (!this.inputFile.exists())
-        {
-            throw new SubProcessException("Input file does not exist", new FileNotFoundException("Could not find input file \""+this.inputFileName+"\" (at " + this.inputFile.getAbsolutePath() + ")"));
-        }
-        
-        setRunDir(this.inputFile.getAbsoluteFile().getParentFile());
     }
 
     protected String[] getParserTransforms ()
@@ -205,8 +225,6 @@ public class SSAGenerator extends XSLTTransformRunner
      */
     protected void runTransforms () throws SubProcessException
     {
-        initialize();
-        
         Logging.user().info("Compiling " + this.inputFile);
         
         final String[] rXwXRunFlags;
@@ -221,58 +239,46 @@ public class SSAGenerator extends XSLTTransformRunner
             rXwXRunFlags = rXwXFlags;
         }
 
-        final String prefix;
         final String noRootName = this.inputFile.getName();
+        final String prefix = noRootName.substring(0, noRootName.lastIndexOf('.'));
         
-        // Decide how to generate the CALML based on the input file type
-        final File calml;
-        if (this.inputFile.getName().toLowerCase().endsWith(CALMLEXT))
+        // Elaboration is required b/c it performs operator canonicalization (and other necessary steps).
+        boolean elaborate = ((ConfigBoolean)configs.get(ConfigGroup.ELABORATE_TOP)).getValue().booleanValue();
+        if (!elaborate)
         {
-            prefix = noRootName.substring(0,noRootName.length()-CALMLEXT.length());
-
-            calml = this.inputFile;
+            Logging.user().warning("Generation of SSA requires elaboration of the instance model.  Turning on elaboration for instance model.");
         }
-        else if (this.inputFile.getName().toLowerCase().endsWith(CALEXT))
-        {
-            prefix = noRootName.substring(0,noRootName.length()-CALEXT.length());
-
-            // cal2calml *.cal -> *.calml
-            try {
-                calml = Cal2CalML.compileSource(this.inputFile.getAbsolutePath());
-            }catch (Exception e) { // Cal2CalML throws generic exception.  Re-type it here
-                throw new SubProcessException("Could not compile CAL source to CALML." + e.getMessage());
-            }
-        }
-        else
-        {
-            throw new IllegalArgumentException("Input file name \""+this.inputFile.getName()+"\" must have "+CALEXT+" or "+CALMLEXT+" extension to filename");
-        }
-
+        
         final Node calmlNode;
-        try
+        if (true)
         {
-            calmlNode = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(calml);
-        }
-        catch (Exception e)
-        {
-            throw new SubProcessException("Could not build XML for input CALML", e);
-        }
+            // Register a listener which will report any issues in loading
+            // back to the user.
+            XSLTProcessCallbacks.registerListener(XSLTProcessCallbacks.SEMANTIC_CHECKS, reportListener);
 
-        /*
-        // Parser *.calml -> *.pcalml
-        final File pcalml = genIntermediateFile(prefix, "pcalml");
-        runReadXMLWriteXML(rXwXRunFlags, calml, pcalml, getParserTransforms());
+            try
+            {
+                String[] modelPath = (String[])((ConfigList)this.configs.get(ConfigGroup.MODEL_PATH)).getValue().toArray(new String[0]);
+                String cachePath = this.configs.get(ConfigGroup.CACHE_DIR).getValue().toString();
+                String topClass = this.configs.get(ConfigGroup.TOP_MODEL_NAME).getValue().toString();
+                Map<String, String> params = ((ConfigMap)this.configs.get(ConfigGroup.TOP_MODEL_PARAMS)).getValue(); 
+
+                ClassLoader classLoader = new SimulationClassLoader(SSAGenerator.class.getClassLoader(), modelPath, this.doCache?cachePath:null);
+                initializeLocators(modelPath, SSAGenerator.class.getClassLoader());
+                calmlNode = elaborate(topClass, modelPath, classLoader, params, true, true);
+            } catch (Exception e) {
+                // clean up after ourselves.
+                XSLTProcessCallbacks.removeListener(XSLTProcessCallbacks.SEMANTIC_CHECKS, reportListener);
+                throw new SubProcessException("Could not elaborate top model",e);
+            }
+            
+            // No longer needed.
+            XSLTProcessCallbacks.removeListener(XSLTProcessCallbacks.SEMANTIC_CHECKS, reportListener);
+            
+        }
         
-        // SSA *.pcalml -> *.ssacalml
-        final File ssacalml = genIntermediateFile(prefix, "ssacalml");
-        runReadXMLWriteXML(rXwXRunFlags, pcalml, ssacalml, getSSATransforms());
-        
-        // xlim *.ssacalml -> *.xlim
-        final File xlim = new File(this.getRunDir(), prefix + ".xlim");
-        runReadXMLWriteXML(rXwXRunFlags, ssacalml, xlim, getXlimTransforms());
-        */
         Node xlim = calmlToXlim(calmlNode, this.getRunDir(), prefix, this.isPreserveFiles());
-        // ensure that we write out the xlim
+        // Write out the xlim
         writeFile(new File(this.getRunDir(), prefix+".xlim"), Util.createXML(xlim));
     }
 
@@ -289,6 +295,10 @@ public class SSAGenerator extends XSLTTransformRunner
                 );
         try
         {
+            // Register a listener which will report any issues in loading
+            // back to the user.
+            XSLTProcessCallbacks.registerListener(XSLTProcessCallbacks.SEMANTIC_CHECKS, this.reportListener);
+            
             // Because this class may be subclassed, ensure that the obtained resources are located based on the classloader for the subclass
             final Node pcalml = Util.applyTransformsAsResources(calml, getParserTransforms(), locator);
             if (saveIntermediate) writeFile(new File(rundir, prefix+".pcalml"), Util.createXML(pcalml));
@@ -298,23 +308,15 @@ public class SSAGenerator extends XSLTTransformRunner
             
             xlim = Util.applyTransformsAsResources(ssacalml, getXlimTransforms(), locator);
             if (saveIntermediate) writeFile(new File(rundir, prefix+".xlim"), Util.createXML(xlim));
+            
+            XSLTProcessCallbacks.removeListener(XSLTProcessCallbacks.SEMANTIC_CHECKS, this.reportListener);
         } catch (Exception e) {
+            XSLTProcessCallbacks.removeListener(XSLTProcessCallbacks.SEMANTIC_CHECKS, this.reportListener);
             throw new RuntimeException("Could not complete CALML to XLIM tranformation", e);
         }
         
         return xlim;
     }
-    
-    
-    private static void usage (PrintStream ps)
-    {
-        ps.println("Usage: java SSAGenerator [options] file{"+CALEXT+"|"+CALMLEXT+"}");
-        ps.println("Options:");
-        
-        baselineUsage(ps);
 
-        // No other options
-    }
-    
 }
 

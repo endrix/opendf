@@ -25,7 +25,9 @@
     <xsl:for-each select="$errors">
       <xsl:variable name="message">
         <xsl:text>Error: </xsl:text>
-        <xsl:value-of select="normalize-space( text() )"/>
+        <xsl:for-each select="text()">
+          <xsl:value-of select="normalize-space()"/>
+        </xsl:for-each>
         <xsl:text>: </xsl:text>
         <xsl:value-of select="@subject"/>
         <xsl:value-of select="@detail"/>
@@ -37,7 +39,9 @@
       <xsl:variable name="severity" select="@severity"/>
       <xsl:variable name="message">
         <xsl:text>Warning </xsl:text>
-        <xsl:value-of select="normalize-space( text() )"/>
+        <xsl:for-each select="text()">
+          <xsl:value-of select="normalize-space()"/>
+        </xsl:for-each>
         <xsl:text>: </xsl:text>
         <xsl:value-of select="@subject"/>
         <xsl:value-of select="@detail"/>

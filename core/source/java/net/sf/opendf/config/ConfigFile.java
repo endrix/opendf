@@ -68,6 +68,11 @@ public class ConfigFile extends ConfigString
         filters.put(filter, description);
     }
     
+    public void removeFilter (String filter)
+    {
+        this.filters.remove(filter);
+    }
+    
     public Map<String, String> getFilters ()
     {
         return Collections.unmodifiableMap(this.filters);

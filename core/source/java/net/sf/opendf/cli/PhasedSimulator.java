@@ -93,10 +93,8 @@ public class PhasedSimulator {
   private double time;
   private long nSteps;
   private String [] modelPath;
-  private String actorClass;
   private String cachePath;
   private Level userVerbosity;
-  private boolean elaborate;
   // private boolean debug;
   private boolean interpretStimulus;
   private boolean bufferBlockRecord;
@@ -114,12 +112,20 @@ public class PhasedSimulator {
     // generated message from the check will be tested to see if it
     // _starts_with_ any id from this list.  If so it will be
     // suppressed. 
-    private final List<String> suppressIDs = new ArrayList();
+  //private final List<String> suppressIDs = new ArrayList();
+  
+  // A listener that is registered to pick up semantic check reports
+  // from CAL or NL source reading.  This class allows suppression
+  // of any report based on values passed in via --suppress-message
+  private final NodeListenerIF reportListener;
 
+  private final ConfigGroup config;
+  
   public PhasedSimulator(ConfigGroup conf)
   {
       ConfigGroup configs = conf.canonicalize();
-      
+      this.config = configs;
+
     inFile = ((ConfigFile)configs.get(ConfigGroup.SIM_INPUT_FILE)).getValue();
     if ("".equals(inFile)) inFile = null;
     outFile = ((ConfigFile)configs.get(ConfigGroup.SIM_OUTPUT_FILE)).getValue();
@@ -131,10 +137,8 @@ public class PhasedSimulator {
     nSteps = ((ConfigInt)configs.get(ConfigGroup.SIM_STEPS)).getValue().intValue();
 
     modelPath = (String[])((ConfigList)configs.get(ConfigGroup.MODEL_PATH)).getValue().toArray(new String[0]);
-    actorClass = ((ConfigString)configs.get(ConfigGroup.TOP_MODEL_NAME)).getValue();
-    
+        
     // debug = false;
-    elaborate = ((ConfigBoolean)configs.get(ConfigGroup.SIM_ELABORATE)).getValue().booleanValue();
     interpretStimulus = ((ConfigBoolean)configs.get(ConfigGroup.SIM_INTERPRET_STIMULUS)).getValue().booleanValue();
     maxErrs = ((ConfigInt)configs.get(ConfigGroup.SIM_MAX_ERRORS)).getValue().intValue();
     params = ((ConfigMap)configs.get(ConfigGroup.TOP_MODEL_PARAMS)).getValue();
@@ -154,7 +158,8 @@ public class PhasedSimulator {
     if (bufferSizeWarningLevel.isUserSpecified() && bufferSizeWarningLevel.getValue() >= 0)
         System.setProperty("CalBufferWarning", bufferSizeWarningLevel.getValueString());
     
-    this.suppressIDs.addAll(((ConfigList)configs.get(ConfigGroup.MESSAGE_SUPPRESS_IDS)).getValue());
+    List<String> ids = (List<String>)((ConfigList)configs.get(ConfigGroup.MESSAGE_SUPPRESS_IDS)).getValue();
+    this.reportListener = new NodeErrorListener(ids);
     
     userVerbosity = Level.parse(((ConfigStringPickOne)configs.get(ConfigGroup.LOG_LEVEL_USER)).getValue());
     
@@ -202,7 +207,7 @@ public class PhasedSimulator {
     
     // Register a listener which will report any issues in loading
     // back to the user.
-    XSLTProcessCallbacks.registerListener(XSLTProcessCallbacks.SEMANTIC_CHECKS, reportListener);
+    //XSLTProcessCallbacks.registerListener(XSLTProcessCallbacks.SEMANTIC_CHECKS, reportListener);
     
     ClassLoader classLoader = new SimulationClassLoader(Simulator.class.getClassLoader(), modelPath, cachePath);
 
@@ -213,7 +218,8 @@ public class PhasedSimulator {
     
     try
     {
-      DiscreteEventComponent dec = createDEC(modelPath, actorClass, elaborate, params, classLoader, platform);
+        //DiscreteEventComponent dec = createDEC(modelPath, actorClass, elaborate, params, classLoader, platform);
+        DiscreteEventComponent dec = createDEC(this.config, classLoader, platform);
       
       if( dec == null )
       {
@@ -350,53 +356,54 @@ public class PhasedSimulator {
     postSimulationMessage(userVerbosity, bufferBlockRecord, sim, stepCount, lastTime, wcTime);
 	}
   
-  private static DiscreteEventComponent createDEC(String[] modelPath, String actorClass, 
-      boolean elaborate,
-      Map<String, String> params, ClassLoader classLoader, Platform platform)
-      throws Exception {
-    DiscreteEventComponent dec = null;
-        try {
-          if (elaborate) {
-              Node res = Util.elaborate(actorClass, modelPath, classLoader, params, false, false);
-              
-              Logging.user().info("Network successfully elaborated.");
-              
-              dec = createNetworkDEC(res, classLoader);
-          } else {
-                DynamicEnvironmentFrame env = new DynamicEnvironmentFrame(platform.createGlobalEnvironment());
-                env.bind("__ClassLoader", platform.configuration().convertJavaResult(classLoader), null);
-                Evaluator evaluator = new Evaluator(env, platform.configuration());
-            
-                Map paramValues = new HashMap();
-                paramValues.put("__ClassLoader", classLoader);
-                for (String var : params.keySet()) {
-              
-                    Object value = evaluator.valueOf(SourceReader.readExpr(new StringReader((String)params.get(var))));
-                        
-                    paramValues.put(var, value);
-                }
+	private static DiscreteEventComponent createDEC(ConfigGroup config, ClassLoader classLoader, Platform platform) throws Exception 
+	{
+	    boolean elaborate = ((ConfigBoolean)config.get(ConfigGroup.ELABORATE_TOP)).getValue().booleanValue();
 
-                dec = loadDEC(actorClass, paramValues, classLoader);
-          }
-        }
-        catch (DECLoadException dle)
-        {
-            Logging.user().severe("Could not load simulation model." + dle.getMessage());
-            Logging.user().severe("An error has occurred.  Exiting abnormally.\n");
-            ExceptionHandler handler = new ReportingExceptionHandler();
-            handler.process(dle);
-            return null;
-        }
-        catch (Throwable t)
-        {
-            ExceptionHandler handler = new ReportingExceptionHandler();
-            handler.process(t);
-            return null;
-        }
-        Logging.user().info("Model successfully instantiated.");
+	    DiscreteEventComponent dec = null;
+	    try {
+	        if (elaborate) {
+	            //Node res = Util.elaborate(actorClass, modelPath, classLoader, params, false, false);
+	            Node res = Elaborator.elaborateModel(config, null, classLoader);
 
-    return dec;
-  }
+	            Logging.user().info("Network successfully elaborated.");
+
+	            dec = createNetworkDEC(res, classLoader);
+	        } else {
+	            DynamicEnvironmentFrame env = new DynamicEnvironmentFrame(platform.createGlobalEnvironment());
+	            env.bind("__ClassLoader", platform.configuration().convertJavaResult(classLoader), null);
+	            Evaluator evaluator = new Evaluator(env, platform.configuration());
+	            
+	            String actorClass = ((ConfigString)config.get(ConfigGroup.TOP_MODEL_NAME)).getValue(); 
+	            Map<String, String> params = ((ConfigMap)config.get(ConfigGroup.TOP_MODEL_PARAMS)).getValue();
+	            Map paramValues = new HashMap();
+	            paramValues.put("__ClassLoader", classLoader);
+	            for (String var : params.keySet()) {
+	                Object value = evaluator.valueOf(SourceReader.readExpr(new StringReader((String)params.get(var))));
+	                paramValues.put(var, value);
+	            }
+
+	            dec = loadDEC(actorClass, paramValues, classLoader);
+	        }
+	    }
+	    catch (DECLoadException dle)
+	    {
+	        Logging.user().severe("Could not load simulation model." + dle.getMessage());
+	        Logging.user().severe("An error has occurred.  Exiting abnormally.\n");
+	        ExceptionHandler handler = new ReportingExceptionHandler();
+	        handler.process(dle);
+	        return null;
+	    }
+	    catch (Throwable t)
+	    {
+	        ExceptionHandler handler = new ReportingExceptionHandler();
+	        handler.process(t);
+	        return null;
+	    }
+	    Logging.user().info("Model successfully instantiated.");
+
+	    return dec;
+	}
   
 	private static DiscreteEventComponent  createNetworkDEC(Node xdf, ClassLoader classLoader) {
 		ModelInterface mi = new XDFModelInterface();
@@ -504,45 +511,5 @@ public class PhasedSimulator {
     	}    	
     };
 
-    // A listener that is registered to pick up semantic check reports
-    // from CAL or NL source reading.  This class allows suppression
-    // of any report based on values passed in via --suppress-message
-    private final NodeListenerIF reportListener = new NodeListenerIF()
-        {
-            public void report (Node report, String message)
-            {
-                try
-                {
-                    Node reportNode = net.sf.opendf.util.xml.Util.xpathEvalElement("Note[@kind='Report']", report);
-                    
-                    String severity = ((Element)report).getAttribute("severity");
-                    String id = ((Element)report).getAttribute("id");
-
-                    boolean suppress = false;
-                    for (String suppressable : PhasedSimulator.this.suppressIDs)
-                    {
-                        if (id.startsWith(suppressable))
-                        {
-                            suppress = true;
-                            break;
-                        }
-                    }
-                    
-                    if (!suppress)
-                    {
-                        String msg = message + "[" + id +"]";
-                        if (severity.toUpperCase().equals("ERROR")) { Logging.user().severe(msg); }
-                        else if (severity.toUpperCase().startsWith("WARN")) { Logging.user().warning(msg); }
-                        else { Logging.user().info(severity + ": " + msg); }
-                    }
-                }
-                catch (Exception e)
-                {
-                    Logging.user().severe(message);
-                }
-            }
-        };
-
-    
 }
 
