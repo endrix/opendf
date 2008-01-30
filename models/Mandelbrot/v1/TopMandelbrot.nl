@@ -36,7 +36,7 @@ BEGINCOPYRIGHT X
 ENDCOPYRIGHT
 */
 
-network TopMandelbrot (W, H, maxIter, satLevels) ==> :
+network TopMandelbrot (W = 300, H = 200, maxIter = 100, satLevels = 20) ==> :
 
 	
 entities

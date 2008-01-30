@@ -38,7 +38,10 @@ ENDCOPYRIGHT
 
 
 
-network TopMandelbrotPartial (W, H, maxIter, CenterX, CenterY, DiameterX, DiameterY, satLevels) ==> :
+network TopMandelbrotPartial (W = 1200, H = 800, maxIter = 1000, 
+                              CenterX = -0.7435669, CenterY = 0.1314023, 
+                              DiameterX = 0.0022878, DiameterY = 0.0022878*0.66, 
+                              satLevels = 50) ==> :
 
 	// try these parameter values:
 	//
