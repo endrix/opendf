@@ -39,19 +39,13 @@ ENDCOPYRIGHT
 
 package net.sf.opendf.cli;
 
-import static net.sf.opendf.cli.Util.elaborate;
-import static net.sf.opendf.cli.Util.initializeLocators;
-
 import java.io.File;
-import java.io.PrintStream;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import net.sf.opendf.config.ConfigBoolean;
 import net.sf.opendf.config.ConfigFile;
 import net.sf.opendf.config.ConfigGroup;
 import net.sf.opendf.config.ConfigList;
-import net.sf.opendf.config.ConfigMap;
 import net.sf.opendf.config.TransformationConfigGroup;
 import net.sf.opendf.util.exception.ExceptionHandler;
 import net.sf.opendf.util.exception.ReportingExceptionHandler;
@@ -182,6 +176,17 @@ public class SSAGenerator extends XSLTTransformRunner
     public static void main (String args[])
     {
         ConfigGroup configuration = new TransformationConfigGroup();
+        ConfigFile topFile = (ConfigFile)configuration.get(ConfigGroup.TOP_MODEL_FILE);
+        Set<String> filters = new HashSet(topFile.getFilters().keySet());
+        for (String key : filters)
+            topFile.removeFilter(key);
+        topFile.addFilter("*.calml", "CalML");
+        topFile.addFilter("*.cal", "Cal");
+        
+        // Default behavior is to inline and post process 
+        ((ConfigBoolean)configuration.get(ConfigGroup.ELABORATE_PP)).setValue(true, false);
+        ((ConfigBoolean)configuration.get(ConfigGroup.ELABORATE_INLINE)).setValue(true, false);
+        
         try
         {
             configuration = parseConfig(args, configuration);
@@ -252,6 +257,13 @@ public class SSAGenerator extends XSLTTransformRunner
         final Node calmlNode;
         if (true)
         {
+            try
+            {
+                calmlNode = Elaborator.elaborateModel(this.configs, null, SSAGenerator.class.getClassLoader());
+            }catch (Exception e ){
+                throw new SubProcessException("Could not elaborate top model",e);
+            }
+            /*
             // Register a listener which will report any issues in loading
             // back to the user.
             XSLTProcessCallbacks.registerListener(XSLTProcessCallbacks.SEMANTIC_CHECKS, reportListener);
@@ -274,7 +286,7 @@ public class SSAGenerator extends XSLTTransformRunner
             
             // No longer needed.
             XSLTProcessCallbacks.removeListener(XSLTProcessCallbacks.SEMANTIC_CHECKS, reportListener);
-            
+            */
         }
         
         Node xlim = calmlToXlim(calmlNode, this.getRunDir(), prefix, this.isPreserveFiles());
