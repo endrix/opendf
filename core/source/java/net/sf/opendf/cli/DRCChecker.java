@@ -132,7 +132,6 @@ public class DRCChecker extends XSLTTransformRunner
         {
             ConfigGroup configuration = new TransformationConfigGroup(); 
             configuration = parseConfig(args, configuration);
-            configuration.debug(System.out);
             drc = new DRCChecker(configuration);
             drc.runTransforms();
         }

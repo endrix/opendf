@@ -318,7 +318,6 @@ public class Elaborator {
 	 */
     public static Node elaborateModel (ConfigGroup config, NodeListenerIF listener, ClassLoader defaultClassloader) throws Exception
 	{
-        Logging.user().severe("New elaboration");
 	    NodeListenerIF reportListener = listener;
 	    if (reportListener == null)
 	    {
