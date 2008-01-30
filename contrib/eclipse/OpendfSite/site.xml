@@ -9,9 +9,6 @@
    <feature url="features/net.sf.opendf.eclipse.feature_1.1.0.jar" id="net.sf.opendf.eclipse.feature" version="1.1.0">
       <category name="Open Dataflow Project Plugin"/>
    </feature>
-   <feature url="features/net.sf.opendf.eclipse.hwcompiler_1.0.0.jar" id="net.sf.opendf.eclipse.hwcompiler" version="1.0.0">
-      <category name="Open Dataflow Project Plugin"/>
-   </feature>
    <feature url="features/net.sf.opendf.eclipse.feature_1.2.0.jar" id="net.sf.opendf.eclipse.feature" version="1.2.0" patch="true">
       <category name="Open Dataflow Project Plugin"/>
    </feature>
@@ -21,10 +18,13 @@
    <feature url="features/net.sf.opendf.eclipse.feature_1.2.2.jar" id="net.sf.opendf.eclipse.feature" version="1.2.2" patch="true">
       <category name="Open Dataflow Project Plugin"/>
    </feature>
-   <feature url="features/net.sf.opendf.eclipse.hwcompiler_1.0.1.jar" id="net.sf.opendf.eclipse.hwcompiler" version="1.0.1">
+   <feature url="features/net.sf.opendf.eclipse.feature_1.2.3.jar" id="net.sf.opendf.eclipse.feature" version="1.2.3" patch="true">
       <category name="Open Dataflow Project Plugin"/>
    </feature>
-   <feature url="features/net.sf.opendf.eclipse.feature_1.2.3.jar" id="net.sf.opendf.eclipse.feature" version="1.2.3" patch="true">
+   <feature url="features/com.xilinx.df.tools_1.0.0.jar" id="com.xilinx.df.tools" version="1.0.0">
+      <category name="Open Dataflow Project Plugin"/>
+   </feature>
+   <feature url="features/net.sf.opendf.eclipse.feature_1.2.4.jar" id="net.sf.opendf.eclipse.feature" version="1.2.4" patch="true">
       <category name="Open Dataflow Project Plugin"/>
    </feature>
    <category-def name="Open Dataflow Project Plugin" label="net.sf.opendf.eclipse.basic">
