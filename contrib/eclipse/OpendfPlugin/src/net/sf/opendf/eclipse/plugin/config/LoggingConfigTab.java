@@ -74,7 +74,6 @@ public class LoggingConfigTab extends OpendfConfigTab
         super(new LoggingConfigGroup());
     }
     
-    @Override
     public void createControl (Composite parent)
     {
         // Create a scrolling composite in which to put all the controls.  You can organize it however you would like.
@@ -107,7 +106,6 @@ public class LoggingConfigTab extends OpendfConfigTab
         tabScroller.setMinSize(tab.computeSize(SWT.DEFAULT, SWT.DEFAULT));
     }
 
-    @Override
     public String getName ()
     {
         return "Logging";

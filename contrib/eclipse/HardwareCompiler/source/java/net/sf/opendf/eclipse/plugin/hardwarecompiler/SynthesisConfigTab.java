@@ -90,7 +90,7 @@ public class SynthesisConfigTab extends OpendfConfigTab
         super(new SynthesisConfigGroup());
     }
     
-    @Override
+    
     public void createControl (Composite parent)
     {
         // Create a scrolling composite in which to put all the controls.  You can organize it however you would like.
@@ -222,7 +222,6 @@ public class SynthesisConfigTab extends OpendfConfigTab
         
     }
 
-    @Override
     public String getName ()
     {
         return "HDL Compiler";

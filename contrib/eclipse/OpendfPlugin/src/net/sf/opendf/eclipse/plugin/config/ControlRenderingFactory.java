@@ -625,7 +625,6 @@ public class ControlRenderingFactory
     private static abstract class ConfigUpdatableControl implements UpdatableControlIF
     {
         private List<ConfigModificationListener> listeners = new ArrayList();
-        @Override
         public void addModifyListener (ConfigModificationListener listener)
         {
             if (!this.listeners.contains(listener))

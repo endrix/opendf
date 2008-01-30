@@ -140,7 +140,6 @@ public abstract class OpendfConfigTab extends AbstractLaunchConfigurationTab
         super.updateLaunchConfigurationDialog();
     }
 
-    @Override
     public void initializeFrom (ILaunchConfiguration configuration)
     {
         // First, update the configs.  Then push it to the controls
@@ -152,14 +151,12 @@ public abstract class OpendfConfigTab extends AbstractLaunchConfigurationTab
         }
     }
     
-    @Override
     public void performApply (ILaunchConfigurationWorkingCopy configuration)
     {
         // Push configs from the configs class to the launch configuration
         this.configs.pushConfig(new ConfigUpdateWrapper(configuration), this.controls.keySet());
     }
     
-    @Override
     public void setDefaults (ILaunchConfigurationWorkingCopy configuration)
     {
         // May be called before the control is created
