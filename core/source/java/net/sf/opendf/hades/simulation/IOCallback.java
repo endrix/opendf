@@ -69,7 +69,9 @@ public abstract class IOCallback implements SequentialSimulatorCallback
 	
         public void message(MessageEvent e) {
             if (outputWriter != null)
+            {
                 outputWriter.println(name + "\t" + e.time + "\t" + e.value);
+            }
         }
 	
         public OutputListener(String name) {
@@ -143,12 +145,15 @@ public abstract class IOCallback implements SequentialSimulatorCallback
     //
     // ctor
     //
-    public IOCallback (Writer outWriter)
+    public IOCallback (PrintWriter outWriter)
     {
+        /*
         if (outWriter != null)
             outputWriter = new PrintWriter(outWriter, true);
         else
             outputWriter = null;
+         */
+        outputWriter = outWriter;
     }
     
 }

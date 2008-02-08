@@ -43,6 +43,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 
 import net.sf.opendf.cal.ast.Expression;
 import net.sf.opendf.cal.i2.Environment;
@@ -84,7 +85,7 @@ public class EvaluatedStreamCallback extends IOCallback
      */
     public EvaluatedStreamCallback (InputStream inStream, OutputStream outStream, Platform plat)
     {
-        super(new OutputStreamWriter(outStream));
+        super(new PrintWriter(new OutputStreamWriter(outStream)));
 
         if (plat == null)
             throw new IllegalArgumentException("Evaluation platform must be non-null");
