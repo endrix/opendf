@@ -151,10 +151,8 @@ public class PhasedSimulator {
             }
         }
         boolean interpretStimulus = ((ConfigBoolean)configs.get(ConfigGroup.SIM_INTERPRET_STIMULUS)).getValue().booleanValue();
-        System.out.println("1");
         SequentialSimulatorCallback callback = interpretStimulus ? new EvaluatedStreamCallback(inStream, outStream, this.thePlatform):new StreamIOCallback(inStream, outStream);
         this.setIOCallback(callback);
-        System.out.println("2");
         
         cachePath = ((ConfigFile)configs.get(ConfigGroup.CACHE_DIR)).getValue();
         if ("".equals(cachePath)) cachePath = null;
@@ -188,8 +186,6 @@ public class PhasedSimulator {
 
         userVerbosity = Level.parse(((ConfigStringPickOne)configs.get(ConfigGroup.LOG_LEVEL_USER)).getValue());
 
-        System.out.println("3");
-        
         elaborated = false;
         initialized = false;
         done = false;
