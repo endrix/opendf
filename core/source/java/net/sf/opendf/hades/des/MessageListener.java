@@ -55,9 +55,9 @@ public interface MessageListener extends java.util.EventListener, java.io.Serial
     public void	notifyRemoveProducer(MessageProducer mp);
     public void	disconnect();
 
-    public void	message(MessageEvent evt);
-    public void notifyControl(ControlEvent ce);
-    public void control(ControlEvent ce);
+    public void	message(Object msg, double time, Object source);
+    public void notifyControl(Object ce, Object source);
+    public void control(Object ce, Object source);
 }
 
 

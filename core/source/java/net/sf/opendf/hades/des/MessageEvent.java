@@ -49,24 +49,6 @@ package net.sf.opendf.hades.des;
 *   @see    StatData
 */
 
-public class MessageEvent extends java.util.EventObject implements java.io.Serializable {
-
-    public double   time;
-    public Object   value;
-    public StatData sd;
-
-    public MessageEvent(Object source, double tm, Object val) {
-	super(source);
-	time = tm;
-	value = val;
-	sd = null;
-    }
-    
-    public MessageEvent(Object source, double tm, Object val, StatData s) {
-	super(source);
-	time = tm;
-	value = val;
-	sd = s;
-    }
+public class MessageEvent {
 }
 

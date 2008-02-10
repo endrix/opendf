@@ -50,7 +50,7 @@ package net.sf.opendf.hades.des;
 
 public interface MessageHandler {
 
-    public void	handleMessage(MessageEvent msg);
+    public void	handleMessage(Object msg, double time, Object source);
 }
 
 

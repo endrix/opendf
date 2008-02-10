@@ -1344,7 +1344,7 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 			tokensRead = 0;
 			animationPostfireHandler.modifiedAnimationState();
 			if (full && !bufferFull()) {
-				notifyControl(CE_UNBLOCK);								
+				notifyControl(CE_UNBLOCK, this);								
 			}
 		}
 		
@@ -1382,8 +1382,8 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 		//  AbstractMessageListener
 		//
 		
-	    public void	message(MessageEvent evt) {
-	    	addToken(evt.value);
+	    public void	message(Object msg, double time, Object source) {
+	    	addToken(msg);
 			scheduleActor();
 			animationPostfireHandler.modifiedAnimationState();
 			if (warnBigBuffers > 0 && tokens.size() > warnBigBuffers)
@@ -1416,7 +1416,7 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 			} catch (Exception e) {e.printStackTrace(); System.out.println("Uh-oh");}
 			tokensQueued += 1;
 			if (bufferFull()) {
-				notifyControl(CE_BLOCK);
+				notifyControl(CE_BLOCK, this);
 			}
 		}
 		
@@ -1548,8 +1548,8 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 			int n = 0;
 			while (!blocked && n < tokens.size()) {
 				Object a = tokens.get(n);
-				super.notifyMessage(new MessageEvent(CalInterpreter.this, scheduler.currentTime(), a));
-				n += 1;
+				super.notifyMessage(a, scheduler.currentTime(), CalInterpreter.this);
+				n += 1; 
 			}
 			tokens.deleteRange(0, n);
 			return blocked;

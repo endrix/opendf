@@ -129,7 +129,7 @@ implements Scheduler, EventProcessor {
 		postfire();
 		
 		if (!local.hasEvent())
-			outDeadlock.notifyMessage(new MessageEvent(this, tm, null));
+			outDeadlock.notifyMessage(null, tm, this);
 		else
 			scheduler.schedule(local.nextEventTime(), this);
 		
@@ -149,8 +149,8 @@ implements Scheduler, EventProcessor {
 		
 		if (!isExecuting) {
 			if (!alive)
-				outAlive.notifyMessage(new MessageEvent(this, tm, null));
-			
+				outAlive.notifyMessage(null, tm, this);
+				
 			double newTm = local.nextEventTime();
 			if (newTm != oldTm)
 				scheduler.schedule(newTm, precedence, this);
@@ -167,7 +167,7 @@ implements Scheduler, EventProcessor {
 		if (!isExecuting) {
 			boolean stillAlive = local.hasEvent();
 			if (alive && !stillAlive)
-				outDeadlock.notifyMessage(new MessageEvent(this, scheduler.currentTime(), null));
+				outDeadlock.notifyMessage(null, scheduler.currentTime(), this);
 			
 			if (stillAlive) {
 				double newTm = local.nextEventTime();
@@ -290,8 +290,8 @@ implements Scheduler, EventProcessor {
 		
 		private MessageProducer	producer;
 		
-		public void message(MessageEvent msg) {
-			producer.notifyMessage(msg);
+		public void message(Object msg, double time, Object source) {
+			producer.notifyMessage(msg, time, source);
 		}
 		
 		OutputListener(MessageProducer mp) {

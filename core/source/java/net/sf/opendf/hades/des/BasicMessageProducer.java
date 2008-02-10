@@ -62,19 +62,19 @@ public class BasicMessageProducer implements MessageProducer {
 		ml.notifyRemoveProducer(this);
 	}
 	
-	public void	    notifyMessage(MessageEvent msg) {
+	public void	    notifyMessage(Object msg, double time, Object source) {
 		for (int i = 0; i < listeners.size(); i++)
-			((MessageListener)listeners.elementAt(i)).message(msg);
+			((MessageListener)listeners.elementAt(i)).message(msg, time, source);
 	}
 	
-    public void  notifyControl(ControlEvent ce) {
+    public void  notifyControl(Object ce, Object source) {
     	for (Iterator i = this.listeners.iterator(); i.hasNext(); ) {
     		MessageListener l = (MessageListener)i.next();
-    		l.control(ce);
+    		l.control(ce, source);
     	}
     }
     
-    public void control(ControlEvent ce) {
+    public void control(Object ce, Object source) {
     	// DO NOTHING
     }
 	

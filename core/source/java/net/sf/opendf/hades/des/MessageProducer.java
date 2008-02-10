@@ -55,9 +55,9 @@ public interface MessageProducer extends java.io.Serializable {
     public void	    removeMessageListener(MessageListener ml);
     public void	    disconnect();
 
-    public void	    notifyMessage(MessageEvent msg);
-    public void     notifyControl(ControlEvent ce);
-    public void     control(ControlEvent ce);
+    public void	    notifyMessage(Object msg, double time, Object source);
+    public void     notifyControl(Object ce, Object source);
+    public void     control(Object ce, Object source);
 }
 
 

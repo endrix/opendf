@@ -184,7 +184,7 @@ public class Plotter extends AbstractDiscreteEventComponent {
 
   	class DataInput extends AbstractMessageListener {
 
-    	public void message(MessageEvent evt) {
+    	public void message(Object msg, double time, Object source) {
 
       		Object lbl = null;
       		boolean doAdd = true;
@@ -194,7 +194,7 @@ public class Plotter extends AbstractDiscreteEventComponent {
       		double y = 0;
 
       		if (mode == mdXY) {
-      			List l = (List) evt.value;
+      			List l = (List) msg;
       			switch(l.size()) {
       			case 2:
   					List xy;
@@ -222,11 +222,11 @@ public class Plotter extends AbstractDiscreteEventComponent {
 	      		if (first)
 					n = newDataSet(lbl);
       		} else {
-				if (evt.value instanceof Number) {
-					lbl = evt.getSource();
-					y = ((Number)evt.value).doubleValue();
-	      		} else if (evt.value instanceof List) {
-					List l = (List)evt.value;
+				if (msg instanceof Number) {
+					lbl = source;
+					y = ((Number)msg).doubleValue();
+	      		} else if (msg instanceof List) {
+					List l = (List)msg;
 					lbl = l.get(0);
 					y = ((Number)l.get(1)).doubleValue();
 	      		}
@@ -238,7 +238,7 @@ public class Plotter extends AbstractDiscreteEventComponent {
 					n = newDataSet(lbl);
 	
 	      		if (mode != mdSequence)
-					x = evt.time;
+					x = time;
 	      		else {
 					int cnt = ((Integer)sampleCounts.get(n)).intValue();
 					sampleCounts.set(n, new Integer(cnt + 1));
@@ -256,7 +256,7 @@ public class Plotter extends AbstractDiscreteEventComponent {
 
   class RedrawInput extends AbstractMessageListener {
 
-    public void message(MessageEvent evt) {
+    public void message(Object msg, double time, Object source) {
       frame.plot.repaint();
     }
   }

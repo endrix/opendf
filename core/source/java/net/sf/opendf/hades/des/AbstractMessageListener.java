@@ -64,14 +64,14 @@ public abstract class AbstractMessageListener implements MessageListener {
 		messageProducers.removeElement(mp);
 	}
 	
-	public abstract void  message(MessageEvent evt);
+	public abstract void  message(Object msg, double time, Object source);
+		
+	public void control(Object ce, Object source) {}
 	
-	public void control(ControlEvent ce) {}
-	
-	public void notifyControl(ControlEvent ce) {
+	public void notifyControl(Object ce, Object source) {
 		for (Iterator i = messageProducers.iterator(); i.hasNext(); ) {
 			MessageProducer p = (MessageProducer)i.next();
-			p.control(ce);
+			p.control(ce, source);
 		}
 	}
 	

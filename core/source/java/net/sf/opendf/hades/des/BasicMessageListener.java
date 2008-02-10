@@ -55,14 +55,14 @@ public class BasicMessageListener extends AbstractMessageListener {
 	
 	protected MessageHandler handler;
 	
-	public void	message(MessageEvent evt) {
-		handler.handleMessage(evt);
+	public void	message(Object msg, double time, Object source) {
+		handler.handleMessage(msg, time, source);
 	}
 	
-    public void notifyControl(ControlEvent ce) {
+    public void notifyControl(Object ce, Object source) {
     	for (Iterator i = this.messageProducers.iterator(); i.hasNext(); ) {
     		MessageProducer p = (MessageProducer)i.next();
-    		p.control(ce);
+    		p.control(ce, source);
     	}
     }
 

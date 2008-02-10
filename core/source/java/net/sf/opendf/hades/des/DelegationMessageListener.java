@@ -51,16 +51,16 @@ public class DelegationMessageListener extends AbstractMessageListener {
 	
 	protected MessageListener listener;
 	
-	public void	message(MessageEvent evt) {
-		listener.message(evt);
+	public void	message(Object evt, double time, Object source) {
+		listener.message(evt, time, source);
 	}
 	
-	public void  control(ControlEvent ce) {
-		listener.control(ce);
+	public void  control(Object ce, Object source) {
+		listener.control(ce, source);
 	}
 	
-	public void notifyControl(ControlEvent ce) {
-		listener.notifyControl(ce);
+	public void notifyControl(Object ce, Object source) {
+		listener.notifyControl(ce, source);
 	}
 	
 	public DelegationMessageListener(MessageListener listener) {

@@ -67,10 +67,9 @@ public abstract class IOCallback implements SequentialSimulatorCallback
 	
         private String		name;
 	
-        public void message(MessageEvent e) {
-            if (outputWriter != null)
-            {
-                outputWriter.println(name + "\t" + e.time + "\t" + e.value);
+        public void message(Object e, double time, Object source) {
+            if (outputWriter != null) {
+                outputWriter.println(name + "\t" + time + "\t" + e);
             }
         }
 	
@@ -106,8 +105,8 @@ public abstract class IOCallback implements SequentialSimulatorCallback
 	    
         MessageListener ml = inputConnectors.getConnector(nextInputConnector);
         if (ml != null)
-            ml.message(new MessageEvent(this, nextInputTime, nextInputValue));
-
+            ml.message(nextInputValue, nextInputTime, this);
+        
 	
         readNextInput();
     }
@@ -155,6 +154,7 @@ public abstract class IOCallback implements SequentialSimulatorCallback
          */
         outputWriter = outWriter;
     }
+    
     
 }
 

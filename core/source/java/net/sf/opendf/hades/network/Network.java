@@ -187,8 +187,8 @@ public class Network extends AbstractDiscreteEventComponent {
 		
 		MessageProducer producer = new BasicMessageProducer();
 		
-		public void message(MessageEvent msg) {
-			producer.notifyMessage(msg);
+		public void message(Object msg, double time, Object source) {
+			producer.notifyMessage(msg, time, source);
 		}
 		
 		public MessageProducer getProducer() {
@@ -201,8 +201,8 @@ public class Network extends AbstractDiscreteEventComponent {
 		
 		MessageListener listener;
 		
-		public void handleMessage(MessageEvent msg) {
-			notifyMessage(msg);
+		public void handleMessage(Object msg, double time, Object source) {
+			notifyMessage(msg, time, source);
 		}
 		
 		public MessageListener getListener() {
