@@ -85,7 +85,6 @@ import net.sf.opendf.hades.des.AbstractMessageListener;
 import net.sf.opendf.hades.des.BasicMessageProducer;
 import net.sf.opendf.hades.des.ControlEvent;
 import net.sf.opendf.hades.des.EventProcessor;
-import net.sf.opendf.hades.des.MessageEvent;
 import net.sf.opendf.hades.des.schedule.PostfireHandler;
 import net.sf.opendf.hades.des.schedule.Scheduler;
 import net.sf.opendf.hades.des.schedule.SimulationFinalizer;

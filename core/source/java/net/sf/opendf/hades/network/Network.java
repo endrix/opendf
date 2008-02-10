@@ -49,7 +49,6 @@ import net.sf.opendf.hades.des.AbstractMessageListener;
 import net.sf.opendf.hades.des.BasicMessageListener;
 import net.sf.opendf.hades.des.BasicMessageProducer;
 import net.sf.opendf.hades.des.DiscreteEventComponent;
-import net.sf.opendf.hades.des.MessageEvent;
 import net.sf.opendf.hades.des.MessageHandler;
 import net.sf.opendf.hades.des.MessageListener;
 import net.sf.opendf.hades.des.MessageProducer;

@@ -47,7 +47,6 @@ import java.util.Iterator;
 import net.sf.opendf.hades.des.AbstractMessageListener;
 import net.sf.opendf.hades.des.DiscreteEventComponent;
 import net.sf.opendf.hades.des.InputConnectors;
-import net.sf.opendf.hades.des.MessageEvent;
 import net.sf.opendf.hades.des.MessageListener;
 import net.sf.opendf.hades.des.MessageProducer;
 import net.sf.opendf.hades.des.OutputConnectors;
