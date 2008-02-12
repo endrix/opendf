@@ -410,7 +410,10 @@ public abstract class XSLTTransformRunner
             final File newFile;
             if (!this.isPreserveFiles())
             {
-                newFile = File.createTempFile(prefix, "."+suffix);
+                String prefixExt = prefix;
+                for (int i=prefixExt.length(); i < 3; i++)
+                    prefixExt = prefixExt + "_";
+                newFile = File.createTempFile(prefixExt, "."+suffix);
                 newFile.deleteOnExit();
             }
             else
