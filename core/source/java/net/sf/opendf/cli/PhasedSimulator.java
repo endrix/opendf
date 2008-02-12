@@ -355,7 +355,8 @@ public class PhasedSimulator {
             return FAILED;
         }
 
-        //done = true;
+        // Set the done flag only if the simulation was to run to completion in this invocation
+        done = deltaSteps == -1;
         return COMPLETED;
     }
 
