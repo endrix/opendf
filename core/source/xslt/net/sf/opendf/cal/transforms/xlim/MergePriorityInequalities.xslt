@@ -104,11 +104,13 @@ ENDCOPYRIGHT
         <xsl:call-template name="total-order">
           <xsl:with-param name="in">
             <xsl:for-each select="Priority">
-              <group>
-                <!-- Within a priority inequality actions are arranged in document order,
-                     which is already an over-constraint. -->
-                <xsl:copy-of select="QID/Note[@kind='ActionId']"/>
-              </group>
+              <inequality>
+                <xsl:for-each select="QID">
+                  <equiv>
+                    <xsl:copy-of select="Note[@kind='ActionId']"/>
+                  </equiv>
+                </xsl:for-each>
+              </inequality>
             </xsl:for-each>        
           </xsl:with-param>
         </xsl:call-template>
@@ -148,55 +150,89 @@ ENDCOPYRIGHT
     <xsl:param name="in"/>
     <xsl:param name="out" select="_default_empty_list_"/>
 
-  <xsl:choose>
-    <!-- Recursion ends when there are no more actions in the partial ordering -->
-    <xsl:when test="count($in/group/*) = 0">
-      <xsl:copy-of select="$out/*"/>
-    </xsl:when>
+    <!-- a list (with possible repetition) of all actions that appear in the highest
+      priority equivalence group of any priority relationship --> 
+    <xsl:variable name="highest-priority">
+      <xsl:copy-of select="$in/inequality/equiv[1]/*"/>
+    </xsl:variable>
+    
+    <xsl:choose>
+      
+      <!-- Recursion ends when there are no more actions in the partial ordering -->
+      <xsl:when test="count( $in/inequality/equiv ) = 0">
+        <xsl:copy-of select="$out/*"/>
+      </xsl:when>
 
-    <xsl:otherwise>
+      <xsl:otherwise>
  
-      <!-- Create a list of the head action in each partial ordering, without repetition -->
-      <xsl:variable name="heads"><xsl:copy-of select="$in/group/*[1]"/></xsl:variable>
-      <xsl:variable name="unique-heads">
-        <xsl:for-each select="$heads/*">
-          <xsl:variable name="pos" select="position()"/>
-          <xsl:variable name="id" select="@id"/>
-          <xsl:if test="not( $heads/*[ @id=$id and position() &lt; $pos] )">
-            <xsl:copy-of select="."/>
-          </xsl:if>
-        </xsl:for-each>
-      </xsl:variable>
-
-      <!-- Pick all unconstrained heads (ie those that do not occur later in any priority group) -->
-      <xsl:variable name="unconstrained">
-        <xsl:for-each select="$unique-heads/*">
-          <xsl:variable name="id" select="@id"/>
-          <xsl:if test="not( $in/group/*[ @id=$id and position() > 1 ] )">
-            <xsl:copy-of select="."/>
-          </xsl:if>
-        </xsl:for-each>
-      </xsl:variable>
+        <!-- find all the highest-priority actions that do not appear in any other relationships -->
+        <xsl:variable name="unconstrained">
+          <xsl:for-each select="$highest-priority/*">
+            <xsl:variable name="id" select="@id"/>
+            <xsl:variable name="pos" select="position()"/>
+          
+            <xsl:choose>
+              <xsl:when test="$highest-priority/*[ @id=$id and position() &lt; $pos]">
+                <!-- this is a repeat - ignore it -->
+              </xsl:when>
+              <xsl:when test="not( $in/inequality/equiv[ position() > 1 ]/*[ @id=$id ] )">
+                <!-- this is unconstrained -->
+                <xsl:copy-of select="."/>
+              </xsl:when>
+            </xsl:choose>
+          
+          </xsl:for-each>
+        </xsl:variable>
                  
-      <xsl:if test="count($unconstrained/*) = 0">
-        <xsl:message terminate="yes">
-          Fatal error: there are circular priority relationships
-        </xsl:message>
-      </xsl:if>
+        <xsl:if test="count($unconstrained/*) = 0">
+          <xsl:message terminate="yes">
+            Fatal error: there are circular priority relationships
+          </xsl:message>
+        </xsl:if>
 
-      <!-- Move the unconstrained head to the output list and re-apply template -->
-      <xsl:call-template name="total-order">
-        <xsl:with-param name="in">
-          <xsl:for-each select="$in/group">
-            <group>
-              <xsl:for-each select="*">
-                <xsl:variable name="id" select="@id"/>
-                  <xsl:if test="not( $unconstrained/*[ @id = $id ] )">
+        <!-- Prune the input sets of actions that have been added to the total order already -->
+        <xsl:variable name="whats-left">
+          <xsl:for-each select="$in/inequality">
+            <inequality>
+              <xsl:for-each select="equiv">
+                
+                <xsl:choose>
+              
+                  <!-- remove any actions that have just been added to the total order -->
+                  <xsl:when test="position() = 1">
+                    <xsl:variable name="remainder">
+                      <equiv>
+                        <xsl:for-each select="*">
+                          <xsl:variable name="id" select="@id"/>
+                          <xsl:if test="not( $unconstrained/*[ @id = $id ] )">
+                            <xsl:copy-of select="."/>
+                          </xsl:if>
+                        </xsl:for-each>
+                      </equiv>
+                    </xsl:variable>
+                
+                    <!-- only keep the top equivalence group if it still contains actions -->
+                    <xsl:if test="count( $remainder/equiv/* ) > 0">
+                      <xsl:copy-of select="$remainder"/>
+                    </xsl:if>
+                  </xsl:when>
+              
+                  <xsl:otherwise>
+                    <!-- lower priority equivalence groups are not affected -->
                     <xsl:copy-of select="."/>
-                  </xsl:if>
-                </xsl:for-each>
-              </group>
-            </xsl:for-each>
+                  </xsl:otherwise>
+                  
+                </xsl:choose>
+                
+              </xsl:for-each>
+            </inequality>
+          </xsl:for-each>
+        </xsl:variable>
+        
+        <!-- Move the unconstrained actions to the output list and re-apply template -->
+        <xsl:call-template name="total-order">
+          <xsl:with-param name="in">
+            <xsl:copy-of select="$whats-left/*"/>
           </xsl:with-param>
           <xsl:with-param name="out">
             <xsl:copy-of select="$out/*"/>
