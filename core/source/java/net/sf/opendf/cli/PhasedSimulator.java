@@ -344,6 +344,7 @@ public class PhasedSimulator {
                     return ERRORLIMIT;
                 }
             }
+            done = true;
         }
         catch (Throwable t)
         {

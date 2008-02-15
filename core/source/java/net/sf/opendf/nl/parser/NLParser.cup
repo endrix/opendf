@@ -585,7 +585,6 @@ non terminal Element type_unary;
 non terminal Vector colon_generators_opt;
 non terminal Vector var_decl_variables_opt;
 
-non terminal String const_opt;
 non terminal String do_opt;
 non terminal Vector do_statements_opt;
 non terminal end_assign;
@@ -781,9 +780,9 @@ dimensions ::=
 	;
 	
 dimension ::=
-	  LPAR RPAR
+	  LBRACK RBRACK
 	  {: RESULT = createElement("Expr", "Undefined"); :}
-	| LPAR expression:e RPAR
+	| LBRACK expression:e RBRACK
 	  {: RESULT = e; :}
 	;
 	
@@ -1230,10 +1229,9 @@ expr_if ::=
     ;
 
 expr_lambda ::=
-        const_opt:c LAMBDA LPAR decl_parameters_opt:d RPAR function_ret_type_opt:t
+        LAMBDA LPAR decl_parameters_opt:d RPAR function_ret_type_opt:t
             var_decl_variables_opt:v /*ZZZ*/ COLON expression:b end_lambda
             {:  Element e = createElement("Expr", "Lambda");
-                if (c != null) setAttribute(e, "const", "Yes");
                 appendChildren(e, d);
                 appendChild(e, t);
                 appendChildren(e, v);
@@ -1616,7 +1614,7 @@ type_expr ::=
         type_function:type {: RESULT = type; :}
 //    |   type_tuple:type {: RESULT = type; :}
 //    |   type_list:type {: RESULT = type; :}
-//    |   type_map:type {: RESULT = type; :}
+    |   type_map:type {: RESULT = type; :}
     |   type_unary:type {: RESULT = type; :}
     ;
 
@@ -1629,10 +1627,11 @@ type_function ::=
             {:  RESULT = appendChild(appendChildren(createElement("Type", "Function"), e), t); :}
     ;
 
-type_list ::=
-        id:id LBRACK entry_types_opt:e RBRACK
-            {:  Element type = createElement("Type" /*, "List" */);
+type_map ::=
+        id:id LPAR entry_taggeds_opt:e RPAR:endSymbol
+            {:  Element type = createElement("Type" /*, "Map" */);
                 setName(type, id);
+                addTextRange(type, idleft, idright, endSymbolleft, endSymbolright);
                 RESULT = appendChildren(type, e); :}
     ;
 
@@ -1752,10 +1751,6 @@ colon_generators_opt ::=
 //    |   generators:g {: RESULT = g; :}
     ;
 
-const_opt ::=
-        /* empty */ {: RESULT = null; :}
-    |   CONST:i {: RESULT = i; :}
-    ;
 do_opt ::=
         /* empty */ {: RESULT = null; :}
     |   DO:k {: RESULT = k; :}
