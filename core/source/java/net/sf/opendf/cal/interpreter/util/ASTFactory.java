@@ -94,6 +94,9 @@ import net.sf.opendf.cal.ast.StmtWhile;
 import net.sf.opendf.cal.ast.Transition;
 import net.sf.opendf.cal.ast.TypeExpr;
 import net.sf.opendf.cal.interpreter.InterpreterException;
+import net.sf.opendf.util.io.ClassLoaderStreamLocator;
+import net.sf.opendf.util.io.MultiLocatorStreamLocator;
+import net.sf.opendf.util.io.StreamLocator;
 import net.sf.opendf.util.logging.Logging;
 import net.sf.opendf.util.xml.ElementPredicate;
 import net.sf.opendf.util.xml.TagNameAttributeValuePredicate;
@@ -110,7 +113,7 @@ import org.w3c.dom.NodeList;
 /**
  * An ASTFactory creates an AST from a valid CalML/DOM representation of an actor.
  *
- * @author Jörn W. Janneck <jwj@acm.org>
+ * @author Jï¿½rn W. Janneck <jwj@acm.org>
  */
 
 public class ASTFactory {
@@ -1198,6 +1201,7 @@ public class ASTFactory {
 
     private static Node   canonicalizeActor(Node doc)  { 
 
+        /*
         try {
             if (actorTransformations == null) {
                 actorTransformations = new Transformer [actorTransformationPaths.length];
@@ -1223,10 +1227,14 @@ public class ASTFactory {
         	Logging.dbg().info("Exception loading actor transformations: " + sw.toString());
             throw new RuntimeException("Cannot create transformations.", e);
         }
-
+         */
         try {
             // Util.setSAXON();
-            Node actor = Util.applyTransforms(doc, actorTransformations);
+            //Node actor = Util.applyTransforms(doc, actorTransformations);
+            // Allow the util class to generate the transformers to avoid issues with 
+            // multiple instances of the simulator.
+            final StreamLocator locator = new ClassLoaderStreamLocator(ASTFactory.class.getClassLoader());
+            Node actor = Util.applyTransformsAsResources(doc, actorTransformationPaths, locator);
             // System.out.println(Util.createXML(actor));
             return actor;
         } catch (Exception e) {
@@ -1264,9 +1272,10 @@ public class ASTFactory {
         "net/sf/opendf/cal/transforms/VariableSorter.xslt"
     };
 
-    private static Transformer [] actorTransformations = null;
+    //private static Transformer [] actorTransformations = null;
 
     private static Node   canonicalizeExprStmt(Node doc)  {
+        /*
         try {
             if (exprTransformations == null) {
                 exprTransformations = new Transformer [exprTransformationPaths.length];
@@ -1291,10 +1300,12 @@ public class ASTFactory {
         	Logging.dbg().info("Exception loading transformations: " + sw.toString());
             throw new RuntimeException("Cannot create transformations.", e);
         }
-
+         */
         try {
             // Util.setSAXON();
-            Node actor = Util.applyTransforms(doc, exprTransformations);
+            final StreamLocator locator = new ClassLoaderStreamLocator(ASTFactory.class.getClassLoader());
+            Node actor = Util.applyTransformsAsResources(doc, exprTransformationPaths, locator);
+            //Node actor = Util.applyTransforms(doc, exprTransformations);
             return actor;
         } catch (Exception e) {
         	StringWriter sw = new StringWriter();

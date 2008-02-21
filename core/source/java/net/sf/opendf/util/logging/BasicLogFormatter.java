@@ -90,6 +90,8 @@ public class BasicLogFormatter extends java.util.logging.Formatter
     {
         this(false, null);
     }
+
+    private long prevTime = -1;
     
     public String format (LogRecord record)
     {
@@ -103,6 +105,13 @@ public class BasicLogFormatter extends java.util.logging.Formatter
         {
             date.setTime(record.getMillis());
             stringBuffer.append("<"+dateFormat.format(date)+ "> ");
+            /*
+            long delta = record.getMillis();
+            if (prevTime > 0)
+                delta = record.getMillis() - prevTime;
+            prevTime = record.getMillis();
+            stringBuffer.append("<"+delta+ "> ");
+            */
         }
 
         if (record.getLevel() == Logging.FORCE)
