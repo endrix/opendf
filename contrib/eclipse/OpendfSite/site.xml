@@ -24,6 +24,9 @@
    <feature url="features/net.sf.opendf.eclipse.feature_1.2.4.jar" id="net.sf.opendf.eclipse.feature" version="1.2.4" patch="true">
       <category name="Open Dataflow Project Plugin"/>
    </feature>
+   <feature url="features/net.sf.opendf.eclipse.feature_1.2.5.jar" id="net.sf.opendf.eclipse.feature" version="1.2.5" patch="true">
+      <category name="Open Dataflow Project Plugin"/>
+   </feature>
    <category-def name="Open Dataflow Project Plugin" label="net.sf.opendf.eclipse.basic">
       <description>
          Provides CAL/NL editing capablity and documentation.

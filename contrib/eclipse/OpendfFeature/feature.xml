@@ -2,11 +2,15 @@
 <feature
       id="net.sf.opendf.eclipse.feature"
       label="Open Dataflow Plugin"
-      version="1.2.4"
+      version="1.2.5"
       provider-name="The Open Dataflow Project">
 
    <description>
       Open Dataflow Project plugin
+V1.2.5
+* improved simulation speed
+* Action priority analysis bug fixed
+* NL parsing bug fixed (type parameters)
 V1.2.4
 * Reverted to Java 1.5
 V1.2.3
