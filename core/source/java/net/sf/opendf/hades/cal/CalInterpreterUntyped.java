@@ -1293,7 +1293,7 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 			tokensRead = 0;
 			animationPostfireHandler.modifiedAnimationState();
 			if (full && !bufferFull()) {
-				notifyControl(CE_UNBLOCK, this);								
+				notifyControl(ControlEvent.UNBLOCK, this);								
 			}
 		}
 		
@@ -1332,7 +1332,7 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 			if (warnBigBuffers > 0 && tokens.size() > warnBigBuffers)
 				Logging.user().warning("Channel '" + actor.getName() + "." + name + "', big queue (W): " + tokensQueued);
 			if (bufferFull()) {
-				notifyControl(CE_BLOCK, this);
+				notifyControl(ControlEvent.BLOCK, this);
 			}
 	    }
 	   
@@ -1381,8 +1381,6 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 		
 		private final String attrBufferSize = "bufferSize";
 
-		protected final ControlEvent CE_BLOCK = new ControlEvent(this, ControlEvent.BLOCK);
-		protected final ControlEvent CE_UNBLOCK = new ControlEvent(this, ControlEvent.UNBLOCK);
 	}
 
 	protected class MosesOutputChannel extends BasicMessageProducer implements OutputPort, OutputChannel {
@@ -1390,26 +1388,27 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 		//
 		//  BasicMessageProducer -- override
 		//
-		
-		public void  control(ControlEvent ce) {
-			if (ce.data == ControlEvent.BLOCK) {
-				if (ce.source == null) {
+		@Override
+		public void  control (Object ce, Object source) 
+		{
+			if (ce == ControlEvent.BLOCK) {
+				if (source == null) {
 					Logging.dbg().info(portQID() + ": Received anonymous UNBLOCK event. Actor was " + (blocked ? "blocked" : "unblocked") + ".");					
 				}
 				blocked = true;
-				if (ce.source != null) {
-					blockingSources.add(ce.source);
+				if (source != null) {
+					blockingSources.add(source);
 				}
 				blockActor(getName());
-			} else if (ce.data == ControlEvent.UNBLOCK) {
-				if (ce.source == null) {
+			} else if (ce == ControlEvent.UNBLOCK) {
+				if (source == null) {
 					Logging.dbg().info(portQID() + ": Received anonymous UNBLOCK event. Actor was " + (blocked ? "blocked" : "unblocked") + ".");					
 				}
 				if (blocked) {
-					if (ce.source == null) {
+					if (source == null) {
 						blockingSources.clear();
 					} else {
-						blockingSources.remove(ce.source);
+						blockingSources.remove(source);
 					}
 					if (blockingSources.isEmpty()) {
 						blocked = false;

@@ -44,6 +44,7 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.io.StringReader;
 
+import javax.xml.transform.Transformer;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import net.sf.opendf.cal.ast.Actor;
@@ -60,7 +61,6 @@ import net.sf.opendf.util.source.MultiErrorException;
 
 import net.sf.opendf.util.xml.Util;
 // import net.sf.opendf.util.logging.Logging;
-
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -79,7 +79,46 @@ import org.w3c.dom.Node;
 
 public class SourceReader
 {
-    private static StreamLocator locator = new ClassLoaderStreamLocator(SourceReader.class.getClassLoader());
+    private static final StreamLocator locator;
+    private static final Transformer[] actorPreprocessTransformers; 
+    private static final Transformer[] actorChecks; 
+    private static final Transformer[] actorCheckReport; 
+    static
+    {
+        locator = new ClassLoaderStreamLocator(SourceReader.class.getClassLoader());
+        actorPreprocessTransformers = Util.getTransformersAsResources(new String[] {
+                "net/sf/opendf/cal/transforms/BuildProductSchedule.xslt",
+                "net/sf/opendf/cal/transforms/CanonicalizePortTags.xslt",
+
+                // Copies Input Port Type to Input Decl
+                "net/sf/opendf/cal/transforms/AddInputTypes.xslt",
+
+                // Convert the old keyword to appropriate local var declaration
+                "net/sf/opendf/cal/transforms/ReplaceOld.xslt",
+                // Add $local to all local variables.
+                "net/sf/opendf/cal/transforms/RenameLocalVars.xslt",
+
+                // Defer inlining of fxn/procedure to the code generators
+                //"net/sf/opendf/cal/transforms/Inline.xslt",
+
+                // Done in elaborator after inlining
+                //"net/sf/opendf/cal/transforms/AddID.xslt",
+                //"net/sf/opendf/cal/transforms/VariableAnnotator.xslt",
+                //"net/sf/opendf/cal/transforms/ContextInfoAnnotator.xslt",
+                //"net/sf/opendf/cal/transforms/CanonicalizeOperators.xslt",
+                //"net/sf/opendf/cal/transforms/AnnotateFreeVars.xslt",
+                //"net/sf/opendf/cal/transforms/DependencyAnnotator.xslt",
+                //"net/sf/opendf/cal/transforms/VariableSorter.xslt"
+        }, locator);
+        actorChecks = Util.getTransformersAsResources(new String[] {
+                "net/sf/opendf/cal/checks/semanticChecks.xslt"
+        }, locator);
+        actorCheckReport = Util.getTransformersAsResources(new String[] {
+                "net/sf/opendf/cal/checks/callbackProblemSummary.xslt"
+        }, locator);
+
+    }
+
     //////////////////////////////////
     //  Actor
     //////////////////////////////////
@@ -95,12 +134,13 @@ public class SourceReader
         // Downstream processes must determine what to do with error notes
         try
         {
-            doc = Util.applyTransformsAsResources(doc,
-                new String[] { "net/sf/opendf/cal/checks/semanticChecks.xslt"}, locator);
+            //doc = Util.applyTransformsAsResources(doc, new String[] { "net/sf/opendf/cal/checks/semanticChecks.xslt"}, locator);
+            doc = Util.applyTransforms(doc, actorChecks); 
         
             // Ensure that any issues get reported back to the calling
             // context according to registered listeners
-            Util.applyTransformsAsResources(doc, new String[] {"net/sf/opendf/cal/checks/callbackProblemSummary.xslt"}, locator);
+            //Util.applyTransformsAsResources(doc, new String[] {"net/sf/opendf/cal/checks/callbackProblemSummary.xslt"}, locator);
+            Util.applyTransforms(doc, actorCheckReport);
             return doc;
         }
         catch ( Exception e )
@@ -154,7 +194,8 @@ public class SourceReader
     public static Node actorPreprocess (Node node)
     {
     	try {
-    		Node result = Util.applyTransformsAsResources(node, actorPreprocessTransforms, locator);
+    		//Node result = Util.applyTransformsAsResources(node, actorPreprocessTransforms, locator);
+    	    Node result = Util.applyTransforms(node, actorPreprocessTransformers);
     		return result;
     	} catch (Exception e) {
     		throw new RuntimeException(e);
@@ -250,33 +291,5 @@ public class SourceReader
 	public static Statement [] readStmt(String s) {
 		return readStmt(new StringReader(s));
 	}
-	
-	
-    // private static final boolean suppressActorChecks = System.getenv().containsKey("CAL_SUPPRESS_ACTOR_CHECKS");
-
-    private static String [] actorPreprocessTransforms = {
-        "net/sf/opendf/cal/transforms/BuildProductSchedule.xslt",
-        "net/sf/opendf/cal/transforms/CanonicalizePortTags.xslt",
-
-        // Copies Input Port Type to Input Decl
-        "net/sf/opendf/cal/transforms/AddInputTypes.xslt",
-
-        // Convert the old keyword to appropriate local var declaration
-        "net/sf/opendf/cal/transforms/ReplaceOld.xslt",
-        // Add $local to all local variables.
-        "net/sf/opendf/cal/transforms/RenameLocalVars.xslt",
-
-        // Defer inlining of fxn/procedure to the code generators
-        //"net/sf/opendf/cal/transforms/Inline.xslt",
-
-        // Done in elaborator after inlining
-        //"net/sf/opendf/cal/transforms/AddID.xslt",
-        //"net/sf/opendf/cal/transforms/VariableAnnotator.xslt",
-        //"net/sf/opendf/cal/transforms/ContextInfoAnnotator.xslt",
-        //"net/sf/opendf/cal/transforms/CanonicalizeOperators.xslt",
-        //"net/sf/opendf/cal/transforms/AnnotateFreeVars.xslt",
-        //"net/sf/opendf/cal/transforms/DependencyAnnotator.xslt",
-        //"net/sf/opendf/cal/transforms/VariableSorter.xslt"
-    };
 	
 }

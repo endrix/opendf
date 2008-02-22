@@ -1162,25 +1162,6 @@ public class ASTFactory {
     final static ElementPredicate predType = new TagNamePredicate(tagType);
     
     private static CheckReports actorCheck(Node doc) {
-    	try {
-    		if (actorChecks == null) {
-    			actorChecks = new Transformer [actorCheckPaths.length];
-    			for (int i = 0; i < actorChecks.length; i++) {
-    				InputStream is = Util.class.getClassLoader().getResourceAsStream(actorCheckPaths[i]);
-    				try {
-    					actorChecks[i] = Util.createTransformer(is);
-    				} catch (Throwable e) {
-    					throw new RuntimeException("Could not create checking transformer '" + actorCheckPaths[i] + "'.", e);
-    				} finally {
-    					is.close();
-    				}
-
-    			}
-    		}
-    	} catch (IOException e) {
-    		throw new RuntimeException("Cannot create transformations.", e);
-    	}
-
     	List<CheckReport>  errors = null;
     	List<CheckReport>  warnings = null;
     	try {
@@ -1201,40 +1182,9 @@ public class ASTFactory {
 
     private static Node   canonicalizeActor(Node doc)  { 
 
-        /*
-        try {
-            if (actorTransformations == null) {
-                actorTransformations = new Transformer [actorTransformationPaths.length];
-                for (int i = 0; i < actorTransformations.length; i++) {
-                    InputStream is = Util.class.getClassLoader().getResourceAsStream(actorTransformationPaths[i]);
-                    try {
-                        actorTransformations[i] = Util.createTransformer(is);
-                    } catch (Throwable e) {
-                    	StringWriter sw = new StringWriter();
-                    	e.printStackTrace(new PrintWriter(sw, true));
-                    	Logging.dbg().info("Exception loading actor transformations: " + sw.toString());
-                        throw new LocatableException.Internal(e, actorTransformationPaths[i]);
-                        //throw new RuntimeException("Could not create transformer '" + actorTransformationPaths[i] + "'.", e);
-                    } finally {
-                        is.close();
-                    }
-
-                }
-            }
-        } catch (IOException e) {
-        	StringWriter sw = new StringWriter();
-        	e.printStackTrace(new PrintWriter(sw, true));
-        	Logging.dbg().info("Exception loading actor transformations: " + sw.toString());
-            throw new RuntimeException("Cannot create transformations.", e);
-        }
-         */
         try {
             // Util.setSAXON();
-            //Node actor = Util.applyTransforms(doc, actorTransformations);
-            // Allow the util class to generate the transformers to avoid issues with 
-            // multiple instances of the simulator.
-            final StreamLocator locator = new ClassLoaderStreamLocator(ASTFactory.class.getClassLoader());
-            Node actor = Util.applyTransformsAsResources(doc, actorTransformationPaths, locator);
+            Node actor = Util.applyTransforms(doc, actorTransformations);
             // System.out.println(Util.createXML(actor));
             return actor;
         } catch (Exception e) {
@@ -1251,61 +1201,47 @@ public class ASTFactory {
         // System.out.println("properties = " + System.getProperties());
     }
     
-    private static String [] actorCheckPaths = {
-//    	"net/sf/opendf/cal/checks/semanticChecks.xslt"
-    };
+    private static final Transformer [] actorChecks;
+    private static final Transformer [] actorTransformations;
+    private static final Transformer [] exprTransformations;
+
+    static
+    {
+        final StreamLocator locator = new ClassLoaderStreamLocator(ASTFactory.class.getClassLoader());
+        actorChecks = Util.getTransformersAsResources(new String[] {
+//              "net/sf/opendf/cal/checks/semanticChecks.xslt"
+        }, locator);
+        actorTransformations = Util.getTransformersAsResources(new String[] {
+                "net/sf/opendf/cal/transforms/BuildProductSchedule.xslt",
+                "net/sf/opendf/cal/transforms/CanonicalizePortTags.xslt",
+                "net/sf/opendf/cal/transforms/ReplaceOld.xslt",
+                //"net/sf/opendf/cal/transforms/ReplaceGenerators.xslt",
+                //"net/sf/opendf/cal/transforms/ReplaceStmtGenerators.xslt",
+                "net/sf/opendf/cal/transforms/AddID.xslt",
+                "net/sf/opendf/cal/transforms/VariableAnnotator.xslt",
+                "net/sf/opendf/cal/transforms/ContextInfoAnnotator.xslt",
+                "net/sf/opendf/cal/transforms/CanonicalizeOperators.xslt",
+                "net/sf/opendf/cal/transforms/AnnotateFreeVars.xslt",
+                "net/sf/opendf/cal/transforms/DependencyAnnotator.xslt",
+                "net/sf/opendf/cal/transforms/VariableSorter.xslt"
+        }, locator);
+        exprTransformations = Util.getTransformersAsResources(new String[] {
+                //"net/sf/opendf/cal/transforms/ReplaceGenerators.xslt",
+                //"net/sf/opendf/cal/transforms/ReplaceStmtGenerators.xslt",
+                "net/sf/opendf/cal/transforms/AddID.xslt",
+                "net/sf/opendf/cal/transforms/VariableAnnotator.xslt",
+                "net/sf/opendf/cal/transforms/ContextInfoAnnotator.xslt",
+                "net/sf/opendf/cal/transforms/CanonicalizeOperators.xslt",
+                "net/sf/opendf/cal/transforms/AnnotateFreeVars.xslt",
+                "net/sf/opendf/cal/transforms/DependencyAnnotator.xslt",
+                "net/sf/opendf/cal/transforms/VariableSorter.xslt"
+        }, locator);
+    }
     
-    private static Transformer [] actorChecks = null;
-
-    private static String [] actorTransformationPaths = {
-        "net/sf/opendf/cal/transforms/BuildProductSchedule.xslt",
-        "net/sf/opendf/cal/transforms/CanonicalizePortTags.xslt",
-        "net/sf/opendf/cal/transforms/ReplaceOld.xslt",
-        //"net/sf/opendf/cal/transforms/ReplaceGenerators.xslt",
-        //"net/sf/opendf/cal/transforms/ReplaceStmtGenerators.xslt",
-        "net/sf/opendf/cal/transforms/AddID.xslt",
-        "net/sf/opendf/cal/transforms/VariableAnnotator.xslt",
-        "net/sf/opendf/cal/transforms/ContextInfoAnnotator.xslt",
-        "net/sf/opendf/cal/transforms/CanonicalizeOperators.xslt",
-        "net/sf/opendf/cal/transforms/AnnotateFreeVars.xslt",
-        "net/sf/opendf/cal/transforms/DependencyAnnotator.xslt",
-        "net/sf/opendf/cal/transforms/VariableSorter.xslt"
-    };
-
-    //private static Transformer [] actorTransformations = null;
-
     private static Node   canonicalizeExprStmt(Node doc)  {
-        /*
-        try {
-            if (exprTransformations == null) {
-                exprTransformations = new Transformer [exprTransformationPaths.length];
-                for (int i = 0; i < exprTransformations.length; i++) {
-                    InputStream is = Util.class.getClassLoader().getResourceAsStream(exprTransformationPaths[i]);
-                    try {
-                        exprTransformations[i] = Util.createTransformer(is);
-                    } catch (Throwable e) {
-                    	StringWriter sw = new StringWriter();
-                    	e.printStackTrace(new PrintWriter(sw, true));
-                    	Logging.dbg().info("Exception loading transformations: " + sw.toString());
-                        throw new RuntimeException("Could not create transformer '" + exprTransformationPaths[i] + "'.", e);
-                    } finally {
-                        is.close();
-                    }
-
-                }
-            }
-        } catch (IOException e) {
-        	StringWriter sw = new StringWriter();
-        	e.printStackTrace(new PrintWriter(sw, true));
-        	Logging.dbg().info("Exception loading transformations: " + sw.toString());
-            throw new RuntimeException("Cannot create transformations.", e);
-        }
-         */
         try {
             // Util.setSAXON();
-            final StreamLocator locator = new ClassLoaderStreamLocator(ASTFactory.class.getClassLoader());
-            Node actor = Util.applyTransformsAsResources(doc, exprTransformationPaths, locator);
-            //Node actor = Util.applyTransforms(doc, exprTransformations);
+            Node actor = Util.applyTransforms(doc, exprTransformations);
             return actor;
         } catch (Exception e) {
         	StringWriter sw = new StringWriter();
@@ -1314,20 +1250,6 @@ public class ASTFactory {
             throw new RuntimeException("Cannot canonicalize expression.", e);
         }
     }
-
-    private static String [] exprTransformationPaths = {
-        //"net/sf/opendf/cal/transforms/ReplaceGenerators.xslt",
-        //"net/sf/opendf/cal/transforms/ReplaceStmtGenerators.xslt",
-        "net/sf/opendf/cal/transforms/AddID.xslt",
-        "net/sf/opendf/cal/transforms/VariableAnnotator.xslt",
-        "net/sf/opendf/cal/transforms/ContextInfoAnnotator.xslt",
-        "net/sf/opendf/cal/transforms/CanonicalizeOperators.xslt",
-        "net/sf/opendf/cal/transforms/AnnotateFreeVars.xslt",
-        "net/sf/opendf/cal/transforms/DependencyAnnotator.xslt",
-        "net/sf/opendf/cal/transforms/VariableSorter.xslt"
-    };
-
-    private static Transformer [] exprTransformations = null;
 
 //
 //    private static final String dbfiSaxon = "net.sf.saxon.om.DocumentBuilderFactoryImpl";

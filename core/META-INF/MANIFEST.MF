@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Open Dataflow Core Plug-in
 Bundle-SymbolicName: net.sf.opendf.OpendfCorePlugin
-Bundle-Version: 1.1.4
+Bundle-Version: 1.1.5
 Bundle-Activator: net.sf.opendf.eclipse.coreplugin.Activator
 Bundle-Vendor: The Open Dataflow Project
 Require-Bundle: org.eclipse.core.runtime

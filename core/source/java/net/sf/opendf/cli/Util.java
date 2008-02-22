@@ -10,6 +10,7 @@ import java.util.*;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.Transformer;
 
 import net.sf.opendf.util.Loading;
 import net.sf.opendf.util.io.ClassLoaderStreamLocator;
@@ -102,7 +103,7 @@ public class Util {
 
     private static final String inlineParametersTransformName = "net/sf/opendf/transforms/InlineParameters.xslt";
     private static final String elaborationTransformName = "net/sf/opendf/transforms/Elaborate.xslt";
-	static final String [] postElaborationTransformNames = {
+	private static final String [] postElaborationTransformNames = {
 		"net/sf/opendf/transforms/xdfFlatten.xslt",
 
         // For now the conversion of xmlElement to attributes must be
@@ -114,8 +115,8 @@ public class Util {
         
         "net/sf/opendf/cal/transforms/xlim/AddDirectives.xslt"
     };
-    static final String [] inlineTransforms = { "net/sf/opendf/cal/transforms/Inline.xslt" };
-    static final String [] postInlineTransforms = {
+    private static final String [] inlineTransforms = { "net/sf/opendf/cal/transforms/Inline.xslt" };
+    private static final String [] postInlineTransforms = {
         "net/sf/opendf/cal/transforms/AddID.xslt",
         "net/sf/opendf/cal/transforms/xlim/SetActorParameters.xslt",
         

@@ -73,8 +73,9 @@ public class SSAGenerator extends XSLTTransformRunner
 {
     private static final String CALEXT = ".cal";
     private static final String CALMLEXT = ".calml";
-    
-        private static String[] parserTransforms = {
+
+    // Cannot cache the transformers as they are returned from the method calls below. 
+    private static String[] parserTransforms = {
         "net/sf/opendf/cal/transforms/CanonicalizePortTags.xslt",
         "net/sf/opendf/cal/transforms/AddInputTypes.xslt",
         "net/sf/opendf/cal/transforms/ReplaceOld.xslt",

@@ -66,7 +66,7 @@ public class BasicMessageListener extends AbstractMessageListener {
     	}
     }
 
-    public void control(ControlEvent ce) {
+    public void control (Object ce, Object source) {
     	// DO NOTHING
     }
 

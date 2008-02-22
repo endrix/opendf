@@ -47,13 +47,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.StringBufferInputStream;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.XMLConstants;
 import javax.xml.namespace.QName;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.ErrorListener;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Source;
@@ -77,8 +75,6 @@ import net.sf.opendf.util.io.StreamLocator;
 import net.sf.opendf.util.logging.Logging;
 import java.util.logging.Level;
 import net.sf.opendf.util.exception.LocatableException;
-import net.sf.saxon.TransformerFactoryImpl;
-import net.sf.opendf.util.exception.DOMProcessingException;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -169,6 +165,36 @@ public class Util {
 	    return (nl.size() == 0) ? null : (Element)nl.get(0);
 	}
 
+
+    public static Transformer[] getTransformersAsResources (String[] resNames, StreamLocator resourceLocator)
+    {
+        return getTransformersAsResources (resNames, getDefaultImplementation(), resourceLocator); 
+    }
+    
+    public static Transformer[] getTransformersAsResources (String[] resNames, 
+            XmlImplementation xmlImpl, StreamLocator resourceLocator)
+    {
+        Transformer[] xforms = new Transformer[resNames.length];
+        
+        for (int i = 0; i < resNames.length; i++) {
+            InputStream is = resourceLocator.getAsStream(resNames[i]);
+            try {
+                // IDM.  The transformer should use the same resource Locator as the
+                // loaded resources on the assumption that the resources and the things
+                // they reference are co-located.
+                xforms[i] = createTransformer(is, xmlImpl, resourceLocator); 
+            } catch (Throwable e) {
+                Logging.dbg().throwing("Util", "getTransformersAsResources", e);
+                throw new LocatableException.Internal(e, "creating " + resNames[i]);
+            } finally {
+                try {
+                if (is != null) is.close();
+                } catch (IOException ioe){};
+            }
+        }
+        return xforms;
+    }
+    
 	
     public static Node applyTransforms(Node document, Transformer [] xfs) throws Exception {
         Node doc = document;
@@ -236,46 +262,34 @@ public class Util {
             xf.transform(source, res);
         } catch (TransformerException te) {
             xf.setErrorListener(oldListener);
+            
+            Logging.dbg().throwing("Util", "applyTransform", te);
+            if (Logging.dbg().isLoggable(Level.FINER)) {
+                try {
+                    File outFile = File.createTempFile("err.xform",".xml");
+                    Logging.dbg().finer("Writing input XML Document to " + outFile);
+                    PrintWriter pw = new PrintWriter(new FileOutputStream(outFile));
+                    pw.print(createXML(source.getNode()));
+                    pw.close();
+                } catch (IOException ioe) {}
+            }
+            
             throw new RuntimeException(te);
         }
         xf.setErrorListener(oldListener);
         
         return res.getNode();
     }
-    
+
     public static Node applyTransformsAsResources(Node document, String [] resNames, 
             XmlImplementation xmlImpl, StreamLocator resourceLocator) throws Exception {
         Node doc = document;
+        Transformer[] xforms = getTransformersAsResources(resNames, xmlImpl, resourceLocator);
+        
         for (int i = 0; i < resNames.length; i++) {
-            InputStream is = resourceLocator.getAsStream(resNames[i]);
-            Transformer xf;
             try {
-                // IDM.  The transformer should use the same resource Locator as the
-                // loaded resources on the assumption that the resources and the things
-                // they reference are co-located.
-                xf = createTransformer(is, xmlImpl, resourceLocator);
+                doc = applyTransform(doc, xforms[i]);
             } catch (Throwable e) {
-                Logging.dbg().throwing("Util", "applyTransformsAsResources", e);
-                throw new LocatableException.Internal(e, "creating " + resNames[i]);
-            } finally {
-                if (is != null) is.close();
-            }
-            DOMResult res = new DOMResult();
-            try {
-                doc = applyTransform(xf, new DOMSource(doc), res);
-            } catch (Throwable e) {
-                Logging.dbg().throwing("Util", "applyTransformsAsResources", e);
-                if (Logging.dbg().isLoggable(Level.FINER))
-                {
-                    try
-                    {
-                        File outFile = File.createTempFile("err.xform",".xml");
-                        Logging.dbg().finer("Writing last XML Document to " + outFile);
-                        PrintWriter pw = new PrintWriter(new FileOutputStream(outFile));
-                        pw.print(createXML(doc));
-                        pw.close();
-                    } catch (IOException ioe) {}
-                }
                 throw new LocatableException.Internal(e, "applying " + resNames[i]);
             }
         }
@@ -298,29 +312,15 @@ public class Util {
             XmlImplementation xmlImpl, StreamLocator resourceLocator) throws Exception {
         assert parNames.length == parValues.length;
         
-        Node doc = document;
+        Transformer[] xforms = getTransformersAsResources(new String[]{resName}, xmlImpl, resourceLocator);
+        assert xforms.length == 1;
 
-        InputStream is = resourceLocator.getAsStream(resName);
-        Transformer xf;
-        try {
-            // IDM.  The transformer should use the same resource Locator as the
-            // loaded resources on the assumption that the resources and the things
-            // they reference are co-located.
-            xf = createTransformer(is, xmlImpl, resourceLocator);
-        } catch (Throwable e) {
-            Logging.dbg().throwing("Util", "applyTransformAsResource", e);
-            throw new LocatableException.Internal(e, "creating " + resName);
-        } finally {
-            if (is != null) is.close();
-        }
         for (int i = 0; i < parNames.length; i++) {
-            xf.setParameter(parNames[i], parValues[i]);
+            xforms[0].setParameter(parNames[i], parValues[i]);
         }
-        DOMResult res = new DOMResult();
+        Node doc = null;
         try {
-//          xf.transform(new DOMSource(doc), res);
-//          doc = (Node)res.getNode();
-            doc = applyTransform(xf, new DOMSource(doc), res);
+            doc = applyTransform(document, xforms[0]);
         } catch (Throwable e) {
             Logging.dbg().throwing("Util", "applyTransformAsResource", e);
             throw new LocatableException.Internal(e, "applying " + resName);
