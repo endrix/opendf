@@ -133,6 +133,7 @@ public class SynthesisConfigTab extends OpendfConfigTab
         addControl(ConfigGroup.ACTOR_OUTPUT_DIR, ControlRenderingFactory.renderConfig(getConfigs().get(ConfigGroup.ACTOR_OUTPUT_DIR), leftCol));
         addControl(ConfigGroup.CACHE_DIR, ControlRenderingFactory.renderConfig(getConfigs().get(ConfigGroup.CACHE_DIR), leftCol));
         addControl(ConfigGroup.GEN_HDL_SIM_MODEL, ControlRenderingFactory.renderConfig(getConfigs().get(ConfigGroup.GEN_HDL_SIM_MODEL), leftCol));
+        addControl(ConfigGroup.XSLT_PRESERVE_INTERMEDIATE, ControlRenderingFactory.renderConfig(getConfigs().get(ConfigGroup.XSLT_PRESERVE_INTERMEDIATE), leftCol));
         // No assertion support in HDL synthesis
         //addControl(ControlRenderingFactory.renderConfig(getConfigs().get(ConfigGroup.ENABLE_ASSERTIONS), leftCol));
 

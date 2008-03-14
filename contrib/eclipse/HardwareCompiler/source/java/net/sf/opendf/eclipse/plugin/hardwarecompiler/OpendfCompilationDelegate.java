@@ -137,12 +137,20 @@ public class OpendfCompilationDelegate extends OpendfConfigLaunchDelegate
         double worked = 0;
         // int result;
 
+        int errors = 0;
         try
         {
             boolean remaining = synth.generateNextInstanceHDL();
             while (remaining)
             {
-                remaining = synth.generateNextInstanceHDL();
+                try 
+                {
+                    remaining = synth.generateNextInstanceHDL();
+                } catch (Exception e) {
+                    status().println("Error Generating HDL Instance.  Continuing with other instances...");
+                    (new ReportingExceptionHandler()).process(e);
+                    errors++;
+                }
                 worked += instanceWorkUnit;
                 if (worked >= 1.0)
                 {
@@ -169,6 +177,8 @@ public class OpendfCompilationDelegate extends OpendfConfigLaunchDelegate
             //throw new CoreException(new Status(IStatus.ERROR, Activator.PLUGIN_ID, "HDL instance HDL generation failed", e));
         }
 
+        if (errors > 0)
+            status().println("WARNING: There were "+errors+" errors during instance compilation");
         status().println("Compilation complete");
         detachConsole();
         monitor.done();
