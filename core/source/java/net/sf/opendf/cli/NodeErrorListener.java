@@ -22,8 +22,8 @@ public class NodeErrorListener implements NodeListenerIF
         {
             Node reportNode = net.sf.opendf.util.xml.Util.xpathEvalElement("Note[@kind='Report']", report);
             
-            String severity = ((Element)report).getAttribute("severity");
-            String id = ((Element)report).getAttribute("id");
+            String severity = ((Element)reportNode).getAttribute("severity");
+            String id = ((Element)reportNode).getAttribute("id");
 
             boolean suppress = false;
             for (String suppressable : this.suppressIDs)
