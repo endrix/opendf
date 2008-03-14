@@ -76,7 +76,7 @@ public class SynthesisConfigGroup extends ConfigGroup
         ));
         
         registerConfig(XSLT_PRESERVE_INTERMEDIATE, new ConfigBoolean (XSLT_PRESERVE_INTERMEDIATE, 
-                "Preserve Intermediates",
+                "Preserve Compiler Intermediate Files",
                 "--preserve", // cla
                 "Preserve significant intermediate xml files in multi-stage transformation",
                 false, // required
