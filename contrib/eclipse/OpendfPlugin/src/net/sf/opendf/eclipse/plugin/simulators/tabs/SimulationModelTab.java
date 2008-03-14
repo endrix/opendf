@@ -117,8 +117,8 @@ public class SimulationModelTab extends OpendfConfigTab
         addControl(ConfigGroup.SIM_TRACE, ControlRenderingFactory.renderConfig(getConfigs().get(ConfigGroup.SIM_TRACE), leftColShort));
         addControl(ConfigGroup.SIM_TYPE_CHECK, ControlRenderingFactory.renderConfig(getConfigs().get(ConfigGroup.SIM_TYPE_CHECK), leftColShort));
         
-        addControl(ConfigGroup.SIM_INPUT_FILE, ControlRenderingFactory.renderConfigFileSelect((ConfigFile)getConfigs().get(ConfigGroup.SIM_INPUT_FILE), rightCol, true, false));
-        addControl(ConfigGroup.SIM_OUTPUT_FILE, ControlRenderingFactory.renderConfigFileSelect((ConfigFile)getConfigs().get(ConfigGroup.SIM_OUTPUT_FILE), rightCol, true, false));
+        addControl(ConfigGroup.SIM_INPUT_FILE, ControlRenderingFactory.renderConfigFileSelect((ConfigFile)getConfigs().get(ConfigGroup.SIM_INPUT_FILE), rightCol, true, true));
+        addControl(ConfigGroup.SIM_OUTPUT_FILE, ControlRenderingFactory.renderConfigFileSelect((ConfigFile)getConfigs().get(ConfigGroup.SIM_OUTPUT_FILE), rightCol, true, true));
         final UpdatableControlIF modelPath = ControlRenderingFactory.renderConfig(getConfigs().get(ConfigGroup.MODEL_PATH), rightCol); 
         final UpdatableControlIF modelParams = ControlRenderingFactory.renderConfig(getConfigs().get(ConfigGroup.TOP_MODEL_PARAMS), rightCol); 
         addControl(ConfigGroup.MESSAGE_SUPPRESS_IDS, ControlRenderingFactory.renderConfig((ConfigList)getConfigs().get(ConfigGroup.MESSAGE_SUPPRESS_IDS), rightCol));
