@@ -131,7 +131,7 @@ actor MemoryManager (
   height: action BTYPE:[ h ] ==>
   end
 
-  cmd.y0: action BTYPE:[ cmd ] ==>  WA:[ address( this_frame, this_mby, this_mbx ) ]
+  cmd.y0: action BTYPE:[ cmd ] ==>  WA:[ address( this_frame, this_mby, this_mbx ) ]
   guard comp = 0
   do
     this_mbx := next_mbx;

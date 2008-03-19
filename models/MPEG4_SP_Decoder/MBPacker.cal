@@ -45,7 +45,7 @@ ENDCOPYRIGHT
 
 import all caltrop.lib.BitOps;
 
-actor MBPacker ( int PIX_SZ, int ADDR_SZ ) int(size=PIX_SZ) DI, int(size=ADDR_SZ) AI ==> int(size=32) DO, int(size=ADDR_SZ) AO :
+actor MBPacker ( int PIX_SZ, int ADDR_SZ ) int(size=PIX_SZ) DI, int(size=ADDR_SZ) AI ==> int(size=32) DO, int(size=ADDR_SZ) AO :
 
   int TC = 6 * 64;
 

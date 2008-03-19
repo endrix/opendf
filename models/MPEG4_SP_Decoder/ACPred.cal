@@ -55,7 +55,7 @@ actor ACPred (
   // Use 3 address lines for component index to save address calculation effort
   // Also, location 0 is reserved for all uncoded blocks. This protocol must
   // be identical to the buffer addressing in Predict.cal and Sequence.cal, since
-  // pointer values are generated there.
+  // pointer values are generated there.
 
   int BUF_SIZE = (MAXW_IN_MB + 2) * 8;
   int(size=MB_COORD_SZ+3) ptr;
@@ -68,10 +68,10 @@ actor ACPred (
   int(size=4) comp;
 
   newvop: action START:[ s ] ==>
-  guard s = -2
+  guard s = -2
   do
     comp := 0;
-    ptr := 8;      // Start at 8, since 0-7 are reserved
+    ptr := 8;      // Start at 8, since 0-7 are reserved
   end
 
   skip: action START:[ s ] ==>
