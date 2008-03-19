@@ -232,7 +232,7 @@ This JFlex lexer supports the CUP Parser via the java_cup.runtime.Scanner interf
 %column
 %unicode
 
-SingleLineComment = ("//"[^\n]*\n)
+SingleLineComment = ("//"[^\n\r]*[\n\r])
 MultiLineComment = ("/*"([^*]|"*"[^/])*"*/")
 
 DecimalLiteral = ([1-9][0-9]*)
