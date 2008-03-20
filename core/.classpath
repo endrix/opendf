@@ -8,5 +8,6 @@
 	<classpathentry exported="true" kind="lib" path="source/xslt"/>
 	<classpathentry kind="lib" path="lib/saxon8.jar"/>
 	<classpathentry kind="lib" path="lib/saxon8-dom.jar"/>
+	<classpathentry kind="lib" path="lib/JFlex.jar"/>
 	<classpathentry kind="output" path="classes"/>
 </classpath>

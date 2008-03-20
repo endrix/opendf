@@ -457,6 +457,19 @@ public class TypedContext implements Context {
         		} else {
             		return new TypeCheckResult(TypeCheckResult.resIncompatible, "Integer types are not assignable---precision is lost converting " + asz + " bits to " + bsz + " bits.");        			
         		} 
+    		} else if (Type.nameList.equals(td.getName())) {
+        		int asz = ((Number)ts.getValueParameters().get(Type.vparSize)).intValue();
+        		int bsz = ((Number)td.getValueParameters().get(Type.vparSize)).intValue();
+        		Type atype = (Type)ts.getTypeParameters().get(Type.tparType);
+        		Type btype = (Type)ts.getTypeParameters().get(Type.tparType);        		
+        		TypeCheckResult tcr = checkTypes(atype, btype);
+        		if (tcr.result == TypeCheckResult.resIncompatible)
+        			return new TypeCheckResult(TypeCheckResult.resIncompatible, "List types are incompatible because their element types are. (" + tcr.message + ")");
+        		if (asz == bsz) {
+        			return new TypeCheckResult(tcr.result, "Assignable list types. (" + tcr.message + ")");
+        		} else {
+        			return new TypeCheckResult(TypeCheckResult.resIncompatible, "List types are incompatible because of their different sizes: " + asz + " elements assigned to " + bsz + "elements.");
+        		}
     		} else {
         		return new TypeCheckResult(TypeCheckResult.resIncompatible, "Incompatible types: " + ts.getName() + " and " + td.getName() +
                     " src_params:" + ts.getTypeParameters() + " dst_params:" + td.getTypeParameters() +
