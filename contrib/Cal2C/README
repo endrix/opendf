@@ -1,0 +1,55 @@
+------------------------------------------------------------------------------
+
+                                 Prerequisites
+                                 -------------
+
+- CIL (latest version: 1.3.6) available from
+  http://sourceforge.net/projects/cil
+- ocamlgraph, available from http://ocamlgraph.lri.fr/index.en.html
+
+                            Building Cal2C for Windows
+                            --------------------------
+
+- Windows NT, 2000, XP, or Vista.
+- Objective Caml 3.10.1, port based on the MinGW toolchain, available from
+  http://caml.inria.fr/download.html
+- The Cygwin port of GNU tools, available from http://www.cygwin.com/
+  * with gcc installed
+
+Compile CIL and ocamlgraph (with the classic ./configure, make, make install)
+
+Go to the src folder of Cal2C, and type:
+  ./build.sh Cal2C/Cal2c.byte
+
+This is it!
+
+                             Building Cal2C for Linux
+                             ------------------------
+
+- Objective Caml 3.10.1, compiled from source.
+- libuuid (included in e2fsprogs)
+  * under Debian: apt-get install uuid-dev
+  * other distributions: ?
+
+Compile CIL and ocamlgraph (with the classic ./configure, make, make install)
+
+Go to the src folder of Cal2C, and type:
+  ./build.sh Cal2C/Cal2c.byte
+
+This is it!
+
+                  A few notes on Windows/Linux builds differences
+                  -----------------------------------------------
+
+Cal2C uses libuuid on Linux, but not on Windows: the latter has its own
+functions in rpcrt4.dll to generate UUIDs.
+
+It is possible to use MinGW instead of Cygwin to compile Cal2C. To do that you
+must first compile OCaml from source (after replacing 256 by 8192 in
+utils/ccomp.ml, this is necessary for OCaml to run under MinGW). You need to
+copy CIL into MinGW (it is not possible to compile it under MinGW, because
+configure fails saying MinGW is not supported). Additionally, MinGW should
+be installed in C:\MinGW (because it does not provide an easy way to tell
+the installation directory, the default directory has been hard-wired in
+the compilation plugin). After all that, the compilation process should go
+smoothly (and twice as fast as with Cygwin, on my machine).
