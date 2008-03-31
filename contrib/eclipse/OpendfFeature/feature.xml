@@ -2,7 +2,7 @@
 <feature
       id="net.sf.opendf.eclipse.feature"
       label="Open Dataflow Plugin"
-      version="1.2.6"
+      version="1.2.7"
       provider-name="The Open Dataflow Project">
 
    <description>
@@ -94,15 +94,15 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
    <plugin
          id="net.sf.opendf.OpendfCorePlugin"
-         download-size="4536"
-         install-size="4536"
+         download-size="4598"
+         install-size="4598"
          version="0.0.0"
          unpack="false"/>
 
    <plugin
          id="net.sf.opendf.eclipse.OpendfEditorPlugin"
-         download-size="132"
-         install-size="132"
+         download-size="127"
+         install-size="127"
          version="0.0.0"
          unpack="false"/>
 
