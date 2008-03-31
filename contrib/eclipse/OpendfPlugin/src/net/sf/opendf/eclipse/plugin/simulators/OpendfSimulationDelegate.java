@@ -48,7 +48,8 @@ import net.sf.opendf.eclipse.plugin.config.OpendfConfigLaunchDelegate;
 
 public class OpendfSimulationDelegate extends OpendfConfigLaunchDelegate
 {
-
+    private static final String consolePrefix = "Simulation";
+    
     public void launch(ILaunchConfiguration configuration, String mode,
             ILaunch launch, IProgressMonitor monitor ) throws CoreException 
             {
@@ -56,7 +57,7 @@ public class OpendfSimulationDelegate extends OpendfConfigLaunchDelegate
         // Update all the configs with the user settings.
         configs.updateConfig(new ConfigUpdateWrapper(configuration), configs.getConfigs().keySet());
 
-        attachConsole(configs);
+        attachConsole(consolePrefix, configs);
 
         monitor.beginTask( "Dataflow Simulation", 5 );
         status().println("Starting dataflow simulator" );
@@ -96,6 +97,8 @@ public class OpendfSimulationDelegate extends OpendfConfigLaunchDelegate
 
             if( monitor.isCanceled() )
             {
+                // print out the final sim status.
+                simulator.cleanup();
                 error().println("Cancellation requested");
                 status().println("Closing simulator");
                 detachConsole();

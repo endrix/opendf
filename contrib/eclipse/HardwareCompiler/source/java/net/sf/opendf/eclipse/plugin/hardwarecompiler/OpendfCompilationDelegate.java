@@ -62,7 +62,8 @@ import com.xilinx.systembuilder.cli_private.Synthesizer;
  */
 public class OpendfCompilationDelegate extends OpendfConfigLaunchDelegate
 {
-
+    private static final String consolePrefix = "Compilation";
+    
     public void launch (ILaunchConfiguration configuration, String mode,
             ILaunch launch, IProgressMonitor monitor) throws CoreException
     {
@@ -73,7 +74,7 @@ public class OpendfCompilationDelegate extends OpendfConfigLaunchDelegate
         // configuration have been set by the user.
         synthConfigs.updateConfig(new ConfigUpdateWrapper(configuration), synthConfigs.getConfigs().keySet());
         
-        attachConsole(synthConfigs);
+        attachConsole(consolePrefix, synthConfigs);
         
         monitor.beginTask("Dataflow HDL Compilation", MONITOR_STEPS);
         status().println("Starting dataflow HDL compiler");
@@ -140,7 +141,8 @@ public class OpendfCompilationDelegate extends OpendfConfigLaunchDelegate
         int errors = 0;
         try
         {
-            boolean remaining = synth.generateNextInstanceHDL();
+            //boolean remaining = synth.generateNextInstanceHDL();
+            boolean remaining = true; // it is safe to call generateNextInstanceHDL even if there are none to generate.  It will simply return false immediately
             while (remaining)
             {
                 try 

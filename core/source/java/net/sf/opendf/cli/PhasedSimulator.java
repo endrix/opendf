@@ -364,9 +364,10 @@ public class PhasedSimulator {
 
     public void cleanup()
     {
-        if( failed ) throw new RuntimeException( "Simulation has failed" );
+        /*
         if( ! done ) throw new RuntimeException( "Can't clean up before simulation ends" );
         if( dusted ) throw new RuntimeException( "Already cleaned up" );
+        */
         dusted = true;
 
         long endWallclockTime = System.currentTimeMillis();
@@ -378,6 +379,9 @@ public class PhasedSimulator {
         catch( Exception e ) {}
 
         postSimulationMessage(userVerbosity, bufferBlockRecord, sim, stepCount, lastTime, wcTime);
+        
+        // Ensure that the post simulation message (with blocked buffer report gets written
+        if( failed ) throw new RuntimeException( "Simulation has failed" );
     }
 
     private static DiscreteEventComponent createDEC(ConfigGroup config, ClassLoader classLoader, Platform platform) throws Exception 
@@ -438,11 +442,12 @@ public class PhasedSimulator {
     private static void postSimulationMessage(Level userVerbosity,
             boolean bufferBlockRecord, SequentialSimulator sim, long stepCount,
             double lastTime, long wcTime) {
-        Logging.user().info("Done after " + stepCount + " steps. Last step at time " + lastTime + ".");
+        Logging.user().info("Completed " + stepCount + " steps. Last step at time " + lastTime + ".");
         Logging.user().info("Execution time: " + wcTime + "ms."
                 + (wcTime > 0 ? " (" + (1000.0 * (double)stepCount / (double)wcTime) + " steps/s)" : ""));
         Logging.user().info("The network is " + (sim.hasEvent() ? "live" : "dead")+ ".");
-        if (bufferBlockRecord && !sim.hasEvent()) {
+        //if (bufferBlockRecord && !sim.hasEvent()) {
+        if (bufferBlockRecord) { // report the record even if the simulation is not done
             Collection<OutputBlockRecord> obrs = (Collection<OutputBlockRecord>)sim.getProperty("OutputBlockRecords");
             int n = 0;
             List<OutputBlockRecord> sortedObrs = obrs == null ? new ArrayList<OutputBlockRecord>():new ArrayList<OutputBlockRecord>(obrs);

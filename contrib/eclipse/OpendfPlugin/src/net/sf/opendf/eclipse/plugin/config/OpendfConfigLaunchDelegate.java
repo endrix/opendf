@@ -33,7 +33,7 @@ public abstract class OpendfConfigLaunchDelegate implements ILaunchConfiguration
     protected MessageConsoleStream status () { return this.status; }
     protected MessageConsoleStream error () { return this.error; }
     
-    protected void attachConsole (ConfigGroup configs)
+    protected void attachConsole (String consolePrefix, ConfigGroup configs)
     {
         // First update the loggers with the specified level.
         this.origUserLevel = Logging.user().getLevel();
@@ -46,9 +46,9 @@ public abstract class OpendfConfigLaunchDelegate implements ILaunchConfiguration
         if (configs.get(ConfigGroup.LOG_LEVEL_DBG).isUserSpecified())
             Logging.dbg().setLevel(Level.parse(((ConfigString)configs.get(ConfigGroup.LOG_LEVEL_DBG)).getValue()));
 
-        final MessageConsole outputConsole = findOrCreateConsole("Compilation Output");
-        final MessageConsole statusConsole = findOrCreateConsole("Compilation Status");
-        final MessageConsole dbgConsole = Logging.dbg().isLoggable(Level.INFO) ? findOrCreateConsole("Compilation debug"):statusConsole; 
+        final MessageConsole outputConsole = findOrCreateConsole(consolePrefix + "Output");
+        final MessageConsole statusConsole = findOrCreateConsole(consolePrefix + "Status");
+        final MessageConsole dbgConsole = Logging.dbg().isLoggable(Level.INFO) ? findOrCreateConsole(consolePrefix+" debug"):statusConsole; 
             
         status = statusConsole.newMessageStream();
         error = statusConsole.newMessageStream();
@@ -132,7 +132,6 @@ public abstract class OpendfConfigLaunchDelegate implements ILaunchConfiguration
         manager.addConsoles(new IConsole[] { console });
 
         return console;
-
     }
 
     
