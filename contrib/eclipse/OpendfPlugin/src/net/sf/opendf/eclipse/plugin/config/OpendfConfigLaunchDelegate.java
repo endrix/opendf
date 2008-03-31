@@ -46,8 +46,8 @@ public abstract class OpendfConfigLaunchDelegate implements ILaunchConfiguration
         if (configs.get(ConfigGroup.LOG_LEVEL_DBG).isUserSpecified())
             Logging.dbg().setLevel(Level.parse(((ConfigString)configs.get(ConfigGroup.LOG_LEVEL_DBG)).getValue()));
 
-        final MessageConsole outputConsole = findOrCreateConsole(consolePrefix + "Output");
-        final MessageConsole statusConsole = findOrCreateConsole(consolePrefix + "Status");
+        final MessageConsole outputConsole = findOrCreateConsole(consolePrefix + " Output");
+        final MessageConsole statusConsole = findOrCreateConsole(consolePrefix + " Status");
         final MessageConsole dbgConsole = Logging.dbg().isLoggable(Level.INFO) ? findOrCreateConsole(consolePrefix+" debug"):statusConsole; 
             
         status = statusConsole.newMessageStream();
