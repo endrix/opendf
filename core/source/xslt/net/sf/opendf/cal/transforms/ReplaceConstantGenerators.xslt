@@ -42,20 +42,28 @@
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
   xmlns:xd="http://www.pnp-software.com/XSLTdoc"
   xmlns:math="http://exslt.org/math"
-  xmlns:cal="java:net.sf.opendf.xslt.cal.CalmlEvaluator"  
+  xmlns:cal="java:net.sf.opendf.xslt.cal.CalmlEvaluator" 
+  extension-element-prefixes="xsl xd math cal" 
   version="2.0">
   <xsl:output method="xml"/>
 
-  <xsl:template match="Expr[ @kind='List' ][ Generator ]">
+  <xsl:template match="Expr[ Generator ]">
     
-    <xsl:call-template name="replace-constant-generators">
-      <xsl:with-param name="E">
-        <xsl:copy-of select="Expr"/>
-      </xsl:with-param>
-      <xsl:with-param name="G" select="Generator"/>
-    </xsl:call-template>
-    
-    <xsl:apply-templates select="*[not( self::Expr )][not( self::Generator )]"/>
+    <Expr>
+      <xsl:for-each select="@*">
+        <xsl:attribute name="{name()}"><xsl:value-of select="."/></xsl:attribute>
+      </xsl:for-each>
+
+      <xsl:call-template name="replace-constant-generators">
+        <xsl:with-param name="E">
+          <xsl:copy-of select="Expr"/>
+        </xsl:with-param>
+        <xsl:with-param name="G" select="Generator"/>
+      </xsl:call-template>
+      
+      <xsl:apply-templates select="*[not( self::Expr )][not( self::Generator )]"/>
+      
+    </Expr>
     
   </xsl:template>
   
@@ -86,7 +94,7 @@
       </xsl:when>
       
       <!-- generator is not constant -->
-      <xsl:when test="$G/Expr[not( @kind='List' ) or Expr[ @kind!='Literal' or @literal-kind != 'Integer' ] ]">
+      <xsl:when test="$G/Expr[not( @kind='List' ) or Generator ]">
         <xsl:copy-of select="$E/*"/>
         <xsl:copy-of select="$G"/>
       </xsl:when>
@@ -95,10 +103,19 @@
         <xsl:call-template name="replace-constant-generators">
           <xsl:with-param name="E">
             <xsl:for-each select="$G[last()]/Expr/Expr">
-              <xsl:apply-templates select="$E/*" mode="substitute">
-                <xsl:with-param name="decl-id" select="../../Decl/@id"/>
-                <xsl:with-param name="E" select="."/>
-              </xsl:apply-templates>
+              <!-- create a decl for use in a Let -->
+              <xsl:variable name="D">
+                <Decl name="{../../Decl/@name}">
+                  <xsl:copy-of select="../../Decl/Type"/>
+                  <xsl:copy-of select="."/>
+                </Decl>
+              </xsl:variable>
+              <xsl:for-each select="$E/*">
+                <Expr kind="Let">
+                  <xsl:copy-of select="$D/*"/>
+                  <xsl:copy-of select="."/>
+                </Expr>
+              </xsl:for-each>
             </xsl:for-each>
           </xsl:with-param>
           <xsl:with-param name="G" select="$G[ position() != last() ]"/>
@@ -108,60 +125,4 @@
     
   </xsl:template>
 
-  <!-- we have to re-evaluate after this, so clear out the notes -->
-  <xsl:template match="Note[ @kind='exprType' ]" mode="substitute"/>
-
-  <xsl:template match="Expr" mode="substitute">
-    <xsl:param name="decl-id"/>
-    <xsl:param name="E"/>
-    
-    <xsl:variable name="new-id" select="concat(@id,'$',$decl-id,'$iter$', $E/@value)"/>
-    
-    <xsl:choose>
-      <xsl:when test="@kind='Var' and Note[@kind='var-used'][@decl-id=$decl-id]">
-        <Expr>
-          <xsl:for-each select="$E/@*[name() != 'id']">
-            <xsl:attribute name="{name()}"><xsl:value-of select="."/></xsl:attribute>
-          </xsl:for-each>
-          <xsl:attribute name="id"><xsl:value-of select="$new-id"/></xsl:attribute>
-        </Expr>
-      </xsl:when>
-      
-      <xsl:otherwise>
-        <xsl:copy>
-          <xsl:for-each select="@*[name() != 'id']">
-            <xsl:attribute name="{name()}"><xsl:value-of select="."/></xsl:attribute>
-          </xsl:for-each>
-          <xsl:attribute name="id"><xsl:value-of select="$new-id"/></xsl:attribute>
-          
-          <xsl:apply-templates mode="substitute">
-            <xsl:with-param name="decl-id" select="$decl-id"/>
-            <xsl:with-param name="E" select="$E"/>
-          </xsl:apply-templates>   
-          
-        </xsl:copy>        
-      </xsl:otherwise>
-    </xsl:choose>
-    
-  </xsl:template>  
-  
-  <xsl:template match="*" mode="substitute">
-    <xsl:param name="decl-id"/>
-    <xsl:param name="E"/>
-    
-    <!-- Preserve the existing element information -->  
-    <xsl:copy>
-      <xsl:for-each select="@*">
-        <xsl:attribute name="{name()}"><xsl:value-of select="."/></xsl:attribute>
-      </xsl:for-each>
-      
-      <xsl:apply-templates mode="substitute">
-        <xsl:with-param name="decl-id" select="$decl-id"/>
-        <xsl:with-param name="E" select="$E"/>        
-      </xsl:apply-templates>   
-      
-    </xsl:copy>
-    
-  </xsl:template>
- 
 </xsl:stylesheet>

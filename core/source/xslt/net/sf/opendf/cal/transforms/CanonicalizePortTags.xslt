@@ -11,7 +11,10 @@
     2005-11-03 DBP - Up XSLT version to 1.1
 -->
 
-<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.1">
+<xsl:stylesheet 
+   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+   extension-element-prefixes="xsl" 
+   version="1.1">
   <xsl:output method="xml"/>
 
 

@@ -19,7 +19,7 @@
   version="1.1"
   xmlns:exsl="http://exslt.org/common"
   xmlns:set="http://exslt.org/sets"
-  extension-element-prefixes="exsl set">
+  extension-element-prefixes="xsl exsl set">
 
   <xsl:output method="xml"/>
 

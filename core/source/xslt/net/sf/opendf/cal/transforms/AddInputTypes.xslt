@@ -9,6 +9,7 @@
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
   xmlns:xd="http://www.pnp-software.com/XSLTdoc"
   xmlns:math="http://exslt.org/math"
+  extension-element-prefixes="xsl xd math"
   version="2.0">
   <xsl:output method="xml"/>
   
