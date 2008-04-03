@@ -82,9 +82,9 @@ ENDCOPYRIGHT
 
       <xsl:variable name="QID" select="@name"/>      
       <xsl:variable name="prefix" select="concat($QID,'.')"/>
-      <xsl:variable name="action-list" select="ancestor::*[name()='Actor']/Action"/>
-      <xsl:for-each select="$action-list/QID[@name=$QID or starts-with(@name,$prefix)]">
-        <Note kind="ActionId" id="{../@id}"/>
+      <xsl:variable name="action-list" select="ancestor::Actor/Action"/>
+      <xsl:for-each select="$action-list[ QID[@name=$QID or starts-with(@name,$prefix)] ]">
+        <Note kind="ActionId" id="{@id}"/>
       </xsl:for-each>
          
     </xsl:copy>
