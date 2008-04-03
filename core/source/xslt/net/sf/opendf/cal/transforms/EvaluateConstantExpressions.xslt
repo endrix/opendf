@@ -42,444 +42,297 @@
     xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
     xmlns:xd="http://www.pnp-software.com/XSLTdoc"
     xmlns:math="http://exslt.org/math"
-  xmlns:cal="java:net.sf.opendf.xslt.cal.CalmlEvaluator"  
+    xmlns:cal="java:net.sf.opendf.xslt.cal.CalmlEvaluator"
+    extension-element-prefixes="xsl xd math cal"  
     version="2.0">
   <xsl:output method="xml"/>
-  
   <xsl:include href="net/sf/opendf/cal/checks/reportOffenders.xslt"/>
   
-  <xd:doc type="stylesheet">
-    <xd:short>Replace any expression that is unchanging at run-time with its compile-time value.
-    </xd:short>
-    <xd:detail>
-      <ul>
-        <li>Reads/writes either CALML or XDF</li>
-        <li>Relies on AddDefaultTypes, VariableAnnotator, VariableSorter, AnnotateDecls</li>
-      </ul>
-    </xd:detail>
-    When a new scope is entered, all the Decls are collected, evaluated one at a time, and added
-    to the environment (a list of all declarations in scope). Each Decl in the list must be evaluated
-    with all preceding Decls already in the environment because there may be dependencies on preceding
-    siblings in their initializers. For the purposes of evaluating initializers, all siblings are
-    considered constant even if the variables themselves can be assigned at run time. Once
-    the new Decls have been added to the environment, the initializer values for variables (ie
-    any values that can be reassigned at run-time) are marked as undefined so that run-time
-    expressions that reference them are not treated as constant.
-    <xd:author>DBP</xd:author>
-    <xd:copyright>Xilinx, 2005</xd:copyright>
-    <xd:cvsId>$Id: EvaluateConstantExpressions.xslt 2451 2007-06-28 19:23:34Z imiller $</xd:cvsId>
-  </xd:doc>
+  <!-- all templates are parameterized with environment and mode.
   
-  <xd:doc>
-    <xd:short>Evaluate an expression (and replace if constant)</xd:short>
-    <xd:detail>The expression evaluator is called with this expression and the
-    current environment. The expression will be replaced with the evaluated
-    result if its value can be determined. If the evaluator returns a Note it
-    will be added to the Expr. If there are any Decls in scope they will be
-    added to the environment before the Expr is evaluated.
-    </xd:detail>
-    <xd:param name="env">The environment table.</xd:param>
-  </xd:doc>
-  <xsl:template match="Expr">
-    <xsl:param name="env" select="_default_to_empty_"/>
-
-    <!-- Add any Decls that have just come in scope, preserving document order -->
-    <xsl:variable name="new-env">
-      <xsl:call-template name="new-env">
-        <xsl:with-param name="old-env">
-          <xsl:copy-of select="$env/*"/>
-        </xsl:with-param>
-        <xsl:with-param name="new-context" select="."/>
+      env is a list of <env @kind/> elements
+      kind can be 'Initial' or 'Runtime'
+      
+      the mode says which environment to use for evaluating Exprs 
+  -->
+  
+  <!-- anything (except Expr) that scopes a Decl -->
+  <xsl:template match="*[ Decl or Generator or Input ]">
+    <xsl:param name="env" select="__empty__"/>
+    <xsl:param name="mode">Runtime</xsl:param>
+    
+    <!-- construct the local environment -->
+    <xsl:variable name="local-env">
+      <xsl:call-template name="build-environment">
+        <xsl:with-param name="parent-env" select="$env"/>
+        <xsl:with-param name="mode" select="$mode"/>
       </xsl:call-template>
     </xsl:variable>
 
-    <xsl:variable name="freeVars" select=".//Note[@kind='freeVar']"/>        
-    <xsl:variable name="wrapped-env">
-      <env>
-        <!-- Filter to relevant decls (ignore shadowing for simplicity but it will still work) -->
-        <!-- xsl:copy-of select="$new-env/Import"/>
-             <xsl:for-each select="$new-env/Decl">
-             <xsl:variable name="name" select="@name"/>
-             <xsl:if test="$freeVars[@name = $name]">
-             <xsl:copy-of select="."/>
-             </xsl:if>
-             </xsl:for-each -->
-        <xsl:if test="@kind != 'Literal'">
-          <xsl:copy-of select="$new-env/*"/>
-        </xsl:if>
-      </env>
-    </xsl:variable>
-
-    <xsl:variable name="eval">
-      <xsl:copy-of select="cal:evaluateExpr( ., $wrapped-env/env)"/>
-    </xsl:variable>
-
-    <xsl:variable name="error" select="$eval//Note[ @kind='Report' ][ @severity='Error' ][1]"/>
-
-    <!-- For debug
-         <xsl:message>Evaluating expr <xsl:value-of select="@name"/>@<xsl:value-of select="@id"/>
-         <xsl:for-each select="$eval/*">
-         <xsl:value-of select="name()"/>
-         <xsl:for-each select="@*">
-         <xsl:value-of select="name()"/>=<xsl:value-of select="."/>:
-         </xsl:for-each>
-         </xsl:for-each>
-         </xsl:message>
-    -->
+    <xsl:copy>
+      <xsl:for-each select="@*">
+        <xsl:attribute name="{name()}"><xsl:value-of select="."/></xsl:attribute>
+      </xsl:for-each>
+      <xsl:apply-templates>
+        <xsl:with-param name="env" select="$local-env/env"/>
+        <xsl:with-param name="mode" select="$mode"/>
+      </xsl:apply-templates>
+    </xsl:copy>
     
-    <xsl:choose>
-      <!-- When the evaluator cannot determine a type, keep this error -->
-      <xsl:when test="$error">
-        <!-- To allow partial evaluation, keep the original Expr in case of error
-             <Expr kind="Undefined">
-             <Note kind="Report" severity="Error" id="{$error/@id}">
-             <xsl:attribute name="subject">
-             <xsl:apply-templates select="." mode="report-offender-context"/>
-             </xsl:attribute>
-             <xsl:copy-of select="$error/text()"/>
-             </Note>
-             </Expr>
-        -->
-        <xsl:copy>
-          <xsl:for-each select="@*">
-            <xsl:attribute name="{name()}"><xsl:value-of select="."/></xsl:attribute>
-          </xsl:for-each>
-          
-          <xsl:apply-templates>
-            <xsl:with-param name="env">
-              <xsl:copy-of select="$new-env/*"/>
-            </xsl:with-param>
-          </xsl:apply-templates>
-          
-          <Note>
-            <xsl:for-each select="$error/@*">
+  </xsl:template>
+
+  <xsl:template match="Expr">
+    <xsl:param name="env" select="__empty__"/>
+    <xsl:param name="mode">Runtime</xsl:param>
+
+    <!-- try to evaluate it -->
+    <xsl:variable name="eval">
+      <xsl:variable name="e" select="cal:evaluateExpr( . , $env[@kind=$mode] )"/>
+      <xsl:choose>
+        <!-- suppress exprType info in a Type parameter -->
+        <xsl:when test="parent::Entry and $e/Expr/@kind='Literal'">
+          <Expr>
+            <xsl:for-each select="$e/Expr/@*">
               <xsl:attribute name="{name()}"><xsl:value-of select="."/></xsl:attribute>
             </xsl:for-each>
-            <xsl:attribute name="subject">
-              <xsl:apply-templates select="." mode="report-offender-context"/>
-            </xsl:attribute>
-            <xsl:copy-of select="$error/text()"/>
-          </Note>
-        </xsl:copy>
-      </xsl:when>
-
-      <!-- Undefined values, or varRefs in an Indexer cannot be replaced -->
-      <xsl:when test="$eval//Expr[ @kind='Undefined' ] or parent::Expr[ @kind='Indexer' ]">
-        <!--Keep this Expr, posssibly adding a return type Note -->
-        <xsl:copy>
-          <xsl:for-each select="@*">
-            <xsl:attribute name="{name()}"><xsl:value-of select="."/></xsl:attribute>
-          </xsl:for-each>
-
-          <xsl:apply-templates select="*[not(self::Note[@kind='exprType'])]">
-            <xsl:with-param name="env">
-              <xsl:copy-of select="$new-env/*"/>
-            </xsl:with-param>
-          </xsl:apply-templates>
-          <xsl:copy-of select="$eval/Expr/Note"/>
-        </xsl:copy>
-      </xsl:when>
-
-      <!-- successful evaluation, copy the new Expr -->
-      <xsl:otherwise>
-        <xsl:copy-of select="$eval/Expr"/>
-      </xsl:otherwise>
-      
-    </xsl:choose>
-  </xsl:template>  
-  
-  <xd:doc>
-    <xd:short>Evaluate a Decl.</xd:short>
-    <xd:detail>If the Decl is not in the environment list, evaluate its children
-    and emit the resulting element. If it is in the environment list, and it
-    does not contain Undefined Exprs, emit it.
-    </xd:detail>
-    <xd:param name="env">The environment table.</xd:param>
-  </xd:doc>
-  <xsl:template match="Decl">
-    <xsl:param name="env" select="_default_to_empty_"/>
-
-    <xsl:variable name="name" select="@name"/>
-    <xsl:variable name="scope-id" select="Note[@kind='declAnn']/@scope-id"/>
-    <xsl:variable name="this" select="$env/Decl[@name=$name][ Note[@kind='declAnn'][@scope-id=$scope-id] ]"/>
-    
+          </Expr>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:copy-of select="$e"/>
+        </xsl:otherwise>
+      </xsl:choose>
+    </xsl:variable>
+ 
     <xsl:choose>
+
+      <!-- replace constants, except for ROM access -->
+      <xsl:when test="$eval/Expr[@kind!='Undefined'] and not( parent::Expr[@kind='Indexer'] )">
+        <xsl:copy-of select="$eval/Expr"/>
+      </xsl:when>
       
-      <!-- Decl is in the symbol table, but initializer could not be evaluated --> 
-      <xsl:when test="$this//Expr[@kind='Undefined']">
-        <!-- Emit the element with evaluated children -->
+      <!-- keep the Expr from the input document, add an exprType note, try
+           to evaluate the child Exprs -->
+           
+      <!-- Expr creates a new environment -->
+      <xsl:when test="Decl or Generator">
+        <xsl:variable name="local-env">
+          <xsl:call-template name="build-environment">
+            <xsl:with-param name="parent-env" select="$env"/>
+            <xsl:with-param name="mode" select="$mode"/>
+          </xsl:call-template>
+        </xsl:variable>  
         <xsl:copy>
           <xsl:for-each select="@*">
             <xsl:attribute name="{name()}"><xsl:value-of select="."/></xsl:attribute>
           </xsl:for-each>
           <xsl:apply-templates>
-            <xsl:with-param name="env">
-              <xsl:copy-of select="$env/*"/>
-            </xsl:with-param>
+            <xsl:with-param name="env" select="$local-env/env"/>
+            <xsl:with-param name="mode" select="$mode"/>
           </xsl:apply-templates>
+          <xsl:copy-of select="$eval/Expr/Note[@kind='exprType']"/>
         </xsl:copy>
       </xsl:when>
       
-      <!-- Decl is in the symbol table, with an evaluated result -->
-      <xsl:when test="$this">
-        <xsl:copy-of select="$this"/>
-      </xsl:when>
-      
-      <!-- Decl needs to be added to the symbol table -->          
+      <!-- use the existing environment -->
       <xsl:otherwise>
-        <xsl:for-each select="ancestor-or-self::*">
-          <xsl:message><xsl:value-of select="@id"/></xsl:message>
-        </xsl:for-each>
-        <xsl:message terminate="yes">   
-          Internal fault - missing Decl (<xsl:value-of select="@name"/>)in environment
-        </xsl:message>
+        <xsl:copy>
+          <xsl:for-each select="@*">
+            <xsl:attribute name="{name()}"><xsl:value-of select="."/></xsl:attribute>
+          </xsl:for-each>
+          <xsl:apply-templates>
+            <xsl:with-param name="env" select="$env"/>
+            <xsl:with-param name="mode" select="$mode"/>
+          </xsl:apply-templates>
+          <xsl:copy-of select="$eval/Expr/Note[@kind='exprType']"/>
+        </xsl:copy>
       </xsl:otherwise>
-
     </xsl:choose>
-  </xsl:template>
 
-  <xd:doc>
-    <xd:short>Constant propagation template for all elements that can scope a Decl (other than Expr)</xd:short>
-    <xd:detail>Any Decl child elements in scope are added to the
-    environment by a recursive call to the add-symbols template, to account
-    for sibling dependencies.
-    </xd:detail>
-    <xd:param name="env">The environment table.</xd:param>
-  </xd:doc>
-  <xsl:template match="Actor | Action | Stmt | XDF">
-    <xsl:param name="env" select="_default_to_empty_"/>
-    
-    <!-- Add any Decls that have just come in scope, preserving document order -->
-    <xsl:variable name="new-env">
-      <xsl:call-template name="new-env">
-        <xsl:with-param name="old-env">
-          <xsl:copy-of select="$env/*"/>
-        </xsl:with-param>
-        <xsl:with-param name="new-context" select="."/>
-      </xsl:call-template>
-    </xsl:variable>
-    
-    <!-- Preserve the existing element information -->  
-    <xsl:copy>
-      <xsl:for-each select="@*">
-        <xsl:attribute name="{name()}"><xsl:value-of select="."/></xsl:attribute>
-      </xsl:for-each>
-      
-      <xsl:apply-templates>
-        <xsl:with-param name="env">
-          <xsl:copy-of select="$new-env/*"/> 
-        </xsl:with-param>      
-      </xsl:apply-templates>   
-      
-    </xsl:copy>
   </xsl:template>
-  
-  <xd:doc>
-    Default constant propagation template for elements that cannot scope a Decl.
-    <xd:param name="env">The environment table.</xd:param>
-  </xd:doc>
-  <xsl:template match="*">
-    <xsl:param name="env" select="_default_to_empty_"/>
+ 
+  <xsl:template match="Decl">
+    <xsl:param name="env" select="__empty__"/>
+    <!-- no need for mode, Decls are always evaluated with 'Initial' -->
     
-    <!-- Preserve the existing element information -->  
-    <xsl:copy>
-      <xsl:for-each select="@*">
-        <xsl:attribute name="{name()}"><xsl:value-of select="."/></xsl:attribute>
-      </xsl:for-each>
-      
-      <xsl:apply-templates>
-        <xsl:with-param name="env">
-          <xsl:copy-of select="$env/*"/>
-        </xsl:with-param>     
-      </xsl:apply-templates>   
-      
-    </xsl:copy>
-  </xsl:template>
-  
-  <xd:doc>
-    <xd:short>Named template to construct symbol table.</xd:short>
-    <xd:detail>Evaluates a list of declarations and adds them to the environment
-    table. The list is processed recursively one element at a
-    time because there may be dependencies. The VariableSorter transformation
-    guarantees that document-order respects these dependencies.</xd:detail>
-    <xd:param name="env">Contains Decls for all the in-scope constants found so far.</xd:param>
-    <xd:param name="decls">A list of all the Decls to be evaluated.</xd:param>
-  </xd:doc>
-  <xsl:template name="add-symbols">
-    <xsl:param name="env"/>
-    <xsl:param name="decls"/>
-    
+    <xsl:variable name="id" select="@id"/>
+    <xsl:variable name="decl" select="$env[@kind='Initial']/Decl[@id=$id]"/>
+    <xsl:variable name="expr" select="$decl/Expr[@kind!='Undefined']"/>
+
     <xsl:choose>
       
-      <xsl:when test="count($decls/*)=0">
-        <!-- When there are no more decls, return the completed symbol table -->
-        <xsl:copy-of select="$env/*"/>
+      <!-- if this refers to a true constant other than a ROM we can remove the Decl -->
+      <xsl:when test="$expr and Note[@kind='declAnn'][@reassigned='no'] and $expr/@kind!='List'">
+        <Note kind="Report" severity="Info" id="declaration.eliminated">
+          <xsl:attribute name="subject">
+            <xsl:apply-templates select="." mode="report-offender"/>
+          </xsl:attribute>
+          Unchanging declared variable eliminated by constant propagation
+        </Note>
       </xsl:when>
       
       <xsl:otherwise>
-        
-        <xsl:call-template name="add-symbols">
-          <xsl:with-param name="env">
-            <xsl:copy-of select="$env/*"/>
-            <xsl:apply-templates select="$decls/*[1]" mode="add-symbol">
-              <xsl:with-param name="env">
-                <xsl:copy-of select="$env/*"/>
-              </xsl:with-param>
-            </xsl:apply-templates>
-          </xsl:with-param>
-          <xsl:with-param name="decls">
-            <xsl:copy-of select="$decls/*[position()>1]"/>
-          </xsl:with-param>
-        </xsl:call-template> 
+        <xsl:copy>
+          <xsl:for-each select="@*">
+            <xsl:attribute name="{name()}"><xsl:value-of select="."/></xsl:attribute>
+          </xsl:for-each>
+          <xsl:copy-of select="$decl/*[not( self::Expr )]"/>
+          <xsl:choose>
+            <xsl:when test="$expr">
+              <xsl:copy-of select="$expr"/>
+            </xsl:when>
+            <xsl:otherwise>
+              <xsl:apply-templates select="Expr">
+                <xsl:with-param name="env" select="$env"/>
+                <xsl:with-param name="mode">Initial</xsl:with-param>
+              </xsl:apply-templates>
+            </xsl:otherwise>
+          </xsl:choose>
+        </xsl:copy>
       </xsl:otherwise>
       
     </xsl:choose>
+    
   </xsl:template>
-
-  <xd:doc>
-    Named template to augment environment with Decls that have just come into scope.
-    <xd:param name="old-env">The symbol table</xd:param>
-  </xd:doc>
-  <xsl:template name="new-env">
-    <xsl:param name="old-env"/>
-    <xsl:param name="new-context"/>
-
-    <!-- Add Decls one by one to the new environment -->
-    <xsl:variable name="new-env">
-      <xsl:call-template name="add-symbols">
-        <xsl:with-param name="env">
-          <xsl:copy-of select="$old-env/*"/>
-        </xsl:with-param>
-        <xsl:with-param name="decls">
-          <!-- Iterate over all elements, adding new Decls. -->
-          <xsl:copy-of select="$new-context/Import"/>
-          <xsl:for-each select="$new-context/*">
-            <xsl:choose>
-              <xsl:when test="self::Decl">
-                <xsl:copy-of select="."/>
-              </xsl:when>
-              <xsl:when test="self::Generator | self::Input">
-                <xsl:copy-of select="Decl"/>
-              </xsl:when>
-            </xsl:choose>
-          </xsl:for-each>
-        </xsl:with-param>
-      </xsl:call-template>
-    </xsl:variable>
-
-    <!-- Once the environment is augmented, mark all reassignables as unknown -->
-    <xsl:for-each select="$new-env/*">
-      <xsl:copy>
-        <xsl:for-each select="@*">
+   
+  <xsl:template match="*">
+    <xsl:param name="env" select="__empty__"/>
+    <xsl:param name="mode">Runtime</xsl:param>
+    <xsl:copy>
+      <xsl:for-each select="@*">
+        <xsl:attribute name="{name()}"><xsl:value-of select="."/></xsl:attribute>
+      </xsl:for-each>
+      <xsl:apply-templates>
+        <xsl:with-param name="env" select="$env"/>
+        <xsl:with-param name="mode" select="$mode"/>
+      </xsl:apply-templates>
+    </xsl:copy>
+  </xsl:template>
+  
+  <!-- the local initial environment has all initializers evaluated with the
+       parent environment augmented with all the preceding sibling Decls in this scope.
+       Use this local environment for the intitializers of Decls in this scope. -->
+  <xsl:template name="local-initial-decls">
+    <xsl:param name="parent-env"/>
+    <xsl:param name="src-decls"/>
+    
+    <xsl:if test="$src-decls">
+      
+      <!-- first evaluate all preceding Decls in this scope -->
+      <xsl:variable name="preceding-siblings">
+        <xsl:call-template name="local-initial-decls">
+          <xsl:with-param name="parent-env" select="$parent-env"/>
+          <xsl:with-param name="src-decls" select="$src-decls[position() &lt; last()]"/>
+        </xsl:call-template>
+      </xsl:variable>
+      
+      <xsl:variable name="this" select="$src-decls[last()]"/>
+      
+      <!-- env for evaluation of initializer includes all preceding sibling Decls -->
+      <xsl:variable name="eval-env">
+        <env kind="Initial">
+          <xsl:copy-of select="$parent-env/*"/>
+          <xsl:copy-of select="$preceding-siblings/Decl"/>
+        </env>
+      </xsl:variable>
+      
+      <!-- emit the Decls of the local environment -->
+      <xsl:copy-of select="$preceding-siblings/Decl"/>
+      
+      <!-- append the current Decl with evaluated initializer -->
+      <Decl>
+        <xsl:for-each select="$this/@*">
           <xsl:attribute name="{name()}"><xsl:value-of select="."/></xsl:attribute>
         </xsl:for-each>
         
+        <xsl:apply-templates select="$this/Type">
+          <xsl:with-param name="env" select="$eval-env/env"/>
+          <xsl:with-param name="mode">Initial</xsl:with-param>
+        </xsl:apply-templates>
+        
+        <!-- this is needed for conversion from Initial to Runtime env -->
+        <xsl:copy-of select="$this/Note[@kind='declAnn']"/>
+        
         <xsl:choose>
-          <xsl:when test="Note[@kind='declAnn']/@reassigned='yes'">
+          <xsl:when test="$this/Expr">            
+            <xsl:copy-of select="cal:evaluateExpr( $this/Expr , $eval-env/env )"/>
+          </xsl:when> 
+          <xsl:otherwise>
+            <Expr kind="Undefined"/>
+          </xsl:otherwise>
+        </xsl:choose>
+      </Decl>
+    </xsl:if>
+    
+  </xsl:template>
+
+  <!-- the local runtime environment has any Decls that are assigned to at runtime
+       set to Undefined. Use this environment for all Exprs other than initializers. -->
+  <xsl:template name="local-runtime-decls">
+    <xsl:param name="local-initial-decls"/>
+    
+    <xsl:for-each select="$local-initial-decls">
+      <Decl>
+        <xsl:for-each select="@*">
+          <xsl:attribute name="{name()}"><xsl:value-of select="."/></xsl:attribute>
+        </xsl:for-each>
+        <xsl:copy-of select="Type"/>
+        <xsl:choose>
+          <xsl:when test="Note[@kind='declAnn'][@reassigned='yes']">
             <Expr kind="Undefined"/>
           </xsl:when>
-          
           <xsl:otherwise>
             <xsl:copy-of select="Expr"/>
           </xsl:otherwise>
         </xsl:choose>
-        <xsl:copy-of select="*[ name() != 'Expr' ]"/>
-      </xsl:copy>
+      </Decl>
     </xsl:for-each>
   </xsl:template>
-
-  <!-- ************************************************************
-       Moded templates to do evaluations of elements to be included
-       in the environment. In this mode, 'Undefined' expressions
-       are allowed
-       ************************************************************* -->
-  <xd:doc>
-    Evaluate a Decl for inclusion in the environment.
-    <xd:param name="env">The environment table.</xd:param>
-  </xd:doc>
-  <xsl:template match="Decl" mode="add-symbol">
-    <xsl:param name="env" select="_default_to_empty_"/>
-
-    <xsl:copy>
-      <xsl:for-each select="@*">
-        <xsl:attribute name="{name()}"><xsl:value-of select="."/></xsl:attribute>
+  
+  <!-- build a new environment -->
+  <xsl:template name="build-environment">
+    <xsl:param name="parent-env"/>
+    <xsl:param name="mode"/>
+    
+    <!-- get all Decls that just came in scope, preserving document order -->
+    <xsl:variable name="local-decls">
+      <xsl:for-each select="*">
+        <xsl:choose>
+          <xsl:when test="self::Decl">
+            <xsl:copy-of select="."/>
+          </xsl:when>
+          <xsl:when test="self::Input or self::Generator">
+            <xsl:copy-of select="Decl"/>
+          </xsl:when>
+        </xsl:choose>
       </xsl:for-each>
-      
-      <xsl:apply-templates mode="add-symbol">
-        <xsl:with-param name="env">
-          <xsl:copy-of select="$env/*"/>
-        </xsl:with-param>
-      </xsl:apply-templates>
-
-      <!-- set the variable undefined if it does not have an initializer -->
-      <xsl:if test="not( Expr )">
-        <Expr kind="Undefined"/>
-      </xsl:if>         
-    </xsl:copy>
-    
-  </xsl:template>
-
-  <xd:doc>
-    Evaluate an expression as part of a new symbol to be added to the environment.
-    <xd:param name="env">The environment table.</xd:param>
-  </xd:doc>
-  <xsl:template match="Expr" mode="add-symbol">
-    <xsl:param name="env" select="_default_to_empty_"/>
-    
-    <!-- Add any Decls that have just come in scope, preserving document order -->
-    <xsl:variable name="new-env">
-      <xsl:call-template name="new-env">
-        <xsl:with-param name="old-env">
-          <xsl:copy-of select="$env/*"/>
-        </xsl:with-param>
-        <xsl:with-param name="new-context" select="."/>
-      </xsl:call-template>
     </xsl:variable>
     
-    <xsl:variable name="freeVars" select=".//Note[@kind='freeVar']"/>        
-    <xsl:variable name="wrapped-env">
+    <!-- augment the parent environment with Imports -->
+    <xsl:variable name="parent-env-plus-imports">
       <env>
-        <!-- Filter to relevant decls (ignore shadowing for simplicity but it will still work) -->
-        <!-- xsl:copy-of select="$new-env/Import"/>
-             <xsl:for-each select="$new-env/Decl">
-             <xsl:variable name="name" select="@name"/>
-             <xsl:if test="$freeVars[@name = $name]">
-             <xsl:copy-of select="."/>
-             </xsl:if>
-             </xsl:for-each -->
-        <xsl:if test="@kind != 'Literal'">
-          <xsl:copy-of select="$new-env/*"/>
-        </xsl:if>
+        <xsl:copy-of select="$parent-env[@kind=$mode]/*"/>
+        <xsl:copy-of select="Import"/>
       </env>
     </xsl:variable>
     
-    <xsl:if test="$new-env//Expr[@kind='Application' or @kind='Var']">
-      <xsl:message terminate="yes">
-        Whoops!
-        <xsl:copy-of select="$new-env"/>
-      </xsl:message>
-    </xsl:if>
-    <xsl:copy-of select="cal:evaluateExpr( ., $wrapped-env/env)"/>
-    
-  </xsl:template>  
+    <xsl:variable name="local-initial-decls">
+      <xsl:call-template name="local-initial-decls">
+        <xsl:with-param name="parent-env" select="$parent-env-plus-imports/env"/>
+        <xsl:with-param name="src-decls" select="$local-decls/Decl"/>
+      </xsl:call-template>
+    </xsl:variable>
 
-  <xd:doc>
-    Include other element types (eg Import) in the environment.
-    <xd:param name="env">The environment table.</xd:param>
-  </xd:doc>
-  <xsl:template match="*" mode="add-symbol">
-    <xsl:param name="env" select="_default_to_empty_"/>
-    <xsl:copy>
-      <xsl:for-each select="@*">
-        <xsl:attribute name="{name()}"><xsl:value-of select="."/></xsl:attribute>
-      </xsl:for-each>
-      
-      <xsl:apply-templates mode="add-symbol">
-        <xsl:with-param name="env">
-          <xsl:copy-of select="$env/*"/>
-        </xsl:with-param>
-      </xsl:apply-templates>
-    </xsl:copy>
+    <env kind="Initial">
+      <xsl:copy-of select="$parent-env-plus-imports/env/*"/>
+      <xsl:copy-of select="$local-initial-decls/Decl"/>
+    </env>
+    <env kind="Runtime">
+      <xsl:copy-of select="$parent-env-plus-imports/env/*"/>
+      <xsl:call-template name="local-runtime-decls">
+        <xsl:with-param name="local-initial-decls" select="$local-initial-decls/Decl"/>
+      </xsl:call-template>
+    </env>
+
   </xsl:template>
   
 </xsl:stylesheet>
