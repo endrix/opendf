@@ -92,7 +92,7 @@
 
     <!-- try to evaluate it -->
     <xsl:variable name="e" select="cal:evaluateExpr( . , $env[@kind=$mode] )"/>
-    <xsl:if test="$e//Note[ @kind='Report' ]">
+    <!-- xsl:if test="$e//Note[ @kind='Report' ]">
       <debug>
         <input-expr>
           <xsl:copy-of select="."/>
@@ -102,7 +102,7 @@
         </result-expr>
         <xsl:copy-of select="$env[@kind=$mode]"/>
       </debug>
-    </xsl:if>
+    </xsl:if -->
     
     <xsl:variable name="eval">
 
@@ -269,15 +269,6 @@
           <xsl:when test="$this/Expr">            
             <xsl:variable name="e" select="cal:evaluateExpr( $this/Expr , $eval-env/env )"/>
             <xsl:copy-of select="$e"/>
-            <xsl:if test="$e//Note[ @kind='Report' ]">
-              <xsl:message>
-                error in expr eval
-                input:
-                <xsl:copy-of select="$this/Expr"/>
-                output:
-                <xsl:copy-of select="$e"/>
-              </xsl:message>
-            </xsl:if>
           </xsl:when> 
           <xsl:otherwise>
             <Expr kind="Undefined"/>
