@@ -188,7 +188,6 @@ ENDCOPYRIGHT
         <xsl:if test="count($unconstrained/*) = 0">
           <xsl:message terminate="yes">
             Fatal error: there are circular priority relationships
-            <xsl:copy-of select="$in"/>
           </xsl:message>
         </xsl:if>
 
