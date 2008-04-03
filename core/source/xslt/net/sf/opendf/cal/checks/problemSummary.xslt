@@ -7,6 +7,7 @@
 
 <xsl:stylesheet
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+  extension-element-prefixes="xsl"
   version="2.0" >
   
   <xsl:template match="/*">

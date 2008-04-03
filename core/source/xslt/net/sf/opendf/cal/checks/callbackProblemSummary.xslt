@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!-- 
-    problemSummary.xslt
+    callbackProblemSummary.xslt
     Report the number of problems and terminate on error
 -->
 
 <xsl:stylesheet
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-  xmlns:callback="java:net.sf.opendf.xslt.util.XSLTProcessCallbacks"  
+  xmlns:callback="java:net.sf.opendf.xslt.util.XSLTProcessCallbacks"
+  extension-element-prefixes="xsl callback"  
   version="2.0" >
   
   <xsl:template match="/*">
