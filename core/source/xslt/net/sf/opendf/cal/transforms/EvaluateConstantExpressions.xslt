@@ -91,8 +91,21 @@
     <xsl:param name="mode">Runtime</xsl:param>
 
     <!-- try to evaluate it -->
+    <xsl:variable name="e" select="cal:evaluateExpr( . , $env[@kind=$mode] )"/>
+    <xsl:if test="$e//Note[ @kind='Report' ]">
+      <debug>
+        <input-expr>
+          <xsl:copy-of select="."/>
+        </input-expr>
+        <result-expr>
+          <xsl:copy-of select="$e"/>
+        </result-expr>
+        <xsl:copy-of select="$env[@kind=$mode]"/>
+      </debug>
+    </xsl:if>
+    
     <xsl:variable name="eval">
-      <xsl:variable name="e" select="cal:evaluateExpr( . , $env[@kind=$mode] )"/>
+
       <xsl:choose>
         <!-- suppress exprType info in a Type parameter -->
         <xsl:when test="parent::Entry and $e/Expr/@kind='Literal'">
@@ -254,7 +267,17 @@
         
         <xsl:choose>
           <xsl:when test="$this/Expr">            
-            <xsl:copy-of select="cal:evaluateExpr( $this/Expr , $eval-env/env )"/>
+            <xsl:variable name="e" select="cal:evaluateExpr( $this/Expr , $eval-env/env )"/>
+            <xsl:copy-of select="$e"/>
+            <xsl:if test="$e//Note[ @kind='Report' ]">
+              <xsl:message>
+                error in expr eval
+                input:
+                <xsl:copy-of select="$this/Expr"/>
+                output:
+                <xsl:copy-of select="$e"/>
+              </xsl:message>
+            </xsl:if>
           </xsl:when> 
           <xsl:otherwise>
             <Expr kind="Undefined"/>
