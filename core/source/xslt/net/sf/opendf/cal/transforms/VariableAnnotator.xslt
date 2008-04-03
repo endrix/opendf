@@ -16,7 +16,7 @@
 
 <xsl:stylesheet
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-  version="1.1"
+  version="2.0"
   xmlns:exsl="http://exslt.org/common"
   xmlns:set="http://exslt.org/sets"
   extension-element-prefixes="xsl exsl set">
@@ -60,7 +60,8 @@ TDB: are the defaults right in the event of missing attribute string?
 Also, what about Generator Decls?
         -->
     <xsl:variable name="decls">
-      <xsl:for-each select="./ancestor::*">
+      <xsl:for-each select="ancestor::*">
+
         <xsl:choose>
           <xsl:when test="Decl[@kind='Variable'][@name=$name]">
               <xsl:variable name="this-decl" select="Decl[@kind='Variable'][@name=$name]"/>
@@ -111,8 +112,8 @@ Also, what about Generator Decls?
                     </xsl:when>
       -->
             <!-- DBP Add support for Generators -->
-            <xsl:when test="Expr[ @kind='List' ][ Generator/Decl[@kind='Generator'][@name=$name] ]">
-                <xsl:variable name="this-decl" select="Expr[@kind='List']/Generator/Decl[@kind='Generator'][@name=$name]"/>
+            <xsl:when test="Generator/Decl[@name=$name]">
+                <xsl:variable name="this-decl" select="Generator/Decl[@name=$name]"/>
                 <Note kind="{$ref-type}" free="no" assignable="no" mutable="no" scope-id="{$this-decl/../../@id}"
                  decl-id="{$this-decl/@id}">
                     <xsl:copy-of select="$this-decl/Type"/>
@@ -121,7 +122,6 @@ Also, what about Generator Decls?
                 </xsl:choose>
             </xsl:for-each>
         </xsl:variable>
-                
         <xsl:copy>
             <xsl:for-each select="@*">
                 <xsl:attribute name="{name()}"><xsl:value-of select="."/></xsl:attribute>
@@ -137,6 +137,9 @@ Also, what about Generator Decls?
                         document order, because we used the ancestor:: axis. So if this is a bug, the 'correct'
                         select in the next line would be:
                             exsl:node-set($decls)/Note[1]
+                            
+                       DBP: changed to 2.0 and reverified with a test case on 4/3/08.
+                       The nearest ancestor is last(), when it should be [1] according to docs
                     -->
                     <xsl:copy-of select="$decls/Note[last()]"/>
                 </xsl:when>

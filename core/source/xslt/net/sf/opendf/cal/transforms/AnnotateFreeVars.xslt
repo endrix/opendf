@@ -58,7 +58,8 @@
                 <xsl:choose>
                     <xsl:when test="$intermediate/Decl[@name=$name]"/>
                     <xsl:when test="$intermediate/Input/Decl[@name=$name]"/>
-                    <xsl:otherwise><Note kind="freeVar" name="{$name}"/></xsl:otherwise>
+                    <xsl:when test="$intermediate/Generator/Decl[@name=$name]"/>
+                  <xsl:otherwise><Note kind="freeVar" name="{$name}"/></xsl:otherwise>
                 </xsl:choose>
             </xsl:for-each>
         </xsl:variable>
