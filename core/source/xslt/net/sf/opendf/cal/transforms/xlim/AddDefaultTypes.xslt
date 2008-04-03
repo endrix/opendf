@@ -40,6 +40,7 @@ ENDCOPYRIGHT
 <xsl:stylesheet
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
   xmlns:xd="http://www.pnp-software.com/XSLTdoc"
+  extension-element-prefixes="xsl xd"
   version="1.1">
   <xsl:output method="xml"/>
   

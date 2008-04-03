@@ -38,8 +38,12 @@ ENDCOPYRIGHT
 
 -->
 
-<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.1"
-  xmlns:xd="http://www.pnp-software.com/XSLTdoc">
+<xsl:stylesheet 
+  xmlns:xsl="http://www.w3.org/1999/XSL/Transform" 
+  version="1.1"
+  xmlns:xd="http://www.pnp-software.com/XSLTdoc"
+  extension-element-prefixes="xsl xd"
+  >
   <xsl:output method="xml"/>
   
   <xd:doc type="stylesheet">

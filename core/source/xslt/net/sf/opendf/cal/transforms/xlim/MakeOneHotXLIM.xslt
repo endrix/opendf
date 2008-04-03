@@ -42,7 +42,7 @@ ENDCOPYRIGHT
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.1"
   xmlns:math="http://exslt.org/math"
   xmlns:xd="http://www.pnp-software.com/XSLTdoc"
-  extension-element-prefixes="math"  >
+  extension-element-prefixes="xsl math xd"  >
   
 <xsl:output method="xml"/>
             
