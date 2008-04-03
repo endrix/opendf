@@ -10,7 +10,7 @@
     xmlns:exsl="http://exslt.org/common"
     xmlns:set="http://exslt.org/sets"
     xmlns:cal="java:net.sf.opendf.xslt.cal.CalmlEvaluator"  
-    extension-element-prefixes="exsl set">
+    extension-element-prefixes="xsl exsl set cal">
     
     <xsl:output method="xml"/>
     

@@ -8,6 +8,8 @@
     xmlns:xnlext="java:net.sf.opendf.xslt.nl.Elaborating"  
     xmlns:cal="java:net.sf.opendf.xslt.cal.CalmlEvaluator"  
     
+    extension-element-prefixes="xsl xd loading preproc xnlext cal"
+  
     version="2.0">
     
     <xsl:output method="xml"/>

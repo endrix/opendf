@@ -110,42 +110,37 @@
         <xsl:copy-of select="$eval/Expr"/>
       </xsl:when>
       
-      <!-- keep the Expr from the input document, add an exprType note, try
-           to evaluate the child Exprs -->
-           
-      <!-- Expr creates a new environment -->
-      <xsl:when test="Decl or Generator">
-        <xsl:variable name="local-env">
-          <xsl:call-template name="build-environment">
-            <xsl:with-param name="parent-env" select="$env"/>
-            <xsl:with-param name="mode" select="$mode"/>
-          </xsl:call-template>
-        </xsl:variable>  
-        <xsl:copy>
-          <xsl:for-each select="@*">
-            <xsl:attribute name="{name()}"><xsl:value-of select="."/></xsl:attribute>
-          </xsl:for-each>
-          <xsl:apply-templates>
-            <xsl:with-param name="env" select="$local-env/env"/>
-            <xsl:with-param name="mode" select="$mode"/>
-          </xsl:apply-templates>
-          <xsl:copy-of select="$eval/Expr/Note[@kind='exprType']"/>
-        </xsl:copy>
-      </xsl:when>
-      
-      <!-- use the existing environment -->
+      <!-- keep the Expr from the input document, add an exprType note -->
       <xsl:otherwise>
         <xsl:copy>
           <xsl:for-each select="@*">
             <xsl:attribute name="{name()}"><xsl:value-of select="."/></xsl:attribute>
           </xsl:for-each>
-          <xsl:apply-templates>
-            <xsl:with-param name="env" select="$env"/>
-            <xsl:with-param name="mode" select="$mode"/>
-          </xsl:apply-templates>
-          <xsl:copy-of select="$eval/Expr/Note[@kind='exprType']"/>
+          <xsl:choose>
+            <!-- creates a new environment for evaluating the children -->
+            <xsl:when test="Decl or Generator">
+              <xsl:variable name="local-env">
+                <xsl:call-template name="build-environment">
+                  <xsl:with-param name="parent-env" select="$env"/>
+                  <xsl:with-param name="mode" select="$mode"/>
+                </xsl:call-template>
+              </xsl:variable>  
+              <xsl:apply-templates>
+                <xsl:with-param name="env" select="$local-env/env"/>
+                <xsl:with-param name="mode" select="$mode"/>
+              </xsl:apply-templates>
+            </xsl:when>
+            <xsl:otherwise>
+              <!-- use the existing environment for evaluating the children -->
+              <xsl:apply-templates>
+                <xsl:with-param name="env" select="$env"/>
+                <xsl:with-param name="mode" select="$mode"/>
+              </xsl:apply-templates>
+            </xsl:otherwise>
+          </xsl:choose>
         </xsl:copy>
-      </xsl:otherwise>
+      </xsl:otherwise>  
+      
     </xsl:choose>
 
   </xsl:template>
