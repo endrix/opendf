@@ -48,6 +48,11 @@
   <xsl:output method="xml"/>
   <xsl:include href="net/sf/opendf/cal/checks/reportOffenders.xslt"/>
   
+  <xsl:variable name="empty-env">
+    <env kind="Initial"/>
+    <env kind="Runtime"/>
+  </xsl:variable>
+  
   <!-- all templates are parameterized with environment and mode.
   
       env is a list of <env @kind/> elements
@@ -58,7 +63,7 @@
   
   <!-- anything (except Expr) that scopes a Decl -->
   <xsl:template match="*[ Decl or Generator or Input ]">
-    <xsl:param name="env" select="__empty__"/>
+    <xsl:param name="env" select="$empty-env/env"/>
     <xsl:param name="mode">Runtime</xsl:param>
     
     <!-- construct the local environment -->
@@ -82,7 +87,7 @@
   </xsl:template>
 
   <xsl:template match="Expr">
-    <xsl:param name="env" select="__empty__"/>
+    <xsl:param name="env" select="$empty-env/env"/>
     <xsl:param name="mode">Runtime</xsl:param>
 
     <!-- try to evaluate it -->
@@ -146,7 +151,7 @@
   </xsl:template>
  
   <xsl:template match="Decl">
-    <xsl:param name="env" select="__empty__"/>
+    <xsl:param name="env" select="$empty-env/env"/>
     <!-- no need for mode, Decls are always evaluated with 'Initial' -->
     
     <xsl:variable name="id" select="@id"/>
@@ -190,7 +195,7 @@
   </xsl:template>
    
   <xsl:template match="*">
-    <xsl:param name="env" select="__empty__"/>
+    <xsl:param name="env" select="$empty-env/env"/>
     <xsl:param name="mode">Runtime</xsl:param>
     <xsl:copy>
       <xsl:for-each select="@*">
