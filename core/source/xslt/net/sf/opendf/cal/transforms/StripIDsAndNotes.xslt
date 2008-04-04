@@ -40,9 +40,7 @@
 
 <xsl:stylesheet
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-  xmlns:xd="http://www.pnp-software.com/XSLTdoc"
-  xmlns:math="http://exslt.org/math"
-  xmlns:cal="java:net.sf.opendf.cal.interpreter.util.ASTFactory"  
+  extension-element-prefixes="xsl" 
   version="2.0">
   <xsl:output method="xml"/>
 

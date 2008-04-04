@@ -124,7 +124,7 @@
     <xsl:choose>
 
       <!-- replace constants, except for ROM access -->
-      <xsl:when test="$eval/Expr[@kind!='Undefined'] and not( parent::Expr[@kind='Indexer'] )">
+      <xsl:when test="not( $eval//Expr[@kind='Undefined'] ) and not( parent::Expr[@kind='Indexer'] )">
         <xsl:copy-of select="$eval/Expr"/>
       </xsl:when>
       
@@ -156,6 +156,7 @@
               </xsl:apply-templates>
             </xsl:otherwise>
           </xsl:choose>
+          <xsl:copy-of select="$eval/Expr/Note[@kind='exprType']"/>
         </xsl:copy>
       </xsl:otherwise>  
       
@@ -169,12 +170,13 @@
     
     <xsl:variable name="id" select="@id"/>
     <xsl:variable name="decl" select="$env[@kind='Initial']/Decl[@id=$id]"/>
-    <xsl:variable name="expr" select="$decl/Expr[@kind!='Undefined']"/>
+    <xsl:variable name="expr" select="$decl/Expr"/>
 
     <xsl:choose>
       
       <!-- if this refers to a true constant other than a ROM we can remove the Decl -->
-      <xsl:when test="$expr and Note[@kind='declAnn'][@reassigned='no'] and $expr/@kind!='List'">
+      <xsl:when test="$expr and Note[@kind='declAnn'][@reassigned='no'] and $expr/@kind!='List'
+                  and not($decl//Expr[@kind='Undefined'])">
         <Note kind="Report" severity="Info" id="declaration.eliminated">
           <xsl:attribute name="subject">
             <xsl:apply-templates select="." mode="report-offender"/>
@@ -188,6 +190,11 @@
           <xsl:for-each select="@*">
             <xsl:attribute name="{name()}"><xsl:value-of select="."/></xsl:attribute>
           </xsl:for-each>
+          
+          <!--
+            Note: the Type in the calml can diverge from the type to use
+            in the environment because in repeats on inputs.
+            
           <xsl:copy-of select="$decl/*[not( self::Expr )]"/>
           <xsl:choose>
             <xsl:when test="$expr">
@@ -200,6 +207,12 @@
               </xsl:apply-templates>
             </xsl:otherwise>
           </xsl:choose>
+          -->
+          
+          <xsl:apply-templates select="*">
+            <xsl:with-param name="env" select="$env"/>
+            <xsl:with-param name="mode">Initial</xsl:with-param>
+          </xsl:apply-templates>
         </xsl:copy>
       </xsl:otherwise>
       
@@ -264,10 +277,15 @@
         
         <!-- this is needed for conversion from Initial to Runtime env -->
         <xsl:copy-of select="$this/Note[@kind='declAnn']"/>
+
+        <xsl:variable name="e">
+          <xsl:if test="$this/Expr">
+            <xsl:copy-of select="cal:evaluateExpr( $this/Expr , $eval-env/env )"/>
+          </xsl:if>
+        </xsl:variable>
         
         <xsl:choose>
-          <xsl:when test="$this/Expr">            
-            <xsl:variable name="e" select="cal:evaluateExpr( $this/Expr , $eval-env/env )"/>
+          <xsl:when test="$e and not( $e//Expr[@kind='Undefined'] )">            
             <xsl:copy-of select="$e"/>
           </xsl:when> 
           <xsl:otherwise>
@@ -313,6 +331,23 @@
         <xsl:choose>
           <xsl:when test="self::Decl">
             <xsl:copy-of select="."/>
+          </xsl:when>
+          <xsl:when test="self::Input[ Repeat ]">
+            <xsl:for-each select="Decl">
+              <Decl>
+                <xsl:for-each select="@*">
+                  <xsl:attribute name="{name()}"><xsl:value-of select="."/></xsl:attribute>
+                </xsl:for-each>
+                <Type name="list">
+                  <Entry kind="Expr" name="size">
+                    <xsl:copy-of select="../Repeat/Expr"/>
+                  </Entry>
+                  <Entry kind="Type" name="type">
+                    <xsl:copy-of select="Type"/>
+                  </Entry>
+                </Type>
+              </Decl>
+            </xsl:for-each>
           </xsl:when>
           <xsl:when test="self::Input or self::Generator">
             <xsl:copy-of select="Decl"/>

@@ -40,15 +40,14 @@
 
 <xsl:stylesheet
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-  xmlns:xd="http://www.pnp-software.com/XSLTdoc"
-  extension-element-prefixes="xsl xd"  
+  extension-element-prefixes="xsl"  
   version="2.0">
   <xsl:output method="xml"/>
 
   <xsl:template match="Expr[@kind='Let'][not( Decl )]">
     
     <!-- discard unused wrapper -->  
-    <xsl:apply-templates/>   
+    <xsl:apply-templates select="Expr"/>   
 
   </xsl:template>
   
