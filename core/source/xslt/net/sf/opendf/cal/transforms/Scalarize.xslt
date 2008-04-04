@@ -222,7 +222,7 @@
       
       <!-- generate this element -->
       <xsl:otherwise>
-        <Decl name="{$new-name}">
+        <Decl name="{$new-name}" kind="{@kind}">
           <xsl:choose>
             <xsl:when test="parent::Input">
               <xsl:copy-of select="Type"/>
