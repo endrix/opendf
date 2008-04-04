@@ -57,7 +57,7 @@
       <xsl:apply-templates/>
 
       <!-- the list is not scalarizable if it's initializer is not a simple list -->
-      <xsl:if test="not( Expr[@kind!='List' or Expr/Generator] )">
+      <xsl:if test="not( Expr/descendant-or-self::Expr[ (@kind!='List' and @kind!='Literal') or Generator] )">
         
         <!-- how many dimensions of indexing -->
         <xsl:variable name="dims" select="if (parent::Input) then 1 else count( Type//Entry[@kind='Type'] )"/>
