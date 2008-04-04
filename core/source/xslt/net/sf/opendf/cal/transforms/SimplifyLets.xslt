@@ -53,9 +53,9 @@
   
   <xsl:template match="*">
     
-    <!-- Preserve the existing element information, except for id attributes -->  
+    <!-- Preserve the existing element information -->  
     <xsl:copy>
-      <xsl:for-each select="@*[name() != 'id']">
+      <xsl:for-each select="@*">
         <xsl:attribute name="{name()}"><xsl:value-of select="."/></xsl:attribute>
       </xsl:for-each>
       
