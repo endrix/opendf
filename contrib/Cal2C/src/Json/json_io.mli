@@ -1,0 +1,72 @@
+(** Input and output functions for the JSON format 
+  as defined by {{:http://www.json.org/}http://www.json.org/} *)
+
+(** [json_of_string s] reads the given JSON string.
+
+  If [allow_comments] is [true], then C++ style comments are allowed, i.e.
+  [/* blabla possibly on several lines */] or 
+  [// blabla until the end of the line]. Comments are not part of the JSON
+  specification and are disabled by default.
+
+  If [big_int_mode] is [true], then JSON ints that cannot be represented
+  using OCaml's int type are represented by strings. 
+  This would happen only for ints that are out of the range defined
+  by [min_int] and [max_int], i.e. \[-1G, +1G\[ on a 32-bit platform.
+  The default is [false] and a [Json_type.Json_error] exception
+  is raised if an int is too big. 
+*)
+val json_of_string : 
+  ?allow_comments:bool -> ?big_int_mode:bool -> string -> Json_type.t
+
+(** same as [Json_io.json_of_string] but the argument is a file
+  to read from. *)
+val load_json : 
+  ?allow_comments:bool -> ?big_int_mode:bool -> string -> Json_type.t
+
+(** Conversion of JSON data to compact text. *)
+module Compact :
+sig
+  (** Generic printing function without superfluous space. 
+    See the standard [Format] module
+    for how to create and use formatters. 
+
+    In general, {!Json_io.string_of_json} and 
+    {!Json_io.save_json} are more convenient.
+  *)
+  val print : Format.formatter -> Json_type.t -> unit
+end
+
+(** Conversion of JSON data to compact text, optimized for speed. *)
+module Fast :
+sig
+  (** This function is faster than the one provided by the
+    {!Json_io.Compact} submodule but it is less generic and is subject to
+    the 16MB size limit of strings on 32-bit architectures. *)
+  val print : Buffer.t -> Json_type.t -> unit
+end
+
+
+(** Conversion of JSON data to indented text. *)
+module Pretty :
+sig
+  (** Generic pretty-printing function. 
+    See the standard [Format] module
+    for how to create and use formatters.
+    
+    In general, {!Json_io.string_of_json} and 
+    {!Json_io.save_json} are more convenient.
+  *)
+  val print : Format.formatter -> Json_type.t -> unit
+end
+
+(** [string_of_json] converts JSON data to a string.
+
+  By default, the output is indented. If the [compact] flag is set to true,
+  the output will not contain superfluous whitespace and will
+  be produced faster. *)
+val string_of_json : ?compact:bool -> Json_type.t -> string
+
+(** [save_json] works like {!Json_io.string_of_json} but 
+  saves the results directly into the file specified by the
+  argument of type string. *)
+val save_json : ?compact:bool -> string -> Json_type.t -> unit

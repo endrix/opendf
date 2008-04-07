@@ -1,5 +1,7 @@
 true: warn_A, warn_e, warn_error_A, warn_error_e
 <Cal2C/cal2c.d.byte>: debug
-<Cal2C/cal2c.{d.byte,byte,native}>: use_cil,use_graph,use_str,use_unix,use_uuid
+<Cal2C/cal2c.{d.byte,byte,native}>: use_cil, use_graph, use_json, use_str, use_unix, use_uuid
 <Cal2C/*.ml*>: use_cil
+<uuid.{cma,d.cma}>: use_uuid
+"Json": include
 "Uuid": include

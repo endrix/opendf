@@ -69,6 +69,9 @@ let _ =
          in
          ocaml_lib ~extern:true ~dir:cil "cil";
 
+         (* Internal library: json. *)
+         ocaml_lib "Json/json";
+
          (* Internal library: uuid. *)
          ocaml_lib "Uuid/uuid";
 
@@ -92,9 +95,9 @@ let _ =
 
          (* When building uuid.cm{,x}a, adds dependencies. *)
          if Sys.os_type = "Win32" then
-           flag [ "ocaml"; "link"; "library" ] (S [ A "Uuid/libmluuid.a"; A "-cclib"; A "-lrpcrt4" ])
+           flag [ "ocaml"; "link"; "use_uuid" ] (S [ A "Uuid/libmluuid.a"; A "-cclib"; A "-lrpcrt4" ])
          else
-           flag [ "ocaml"; "link"; "library" ] (S [ A "-cclib"; A "-luuid" ]);
+           flag [ "ocaml"; "link"; "use_uuid" ] (S [ A "-cclib"; A "-luuid" ]);
 
          (* Adds a dependency on Uuid/libmluuid.a. *)
          dep [ "ocaml"; "link"; "use_uuid" ] [ "Uuid/libmluuid.a" ];
