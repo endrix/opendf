@@ -21,112 +21,15 @@ open E
   
 let error = ref false
   
-(** [parse debug pf file] calls the parsing function [pf] on
- [file]. [pf] is typically [Cal_parser.actor] or [Cal_parser.network]. *)
-let parse debug parse_function file =
-  (if debug.d_general
-   then print_endline ("Parsing \"" ^ (file ^ "\"..."))
-   else ();
-   let inch =
-     try open_in file with | Sys_error s -> (prerr_endline s; exit 1) in
-   let lexbuf = Lexing.from_channel inch in
-   let (e, res) =
-     try parse_function Cal_lexer.token lexbuf
-     with
-     | Parsing.Parse_error ->
-         (Printf.printf "Line %i, column %i: parse error\n%!"
-            lexbuf.Lexing.lex_curr_p.Lexing.pos_lnum
-            (lexbuf.Lexing.lex_curr_p.Lexing.pos_cnum -
-               lexbuf.Lexing.lex_curr_p.Lexing.pos_bol);
-          raise Parsing.Parse_error)
-   in (error := e; close_in inch; res))
-  
-(** [parse_children debug files file] parses [file] as a network, and
- recursively parses its children. *)
-let rec parse_children debug files file =
-  let network = parse debug Cal_parser.network file in
-  (* creates a set of referenced actors/networks names *)
-  let set =
-    List.fold_left
-      (fun set entity ->
-         match entity.Calast.e_expr with
-         | Calast.DirectInst (name, _) -> SS.add name set
-         | _ ->
-             failwith
-               "parse_children: conditional instantiation not supported")
-      SS.empty network.Calast.n_entities in
-  (* parses them and returns an assoc list *)
-  let entities =
-    SS.fold
-      (fun name entities ->
-         let file =
-           List.find
-             (fun file -> name = (chop_extensions (Filename.basename file)))
-             files in
-         let node =
-           if Filename.check_suffix file ".nl"
-           then Calast.Network (parse_children debug files file)
-           else Calast.Actor (parse debug Cal_parser.actor file)
-         in (name, node) :: entities)
-      set [] in
-  (* builds the network *)
-  let entities =
-    List.map
-      (fun entity ->
-         match entity.Calast.e_expr with
-         | Calast.DirectInst (name, _) ->
-             let node = List.assoc name entities
-             in { (entity) with Calast.e_filename = file; e_child = node; }
-         | _ ->
-             failwith
-               "parse_children: conditional instantiation not supported")
-      network.Calast.n_entities
-  in { (network) with Calast.n_entities = entities; }
-  
 (** Transforms CAL and NL [files] in the output directory [od], starting from
  the top network [main]. *)
-let transform debug od libcal main files =
-  let network = parse_children debug files main
+let transform debug od libcal json_source =
+  let network = Json_calast.calast_of_json json_source
   in
     (if !error
      then failwith "Please correct the above errors and try again"
      else ();
      Transl_main.translate debug od libcal network)
-  
-(** [check_main main] checks the "-main" option. The main network should
- exist and not be a directory. *)
-let check_main main =
-  if main <> ""
-  then
-    if Sys.file_exists main
-    then
-      if not (Sys.is_directory main)
-      then true
-      else
-        (print_endline "The main network specified is a directory."; false)
-    else
-      (print_endline
-         "The main network does not exist in the specified model path.";
-       false)
-  else
-    (print_endline
-       "No main network has been defined. \
-		       Please provide this information using the -main option";
-     false)
-  
-(** [check_mp mp] checks the "-mp" option. The model path should exist and
- be a directory. *)
-let check_mp mp =
-  if mp <> ""
-  then
-    if Sys.file_exists mp
-    then
-      if Sys.is_directory mp
-      then true
-      else
-        (print_endline "The model path specified is not a directory."; false)
-    else (print_endline "The model path specified does not exist."; false)
-  else (print_endline "No model path has been defined."; false)
   
 let check_include_m4 includes =
   if
@@ -191,8 +94,7 @@ let init_options () =
   let d_general = ref false in
   let d_type_inference = ref false in
   let includes = ref [] in
-  let main = ref "" in
-  let mp = ref "" in
+  let json_source = ref "" in
   let o = ref "" in
   let speclist =
     [ ("-debug", (Arg.Set d_general), "Prints debugging information");
@@ -201,15 +103,12 @@ let init_options () =
       ("-I", (Arg.String (fun str -> includes := str :: !includes)),
        "<directory> Adds <directory> to the include folders (actually, \
 			 only libcal is needed right now)");
-      ("-mp", (Arg.Set_string mp),
-       "<directory> Defines the directory where input files are located");
       ("-o", (Arg.Set_string o),
-       " < directory > Defines the directory where output files will be placed. \
+       "<directory> Defines the directory where output files will be placed. \
 		Defaults to .") ] in
-  let usage = "cal2c -mp <dir> [options] <top NL>" in
-  let anon_fun filename = main := filename ^ ".nl" in
+  let usage = "cal2c [options] <json source file>" in
+  let anon_fun = (:=) json_source in
   let () = Arg.parse speclist anon_fun usage in
-  let main = Filename.concat !mp !main in
   let cwd = Sys.getcwd () in
   let includes =
     List.map
@@ -219,24 +118,16 @@ let init_options () =
          else inc_dir)
       !includes
   in
-    if (check_mp !mp) && ((check_main main) && (check_includes includes))
+    if check_includes includes
     then
       (let debug =
          { d_general = !d_general; d_type_inference = !d_type_inference; } in
-       let files = Array.to_list (Sys.readdir !mp) in
-       let files =
-         List.filter
-           (fun filename ->
-              (Filename.check_suffix filename ".cal") ||
-                (Filename.check_suffix filename ".nl"))
-           files in
-       let files = List.map (Filename.concat !mp) files in
        let o = if !o = "" then "." else !o
-       in (debug, o, includes, main, files))
+       in (debug, o, includes, !json_source))
     else (Arg.usage speclist usage; exit (-1))
   
 (** main function *)
 let _ =
-  let (debug, o, includes, main, files) = init_options ()
-  in (Cil.initCIL (); transform debug o includes main files)
+  let (debug, o, includes, json_source) = init_options ()
+  in (Cil.initCIL (); transform debug o includes json_source)
   

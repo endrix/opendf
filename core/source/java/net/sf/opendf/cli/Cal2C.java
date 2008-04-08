@@ -3,6 +3,7 @@
  */
 package net.sf.opendf.cli;
 
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
@@ -77,7 +78,9 @@ public class Cal2C extends PhasedSimulator {
 			Node doc = Elaborator.elaborateModel(configuration, null, classLoader);
 			JSONArray array = new DomToJson().jsonOfNode(doc.getFirstChild());
 			String toto = array.toString();
-			OutputStream os = new FileOutputStream("D:\\toto.txt");
+			File file = File.createTempFile("cal2c_", ".json");
+			System.out.println(file.getAbsolutePath());
+			OutputStream os = new FileOutputStream(file);
 			os.write(toto.getBytes());
 			os.close();
 		} catch (Exception e) {
