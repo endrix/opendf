@@ -91,8 +91,8 @@ public class PhasedSimulator {
     private Platform thePlatform;
     private double time;
     private long nSteps;
-    private String [] modelPath;
-    private String cachePath;
+    protected String [] modelPath;
+    protected String cachePath;
     private Level userVerbosity;
     // private boolean debug;
     private boolean bufferBlockRecord;
