@@ -412,7 +412,7 @@ let print_vcproj out guid includes network instances =
 let create_visualc_solution od includes network instances =
   if Sys.os_type = "Win32"
   then
-    (let guid_project = Uuid.generate () in
+    (let guid_project = "{9AC2FEFB-8204-4635-ABE7-429A33CAFAFB}" in
      let name = network.Calast.n_name in
      let filename = Filename.concat od (name ^ ".sln") in
      let out = open_out filename

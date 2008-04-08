@@ -36,24 +36,6 @@ let get_root () =
     failwith "The uname command could not be executed. \
       Please check that it is present in your environment"
 
-module C_tools_win32 = struct
-  let link_C_library clib a env build =
-    let clib = env clib and a = env a in
-    (* List of object files in the .clib *)
-    let objs = string_list_of_file clib in
-    let include_dirs = Pathname.include_dirs_of (Pathname.dirname a) in
-    let obj_of_o x =
-      if Filename.check_suffix x ".o" && !Options.ext_obj <> "o" then
-        Pathname.update_extension !Options.ext_obj x
-      else x in
-    let resluts = build (List.map (fun o -> List.map (fun dir -> dir / obj_of_o o) include_dirs) objs) in
-    let objs = List.map begin function
-      | Outcome.Good o -> o
-      | Outcome.Bad exn -> raise exn
-    end resluts in
-    Cmd(S[A "ar"; A"rcs"; Px a; T(tags_of_pathname a++"c"++"ocamlmklib"); atomize objs]);;
-end
-
 let _ =
   dispatch
     (function
@@ -72,35 +54,11 @@ let _ =
          (* Internal library: json. *)
          ocaml_lib "Json/json";
 
-         (* Internal library: uuid. *)
-         ocaml_lib "Uuid/uuid";
-
          if Sys.os_type = "Win32" then (
            (* Using the optimized versions. *)
            Options.ocamlc := A "ocamlc.opt";
-           Options.ocamlopt := A "ocamlopt.opt";
-
-           (* Creation of a C library for Windows. *)
-           rule "[Win32] ocaml C stubs: clib & (o|obj)* -> (a|lib) & (so|dll)"
-             ~prods:["%(path:<**/>)lib%(libname:<*> and not <*.*>)"-.-(!Options.ext_lib);
-                     "%(path:<**/>)dll%(libname:<*> and not <*.*>)"-.-(!Options.ext_dll)]
-             ~dep:"%(path)lib%(libname).clib"
-             ~insert:(`before "ocaml C stubs: clib & (o|obj)* -> (a|lib) & (so|dll)")
-             (C_tools_win32.link_C_library
-                "%(path)lib%(libname).clib" ("%(path)lib%(libname)"-.-(!Options.ext_lib)))
+           Options.ocamlopt := A "ocamlopt.opt"
          );
-
-         (* Allow use of C bindings with bytecode. *)
-         flag [ "ocaml"; "link"; "byte"; "use_uuid" ] (A "-custom");
-
-         (* When building uuid.cm{,x}a, adds dependencies. *)
-         if Sys.os_type = "Win32" then
-           flag [ "ocaml"; "link"; "use_uuid" ] (S [ A "Uuid/libmluuid.a"; A "-cclib"; A "-lrpcrt4" ])
-         else
-           flag [ "ocaml"; "link"; "use_uuid" ] (S [ A "-cclib"; A "-luuid" ]);
-
-         (* Adds a dependency on Uuid/libmluuid.a. *)
-         dep [ "ocaml"; "link"; "use_uuid" ] [ "Uuid/libmluuid.a" ];
 
          (* Documentation: colorize code and include CIL. *)
          flag [ "doc" ]
