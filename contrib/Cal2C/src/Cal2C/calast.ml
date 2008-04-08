@@ -160,7 +160,7 @@ type entity =
   and network =
   { n_entities : entity list; n_inputs : decl list; n_locals : decl list;
     n_name : string; n_outputs : decl list; n_parameters : decl list;
-    n_structure : (string * string) list
+    n_structure : (string list * string list) list
   }
 
 let empty_actor =

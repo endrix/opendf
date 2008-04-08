@@ -160,7 +160,7 @@ type child =
 			n_name : string; (** NL network name. *)
 			n_outputs : decl list; (** NL network ports. *)
 			n_parameters : decl list; (** NL network parameters. *)
-			n_structure : (string * string) list;
+			n_structure : (string list * string list) list;
 		}
 (** NL network. *)
 

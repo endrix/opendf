@@ -11,7 +11,6 @@
 (*                                                                           *)
 (* Matthieu WIPLIEZ <Matthieu.Wipliez@insa-rennes.fr                         *)
 (*****************************************************************************)
-
 open Printf
   
 open Cal2c_util
@@ -139,19 +138,16 @@ let is_input_actor network actor instances =
   
 let fifos_of_network network instances =
   List.fold_left
-    (fun (fifos, fifos_size) (source, dest) ->
-       let sl = Str.split re_dot source in
-       let dl = Str.split re_dot dest
-       in
-         match (sl, dl) with
-         | ([ e1; p1 ], [ e2; p2 ]) ->
-             let size =
-               if is_input_actor network e1 instances then 100 else (-16) in
-             let fifo_name = sprintf "%s_%s_%s_%s" e1 p1 e2 p2 in
-             let fifo = sprintf "  tlm::tlm_fifo<int> %s;" fifo_name in
-             let fifo_size = sprintf "    %s(%i)" fifo_name size
-             in ((fifo :: fifos), (fifo_size :: fifos_size))
-         | _ -> (fifos, fifos_size))
+    (fun (fifos, fifos_size) (sl, dl) ->
+       match (sl, dl) with
+       | ([ e1; p1 ], [ e2; p2 ]) ->
+           let size =
+             if is_input_actor network e1 instances then 100 else (-16) in
+           let fifo_name = sprintf "%s_%s_%s_%s" e1 p1 e2 p2 in
+           let fifo = sprintf "  tlm::tlm_fifo<int> %s;" fifo_name in
+           let fifo_size = sprintf "    %s(%i)" fifo_name size
+           in ((fifo :: fifos), (fifo_size :: fifos_size))
+       | _ -> (fifos, fifos_size))
     ([], []) network.Calast.n_structure
   
 (** [group_connections_by_target connections] does what its name suggests.
@@ -314,10 +310,7 @@ let broadcast_output connections modules modules_inst =
  of [network]. *)
 let connections_of_network network =
   List.fold_left
-    (fun connections (source, dest) ->
-       let sl = Str.split re_dot source in
-       let dl = Str.split re_dot dest
-       in
+    (fun connections (sl, dl) ->
          match (sl, dl) with
          | ([ e1; p1 ], [ e2; p2 ]) ->
              let c1 = (e1, p1, (sprintf "%s_%s_%s_%s" e1 p1 e2 p2)) in
@@ -349,8 +342,7 @@ let parameters_of_network network =
          | _ -> parameters)
       [] network.Calast.n_parameters in
   let parameters =
-    List.rev_map (fun param -> sprintf ", int %s" param)
-      parameters
+    List.rev_map (fun param -> sprintf ", int %s" param) parameters
   in String.concat "" parameters
   
 let print_header instances network out =
