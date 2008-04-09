@@ -97,7 +97,7 @@ class convertActionsToFunctionsVisitor =
                   ((decl :: params), stmts)))
             (params, (action.Calast.a_stmts)) action.Calast.a_outputs in
         let params = List.rev_map self#visitDecl params in
-        let locals = List.map self#visitDecl action.Calast.a_decls in
+        let locals = List.map self#visitDecl action.Calast.a_locals in
         let stmts = self#visitExpr stmts
         in
           {
@@ -111,7 +111,7 @@ class convertActionsToFunctionsVisitor =
         let f = self#functionOfAction action in
         let action =
           {
-            Calast.a_decls = List.map self#visitDecl action.Calast.a_decls;
+            Calast.a_locals = List.map self#visitDecl action.Calast.a_locals;
             Calast.a_delay = self#visitExpr action.Calast.a_delay;
             Calast.a_inputs = List.map self#visitInput action.Calast.a_inputs;
             Calast.a_guards = List.map self#visitExpr action.Calast.a_guards;

@@ -2,4 +2,5 @@ true: warn_A, warn_e, warn_error_A, warn_error_e
 <Cal2C/cal2c.d.byte>: debug
 <Cal2C/cal2c.{d.byte,byte,native}>: use_cil, use_graph, use_json, use_str, use_unix
 <Cal2C/*.ml*>: use_cil
+<*.cmi>: precious
 "Json": include

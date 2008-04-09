@@ -11,7 +11,6 @@
 (*                                                                           *)
 (* Matthieu WIPLIEZ <Matthieu.Wipliez@insa-rennes.fr                         *)
 (*****************************************************************************)
-
 open Printf
   
 open Cal2c_util
@@ -132,9 +131,9 @@ module DS =
      end)
   
 type action =
-  { a_name : string; a_inputs : (string * decl * expr) list;
-    a_outputs : (decl * expr) list; a_guards : expr list;
-    a_decls : decl list; a_delay : expr; a_stmts : expr
+  { a_delay : expr; a_guards : expr list;
+    a_inputs : (string * decl * expr) list; a_locals : decl list;
+    a_name : string; a_outputs : (decl * expr) list; a_stmts : expr
   }
 
 type actor =
@@ -146,12 +145,11 @@ type actor =
   }
 
 type entity_expr =
-  | DirectInst of string * (string * expr) list
+  | DirectInst of string * decl list
   | CondInst of expr * entity_expr * entity_expr
 
 type entity =
-  { e_name : string; e_expr : entity_expr; e_filename : string;
-    e_child : child
+  { e_name : string; e_expr : entity_expr; e_child : child
   }
 
   and child =
@@ -160,7 +158,7 @@ type entity =
   and network =
   { n_entities : entity list; n_inputs : decl list; n_locals : decl list;
     n_name : string; n_outputs : decl list; n_parameters : decl list;
-    n_structure : (string list * string list) list
+    n_structure : ((string list) * (string list)) list
   }
 
 let empty_actor =

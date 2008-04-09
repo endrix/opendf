@@ -11,7 +11,6 @@
 (*                                                                           *)
 (* Matthieu WIPLIEZ <Matthieu.Wipliez@insa-rennes.fr                         *)
 (*****************************************************************************)
-
 open Cal2c_util
   
 module E = Exception.Make(struct let module_name = "Solveparams"
@@ -66,16 +65,16 @@ let update_parameters parent name parameters decls fixed variables =
          (try
             let v = SM.find decl.Calast.d_name fixed in
             let v =
-              try (new Visitconstfold.constFoldVisitor decls)#visitExpr v with
-                   | _ ->
-                       failwith
-                         (Printf.sprintf
-                            "network \"%s\": instanciation of \"%s\": \
+              try (new Visitconstfold.constFoldVisitor decls)#visitExpr v
+              with
+              | _ ->
+                  failwith
+                    (Printf.sprintf
+                       "network \"%s\": instanciation of \"%s\": \
 														   could not solve. Missing parameter?"
-                            parent name)
-            in
-						let () = decl.Calast.d_value <- Some v in
-						SM.add decl.Calast.d_name v fixed
+                       parent name) in
+            let () = decl.Calast.d_value <- Some v
+            in SM.add decl.Calast.d_name v fixed
           with
           | Not_found ->
               failwith
@@ -137,16 +136,22 @@ let rec propagate_parameters instances network =
            match entity.Calast.e_expr with
            | Calast.DirectInst (_, params) ->
                (check_parameters network.Calast.n_name name parameters
-                  params;
+                  (List.map
+                     (fun decl ->
+                        match decl.Calast.d_value with
+                        | None -> failwith "parameter has no value"
+                        | Some v -> ((decl.Calast.d_name), v))
+                     params);
                 let fixed =
-									update_parameters network.Calast.n_name name parameters
-                  decls fixed variables
-								in
-								let instances = SM.add name (child, (fixed, variables)) instances in
-                (match entity.Calast.e_child with
-                 | Calast.Network network ->
-                     propagate_parameters instances network
-                 | _ -> instances))
+                  update_parameters network.Calast.n_name name parameters
+                    decls fixed variables in
+                let instances =
+                  SM.add name (child, (fixed, variables)) instances
+                in
+                  (match entity.Calast.e_child with
+                   | Calast.Network network ->
+                       propagate_parameters instances network
+                   | _ -> instances))
            | _ ->
                failwith
                  "visitEntity: conditional instantiation not supported")
@@ -162,8 +167,8 @@ let rec propagate_parameters instances network =
  the parent network (whose name is [parent]). The instantiation parameters
  inherit the fixed/variable status of their parent thanks to a simple
  [List.filter]. *)
-let update_instances parent child name
-                     (params : (string * Calast.expr) list) instances =
+let update_instances parent child name (params : (string * Calast.expr) list)
+                     instances =
   let (child, (fixed, variables)) =
     if SM.mem name instances
     then
@@ -226,7 +231,14 @@ let rec categorize_parameters instances network =
          match entity.Calast.e_expr with
          | Calast.DirectInst (name, params) ->
              update_instances network.Calast.n_name entity.Calast.e_child
-               name params instances
+               name
+               (List.map
+                  (fun decl ->
+                     match decl.Calast.d_value with
+                     | None -> failwith "parameter has no value"
+                     | Some v -> ((decl.Calast.d_name), v))
+                  params)
+               instances
          | _ ->
              failwith
                "solve_parameters: conditional instantiation not supported")
@@ -236,7 +248,6 @@ let rec categorize_parameters instances network =
       (fun instances entity ->
          match entity.Calast.e_child with
          | Calast.Actor actor -> update_actor_parameters actor instances
-         | Calast.Network network ->
-             categorize_parameters instances network)
+         | Calast.Network network -> categorize_parameters instances network)
       instances network.Calast.n_entities
   

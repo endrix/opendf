@@ -82,12 +82,17 @@ let params_of_module instances module_type params =
     List.filter (fun { Calast.d_value = value } -> value = None) parameters in
   let params =
     List.fold_left
-      (fun params (name, value) ->
-         if
-           List.exists (fun { Calast.d_name = dname } -> dname = name)
-             parameters
-         then (", " ^ (string_of_expr value)) :: params
-         else params)
+      (fun params decl ->
+         match decl.Calast.d_value with
+         | None -> failwith "Parameter has no value!"
+         | Some value ->
+             let name = decl.Calast.d_name
+             in
+               if
+                 List.exists (fun { Calast.d_name = dname } -> dname = name)
+                   parameters
+               then (", " ^ (string_of_expr value)) :: params
+               else params)
       [] params in
   let params = List.rev params in String.concat "" params
   
@@ -311,14 +316,14 @@ let broadcast_output connections modules modules_inst =
 let connections_of_network network =
   List.fold_left
     (fun connections (sl, dl) ->
-         match (sl, dl) with
-         | ([ e1; p1 ], [ e2; p2 ]) ->
-             let c1 = (e1, p1, (sprintf "%s_%s_%s_%s" e1 p1 e2 p2)) in
-             let c2 = (e2, p2, (sprintf "%s_%s_%s_%s" e1 p1 e2 p2))
-             in c1 :: c2 :: connections
-         | ([ p1 ], [ e2; p2 ]) -> (e2, p2, p1) :: connections
-         | ([ e1; p1 ], [ p2 ]) -> (e1, p1, p2) :: connections
-         | _ -> failwith "Invalid connection")
+       match (sl, dl) with
+       | ([ e1; p1 ], [ e2; p2 ]) ->
+           let c1 = (e1, p1, (sprintf "%s_%s_%s_%s" e1 p1 e2 p2)) in
+           let c2 = (e2, p2, (sprintf "%s_%s_%s_%s" e1 p1 e2 p2))
+           in c1 :: c2 :: connections
+       | ([ p1 ], [ e2; p2 ]) -> (e2, p2, p1) :: connections
+       | ([ e1; p1 ], [ p2 ]) -> (e1, p1, p2) :: connections
+       | _ -> failwith "Invalid connection")
     [] network.Calast.n_structure
   
 (** [string_of_connections connections] returns a string representation of

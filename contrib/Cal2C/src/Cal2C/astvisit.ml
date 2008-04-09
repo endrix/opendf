@@ -11,7 +11,6 @@
 (*                                                                           *)
 (* Matthieu WIPLIEZ <Matthieu.Wipliez@insa-rennes.fr                         *)
 (*****************************************************************************)
-
 open Cal2c_util
   
 open Printf
@@ -64,10 +63,10 @@ class nopVisitor =
     method visitAction =
       fun action ->
         {
-          Calast.a_decls = List.map self#visitDecl action.Calast.a_decls;
-          a_delay = self#visitExpr action.Calast.a_delay;
+          Calast.a_delay = self#visitExpr action.Calast.a_delay;
           a_inputs = List.map self#visitInput action.Calast.a_inputs;
           a_guards = List.map self#visitExpr action.Calast.a_guards;
+          a_locals = List.map self#visitDecl action.Calast.a_locals;
           a_name = action.Calast.a_name;
           a_outputs = List.map self#visitOutput action.Calast.a_outputs;
           a_stmts = self#visitExpr action.Calast.a_stmts;
@@ -125,7 +124,6 @@ class nopVisitor =
         {
           Calast.e_name = entity.Calast.e_name;
           e_expr = self#visitEntityExpr entity.Calast.e_expr;
-          e_filename = entity.Calast.e_filename;
           e_child = self#visitChild entity.Calast.e_child;
         }
       
@@ -133,8 +131,7 @@ class nopVisitor =
       fun ee ->
         match ee with
         | Calast.DirectInst (name, params) ->
-            Calast.DirectInst (name,
-              List.map (fun (pn, pv) -> (pn, (self#visitExpr pv))) params)
+            Calast.DirectInst (name, List.map self#visitDecl params)
         | Calast.CondInst (etest, ethen, eelse) ->
             let etest = self#visitExpr etest in
             let ethen = self#visitEntityExpr ethen in

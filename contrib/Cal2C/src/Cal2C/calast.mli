@@ -114,12 +114,12 @@ and decl = {
 module DS : Set.S with type elt = decl
 
 type action = {
-	a_name : string; (** CAL action name. *)
-	a_inputs : (string * decl * expr) list; (** CAL action input tokens. *)
-	a_outputs : (decl * expr) list; (** CAL action output tokens. *)
-	a_guards : expr list; (** CAL action guards. *)
-	a_decls : decl list; (** CAL action local declarations. *)
 	a_delay : expr; (** CAL action delay (what is it used for?). *)
+	a_guards : expr list; (** CAL action guards. *)
+	a_inputs : (string * decl * expr) list; (** CAL action input tokens. *)
+	a_locals : decl list; (** CAL action local declarations. *)
+	a_name : string; (** CAL action name. *)
+	a_outputs : (decl * expr) list; (** CAL action output tokens. *)
 	a_stmts : expr; (** CAL action body statements. *)
 }
 (** CAL action. *)
@@ -137,7 +137,7 @@ type actor = {
 (** CAL actor.*)
 
 type entity_expr =
-	| DirectInst of string * (string * expr) list
+	| DirectInst of string * decl list
 	| CondInst of expr * entity_expr * entity_expr
 
 type child =
@@ -148,7 +148,6 @@ type child =
 		and entity = {
 			e_name : string; (** NL entity declaration name. *)
 			e_expr : entity_expr; (** NL entity expression name. *)
-			e_filename : string; (** NL entity filename. *)
 			e_child : child;
 		}
 (** NL entity*)
