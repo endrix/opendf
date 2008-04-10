@@ -203,8 +203,17 @@ ENDCOPYRIGHT
       <xsl:variable name="type-attrs">
         <xsl:apply-templates select="Type"/>
       </xsl:variable>
-    
-      <operation kind="pinRead" portName="{../@port}" removable="no">
+
+      <xsl:variable name="tokenStyleDirectives" select="ancestor-or-self::*/Note[@kind='Directive' and @name='tokenoutputstyle']"/>
+      <xsl:variable name="style">
+        <xsl:choose>
+          <xsl:when test="last() &gt; 1">blocking</xsl:when>
+          <xsl:when test="$tokenStyleDirectives[1]"><xsl:value-of select="$tokenStyleDirectives[1]/Expr/@value"/></xsl:when>
+          <xsl:otherwise>simple</xsl:otherwise>
+        </xsl:choose>
+      </xsl:variable>
+      
+      <operation kind="pinRead" portName="{../@port}" removable="no" style="{$style}">
         <port source="{@id}" dir="out">
           <xsl:for-each select="$type-attrs/attr">
             <xsl:attribute name="{@name}"><xsl:value-of select="@value"/></xsl:attribute>
@@ -224,7 +233,12 @@ ENDCOPYRIGHT
         </xsl:otherwise>
       </xsl:choose>
     </xsl:variable>
+    
     <!-- TODO: make this work for more than the head token -->
+    <xsl:if test="count( Decl ) &gt; 1 and count(../../Action) &gt; 1">
+      Warning: multi-token read may not be scheduled properly
+    </xsl:if>
+    
     <xsl:for-each select="Decl[1]">
       <xsl:variable name="type-attrs">
         <xsl:apply-templates select="Type"/>
@@ -359,11 +373,12 @@ ENDCOPYRIGHT
       <xsl:variable name="tokenStyleDirectives" select="ancestor-or-self::*/Note[@kind='Directive' and @name='tokenoutputstyle']"/>
       <xsl:variable name="style">
         <xsl:choose>
+          <xsl:when test="last() &gt; 1">blocking</xsl:when>
           <xsl:when test="$tokenStyleDirectives[1]"><xsl:value-of select="$tokenStyleDirectives[1]/Expr/@value"/></xsl:when>
           <xsl:otherwise>simple</xsl:otherwise>
         </xsl:choose>
       </xsl:variable>
-      <operation kind="pinWrite" portName="{../@port}" style="{$style/.}">
+      <operation kind="pinWrite" portName="{../@port}" style="{$style}">
         <port dir="in" source="{@id}"/>
       </operation>
     </xsl:for-each>
