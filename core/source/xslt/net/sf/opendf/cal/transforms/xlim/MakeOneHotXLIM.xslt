@@ -266,6 +266,11 @@ ENDCOPYRIGHT
   
   <xsl:template match="Expr">
     
+    <xsl:if test="not(Note[@kind='exprType'])">
+      <xsl:message>
+        <xsl:value-of select="@id"/> has no exprType
+      </xsl:message>
+    </xsl:if>
     <!-- Get the type assigned by the expr evaluator -->
     <xsl:variable name="type-attrs">
       <xsl:apply-templates select="Note[@kind='exprType']/Type"/>
