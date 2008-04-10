@@ -85,38 +85,51 @@ ENDCOPYRIGHT
       </xsl:for-each>
       <xsl:copy-of select="*"/>
 
-      <!-- Create the note containing an ordering of all the priority inequalities -->
-      <Note kind="MergedPriorityInequalities">
-        
-        <!-- First come unnamed actions -->
-        <xsl:for-each select="Action[ not( QID ) ]">
-          <Note kind="ActionId" id="{@id}"/>
-        </xsl:for-each>
-        
-        <!-- Next named actions that do not appear in a priority statement -->
-        <xsl:for-each select="Action[ QID ]">
-          <xsl:variable name="id" select="@id"/>
-          <xsl:if test="not( ../Priority/QID/Note[@kind='ActionId' and @id=$id] )">
-            <Note kind="ActionId" id="{$id}"/>
-          </xsl:if>
-        </xsl:for-each>  
-          
-        <!-- Now prioritize the remaining actions -->
-        <xsl:call-template name="total-order">
-          <xsl:with-param name="in">
-            <xsl:for-each select="Priority">
-              <inequality>
-                <xsl:for-each select="QID">
-                  <equiv>
-                    <xsl:copy-of select="Note[@kind='ActionId']"/>
-                  </equiv>
-                </xsl:for-each>
-              </inequality>
-            </xsl:for-each>        
-          </xsl:with-param>
-        </xsl:call-template>
-        
-      </Note>    
+      <xsl:choose>
+        <!-- DBP: added this test because of a situation that occurs with an experimental flow -->
+        <xsl:when test="Action[not( @id )]">
+          <xsl:message>
+            <xsl:text>Skipping MergePriorityInequalities for Actor </xsl:text>
+            <xsl:value-of select="@name"/>
+            <xsl:text> (there are actions without generated IDs)</xsl:text>
+          </xsl:message>
+        </xsl:when>
+        <xsl:otherwise>
+          <!-- Create the note containing an ordering of all the priority inequalities -->
+          <Note kind="MergedPriorityInequalities">
+            
+            <!-- First come unnamed actions -->
+            <xsl:for-each select="Action[ not( QID ) ]">
+              <Note kind="ActionId" id="{@id}"/>
+            </xsl:for-each>
+            
+            <!-- Next named actions that do not appear in a priority statement -->
+            <xsl:for-each select="Action[ QID ]">
+              <xsl:variable name="id" select="@id"/>
+              <xsl:if test="not( ../Priority/QID/Note[@kind='ActionId' and @id=$id] )">
+                <Note kind="ActionId" id="{$id}"/>
+              </xsl:if>
+            </xsl:for-each>  
+            
+            <!-- Now prioritize the remaining actions -->
+            <xsl:call-template name="total-order">
+              <xsl:with-param name="in">
+                <xsl:for-each select="Priority">
+                  <inequality>
+                    <xsl:for-each select="QID">
+                      <equiv>
+                        <xsl:copy-of select="Note[@kind='ActionId']"/>
+                      </equiv>
+                    </xsl:for-each>
+                  </inequality>
+                </xsl:for-each>        
+              </xsl:with-param>
+            </xsl:call-template>
+            
+          </Note>    
+        </xsl:otherwise>
+      </xsl:choose>
+
     </xsl:copy>
  
   </xsl:template>
@@ -187,7 +200,15 @@ ENDCOPYRIGHT
                  
         <xsl:if test="count($unconstrained/*) = 0">
           <xsl:message terminate="yes">
-            Fatal error: there are circular priority relationships
+            <xsl:text>Fatal error: there are circular priority relationships involving Action QIDs:&#10;</xsl:text>
+            <xsl:for-each select="Action">
+              <xsl:variable name="id" select="@id"/>
+              <xsl:if test="$highest-priority/*[@id=$id]">
+                <xsl:text>  </xsl:text>
+                <xsl:value-of select="QID/@name"/>
+                <xsl:text>&#10;</xsl:text>
+              </xsl:if>
+            </xsl:for-each>
           </xsl:message>
         </xsl:if>
 
