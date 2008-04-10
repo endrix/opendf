@@ -62,7 +62,7 @@
   -->
   
   <!-- anything (except Expr) that scopes a Decl -->
-  <xsl:template match="*[ Decl or Generator or Input ]">
+  <xsl:template match="*[ Decl or Generator or Input ]" priority="1">
     <xsl:param name="env" select="$empty-env/env"/>
     <xsl:param name="mode">Runtime</xsl:param>
     
@@ -86,7 +86,7 @@
     
   </xsl:template>
 
-  <xsl:template match="Expr">
+  <xsl:template match="Expr" priority="10">
     <xsl:param name="env" select="$empty-env/env"/>
     <xsl:param name="mode">Runtime</xsl:param>
 
