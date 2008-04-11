@@ -38,7 +38,7 @@ let inputs_of inputs =
        let repeat =
          match repeats with
          | [] -> Calast.Literal (Calast.Integer 1)
-         | [ (_, [], [ repeat ]) ] -> expr_of (contents repeat)
+         | [ (_, [], [ repeat ]) ] -> expr_of (browse repeat)
          | _ -> assert false
        in (assert (children = []); (port, decl, repeat)))
     inputs
@@ -59,7 +59,7 @@ let outputs_of outputs =
        let repeat =
          match repeats with
          | [] -> Calast.Literal (Calast.Integer 1)
-         | [ (_, [], [ repeat ]) ] -> expr_of (contents repeat)
+         | [ (_, [], [ repeat ]) ] -> expr_of (browse repeat)
          | _ -> assert false in
        let decl =
          {
@@ -82,13 +82,12 @@ let action_of (_, _, children) =
   let delay =
     match delays with
     | [] -> Calast.Literal (Calast.Integer 1)
-    | [ (_, _, [ child ]) ] -> expr_of (contents child)
+    | [ (_, _, [ child ]) ] -> expr_of (browse child)
     | _ -> failwith "Delay: syntax error" in
   let guards =
     match guards with
     | [] -> []
-    | [ (_, _, children) ] ->
-        List.map expr_of (List.map contents children)
+    | [ (_, _, children) ] -> List.map expr_of (List.map browse children)
     | _ -> failwith "Guards: syntax error" in
   let inputs = inputs_of inputs in
   let locals = List.map decl_of locals in
@@ -157,6 +156,7 @@ let rec actor_of (_, attributes, children) =
   let (_notes, children) = partition children "Note" in
   let (ports, children) = partition children "Port" in
   let (priorities, children) = partition children "Priority" in
+  let (_schedule, children) = partition children "Schedule" in
   let (locals, parameters) =
     List.partition
       (fun (_, attributes, _) ->
@@ -249,9 +249,7 @@ and network_of (name, attributes, children) =
  is [json_source], and calls [network_of_json] to extract a CAL AST from
  the JSON-encoded top network. *)
 let calast_of_json json_source =
-  try
-    let json = Json_io.load_json json_source
-    in network_of (contents json)
+  try let json = Json_io.load_json json_source in network_of (browse json)
   with
   | Json_type.Json_error err ->
       let msg = sprintf "\"%s\": %s" json_source err

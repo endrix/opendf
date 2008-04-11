@@ -24,9 +24,9 @@ open Json_type
   
 open Browse
   
-(** [contents json] returns a tuple (name, attributes, children) that holds
+(** [browse json] returns a tuple (name, attributes, children) that holds
  the information of the JSON element [json]. *)
-let contents json =
+let browse json =
   let json_array = array json in
   let (name, attributes, children) =
     match json_array with
@@ -44,8 +44,18 @@ let contents json =
     (* let attributes = make_table attributes in *)
     (name, attributes, children)
   
+(** [build json] returns a JSON array made from the tuple
+ (name, attributes, children). *)
+let build (name, attributes, children) =
+  Build.array
+    [ Build.string name; Build.objekt attributes; Build.array children ]
+  
 (** Should it be removed when conversion is fully implemented? *)
 let field (tbl : (string * Json_type.t) list) key = List.assoc key tbl
+  
+(** Should it be removed when conversion is fully implemented? *)
+let optfield (tbl : (string * Json_type.t) list) key =
+  try Some (field tbl key) with | Not_found -> None
   
 (** Matches either \ or $. Why so many backslashes? Because \ has to be
  escaped in strings, so we get \\. \, | and $ also have to be escaped in regexps,
@@ -73,39 +83,13 @@ let partition elements key =
   let (yes, no) =
     List.fold_left
       (fun (yes, no) element ->
-         let (name, attributes, children) = contents element
+         let (name, attributes, children) = browse element
          in
            if name = key
            then (((name, attributes, children) :: yes), no)
            else (yes, (element :: no)))
       ([], []) elements in
   let yes = List.rev yes in let no = List.rev no in (yes, no)
-  
-(** [list_type_of (name, attributes, children)].
-
-[type_of (name, attributes, children)] returns a [Calast.Type.definition]
- translated from the type encoded in [attributes] and [children]. *)
-let rec list_type_of children =
-  let (entries, children) = partition children "Entry"
-  in
-    (ignore children;
-     match entries with
-     | [ (_, attributes, [ t ]) ] when
-         (string (field attributes "kind")) = "Type" ->
-         let (is, t) = type_of (contents t)
-         in (is, (Calast.Type.TL (None, t)))
-     | _ -> assert false)
-
-and type_of (_, attributes, children) =
-  let name = string (field attributes "name")
-  in
-    (ignore children;
-     match name with
-     | "bool" -> (IS.empty, (Calast.Type.TP Calast.Type.Bool))
-     | "int" -> (IS.empty, (Calast.Type.TP Calast.Type.Int))
-     | "list" -> list_type_of children
-     | "string" -> (IS.empty, (Calast.Type.TP Calast.Type.String))
-     | n -> failwith (n ^ " is not known"))
   
 (** [literal_of attributes] returns a [Calast.Literal name] where [literal] is
  the literal whose kind is defined by "literal-kind" JSON attribute, and value
@@ -145,24 +129,37 @@ let rec parse_fun subfun op_list children =
 
 [expr_of (_, attributes, children)]. 
 
+[list_type_of (name, attributes, children)].
+
+[type_of (name, attributes, children)] returns a [Calast.Type.definition]
+ translated from the type encoded in [attributes] and [children]. 
+
 *)
 let rec application_of (_, _, children) =
-  let children = List.map contents children
+  let children = List.map browse children
   in
     match children with
     | [ expr; args ] -> Calast.Application (expr_of expr, args_of args)
     | _ -> failwith "Application: syntax error"
 
 and args_of (_, _, children) =
-  List.map (fun json -> expr_of (contents json)) children
+  List.map (fun json -> expr_of (browse json)) children
 
 and assign_of (_, attributes, children) =
   let target = Calast.Var (ident (field attributes "name")) in
-  let children = List.map contents children
+  let (args, children) = partition children "Args" in
+  let (exprs, children) = partition children "Expr"
   in
-    match children with
-    | [ e ] -> Calast.Assign (target, expr_of e)
-    | _ -> failwith "Assign: syntax error"
+    (assert (children = []);
+     match (args, exprs) with
+     | ([], [ e ]) -> Calast.Assign (target, expr_of e)
+     | ([ e1 ], [ e2 ]) ->
+         let args = args_of e1 in
+         let indexer =
+           List.fold_left (fun expr arg -> Calast.Indexer (expr, arg)) target
+             args
+         in Calast.Assign (indexer, expr_of e2)
+     | _ -> failwith "Assign: syntax error")
 
 and binary_of (_, _, children) =
   let parse_literal =
@@ -193,7 +190,17 @@ and binary_of (_, _, children) =
                  let e2 = parse_e t in Calast.BinaryOp (e, Calast.Or, e2)
              | _ -> failwith "Incorrect syntax")
       | _ -> failwith "Incorrect syntax"
-  in parse_e (List.map contents children)
+  in parse_e (List.map browse children)
+
+and block_of (_, _, children) =
+  let children = List.map browse children in
+  let stmts = List.map expr_of children
+  in
+    match stmts with
+    | [] -> Calast.Unit
+    | expr :: stmts ->
+        List.fold_right (fun stmt expr -> Calast.Statements (stmt, expr))
+          stmts expr
 
 and decl_of (_, attributes, children) =
   let name = ident (field attributes "name") in
@@ -215,41 +222,58 @@ and expr_of (((_, attributes, _) as expr)) =
     | "Application" -> application_of expr
     | "Assign" -> assign_of expr
     | "BinOpSeq" -> binary_of expr
+    | "Block" -> block_of expr
+    | "Call" -> application_of expr
     | "If" -> if_of expr
     | "Indexer" -> indexer_of expr
+    | "Lambda" -> lambda_of expr
     | "Let" -> let_of expr
     | "List" -> Calast.List (list_of expr)
     | "Literal" -> literal_of expr
+    | "Proc" -> proc_of expr
     | "UnaryOp" -> unary_of expr
     | "Var" -> var_of expr
+    | "While" -> while_of expr
     | _ -> failwith ("not supported: " ^ kind)
   in expr
 
 and generator_of (_, _, children) =
   match children with
   | [ decl; expr ] ->
-      let decl = decl_of (contents decl)
-      in { (decl) with Calast.d_value = Some (expr_of (contents expr)); }
+      let decl = decl_of (browse decl)
+      in { (decl) with Calast.d_value = Some (expr_of (browse expr)); }
   | _ -> failwith "Generator: incorrect number of nodes"
 
 and if_of (_, _, children) =
-  let children = List.map (fun json -> expr_of (contents json)) children
+  let children = List.map (fun json -> expr_of (browse json)) children
   in
     match children with
+    | [ e1; e2 ] -> Calast.If (e1, e2, Calast.Unit)
     | [ e1; e2; e3 ] -> Calast.If (e1, e2, e3)
     | _ -> failwith "If: syntax error"
 
 and indexer_of (_, _, children) =
   match children with
   | [ expr; args ] ->
-      let args = args_of (contents args)
+      let args = args_of (browse args)
       in
         List.fold_left (fun expr arg -> Calast.Indexer (expr, arg))
-          (expr_of (contents expr)) args
+          (expr_of (browse expr)) args
   | _ -> failwith "Indexer: syntax error"
 
+and lambda_of (_, _, children) =
+  let (decls, children) = partition children "Decl" in
+  let (exprs, children) = partition children "Expr" in
+  let (_types, children) = partition children "Type" in
+  let decls = List.map decl_of decls in
+  let exprs = List.map expr_of exprs
+  in
+    (assert ((List.length exprs) = 1);
+     assert (children = []);
+     Calast.Function (decls, [], List.hd exprs))
+
 and let_of (_, _, children) =
-  let children = List.map contents children
+  let children = List.map browse children
   in
     match children with
     | [ expr ] -> expr_of expr
@@ -270,20 +294,67 @@ and list_of (_, _, children) =
     then Calast.Comprehension (List.map expr_of exprs)
     else
       (let list = List.map expr_of exprs in
-       let children = List.map contents children
+       let children = List.map browse children
        in Calast.Generator (list, List.map generator_of children))
 
-and stmt_of stmts =
-  let stmts = List.map expr_of stmts
+and list_type_of children =
+  let (entries, children) = partition children "Entry"
   in
-    match stmts with
-    | [] -> Calast.Unit
-    | expr :: stmts ->
-        List.fold_right (fun stmt expr -> Calast.Statements (stmt, expr))
-          stmts expr
+    (assert (children = []);
+     let (types, sizes) =
+       List.partition
+         (fun (_, attributes, _) ->
+            (string (field attributes "kind")) = "Type")
+         entries
+     in
+       match types with
+       | [ (_, _, [ t ]) ] ->
+           let (is, t) = type_of (browse t)
+           in
+             (match sizes with
+              | [] -> (is, (Calast.Type.TL (None, t)))
+              | [ (_, _, [ expr ]) ] ->
+                  let expr = expr_of (browse expr)
+                  in (ignore expr; (is, (Calast.Type.TL (None, t))))
+              | _ -> assert false)
+       | _ -> assert false)
+
+and proc_of (_, _, children) =
+  let (decls, children) = partition children "Decl" in
+  let (stmts, children) = partition children "Stmt" in
+  let (_types, children) = partition children "Type" in
+  let decls = List.map decl_of decls
+  in (assert (children = []); Calast.Function (decls, [], stmt_of stmts))
+
+and stmt_of stmts =
+  let children = List.map build stmts
+  in expr_of ("Block", [ ("kind", (Build.string "Block")) ], children)
+
+and type_of (_, attributes, children) =
+  let name = optfield attributes "name"
+  in
+    match name with
+    | None -> ((IS.singleton 0), (Calast.Type.TV 0))
+    | Some name ->
+        let name = string name
+        in
+          (match name with
+           | "bool" ->
+               (assert (children = []);
+                (IS.empty, (Calast.Type.TP Calast.Type.Bool)))
+           | "int" ->
+               let (_entries, children) = partition children "Entry"
+               in
+                 (assert (children = []);
+                  (IS.empty, (Calast.Type.TP Calast.Type.Int)))
+           | "list" -> list_type_of children
+           | "string" ->
+               (assert (children = []);
+                (IS.empty, (Calast.Type.TP Calast.Type.String)))
+           | n -> failwith (n ^ " type is not known"))
 
 and unary_of (_, _, children) =
-  let children = List.map contents children
+  let children = List.map browse children
   in
     match children with
     | [ (_, attributes, []); expr ] ->
@@ -295,4 +366,11 @@ and unary_of (_, _, children) =
            | _ -> failwith "UnaryOp: syntax error") in
         let expr = expr_of expr in Calast.UnaryOp (op, expr)
     | _ -> failwith "UnaryOp: syntax error"
+
+and while_of (_, _, children) =
+  let children = List.map browse children
+  in
+    match children with
+    | [ expr; block ] -> Calast.While (expr_of expr, expr_of block)
+    | _ -> failwith "While: syntax error"
   
