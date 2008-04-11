@@ -24,125 +24,7 @@ open Json_type
   
 open Browse
   
-(** [contents_of_json json] returns a tuple (name, attributes, children) that
- hold the information of the JSON element [json]. *)
-let contents_of_json json =
-  let json_array = array json in
-  let (name, attributes, children) =
-    match json_array with
-    | [ name; children ] ->
-        let name = string name in
-        let children = array children in (name, [], children)
-    | [ name; attributes; children ] ->
-        let name = string name in
-        let attributes = objekt attributes in
-        let children = array children in (name, attributes, children)
-    | _ ->
-        type_mismatch "[ name, {attributes...}, [ children ] ] "
-          (Array json_array)
-  in
-    (* let attributes = make_table attributes in *)
-    (name, attributes, children)
-  
-(** Should it be removed when conversion is fully implemented? *)
-let field (tbl : (string * Json_type.t) list) key = List.assoc key tbl
-  
-(** Matches either \ or $. Why so many backslashes? Because \ has to be
- escaped in strings, so we get \\. \, | and $ also have to be escaped in regexps,
- so we have \\\\ \\| \\$. *)
-let re_id = Str.regexp "\\\\\\|\\$"
-  
-(** [ident json] reads [json] as a string, and makes sure it is a valid
- identifier in C and C++. *)
-let ident json =
-  let ident = string json in
-  let ident = Str.global_replace re_id "_" ident
-  in
-    match ident with
-    | "signed" -> "_cal_signed"
-    | "OUT" -> "out"
-    | "BTYPE" -> "btype"
-    | "IN" -> "in"
-    | _ -> ident
-  
-(** [partition elements key] returns a pair of lists [(l1, l2)], where l1 is
- the list of all [elements] that have the name [key], and l2 is the list
- of all [elements] that do not. The order of the elements in the input
- list is preserved. *)
-let partition elements key =
-  let (yes, no) =
-    List.fold_left
-      (fun (yes, no) element ->
-         let (name, attributes, children) = contents_of_json element
-         in
-           if name = key
-           then (((name, attributes, children) :: yes), no)
-           else (yes, (element :: no)))
-      ([], []) elements in
-  let yes = List.rev yes in let no = List.rev no in (yes, no)
-  
-(** [partition_attr elements key value] returns a pair of lists [(l1, l2)],
- where l1 is the list of all [elements] that have an attribute [key] with
- the value [value], and l2 is the list of all [elements] that do not. The
- order of the elements in the input list is preserved. *)
-let partition_attr elements key value =
-  let (yes, no) =
-    List.fold_left
-      (fun (yes, no) element ->
-         let (name, attributes, children) = contents_of_json element
-         in
-           if (field attributes key) = value
-           then (((name, attributes, children) :: yes), no)
-           else (yes, (element :: no)))
-      ([], []) elements in
-  let yes = List.rev yes in let no = List.rev no in (yes, no)
-  
-(** [list_type_of (name, attributes, children)].
-
-[type_of (name, attributes, children)] returns a [Calast.Type.definition]
- translated from the type encoded in [attributes] and [children]. *)
-let rec list_type_of children =
-  let (entries, children) = partition children "Entry"
-  in
-    (ignore children;
-     match entries with
-     | [ (_, attributes, [ t ]) ] when
-         (string (field attributes "kind")) = "Type" ->
-         let (is, t) = type_of (contents_of_json t)
-         in (is, (Calast.Type.TL (None, t)))
-     | _ -> assert false)
-
-and type_of (_, attributes, children) =
-  let name = string (field attributes "name")
-  in
-    (ignore children;
-     match name with
-     | "bool" -> (IS.empty, (Calast.Type.TP Calast.Type.Bool))
-     | "int" -> (IS.empty, (Calast.Type.TP Calast.Type.Int))
-     | "list" -> list_type_of children
-     | "string" -> (IS.empty, (Calast.Type.TP Calast.Type.String))
-     | n -> failwith (n ^ " is not known"))
-  
-(** [decl_of (_, attributes, children)]. 
-
-[expr_of (_, attributes, children)]. 
-
-*)
-let rec decl_of (_, attributes, children) =
-  let name = ident (field attributes "name") in
-  let (types, children) = partition children "Type" in
-  let t =
-    match types with
-    | [ t ] -> type_of t
-    | _ -> ((IS.singleton 0), (Calast.Type.TV 0)) in
-  let (exprs, children) = partition children "Expr" in
-  let v = match exprs with | [ e ] -> Some (expr_of e) | _ -> None
-  in
-    (List.iter (fun child -> ignore (contents_of_json child)) children;
-     { Calast.d_name = name; d_type = t; d_value = v; })
-
-and expr_of (_, attributes, children) =
-  (ignore (attributes, children); Calast.Unit)
+open Json_calast_expr
   
 (** [inputs_of ] *)
 let inputs_of inputs =
@@ -156,7 +38,7 @@ let inputs_of inputs =
        let repeat =
          match repeats with
          | [] -> Calast.Literal (Calast.Integer 1)
-         | [ repeat ] -> expr_of repeat
+         | [ (_, [], [ repeat ]) ] -> expr_of (contents repeat)
          | _ -> assert false
        in (assert (children = []); (port, decl, repeat)))
     inputs
@@ -177,7 +59,7 @@ let outputs_of outputs =
        let repeat =
          match repeats with
          | [] -> Calast.Literal (Calast.Integer 1)
-         | [ repeat ] -> expr_of repeat
+         | [ (_, [], [ repeat ]) ] -> expr_of (contents repeat)
          | _ -> assert false in
        let decl =
          {
@@ -191,12 +73,23 @@ let outputs_of outputs =
 (** [action_of ] *)
 let action_of (_, _, children) =
   let (locals, children) = partition children "Decl" in
+  let (delays, children) = partition children "Delay" in
   let (guards, children) = partition children "Guards" in
   let (inputs, children) = partition children "Input" in
   let (outputs, children) = partition children "Output" in
   let (qids, children) = partition children "QID" in
   let (stmts, children) = partition children "Stmt" in
-  let guards = List.map expr_of guards in
+  let delay =
+    match delays with
+    | [] -> Calast.Literal (Calast.Integer 1)
+    | [ (_, _, [ child ]) ] -> expr_of (contents child)
+    | _ -> failwith "Delay: syntax error" in
+  let guards =
+    match guards with
+    | [] -> []
+    | [ (_, _, children) ] ->
+        List.map expr_of (List.map contents children)
+    | _ -> failwith "Guards: syntax error" in
   let inputs = inputs_of inputs in
   let locals = List.map decl_of locals in
   let name =
@@ -204,21 +97,18 @@ let action_of (_, _, children) =
     | [] -> "unnamed"
     | [ (_, attributes, _) ] -> ident (field attributes "name")
     | _ -> assert false in
-  let outputs = outputs_of outputs
+  let outputs = outputs_of outputs in
+  let stmts = stmt_of stmts
   in
     (assert (children = []);
-     ignore stmts;
-     {(* (string * decl * expr) list; CAL action input tokens. *)
-       (* (decl * expr) list; CAL action output tokens. expr list; CAL      *)
-       (* action guards. decl list; CAL action local declarations.          *)
-       
-       Calast.a_delay = Calast.Unit;
+     {
+       Calast.a_delay = delay;
        a_guards = guards;
        a_inputs = inputs;
        a_locals = locals;
        a_name = name;
        a_outputs = outputs;
-       a_stmts = Calast.Unit;
+       a_stmts = stmts;
      })
   
 (** [priorities_of priorities] returns the priorities contained in the JSON
@@ -361,7 +251,7 @@ and network_of (name, attributes, children) =
 let calast_of_json json_source =
   try
     let json = Json_io.load_json json_source
-    in network_of (contents_of_json json)
+    in network_of (contents json)
   with
   | Json_type.Json_error err ->
       let msg = sprintf "\"%s\": %s" json_source err
