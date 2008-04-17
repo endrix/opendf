@@ -696,6 +696,26 @@ public class DefaultUntypedPlatform implements Platform {
 				throw new InterpreterException("isComplex function: Cannot apply. (" + a + ")");						
 			}
 		}, null);
+		
+		env.bind("parseInteger", new FunctionOf1() {
+			@Override
+		    public Object f(Object a) {
+				if (a instanceof String) 
+					return new BigInteger((String)a);
+				throw new InterpreterException("parseInteger function: Cannot apply. (" + a + ")");						
+			}
+		}, null);
+		
+		env.bind("parseReal", new FunctionOf1() {
+			@Override
+		    public Object f(Object a) {
+				if (a instanceof String) 
+					return Double.parseDouble((String)a);
+				throw new InterpreterException("parseReal function: Cannot apply. (" + a + ")");						
+			}
+		}, null);
+		
+		
 
 
 
