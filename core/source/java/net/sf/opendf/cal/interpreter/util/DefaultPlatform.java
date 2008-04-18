@@ -69,6 +69,10 @@ import net.sf.opendf.cal.interpreter.environment.Environment;
 import net.sf.opendf.math.Complex;
 import net.sf.opendf.util.logging.*;
 
+import java.io.InputStream;
+import java.net.InetAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
 
 /**
  *  @author Jörn W. Janneck <janneck@eecs.berkeley.edu>
@@ -1143,6 +1147,43 @@ public class DefaultPlatform implements Platform {
                 return 2;
             }
         }));
+        
+        env.bind("openTCP", context().createFunction(new Function () {
+        	public Object apply(Object[] args) {
+        		int socketnum = context().intValue(args[0]);
+        		try {
+        			ServerSocket sks = new ServerSocket(socketnum);
+		            Socket sk = sks.accept();
+        			return sk;
+        		} catch (Exception ex) {
+        			throw new InterpreterException("Exception on openTCP on socket :" +socketnum, ex);
+        		}
+        	}
+
+        	public int arity() {
+        		return 1;
+        	}
+	    }));
+	        
+	    env.bind("readTCP", context().createFunction(new Function () {
+	        	public Object apply(Object[] args) {
+	        		try {
+	        			int value = 0;
+	        			Socket sk = (Socket)context().toJavaObject(args[0]);
+	        			int bytes = context().intValue(args[1]);
+			          InputStream input = sk.getInputStream();
+			          for (int i=0; i < bytes; i++)
+			            	value = value  | ((input.read() & 0xFF)<< i*8);
+	        			return context().createInteger(value);
+	        		} catch (Exception ex) {
+	        			throw new InterpreterException("Exception on readTCP ", ex);
+	        		}
+	        	}
+	
+	        	public int arity() {
+	        		return 2;
+	        	}
+	    }));
 
 
 		

@@ -52,6 +52,11 @@ import net.sf.opendf.cal.i2.util.ReplacePrefixImportMapper;
 import net.sf.opendf.math.Complex;
 import net.sf.opendf.util.logging.Logging;
 
+import java.io.InputStream;
+import java.net.InetAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
+
 public class DefaultUntypedPlatform implements Platform {
 
 	public Configuration configuration() {
@@ -1015,6 +1020,37 @@ public class DefaultUntypedPlatform implements Platform {
                 return createInteger(aa << bb);
             }
         }, null);
+        
+        env.bind("openTCP", new FunctionOf1 () {
+			@Override
+			public Object f(Object a) {
+				int socketnum = intValueOf(a);
+				try {
+					ServerSocket sks = new ServerSocket(socketnum);
+					Socket sk = sks.accept();
+					return sk;
+				} catch (IOException e) {
+					throw new InterpreterException("Exception on openTCP on socket :" +socketnum, e);
+				}
+			}
+		}, null);
+        
+	    env.bind("readTCP", new FunctionOf2 () {
+			@Override
+			public Object f(Object a, Object b) {
+				int value =0;
+				try{
+					Socket sk = (Socket)a;
+					int bytes = intValueOf(b);
+					InputStream input = sk.getInputStream();
+					for (int i=0; i < bytes; i++)
+	            value = value  | ((input.read() & 0xFF)<< i*8);
+					return createInteger(value);
+				}catch (IOException e) {
+					throw new InterpreterException("Exception on readTCP", e);
+				}
+			}
+		}, null);
 
 		
 	}
