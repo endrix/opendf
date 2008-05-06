@@ -48,7 +48,7 @@ public class DomToJson {
 			if (child.getNodeType() == Node.TEXT_NODE) {
 				String value = child.getTextContent();
 				value = value.trim();
-				if (!value.isEmpty()) {
+				if (value.length() > 0) {
 					jsonChildren.put(value);
 				}
 			} else {
