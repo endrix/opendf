@@ -12,11 +12,14 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Transformer;
 
+import net.sf.opendf.config.ConfigFile;
+import net.sf.opendf.config.ConfigGroup;
 import net.sf.opendf.util.Loading;
 import net.sf.opendf.util.io.ClassLoaderStreamLocator;
 import net.sf.opendf.util.io.DirectoryStreamLocator;
 import net.sf.opendf.util.io.MultiLocatorStreamLocator;
 import net.sf.opendf.util.io.StreamLocator;
+import net.sf.opendf.util.logging.Logging;
 
 import org.w3c.dom.DOMImplementation;
 import org.w3c.dom.Document;
@@ -61,6 +64,26 @@ public class Util {
 		return paths.toArray(new String [paths.size()]);
 	}
 
+    public static boolean checkCreateCache (ConfigGroup config)
+    {
+        boolean doCache = true; 
+        final ConfigFile cachePathConfig = (ConfigFile)config.get(ConfigGroup.CACHE_DIR);
+        if ("".equals(cachePathConfig.getValue()))
+        {
+            doCache = false;
+        }
+        else if (!cachePathConfig.getValueFile().exists())
+        {
+            Logging.user().warning("Creating non existant cache directory " + cachePathConfig.getValueFile().getAbsolutePath());
+            if (!cachePathConfig.getValueFile().mkdirs())
+            {
+                Logging.user().warning("Could not create cache dir, continuing compilation without caching");
+                doCache = false;
+            }
+        }
+        return doCache;
+    }
+
 	public static StreamLocator[] initializeLocators(String [] modelPath, ClassLoader classLoader) {
 	
 		StreamLocator [] sl = new StreamLocator[modelPath.length + 1];
@@ -72,10 +95,14 @@ public class Util {
 		Loading.setLocators(sl);
 		return sl;
 	}
-	
-	public static Node elaborate(String networkClass, String [] modelPath, ClassLoader classLoader, Map<String, String> params, boolean postProcess, boolean inline) throws Exception
+
+    /**
+     * Phase 1 of elaboration consists of the actual elaboration, flattening,
+     * annotating instance IDs, attribute handling and adding directives.
+     */
+    public static Node elaborate(String networkClass, String [] modelPath, ClassLoader classLoader, Map<String, String> params) throws Exception
     {
-		StreamLocator locator = new MultiLocatorStreamLocator(initializeLocators(modelPath, classLoader));
+        StreamLocator locator = new MultiLocatorStreamLocator(initializeLocators(modelPath, classLoader));
 		
 		Node doc = Loading.loadActorSource(networkClass);
 		if (doc == null) {
@@ -87,16 +114,24 @@ public class Util {
 			    locator);
 
         res = applyTransformAsResource(res, elaborationTransformName, locator);
+        
         res = applyTransformsAsResources(res, postElaborationTransformNames, locator);
 
-        if (postProcess)
-        {
-            List<String> postElabXForms = new ArrayList();
-            if (inline) postElabXForms.addAll(Arrays.asList(inlineTransforms));
-            postElabXForms.addAll(Arrays.asList(postInlineTransforms));
-            String[] postElabXFormsArray = postElabXForms.toArray(new String[1]);
-            res = applyTransformsAsResources(res, postElabXFormsArray, locator);
-        }
+        return res;
+    }
+    
+    /**
+     * Phase 2 of elaboration consists of additional processing including constant prop. 
+     */
+    public static Node elaboratePostProcess (Node node, String [] modelPath, ClassLoader classLoader, boolean inline) throws Exception
+    {
+        StreamLocator locator = new MultiLocatorStreamLocator(initializeLocators(modelPath, classLoader));
+        
+        List<String> postElabXForms = new ArrayList();
+        if (inline) postElabXForms.addAll(Arrays.asList(inlineTransforms));
+        postElabXForms.addAll(Arrays.asList(postInlineTransforms));
+        String[] postElabXFormsArray = postElabXForms.toArray(new String[1]);
+        Node res = applyTransformsAsResources(node, postElabXFormsArray, locator);
 
         return res;
 	}
@@ -105,6 +140,7 @@ public class Util {
     private static final String elaborationTransformName = "net/sf/opendf/transforms/Elaborate.xslt";
 	private static final String [] postElaborationTransformNames = {
 		"net/sf/opendf/transforms/xdfFlatten.xslt",
+		"net/sf/opendf/transforms/addInstanceUID.xslt",
 
         // For now the conversion of xmlElement to attributes must be
         // done before the attribute folding.  The TypedContext does

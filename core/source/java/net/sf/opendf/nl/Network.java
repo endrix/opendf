@@ -389,10 +389,15 @@ public class Network {
 	}
 	
 
+	public static void resetIDGen () {
+	    idgen.reset();
+	}
+	
 	private static IDGenerator  idgen = new IDGenerator() {
 		public String newID() {
-			return "$id$" + id++;
-		} 			
+			return "$id_n$" + id_n++;
+		}
+		public void reset () { id_n = 0; }
 	};
 	
 	private static DOMFactory domFactory = new DOMFactory() {
@@ -417,7 +422,7 @@ public class Network {
 		}
 		
 	};	
-	private static long  id = 0;
+	private static long  id_n = 0;
 	
 
 	/*

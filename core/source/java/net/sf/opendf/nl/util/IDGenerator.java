@@ -40,5 +40,6 @@ package net.sf.opendf.nl.util;
 
 public interface  IDGenerator {
 	String  newID();
+	void reset();
 }
 

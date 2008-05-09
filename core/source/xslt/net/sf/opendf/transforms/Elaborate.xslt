@@ -2,14 +2,14 @@
 <xsl:stylesheet
     xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
     xmlns:xd="http://www.pnp-software.com/XSLTdoc"
-
+    
     xmlns:loading="java:net.sf.opendf.util.Loading"  
     xmlns:preproc="java:net.sf.opendf.cal.util.SourceReader"  
     xmlns:xnlext="java:net.sf.opendf.xslt.nl.Elaborating"  
     xmlns:cal="java:net.sf.opendf.xslt.cal.CalmlEvaluator"  
     
     extension-element-prefixes="xsl xd loading preproc xnlext cal"
-  
+    
     version="2.0">
     
     <xsl:output method="xml"/>
@@ -88,13 +88,14 @@
                 </xsl:when>
                 <xsl:when test="$source/Actor">
                   <Note kind="sourceLoaded" value="true"/>
+                  <Note kind="className" value="{$className}"/>
                   <xsl:copy-of select="Parameter"/> <!-- Bring the network parameters in local to the instance -->
                   <xsl:apply-templates select="preproc:actorPreprocess($source/Actor)"/>
                 </xsl:when>
                 <xsl:otherwise>
                   <Note kind="sourceLoaded" value="false"/>
-                  <Note kind="className" value="$className"/>
                     <xsl:copy-of select="Parameter"/>
+                    <Note kind="className" value="$className"/>
                     <Actor/>
                     <ERROR source="XNL Elaborator:">Cannot find definition for actor class <xsl:value-of select="$className"/>.
                     <xsl:copy-of select="$source"/></ERROR>
@@ -116,7 +117,7 @@
             <xsl:apply-templates select="* | text()"/>
         </xsl:copy>
     </xsl:template>
-
+    
     <xsl:template name="instantiateXDF">
         <xsl:param name="n"/>
         <xsl:param name="env"/>

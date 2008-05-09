@@ -48,6 +48,7 @@ import net.sf.opendf.config.SynthesisConfigGroup;
 import net.sf.opendf.eclipse.plugin.config.ConfigUpdateWrapper;
 import net.sf.opendf.eclipse.plugin.config.OpendfConfigLaunchDelegate;
 
+import net.sf.opendf.nl.Network;
 import net.sf.opendf.util.exception.ReportingExceptionHandler;
 
 import com.xilinx.systembuilder.cli_private.Synthesizer;
@@ -87,6 +88,7 @@ public class OpendfCompilationDelegate extends OpendfConfigLaunchDelegate
         monitor.setTaskName("Elaboration");
         status().println("Elaborating ...");
         try{
+            Network.resetIDGen(); // Resets the id's used in network instances and some var decls for consistency (improves cache hits)
             synth.synthElaborate();
         }catch (Exception e){
             status().println("Error Elaborating Network");

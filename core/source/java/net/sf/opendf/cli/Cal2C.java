@@ -75,7 +75,8 @@ public class Cal2C extends PhasedSimulator {
 
         ClassLoader classLoader = new SimulationClassLoader(Simulator.class.getClassLoader(), modelPath, cachePath);
 		try {
-			Node doc = Elaborator.elaborateModel(configuration, null, classLoader);
+            Node doc = Elaborator.elaborateModel(configuration, null, classLoader);
+            doc = Elaborator.elabPostProcess(doc, configuration, null, classLoader);
 			JSONArray array = new DomToJson().jsonOfNode(doc.getFirstChild());
 			String toto = array.toString();
 			File file = File.createTempFile("cal2c_", ".json");

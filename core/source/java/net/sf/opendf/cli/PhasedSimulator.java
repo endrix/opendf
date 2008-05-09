@@ -393,6 +393,7 @@ public class PhasedSimulator {
             if (elaborate) {
                 //Node res = Util.elaborate(actorClass, modelPath, classLoader, params, false, false);
                 Node res = Elaborator.elaborateModel(config, null, classLoader);
+                res = Elaborator.elabPostProcess(res, config, null, classLoader);
 
                 Logging.user().info("Network successfully elaborated.");
 

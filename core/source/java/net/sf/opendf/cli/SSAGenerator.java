@@ -128,8 +128,6 @@ public class SSAGenerator extends XSLTTransformRunner
      */
     private final ConfigGroup configs;
     
-    private boolean doCache; 
-    
     // A listener that is registered to pick up semantic check reports
     // from CAL or NL source reading.  This class allows suppression
     // of any report based on values passed in via --suppress-message
@@ -149,22 +147,6 @@ public class SSAGenerator extends XSLTTransformRunner
         List<String> ids = (List<String>)((ConfigList)configs.get(ConfigGroup.MESSAGE_SUPPRESS_IDS)).getValue();
         this.reportListener = new NodeErrorListener(ids);
         setRunDir(this.inputFile.getAbsoluteFile().getParentFile());
-        
-        final ConfigFile cachePath = (ConfigFile)this.configs.get(ConfigGroup.CACHE_DIR);
-        this.doCache = true;
-        if ("".equals(cachePath.getValue()))
-        {
-            this.doCache = false;
-        }
-        else if (!cachePath.getValueFile().exists())
-        {
-            Logging.user().warning("Creating non existant cache directory " + cachePath.getValueFile().getAbsolutePath());
-            if (!cachePath.getValueFile().mkdirs())
-            {
-                Logging.user().warning("Could not create cache dir, continuing compilation without caching");
-                this.doCache = false;
-            }
-        }
     }
     
     
@@ -260,34 +242,11 @@ public class SSAGenerator extends XSLTTransformRunner
         {
             try
             {
-                calmlNode = Elaborator.elaborateModel(this.configs, null, SSAGenerator.class.getClassLoader());
+                final Node ecalmlNode = Elaborator.elaborateModel(this.configs, null, SSAGenerator.class.getClassLoader());
+                calmlNode = Elaborator.elabPostProcess(ecalmlNode, this.configs, null, SSAGenerator.class.getClassLoader());
             }catch (Exception e ){
                 throw new SubProcessException("Could not elaborate top model",e);
             }
-            /*
-            // Register a listener which will report any issues in loading
-            // back to the user.
-            XSLTProcessCallbacks.registerListener(XSLTProcessCallbacks.SEMANTIC_CHECKS, reportListener);
-
-            try
-            {
-                String[] modelPath = (String[])((ConfigList)this.configs.get(ConfigGroup.MODEL_PATH)).getValue().toArray(new String[0]);
-                String cachePath = this.configs.get(ConfigGroup.CACHE_DIR).getValue().toString();
-                String topClass = this.configs.get(ConfigGroup.TOP_MODEL_NAME).getValue().toString();
-                Map<String, String> params = ((ConfigMap)this.configs.get(ConfigGroup.TOP_MODEL_PARAMS)).getValue(); 
-
-                ClassLoader classLoader = new SimulationClassLoader(SSAGenerator.class.getClassLoader(), modelPath, this.doCache?cachePath:null);
-                initializeLocators(modelPath, SSAGenerator.class.getClassLoader());
-                calmlNode = elaborate(topClass, modelPath, classLoader, params, true, true);
-            } catch (Exception e) {
-                // clean up after ourselves.
-                XSLTProcessCallbacks.removeListener(XSLTProcessCallbacks.SEMANTIC_CHECKS, reportListener);
-                throw new SubProcessException("Could not elaborate top model",e);
-            }
-            
-            // No longer needed.
-            XSLTProcessCallbacks.removeListener(XSLTProcessCallbacks.SEMANTIC_CHECKS, reportListener);
-            */
         }
         
         Node xlim = calmlToXlim(calmlNode, this.getRunDir(), prefix, this.isPreserveFiles());

@@ -23,4 +23,13 @@ public interface NodeListenerIF
      * Called once for each relevent Note in the source XML.
      */
     void report (Node report, String message);
+
+    /**
+     * Returns a node in response to being called.
+     * 
+     * @param node a non-null node
+     * @param message a message
+     * @return a non null Node
+     */
+    Node respond (Node node, String message);
 }

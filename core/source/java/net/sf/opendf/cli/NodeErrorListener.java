@@ -85,4 +85,8 @@ public class NodeErrorListener implements NodeListenerIF
         }
     }
 
+    public Node respond (Node node, String message)
+    {
+        throw new UnsupportedOperationException("Callback response not supported.  Callback from: \""+message+"\"");
+    }
 }

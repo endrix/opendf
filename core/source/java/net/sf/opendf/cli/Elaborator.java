@@ -41,8 +41,10 @@ package net.sf.opendf.cli;
 
 import static net.sf.opendf.util.xml.Util.createXML;
 import static net.sf.opendf.cli.Util.elaborate;
+import static net.sf.opendf.cli.Util.elaboratePostProcess;
 import static net.sf.opendf.cli.Util.extractPath;
 import static net.sf.opendf.cli.Util.initializeLocators;
+import static net.sf.opendf.cli.Util.checkCreateCache;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -151,6 +153,7 @@ public class Elaborator {
             ClassLoader classLoader = new SimulationClassLoader(Simulator.class.getClassLoader(), modelPath, cachePath);
 
             Node result = Elaborator.elaborateModel(configs, null, classLoader);
+            result = Elaborator.elabPostProcess(result, configs, null, classLoader);
             
             String xmlRes = createXML(result);
             
@@ -278,8 +281,11 @@ public class Elaborator {
             }
             PrintWriter pw = new PrintWriter(os);
             
-            Node res = elaborate(networkClass, modelPath, classLoader, params, postProcessing, doInlining);
-
+            Node res = elaborate(networkClass, modelPath, classLoader, params);
+            if (postProcessing)
+            {
+                res = elaboratePostProcess(res, modelPath, classLoader, doInlining);
+            }
             String xmlRes = createXML(res);
             
             if (Logging.dbg().isLoggable(Level.FINE))
@@ -325,21 +331,7 @@ public class Elaborator {
 	        reportListener = new NodeErrorListener(ids);
 	    }
 
-	    boolean doCache = true; 
-	    final ConfigFile cachePathConfig = (ConfigFile)config.get(ConfigGroup.CACHE_DIR);
-        if ("".equals(cachePathConfig.getValue()))
-        {
-            doCache = false;
-        }
-        else if (!cachePathConfig.getValueFile().exists())
-        {
-            Logging.user().warning("Creating non existant cache directory " + cachePathConfig.getValueFile().getAbsolutePath());
-            if (!cachePathConfig.getValueFile().mkdirs())
-            {
-                Logging.user().warning("Could not create cache dir, continuing compilation without caching");
-                doCache = false;
-            }
-        }
+	    boolean doCache = checkCreateCache(config);
 	    
         // Register a listener which will report any issues in loading
         // back to the user.
@@ -348,19 +340,17 @@ public class Elaborator {
         final Node elaboratedNode;
         try
         {
-            String[] modelPath = (String[])((ConfigList)config.get(ConfigGroup.MODEL_PATH)).getValue().toArray(new String[0]);
-            String cachePath = config.get(ConfigGroup.CACHE_DIR).getValue().toString();
+            //String[] modelPath = (String[])((ConfigList)config.get(ConfigGroup.MODEL_PATH)).getValue().toArray(new String[0]);
+            String[] modelPath = getModelPath(config);
+            ClassLoader classLoader = getClassLoader(config, defaultClassloader, doCache);
+            
             String topClass = config.get(ConfigGroup.TOP_MODEL_NAME).getValue().toString();
             Map<String, String> params = ((ConfigMap)config.get(ConfigGroup.TOP_MODEL_PARAMS)).getValue();
-            boolean postProcess = ((ConfigBoolean)config.get(ConfigGroup.ELABORATE_PP)).getValue().booleanValue();
-            boolean inline = ((ConfigBoolean)config.get(ConfigGroup.ELABORATE_INLINE)).getValue().booleanValue();
 
-            ClassLoader classLoader = new SimulationClassLoader(defaultClassloader, modelPath, doCache?cachePath:null);
             initializeLocators(modelPath, defaultClassloader);
 
             // networkClass, modelpath, classloader, params, post process, inline
-            elaboratedNode = elaborate(topClass, modelPath, classLoader, params, postProcess, inline);
-            
+            elaboratedNode = elaborate(topClass, modelPath, classLoader, params);
         } catch (Exception e) {
             // clean up after ourselves.
             XSLTProcessCallbacks.removeListener(XSLTProcessCallbacks.SEMANTIC_CHECKS, reportListener);
@@ -371,7 +361,35 @@ public class Elaborator {
         XSLTProcessCallbacks.removeListener(XSLTProcessCallbacks.SEMANTIC_CHECKS, reportListener);
 	    return elaboratedNode;
 	}
+    
+    public static Node elabPostProcess (Node node, ConfigGroup config, NodeListenerIF listener, ClassLoader defaultClassloader) throws Exception
+    {
+        boolean postProcess = ((ConfigBoolean)config.get(ConfigGroup.ELABORATE_PP)).getValue().booleanValue();
+        
+        Node result = node;
+        if (postProcess)
+        {
+            boolean inline = ((ConfigBoolean)config.get(ConfigGroup.ELABORATE_INLINE)).getValue().booleanValue();
+            boolean doCache = checkCreateCache(config);
+            String[] modelPath = getModelPath(config);
+            ClassLoader classLoader = getClassLoader(config, defaultClassloader, doCache);
+
+            result = elaboratePostProcess(node, modelPath, classLoader, inline);
+        }
+        return result;
+    }
 	
+    private static String[] getModelPath (ConfigGroup config)
+    {
+        return (String[])((ConfigList)config.get(ConfigGroup.MODEL_PATH)).getValue().toArray(new String[0]);
+    }
+    private static ClassLoader getClassLoader (ConfigGroup config, ClassLoader defaultClassloader, boolean doCache)
+    {
+        String[] modelPath = getModelPath(config);
+        String cachePath = config.get(ConfigGroup.CACHE_DIR).getValue().toString();
+        return new SimulationClassLoader(defaultClassloader, modelPath, doCache?cachePath:null);
+    }
+    
 	static private void usage(String message) {
 		System.err.println(message);
 		usage();

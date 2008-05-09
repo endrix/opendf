@@ -6,6 +6,9 @@
 package net.sf.opendf.xslt.util;
 
 import java.util.*;
+
+import net.sf.opendf.util.logging.Logging;
+
 import org.w3c.dom.Node;
 
 /**
@@ -20,9 +23,11 @@ public class XSLTProcessCallbacks
 {
     public static final int SEMANTIC_CHECKS = 5;
     public static final int ACTOR_INSTANTIATION = 6;
+
+    // Reserved for hardware code generation
+    public static final int HW_CODEGEN_CACHE_CHECK = 100; 
     
-    //private static List<NodeListenerIF> nodeListeners = Collections.EMPTY_LIST;
-    private static Map<Integer, List<NodeListenerIF>> nodeListeners = new HashMap();
+    protected static Map<Integer, List<NodeListenerIF>> nodeListeners = new HashMap();
 
 
     /**
@@ -91,7 +96,29 @@ public class XSLTProcessCallbacks
             listener.report(actor, message);
         }
     }
- 
+
+    /**
+     * Called to determine if the Instance node is cacheable for hardware code generation.
+     * 
+     * @param instance
+     * @param message
+     * @return
+     */
+    public static Node checkCacheable (Node instance, String message)
+    {
+        if (!nodeListeners.containsKey(HW_CODEGEN_CACHE_CHECK))
+            return instance;
+
+        Node result = instance;
+        for (NodeListenerIF listener : nodeListeners.get(HW_CODEGEN_CACHE_CHECK))
+        {
+            result = listener.respond(instance, message);
+        }
+        
+        return result;
+    }
+    
+    
     /**
      * Returns a String which is the hexification of the input string (number).
      * @param s a String formatted number
