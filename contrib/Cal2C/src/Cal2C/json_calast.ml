@@ -153,10 +153,12 @@ let rec actor_of (_, attributes, children) =
   let (actions, children) = partition children "Action" in
   let (decls, children) = partition children "Decl" in
   let (_imports, children) = partition children "Import" in
+	let (_initializers, children) = partition children "Initializer" in
   let (_notes, children) = partition children "Note" in
   let (ports, children) = partition children "Port" in
   let (priorities, children) = partition children "Priority" in
   let (_schedule, children) = partition children "Schedule" in
+	let (_type_parameters, children) = partition children "TypeParameter" in
   let (locals, parameters) =
     List.partition
       (fun (_, attributes, _) ->
@@ -175,7 +177,7 @@ let rec actor_of (_, attributes, children) =
   let parameters = List.map decl_of parameters in
   let priorities = priorities_of priorities
   in
-    (assert (children = []);
+    (assert_empty children;
      {
        Calast.ac_actions = actions;
        Calast.ac_fsm = fsm;

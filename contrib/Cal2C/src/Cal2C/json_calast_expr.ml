@@ -23,7 +23,7 @@ open Printf
 open Json_type
   
 open Browse
-  
+
 (** [browse json] returns a tuple (name, attributes, children) that holds
  the information of the JSON element [json]. *)
 let browse json =
@@ -106,7 +106,21 @@ let literal_of (_, attributes, _) =
     | "String" -> Calast.String (value ())
     | kind -> failwith ("Unknown literal kind: " ^ kind)
   in Calast.Literal literal
-  
+
+(** [assert_empty list] makes sure that there is no more elements in [list].
+Otherwise it prints its contents, and asserts false. *)
+let assert_empty list =
+	if list = [] then
+		()
+	else (
+		List.iter (fun json ->
+			let (name, attributes, _) = browse json in
+			print_endline name;
+			List.iter (fun (name, value) ->
+				printf "attribute %s = \"%s\"\n" name (string value))
+				attributes) list;
+		assert false)
+		  
 (** [var_of attributes] returns a [Calast.Var name] where [name] is the
  variable name read from "name" JSON attribute. *)
 let var_of (_, attributes, _) = Calast.Var (ident (field attributes "name"))
@@ -215,6 +229,12 @@ and decl_of (_, attributes, children) =
     (assert (children = []);
      { Calast.d_name = name; d_type = t; d_value = v; })
 
+and entry_of (_, attributes, children) =
+  let name = ident (field attributes "name") in
+	ignore children;
+	printf "Ignoring Entry element %s\n" name;
+  Calast.Var name
+
 and expr_of (((_, attributes, _) as expr)) =
   let kind = string (field attributes "kind") in
   let expr =
@@ -224,6 +244,7 @@ and expr_of (((_, attributes, _) as expr)) =
     | "BinOpSeq" -> binary_of expr
     | "Block" -> block_of expr
     | "Call" -> application_of expr
+		| "Entry" -> entry_of expr
     | "If" -> if_of expr
     | "Indexer" -> indexer_of expr
     | "Lambda" -> lambda_of expr
@@ -347,7 +368,7 @@ and type_of (_, attributes, children) =
                in
                  (assert (children = []);
                   (IS.empty, (Calast.Type.TP Calast.Type.Int)))
-           | "list" -> list_type_of children
+           | "list" | "List" -> list_type_of children
            | "string" ->
                (assert (children = []);
                 (IS.empty, (Calast.Type.TP Calast.Type.String)))
