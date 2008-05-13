@@ -42,8 +42,7 @@ import java.util.*;
 import java.io.*;
 
 public class SynthesisConfigGroup extends ConfigGroup
-{
-
+{    
     public SynthesisConfigGroup ()
     {
         super();
@@ -79,6 +78,20 @@ public class SynthesisConfigGroup extends ConfigGroup
                 "Preserve Compiler Intermediate Files",
                 "--preserve", // cla
                 "Preserve significant intermediate xml files in multi-stage transformation",
+                false, // required
+                false // default
+        ));
+        
+        String restDefault = (File.pathSeparator.equals(";")) ? "planAhead.bat" : "planAhead";
+        registerConfig(REST_EXEC_LOCATION, new ConfigFile (REST_EXEC_LOCATION, "Resource estimator location",
+                "--resourceExec",
+                "The location of the resource estimator executable",
+                false,
+                restDefault
+        ));
+        registerConfig(SYNTH_DO_REST, new ConfigBoolean (SYNTH_DO_REST, "Enable resource estimation",
+                "--resourceEstimate",
+                "Perform resource estimation on the design",
                 false, // required
                 false // default
         ));
