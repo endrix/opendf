@@ -10,6 +10,7 @@ import net.sf.opendf.util.io.ClassLoaderStreamLocator;
 import net.sf.opendf.util.io.StreamLocator;
 import net.sf.opendf.util.logging.Logging;
 import net.sf.opendf.util.source.CalMLLoader;
+import net.sf.opendf.util.source.DDLLoader;
 import net.sf.opendf.util.source.SourceLoader;
 import net.sf.opendf.util.source.XDFLoader;
 import net.sf.opendf.util.source.XNLLoader;
@@ -66,6 +67,7 @@ public class Loading {
 		
 	private static SourceLoader [] loaders = {
 		new CalLoader(),
+		new DDLLoader(),
 		new NLLoader(),
 		new XNLLoader(),
 		new XDFLoader(),
