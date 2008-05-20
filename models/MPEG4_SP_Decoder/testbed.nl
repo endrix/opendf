@@ -41,9 +41,9 @@ network testbed (TESTDATA="/Enter rooted path to test data directory here/") ==>
 
 entities
 	decoder = decoder();
-	source = fread(fname = TESTDATA+"foreman_qcif_30.bit");
+	source = fread(fname = TESTDATA+"/foreman_qcif_30.bit");
 	display = DispYUV(title = "Foreman QCIF",
-                      file = TESTDATA+"foreman_qcif_30.yuv",
+                      file = TESTDATA+"/foreman_qcif_30.yuv",
 	                  width = 176,
 	                  height = 144,
 	                  doCompare = 1);
