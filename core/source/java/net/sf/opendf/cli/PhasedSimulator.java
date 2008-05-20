@@ -253,7 +253,7 @@ public class PhasedSimulator {
                 return false;
             }
 
-            sim = new SequentialSimulator(dec, this.ioCallback);
+            sim = new SequentialSimulator(dec, classLoader, this.ioCallback);
         }
         catch (Throwable t)
         {

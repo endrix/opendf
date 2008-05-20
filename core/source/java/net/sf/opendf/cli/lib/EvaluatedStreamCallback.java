@@ -85,7 +85,7 @@ public class EvaluatedStreamCallback extends IOCallback
      */
     public EvaluatedStreamCallback (InputStream inStream, OutputStream outStream, Platform plat)
     {
-        super(new PrintWriter(new OutputStreamWriter(outStream)));
+        super(new PrintWriter(new OutputStreamWriter(outStream), true));
 
         if (plat == null)
             throw new IllegalArgumentException("Evaluation platform must be non-null");
