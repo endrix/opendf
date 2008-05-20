@@ -69,6 +69,7 @@ public abstract class IOCallback implements SequentialSimulatorCallback
         public void message(Object e, double time, Object source) {
             if (outputWriter != null) {
                 outputWriter.println(name + "\t" + time + "\t" + e);
+                outputWriter.flush();
             }
         }
 	
