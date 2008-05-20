@@ -161,7 +161,8 @@ public class ConfigCLIParseFactory
                     ((ConfigInt)config).setValue(Integer.parseInt(additional[0]), true);
                 break;
             case AbstractConfig.TYPE_LIST : assert additional.length == 1 : "list config expects 1 additional tokens";
-                ((ConfigList)config).addValue(Collections.singletonList(additional[0]), true);
+                // ((ConfigList)config).addValue(Collections.singletonList(additional[0]), true);
+               ((ConfigList)config).setValue(additional[0], true);
                 break;
             case AbstractConfig.TYPE_MAP : assert additional.length == 1 : "map config expects 1 additional tokens";
                 if (additional[0].indexOf('=') < 0)
