@@ -168,7 +168,7 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 			//  build environment
 			//
 			
-			setupConstantEnvironment();
+			setupConstantEnvironment(s.getClassLoader());
 			
 			outsideEnv = new EnvironmentWrapper(this.instantiationEnv, constantEnv);
 			
@@ -1009,9 +1009,9 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 		ah.assertionFailed(this, assertionLocus, getFiringCount(), null, message);
 	}
 	
-	private void  setupConstantEnvironment() {
+	private void  setupConstantEnvironment(ClassLoader cl) {
 		if (constantEnv == null) {
-			ImportHandler [] importHandlers = thePlatform.getImportHandlers(CalInterpreter.class.getClassLoader());
+			ImportHandler [] importHandlers = thePlatform.getImportHandlers(cl);
 			ImportMapper [] importMappers = thePlatform.getImportMappers();
 					
 			Environment env = ImportUtil.handleImportList(thePlatform.createGlobalEnvironment(),
