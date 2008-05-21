@@ -182,13 +182,13 @@ public class SequentialSimulator {
 //	for adding a parameter "boolean useInteractiveScheduler" to enable interactiveScheduler
 //	
 	
-	public SequentialSimulator(double t, DiscreteEventComponent dec, SequentialSimulatorCallback sscb, Map properties, boolean useInteractiveScheduler) {
+	public SequentialSimulator(double t, DiscreteEventComponent dec, ClassLoader classLoader, SequentialSimulatorCallback sscb, Map properties, boolean useInteractiveScheduler) {
 		component = dec;
 		callback = sscb;
 		scheduler = null;
 	
 		callback.connect(component);
-		scheduler = new SimpleScheduler();
+		scheduler = new SimpleScheduler(classLoader);
 		
 		for (Iterator i = properties.keySet().iterator(); i.hasNext(); ) {
 			Object k = i.next();
@@ -197,18 +197,22 @@ public class SequentialSimulator {
 		initialize(t);
 	}
 		
-	public SequentialSimulator(double t, DiscreteEventComponent dec, SequentialSimulatorCallback sscb, boolean useInteractiveScheduler) {
-		this(t, dec, sscb, Collections.EMPTY_MAP, useInteractiveScheduler);
+	public SequentialSimulator(double t, DiscreteEventComponent dec, SequentialSimulatorCallback sscb, Map properties, boolean useInteractiveScheduler) {
+		this (t, dec, dec.getClass().getClassLoader(), sscb, properties, useInteractiveScheduler);
+	}
+		
+	public SequentialSimulator(double t, DiscreteEventComponent dec, ClassLoader classLoader, SequentialSimulatorCallback sscb, boolean useInteractiveScheduler) {
+		this(t, dec, classLoader, sscb, Collections.EMPTY_MAP, useInteractiveScheduler);
 	}
 
-	public SequentialSimulator(DiscreteEventComponent dec, SequentialSimulatorCallback sscb) {
-		this(0, dec, sscb, false);
+	public SequentialSimulator(DiscreteEventComponent dec, ClassLoader classLoader, SequentialSimulatorCallback sscb) {
+		this(0, dec, classLoader, sscb, false);
 	}
 	
-	public SequentialSimulator(double t, DiscreteEventComponent dec,
+	public SequentialSimulator(double t, DiscreteEventComponent dec, ClassLoader classLoader,
 			InputStream inStream, OutputStream outStream,
 			boolean useInteractiveScheduler) {
-		this(t, dec, new StreamIOCallback(inStream, outStream), useInteractiveScheduler);
+		this(t, dec, classLoader, new StreamIOCallback(inStream, outStream), useInteractiveScheduler);
 	}
 	
 	public SequentialSimulator(double t, DiscreteEventComponent dec,
@@ -217,9 +221,9 @@ public class SequentialSimulator {
 		this(t, dec, new StreamIOCallback(inStream, outStream), properties, useInteractiveScheduler);
 	}
 	
-	public SequentialSimulator(double t, DiscreteEventComponent dec,
+	public SequentialSimulator(double t, DiscreteEventComponent dec, ClassLoader classLoader,
 			InputStream inStream, OutputStream outStream) {
-		this(t, dec, new StreamIOCallback(inStream, outStream), false);
+		this(t, dec, classLoader, new StreamIOCallback(inStream, outStream), false);
 	}
 	
 	public SequentialSimulator(double t, DiscreteEventComponent dec,
@@ -227,25 +231,25 @@ public class SequentialSimulator {
 		this(t, dec, new StreamIOCallback(inStream, outStream), properties, false);
 	}
 	
-	public SequentialSimulator(DiscreteEventComponent dec, InputStream inStream, OutputStream outStream) {
-		this(0, dec, inStream, outStream);
+	public SequentialSimulator(DiscreteEventComponent dec, ClassLoader classLoader, InputStream inStream, OutputStream outStream) {
+		this(0, dec, classLoader, inStream, outStream);
 	}
 	
 	public SequentialSimulator(DiscreteEventComponent dec, InputStream inStream, OutputStream outStream, Map properties) {
 		this(0, dec, inStream, outStream, properties);
 	}
 	
-	public SequentialSimulator(double t, DiscreteEventComponent dec, Reader inReader, Writer outWriter) {
-		this(t, dec, new StreamIOCallback(inReader, outWriter), false);
+	public SequentialSimulator(double t, DiscreteEventComponent dec, ClassLoader classLoader, Reader inReader, Writer outWriter) {
+		this(t, dec, classLoader, new StreamIOCallback(inReader, outWriter), false);
 	}
 	
-	public SequentialSimulator(DiscreteEventComponent dec, Reader inReader, Writer outWriter) {
-		this(0, dec, inReader, outWriter);
+	public SequentialSimulator(DiscreteEventComponent dec, ClassLoader classLoader, Reader inReader, Writer outWriter) {
+		this(0, dec, classLoader, inReader, outWriter);
 	}
 	
-	public SequentialSimulator(double t, DiscreteEventComponent dec, String inFile, String outFile) throws IOException, FileNotFoundException {
+	public SequentialSimulator(double t, DiscreteEventComponent dec, ClassLoader classLoader, String inFile, String outFile) throws IOException, FileNotFoundException {
 
-		this(t, dec, 
+		this(t, dec, classLoader, 
 				(inFile == null) ? new NullInputStream() :
 	                   (".".equals(inFile)) ? System.in :
 	                	   new FileInputStream(inFile),
