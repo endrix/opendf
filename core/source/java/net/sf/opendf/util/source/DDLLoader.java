@@ -38,6 +38,6 @@ public class DDLLoader extends XMLLoader {
 	static {
         StreamLocator locator = new ClassLoaderStreamLocator(DDLLoader.class.getClassLoader());
 		convertDDL = Util.getTransformersAsResources(new String [] {
-								"net.sf.opendf.transforms.DDL2XDF.xslt"}, locator);
+								"net/sf/opendf/transforms/DDL2XDF.xslt"}, locator);
 	}
 }
