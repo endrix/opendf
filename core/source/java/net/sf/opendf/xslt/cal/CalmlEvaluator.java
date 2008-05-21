@@ -112,6 +112,32 @@ public class CalmlEvaluator
 
 	}
 	
+	public static boolean  isDefined (String var, Node env, String classLoadingContextID) throws Exception {
+		if (specialVariables.contains(var))
+			return true;
+		try {	  
+			ClassLoader cl = classLoadingContexts.get(classLoadingContextID);
+			if (cl == null) {
+				cl = CalmlEvaluator.class.getClassLoader();
+			}
+			Environment thisEnv = createConstantPropagationEnvironment(env, emptyDocument(), cl);
+			boolean result;
+			try {
+				thisEnv.get(var);
+				result = true;
+			}
+			catch (Exception e) {
+				result = false;
+			}
+			return result;
+		} catch (Throwable th) {
+            Logging.user().warning(th.toString());
+            Logging.dbg().warning(th.toString());
+			throw new RuntimeException("Cannot evaluate expression.", th);
+		}
+
+	}
+	
 	private static Set<String> specialVariables = new HashSet<String>();
 	static {
 		specialVariables.add("this");
@@ -332,6 +358,19 @@ public class CalmlEvaluator
 
 		return n;
 	}
+	
+	public  synchronized static  String  startClassLoadingContext(ClassLoader cl) {
+		String s = Long.toString(n++);
+		classLoadingContexts.put(s, cl);
+		return s;
+	}
+	
+	public  synchronized static void  endClassLoadingContext(String id) {
+		classLoadingContexts.remove(id);
+	}
+	
+	private static long  n = 0;
+	private static Map<String, ClassLoader>  classLoadingContexts = new HashMap<String, ClassLoader>();
 
 	private static void  reallyEmbarrassingHackToMakeThingsWork(Node n) throws TransformerException
     {
@@ -352,6 +391,10 @@ public class CalmlEvaluator
 	
 	
 	private static Environment  createConstantPropagationEnvironment(Node theEnv, Document doc) {
+		return createConstantPropagationEnvironment(theEnv, doc, CalmlEvaluator.class.getClassLoader());
+	}
+	
+	private static Environment  createConstantPropagationEnvironment(Node theEnv, Document doc, ClassLoader cl) {
         
         Element eEnv;
         if (theEnv instanceof Element) {
@@ -375,7 +418,7 @@ public class CalmlEvaluator
 			}
 		}
 		Environment env0 = ImportUtil.handleImportList(sbPlatform.createGlobalEnvironment(),
-				sbPlatform.getImportHandlers(CalmlEvaluator.class.getClassLoader()),
+				sbPlatform.getImportHandlers(cl),
 				imports,
 				sbPlatform.getImportMappers());
 		Environment env = TypedPlatform.theContext.newEnvironmentFrame(env0);
