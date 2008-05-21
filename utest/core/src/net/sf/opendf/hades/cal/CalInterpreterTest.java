@@ -91,6 +91,6 @@ public class CalInterpreterTest extends TestCase
         public Object setProperty (Object key, Object value) { return null; }
         public void unregisterSimulationFinalizer (SimulationFinalizer sf){}
         public void unschedule (EventProcessor ep){}
-        
+        public ClassLoader getClassLoader() { return null;}
     }
 }
