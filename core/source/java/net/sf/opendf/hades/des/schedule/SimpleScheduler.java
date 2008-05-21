@@ -126,5 +126,17 @@ public class SimpleScheduler extends AbstractObservableScheduler {
 			notifyUnschedule(ep);
 	}
 	
-	public SimpleScheduler() {}
+	public ClassLoader  getClassLoader() {
+		return classLoader;
+	}
+	
+	public SimpleScheduler(ClassLoader classLoader) {
+		this.classLoader = classLoader;
+	}
+
+	public SimpleScheduler() {
+		this (SimpleScheduler.class.getClassLoader());
+	}
+	
+	private ClassLoader  classLoader;
 }

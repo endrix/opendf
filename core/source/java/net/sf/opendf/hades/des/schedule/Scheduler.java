@@ -187,4 +187,12 @@ public interface Scheduler {
    */
 
   public Object  setProperty(Object key, Object value);
+  
+  /**
+   * Get the classloader for this simulation.
+   * 
+   * @return The current simulation classloader.
+   */
+  
+  public ClassLoader  getClassLoader();
 }

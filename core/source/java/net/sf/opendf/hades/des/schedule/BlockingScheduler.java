@@ -132,4 +132,8 @@ public class BlockingScheduler extends AbstractScheduler implements Scheduler, E
 		return inner.isNextWeak();
 	}
 	
+	public ClassLoader getClassLoader() {
+		return inner.getClassLoader();
+	}
+	
 }
