@@ -225,6 +225,10 @@ implements Scheduler, EventProcessor {
 		return properties.put(key, value);
 	}
 	
+	public ClassLoader getClassLoader() {
+		return local.getClassLoader();
+	}
+	
 
 	private Map  properties = null;
 
