@@ -89,28 +89,28 @@ actor SerialInput ()
 	Read.I0:	action I0: [a] ==>
 				guard not avail[0]
 				do
-					ir[0] := a;
+					d[0] := a;
 					avail[0] := true;
 				end
 				
 	Read.I1:	action I1: [a] ==>
 				guard not avail[1]
 				do
-					ir[1] := a;
+					d[1] := a;
 					avail[1] := true;
 				end
 				
 	Read.I2:	action I2: [a] ==>
 				guard not avail[2]
 				do
-					ir[2] := a;
+					d[2] := a;
 					avail[2] := true;
 				end
 				
 	Read.I3:	action I3: [a] ==>
 				guard not avail[3]
 				do
-					ir[3] := a;
+					d[3] := a;
 					avail[3] := true;
 				end
 				
