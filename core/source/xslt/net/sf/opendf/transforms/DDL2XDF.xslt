@@ -16,7 +16,7 @@
   
   <xsl:output method="xml"/>
   
-  <xsl:template match="network">
+  <xsl:template match="Network">
     <XDF>
       <xsl:apply-templates/>
     </XDF>
