@@ -95,13 +95,5 @@
     <xsl:apply-templates mode="globals" select="*"/>
   </xsl:template>
 
-  <!-- avoid having next-match call the default template -->
-
-  <xsl:template match="*" mode="globals" priority="-1000">
-    <xsl:apply-templates mode="#current"/>
-  </xsl:template>   
-
-  <xsl:template match="@*" mode="globals" priority="-1000"></xsl:template>   
-
 </xsl:stylesheet>
 

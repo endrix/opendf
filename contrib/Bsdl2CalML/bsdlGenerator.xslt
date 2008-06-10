@@ -86,13 +86,6 @@
       rvc:localName($rootElement/@type) else 
       concat(rvc:localName($rootElement/@name),'Type')"/>
 
-
-<!--    <xsl:variable name="readList">
-      <xsl:apply-templates select="$rootElement" mode="linearize"/>
-      <read name="&finalState;" again="true" testRequired="true"/>
-    </xsl:variable> -->
-    
-
     <xsl:call-template name="actor">
       <xsl:with-param name="name">BSDLParser</xsl:with-param>
 
@@ -111,17 +104,6 @@
           <xsl:with-param name="name" select="('caltrop','lib','BitOps')"/>
           <xsl:with-param name="kind" select="'package'"/>
         </xsl:call-template>
-        <xsl:call-template name="import">        <!-- import java.lang.Object -->
-          <xsl:with-param name="name" select="('java','lang','Object')"/>
-        </xsl:call-template>
-       <!-- <xsl:call-template name="import">  
-             <xsl:with-param name="name" select="('org','iso','mpeg','rvc','objects')"/>
-             <xsl:with-param name="kind" select="'package'"/>
-          </xsl:call-template>
-        <xsl:call-template name="import">  
-          <xsl:with-param name="name" select="('org','iso','mpeg','rvc')"/>
-          <xsl:with-param name="kind" select="'package'"/>
-        </xsl:call-template>-->
         <xsl:call-template name="import"><!--  import java.lang.system.out -->
           <xsl:with-param name="name" select="('java','lang','System','out')"/>
           <xsl:with-param name="kind" select="'package'"/>
@@ -133,18 +115,6 @@
 
         <xsl:call-template name="bitAction"/>
 
-        <!-- declare the current element list -->   <!--modified by Christophe Lucarz, 26.09.07 for the scope of the meeting demo-->
-
-        <!--<xsl:call-template name="list">
-
-          <xsl:with-param name="name">&current;</xsl:with-param>
-
-          <xsl:with-param name="size" select="xsd:integer(max($readList//@depth))"/>
-          <xsl:with-param name="type">&object;</xsl:with-param>
-          </xsl:call-template>-->
-
-
-
         <!-- create length constants -->
 
         <xsl:call-template name="lengthConstants"/>
@@ -155,9 +125,6 @@
         </xsl:apply-templates>
         
         <!-- create the actions -->
-        <!--<xsl:apply-templates mode="buildActions" select="$readList">
-          <xsl:with-param name="defaultPrefix" select="$targetPrefix" tunnel="yes"/>
-          </xsl:apply-templates>-->
         <xsl:apply-templates mode="actions" select="*"/>
         
 
@@ -165,7 +132,7 @@
 
         <xsl:call-template name="fsm">
 
-          <!--<xsl:with-param name="initialState" select="concat($readList/read[1]/@name,'&existsStateSuffix;')"/>--><!-- assuming the root exists! -->
+          <!-- assuming the root exists! -->
           <xsl:with-param name="initialState">
             <xsl:apply-templates mode="firstname" select="$rootElement" />
           </xsl:with-param>
@@ -176,14 +143,9 @@
 
         </xsl:call-template>
 
-
-        <xsl:apply-templates mode="priorities" select="*"/>
         <!-- create the priorities -->
-        <!--<xsl:call-template name="priorities">
-          <xsl:with-param name="priorities">
-            <xsl:apply-templates mode="priorities" select="*"/>
-          </xsl:with-param>
-        </xsl:call-template>-->
+        <xsl:apply-templates mode="priorities" select="*"/>
+        
       </xsl:with-param>
 
     </xsl:call-template>

@@ -151,32 +151,6 @@
 
   <xsl:template name="bitAction">
 
- <!--   <xsl:text xml:space="preserve">
-      // Utility action to read a specified number of bits.
-      // This is an unnamed action, ie it is always enabled and has highest priority.
-      // Use the procedures set_bits_to_read() to start reading, test for
-      // completion with the boolean done_reading_bits() and get the value
-      // with read_result(). Use the done function in a guard to wait for the
-      // reading to be complete.
-      string current ; 
-      int(size=7) bits_to_read_count := -1;
-      string read_result_in_progress;
-      procedure setRead ( int count )
-      begin
-      bits_to_read_count := count - 1;
-      read_result_in_progress := "";
-      end
-      function readDone( ) - -&gt; bool : bits_to_read_count &lt; 0 end
-      function readResult( ) - -&gt; string : read_result_in_progress end
-      action bitstream :[ b ] ==&gt;
-      guard 
-      not readDone()
-      do
-      read_result_in_progress := read_result_in_progress + if b then "1" else "0" end ;
-      bits_to_read_count := bits_to_read_count - 1;
-      end
-      </xsl:text>-->
-
     <xsl:text>&lt;Decl assignable="Yes" kind="Variable" name="output"&gt;&nl;</xsl:text>
     <xsl:text>&lt;Type name="int"/&gt;&nl;</xsl:text>
     <xsl:text>&lt;/Decl&gt;&nl;</xsl:text>
@@ -387,9 +361,7 @@
   <xsl:template name="statement">
     <xsl:param name="expressions" required="no"/>
     <xsl:if test="string-length($expressions) &gt; 0">
-      <!--<xsl:text>&tab;&tab;</xsl:text>-->
       <xsl:value-of select="$expressions"/>
-      <!--<xsl:text>;&nl;</xsl:text>-->
     </xsl:if>
   </xsl:template>
   
@@ -531,10 +503,8 @@
   </xsl:template>
   
   <xsl:template name="priorities">
-    <!--<xsl:param name="priorities" as="node()*" required="yes"/>-->
     <xsl:param name="priorities" required="yes"/>
     <xsl:text>&nl;&tab;priority&nl;</xsl:text>
-    <!--<xsl:value-of select="$priorities/item"/>-->
     <xsl:value-of select="$priorities"/>
     <xsl:text>&tab;end&nl;</xsl:text>
   </xsl:template>

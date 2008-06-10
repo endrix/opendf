@@ -53,7 +53,7 @@
             </xsl:with-param>
             <xsl:with-param name="to">
                 <xsl:apply-templates select="*[1]" mode="nextname">
-                    <xsl:with-param name="stack" select="."/>
+                    <xsl:with-param name="stack" select="."  tunnel="yes"/>
                 </xsl:apply-templates>
             </xsl:with-param>
             <xsl:with-param name="action">
@@ -66,26 +66,23 @@
         </xsl:call-template>
         
         <xsl:apply-templates mode="fsmoutput" select="*">
-            <xsl:with-param name="next">exit</xsl:with-param>
-            <xsl:with-param name="stack" select="."/>
+            <xsl:with-param name="next" tunnel="yes">exit</xsl:with-param>
+            <xsl:with-param name="stack" select="." tunnel="yes"/>
         </xsl:apply-templates>
     </xsl:template>
     
     <xsl:template match="xsd:element | xsd:group | xsd:sequence |  xsd:all" priority="60" mode="fsmoutput">
-        <xsl:param name="next" required="yes"/>  
-        <xsl:param name="stack" required="yes"/>
+        <xsl:param name="stack" required="yes" tunnel="yes"/>
         <xsl:variable name="newStack" select="if ($stack[1] is .) then $stack else (.,$stack)"/>
         <xsl:next-match>
-            <xsl:with-param name="next" select="$next"/>
-            <xsl:with-param name="stack" select="$newStack"/> 
-            <xsl:with-param name="stacko" select="$stack"/> 
+            <xsl:with-param name="stack" select="$newStack" tunnel="yes"/> 
+            <xsl:with-param name="stacko" select="$stack" tunnel="yes"/> 
         </xsl:next-match>
     </xsl:template>
     
     <xsl:template match="xsd:element" priority="50" mode="fsmoutput">
-        <xsl:param name="next" required="yes"/>  
-        <xsl:param name="stack" required="yes"/>
-        <xsl:param name="stacko" required="yes"/>
+        <xsl:param name="stack" required="yes" tunnel="yes"/>
+        <xsl:param name="stacko" required="yes" tunnel="yes"/>
        
         <xsl:call-template name="transition">
             <xsl:with-param name="from">
@@ -104,8 +101,7 @@
                     </xsl:when>
                     <xsl:otherwise>
                         <xsl:apply-templates select="." mode="fsmnext">
-                            <xsl:with-param name="stack" select="$stacko"/> 
-                            <xsl:with-param name="next" select="$next"/> 
+                            <xsl:with-param name="stack" select="$stacko" tunnel="yes"/> 
                         </xsl:apply-templates>
                     </xsl:otherwise>
                 </xsl:choose>
@@ -122,18 +118,13 @@
             </xsl:with-param>
         </xsl:call-template>
         
-        <xsl:next-match>
-            <xsl:with-param name="next" select="$next"/>
-            <xsl:with-param name="stack" select="$stack"/> 
-            <xsl:with-param name="stacko" select="$stacko"/> 
-        </xsl:next-match>
+        <xsl:next-match/>
         
     </xsl:template>
     
     <xsl:template match="xsd:element[@type='vlc']" mode="fsmoutput" priority="30">
-        <xsl:param name="next" required="yes"/> 
-        <xsl:param name="stack" required="yes"/>
-        <xsl:param name="stacko" required="yes"/>
+        <xsl:param name="stack" required="yes" tunnel="yes"/>
+        <xsl:param name="stacko" required="yes" tunnel="yes"/>
         
         <xsl:call-template name="transition">
             <xsl:with-param name="from">
@@ -169,8 +160,7 @@
                     </xsl:when>
                     <xsl:otherwise>
                         <xsl:apply-templates select="." mode="fsmnext">
-                            <xsl:with-param name="stack" select="$stacko"/> 
-                            <xsl:with-param name="next" select="$next"/> 
+                            <xsl:with-param name="stack" select="$stacko" tunnel="yes"/> 
                         </xsl:apply-templates>
                     </xsl:otherwise>
                 </xsl:choose>
@@ -187,17 +177,11 @@
             </xsl:with-param>
         </xsl:call-template>
         
-        <xsl:next-match>
-            <xsl:with-param name="next" select="$next"/> 
-            <xsl:with-param name="stack" select="$stack"/> 
-            <xsl:with-param name="stacko" select="$stacko"/> 
-        </xsl:next-match>
+        <xsl:next-match/>
     </xsl:template>
     
     <xsl:template match="xsd:element[@bs2:nOccurs]" priority="20" mode="fsmoutput">
-        <xsl:param name="next" required="yes"/>
-        <xsl:param name="stack" required="yes"/>
-        <xsl:param name="stacko" required="yes"/>
+        <xsl:param name="stack" required="yes" tunnel="yes"/>
         
         <xsl:call-template name="transition">
             <xsl:with-param name="from">
@@ -220,28 +204,20 @@
             </xsl:with-param>
         </xsl:call-template>
         
-        <xsl:next-match>
-            <xsl:with-param name="next" select="$next"/>
-            <xsl:with-param name="stack" select="$stack"/> 
-            <xsl:with-param name="stacko" select="$stacko"/> 
-        </xsl:next-match>
+        <xsl:next-match/>
         
     </xsl:template>
     
     <xsl:template match="xsd:group[@bs2:nOccurs]" priority="20" mode="fsmoutput">
-        <xsl:param name="next" required="yes"/>
-        <xsl:param name="stack" required="yes"/>
-        <xsl:param name="stacko" required="yes"/>
-        
+        <xsl:param name="stack" required="yes" tunnel="yes"/>
+
         <xsl:call-template name="transition">
             <xsl:with-param name="from">
                 <xsl:value-of select="rvc:itemName($stack)"/>
                 <xsl:text>&nOccStateSuffix;</xsl:text>
             </xsl:with-param>
             <xsl:with-param name="to">
-                <xsl:apply-templates select="." mode="nextchild">
-                    <xsl:with-param name="stack" select="$stack"/>
-                </xsl:apply-templates>
+                <xsl:apply-templates select="." mode="nextchild"/>
             </xsl:with-param>
             <xsl:with-param name="action">
                 <xsl:call-template name="qid">
@@ -255,18 +231,13 @@
             </xsl:with-param>
         </xsl:call-template>
         
-        <xsl:next-match>
-            <xsl:with-param name="next" select="$next"/>
-            <xsl:with-param name="stack" select="$stack"/> 
-            <xsl:with-param name="stacko" select="$stacko"/> 
-        </xsl:next-match>
+        <xsl:next-match/>
         
     </xsl:template>
     
     <xsl:template match="xsd:element[@bs2:nOccurs] | xsd:group[@bs2:nOccurs]" priority="19" mode="fsmoutput">
-        <xsl:param name="next" required="yes"/>
-        <xsl:param name="stack" required="yes"/>
-        <xsl:param name="stacko" required="yes"/>
+        <xsl:param name="stack" required="yes" tunnel="yes"/>
+        <xsl:param name="stacko" required="yes" tunnel="yes"/>
         
         <xsl:call-template name="transition">
             <xsl:with-param name="from">
@@ -276,7 +247,6 @@
             <xsl:with-param name="to">
                 <xsl:apply-templates select="." mode="fsmnext">
                     <xsl:with-param name="stack" select="$stacko"/>
-                    <xsl:with-param name="next" select="$next"/> 
                 </xsl:apply-templates>
             </xsl:with-param>
             <xsl:with-param name="action">
@@ -288,18 +258,13 @@
             </xsl:with-param>
         </xsl:call-template>
         
-        <xsl:next-match>
-            <xsl:with-param name="next" select="$next"/>
-            <xsl:with-param name="stack" select="$stack"/> 
-            <xsl:with-param name="stacko" select="$stacko"/> 
-        </xsl:next-match>
+        <xsl:next-match/>
         
     </xsl:template>
     
     <xsl:template match="*[@bs2:ifNext]" priority="15" mode="fsmoutput">
-        <xsl:param name="next" required="yes"/>
-        <xsl:param name="stack" required="yes"/>
-        <xsl:param name="stacko" required="yes"/>
+        <xsl:param name="stack" required="yes" tunnel="yes"/>
+        <xsl:param name="stacko" required="yes" tunnel="yes"/>
         
         <xsl:if test="not(parent::xsd:choice)">
             
@@ -309,10 +274,7 @@
                     <xsl:text>&checkStateSuffix;</xsl:text>
                 </xsl:with-param>
                 <xsl:with-param name="to">
-                    <xsl:apply-templates select="." mode="followingchild">
-                        <xsl:with-param name="stack" select="$stack"/>
-                        <xsl:with-param name="next" select="$next"/> 
-                    </xsl:apply-templates>
+                    <xsl:apply-templates select="." mode="followingchild"/>
                 </xsl:with-param>
                 <xsl:with-param name="action">
                     <xsl:call-template name="qid">
@@ -333,8 +295,7 @@
                 </xsl:with-param>
                 <xsl:with-param name="to">
                     <xsl:apply-templates select="." mode="fsmnext">
-                        <xsl:with-param name="stack" select="$stacko"/>
-                        <xsl:with-param name="next" select="$next"/> 
+                        <xsl:with-param name="stack" select="$stacko" tunnel="yes"/>
                     </xsl:apply-templates>
                 </xsl:with-param>
                 <xsl:with-param name="action">
@@ -347,18 +308,13 @@
             </xsl:call-template>
         </xsl:if>
         
-        <xsl:next-match>
-            <xsl:with-param name="next" select="$next"/>
-            <xsl:with-param name="stack" select="$stack"/>
-            <xsl:with-param name="stacko" select="$stacko"/> 
-        </xsl:next-match>
+        <xsl:next-match/>
         
     </xsl:template>
     
     <xsl:template match="*[@bs2:if]" priority="15" mode="fsmoutput">
-        <xsl:param name="next" required="yes"/>
-        <xsl:param name="stack" required="yes"/>
-        <xsl:param name="stacko" required="yes"/>
+        <xsl:param name="stack" required="yes" tunnel="yes"/>
+        <xsl:param name="stacko" required="yes" tunnel="yes"/>
         
         <xsl:if test="not(parent::xsd:choice)">
            
@@ -397,8 +353,7 @@
                 </xsl:with-param>
                 <xsl:with-param name="to">
                     <xsl:apply-templates select="." mode="fsmnext">
-                        <xsl:with-param name="stack" select="$stacko"/>
-                        <xsl:with-param name="next" select="$next"/> 
+                        <xsl:with-param name="stack" select="$stacko"  tunnel="yes"/>
                     </xsl:apply-templates>
                 </xsl:with-param>
                 <xsl:with-param name="action">
@@ -411,48 +366,29 @@
             </xsl:call-template>
         </xsl:if>
         
-        <xsl:next-match>
-            <xsl:with-param name="next" select="$next"/>
-            <xsl:with-param name="stack" select="$stack"/>
-            <xsl:with-param name="stacko" select="$stacko"/> 
-        </xsl:next-match>
+        <xsl:next-match/>
         
     </xsl:template>
     
     <xsl:template match="xsd:group" mode="fsmoutput">
-        <xsl:param name="next" required="yes"/>
-        <xsl:param name="stack" required="yes"/>
         <xsl:variable name="group" select="key('groups',resolve-QName(@ref,.))"/>
         
         <xsl:apply-templates select="$group/*" mode="#current">
-            <xsl:with-param name="next">
-                <xsl:apply-templates select="." mode="fsmnext">
-                    <xsl:with-param name="stack" select="$stack"/> 
-                    <xsl:with-param name="next" select="$next"/> 
-                </xsl:apply-templates>
+            <xsl:with-param name="next"  tunnel="yes">
+                <xsl:apply-templates select="." mode="fsmnext"/>
             </xsl:with-param>
-            <xsl:with-param name="stack" select="$stack"/>
         </xsl:apply-templates>
     </xsl:template>
     
     <xsl:template match="xsd:element[@type]" mode="fsmoutput" priority="2">
-        <xsl:param name="next" required="yes"/>
-        <xsl:param name="stack" required="yes"/>
-        
         <xsl:apply-templates select="key('types',resolve-QName(@type,.))" mode="#current">
-            <xsl:with-param name="next">
-                <xsl:apply-templates select="." mode="fsmnext">
-                    <xsl:with-param name="stack" select="$stack"/> 
-                    <xsl:with-param name="next" select="$next"/> 
-                </xsl:apply-templates>
+            <xsl:with-param name="next" tunnel="yes">
+                <xsl:apply-templates select="." mode="fsmnext"/>
             </xsl:with-param>
-            <xsl:with-param name="stack" select="$stack"/> 
         </xsl:apply-templates>
     </xsl:template>
     
     <xsl:template match="xsd:element[@ref]" mode="fsmoutput" priority="2">
-        <xsl:param name="next" required="yes"/>
-        <xsl:param name="stack" required="yes"/>
         <xsl:variable name="referencedElt" select="key('globalElements',resolve-QName(@ref,.))"/>
         <xsl:variable name="eltType"
             select="if ($referencedElt/@type)
@@ -460,71 +396,47 @@
             else $referencedElt/*[1]"/>
         
         <xsl:apply-templates select="$eltType" mode="#current">
-            <xsl:with-param name="next">
-                <xsl:apply-templates select="." mode="fsmnext">
-                    <xsl:with-param name="stack" select="$stack"/> 
-                    <xsl:with-param name="next" select="$next"/> 
-                </xsl:apply-templates>
+            <xsl:with-param name="next" tunnel="yes">
+                <xsl:apply-templates select="." mode="fsmnext"/>
             </xsl:with-param>
-            <xsl:with-param name="stack" select="$stack"/> 
         </xsl:apply-templates>
                 
     </xsl:template>
     
     <xsl:template match="xsd:sequence | xsd:all | xsd:complexType | xsd:element[child::element()]" mode="fsmoutput">
-        <xsl:param name="next" required="yes"/>
-        <xsl:param name="stack" required="yes"/>
-        
         <xsl:apply-templates mode="#current">
-            <xsl:with-param name="next">
-                <xsl:apply-templates select="." mode="fsmnext">
-                    <xsl:with-param name="stack" select="$stack"/> 
-                    <xsl:with-param name="next" select="$next"/>
-                </xsl:apply-templates>
+            <xsl:with-param name="next" tunnel="yes">
+                <xsl:apply-templates select="." mode="fsmnext"/>
             </xsl:with-param>
-            <xsl:with-param name="stack" select="$stack"/>
         </xsl:apply-templates>
     </xsl:template>
     
     <xsl:template match="*" mode="fsmoutput" priority="-1000"/> 
     
     <xsl:template match="xsd:choice" priority="3" mode="fsmoutput">
-        <xsl:param name="next" required="yes"/>
-        <xsl:param name="stack" required="yes"/>
-        
         <xsl:variable name="nextT">
-            <xsl:apply-templates select="." mode="fsmnext">
-                <xsl:with-param name="stack" select="$stack"/> 
-                <xsl:with-param name="next" select="$next"/> 
-            </xsl:apply-templates>
+            <xsl:apply-templates select="." mode="fsmnext"/>
         </xsl:variable>
         
         <xsl:apply-templates select="*" mode="fsmchoice">
             <xsl:with-param name="start">
-                <xsl:apply-templates select="." mode="nextname">
-                    <xsl:with-param name="stack" select="$stack"/>
-                </xsl:apply-templates>
+                <xsl:apply-templates select="." mode="nextname"/>
             </xsl:with-param>
-            <xsl:with-param name="stack" select="$stack"/>
         </xsl:apply-templates>
         <xsl:apply-templates select="*" mode="fsmoutput">
-            <xsl:with-param name="next" select="$nextT"/>
-            <xsl:with-param name="stack" select="$stack"/>
+            <xsl:with-param name="next" select="$nextT"  tunnel="yes"/>
         </xsl:apply-templates>
     </xsl:template>
     
     <xsl:template match="*" mode="fsmnext">
-        <xsl:param name="next" required="yes"/>
-        <xsl:param name="stack" required="yes"/>
+        <xsl:param name="next" required="yes" tunnel="yes"/>
         
         <xsl:choose>
             <xsl:when test="parent::xsd:choice">
                 <xsl:value-of select="$next"/>
             </xsl:when>
             <xsl:when test="following-sibling::*[1]">
-                <xsl:apply-templates select="following-sibling::*[1]" mode="nextname">
-                    <xsl:with-param name="stack" select="$stack"/> 
-                </xsl:apply-templates>
+                <xsl:apply-templates select="following-sibling::*[1]" mode="nextname"/>
             </xsl:when>
             <xsl:otherwise>
                 <xsl:value-of select="$next"/>
@@ -534,7 +446,7 @@
     
     <xsl:template match="xsd:group" mode="fsmchoice" priority="10">
         <xsl:param name="start" required="yes"/>
-        <xsl:param name="stack" required="yes"/>
+        <xsl:param name="stack" required="yes" tunnel="yes"/>
 
         <xsl:variable name="newStack" select="if ($stack[1] is .) then $stack else (.,$stack)"/>
         <xsl:variable name="group" select="key('groups',resolve-QName(@ref,.))"/>
@@ -545,7 +457,7 @@
             </xsl:with-param>
             <xsl:with-param name="to">
                 <xsl:apply-templates select="$group/*[1]" mode="nextname">
-                    <xsl:with-param name="stack" select="$newStack"/>
+                    <xsl:with-param name="stack" select="$newStack"  tunnel="yes"/>
                 </xsl:apply-templates>
             </xsl:with-param>
             <xsl:with-param name="action">
@@ -563,7 +475,7 @@
     
     <xsl:template match="*" mode="fsmchoice" priority="0">
         <xsl:param name="start" required="yes"/>
-        <xsl:param name="stack" required="yes"/>
+        <xsl:param name="stack" required="yes" tunnel="yes"/>
         
         <xsl:variable name="newStack" select="if ($stack[1] is .) then $stack else (.,$stack)"/>
         
@@ -597,12 +509,12 @@
     
     <xsl:template match="xsd:element | xsd:group | xsd:sequence |  xsd:all" priority="5" mode="firstname">
         <xsl:apply-templates select="." mode="nextname">
-            <xsl:with-param name="stack" select="."/>
+            <xsl:with-param name="stack" select="."  tunnel="yes"/>
         </xsl:apply-templates>
     </xsl:template>
     
     <xsl:template match="xsd:sequence | xsd:group |  xsd:complexType |  xsd:all" priority="5" mode="nextname">
-        <xsl:param name="stack" required="yes"/>
+        <xsl:param name="stack" required="yes"  tunnel="yes"/>
         
         <xsl:variable name="newStack" select="if ($stack[1] is .) then $stack else (.,$stack)"/>
         
@@ -612,7 +524,7 @@
     </xsl:template>
     
     <xsl:template match="xsd:element" mode="nextname nextchild" priority="5">
-        <xsl:param name="stack" required="yes"/>
+        <xsl:param name="stack" required="yes"  tunnel="yes"/>
         <xsl:variable name="newStack" select="if ($stack[1] is .) then $stack else (.,$stack)"/>
         
         <xsl:value-of select="rvc:itemName($newStack)"/>
@@ -620,15 +532,12 @@
     </xsl:template>
     
     <xsl:template match="xsd:choice" mode="nextname nextchild" priority="30">
-        <xsl:param name="stack" required="yes"/>
-        <xsl:apply-templates select="*[1]" mode="nextname">
-            <xsl:with-param name="stack" select="$stack"/>
-        </xsl:apply-templates>
+        <xsl:apply-templates select="*[1]" mode="nextname"/>
         <xsl:text>&chooseStateSuffix;</xsl:text>
     </xsl:template>
     
     <xsl:template match="*[@bs2:if] | *[@bs2:ifNext]" mode="nextname" priority="20">
-        <xsl:param name="stack" required="yes"/>
+        <xsl:param name="stack" required="yes" tunnel="yes"/>
         <xsl:variable name="newStack" select="if ($stack[1] is .) then $stack else (.,$stack)"/>
         
         <xsl:value-of select="rvc:itemName($newStack)"/>
@@ -638,7 +547,7 @@
     </xsl:template>
     
     <xsl:template match="*[@bs2:nOccurs]" mode="nextname" priority="10">
-        <xsl:param name="stack" required="yes"/>
+        <xsl:param name="stack" required="yes"  tunnel="yes"/>
         <xsl:variable name="newStack" select="if ($stack[1] is .) then $stack else (.,$stack)"/>
         
         <xsl:value-of select="rvc:itemName($newStack)"/>
@@ -646,76 +555,52 @@
     </xsl:template>
     
     <xsl:template match="xsd:complexType" mode="nextname nextchild" priority="7">
-        <xsl:param name="stack" required="yes"/>
-        <xsl:apply-templates select="*[1]" mode="nextname">
-            <xsl:with-param name="stack" select="$stack"/>
-        </xsl:apply-templates>
+        <xsl:apply-templates select="*[1]" mode="nextname"/>
     </xsl:template>
     
     <xsl:template match="xsd:group" mode="nextname nextchild" priority="7">
-        <xsl:param name="stack" required="yes"/>
         <xsl:variable name="group" select="key('groups',resolve-QName(@ref,.))"/>
-        <xsl:apply-templates select="$group/*" mode="nextname">
-            <xsl:with-param name="stack" select="$stack"/>
-        </xsl:apply-templates>
+        <xsl:apply-templates select="$group/*" mode="nextname"/>
     </xsl:template>
     
     <xsl:template match="xsd:element[@ref]" mode="nextname nextchild" priority="7">
-        <xsl:param name="stack" required="yes"/>
         <xsl:variable name="referencedElt" select="key('globalElements',resolve-QName(@ref,.))"/>
         <xsl:variable name="eltType"
             select="if ($referencedElt/@type)
             then key('types',resolve-QName($referencedElt/@type,.))
             else $referencedElt/*[1]"/>
-        <xsl:apply-templates select="$eltType" mode="nextname">
-            <xsl:with-param name="stack" select="$stack"/> 
-        </xsl:apply-templates>
+        <xsl:apply-templates select="$eltType" mode="nextname"/>
     </xsl:template>
     
     <xsl:template match="*" mode="nextname nextchild" priority="-1000"/>
     
     <xsl:template match="xsd:element | xsd:group | xsd:sequence |  xsd:all" priority="10" mode="followingchild">
-        <xsl:param name="next" required="yes"/>  
-        <xsl:param name="stack" required="yes"/>
+        <xsl:param name="stack" required="yes"  tunnel="yes"/>
         <xsl:variable name="newStack" select="if ($stack[1] is .) then $stack else (.,$stack)"/>
         
         <xsl:next-match>
-            <xsl:with-param name="next" select="$next"/>
-            <xsl:with-param name="stack" select="$newStack"/> 
-            <xsl:with-param name="stacko" select="$stack"/> 
+            <xsl:with-param name="stack" select="$newStack"  tunnel="yes"/> 
+            <xsl:with-param name="stacko" select="$stack"  tunnel="yes"/> 
         </xsl:next-match>
     </xsl:template>
     
     <xsl:template match="xsd:group" mode="followingchild"  priority="5">
-        <xsl:param name="next" required="yes"/>
-        <xsl:param name="stack" required="yes"/>
         <xsl:variable name="group" select="key('groups',resolve-QName(@ref,.))"/>
         
         <xsl:apply-templates select="$group/*[1]" mode="#current">
-            <xsl:with-param name="next">
-                <xsl:apply-templates select="." mode="fsmnext">
-                    <xsl:with-param name="stack" select="$stack"/> 
-                    <xsl:with-param name="next" select="$next"/> 
-                </xsl:apply-templates>
+            <xsl:with-param name="next"  tunnel="yes">
+                <xsl:apply-templates select="." mode="fsmnext"/>
             </xsl:with-param>
-            <xsl:with-param name="stack" select="$stack"/>
         </xsl:apply-templates>
     </xsl:template>
     
     <xsl:template match="xsd:element[@type]" mode="followingchild"  priority="5">
-        <xsl:param name="next" required="yes"/>
-        <xsl:param name="stack" required="yes"/>
-        <xsl:param name="stacko" required="yes"/>
         
         <xsl:variable name="tmp">
             <xsl:apply-templates select="key('types',resolve-QName(@type,.))" mode="#current">
-                <xsl:with-param name="next">
-                    <xsl:apply-templates select="." mode="fsmnext">
-                        <xsl:with-param name="stack" select="$stack"/> 
-                        <xsl:with-param name="next" select="$next"/> 
-                    </xsl:apply-templates>
+                <xsl:with-param name="next"  tunnel="yes">
+                    <xsl:apply-templates select="." mode="fsmnext"/>
                 </xsl:with-param>
-                <xsl:with-param name="stack" select="$stack"/> 
             </xsl:apply-templates>
         </xsl:variable>
         <xsl:choose>
@@ -723,19 +608,13 @@
                 <xsl:value-of select="$tmp"/>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:next-match>
-                    <xsl:with-param name="next" select="$next"/>
-                    <xsl:with-param name="stack" select="$stack"/> 
-                    <xsl:with-param name="stacko" select="$stacko"/> 
-                </xsl:next-match>
+                <xsl:next-match/>
             </xsl:otherwise>
         </xsl:choose>
         
     </xsl:template>
     
     <xsl:template match="xsd:element[@ref]" mode="followingchild" priority="5">
-        <xsl:param name="next" required="yes"/>
-        <xsl:param name="stack" required="yes"/>
         <xsl:variable name="referencedElt" select="key('globalElements',resolve-QName(@ref,.))"/>
         <xsl:variable name="eltType"
             select="if ($referencedElt/@type)
@@ -743,40 +622,25 @@
             else $referencedElt/*[1]"/>
 
         <xsl:apply-templates select="$eltType" mode="#current">
-            <xsl:with-param name="next">
-                <xsl:apply-templates select="." mode="fsmnext">
-                    <xsl:with-param name="stack" select="$stack"/> 
-                    <xsl:with-param name="next" select="$next"/> 
-                </xsl:apply-templates>
+            <xsl:with-param name="next"  tunnel="yes">
+                <xsl:apply-templates select="." mode="fsmnext"/>
             </xsl:with-param>
-            <xsl:with-param name="stack" select="$stack"/> 
         </xsl:apply-templates>
-                
     </xsl:template>
     
     <xsl:template match="xsd:sequence | xsd:all | xsd:complexType | xsd:element[child::element()]" mode="followingchild" priority="2">
-        <xsl:param name="next" required="yes"/>
-        <xsl:param name="stack" required="yes"/>
-        
         <xsl:apply-templates mode="#current" select="*[1]">
-            <xsl:with-param name="next">
-                <xsl:apply-templates select="." mode="fsmnext">
-                    <xsl:with-param name="stack" select="$stack"/> 
-                    <xsl:with-param name="next" select="$next"/>
-                </xsl:apply-templates>
+            <xsl:with-param name="next"  tunnel="yes">
+                <xsl:apply-templates select="." mode="fsmnext"/>
             </xsl:with-param>
-            <xsl:with-param name="stack" select="$stack"/>
         </xsl:apply-templates>
     </xsl:template>
     
     <xsl:template match="xsd:element" mode="followingchild" priority="0">
-        <xsl:param name="next" required="yes"/>
-        <xsl:param name="stack" required="yes"/>
-        <xsl:param name="stacko" required="yes"/>
+        <xsl:param name="stacko" required="yes" tunnel="yes"/>
         
         <xsl:apply-templates select="." mode="fsmnext">
-            <xsl:with-param name="stack" select="$stacko"/> 
-            <xsl:with-param name="next" select="$next"/> 
+            <xsl:with-param name="stack" select="$stacko"  tunnel="yes"/> 
         </xsl:apply-templates>
 
     </xsl:template>
