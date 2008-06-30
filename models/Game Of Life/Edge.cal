@@ -1,0 +1,7 @@
+
+actor Edge () In ==> Out:
+
+	initialize ==> [0] end
+
+	action [_] ==> [0] end
+end
