@@ -1,6 +1,6 @@
 true: warn_A, warn_e, warn_error_A, warn_error_e
-<Cal2C/cal2c.d.byte>: debug
-<Cal2C/cal2c.{d.byte,byte,native}>: use_cil, use_graph, use_json, use_str, use_unix
-<Cal2C/*.ml*>: use_cil
+<cal2c/cli/cal2c.d.byte>: debug
+<cal2c/cli/cal2c.{d.byte,byte,native}>: use_cil, use_graph, use_str, use_unix
+<cal2c/cli/cal2c.ml>: use_cil
+<cal2c/translation/*.ml*>: use_cil
 <*.cmi>: precious
-"Json": include
