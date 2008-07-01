@@ -1,4 +1,4 @@
-BIG FAT WARNING: CAL2C IS CURRENTLY BEING MODIFIED TO USE OPENDF PARSER. IN THE
+BIG FAT WARNING: CAL2C IS CURRENTLY BEING MODIFIED TO PARSE CALML FILES. IN THE
 MEANTIME, PLEASE USE REVISION 581 TO GET A WORKING VERSION.
 
 -------------------------------------------------------------------------------
@@ -15,8 +15,6 @@ MEANTIME, PLEASE USE REVISION 581 TO GET A WORKING VERSION.
 - Windows NT, 2000, XP, or Vista.
 - Objective Caml >= 3.10.2, port based on the MinGW toolchain, available from
   http://caml.inria.fr/download.html
-  The current build script has not been tested with the MSVC port, but will
-  probably fail (due to the way libraries are handled).
 - The Cygwin port of GNU tools, available from http://www.cygwin.com/
   * with Devel/gcc installed
 
@@ -25,15 +23,11 @@ MEANTIME, PLEASE USE REVISION 581 TO GET A WORKING VERSION.
 
 - Objective Caml >= 3.10.0, available from http://caml.inria.fr/download.html
   either compiled from source, or obtained from a package manager
-- libuuid (included in e2fsprogs)
-  * under Debian: apt-get install uuid-dev
-  * other distributions: ?
 
                                     MacOS X
                                     -------
 
 - Objective Caml >= 3.10.0, available from http://caml.inria.fr/download.html
-- libuuid (included in e2fsprogs)
 
 -------------------------------------------------------------------------------
                             How to compile and run
@@ -42,16 +36,15 @@ MEANTIME, PLEASE USE REVISION 581 TO GET A WORKING VERSION.
 - Compilation:
   * compile CIL and ocamlgraph (with the classic ./configure, make, make install)
   * go to the src folder of Cal2C, and type:
-    - for a bytecode version: ./build.sh Cal2C/cal2c.byte
-    - for a native version: ./build.sh Cal2C/cal2c.native
+    - for a bytecode version: ./build.sh cal2c/cli/cal2c.byte
+    - for a native version: ./build.sh cal2c/cli/cal2c.native
 
     Caution: the target is case-sensitive.
 
 - Cal2C generated code prerequisites
   * Cal2C creates C files that contain the code of actors (functions,
     procedures, local variables, actions), C++ headers (SystemC module
-    declarations), and C++ bodies (action schedulers). It also creates a
-    Microsoft Visual Studio project, and a Makefile.
+    declarations), and C++ bodies (action schedulers).
   * The generated code depends on several libraries:
     - libcal
     - SDL
@@ -71,28 +64,17 @@ MEANTIME, PLEASE USE REVISION 581 TO GET A WORKING VERSION.
   one, simply replace "byte" by "native")
   * go to the root folder of Cal2C
   * type (or copy/paste ^^)
-    src\_build\Cal2C\cal2c.byte -debug -I <SDL> -I testbench/libcal -I <SYSC> -I <TLM>
-      -mp <model path> -o <output directory> <top network>
-  * you may then replace <SDL>, <SYSC>, and <TLM> by the folders they are located:
-    SDL: default is /usr/include/SDL
-    SystemC, TLM: wherever you installed it
-  * <model path>: the directory where your model is located.
-  * <output directory>: where the generated code will be written
-  * <top network>: the top network name (i.e. "testbed" and not "testbed.nl")
+    src/_build/cal2c/cli/cal2c.byte -debug -o <output directory> <XML file>
+  * <XML file>: the name of an XML file containing XDF content.
 
 - The -debug option is currently mandatory to be able to understand some of
-  Cal2C most obscure errors (including parsing, which will soon be removed in
-  favor of OpenDF CAL parser).
+  Cal2C most obscure errors.
 
 -------------------------------------------------------------------------------
                                Cal2C limitations
                                -----------------
 
-- No object code: this will be reported as a parsing problem
-  (Unexpected . in file).
-  The only exceptions are calls to:
-    picture.displayImage
-    picture.setPixel
+*** to be rewritten... ***
 
 - Limited println functionality: if/then/else are not supported at the moment.
   println("This println is ok: 3 * a = " + (3 * a));
@@ -111,30 +93,4 @@ MEANTIME, PLEASE USE REVISION 581 TO GET A WORKING VERSION.
 
 - No variable-size lists, or repeats
 
-- Networks and actors should have the name of the file they are declared in.
-  (just like Java).
-
-- Horrible error messages, particularly parsing ones (but they shall be gone
-  soon), and type inference ones (it is possible to improve that thanks to a
-  constraint system and other stuff, but it is not planned to implement that
-  in the foreseeable future).
-
 - Probably a lot of other things that I'm currently unable to remember...
-
--------------------------------------------------------------------------------
-                  A few notes on Windows/Linux builds differences
-                  -----------------------------------------------
-
-Cal2C uses libuuid on Linux, but not on Windows: the latter has its own
-functions in rpcrt4.dll to generate UUIDs. Note: this will probably be removed
-once Cal2C system interface is handled by Java code in OpenDF.
-
-It is possible to use MinGW instead of Cygwin to compile Cal2C. To do that you
-must first compile OCaml from source (after replacing 256 by 8192 in
-utils/ccomp.ml, this is necessary for OCaml to run under MinGW). You need to
-copy CIL into MinGW (it is not possible to compile it under MinGW, because
-configure fails saying MinGW is not supported). Additionally, MinGW should
-be installed in C:\MinGW (because it does not provide an easy way to tell
-the installation directory, the default directory has been hard-wired in
-the compilation plugin). After all that, the compilation process should go
-smoothly (and twice as fast as with Cygwin, on my machine).
