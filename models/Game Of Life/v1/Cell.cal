@@ -1,0 +1,43 @@
+
+actor Cell (init, x, y, nSteps) NW, N, NE, W, E, SW, S, SE ==> Out, Display:
+
+	state := null;
+	steps := 0;
+	
+	initialize ==> Out: [state]
+	do
+		state := init;
+		steps := nSteps;
+	end
+
+	action [nw], [n], [ne], [w], [e], [sw], [s], [se] ==> Out: [state]
+	guard
+		steps > 0
+	var
+		count = sum([nw, n, ne, w, e, sw, s, se])
+	do
+		if state = 0 then
+			if count = 3 then 
+				state := 1; 
+			end
+		else
+			if count < 2 or count > 3 then
+				state := 0;
+			end
+		end
+		steps := steps - 1;
+	end
+	
+	action ==> Display: [[x, y, state]]
+	guard
+		steps = 0
+	do
+		steps := nSteps;
+	end
+	
+    function sum (L) :
+        accumulate(lambda (a, b) : a + b end, 0, L)
+    end
+    
+end
+

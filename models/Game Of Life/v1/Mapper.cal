@@ -1,0 +1,10 @@
+
+actor Mapper () In ==> X, Y, R, G, B:
+
+	action [p] ==> [p[0]], [p[1]], [v], [v], [v]
+	var
+		v = if p[2] = 0 then 255 else 0 end
+	do
+		println("(" + p[0] + ", " + p[1] + "): " + p[2]);
+	end
+end

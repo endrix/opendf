@@ -1,5 +1,4 @@
 
-
 network GoL (w, h, init, nSteps) ==> Display:
 
 var
@@ -15,7 +14,7 @@ entities
 			    	if j = 0 or j > w then
 			    		Edge()
 			    	else 
-			    		Cell(init = init[i-1][j-1])
+			    		Cell(init = init[i-1][j-1], x = i-1, y = j-1, nSteps = nSteps)
 			    	end
 			    	: for j in 0 .. w + 1
 			    ]
@@ -34,6 +33,8 @@ structure
 		a[i-1][j+1].Out --> a[i][j].NE {bufferSize = bufSz;} ;
 		a[i-1][j].Out --> a[i][j].N {bufferSize = bufSz;} ;
 		a[i-1][j-1].Out --> a[i][j].NW {bufferSize = bufSz;} ;
+		
+		a[i][j].Display --> Display;
 	end
 end
 
