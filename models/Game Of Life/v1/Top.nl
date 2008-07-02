@@ -1,5 +1,5 @@
 
-network Top () ==> :
+network Top (w = 20, h = 20) ==> :
 
 entities 
 	gol = GoL(w = w, h = h, init = a, nSteps = 1);
@@ -15,8 +15,6 @@ structure
 	m.B --> d.B;
 
 var
-	w = 100;
-	h = 100;
 	a = randomize(w, h);
 	
 	function randomize (w, h) :
