@@ -3,8 +3,8 @@ network Top (w = 20, h = 20) ==> :
 
 entities 
 	gol = GoL(w = w, h = h, init = a, nSteps = 1);
-	m = Mapper();
-	d = Display(title = "Game of Life", width = w, height = h, autoUpdate = 1);
+	m = Mapper(zoom = zoom);
+	d = Display(title = "Game of Life", width = w * zoom, height = h * zoom, autoUpdate = zoom * zoom);
 	
 structure
 	gol.Display --> m.In;
@@ -23,5 +23,7 @@ var
 			for i in 1..h
 		]
 	end
+	
+	zoom = 20;
 
 end	
