@@ -502,7 +502,11 @@ public class CalmlEvaluator
 			Element e = (Element)i.next();
 			if (valType.equals(e.getAttribute(attrKind))) {
 				Element typeEl = Util.uniqueElement(e, predType);
-				tp.put(e.getAttribute(attrName), createType(typeEl));
+				Type childType = createType(typeEl);
+				// Use Type.tparType instead of e.getAttribute(attrName)
+				// because Entry elements don't necessarily have a "name"
+				// attribute.
+				tp.put(Type.tparType, childType);
 			} else if (valExpr.equals(e.getAttribute(attrKind))) {
 				Element expr = Util.uniqueElement(e, predExpr);
 				try {
@@ -513,7 +517,7 @@ public class CalmlEvaluator
 				} 
 			}
 		}
-		Type t =  Type.create(name, tp, vp);
+		Type t = Type.create(name, tp, vp);
 		return t;
 	}
 	
