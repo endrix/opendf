@@ -47,7 +47,6 @@ public class TypedPlatform implements Platform {
 	public final static Platform thePlatform = new TypedPlatform();
 	public final static Context  theContext = thePlatform.context();
 	public final static Environment theDefaultEnvironment = thePlatform.createGlobalEnvironment();
-
 	
     public Context context() {
         return TypedContext.theContext;
@@ -345,9 +344,10 @@ public class TypedPlatform implements Platform {
         	}
 
         	protected Type doTypeFunction(Type t) {
+        		int bitLength = t.getBitLength(32);
 				return Type.create(Type.nameInt, 
 						Collections.EMPTY_MAP, 
-						Collections.singletonMap(Type.vparSize, new Integer(32)));
+						Collections.singletonMap(Type.vparSize, new Integer(bitLength)));
         	}
         }));
 
@@ -364,11 +364,10 @@ public class TypedPlatform implements Platform {
 
     	    protected Type doTypeFunction(Type a, Type b) {
         		if (Type.nameInt.equals(a.getName()) && Type.nameInt.equals(b.getName())) {
-        				int w1 = ((Integer)a.getValueParameters().get(Type.vparSize)).intValue();
-        				int w2 = ((Integer)b.getValueParameters().get(Type.vparSize)).intValue();
+        				int bitLength = Type.computeBitLength(a, b);
         				return Type.create(Type.nameInt, 
         						Collections.EMPTY_MAP, 
-        						Collections.singletonMap(Type.vparSize, new Integer(Math.max(w1, w2))));
+        						Collections.singletonMap(Type.vparSize, new Integer(bitLength)));
         		} else {
         			throw new RuntimeException("Cannot bitor types: " + a + ", " + b + ".");
         		}
@@ -388,11 +387,10 @@ public class TypedPlatform implements Platform {
 
     	    protected Type doTypeFunction(Type a, Type b) {
         		if (Type.nameInt.equals(a.getName()) && Type.nameInt.equals(b.getName())) {
-        				int w1 = ((Integer)a.getValueParameters().get(Type.vparSize)).intValue();
-        				int w2 = ((Integer)b.getValueParameters().get(Type.vparSize)).intValue();
+    					int bitLength = Type.computeBitLength(a, b);
         				return Type.create(Type.nameInt, 
         						Collections.EMPTY_MAP, 
-        						Collections.singletonMap(Type.vparSize, new Integer(Math.max(w1, w2))));
+        						Collections.singletonMap(Type.vparSize, new Integer(bitLength)));
         		} else {
         			throw new RuntimeException("Cannot bitand types: " + a + ", " + b + ".");
         		}
@@ -412,11 +410,10 @@ public class TypedPlatform implements Platform {
 
     	    protected Type doTypeFunction(Type a, Type b) {
         		if (Type.nameInt.equals(a.getName()) && Type.nameInt.equals(b.getName())) {
-        				int w1 = ((Integer)a.getValueParameters().get(Type.vparSize)).intValue();
-        				int w2 = ((Integer)b.getValueParameters().get(Type.vparSize)).intValue();
+        				int bitLength = Type.computeBitLength(a, b);
         				return Type.create(Type.nameInt, 
         						Collections.EMPTY_MAP, 
-        						Collections.singletonMap(Type.vparSize, new Integer(Math.max(w1, w2))));
+        						Collections.singletonMap(Type.vparSize, new Integer(bitLength)));
         		} else {
         			throw new RuntimeException("Cannot bitxor types: " + a + ", " + b + ".");
         		}
@@ -514,11 +511,10 @@ public class TypedPlatform implements Platform {
     	    protected Type doTypeFunction(Type a, Type b) {
         		if (Type.nameInt.equals(a.getName())) {
         			if (Type.nameInt.equals(b.getName())) {
-        				int w1 = ((Integer)a.getValueParameters().get(Type.vparSize)).intValue();
-        				int w2 = ((Integer)b.getValueParameters().get(Type.vparSize)).intValue();
+        				int bitLength = Type.computeBitLength(a, b);
         				return Type.create(Type.nameInt, 
         						Collections.EMPTY_MAP, 
-        						Collections.singletonMap(Type.vparSize, new Integer(Math.max(w1, w2) + 1)));
+        						Collections.singletonMap(Type.vparSize, new Integer(bitLength + 1)));
         			} else if (Type.nameReal.equals(b.getName())) {
         				return Type.typeReal;
         			} else {
@@ -563,11 +559,17 @@ public class TypedPlatform implements Platform {
         	protected Type doTypeFunction(Type a, Type b) {
         		if (Type.nameInt.equals(a.getName())) {
         			if (Type.nameInt.equals(b.getName())) {
-        				int w1 = ((Integer)a.getValueParameters().get(Type.vparSize)).intValue();
-        				int w2 = ((Integer)b.getValueParameters().get(Type.vparSize)).intValue();
+        				int bitLength1 = a.getBitLength(0);
+        				int bitLength2 = b.getBitLength(0);
+        				int bitLength = bitLength1 + bitLength2;
+        				if (bitLength == 0 || bitLength > 32) {
+        					bitLength = 32;
+        				}
+
         				return Type.create(Type.nameInt, 
         						Collections.EMPTY_MAP, 
-        						Collections.singletonMap(Type.vparSize, new Integer((w1 + w2))));
+        						Collections.singletonMap(Type.vparSize,
+        								new Integer(bitLength)));
         			} else if (Type.nameReal.equals(b.getName())) {
         				return Type.typeReal;
         			} else {
@@ -610,11 +612,11 @@ public class TypedPlatform implements Platform {
     	    protected Type doTypeFunction(Type a, Type b) {
         		if (Type.nameInt.equals(a.getName())) {
         			if (Type.nameInt.equals(b.getName())) {
-        				int w1 = ((Integer)a.getValueParameters().get(Type.vparSize)).intValue();
-        				int w2 = ((Integer)b.getValueParameters().get(Type.vparSize)).intValue();
+        				int bitLength = Type.computeBitLength(a, b);
+        				
         				return Type.create(Type.nameInt, 
         						Collections.EMPTY_MAP, 
-        						Collections.singletonMap(Type.vparSize, new Integer(Math.max(w1, w2) + 1)));
+        						Collections.singletonMap(Type.vparSize, new Integer(bitLength + 1)));
         			} else if (Type.nameReal.equals(b.getName())) {
         				return Type.typeReal;
         			} else {
@@ -657,11 +659,11 @@ public class TypedPlatform implements Platform {
         	protected Type doTypeFunction(Type a, Type b) {
         		if (Type.nameInt.equals(a.getName())) {
         			if (Type.nameInt.equals(b.getName())) {
-        				int w1 = ((Integer)a.getValueParameters().get(Type.vparSize)).intValue();
-        				int w2 = ((Integer)b.getValueParameters().get(Type.vparSize)).intValue();
+        				int bitLength = a.getBitLength(32);
+        				
         				return Type.create(Type.nameInt, 
         						Collections.EMPTY_MAP, 
-        						Collections.singletonMap(Type.vparSize, new Integer(w1)));
+        						Collections.singletonMap(Type.vparSize, new Integer(bitLength)));
         			} else if (Type.nameReal.equals(b.getName())) {
         				return Type.typeReal;
         			} else {

@@ -115,8 +115,8 @@ public class Type {
     	}
     	
     	if (nameInt.equals(a.getName())) {
-    		int asz = ((Number)a.valueParameters.get(vparSize)).intValue();
-    		int bsz = ((Number)b.valueParameters.get(vparSize)).intValue();
+    		int asz = a.getBitLength(0);
+    		int bsz = b.getBitLength(0);
     		return (asz > bsz) ? a : b;
     	}
     	
@@ -138,6 +138,48 @@ public class Type {
     	
     	return null;
     }
+
+    /**
+     * Computes the bit length of an operation involving the integers <code>a</code>
+     * and <code>b</code>. Simply put, if none has a size, 32 is returned. If one
+     * has a size, and not the other, this size is returned. If both have a size,
+     * the maximum size is returned.
+     * @param a An integer type.
+     * @param b An integer type.
+     * @return See description above.
+     */
+	public static int computeBitLength(Type a, Type b) {
+		int w1 = a.getBitLength(0);
+		int w2 = b.getBitLength(0);
+		
+		int bitLength = 32;
+		if (w1 > 0 || w2 > 0) {
+			bitLength = Math.max(w1, w2);
+		}
+		
+		return bitLength;
+	}
+
+	/**
+	 * Returns the size of this type. This is only valid if this type is an integer.
+	 * If this integer has no size parameter, the default size is returned.
+	 * @param defaultSize The default size.
+	 * @return The bit length of this integer, or defaultSize if it has none.
+	 * @throws RuntimeException If this type is not an integer.
+	 */
+	public int getBitLength(int defaultSize) {
+		if (nameInt.equals(getName())) {
+			int bitLength = defaultSize;
+			Object obj = getValueParameters().get(Type.vparSize);
+			if (obj instanceof Integer) {
+				bitLength = ((Integer) obj).intValue();
+			}
+			
+			return bitLength;
+		} else {
+			throw new RuntimeException("Cannot get the bit length of a non-integer type!");
+		}
+	}
 
 }
 
