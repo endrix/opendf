@@ -83,40 +83,62 @@
     <xsl:template match="xsd:element" priority="50" mode="fsmoutput">
         <xsl:param name="stack" required="yes" tunnel="yes"/>
         <xsl:param name="stacko" required="yes" tunnel="yes"/>
+        
+        <xsl:variable name="union" as="xsd:integer">
+            <xsl:variable name="u">
+                <xsl:apply-templates select="key('types',resolve-QName(@type,.))" mode="unioncount"/>
+            </xsl:variable>
+            <xsl:choose>
+                <xsl:when test="string-length($u) &gt; 0">
+                    <xsl:value-of select="$u"/>
+                </xsl:when>
+                <xsl:otherwise>0</xsl:otherwise>
+            </xsl:choose>
+            
+        </xsl:variable>
+        <xsl:choose>
+            <xsl:when test="$union &gt; 0">
+                <xsl:apply-templates select="." mode="fsmunion">
+                    <xsl:with-param name="union" select="$union"/>
+                </xsl:apply-templates>
+            </xsl:when>
+            <xsl:otherwise>
        
-        <xsl:call-template name="transition">
-            <xsl:with-param name="from">
-                <xsl:value-of select="rvc:itemName($stack)"/>
-                <xsl:text>&existsStateSuffix;</xsl:text>
-            </xsl:with-param>
-            <xsl:with-param name="to">
-                <xsl:choose>
-                    <xsl:when test="@type='vlc'">
+                <xsl:call-template name="transition">
+                    <xsl:with-param name="from">
                         <xsl:value-of select="rvc:itemName($stack)"/>
-                        <xsl:text>&resultStateSuffix;</xsl:text>
-                    </xsl:when>
-                    <xsl:when test="@bs2:nOccurs">
-                        <xsl:value-of select="rvc:itemName($stack)"/>
-                        <xsl:text>&nOccStateSuffix;</xsl:text>
-                    </xsl:when>
-                    <xsl:otherwise>
-                        <xsl:apply-templates select="." mode="fsmnext">
-                            <xsl:with-param name="stack" select="$stacko" tunnel="yes"/> 
-                        </xsl:apply-templates>
-                    </xsl:otherwise>
-                </xsl:choose>
-            </xsl:with-param>
-            <xsl:with-param name="action">
-                <xsl:call-template name="qid">
-                    <xsl:with-param name="name">
-                        <xsl:value-of select="@name"/>
+                        <xsl:text>&existsStateSuffix;</xsl:text>
                     </xsl:with-param>
-                    <xsl:with-param name="suffix">
-                        <xsl:text>&readActionSuffix;</xsl:text>
+                    <xsl:with-param name="to">
+                        <xsl:choose>
+                            <xsl:when test="@type='vlc'">
+                                <xsl:value-of select="rvc:itemName($stack)"/>
+                                <xsl:text>&resultStateSuffix;</xsl:text>
+                            </xsl:when>
+                            <xsl:when test="@bs2:nOccurs">
+                                <xsl:value-of select="rvc:itemName($stack)"/>
+                                <xsl:text>&nOccStateSuffix;</xsl:text>
+                            </xsl:when>
+                            <xsl:otherwise>
+                                <xsl:apply-templates select="." mode="fsmnext">
+                                    <xsl:with-param name="stack" select="$stacko" tunnel="yes"/> 
+                                </xsl:apply-templates>
+                            </xsl:otherwise>
+                        </xsl:choose>
+                    </xsl:with-param>
+                    <xsl:with-param name="action">
+                        <xsl:call-template name="qid">
+                            <xsl:with-param name="name">
+                                <xsl:value-of select="@name"/>
+                            </xsl:with-param>
+                            <xsl:with-param name="suffix">
+                                <xsl:text>&readActionSuffix;</xsl:text>
+                            </xsl:with-param>
+                        </xsl:call-template>
                     </xsl:with-param>
                 </xsl:call-template>
-            </xsl:with-param>
-        </xsl:call-template>
+            </xsl:otherwise>
+        </xsl:choose>
         
         <xsl:next-match/>
         
@@ -417,7 +439,7 @@
         <xsl:variable name="nextT">
             <xsl:apply-templates select="." mode="fsmnext"/>
         </xsl:variable>
-        
+
         <xsl:apply-templates select="*" mode="fsmchoice">
             <xsl:with-param name="start">
                 <xsl:apply-templates select="." mode="nextname"/>
@@ -427,6 +449,55 @@
             <xsl:with-param name="next" select="$nextT"  tunnel="yes"/>
         </xsl:apply-templates>
     </xsl:template>
+    
+    <xsl:template match="xsd:element" mode="fsmunion">
+        <xsl:param name="stack" required="yes" tunnel="yes"/>
+        <xsl:param name="stacko" required="yes" tunnel="yes"/>
+        <xsl:param name="union" required="yes" as="xsd:integer"/>
+        
+        <xsl:if test="$union &gt; 1">
+            <xsl:apply-templates select="." mode="fsmunion">
+                <xsl:with-param name="union" select="$union - 1"/>
+            </xsl:apply-templates>
+        </xsl:if>
+        
+        <xsl:call-template name="transition">
+            <xsl:with-param name="from">
+                <xsl:value-of select="rvc:itemName($stack)"/>
+                <xsl:text>&existsStateSuffix;</xsl:text>
+            </xsl:with-param>
+            <xsl:with-param name="to">
+                <xsl:choose>
+                    <xsl:when test="@type='vlc'">
+                        <xsl:value-of select="rvc:itemName($stack)"/>
+                        <xsl:text>&resultStateSuffix;</xsl:text>
+                    </xsl:when>
+                    <xsl:when test="@bs2:nOccurs">
+                        <xsl:value-of select="rvc:itemName($stack)"/>
+                        <xsl:text>&nOccStateSuffix;</xsl:text>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:apply-templates select="." mode="fsmnext">
+                            <xsl:with-param name="stack" select="$stacko" tunnel="yes"/> 
+                        </xsl:apply-templates>
+                    </xsl:otherwise>
+                </xsl:choose>
+            </xsl:with-param>
+            <xsl:with-param name="action">
+                <xsl:call-template name="qid">
+                    <xsl:with-param name="name">
+                        <xsl:value-of select="@name"/>
+                    </xsl:with-param>
+                    <xsl:with-param name="suffix">
+                        <xsl:text>&readActionSuffix;</xsl:text>
+                        <xsl:value-of select="$union"/>
+                    </xsl:with-param>
+                </xsl:call-template>
+            </xsl:with-param>
+        </xsl:call-template>
+    </xsl:template>
+    
+    <xsl:template match="*" mode="fsmunion" priority="-1000"/> 
     
     <xsl:template match="*" mode="fsmnext">
         <xsl:param name="next" required="yes" tunnel="yes"/>

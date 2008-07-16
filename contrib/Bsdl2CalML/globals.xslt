@@ -52,7 +52,8 @@
     <xsl:call-template name="statement">  
       <xsl:with-param name="expressions">
         <xsl:call-template name="variableDeclaration">
-          <xsl:with-param name="name" select="concat('$',rvc:simpleValidPrefixedName(@name,$defaultPrefix))"/>
+          <!--<xsl:with-param name="name" select="concat('$',rvc:simpleValidPrefixedName(@name,$defaultPrefix))"/>-->
+          <xsl:with-param name="name" select="@name"/>
           <xsl:with-param name="type">int</xsl:with-param>
         </xsl:call-template>
       </xsl:with-param>

@@ -38,6 +38,41 @@
   elementFormDefault="qualified" attributeFormDefault="unqualified" bs2:rootElement="test:root">
 
   <xsd:include schemaLocation="UnsignedIntegers.xsd"/>
+  
+  <xsd:simpleType name="StartCodeType">
+    <xsd:restriction base="xsd:hexBinary">
+      <xsd:length value="4"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+  
+  <xsd:simpleType name="level_suffixType">
+    <xsd:restriction base="xsd:unsignedLong">
+      <xsd:annotation>
+        <xsd:appinfo>
+          <bs2:bitLength value="$level_prefix_value"/>
+        </xsd:appinfo>
+      </xsd:annotation>
+    </xsd:restriction>
+  </xsd:simpleType>
+  
+  <xsd:simpleType name="rbspType">
+    <xsd:restriction base="bs1:byteRange">
+      <xsd:annotation>
+        <xsd:appinfo>
+          <bs2:startCode value="00000001"/>
+        </xsd:appinfo>
+      </xsd:annotation>
+    </xsd:restriction>
+  </xsd:simpleType>
+  
+  <xsd:simpleType name="SpriteType">
+    <xsd:union memberTypes="test:b1 test:b2">
+      <xsd:annotation><xsd:appinfo>
+        <bs2:ifUnion value="$volVersion = 1"/>
+        <bs2:ifUnion value="true()"/>
+      </xsd:appinfo></xsd:annotation>
+    </xsd:union>
+  </xsd:simpleType>
 
   <xsd:group name="G1">
     <xsd:complexType>
@@ -62,7 +97,13 @@
 
         <xsd:element name="b2" type="test:b2" rvc:port="1"/>
 
-        <xsd:element name="b3" type="test:b3" rvc:port="2"/>
+        <xsd:element name="b3" type="test:b3" rvc:port="2">
+          <xsd:annotation>
+            <xsd:appinfo>
+              <bs2x:variable name="volVersion" value="./text() + 12 - retm($relativ,2,3)"/>
+            </xsd:appinfo>
+          </xsd:annotation>
+        </xsd:element>
 
         <xsd:element name="b2a" type="test:b2" rvc:port="3" bs0:variable="true"/>
 
@@ -70,13 +111,13 @@
 
           <xsd:element name="choice0_0" type="test:b4" bs2:if="$test:b2a = 2" rvc:port="4"/>
 
-          <xsd:element name="choice0_1" type="test:b4" rvc:port="5" bs2:nOccurs="2"/>
+          <xsd:element name="choice0_1" type="test:b4" rvc:port="5"  fixed="3" bs2:nOccurs="2"/>
 
         </xsd:choice>
 
         <xsd:choice>
 
-          <xsd:element name="choice1_0" type="test:b4" bs2:if="$test:b2a = 3" rvc:port="6"/>
+          <xsd:element name="choice1_0" type="test:b4" bs2:if="$test:b2a = 32/4" rvc:port="6"/>
 
           <xsd:group ref="G1" bs2:if="$test:b2a = 4"/>
 
@@ -86,7 +127,15 @@
         
         <xsd:group ref="G1" bs2:ifNext="75"/>
         
-        <xsd:element name="head2" type="test:b3" rvc:port="2" bs2:ifNext="7"/>
+        <xsd:element name="head2" type="test:b5" rvc:port="2" bs2:ifNext="12"/>
+        
+        <xsd:element name="head3" type="test:StartCodeType" rvc:port="2" bs2:ifNext="12"/>
+        
+        <xsd:element name="head4" type="test:level_suffixType" rvc:port="2"/>
+        
+        <xsd:element name="head5" type="rbspType" rvc:port="3456"/>
+        
+        <xsd:element name="head6" type="SpriteType" rvc:port="1234567"/>
 
       </xsd:sequence>
     </xsd:complexType>

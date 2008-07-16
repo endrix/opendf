@@ -37,6 +37,8 @@
   xmlns:math="http://exslt.org/math"
 
   xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+  
+  xmlns:bs2="urn:mpeg:mpeg21:2003:01-DIA-BSDL2-NS"
 
   version="2.0">
 
@@ -153,7 +155,6 @@
     <xsl:apply-templates mode="calculateLength"/>
 
   </xsl:template>
-
   
 
   <xsl:template match="xsd:simpleType[xsd:list]" mode="calculateLength">
@@ -197,8 +198,30 @@
     </xsl:variable>
 
     <xsl:variable name="aMEBitCount" select="if ($meBitCount='') then 9999 else $meBitCount"/>
+    
+    <xsl:variable name="aBaseHexCount" >
+      <xsl:choose>
+        <xsl:when test="@base='xsd:hexBinary'">
+          <xsl:apply-templates select="xsd:length" mode="calculateLength"/>
+        </xsl:when>
+        <xsl:otherwise>9999</xsl:otherwise>
+      </xsl:choose>
+    </xsl:variable>
+    
+    <xsl:variable name="aStartCode">
+      
+      <xsl:variable name="startCode">
+        <xsl:apply-templates select="xsd:annotation" mode="startCode"/>
+      </xsl:variable>
+      <xsl:choose>
+        <xsl:when test="string-length($startCode) &gt; 0">
+          <xsl:value-of select="string-length($startCode)"/>
+        </xsl:when>
+        <xsl:otherwise>9999</xsl:otherwise>
+      </xsl:choose>
+    </xsl:variable>
 
-    <xsl:value-of select="math:min(($aBaseBitCount,$aLocalBitCount,$aMEBitCount))"/>
+    <xsl:value-of select="math:min(($aBaseBitCount,$aLocalBitCount,$aMEBitCount,$aBaseHexCount,$aBaseBitCount,$aStartCode))"/>
 
   </xsl:template>
 
@@ -261,8 +284,29 @@
 
     </xsl:choose>
 
-    
   </xsl:template>
+  
+  <xsl:template match="xsd:simpleType" mode="notFixLength">
+    <xsl:value-of select="xsd:restriction/xsd:annotation/xsd:appinfo/bs2:bitLength/@value"/>
+  </xsl:template>
+  
+  <xsl:template match="*" mode="notFixLength" priority="-1000"/>
+  
+  
+  <xsl:template match="xsd:simpleType" mode="startCode">
+    <xsl:value-of select="xsd:restriction/xsd:annotation/xsd:appinfo/bs2:startCode/@value"/>
+  </xsl:template>
+  
+  <xsl:template match="xsd:restriction" mode="startCode">
+    <xsl:value-of select="xsd:annotation/xsd:appinfo/bs2:startCode/@value"/>
+  </xsl:template>
+  
+  <xsl:template match="xsd:annotation" mode="startCode">
+    <xsl:value-of select="xsd:appinfo/bs2:startCode/@value"/>
+  </xsl:template>
+  
+  <xsl:template match="*" mode="startCode" priority="-1000"/>
+  
 
   <xsl:variable name="xsdLong" select="resolve-QName('xsd:long',/*[1])"/>
 

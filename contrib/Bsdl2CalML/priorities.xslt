@@ -123,6 +123,64 @@
         <xsl:next-match/>
     </xsl:template>
     
+    <xsl:template match="xsd:element" priority="20" mode="priorities">
+        
+        <xsl:variable name="union" as="xsd:integer">
+            <xsl:variable name="u">
+                <xsl:apply-templates select="key('types',resolve-QName(@type,.))" mode="unioncount"/>
+            </xsl:variable>
+            <xsl:choose>
+                <xsl:when test="string-length($u) &gt; 0">
+                    <xsl:value-of select="$u"/>
+                </xsl:when>
+                <xsl:otherwise>0</xsl:otherwise>
+            </xsl:choose>
+            
+        </xsl:variable>
+        <xsl:if test="$union &gt; 0">
+            <xsl:call-template name="unionPriority">
+                <xsl:with-param name="union" select="$union"/>
+                <xsl:with-param name="name" select="@name"></xsl:with-param>
+            </xsl:call-template>
+        </xsl:if>
+        <xsl:next-match/>
+    </xsl:template>
+    
+    <xsl:template name="unionPriority">
+        <xsl:param name="union" as="xsd:integer"/>
+        <xsl:param name="name"/>
+        <xsl:if test="$union &gt; 2">
+            <xsl:call-template name="unionPriority">
+                <xsl:with-param name="union" select="$union - 1"/>
+                <xsl:with-param name="name" select="$name"/>
+            </xsl:call-template>
+        </xsl:if>
+        
+        <xsl:text>&lt;Priority&gt;&nl;</xsl:text>
+        <xsl:call-template name="qid">
+            <xsl:with-param name="name">
+                <xsl:value-of select="$name"/>
+            </xsl:with-param>
+            <xsl:with-param name="suffix">
+                <xsl:text>&readActionSuffix;</xsl:text>
+                <xsl:value-of select="$union - 1"/>
+            </xsl:with-param>
+        </xsl:call-template>
+        
+        <xsl:call-template name="qid">
+            <xsl:with-param name="name">
+                <xsl:value-of select="$name"/>
+            </xsl:with-param>
+            <xsl:with-param name="suffix">
+                <xsl:text>&readActionSuffix;</xsl:text>
+                <xsl:value-of select="$union"/>
+            </xsl:with-param>
+        </xsl:call-template>
+        <xsl:text>&lt;/Priority&gt;&nl;</xsl:text>
+        
+    </xsl:template>
+            
+    
     <xsl:template match="xsd:choice" priority="5" mode="priorities">
         <xsl:apply-templates mode="prioritieschoose" select="*"/>
     </xsl:template>
