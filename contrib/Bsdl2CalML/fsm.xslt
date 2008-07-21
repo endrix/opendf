@@ -296,7 +296,9 @@
                     <xsl:text>&checkStateSuffix;</xsl:text>
                 </xsl:with-param>
                 <xsl:with-param name="to">
-                    <xsl:apply-templates select="." mode="followingchild"/>
+                    <xsl:apply-templates select="." mode="followingchild">
+                        <xsl:with-param name="stack" tunnel="yes" select="$stacko"/>
+                    </xsl:apply-templates>
                 </xsl:with-param>
                 <xsl:with-param name="action">
                     <xsl:call-template name="qid">
