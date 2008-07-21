@@ -268,7 +268,7 @@
             </xsl:with-param>
             <xsl:with-param name="to">
                 <xsl:apply-templates select="." mode="fsmnext">
-                    <xsl:with-param name="stack" select="$stacko"/>
+                    <xsl:with-param name="stack" select="$stacko" tunnel="yes"/>
                 </xsl:apply-templates>
             </xsl:with-param>
             <xsl:with-param name="action">
