@@ -442,7 +442,7 @@
                 <xsl:text>&countSuffix;</xsl:text>
                 <xsl:text>"/&gt;&nl;</xsl:text>
                 
-                <xsl:text>&lt;Op name="&gt;"/&gt;&nl;</xsl:text>
+                <xsl:text>&lt;Op name="&lt;"/&gt;&nl;</xsl:text>
                 <xsl:text>&lt;Expr kind="Literal" literal-kind="Integer" value="</xsl:text>
                 <xsl:value-of select="@bs2:nOccurs"/>
                 <xsl:text>"/&gt;&nl;</xsl:text>
@@ -465,12 +465,14 @@
                 <xsl:text>&countSuffix;</xsl:text>
                 <xsl:text>"/&gt;&nl;</xsl:text>
                 
-                <xsl:text>&lt;Op name="-"/&gt;&nl;</xsl:text>
+                <xsl:text>&lt;Op name="+"/&gt;&nl;</xsl:text>
                 <xsl:text>&lt;Expr kind="Literal" literal-kind="Integer" value="1"/&gt;&nl;</xsl:text>
                 
                 <xsl:text>&lt;/Expr&gt;&nl;</xsl:text>
                 
                 <xsl:text>&lt;/Stmt&gt;&nl;</xsl:text>
+                
+                <xsl:apply-templates select="." mode="initnoccs"/>
                 
             </xsl:with-param>
             
@@ -879,5 +881,68 @@
             <xsl:otherwise>false</xsl:otherwise>
          </xsl:choose>
     </xsl:template>
+    
+    <xsl:template match="xsd:element[@bs2:nOccurs] | xsd:group[@bs2:nOccurs]" priority="20" mode="initnocc">
+        <xsl:text>&lt;Stmt kind="Assign" name="</xsl:text>
+        <xsl:value-of select="@name"/>
+        <xsl:text>&countSuffix;</xsl:text>
+        <xsl:text>"&gt;&nl;</xsl:text>
+        <xsl:text>&lt;Expr kind="Literal" literal-kind="Integer" value="0"/&gt;&nl;</xsl:text>
+        <xsl:text>&lt;/Stmt/&gt;&nl;</xsl:text>
+    </xsl:template>
+    
+    <xsl:template match="xsd:group" mode="initnocc">
+        <xsl:variable name="group" select="key('groups',resolve-QName(@ref,.))"/>
+        
+        <xsl:apply-templates select="$group/*" mode="#current"/>
+    </xsl:template>
+    
+    <xsl:template match="xsd:element[@type]" mode="initnocc" priority="2">
+        <xsl:apply-templates select="key('types',resolve-QName(@type,.))" mode="#current"/>
+    </xsl:template>
+    
+    <xsl:template match="xsd:element[@ref]" mode="initnocc" priority="2">
+        <xsl:variable name="referencedElt" select="key('globalElements',resolve-QName(@ref,.))"/>
+        <xsl:variable name="eltType"
+            select="if ($referencedElt/@type)
+            then key('types',resolve-QName($referencedElt/@type,.))
+            else $referencedElt/*[1]"/>
+        
+        <xsl:apply-templates select="$eltType" mode="#current"/>
+        
+    </xsl:template>
+    
+    <xsl:template match="xsd:sequence | xsd:all | xsd:complexType | xsd:element[child::element()]" mode="initnocc">
+        <xsl:apply-templates mode="#current"/>
+    </xsl:template>
+    
+    <xsl:template match="*" mode="initnocc" priority="-1000"/> 
+
+    <xsl:template match="xsd:group" mode="initnoccs">
+        <xsl:variable name="group" select="key('groups',resolve-QName(@ref,.))"/>
+        
+        <xsl:apply-templates select="$group/*" mode="initnocc"/>
+    </xsl:template>
+    
+    <xsl:template match="xsd:element[@type]" mode="initnoccs" priority="2">
+        <xsl:apply-templates select="key('types',resolve-QName(@type,.))" mode="initnocc"/>
+    </xsl:template>
+    
+    <xsl:template match="xsd:element[@ref]" mode="initnoccs" priority="2">
+        <xsl:variable name="referencedElt" select="key('globalElements',resolve-QName(@ref,.))"/>
+        <xsl:variable name="eltType"
+            select="if ($referencedElt/@type)
+            then key('types',resolve-QName($referencedElt/@type,.))
+            else $referencedElt/*[1]"/>
+        
+        <xsl:apply-templates select="$eltType" mode="initnocc"/>
+        
+    </xsl:template>
+    
+    <xsl:template match="xsd:sequence | xsd:all | xsd:complexType | xsd:element[child::element()]" mode="initnoccs">
+        <xsl:apply-templates mode="initnocc"/>
+    </xsl:template>
+    
+    <xsl:template match="*" mode="initnoccs" priority="-1000"/> 
     
 </xsl:stylesheet>
