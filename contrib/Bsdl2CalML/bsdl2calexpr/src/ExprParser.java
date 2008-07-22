@@ -90,25 +90,25 @@ public class ExprParser implements Symbols {
             return temp;
         }
         if(symbol==MOR){
-            temp = "<Op name=\">\"/>\n";
+            temp = "<Op name=\"&gt;\"/>\n";
             symbol= scan.nextSymbol();
             temp += parseStart(scan);
             return temp;
         }
         if(symbol==MORE){
-            temp = "<Op name=\">=\"/>\n";
+            temp = "<Op name=\"&gt;=\"/>\n";
             symbol= scan.nextSymbol();
             temp += parseStart(scan);
             return temp;
         }
         if(symbol==LES){
-            temp = "<Op name=\"<\"/>\n";
+            temp = "<Op name=\"&lt;\"/>\n";
             symbol= scan.nextSymbol();
             temp += parseStart(scan);
             return temp;
         }
         if(symbol==LESE){
-            temp = "<Op name=\"<=\"/>\n";
+            temp = "<Op name=\"&lt;=\"/>\n";
             symbol= scan.nextSymbol();
             temp += parseStart(scan);
             return temp;
