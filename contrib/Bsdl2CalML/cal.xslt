@@ -173,7 +173,7 @@
     <xsl:text>&lt;Stmt kind="While"&gt;&nl;</xsl:text>
     <xsl:text>&lt;Expr kind="BinOpSeq"&gt;&nl;</xsl:text>
     <xsl:text>&lt;Expr kind="Var" name="i"/&gt;&nl;</xsl:text>
-    <xsl:text>&lt;Op name="&gt;"/&gt;&nl;</xsl:text>
+    <xsl:text>&lt;Op name="&amp;gt;"/&gt;&nl;</xsl:text>
     <xsl:text>&lt;Expr kind="Literal" literal-kind="Integer" value="0"/&gt;&nl;</xsl:text>
     <xsl:text>&lt;/Expr&gt;&nl;</xsl:text>
     <xsl:text>&lt;Stmt kind="Block"&gt;&nl;</xsl:text>

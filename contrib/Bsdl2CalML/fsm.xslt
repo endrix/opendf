@@ -274,13 +274,21 @@
             <xsl:with-param name="action">
                 <xsl:call-template name="qid">
                     <xsl:with-param name="name">
-                        <xsl:text>&skipAction;</xsl:text>
+                        <xsl:value-of select="@name"/>
+                    </xsl:with-param>
+                    <xsl:with-param name="suffix">
+                        <xsl:text>&skipActionSuffix;</xsl:text>
                     </xsl:with-param>
                 </xsl:call-template>
             </xsl:with-param>
         </xsl:call-template>
         
-        <xsl:next-match/>
+        <xsl:next-match>
+            <xsl:with-param name="next" tunnel="yes">
+                <xsl:value-of select="rvc:itemName($stack)"/>
+                <xsl:text>&checkStateSuffix;</xsl:text>
+            </xsl:with-param>
+        </xsl:next-match>
         
     </xsl:template>
     

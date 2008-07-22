@@ -68,7 +68,7 @@
 
 <!ENTITY existsStateSuffix "_exists">
 
-<!--<!ENTITY skipActionSuffix ".skip">-->
+<!ENTITY skipActionSuffix "skip">
 
 <!ENTITY skipAction "skip">
 
