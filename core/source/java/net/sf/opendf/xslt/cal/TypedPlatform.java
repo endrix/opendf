@@ -7,7 +7,9 @@
 package net.sf.opendf.xslt.cal;
 
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -955,6 +957,49 @@ public class TypedPlatform implements Platform {
                         return new TypedObject(Type.typeANY,new FileInputStream(s));
                     } catch (Exception ex) {
                         throw new InterpreterException("Cannot apply function 'openFile' to \""+s+"\": ", ex);
+                    }
+                }
+            }));
+        
+        env.bind("writeByte", context().createProcedure(new Procedure() {
+            public void call(Object[] args) {
+                try {
+                    OutputStream s = (OutputStream) args[0];
+                    Integer b = (Integer) args[1];
+                    s.write(b);
+                } catch (Exception ex) {
+                    throw new InterpreterException("Cannot apply function 'writeByte': ", ex);
+                }
+            }
+
+            public int arity() {
+                return 2;
+            }
+        }));
+        
+        env.bind("closeOutputStream", context().createProcedure(new Procedure() {
+            public void call(Object[] args) {
+                try {
+                    OutputStream s = (OutputStream) args[0];
+                    s.close();
+                } catch (Exception ex) {
+                    throw new InterpreterException("Cannot apply function 'closeOutputStream': ", ex);
+                }
+            }
+
+            public int arity() {
+                return 1;
+            }
+        }));
+        
+        env.bind("createFile", context().createFunction(new AbstractUnarySBFunction () {
+                public TypedObject doValueFunction (TypedObject a) {
+                    String s = null;
+                    try {
+                        s = (String)context().stringValue(a);
+                        return new TypedObject(Type.typeANY,new FileOutputStream(s));
+                    } catch (Exception ex) {
+                        throw new InterpreterException("Cannot apply function 'createFile' to \""+s+"\": ", ex);
                     }
                 }
             }));
