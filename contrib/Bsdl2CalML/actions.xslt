@@ -495,7 +495,7 @@
                 <xsl:text>&countSuffix;</xsl:text>
                 <xsl:text>"&gt;&nl;</xsl:text>
                 <xsl:text>&lt;Expr kind="Literal" literal-kind="Integer" value="0"/&gt;&nl;</xsl:text>
-                <xsl:text>&lt;/Stmt/&gt;&nl;</xsl:text>
+                <xsl:text>&lt;/Stmt&gt;&nl;</xsl:text>
 
             </xsl:with-param>
             

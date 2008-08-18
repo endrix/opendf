@@ -641,7 +641,7 @@
     
     <xsl:template match="xsd:group" mode="nextname nextchild" priority="7">
         <xsl:variable name="group" select="key('groups',resolve-QName(@ref,.))"/>
-        <xsl:apply-templates select="$group/*" mode="nextname"/>
+        <xsl:apply-templates select="$group/*[1]" mode="nextname"/>
     </xsl:template>
     
     <xsl:template match="xsd:element[@ref]" mode="nextname nextchild" priority="7">

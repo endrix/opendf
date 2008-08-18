@@ -120,7 +120,7 @@
         <xsl:call-template name="lengthConstants"/>
 
         <!--  create the global variables/constants-->
-        <xsl:apply-templates select="$rootElement" mode="globals">
+        <xsl:apply-templates select="*" mode="globals">
           <xsl:with-param name="defaultPrefix" select="$targetPrefix" tunnel="yes"/>
         </xsl:apply-templates>
         
