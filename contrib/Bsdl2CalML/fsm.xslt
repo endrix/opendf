@@ -640,8 +640,13 @@
     </xsl:template>
     
     <xsl:template match="xsd:group" mode="nextname nextchild" priority="7">
+        <xsl:param name="stack" required="yes" tunnel="yes"/>
+        <xsl:variable name="newStack" select="if ($stack[1] is .) then $stack else (.,$stack)"/>
+        
         <xsl:variable name="group" select="key('groups',resolve-QName(@ref,.))"/>
-        <xsl:apply-templates select="$group/*[1]" mode="nextname"/>
+        <xsl:apply-templates select="$group/*[1]" mode="nextname">
+            <xsl:with-param name="stack" select="$newStack" tunnel="yes"/> 
+        </xsl:apply-templates>
     </xsl:template>
     
     <xsl:template match="xsd:element[@ref]" mode="nextname nextchild" priority="7">
