@@ -163,8 +163,8 @@
   <xsl:template match="rvc:input" mode="inputPorts">
     <xsl:call-template name="port">
       <xsl:with-param name="name" select="@name"/>
-      <xsl:with-param name="kind" select="Input"/>
-      <xsl:with-param name="type" select="int"/>
+      <xsl:with-param name="kind" select="'Input'"/>
+      <xsl:with-param name="type" select="'int'"/><!-- will certainly be changed with "bool" -->
     </xsl:call-template>    
   </xsl:template>
   

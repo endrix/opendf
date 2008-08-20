@@ -736,7 +736,7 @@
     
     <xsl:template match="*" mode="unioncond" priority="-1000"/>
     
-       <xsl:template  match="xsd:simpleType" mode="actionlength">
+     <xsl:template  match="xsd:simpleType" mode="actionlength">
         <xsl:value-of select="@name"/>
     </xsl:template>
 
