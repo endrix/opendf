@@ -95,6 +95,7 @@
           <xsl:with-param name="type">bool</xsl:with-param>
           <xsl:with-param name="name">bitstream</xsl:with-param>
         </xsl:call-template>
+        <xsl:apply-templates select="xsd:annotation/xsd:appinfo/rvc:input" mode="inputPorts"/>
       </xsl:with-param>
       <xsl:with-param name="outputs">
         <xsl:apply-templates select="xsd:annotation/xsd:appinfo/rvc:output" mode="outputPorts"/>
@@ -158,4 +159,13 @@
       <xsl:with-param name="name" select="@name"/>
     </xsl:call-template>    
   </xsl:template>
+
+  <xsl:template match="rvc:input" mode="inputPorts">
+    <xsl:call-template name="port">
+      <xsl:with-param name="name" select="@name"/>
+      <xsl:with-param name="kind" select="Input"/>
+      <xsl:with-param name="type" select="int"/>
+    </xsl:call-template>    
+  </xsl:template>
+  
 </xsl:stylesheet>
