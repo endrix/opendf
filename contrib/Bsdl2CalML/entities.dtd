@@ -60,6 +60,8 @@
 
 <!ENTITY vlcActionSuffix "_f">
 
+<!ENTITY vlcDataPortSuffix "_data">
+
 <!ENTITY vlcInputName "f">
 
 <!ENTITY notFinishedActionSuffix "notFinished">

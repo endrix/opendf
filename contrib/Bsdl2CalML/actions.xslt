@@ -407,6 +407,12 @@
                     <xsl:with-param name="name">f</xsl:with-param>
                     <xsl:with-param name="port" select="concat(@rvc:port,'&vlcActionSuffix;')"/>
                 </xsl:call-template>
+                <xsl:if test="@bs0:variable">
+                    <xsl:call-template name="input">
+                        <xsl:with-param name="name" select="@name"/>
+                        <xsl:with-param name="port" select="concat(@rvc:port,'&vlcDataPortSuffix;')"/>
+                    </xsl:call-template>
+                </xsl:if>
             </xsl:with-param>
             
             <xsl:with-param name="guard">
