@@ -403,11 +403,21 @@
     </xsl:template>
     
     <xsl:template match="xsd:group" mode="fsmoutput">
+        <xsl:param name="stack" required="yes" tunnel="yes"/>
+        
         <xsl:variable name="group" select="key('groups',resolve-QName(@ref,.))"/>
         
         <xsl:apply-templates select="$group/*" mode="#current">
             <xsl:with-param name="next"  tunnel="yes">
-                <xsl:apply-templates select="." mode="fsmnext"/>
+                <xsl:choose>  
+                    <xsl:when test="not(@bs2:nOccurs)">
+                        <xsl:apply-templates select="." mode="fsmnext"/>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:value-of select="rvc:itemName($stack)"/>
+                        <xsl:text>&nOccStateSuffix;</xsl:text>
+                    </xsl:otherwise>
+                 </xsl:choose>
             </xsl:with-param>
         </xsl:apply-templates>
     </xsl:template>
