@@ -111,7 +111,7 @@ public class Scanner implements Symbols{
                 if(code.charAt(compt++)!='='){
                     throw new Exception("ERROR: invalid symbol");
                 }
-                return DIV;
+                return DIFF;
             }
             case '<':{
                 compt++;
