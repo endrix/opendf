@@ -77,6 +77,12 @@
         <xsl:next-match>
             <xsl:with-param name="stack" select="$newStack" tunnel="yes"/> 
             <xsl:with-param name="stacko" select="$stack" tunnel="yes"/> 
+            <xsl:with-param name="nextc" tunnel="yes">
+                <xsl:apply-templates select="." mode="fsmnext">
+                <xsl:with-param name="stack" select="$newStack" tunnel="yes"/> 
+                <xsl:with-param name="stacko" select="$stack" tunnel="yes"/> 
+                </xsl:apply-templates>
+            </xsl:with-param> 
         </xsl:next-match>
     </xsl:template>
     
@@ -284,10 +290,10 @@
         </xsl:call-template>
         
         <xsl:next-match>
-            <xsl:with-param name="next" tunnel="yes">
+            <xsl:with-param name="nextc" tunnel="yes">
                 <xsl:value-of select="rvc:itemName($stack)"/>
-                <xsl:text>&checkStateSuffix;</xsl:text>
-            </xsl:with-param>
+                <xsl:text>&nOccStateSuffix;</xsl:text>
+            </xsl:with-param> 
         </xsl:next-match>
         
     </xsl:template>
@@ -403,34 +409,24 @@
     </xsl:template>
     
     <xsl:template match="xsd:group" mode="fsmoutput">
-        <xsl:param name="stack" required="yes" tunnel="yes"/>
+        <xsl:param name="nextc" required="yes" tunnel="yes"/>
         
         <xsl:variable name="group" select="key('groups',resolve-QName(@ref,.))"/>
         
         <xsl:apply-templates select="$group/*" mode="#current">
-            <xsl:with-param name="next"  tunnel="yes">
-                <xsl:choose>  
-                    <xsl:when test="not(@bs2:nOccurs)">
-                        <xsl:apply-templates select="." mode="fsmnext"/>
-                    </xsl:when>
-                    <xsl:otherwise>
-                        <xsl:value-of select="rvc:itemName($stack)"/>
-                        <xsl:text>&nOccStateSuffix;</xsl:text>
-                    </xsl:otherwise>
-                 </xsl:choose>
-            </xsl:with-param>
+            <xsl:with-param name="next" select="$nextc"  tunnel="yes"/>
         </xsl:apply-templates>
     </xsl:template>
     
     <xsl:template match="xsd:element[@type]" mode="fsmoutput" priority="2">
+        <xsl:param name="nextc" required="yes" tunnel="yes"/>
         <xsl:apply-templates select="key('types',resolve-QName(@type,.))" mode="#current">
-            <xsl:with-param name="next" tunnel="yes">
-                <xsl:apply-templates select="." mode="fsmnext"/>
-            </xsl:with-param>
+            <xsl:with-param name="next" select="$nextc"  tunnel="yes"/>
         </xsl:apply-templates>
     </xsl:template>
     
     <xsl:template match="xsd:element[@ref]" mode="fsmoutput" priority="2">
+        <xsl:param name="nextc" required="yes" tunnel="yes"/>
         <xsl:variable name="referencedElt" select="key('globalElements',resolve-QName(@ref,.))"/>
         <xsl:variable name="eltType"
             select="if ($referencedElt/@type)
@@ -438,18 +434,23 @@
             else $referencedElt/*[1]"/>
         
         <xsl:apply-templates select="$eltType" mode="#current">
-            <xsl:with-param name="next" tunnel="yes">
-                <xsl:apply-templates select="." mode="fsmnext"/>
-            </xsl:with-param>
+            <xsl:with-param name="next" select="$nextc"  tunnel="yes"/>
         </xsl:apply-templates>
                 
     </xsl:template>
     
-    <xsl:template match="xsd:sequence | xsd:all | xsd:complexType | xsd:element[child::element()]" mode="fsmoutput">
+    <xsl:template match="xsd:sequence | xsd:all | xsd:complexType" mode="fsmoutput">
         <xsl:apply-templates mode="#current">
             <xsl:with-param name="next" tunnel="yes">
                 <xsl:apply-templates select="." mode="fsmnext"/>
             </xsl:with-param>
+        </xsl:apply-templates>
+    </xsl:template>
+    
+    <xsl:template match="xsd:element[child::element()]" mode="fsmoutput">
+        <xsl:param name="nextc" required="yes" tunnel="yes"/>
+        <xsl:apply-templates mode="#current">
+            <xsl:with-param name="next" select="$nextc"  tunnel="yes"/>
         </xsl:apply-templates>
     </xsl:template>
     
