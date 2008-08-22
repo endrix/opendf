@@ -409,7 +409,7 @@
                 </xsl:call-template>
                 <xsl:if test="@bs0:variable">
                     <xsl:call-template name="input">
-                        <xsl:with-param name="name" select="@name"/>
+                        <xsl:with-param name="name">data</xsl:with-param>
                         <xsl:with-param name="port" select="concat(@rvc:port,'&vlcDataPortSuffix;')"/>
                     </xsl:call-template>
                 </xsl:if>
@@ -420,6 +420,15 @@
                     <xsl:with-param name="value">1</xsl:with-param>
                 </xsl:call-template>
             </xsl:with-param>
+            
+            <xsl:with-param name="do">
+                <xsl:text>&lt;Stmt kind="Assign" name="</xsl:text>
+                <xsl:value-of select="@name"/>
+                <xsl:text>" &gt;&nl;</xsl:text>
+                <xsl:text>&lt;Expr kind="Var" name="data"/&gt;&nl;</xsl:text>
+                <xsl:text>&lt;/Stmt&gt;&nl;</xsl:text>
+            </xsl:with-param>
+            
         </xsl:call-template>
         
         <xsl:next-match/>
