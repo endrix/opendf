@@ -46,11 +46,18 @@
 
     xmlns:cal="java:ExprParser" 
     
+    xmlns:unique="java:Unique" 
+    
     version="2.0">
 
      <xsl:template name="modDotText">
         <xsl:param name="value" />
+         <xsl:param name="typename" tunnel="yes"/>
         <xsl:choose>
+            <xsl:when test="contains($value,'bs1x:numBits(./text())')">
+                <xsl:value-of select="substring-before($value,'bs1x:numBits(./text())')" />
+                <xsl:text>$typename</xsl:text>
+            </xsl:when>
             <xsl:when test="contains($value,'./text()')">
                 <xsl:value-of select="substring-before($value,'./text()')" />
                 <xsl:text>$output</xsl:text>
@@ -331,7 +338,9 @@
                             </xsl:if>
                          </xsl:if>
                         <xsl:if test="xsd:annotation/xsd:appinfo/bs2x:variable">
-                            <xsl:apply-templates select="xsd:annotation/xsd:appinfo/bs2x:variable" mode="actionexpr"/>
+                            <xsl:apply-templates select="xsd:annotation/xsd:appinfo/bs2x:variable" mode="actionexpr">
+                                <xsl:with-param name="typename" select="$typename" tunnel="yes" />
+                            </xsl:apply-templates>
                         </xsl:if>
                     </xsl:with-param>
                     <xsl:with-param name="guard">
@@ -448,7 +457,8 @@
                         <xsl:value-of select="@name"/>
                     </xsl:with-param>
                     <xsl:with-param name="suffix">
-                        <xsl:text>&testActionSuffix;</xsl:text>
+                        <xsl:text>&testActionSuffix;_</xsl:text>
+                        <xsl:number count ="xsd:element[@bs2:nOccurs] | xsd:group[@bs2:nOccurs]"/>
                     </xsl:with-param>
                 </xsl:call-template>
             </xsl:with-param>
@@ -495,30 +505,32 @@
             
         </xsl:call-template>
         
-        <xsl:call-template name="action">
-            <xsl:with-param name="name">
-                <xsl:call-template name="qid">
-                    <xsl:with-param name="name">
-                        <xsl:value-of select="@name"/>
-                    </xsl:with-param>
-                    <xsl:with-param name="suffix">
-                        <xsl:text>&skipActionSuffix;</xsl:text>
-                    </xsl:with-param>
-                </xsl:call-template>
-            </xsl:with-param>
-            
-            <xsl:with-param name="do">
+        <xsl:if test="unique:iffirst(@name)">
+            <xsl:call-template name="action">
+                <xsl:with-param name="name">
+                    <xsl:call-template name="qid">
+                        <xsl:with-param name="name">
+                            <xsl:value-of select="@name"/>
+                        </xsl:with-param>
+                        <xsl:with-param name="suffix">
+                            <xsl:text>&skipActionSuffix;</xsl:text>
+                        </xsl:with-param>
+                    </xsl:call-template>
+                </xsl:with-param>
                 
-                <xsl:text>&lt;Stmt kind="Assign" name="</xsl:text>
-                <xsl:value-of select="@name"/>
-                <xsl:text>&countSuffix;</xsl:text>
-                <xsl:text>"&gt;&nl;</xsl:text>
-                <xsl:text>&lt;Expr kind="Literal" literal-kind="Integer" value="0"/&gt;&nl;</xsl:text>
-                <xsl:text>&lt;/Stmt&gt;&nl;</xsl:text>
-
-            </xsl:with-param>
-            
-        </xsl:call-template>
+                <xsl:with-param name="do">
+                    
+                    <xsl:text>&lt;Stmt kind="Assign" name="</xsl:text>
+                    <xsl:value-of select="@name"/>
+                    <xsl:text>&countSuffix;</xsl:text>
+                    <xsl:text>"&gt;&nl;</xsl:text>
+                    <xsl:text>&lt;Expr kind="Literal" literal-kind="Integer" value="0"/&gt;&nl;</xsl:text>
+                    <xsl:text>&lt;/Stmt&gt;&nl;</xsl:text>
+    
+                </xsl:with-param>
+                
+            </xsl:call-template>
+        </xsl:if>
         
         <xsl:next-match/>
         
@@ -915,6 +927,7 @@
                 <xsl:with-param name="value" select="@value" />
             </xsl:call-template>
         </xsl:variable>
+        
         <xsl:value-of select="cal:parseExpression($modval)"/>
         
         <xsl:text>&lt;/Stmt&gt;&nl;</xsl:text>

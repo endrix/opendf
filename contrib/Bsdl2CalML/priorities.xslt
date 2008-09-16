@@ -109,7 +109,8 @@
                 <xsl:value-of select="@name"/>
             </xsl:with-param>
             <xsl:with-param name="suffix">
-                <xsl:text>&testActionSuffix;</xsl:text>
+                <xsl:text>&testActionSuffix;_</xsl:text>
+                <xsl:number count ="xsd:element[@bs2:nOccurs] | xsd:group[@bs2:nOccurs]"/>
             </xsl:with-param>
         </xsl:call-template>
         

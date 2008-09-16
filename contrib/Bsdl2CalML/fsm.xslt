@@ -50,6 +50,7 @@
             <xsl:with-param name="from">
                 <xsl:value-of select="rvc:itemName(.)"/>
                 <xsl:text>&existsStateSuffix;</xsl:text>
+                <xsl:number/>
             </xsl:with-param>
             <xsl:with-param name="to">
                 <xsl:apply-templates select="*[1]" mode="nextname">
@@ -114,16 +115,19 @@
                     <xsl:with-param name="from">
                         <xsl:value-of select="rvc:itemName($stack)"/>
                         <xsl:text>&existsStateSuffix;</xsl:text>
+                        <xsl:number/>
                     </xsl:with-param>
                     <xsl:with-param name="to">
                         <xsl:choose>
                             <xsl:when test="@type='vlc'">
                                 <xsl:value-of select="rvc:itemName($stack)"/>
                                 <xsl:text>&resultStateSuffix;</xsl:text>
+                                <xsl:number/>
                             </xsl:when>
                             <xsl:when test="@bs2:nOccurs">
                                 <xsl:value-of select="rvc:itemName($stack)"/>
                                 <xsl:text>&nOccStateSuffix;</xsl:text>
+                                <xsl:number/>
                             </xsl:when>
                             <xsl:otherwise>
                                 <xsl:apply-templates select="." mode="fsmnext">
@@ -158,10 +162,12 @@
             <xsl:with-param name="from">
                 <xsl:value-of select="rvc:itemName($stack)"/>
                 <xsl:text>&resultStateSuffix;</xsl:text>
+                <xsl:number/>
             </xsl:with-param>
             <xsl:with-param name="to">
                 <xsl:value-of select="rvc:itemName($stack)"/>
                 <xsl:text>&existsStateSuffix;</xsl:text>
+                <xsl:number/>
             </xsl:with-param>
             <xsl:with-param name="action">
                 <xsl:call-template name="qid">
@@ -179,12 +185,14 @@
             <xsl:with-param name="from">
                 <xsl:value-of select="rvc:itemName($stack)"/>
                 <xsl:text>&resultStateSuffix;</xsl:text>
+                <xsl:number/>
             </xsl:with-param>
             <xsl:with-param name="to">
                 <xsl:choose>
                     <xsl:when test="@bs2:nOccurs">
                         <xsl:value-of select="rvc:itemName($stack)"/>
                         <xsl:text>&nOccStateSuffix;</xsl:text>
+                        <xsl:number/>
                     </xsl:when>
                     <xsl:otherwise>
                         <xsl:apply-templates select="." mode="fsmnext">
@@ -215,10 +223,12 @@
             <xsl:with-param name="from">
                 <xsl:value-of select="rvc:itemName($stack)"/>
                 <xsl:text>&nOccStateSuffix;</xsl:text>
+                <xsl:number/>
             </xsl:with-param>
             <xsl:with-param name="to">
                 <xsl:value-of select="rvc:itemName($stack)"/>
                 <xsl:text>&existsStateSuffix;</xsl:text>
+                <xsl:number/>
             </xsl:with-param>
             <xsl:with-param name="action">
                 <xsl:call-template name="qid">
@@ -226,7 +236,8 @@
                         <xsl:value-of select="@name"/>
                     </xsl:with-param>
                     <xsl:with-param name="suffix">
-                        <xsl:text>&testActionSuffix;</xsl:text>
+                        <xsl:text>&testActionSuffix;_</xsl:text>
+                        <xsl:number count ="xsd:element[@bs2:nOccurs] | xsd:group[@bs2:nOccurs]"/>
                     </xsl:with-param>
                 </xsl:call-template>
             </xsl:with-param>
@@ -243,6 +254,7 @@
             <xsl:with-param name="from">
                 <xsl:value-of select="rvc:itemName($stack)"/>
                 <xsl:text>&nOccStateSuffix;</xsl:text>
+                <xsl:number/>
             </xsl:with-param>
             <xsl:with-param name="to">
                 <xsl:apply-templates select="." mode="nextchild"/>
@@ -253,7 +265,8 @@
                         <xsl:value-of select="@name"/>
                     </xsl:with-param>
                     <xsl:with-param name="suffix">
-                        <xsl:text>&testActionSuffix;</xsl:text>
+                        <xsl:text>&testActionSuffix;_</xsl:text>
+                        <xsl:number count ="xsd:element[@bs2:nOccurs] | xsd:group[@bs2:nOccurs]"/>
                     </xsl:with-param>
                 </xsl:call-template>
             </xsl:with-param>
@@ -271,6 +284,7 @@
             <xsl:with-param name="from">
                 <xsl:value-of select="rvc:itemName($stack)"/>
                 <xsl:text>&nOccStateSuffix;</xsl:text>
+                <xsl:number/>
             </xsl:with-param>
             <xsl:with-param name="to">
                 <xsl:apply-templates select="." mode="fsmnext">
@@ -293,6 +307,7 @@
             <xsl:with-param name="nextc" tunnel="yes">
                 <xsl:value-of select="rvc:itemName($stack)"/>
                 <xsl:text>&nOccStateSuffix;</xsl:text>
+                <xsl:number/>
             </xsl:with-param> 
         </xsl:next-match>
         
@@ -308,6 +323,7 @@
                 <xsl:with-param name="from">
                     <xsl:value-of select="rvc:itemName($stack)"/>
                     <xsl:text>&checkStateSuffix;</xsl:text>
+                    <xsl:number/>
                 </xsl:with-param>
                 <xsl:with-param name="to">
                     <xsl:apply-templates select="." mode="followingchild">
@@ -330,6 +346,7 @@
                 <xsl:with-param name="from">
                     <xsl:value-of select="rvc:itemName($stack)"/>
                     <xsl:text>&checkStateSuffix;</xsl:text>
+                    <xsl:number/>
                 </xsl:with-param>
                 <xsl:with-param name="to">
                     <xsl:apply-templates select="." mode="fsmnext">
@@ -360,15 +377,18 @@
                 <xsl:with-param name="from">
                     <xsl:value-of select="rvc:itemName($stack)"/>
                     <xsl:text>&checkStateSuffix;</xsl:text>
+                    <xsl:number/>
                 </xsl:with-param>
                 <xsl:with-param name="to">
                     <xsl:value-of select="rvc:itemName($stack)"/>
                     <xsl:choose>  
                         <xsl:when test="not(@bs2:nOccurs)">
                             <xsl:text>&existsStateSuffix;</xsl:text>
+                            <xsl:number/>
                         </xsl:when>
                         <xsl:otherwise>
                             <xsl:text>&nOccStateSuffix;</xsl:text>
+                            <xsl:number/>
                         </xsl:otherwise>
                     </xsl:choose>
                 </xsl:with-param>
@@ -388,6 +408,7 @@
                 <xsl:with-param name="from">
                     <xsl:value-of select="rvc:itemName($stack)"/>
                     <xsl:text>&checkStateSuffix;</xsl:text>
+                    <xsl:number/>
                 </xsl:with-param>
                 <xsl:with-param name="to">
                     <xsl:apply-templates select="." mode="fsmnext">
@@ -486,16 +507,19 @@
             <xsl:with-param name="from">
                 <xsl:value-of select="rvc:itemName($stack)"/>
                 <xsl:text>&existsStateSuffix;</xsl:text>
+                <xsl:number/>
             </xsl:with-param>
             <xsl:with-param name="to">
                 <xsl:choose>
                     <xsl:when test="@type='vlc'">
                         <xsl:value-of select="rvc:itemName($stack)"/>
                         <xsl:text>&resultStateSuffix;</xsl:text>
+                        <xsl:number/>
                     </xsl:when>
                     <xsl:when test="@bs2:nOccurs">
                         <xsl:value-of select="rvc:itemName($stack)"/>
                         <xsl:text>&nOccStateSuffix;</xsl:text>
+                        <xsl:number/>
                     </xsl:when>
                     <xsl:otherwise>
                         <xsl:apply-templates select="." mode="fsmnext">
@@ -580,9 +604,11 @@
                 <xsl:choose>
                     <xsl:when test="not(@bs2:nOccurs)">
                         <xsl:text>&existsStateSuffix;</xsl:text>
+                        <xsl:number/>
                     </xsl:when>
                     <xsl:otherwise>
                         <xsl:text>&nOccStateSuffix;</xsl:text>
+                        <xsl:number/>
                     </xsl:otherwise>
                 </xsl:choose>
             </xsl:with-param>
@@ -621,11 +647,13 @@
         
         <xsl:value-of select="rvc:itemName($newStack)"/>
         <xsl:text>&existsStateSuffix;</xsl:text>
+        <xsl:number/>
     </xsl:template>
     
     <xsl:template match="xsd:choice" mode="nextname nextchild" priority="30">
         <xsl:apply-templates select="*[1]" mode="nextname"/>
         <xsl:text>&chooseStateSuffix;</xsl:text>
+        <xsl:number/>
     </xsl:template>
     
     <xsl:template match="*[@bs2:if] | *[@bs2:ifNext]" mode="nextname" priority="20">
@@ -635,6 +663,7 @@
         <xsl:value-of select="rvc:itemName($newStack)"/>
         <xsl:if test="not(parent::xsd:choice)">
             <xsl:text>&checkStateSuffix;</xsl:text>
+            <xsl:number/>
         </xsl:if>
     </xsl:template>
     
@@ -644,6 +673,7 @@
         
         <xsl:value-of select="rvc:itemName($newStack)"/>
         <xsl:text>&nOccStateSuffix;</xsl:text>
+        <xsl:number/>
     </xsl:template>
     
     <xsl:template match="xsd:complexType" mode="nextname nextchild" priority="7">
