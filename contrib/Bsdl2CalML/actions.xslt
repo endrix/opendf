@@ -505,7 +505,11 @@
             
         </xsl:call-template>
         
-        <xsl:if test="unique:iffirst(@name)">
+        <xsl:variable name="names">
+            <xsl:value-of select="@name"/>
+            <xsl:text>&skipActionSuffix;</xsl:text>
+        </xsl:variable>
+        <xsl:if test="unique:iffirst($names)">
             <xsl:call-template name="action">
                 <xsl:with-param name="name">
                     <xsl:call-template name="qid">

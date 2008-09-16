@@ -29,6 +29,10 @@
   *-->
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:rvc="urn:mpeg:2006:01-RVC-NS" xmlns:math="http://exslt.org/math" xmlns:xsd="http://www.w3.org/2001/XMLSchema" version="2.0">
 
+  <xsl:template match="xsd:element | xsd:group | xsd:sequence |  xsd:all" mode="stackN">
+    <xsl:number/>
+  </xsl:template>
+
 
   <!-- returns the unprefixed simple name -->
   <xsl:function name="rvc:simpleLocalName" as="xsd:string?">
@@ -128,12 +132,14 @@
               $item/preceding-sibling::*[rvc:localName(@name)=rvc:localName($item/@name)] ">
 
               <xsl:value-of select="rvc:validName($item/@name)"/>
+              <xsl:apply-templates select="$item" mode="stackN"/>
 
             </xsl:when>
 
             <xsl:otherwise>
 
               <xsl:value-of select="rvc:localName($item/@name)"/>
+              <xsl:apply-templates select="$item" mode="stackN"/>
 
             </xsl:otherwise>
 

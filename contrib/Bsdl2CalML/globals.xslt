@@ -43,10 +43,12 @@
   xmlns:bs0="urn:mpeg:mpeg21:2003:01-DIA-BSDL0-NS" 
 
   xmlns:bs2="urn:mpeg:mpeg21:2003:01-DIA-BSDL2-NS" 
+  
+  xmlns:unique="java:Unique"
 
   version="2.0">
   
-  <xsl:template match="*[@bs0:variable='true']" mode="globals" priority="5">
+  <xsl:template match="*[@bs0:variable='true']" mode="globalsout" priority="5">
     <xsl:param name="defaultPrefix" tunnel="yes"/>
     
     <xsl:call-template name="statement">  
@@ -62,23 +64,29 @@
     <xsl:next-match/>
   </xsl:template>
 
-  <xsl:template match="*[@bs2:nOccurs]" mode="globals" priority="5">
-    <xsl:call-template name="statement">
-      <xsl:with-param name="expressions">
-        <xsl:call-template name="variableDeclaration">
-          <xsl:with-param name="name">
-            <xsl:value-of select="@name"/>
-            <xsl:text>&countSuffix;</xsl:text>
-          </xsl:with-param>
-          <xsl:with-param name="initialValue" select="0"/>
-          <xsl:with-param name="type">int</xsl:with-param>
-        </xsl:call-template>
-      </xsl:with-param>
-    </xsl:call-template>
-    <xsl:next-match/>
+  <xsl:template match="*[@bs2:nOccurs]" mode="globalsout" priority="5">
+    <xsl:variable name="namec">
+      <xsl:value-of select="@name"/>
+      <xsl:text>&countSuffix;</xsl:text>
+    </xsl:variable>
+    <xsl:if test="unique:iffirst($namec)">
+      <xsl:call-template name="statement">
+        <xsl:with-param name="expressions">
+          <xsl:call-template name="variableDeclaration">
+            <xsl:with-param name="name">
+              <xsl:value-of select="@name"/>
+              <xsl:text>&countSuffix;</xsl:text>
+            </xsl:with-param>
+            <xsl:with-param name="initialValue" select="0"/>
+            <xsl:with-param name="type">int</xsl:with-param>
+          </xsl:call-template>
+        </xsl:with-param>
+      </xsl:call-template>
+      <xsl:next-match/>
+     </xsl:if>
   </xsl:template>
   
-  <xsl:template match="bs2x:variable" mode="globals" priority="5">
+  <xsl:template match="bs2x:variable" mode="globalsout" priority="5">
     <xsl:call-template name="statement">
       <xsl:with-param name="expressions">
         <xsl:call-template name="variableDeclaration">
@@ -92,9 +100,15 @@
     <xsl:next-match/>
   </xsl:template>
 
-  <xsl:template match="*" priority="0" mode="globals">
-    <xsl:apply-templates mode="globals" select="*"/>
+  <xsl:template match="*" priority="0" mode="globalsout">
+    <xsl:apply-templates mode="globalsout" select="*"/>
   </xsl:template>
+  
+  <xsl:template match="*" priority="0" mode="globals">
+    <xsl:apply-templates mode="globalsout" select="*"/>
+    <xsl:variable name="ret" select="unique:init()"/>
+  </xsl:template>
+ 
 
 </xsl:stylesheet>
 
