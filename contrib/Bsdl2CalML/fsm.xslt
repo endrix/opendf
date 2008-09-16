@@ -78,10 +78,7 @@
             <xsl:with-param name="stack" select="$newStack" tunnel="yes"/> 
             <xsl:with-param name="stacko" select="$stack" tunnel="yes"/> 
             <xsl:with-param name="nextc" tunnel="yes">
-                <xsl:apply-templates select="." mode="fsmnext">
-                <xsl:with-param name="stack" select="$newStack" tunnel="yes"/> 
-                <xsl:with-param name="stacko" select="$stack" tunnel="yes"/> 
-                </xsl:apply-templates>
+                <xsl:apply-templates select="." mode="fsmnext"/>
             </xsl:with-param> 
         </xsl:next-match>
     </xsl:template>
