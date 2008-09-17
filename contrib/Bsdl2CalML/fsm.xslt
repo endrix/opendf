@@ -429,7 +429,15 @@
                     <xsl:text>&checkStateSuffix;</xsl:text>
                 </xsl:with-param>
                 <xsl:with-param name="to">
-                    <xsl:apply-templates select="." mode="nextchild"/>
+                    <xsl:choose>
+                        <xsl:when test="not(@bs2:nOccurs)">
+                            <xsl:apply-templates select="." mode="nextchild"/>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <xsl:value-of select="rvc:itemName($stack)"/>
+                            <xsl:text>&nOccStateSuffix;</xsl:text>
+                        </xsl:otherwise>
+                    </xsl:choose>
                 </xsl:with-param>
                 <xsl:with-param name="action">
                     <xsl:call-template name="qid">
