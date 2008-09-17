@@ -44,7 +44,7 @@
     
     version="2.0">
     
-    <xsl:template match="*[@bs2:if] | *[@bs2:ifNext]" mode="priorities" priority="20">
+    <xsl:template match="*[@bs2:if]" mode="priorities" priority="20">
         <xsl:text>&lt;Priority&gt;&nl;</xsl:text>
         <xsl:call-template name="qid">
             <xsl:with-param name="name">
@@ -52,6 +52,7 @@
             </xsl:with-param>
             <xsl:with-param name="suffix">
                 <xsl:text>&validActionSuffix;</xsl:text>
+                <xsl:number count ="xsd:element[@bs2:if] | xsd:group[@bs2:if]"/>
             </xsl:with-param>
         </xsl:call-template>
         
@@ -65,7 +66,29 @@
         <xsl:next-match/>
     </xsl:template>
     
-    <xsl:template match="*[@bs2:if] | *[@bs2:ifNext]" mode="prioritieschoose" priority="20">
+    <xsl:template match="*[@bs2:ifNext]" mode="priorities" priority="20">
+        <xsl:text>&lt;Priority&gt;&nl;</xsl:text>
+        <xsl:call-template name="qid">
+            <xsl:with-param name="name">
+                <xsl:value-of select="@name"/>
+            </xsl:with-param>
+            <xsl:with-param name="suffix">
+                <xsl:text>&validNextActionSuffix;</xsl:text>
+                <xsl:number count ="xsd:element[@bs2:ifNext] | xsd:group[@bs2:ifNext]"/>
+            </xsl:with-param>
+        </xsl:call-template>
+        
+        <xsl:call-template name="qid">
+            <xsl:with-param name="name">
+                <xsl:text>&skipAction;</xsl:text>
+            </xsl:with-param>
+        </xsl:call-template>
+        <xsl:text>&lt;/Priority&gt;&nl;</xsl:text>
+        
+        <xsl:next-match/>
+    </xsl:template>
+    
+    <xsl:template match="*[@bs2:if]" mode="prioritieschoose" priority="20">
         <xsl:text>&lt;Priority&gt;&nl;</xsl:text>
         
         <xsl:call-template name="qid">
@@ -74,6 +97,7 @@
             </xsl:with-param>
             <xsl:with-param name="suffix">
                 <xsl:text>&validActionSuffix;</xsl:text>
+                <xsl:number count ="xsd:element[@bs2:if] | xsd:group[@bs2:if]"/>
             </xsl:with-param>
         </xsl:call-template>
         
@@ -85,6 +109,44 @@
                     </xsl:with-param>
                     <xsl:with-param name="suffix">
                         <xsl:text>&validActionSuffix;</xsl:text>
+                        <xsl:number count ="xsd:element[@bs2:if] | xsd:group[@bs2:if]"/>
+                    </xsl:with-param>
+                </xsl:call-template>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:call-template name="qid">
+                    <xsl:with-param name="name">
+                        <xsl:text>&skipAction;</xsl:text>
+                    </xsl:with-param>
+                </xsl:call-template>
+            </xsl:otherwise>
+        </xsl:choose>
+        <xsl:text>&lt;/Priority&gt;&nl;</xsl:text>
+        <xsl:next-match/>
+    </xsl:template>
+    
+    <xsl:template match="*[@bs2:ifNext]" mode="prioritieschoose" priority="20">
+        <xsl:text>&lt;Priority&gt;&nl;</xsl:text>
+        
+        <xsl:call-template name="qid">
+            <xsl:with-param name="name">
+                <xsl:value-of select="@name"/>
+            </xsl:with-param>
+            <xsl:with-param name="suffix">
+                <xsl:text>&validNextActionSuffix;</xsl:text>
+                <xsl:number count ="xsd:element[@bs2:ifNext] | xsd:group[@bs2:ifNext]"/>
+            </xsl:with-param>
+        </xsl:call-template>
+        
+        <xsl:choose>
+            <xsl:when test="following-sibling::*[@name]">
+                <xsl:call-template name="qid">
+                    <xsl:with-param name="name">
+                        <xsl:value-of select="following-sibling::*[1]/@name"/>
+                    </xsl:with-param>
+                    <xsl:with-param name="suffix">
+                        <xsl:text>&validNextActionSuffix;</xsl:text>
+                        <xsl:number count ="xsd:element[@bs2:ifNext] | xsd:group[@bs2:ifNext]"/>
                     </xsl:with-param>
                 </xsl:call-template>
             </xsl:when>

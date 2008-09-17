@@ -549,6 +549,7 @@
                     </xsl:with-param>
                     <xsl:with-param name="suffix">
                         <xsl:text>&validActionSuffix;</xsl:text>
+                        <xsl:number count ="xsd:element[@bs2:if] | xsd:group[@bs2:if]"/>
                     </xsl:with-param>
                 </xsl:call-template>
             </xsl:with-param>
@@ -580,7 +581,8 @@
                         <xsl:value-of select="@name"/>
                     </xsl:with-param>
                     <xsl:with-param name="suffix">
-                        <xsl:text>&validActionSuffix;</xsl:text>
+                        <xsl:text>&validNextActionSuffix;</xsl:text>
+                        <xsl:number count ="xsd:element[@bs2:ifNext] | xsd:group[@bs2:ifNext]"/>
                     </xsl:with-param>
                 </xsl:call-template>
             </xsl:with-param>

@@ -319,7 +319,8 @@
                             <xsl:value-of select="@name"/>
                         </xsl:with-param>
                         <xsl:with-param name="suffix">
-                            <xsl:text>&validActionSuffix;</xsl:text>
+                            <xsl:text>&validNextActionSuffix;</xsl:text>
+                            <xsl:number count ="xsd:element[@bs2:ifNext] | xsd:group[@bs2:ifNext]"/>
                         </xsl:with-param>
                     </xsl:call-template>
                 </xsl:with-param>
@@ -378,6 +379,7 @@
                         </xsl:with-param>
                         <xsl:with-param name="suffix">
                             <xsl:text>&validActionSuffix;</xsl:text>
+                            <xsl:number count ="xsd:element[@bs2:if] | xsd:group[@bs2:if]"/>
                         </xsl:with-param>
                     </xsl:call-template>
                 </xsl:with-param>
@@ -436,6 +438,7 @@
                         </xsl:with-param>
                         <xsl:with-param name="suffix">
                             <xsl:text>&validActionSuffix;</xsl:text>
+                            <xsl:number count ="xsd:element[@bs2:if] | xsd:group[@bs2:if]"/>
                         </xsl:with-param>
                     </xsl:call-template>
                 </xsl:with-param>
@@ -615,7 +618,19 @@
                         <xsl:value-of select="@name"/>
                     </xsl:with-param>
                     <xsl:with-param name="suffix">
-                        <xsl:text>&validActionSuffix;</xsl:text>
+                        <xsl:choose>
+                            <xsl:when test="@bs2:if">
+                                <xsl:text>&validActionSuffix;</xsl:text>
+                                <xsl:number count ="xsd:element[@bs2:if] | xsd:group[@bs2:if]"/>
+                            </xsl:when>
+                            <xsl:when test="@bs2:if">
+                                <xsl:text>&validNextActionSuffix;</xsl:text>
+                                <xsl:number count ="xsd:element[@bs2:ifNext] | xsd:group[@bs2:ifNext]"/>
+                            </xsl:when>
+                            <xsl:otherwise>
+                                <xsl:text>&validActionSuffix;</xsl:text>
+                            </xsl:otherwise>
+                        </xsl:choose>
                     </xsl:with-param>
                 </xsl:call-template>
             </xsl:with-param>

@@ -46,6 +46,8 @@
 
 <!ENTITY validActionSuffix "valid">
 
+<!ENTITY validNextActionSuffix "validnext">
+
 <!ENTITY nOccStateSuffix "_nocc">
 
 <!ENTITY checkStateSuffix "_check">
