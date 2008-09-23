@@ -53,6 +53,7 @@
      <xsl:template name="modDotText">
         <xsl:param name="value" />
          <xsl:param name="typename" tunnel="yes"/>
+         <xsl:param name="isvlc" as="xsd:boolean" tunnel="yes">false</xsl:param>
         <xsl:choose>
             <xsl:when test="contains($value,'bs1x:numBits(./text())')">
                 <xsl:value-of select="substring-before($value,'bs1x:numBits(./text())')" />
@@ -60,7 +61,15 @@
             </xsl:when>
             <xsl:when test="contains($value,'./text()')">
                 <xsl:value-of select="substring-before($value,'./text()')" />
-                <xsl:text>$output</xsl:text>
+                <xsl:choose>
+                    <xsl:when test="$isvlc">
+                        <xsl:text>$data</xsl:text>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:text>$output</xsl:text>
+                    </xsl:otherwise>
+                </xsl:choose>
+               
                 <xsl:call-template name="modDotText">
                     <xsl:with-param name="value" select="substring-after($value,'./text()')" />
                 </xsl:call-template>
@@ -336,12 +345,12 @@
                                 <xsl:text>&lt;Expr kind="Var" name="output"/&gt;&nl;</xsl:text>
                                 <xsl:text>&lt;/Stmt&gt;&nl;</xsl:text>  
                             </xsl:if>
+                            <xsl:if test="xsd:annotation/xsd:appinfo/bs2x:variable">
+                                <xsl:apply-templates select="xsd:annotation/xsd:appinfo/bs2x:variable" mode="actionexpr">
+                                    <xsl:with-param name="typename" select="$typename" tunnel="yes" />
+                                </xsl:apply-templates>
+                            </xsl:if>
                          </xsl:if>
-                        <xsl:if test="xsd:annotation/xsd:appinfo/bs2x:variable">
-                            <xsl:apply-templates select="xsd:annotation/xsd:appinfo/bs2x:variable" mode="actionexpr">
-                                <xsl:with-param name="typename" select="$typename" tunnel="yes" />
-                            </xsl:apply-templates>
-                        </xsl:if>
                     </xsl:with-param>
                     <xsl:with-param name="guard">
                         <xsl:if test="@fixed">
@@ -400,6 +409,15 @@
             </xsl:with-param>
             
         </xsl:call-template>
+        
+        <xsl:variable name="test" as="xsd:boolean">
+            <xsl:choose>
+                <xsl:when test="xsd:annotation/xsd:appinfo/bs2x:variable">
+                    <xsl:apply-templates select="xsd:annotation/xsd:appinfo/bs2x:variable" mode="iftext"/>
+                </xsl:when>
+                <xsl:otherwise>false</xsl:otherwise>
+            </xsl:choose>
+        </xsl:variable>
 
         <xsl:call-template name="action">
             <xsl:with-param name="name">
@@ -418,7 +436,7 @@
                     <xsl:with-param name="name">f</xsl:with-param>
                     <xsl:with-param name="port" select="concat(@rvc:port,'&vlcActionSuffix;')"/>
                 </xsl:call-template>
-                <xsl:if test="@bs0:variable">
+                <xsl:if test="@bs0:variable or $test">
                     <xsl:call-template name="input">
                         <xsl:with-param name="name">data</xsl:with-param>
                         <xsl:with-param name="port" select="concat(@rvc:port,'&vlcDataPortSuffix;')"/>
@@ -433,6 +451,11 @@
             </xsl:with-param>
             
             <xsl:with-param name="do">
+                <xsl:if test="xsd:annotation/xsd:appinfo/bs2x:variable">
+                    <xsl:apply-templates select="xsd:annotation/xsd:appinfo/bs2x:variable" mode="actionexpr">
+                        <xsl:with-param name="isvlc" tunnel="yes">true</xsl:with-param>
+                    </xsl:apply-templates>
+                </xsl:if>
                 <xsl:if test="@bs0:variable">
                     <xsl:text>&lt;Stmt kind="Assign" name="</xsl:text>
                     <xsl:value-of select="@name"/>
@@ -718,9 +741,9 @@
                         <xsl:text>&lt;Expr kind="Var" name="output"/&gt;&nl;</xsl:text>
                         <xsl:text>&lt;/Stmt&gt;&nl;</xsl:text>  
                     </xsl:if>
-                </xsl:if>
-                <xsl:if test="xsd:annotation/xsd:appinfo/bs2x:variable">
-                    <xsl:apply-templates select="xsd:annotation/xsd:appinfo/bs2x:variable" mode="actionexpr"/>
+                    <xsl:if test="xsd:annotation/xsd:appinfo/bs2x:variable">
+                        <xsl:apply-templates select="xsd:annotation/xsd:appinfo/bs2x:variable" mode="actionexpr"/>
+                    </xsl:if>
                 </xsl:if>
             </xsl:with-param>
             <xsl:with-param name="guard">
