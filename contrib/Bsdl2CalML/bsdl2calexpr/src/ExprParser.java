@@ -237,6 +237,7 @@ public class ExprParser implements Symbols {
             temp += "</Args>\n";
             temp += "</Expr>\n";
             symbol= scan.nextSymbol();
+            temp += parseOp(scan);
             return temp;
         }
         binOp = false;
