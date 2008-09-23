@@ -146,17 +146,23 @@ public class ExprParser implements Symbols {
         if(symbol==IF){
             symbol= scan.nextSymbol();
             temp = "<Expr kind=\"If\" >\n";
+            temp += "<Expr kind=\"BinOpSeq\" >\n";
             temp += parseStart(scan);
+            temp += "</Expr>\n";
             
             if(symbol!=THEN)
                 throw new Exception("Missing \"then\" after the function name");
             symbol= scan.nextSymbol();
+            temp += "<Expr kind=\"BinOpSeq\" >\n";
             temp += parseStart(scan);
+            temp += "</Expr>\n";
             
             if(symbol!=ELSE)
                 throw new Exception("Missing \"else\" after the function name");
             symbol= scan.nextSymbol();
+            temp += "<Expr kind=\"BinOpSeq\" >\n";
             temp += parseStart(scan);
+            temp += "</Expr>\n";
             
             if(symbol!=END)
                 throw new Exception("Missing \"end\" after the function name");
