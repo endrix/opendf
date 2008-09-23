@@ -143,12 +143,35 @@ public class ExprParser implements Symbols {
     private static String parseStart(Scanner scan) throws Exception {
         String temp;
         
+        if(symbol==IF){
+            symbol= scan.nextSymbol();
+            temp = "<Expr kind=\"If\" >\n";
+            temp += parseStart(scan);
+            
+            if(symbol!=THEN)
+                throw new Exception("Missing \"then\" after the function name");
+            symbol= scan.nextSymbol();
+            temp += parseStart(scan);
+            
+            if(symbol!=ELSE)
+                throw new Exception("Missing \"else\" after the function name");
+            symbol= scan.nextSymbol();
+            temp += parseStart(scan);
+            
+            if(symbol!=END)
+                throw new Exception("Missing \"end\" after the function name");
+            symbol= scan.nextSymbol();
+            temp += "</Expr>\n";
+            return temp;
+        }
+        
         if(symbol==NOT){
             symbol= scan.nextSymbol();
             temp = "<Expr kind= \"UnaryOp\">\n";
             temp += "<Op name=\"not\"/>\n";
             temp += parsePar(scan);
             temp += "</Expr>\n";
+            return temp;
         }
         if(symbol==MINUS){
             symbol= scan.nextSymbol();
@@ -156,6 +179,7 @@ public class ExprParser implements Symbols {
             temp += "<Op name=\"-\"/>\n";
             temp += parsePar(scan);
             temp += "</Expr>\n";
+            return temp;
         }
         return parsePar(scan);
     }

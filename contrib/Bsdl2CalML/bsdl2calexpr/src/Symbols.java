@@ -61,8 +61,16 @@ public interface Symbols {
     public static final int MUL = MINUS + 1;
     /** Symbol "/" */
     public static final int DIV = MUL + 1;
+    /** Symbol "if" */
+    public static final int IF = DIV + 1;
+    /** Symbol "then" */
+    public static final int THEN = IF + 1;
+    /** Symbol "else" */
+    public static final int ELSE = THEN + 1;
+    /** Symbol "end" */
+    public static final int END = ELSE + 1;
     /** Function */
-    public static final int FUNC = DIV + 1;
+    public static final int FUNC = END + 1;
     /** Int Constant */
     public static final int INT = FUNC + 1;
     /** EOL */

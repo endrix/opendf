@@ -173,6 +173,22 @@ public class Scanner implements Symbols{
             compt += 2;
             return OR;
         }
+        if(code.startsWith("if",compt)) {
+            compt += 2;
+            return IF;
+        }
+        if(code.startsWith("then",compt)) {
+            compt += 4;
+            return THEN;
+        }
+        if(code.startsWith("else",compt)) {
+            compt += 4;
+            return ELSE;
+        }
+        if(code.startsWith("end",compt)) {
+            compt += 3;
+            return END;
+        }
         
         if(((temp>='a')&&(temp<='z'))||((temp>='A')&&(temp<='Z'))) {
             name= "";
