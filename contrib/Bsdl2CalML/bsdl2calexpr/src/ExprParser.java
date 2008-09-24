@@ -199,6 +199,8 @@ public class ExprParser implements Symbols {
                 temp += parseStart(scan);
             }
             temp += "</Expr>\n";
+            symbol= scan.nextSymbol();
+            temp += parseOp(scan);
         } else
             temp = parseEntity(scan);
         return temp;
