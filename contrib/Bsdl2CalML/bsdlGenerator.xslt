@@ -157,6 +157,7 @@
   <xsl:template match="rvc:output" mode="outputPorts">
     <xsl:call-template name="port">
       <xsl:with-param name="name" select="@name"/>
+      <xsl:with-param name="type" select="@type"/>
     </xsl:call-template>    
   </xsl:template>
 
