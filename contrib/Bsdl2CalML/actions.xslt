@@ -218,20 +218,12 @@
     </xsl:template>
     
     <xsl:template name="output">
-        <xsl:param name="length" required="no"/>
         <xsl:param name="port" required="yes"/>
         
         <xsl:text>&lt;Output port="</xsl:text>
         <xsl:value-of select="$port"/>
         <xsl:text>"&gt;&nl;</xsl:text>
-        <xsl:text>&lt;Expr kind="Var" name="b"/&gt;&nl;</xsl:text> 
-        <xsl:if test="string-length($length) &gt; 0">
-            <xsl:text>&lt;Repeat&gt;&nl;</xsl:text>
-            
-            <xsl:value-of select="$length"/>
-            
-            <xsl:text>&lt;/Repeat&gt;&nl;</xsl:text>
-        </xsl:if>
+        <xsl:text>&lt;Expr kind="Var" name="output"/&gt;&nl;</xsl:text> 
         <xsl:text>&lt;/Output&gt;&nl;</xsl:text>
         
     </xsl:template>
@@ -313,9 +305,6 @@
                         <xsl:if test="@rvc:port">
                             <xsl:call-template name="output">
                                 <xsl:with-param name="port" select="@rvc:port"/>
-                                <xsl:with-param name="length">
-                                    <xsl:value-of select="$typename"/>
-                                </xsl:with-param>
                             </xsl:call-template>
                         </xsl:if>
                     </xsl:with-param>
@@ -329,7 +318,7 @@
                                     <xsl:otherwise>false</xsl:otherwise>
                                 </xsl:choose>
                             </xsl:variable>
-                            <xsl:if test="@bs0:variable or $test">
+                            <xsl:if test="@bs0:variable or $test or @rvc:port">
                                 <xsl:text>&lt;Stmt kind="Call"&gt;&nl;</xsl:text>
                                 <xsl:text>&lt;Expr kind="Var" name="bool2int"/&gt;&nl;</xsl:text>
                                 <xsl:text>&lt;Args&gt;&nl;</xsl:text>
@@ -622,9 +611,6 @@
                 <xsl:if test="$output">
                     <xsl:call-template name="output">
                         <xsl:with-param name="port" select="$output"/>
-                        <xsl:with-param name="length">
-                            <xsl:value-of select="$typename"/>
-                        </xsl:with-param>
                     </xsl:call-template>
                 </xsl:if>
             </xsl:with-param>
@@ -642,6 +628,20 @@
                 
                 <xsl:text>&lt;/Expr&gt;&nl;</xsl:text>
                 
+            </xsl:with-param>
+            
+            <xsl:with-param name="do">
+                <xsl:if test="not(@type='vlc')">
+                    <xsl:if test="@rvc:port">
+                        <xsl:text>&lt;Stmt kind="Call"&gt;&nl;</xsl:text>
+                        <xsl:text>&lt;Expr kind="Var" name="bool2int"/&gt;&nl;</xsl:text>
+                        <xsl:text>&lt;Args&gt;&nl;</xsl:text>
+                        <xsl:text>&lt;Expr kind="Var" name="b"/&gt;&nl;</xsl:text>
+                        <xsl:value-of select="$typename"/>
+                        <xsl:text>&lt;/Args&gt;&nl;</xsl:text>
+                        <xsl:text>&lt;/Stmt&gt;&nl;</xsl:text>
+                    </xsl:if>
+                </xsl:if>
             </xsl:with-param>
             
         </xsl:call-template>
@@ -708,9 +708,6 @@
                 <xsl:if test="@rvc:port">
                     <xsl:call-template name="output">
                         <xsl:with-param name="port" select="@rvc:port"/>
-                        <xsl:with-param name="length">
-                            <xsl:value-of select="$typename"/>
-                        </xsl:with-param>
                     </xsl:call-template>
                 </xsl:if>
             </xsl:with-param>
@@ -725,7 +722,7 @@
                         </xsl:choose>
                     </xsl:variable>
                     
-                    <xsl:if test="@bs0:variable or $test">
+                    <xsl:if test="@bs0:variable or $test or @rvc:port">
                         <xsl:text>&lt;Stmt kind="Call"&gt;&nl;</xsl:text>
                         <xsl:text>&lt;Expr kind="Var" name="bool2int"/&gt;&nl;</xsl:text>
                         <xsl:text>&lt;Args&gt;&nl;</xsl:text>
