@@ -228,6 +228,17 @@
         
     </xsl:template>
     
+    <xsl:template name="outputvlc">
+        <xsl:param name="port" required="yes"/>
+        
+        <xsl:text>&lt;Output port="</xsl:text>
+        <xsl:value-of select="$port"/>
+        <xsl:text>"&gt;&nl;</xsl:text>
+        <xsl:text>&lt;Expr kind="Var" name="b"/&gt;&nl;</xsl:text> 
+        <xsl:text>&lt;/Output&gt;&nl;</xsl:text>
+        
+    </xsl:template>
+    
     <xsl:template name="vlcguard">
         <xsl:param name="value" required="yes"/>
         
@@ -303,9 +314,18 @@
                     </xsl:with-param>
                     <xsl:with-param name="outputs">
                         <xsl:if test="@rvc:port">
-                            <xsl:call-template name="output">
-                                <xsl:with-param name="port" select="@rvc:port"/>
-                            </xsl:call-template>
+                            <xsl:choose>
+                                <xsl:when test="@type='vlc'">
+                                    <xsl:call-template name="outputvlc">
+                                        <xsl:with-param name="port" select="@rvc:port"/>
+                                    </xsl:call-template>
+                                </xsl:when>
+                                <xsl:otherwise>
+                                    <xsl:call-template name="output">
+                                        <xsl:with-param name="port" select="@rvc:port"/>
+                                    </xsl:call-template>
+                                </xsl:otherwise>
+                            </xsl:choose>
                         </xsl:if>
                     </xsl:with-param>
                     <xsl:with-param name="do">
