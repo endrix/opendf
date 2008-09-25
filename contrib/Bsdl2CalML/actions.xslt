@@ -726,9 +726,18 @@
             </xsl:with-param>
             <xsl:with-param name="outputs">
                 <xsl:if test="@rvc:port">
-                    <xsl:call-template name="output">
-                        <xsl:with-param name="port" select="@rvc:port"/>
-                    </xsl:call-template>
+                    <xsl:choose>
+                        <xsl:when test="@type='vlc'">
+                            <xsl:call-template name="outputvlc">
+                                <xsl:with-param name="port" select="@rvc:port"/>
+                            </xsl:call-template>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <xsl:call-template name="output">
+                                <xsl:with-param name="port" select="@rvc:port"/>
+                            </xsl:call-template>
+                        </xsl:otherwise>
+                    </xsl:choose>
                 </xsl:if>
             </xsl:with-param>
             <xsl:with-param name="do">
