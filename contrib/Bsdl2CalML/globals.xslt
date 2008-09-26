@@ -87,16 +87,22 @@
   </xsl:template>
   
   <xsl:template match="bs2x:variable" mode="globalsout" priority="5">
-    <xsl:call-template name="statement">
-      <xsl:with-param name="expressions">
-        <xsl:call-template name="variableDeclaration">
-          <xsl:with-param name="name">
-            <xsl:value-of select="@name"/>
-          </xsl:with-param>
-          <xsl:with-param name="type">int</xsl:with-param>
-        </xsl:call-template>
-      </xsl:with-param>
-    </xsl:call-template>
+    <xsl:variable name="namev">
+      <xsl:value-of select="@name"/>
+      <xsl:text>_var</xsl:text>
+    </xsl:variable>
+    <xsl:if test="unique:iffirst($namev)">
+      <xsl:call-template name="statement">
+        <xsl:with-param name="expressions">
+          <xsl:call-template name="variableDeclaration">
+            <xsl:with-param name="name">
+              <xsl:value-of select="@name"/>
+            </xsl:with-param>
+            <xsl:with-param name="type">int</xsl:with-param>
+          </xsl:call-template>
+        </xsl:with-param>
+      </xsl:call-template>
+    </xsl:if>
     <xsl:next-match/>
   </xsl:template>
 
