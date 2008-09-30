@@ -631,7 +631,7 @@
                                 <xsl:text>&validActionSuffix;</xsl:text>
                                 <xsl:number count ="xsd:element[@bs2:if] | xsd:group[@bs2:if]"/>
                             </xsl:when>
-                            <xsl:when test="@bs2:if">
+                            <xsl:when test="@bs2:ifNext">
                                 <xsl:text>&validNextActionSuffix;</xsl:text>
                                 <xsl:number count ="xsd:element[@bs2:ifNext] | xsd:group[@bs2:ifNext]"/>
                             </xsl:when>
