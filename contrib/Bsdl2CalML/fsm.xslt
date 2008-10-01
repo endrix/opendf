@@ -605,7 +605,6 @@
     <xsl:template match="xsd:group" mode="fsmchoice" priority="10">
         <xsl:param name="start" required="yes"/>
         <xsl:param name="stack" required="yes" tunnel="yes"/>
-        <xsl:param name="stacko" required="yes" tunnel="yes"/>
 
         <xsl:variable name="newStack" select="if ($stack[1] is .) then $stack else (.,$stack)"/>
         <xsl:variable name="group" select="key('groups',resolve-QName(@ref,.))"/>
@@ -617,9 +616,7 @@
             <xsl:with-param name="to">
                 <xsl:choose>
                     <xsl:when test="@bs2:ifNext">
-                        <xsl:apply-templates select="." mode="followingchild">
-                            <xsl:with-param name="stack" tunnel="yes" select="$stacko"/>
-                        </xsl:apply-templates>
+                        <xsl:apply-templates select="." mode="followingchild"/>
                     </xsl:when>
                     <xsl:otherwise>
                         <xsl:apply-templates select="$group/*[1]" mode="nextname">
