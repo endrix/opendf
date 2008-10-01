@@ -533,8 +533,6 @@
             <xsl:with-param name="start">
                 <xsl:apply-templates select="." mode="nextname"/>
             </xsl:with-param>
-        </xsl:apply-templates>
-        <xsl:apply-templates select="*" mode="fsmoutput">
             <xsl:with-param name="next" select="$nextT"  tunnel="yes"/>
         </xsl:apply-templates>
     </xsl:template>
@@ -640,11 +638,13 @@
                 </xsl:call-template>
             </xsl:with-param>
         </xsl:call-template>
+        <xsl:apply-templates select="." mode="fsmoutput"/>
     </xsl:template>
     
     <xsl:template match="*" mode="fsmchoice" priority="0">
         <xsl:param name="start" required="yes"/>
         <xsl:param name="stack" required="yes" tunnel="yes"/>
+        <xsl:param name="next" required="yes" tunnel="yes"/>
         
         <xsl:variable name="newStack" select="if ($stack[1] is .) then $stack else (.,$stack)"/>
         
@@ -653,13 +653,20 @@
                 <xsl:value-of select="$start"/>
             </xsl:with-param>
             <xsl:with-param name="to">
-                <xsl:value-of select="rvc:itemName($newStack)"/>
                 <xsl:choose>
-                    <xsl:when test="not(@bs2:nOccurs)">
-                        <xsl:text>&existsStateSuffix;</xsl:text>
+                    <xsl:when test="@bs2:ifNext">
+                        <xsl:value-of select="$next"/>
                     </xsl:when>
                     <xsl:otherwise>
-                        <xsl:text>&nOccStateSuffix;</xsl:text>
+                        <xsl:value-of select="rvc:itemName($newStack)"/>
+                        <xsl:choose>
+                            <xsl:when test="not(@bs2:nOccurs)">
+                                <xsl:text>&existsStateSuffix;</xsl:text>
+                            </xsl:when>
+                            <xsl:otherwise>
+                                <xsl:text>&nOccStateSuffix;</xsl:text>
+                            </xsl:otherwise>
+                        </xsl:choose>
                     </xsl:otherwise>
                 </xsl:choose>
             </xsl:with-param>
