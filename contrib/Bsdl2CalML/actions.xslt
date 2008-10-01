@@ -652,7 +652,7 @@
             
             <xsl:with-param name="do">
                 <xsl:if test="not(@type='vlc')">
-                    <xsl:if test="@rvc:port">
+                    <xsl:if test="$output">
                         <xsl:text>&lt;Stmt kind="Call"&gt;&nl;</xsl:text>
                         <xsl:text>&lt;Expr kind="Var" name="bool2int"/&gt;&nl;</xsl:text>
                         <xsl:text>&lt;Args&gt;&nl;</xsl:text>
