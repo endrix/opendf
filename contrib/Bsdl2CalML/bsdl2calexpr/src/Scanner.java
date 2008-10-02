@@ -116,18 +116,18 @@ public class Scanner implements Symbols{
             case '<':{
                 compt++;
                 if(code.charAt(compt)!='='){
-                    compt++;
                     return LES;
                 } else {
+                    compt++;
                     return LESE;
                 }
             }
             case '>':{
                 compt++;
                 if(code.charAt(compt)!='='){
-                    compt++;
                     return MOR;
                 } else {
+                    compt++;
                     return MORE;
                 }
             }
