@@ -1052,6 +1052,14 @@ public class DefaultUntypedPlatform implements Platform {
 			}
 		}, null);
 
+        env.bind("randomInt", new FunctionOf1 () {
+			@Override
+			public Object f(Object a) {
+				int n = intValueOf(a);
+				return createInteger(randomizer.nextInt(n));
+			}
+		}, null);
+        
 		
 	}
 	
@@ -1172,4 +1180,6 @@ public class DefaultUntypedPlatform implements Platform {
         return socket;
     }
     private static Map allocatedSockets = new HashMap();
+    
+    private static java.util.Random randomizer = new java.util.Random();
 }
