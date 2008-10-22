@@ -329,37 +329,55 @@
                         </xsl:if>
                     </xsl:with-param>
                     <xsl:with-param name="do">
-                        <xsl:if test="not(@type='vlc')">
-                            <xsl:variable name="test" as="xsd:boolean">
-                                <xsl:choose>
-                                    <xsl:when test="xsd:annotation/xsd:appinfo/bs2x:variable">
-                                        <xsl:apply-templates select="xsd:annotation/xsd:appinfo/bs2x:variable" mode="iftext"/>
-                                    </xsl:when>
-                                    <xsl:otherwise>false</xsl:otherwise>
-                                </xsl:choose>
-                            </xsl:variable>
-                            <xsl:if test="@bs0:variable or $test or @rvc:port">
-                                <xsl:text>&lt;Stmt kind="Call"&gt;&nl;</xsl:text>
-                                <xsl:text>&lt;Expr kind="Var" name="bool2int"/&gt;&nl;</xsl:text>
-                                <xsl:text>&lt;Args&gt;&nl;</xsl:text>
-                                <xsl:text>&lt;Expr kind="Var" name="b"/&gt;&nl;</xsl:text>
+                        <xsl:choose>
+                            <xsl:when test="not(@type='vlc')">
+                                <xsl:variable name="test" as="xsd:boolean">
+                                    <xsl:choose>
+                                        <xsl:when test="xsd:annotation/xsd:appinfo/bs2x:variable">
+                                            <xsl:apply-templates select="xsd:annotation/xsd:appinfo/bs2x:variable" mode="iftext"/>
+                                        </xsl:when>
+                                        <xsl:otherwise>false</xsl:otherwise>
+                                    </xsl:choose>
+                                </xsl:variable>
+                                <xsl:if test="@bs0:variable or $test or @rvc:port">
+                                    <xsl:text>&lt;Stmt kind="Call"&gt;&nl;</xsl:text>
+                                    <xsl:text>&lt;Expr kind="Var" name="bool2int"/&gt;&nl;</xsl:text>
+                                    <xsl:text>&lt;Args&gt;&nl;</xsl:text>
+                                    <xsl:text>&lt;Expr kind="Var" name="b"/&gt;&nl;</xsl:text>
+                                    <xsl:value-of select="$typename"/>
+                                    <xsl:text>&lt;/Args&gt;&nl;</xsl:text>
+                                    <xsl:text>&lt;/Stmt&gt;&nl;</xsl:text>
+                                </xsl:if>
+                                <xsl:if test="@bs0:variable">
+                                    <xsl:text>&lt;Stmt kind="Assign" name="</xsl:text>
+                                    <xsl:value-of select="@name"/>
+                                    <xsl:text>"&gt;&nl;</xsl:text>
+                                    <xsl:text>&lt;Expr kind="Var" name="output"/&gt;&nl;</xsl:text>
+                                    <xsl:text>&lt;/Stmt&gt;&nl;</xsl:text>  
+                                </xsl:if>
+                                <xsl:text>&lt;Stmt kind="Assign" name="bitcount"&gt;&nl;</xsl:text>
+                                <xsl:text>&lt;Expr kind="BinOpSeq"&gt;&nl;</xsl:text>
+                                <xsl:text>&lt;Expr kind="Var" name="bitcount"/&gt;&nl;</xsl:text>
+                                <xsl:text>&lt;Op name="+"/&gt;&nl;</xsl:text> 
                                 <xsl:value-of select="$typename"/>
-                                <xsl:text>&lt;/Args&gt;&nl;</xsl:text>
-                                <xsl:text>&lt;/Stmt&gt;&nl;</xsl:text>
-                            </xsl:if>
-                            <xsl:if test="@bs0:variable">
-                                <xsl:text>&lt;Stmt kind="Assign" name="</xsl:text>
-                                <xsl:value-of select="@name"/>
-                                <xsl:text>"&gt;&nl;</xsl:text>
-                                <xsl:text>&lt;Expr kind="Var" name="output"/&gt;&nl;</xsl:text>
+                                <xsl:text>&lt;/Expr&gt;&nl;</xsl:text>  
                                 <xsl:text>&lt;/Stmt&gt;&nl;</xsl:text>  
-                            </xsl:if>
-                            <xsl:if test="xsd:annotation/xsd:appinfo/bs2x:variable">
-                                <xsl:apply-templates select="xsd:annotation/xsd:appinfo/bs2x:variable" mode="actionexpr">
-                                    <xsl:with-param name="typename" select="$typename" tunnel="yes" />
-                                </xsl:apply-templates>
-                            </xsl:if>
-                         </xsl:if>
+                                <xsl:if test="xsd:annotation/xsd:appinfo/bs2x:variable">
+                                    <xsl:apply-templates select="xsd:annotation/xsd:appinfo/bs2x:variable" mode="actionexpr">
+                                        <xsl:with-param name="typename" select="$typename" tunnel="yes" />
+                                    </xsl:apply-templates>
+                                </xsl:if>
+                            </xsl:when>
+                            <xsl:otherwise>
+                                <xsl:text>&lt;Stmt kind="Assign" name="bitcount"&gt;&nl;</xsl:text>
+                                <xsl:text>&lt;Expr kind="BinOpSeq"&gt;&nl;</xsl:text>
+                                <xsl:text>&lt;Expr kind="Var" name="bitcount"/&gt;&nl;</xsl:text>
+                                <xsl:text>&lt;Op name="+"/&gt;&nl;</xsl:text>  
+                                <xsl:text>&lt;Expr kind="Literal" literal-kind="Integer" value="1"/&gt;&nl;</xsl:text>
+                                <xsl:text>&lt;/Expr&gt;&nl;</xsl:text>  
+                                <xsl:text>&lt;/Stmt&gt;&nl;</xsl:text>  
+                            </xsl:otherwise>
+                        </xsl:choose>
                     </xsl:with-param>
                     <xsl:with-param name="guard">
                         <xsl:if test="@fixed">
@@ -651,17 +669,35 @@
             </xsl:with-param>
             
             <xsl:with-param name="do">
-                <xsl:if test="not(@type='vlc')">
-                    <xsl:if test="$output">
-                        <xsl:text>&lt;Stmt kind="Call"&gt;&nl;</xsl:text>
-                        <xsl:text>&lt;Expr kind="Var" name="bool2int"/&gt;&nl;</xsl:text>
-                        <xsl:text>&lt;Args&gt;&nl;</xsl:text>
-                        <xsl:text>&lt;Expr kind="Var" name="b"/&gt;&nl;</xsl:text>
+                <xsl:choose>
+                    <xsl:when test="not(@type='vlc')">
+                        <xsl:if test="$output">
+                            <xsl:text>&lt;Stmt kind="Call"&gt;&nl;</xsl:text>
+                            <xsl:text>&lt;Expr kind="Var" name="bool2int"/&gt;&nl;</xsl:text>
+                            <xsl:text>&lt;Args&gt;&nl;</xsl:text>
+                            <xsl:text>&lt;Expr kind="Var" name="b"/&gt;&nl;</xsl:text>
+                            <xsl:value-of select="$typename"/>
+                            <xsl:text>&lt;/Args&gt;&nl;</xsl:text>
+                            <xsl:text>&lt;/Stmt&gt;&nl;</xsl:text>
+                        </xsl:if>
+                        <xsl:text>&lt;Stmt kind="Assign" name="bitcount"&gt;&nl;</xsl:text>
+                        <xsl:text>&lt;Expr kind="BinOpSeq"&gt;&nl;</xsl:text>
+                        <xsl:text>&lt;Expr kind="Var" name="bitcount"/&gt;&nl;</xsl:text>
+                        <xsl:text>&lt;Op name="+"/&gt;&nl;</xsl:text> 
                         <xsl:value-of select="$typename"/>
-                        <xsl:text>&lt;/Args&gt;&nl;</xsl:text>
-                        <xsl:text>&lt;/Stmt&gt;&nl;</xsl:text>
-                    </xsl:if>
-                </xsl:if>
+                        <xsl:text>&lt;/Expr&gt;&nl;</xsl:text>  
+                        <xsl:text>&lt;/Stmt&gt;&nl;</xsl:text> 
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:text>&lt;Stmt kind="Assign" name="bitcount"&gt;&nl;</xsl:text>
+                        <xsl:text>&lt;Expr kind="BinOpSeq"&gt;&nl;</xsl:text>
+                        <xsl:text>&lt;Expr kind="Var" name="bitcount"/&gt;&nl;</xsl:text>
+                        <xsl:text>&lt;Op name="+"/&gt;&nl;</xsl:text>  
+                        <xsl:text>&lt;Expr kind="Literal" literal-kind="Integer" value="1"/&gt;&nl;</xsl:text>
+                        <xsl:text>&lt;/Expr&gt;&nl;</xsl:text>  
+                        <xsl:text>&lt;/Stmt&gt;&nl;</xsl:text>  
+                    </xsl:otherwise>
+                </xsl:choose>
             </xsl:with-param>
             
         </xsl:call-template>
@@ -741,36 +777,55 @@
                 </xsl:if>
             </xsl:with-param>
             <xsl:with-param name="do">
-                <xsl:if test="not(@type='vlc')">
-                    <xsl:variable name="test" as="xsd:boolean">
-                        <xsl:choose>
-                            <xsl:when test="xsd:annotation/xsd:appinfo/bs2x:variable">
-                                <xsl:apply-templates select="xsd:annotation/xsd:appinfo/bs2x:variable" mode="iftext"/>
-                            </xsl:when>
-                            <xsl:otherwise>false</xsl:otherwise>
-                        </xsl:choose>
-                    </xsl:variable>
-                    
-                    <xsl:if test="@bs0:variable or $test or @rvc:port">
-                        <xsl:text>&lt;Stmt kind="Call"&gt;&nl;</xsl:text>
-                        <xsl:text>&lt;Expr kind="Var" name="bool2int"/&gt;&nl;</xsl:text>
-                        <xsl:text>&lt;Args&gt;&nl;</xsl:text>
-                        <xsl:text>&lt;Expr kind="Var" name="b"/&gt;&nl;</xsl:text>
+                
+                <xsl:choose>
+                    <xsl:when test="not(@type='vlc')">
+                        <xsl:variable name="test" as="xsd:boolean">
+                            <xsl:choose>
+                                <xsl:when test="xsd:annotation/xsd:appinfo/bs2x:variable">
+                                    <xsl:apply-templates select="xsd:annotation/xsd:appinfo/bs2x:variable" mode="iftext"/>
+                                </xsl:when>
+                                <xsl:otherwise>false</xsl:otherwise>
+                            </xsl:choose>
+                        </xsl:variable>
+                        
+                        <xsl:if test="@bs0:variable or $test or @rvc:port">
+                            <xsl:text>&lt;Stmt kind="Call"&gt;&nl;</xsl:text>
+                            <xsl:text>&lt;Expr kind="Var" name="bool2int"/&gt;&nl;</xsl:text>
+                            <xsl:text>&lt;Args&gt;&nl;</xsl:text>
+                            <xsl:text>&lt;Expr kind="Var" name="b"/&gt;&nl;</xsl:text>
+                            <xsl:value-of select="$typename"/>
+                            <xsl:text>&lt;/Args&gt;&nl;</xsl:text>
+                            <xsl:text>&lt;/Stmt&gt;&nl;</xsl:text>
+                        </xsl:if>
+                        <xsl:if test="@bs0:variable">
+                            <xsl:text>&lt;Stmt kind="Assign" name="</xsl:text>
+                            <xsl:value-of select="@name"/>
+                            <xsl:text>"&gt;&nl;</xsl:text>
+                            <xsl:text>&lt;Expr kind="Var" name="output"/&gt;&nl;</xsl:text>
+                            <xsl:text>&lt;/Stmt&gt;&nl;</xsl:text>  
+                        </xsl:if>
+                        <xsl:text>&lt;Stmt kind="Assign" name="bitcount"&gt;&nl;</xsl:text>
+                        <xsl:text>&lt;Expr kind="BinOpSeq"&gt;&nl;</xsl:text>
+                        <xsl:text>&lt;Expr kind="Var" name="bitcount"/&gt;&nl;</xsl:text>
+                        <xsl:text>&lt;Op name="+"/&gt;&nl;</xsl:text> 
                         <xsl:value-of select="$typename"/>
-                        <xsl:text>&lt;/Args&gt;&nl;</xsl:text>
-                        <xsl:text>&lt;/Stmt&gt;&nl;</xsl:text>
-                    </xsl:if>
-                    <xsl:if test="@bs0:variable">
-                        <xsl:text>&lt;Stmt kind="Assign" name="</xsl:text>
-                        <xsl:value-of select="@name"/>
-                        <xsl:text>"&gt;&nl;</xsl:text>
-                        <xsl:text>&lt;Expr kind="Var" name="output"/&gt;&nl;</xsl:text>
+                        <xsl:text>&lt;/Expr&gt;&nl;</xsl:text>  
                         <xsl:text>&lt;/Stmt&gt;&nl;</xsl:text>  
-                    </xsl:if>
-                    <xsl:if test="xsd:annotation/xsd:appinfo/bs2x:variable">
-                        <xsl:apply-templates select="xsd:annotation/xsd:appinfo/bs2x:variable" mode="actionexpr"/>
-                    </xsl:if>
-                </xsl:if>
+                        <xsl:if test="xsd:annotation/xsd:appinfo/bs2x:variable">
+                            <xsl:apply-templates select="xsd:annotation/xsd:appinfo/bs2x:variable" mode="actionexpr"/>
+                        </xsl:if>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:text>&lt;Stmt kind="Assign" name="bitcount"&gt;&nl;</xsl:text>
+                        <xsl:text>&lt;Expr kind="BinOpSeq"&gt;&nl;</xsl:text>
+                        <xsl:text>&lt;Expr kind="Var" name="bitcount"/&gt;&nl;</xsl:text>
+                        <xsl:text>&lt;Op name="+"/&gt;&nl;</xsl:text>  
+                        <xsl:text>&lt;Expr kind="Literal" literal-kind="Integer" value="1"/&gt;&nl;</xsl:text>
+                        <xsl:text>&lt;/Expr&gt;&nl;</xsl:text>  
+                        <xsl:text>&lt;/Stmt&gt;&nl;</xsl:text>  
+                    </xsl:otherwise>
+                </xsl:choose>
             </xsl:with-param>
             <xsl:with-param name="guard">
                 <xsl:if test="not($guardExpr = 'true()')">

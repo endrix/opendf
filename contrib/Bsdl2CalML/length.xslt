@@ -85,16 +85,6 @@
 
       </xsl:if>
     </xsl:for-each>
-    
-    <xsl:call-template name="variableDeclaration">
-      
-      <xsl:with-param name="name">M4V_VLC_LENGTH</xsl:with-param>
-      
-      <xsl:with-param name="type">int</xsl:with-param>
-      
-      <xsl:with-param name="initialValue">1</xsl:with-param>
-      
-    </xsl:call-template>
 
   </xsl:template>
 

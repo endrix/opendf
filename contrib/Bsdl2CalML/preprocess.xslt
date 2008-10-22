@@ -29,7 +29,14 @@
     *-->
 <xsl:stylesheet  xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
      xmlns:saxon="http://saxon.sf.net/"
-    xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="2.0">
+    xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+    xmlns:bs2x="urn:mpeg:mpeg21:2003:01-DIA-BSDL2x-NS"
+    xmlns:math="http://exslt.org/math"
+    xmlns:rvc="urn:mpeg:2006:01-RVC-NS"
+    xmlns:bs0="urn:mpeg:mpeg21:2003:01-DIA-BSDL0-NS" 
+    xmlns:bs2="urn:mpeg:mpeg21:2003:01-DIA-BSDL2-NS" 
+    version="2.0">
+    
     <xsl:include href="removeRedundantSequences.xslt"/>
     <xsl:include href="inlineComplexExtRestr.xslt"/>
     <xsl:include href="addNames.xslt"/>
@@ -44,6 +51,34 @@
         <xsl:apply-templates select="$compositeDocument/*"/>
     </xsl:template>
     
+    <xsl:template match="xsd:sequence[@bs2:nOccurs] | xsd:sequence[@bs2:if] | xsd:sequence[@bs2:ifNext]" mode="#all" priority="10">
+        <xsd:group>
+            <xsl:attribute name="ref">sequence<xsl:number count ="xsd:sequence[@bs2:nOccurs] | xsd:sequence[@bs2:if] | xsd:sequence[@bs2:ifNext]"/></xsl:attribute>
+            <xsl:attribute name="name">sequence<xsl:number count ="xsd:sequence[@bs2:nOccurs] | xsd:sequence[@bs2:if] | xsd:sequence[@bs2:ifNext]"/></xsl:attribute>
+            <xsl:apply-templates select="@*" mode="#current"/> 
+        </xsd:group>
+    </xsl:template>
+    
+    <xsl:template match="xsd:sequence[@bs2:nOccurs] | xsd:sequence[@bs2:if] | xsd:sequence[@bs2:ifNext]" mode="groupize" priority="20">
+        <xsd:group>
+            <xsl:attribute name="name">sequence<xsl:number count ="xsd:sequence[@bs2:nOccurs] | xsd:sequence[@bs2:if] | xsd:sequence[@bs2:ifNext]"/></xsl:attribute>
+            <xsl:apply-templates select="node()" mode="group2"/> 
+        </xsd:group>
+        <xsl:apply-templates select="node()" mode="groupize"/> 
+    </xsl:template>
+    
+    <xsl:template match="*|@*" mode="groupize" priority="10">
+         <xsl:apply-templates select="@* | node()" mode="#current"/>
+    </xsl:template>
+
+    <xsl:template match="xsd:schema" mode="#all" priority="10">
+        <xsl:copy>
+            <xsl:apply-templates select="@*" mode="#current"/>
+            <xsl:apply-templates select="node()" mode="groupize"/>
+            <xsl:apply-templates select="node()" mode="#current"/>           
+        </xsl:copy>
+    </xsl:template>
+
     <xsl:template match="*|@*" mode="#all">
         <xsl:copy>
             <xsl:apply-templates select="@* | node()" mode="#current"/>            

@@ -112,6 +112,17 @@
   
   <xsl:template match="*" priority="0" mode="globals">
     <xsl:apply-templates mode="globalsout" select="*"/>
+    <xsl:call-template name="statement">
+      <xsl:with-param name="expressions">
+        <xsl:call-template name="variableDeclaration">
+          <xsl:with-param name="name">
+            <xsl:text>bitcount</xsl:text>
+          </xsl:with-param>
+          <xsl:with-param name="initialValue" select="0"/>
+          <xsl:with-param name="type">int</xsl:with-param>
+        </xsl:call-template>
+      </xsl:with-param>
+    </xsl:call-template>
     <xsl:variable name="ret" select="unique:init()"/>
   </xsl:template>
  
