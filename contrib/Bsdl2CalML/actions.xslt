@@ -687,6 +687,11 @@
                         <xsl:value-of select="$typename"/>
                         <xsl:text>&lt;/Expr&gt;&nl;</xsl:text>  
                         <xsl:text>&lt;/Stmt&gt;&nl;</xsl:text> 
+                        <xsl:if test="xsd:annotation/xsd:appinfo/bs2x:variable">
+                            <xsl:apply-templates select="xsd:annotation/xsd:appinfo/bs2x:variable" mode="actionexpr">
+                                <xsl:with-param name="typename" select="$typename" tunnel="yes" />
+                            </xsl:apply-templates>
+                        </xsl:if>
                     </xsl:when>
                     <xsl:otherwise>
                         <xsl:text>&lt;Stmt kind="Assign" name="bit_number"&gt;&nl;</xsl:text>
@@ -975,12 +980,18 @@
     <xsl:template match="xsd:sequence | xsd:all | xsd:complexType | xsd:element[child::element()]" mode="followingsize" priority="2">
         <xsl:apply-templates mode="#current" select="*[1]"/>
     </xsl:template>
-    
-    <xsl:template match="xsd:element" mode="followingsize" priority="0">
+   
+    <xsl:template match="xsd:element[@type]" mode="followingsize" priority="3">
         <xsl:if test="not(@type='vlc')">
             <xsl:apply-templates select="key('types',resolve-QName(@type,.))" mode="calculateLength"/>
         </xsl:if>
     </xsl:template>
+   
+  <!--  <xsl:template match="xsd:element" mode="followingsize" priority="0">
+        <xsl:if test="not(@type='vlc')">
+            <xsl:apply-templates select="key('types',resolve-QName(@type,.))" mode="calculateLength"/>
+        </xsl:if>
+    </xsl:template>-->
     
     <xsl:template match="*" mode="followingsize" priority="-1000"/>
     

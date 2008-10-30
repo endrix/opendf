@@ -792,7 +792,7 @@
     </xsl:template>
     
     <xsl:template match="xsd:element[@type]" mode="followingchild"  priority="5">
-        
+        <xsl:param name="stacko" required="yes" tunnel="yes"/>
         <xsl:variable name="tmp">
             <xsl:apply-templates select="key('types',resolve-QName(@type,.))" mode="#current">
                 <xsl:with-param name="next"  tunnel="yes">
@@ -805,7 +805,9 @@
                 <xsl:value-of select="$tmp"/>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:next-match/>
+                <xsl:apply-templates select="." mode="fsmnext">
+                    <xsl:with-param name="stack" select="$stacko" tunnel="yes"/>
+                </xsl:apply-templates>
             </xsl:otherwise>
         </xsl:choose>
         
