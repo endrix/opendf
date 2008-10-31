@@ -933,7 +933,7 @@
         <xsl:apply-templates mode="#current" select="*[1]"/>
     </xsl:template>
     
-    <xsl:template match="xsd:element" mode="followinglength" priority="0">
+    <xsl:template match="xsd:element[@type]" mode="followinglength" priority="10">
         <xsl:if test="not(@type='vlc')">
             <xsl:variable name="typenamer">
                 <xsl:apply-templates select="@type | *" mode="actionlength"/>
@@ -1032,7 +1032,7 @@
         <xsl:apply-templates mode="#current" select="*[1]"/>
     </xsl:template>
     
-    <xsl:template match="xsd:element" mode="followingoutput" priority="0">
+    <xsl:template match="xsd:element[@rvc:port]" mode="followingoutput" priority="10">
         <xsl:value-of select="@rvc:port" />
     </xsl:template>
     
