@@ -190,9 +190,14 @@
     <xsl:variable name="aMEBitCount" select="if ($meBitCount='') then 9999 else $meBitCount"/>
     
     <xsl:variable name="aBaseHexCount" >
-      <xsl:choose>
-        <xsl:when test="@base='xsd:hexBinary'">
+      <xsl:variable name="baseHexCount">
+        <xsl:if test="@base='xsd:hexBinary'">
           <xsl:apply-templates select="xsd:length" mode="calculateLength"/>
+        </xsl:if>
+      </xsl:variable>
+      <xsl:choose>
+        <xsl:when test="string-length($baseHexCount) &gt; 0">
+          <xsl:value-of select="$baseHexCount"/>
         </xsl:when>
         <xsl:otherwise>9999</xsl:otherwise>
       </xsl:choose>
@@ -203,9 +208,10 @@
       <xsl:variable name="startCode">
         <xsl:apply-templates select="xsd:annotation" mode="startCode"/>
       </xsl:variable>
+      
       <xsl:choose>
         <xsl:when test="string-length($startCode) &gt; 0">
-          <xsl:value-of select="string-length($startCode)"/>
+          <xsl:value-of select="string-length($startCode) - 1"/>
         </xsl:when>
         <xsl:otherwise>9999</xsl:otherwise>
       </xsl:choose>

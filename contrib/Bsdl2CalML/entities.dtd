@@ -76,6 +76,8 @@
 
 <!ENTITY skipAction "skip">
 
+<!ENTITY errorAction "error">
+
 <!ENTITY trueAction "true">
 
 <!ENTITY isTypeActionSuffix "isType">
