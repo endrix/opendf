@@ -240,7 +240,7 @@
       </xsl:with-param>
       <xsl:with-param name="do">
         <xsl:text>&lt;Stmt kind="Call"&gt;&nl;</xsl:text>
-        <xsl:text>&lt;Expr kind="Var" name="println"&gt;&nl;</xsl:text>
+        <xsl:text>&lt;Expr kind="Var" name="println"/&gt;&nl;</xsl:text>
         <xsl:text>&lt;Args&gt;&nl;</xsl:text>
         <xsl:text>&lt;Expr kind="Literal" literal-kind="String" value="The bitstream is not conformed to the description"/&gt;&nl;</xsl:text>
         <xsl:text>&lt;/Args&gt;&nl;</xsl:text>
