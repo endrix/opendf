@@ -53,18 +53,18 @@
     
     <xsl:template match="xsd:sequence[@bs2:nOccurs] | xsd:sequence[@bs2:if] | xsd:sequence[@bs2:ifNext]" mode="#all" priority="10">
         <xsd:group>
-            <xsl:attribute name="ref">sequence<xsl:number count ="xsd:sequence[@bs2:nOccurs] | xsd:sequence[@bs2:if] | xsd:sequence[@bs2:ifNext]"/></xsl:attribute>
-            <xsl:attribute name="name">sequence<xsl:number count ="xsd:sequence[@bs2:nOccurs] | xsd:sequence[@bs2:if] | xsd:sequence[@bs2:ifNext]"/></xsl:attribute>
+            <xsl:attribute name="ref">sequence<xsl:number count ="xsd:sequence[@bs2:nOccurs] | xsd:sequence[@bs2:if] | xsd:sequence[@bs2:ifNext]" level="any"/></xsl:attribute>
+            <xsl:attribute name="name">sequence<xsl:number count ="xsd:sequence[@bs2:nOccurs] | xsd:sequence[@bs2:if] | xsd:sequence[@bs2:ifNext]" level="any"/></xsl:attribute>
             <xsl:apply-templates select="@*" mode="#current"/> 
         </xsd:group>
     </xsl:template>
     
     <xsl:template match="xsd:sequence[@bs2:nOccurs] | xsd:sequence[@bs2:if] | xsd:sequence[@bs2:ifNext]" mode="groupize" priority="20">
         <xsd:group>
-            <xsl:attribute name="name">sequence<xsl:number count ="xsd:sequence[@bs2:nOccurs] | xsd:sequence[@bs2:if] | xsd:sequence[@bs2:ifNext]"/></xsl:attribute>
-            <xsl:apply-templates select="node()" mode="group2"/> 
+            <xsl:attribute name="name">sequence<xsl:number count ="xsd:sequence[@bs2:nOccurs] | xsd:sequence[@bs2:if] | xsd:sequence[@bs2:ifNext]" level="any"/></xsl:attribute>
+            <xsl:apply-templates select="*" mode="group2"/> 
         </xsd:group>
-        <xsl:apply-templates select="node()" mode="groupize"/> 
+        <xsl:apply-templates select="*" mode="groupize"/> 
     </xsl:template>
     
     <xsl:template match="*|@*" mode="groupize" priority="10">

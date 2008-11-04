@@ -78,6 +78,8 @@
 
 <!ENTITY errorAction "error">
 
+<!ENTITY errorState "errorState">
+
 <!ENTITY trueAction "true">
 
 <!ENTITY isTypeActionSuffix "isType">

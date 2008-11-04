@@ -206,6 +206,29 @@
                 <xsl:with-param name="name" select="@name"></xsl:with-param>
             </xsl:call-template>
         </xsl:if>
+        
+        <xsl:variable name="startCode">
+            <xsl:apply-templates select="key('types',resolve-QName(@type,.))" mode="startCode"/>
+        </xsl:variable>
+        <xsl:if test="@fixed or (string-length($startCode) &gt; 0)">
+            <xsl:text>&lt;Priority&gt;&nl;</xsl:text>
+            <xsl:call-template name="qid">
+                <xsl:with-param name="name">
+                    <xsl:value-of select="@name"/>
+                </xsl:with-param>
+                <xsl:with-param name="suffix">
+                    <xsl:text>&readActionSuffix;</xsl:text>
+                </xsl:with-param>
+            </xsl:call-template>
+            
+            <xsl:call-template name="qid">
+                <xsl:with-param name="name">
+                    <xsl:text>&errorAction;</xsl:text>
+                </xsl:with-param>
+            </xsl:call-template>
+            <xsl:text>&lt;/Priority&gt;&nl;</xsl:text>
+        </xsl:if>
+        
         <xsl:next-match/>
     </xsl:template>
     

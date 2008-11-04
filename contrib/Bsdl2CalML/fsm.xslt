@@ -143,6 +143,28 @@
             </xsl:otherwise>
         </xsl:choose>
         
+        <xsl:variable name="startCode">
+            <xsl:apply-templates select="key('types',resolve-QName(@type,.))" mode="startCode"/>
+        </xsl:variable>
+        <xsl:if test="@fixed or (string-length($startCode) &gt; 0)">
+            <xsl:call-template name="transition">
+                <xsl:with-param name="from">
+                    <xsl:value-of select="rvc:itemName($stack)"/>
+                    <xsl:text>&existsStateSuffix;</xsl:text>
+                </xsl:with-param>
+                <xsl:with-param name="to">
+                    <xsl:text>&errorState;</xsl:text>
+                </xsl:with-param>
+                <xsl:with-param name="action">
+                    <xsl:call-template name="qid">
+                        <xsl:with-param name="name">
+                            <xsl:text>&errorAction;</xsl:text>
+                        </xsl:with-param>
+                    </xsl:call-template>
+                </xsl:with-param>
+            </xsl:call-template>
+        </xsl:if>
+        
         <xsl:next-match/>
         
     </xsl:template>
