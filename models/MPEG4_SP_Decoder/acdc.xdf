@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?><XDF name="acdc">
+   <Port kind="Input" name="BTYPE"/>
+   <Port kind="Input" name="data"/>
+   <Port kind="Output" name="signed"/>
+   <Port kind="Output" name="out"/>
+   <Decl kind="Param" name="MAXW_IN_MB"/>
+   <Decl kind="Param" name="MB_COORD_SZ"/>
+   <Decl kind="Param" name="BTYPE_SZ"/>
+   <Decl kind="Param" name="SAMPLE_SZ"/>
+   <Decl kind="Param" name="NEWVOP"/>
+   <Decl kind="Param" name="INTRA"/>
+   <Decl kind="Param" name="INTER"/>
+   <Decl kind="Param" name="QUANT_MASK"/>
+   <Decl kind="Param" name="ROUND_TYPE"/>
+   <Decl kind="Param" name="FCODE_MASK"/>
+   <Decl kind="Param" name="FCODE_SHIFT"/>
+   <Decl kind="Param" name="MOTION"/>
+   <Decl kind="Param" name="ACCODED"/>
+   <Decl kind="Param" name="ACPRED"/>
+   <Decl kind="Param" name="QUANT_SZ"/>
+   <Instance id="Sequence">
+      <Class name="Sequence"/>
+      <Parameter name="BTYPE_SZ">
+         <Expr kind="Var" name="BTYPE_SZ"/>
+      </Parameter>
+      <Parameter name="FCODE_MASK">
+         <Expr kind="Var" name="FCODE_MASK"/>
+      </Parameter>
+      <Parameter name="FCODE_SHIFT">
+         <Expr kind="Var" name="FCODE_SHIFT"/>
+      </Parameter>
+      <Parameter name="INTER">
+         <Expr kind="Var" name="INTER"/>
+      </Parameter>
+      <Parameter name="INTRA">
+         <Expr kind="Var" name="INTRA"/>
+      </Parameter>
+      <Parameter name="MAXW_IN_MB">
+         <Expr kind="Var" name="MAXW_IN_MB"/>
+      </Parameter>
+      <Parameter name="MB_COORD_SZ">
+         <Expr kind="Var" name="MB_COORD_SZ"/>
+      </Parameter>
+      <Parameter name="NEWVOP">
+         <Expr kind="Var" name="NEWVOP"/>
+      </Parameter>
+      <Parameter name="QUANT_MASK">
+         <Expr kind="Var" name="QUANT_MASK"/>
+      </Parameter>
+      <Parameter name="ROUND_TYPE">
+         <Expr kind="Var" name="ROUND_TYPE"/>
+      </Parameter>
+   </Instance>
+   <Instance id="DCSplit">
+      <Class name="DCSplit"/>
+      <Parameter name="SAMPLE_SZ">
+         <Expr kind="Var" name="SAMPLE_SZ"/>
+      </Parameter>
+   </Instance>
+   <Instance id="DCPred">
+      <Class name="DCPred"/>
+      <Parameter name="ACCODED">
+         <Expr kind="Var" name="ACCODED"/>
+      </Parameter>
+      <Parameter name="ACPRED">
+         <Expr kind="Var" name="ACPRED"/>
+      </Parameter>
+      <Parameter name="BTYPE_SZ">
+         <Expr kind="Var" name="BTYPE_SZ"/>
+      </Parameter>
+      <Parameter name="DCVAL">
+         <Expr kind="BinOpSeq">
+            <Expr kind="Literal" literal-kind="Integer" value="128"/>
+            <Op name="*"/>
+            <Expr kind="Literal" literal-kind="Integer" value="8"/>
+         </Expr>
+      </Parameter>
+      <Parameter name="INTER">
+         <Expr kind="Var" name="INTER"/>
+      </Parameter>
+      <Parameter name="INTRA">
+         <Expr kind="Var" name="INTRA"/>
+      </Parameter>
+      <Parameter name="MAXW_IN_MB">
+         <Expr kind="Var" name="MAXW_IN_MB"/>
+      </Parameter>
+      <Parameter name="MB_COORD_SZ">
+         <Expr kind="Var" name="MB_COORD_SZ"/>
+      </Parameter>
+      <Parameter name="NEWVOP">
+         <Expr kind="Var" name="NEWVOP"/>
+      </Parameter>
+      <Parameter name="QUANT_MASK">
+         <Expr kind="Var" name="QUANT_MASK"/>
+      </Parameter>
+      <Parameter name="QUANT_SZ">
+         <Expr kind="Var" name="QUANT_SZ"/>
+      </Parameter>
+      <Parameter name="SAMPLE_SZ">
+         <Expr kind="Var" name="SAMPLE_SZ"/>
+      </Parameter>
+   </Instance>
+   <Instance id="ZigzagAddr">
+      <Class name="ZigzagAddr"/>
+   </Instance>
+   <Instance id="Zigzag">
+      <Class name="Zigzag"/>
+      <Parameter name="SAMPLE_SZ">
+         <Expr kind="Var" name="SAMPLE_SZ"/>
+      </Parameter>
+   </Instance>
+   <Instance id="ACPred">
+      <Class name="ACPred"/>
+      <Parameter name="MAXW_IN_MB">
+         <Expr kind="Var" name="MAXW_IN_MB"/>
+      </Parameter>
+      <Parameter name="MB_COORD_SZ">
+         <Expr kind="Var" name="MB_COORD_SZ"/>
+      </Parameter>
+      <Parameter name="SAMPLE_SZ">
+         <Expr kind="Var" name="SAMPLE_SZ"/>
+      </Parameter>
+   </Instance>
+   <Instance id="Dequant">
+      <Class name="Dequant"/>
+      <Parameter name="QUANT_SZ">
+         <Expr kind="Var" name="QUANT_SZ"/>
+      </Parameter>
+      <Parameter name="SAMPLE_SZ">
+         <Expr kind="Var" name="SAMPLE_SZ"/>
+      </Parameter>
+   </Instance>
+   <Connection dst="Sequence" dst-port="BTYPE" src="" src-port="BTYPE"/>
+   <Connection dst="DCPred" dst-port="BTYPE" src="" src-port="BTYPE"/>
+   <Connection dst="DCSplit" dst-port="IN" src="" src-port="data"/>
+   <Connection dst="DCPred" dst-port="A" src="Sequence" src-port="A"/>
+   <Connection dst="DCPred" dst-port="B" src="Sequence" src-port="B"/>
+   <Connection dst="DCPred" dst-port="C" src="Sequence" src-port="C"/>
+   <Connection dst="DCPred" dst-port="IN" src="DCSplit" src-port="DC"/>
+   <Connection dst="Zigzag" dst-port="AC" src="DCSplit" src-port="AC"/>
+   <Connection dst="" dst-port="signed" src="DCPred" src-port="SIGNED"/>
+   <Connection dst="Dequant" dst-port="QP" src="DCPred" src-port="QUANT"/>
+   <Connection dst="Dequant" dst-port="DC" src="DCPred" src-port="OUT"/>
+   <Connection dst="ACPred" dst-port="PTR" src="DCPred" src-port="PTR"/>
+   <Connection dst="ZigzagAddr" dst-port="START" src="DCPred" src-port="START"/>
+   <Connection dst="Zigzag" dst-port="START" src="DCPred" src-port="START"/>
+   <Connection dst="ACPred" dst-port="START" src="DCPred" src-port="START"/>
+   <Connection dst="Zigzag" dst-port="ADDR" src="ZigzagAddr" src-port="ADDR"/>
+   <Connection dst="ACPred" dst-port="AC" src="Zigzag" src-port="OUT"/>
+   <Connection dst="Dequant" dst-port="AC" src="ACPred" src-port="OUT"/>
+   <Connection dst="" dst-port="out" src="Dequant" src-port="OUT"/>
+</XDF>
