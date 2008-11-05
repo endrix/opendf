@@ -54,7 +54,7 @@
 
 <!ENTITY chooseStateSuffix "_choose">
 
-<!ENTITY readAgainSuffix "readAgain">
+<!--<!ENTITY readAgainSuffix "readAgain">-->
 
 <!ENTITY resultStateSuffix "_result">
 
@@ -71,6 +71,14 @@
 <!ENTITY vlcType "vlc">
 
 <!ENTITY existsStateSuffix "_exists">
+
+<!ENTITY alignStateSuffix "_align">
+
+<!ENTITY align8Action "align8">
+
+<!ENTITY align16Action "align16">
+
+<!ENTITY align32Action "align32">
 
 <!ENTITY skipActionSuffix "skip">
 
@@ -89,6 +97,7 @@
 <!ENTITY uscore "'_'">
 
 
+<!ENTITY bitNumber "bit_number" >
 
 <!ENTITY readResult "readResult" >
 

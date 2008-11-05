@@ -165,6 +165,30 @@
             </xsl:call-template>
         </xsl:if>
         
+        <xsl:variable name="restrictBase">
+            <xsl:apply-templates select="key('types',resolve-QName(@type,.))" mode="restrictBase"/>
+        </xsl:variable>
+        <xsl:choose>
+            <xsl:when test="$restrictBase = 'bs1:align8'">
+                <xsl:call-template name="restrictAlign">
+                    <xsl:with-param name="name" select="rvc:itemName($stack)"/>
+                    <xsl:with-param name="align"><xsl:text>&align8Action;</xsl:text></xsl:with-param>
+                </xsl:call-template>
+            </xsl:when>
+            <xsl:when test="$restrictBase = 'bs1:align16'">
+                <xsl:call-template name="restrictAlign">
+                    <xsl:with-param name="name" select="rvc:itemName($stack)"/>
+                    <xsl:with-param name="align"><xsl:text>&align16Action;</xsl:text></xsl:with-param>
+                </xsl:call-template>
+            </xsl:when>
+            <xsl:when test="$restrictBase = 'bs1:align32'">
+                <xsl:call-template name="restrictAlign">
+                    <xsl:with-param name="name" select="rvc:itemName($stack)"/>
+                    <xsl:with-param name="align"><xsl:text>&align32Action;</xsl:text></xsl:with-param>
+                </xsl:call-template>
+            </xsl:when>
+        </xsl:choose>
+        
         <xsl:next-match/>
         
     </xsl:template>
@@ -180,7 +204,23 @@
             </xsl:with-param>
             <xsl:with-param name="to">
                 <xsl:value-of select="rvc:itemName($stack)"/>
-                <xsl:text>&existsStateSuffix;</xsl:text>
+                <xsl:variable name="restrictBase">
+                    <xsl:apply-templates select="key('types',resolve-QName(@type,.))" mode="restrictBase"/>
+                </xsl:variable>
+                <xsl:choose>
+                    <xsl:when test="$restrictBase = 'bs1:align8'">
+                        <xsl:text>&alignStateSuffix;</xsl:text>
+                    </xsl:when>
+                    <xsl:when test="$restrictBase = 'bs1:align16'">
+                        <xsl:text>&alignStateSuffix;</xsl:text>
+                    </xsl:when>
+                    <xsl:when test="$restrictBase = 'bs1:align32'">
+                        <xsl:text>&alignStateSuffix;</xsl:text>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:text>&existsStateSuffix;</xsl:text>
+                    </xsl:otherwise>
+                </xsl:choose>
             </xsl:with-param>
             <xsl:with-param name="action">
                 <xsl:call-template name="qid">
@@ -237,7 +277,23 @@
             </xsl:with-param>
             <xsl:with-param name="to">
                 <xsl:value-of select="rvc:itemName($stack)"/>
-                <xsl:text>&existsStateSuffix;</xsl:text>
+                <xsl:variable name="restrictBase">
+                    <xsl:apply-templates select="key('types',resolve-QName(@type,.))" mode="restrictBase"/>
+                </xsl:variable>
+                <xsl:choose>
+                    <xsl:when test="$restrictBase = 'bs1:align8'">
+                        <xsl:text>&alignStateSuffix;</xsl:text>
+                    </xsl:when>
+                    <xsl:when test="$restrictBase = 'bs1:align16'">
+                        <xsl:text>&alignStateSuffix;</xsl:text>
+                    </xsl:when>
+                    <xsl:when test="$restrictBase = 'bs1:align32'">
+                        <xsl:text>&alignStateSuffix;</xsl:text>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:text>&existsStateSuffix;</xsl:text>
+                    </xsl:otherwise>
+                </xsl:choose>
             </xsl:with-param>
             <xsl:with-param name="action">
                 <xsl:call-template name="qid">
@@ -385,12 +441,24 @@
                 </xsl:with-param>
                 <xsl:with-param name="to">
                     <xsl:value-of select="rvc:itemName($stack)"/>
-                    <xsl:choose> 
-                        <xsl:when test="not(@bs2:nOccurs)">
-                            <xsl:text>&existsStateSuffix;</xsl:text>
+                    <xsl:variable name="restrictBase">
+                        <xsl:apply-templates select="key('types',resolve-QName(@type,.))" mode="restrictBase"/>
+                    </xsl:variable>
+                    <xsl:choose>
+                        <xsl:when test="@bs2:nOccurs">
+                            <xsl:text>&nOccStateSuffix;</xsl:text>
+                        </xsl:when>
+                        <xsl:when test="$restrictBase = 'bs1:align8'">
+                            <xsl:text>&alignStateSuffix;</xsl:text>
+                        </xsl:when>
+                        <xsl:when test="$restrictBase = 'bs1:align16'">
+                            <xsl:text>&alignStateSuffix;</xsl:text>
+                        </xsl:when>
+                        <xsl:when test="$restrictBase = 'bs1:align32'">
+                            <xsl:text>&alignStateSuffix;</xsl:text>
                         </xsl:when>
                         <xsl:otherwise>
-                            <xsl:text>&nOccStateSuffix;</xsl:text>
+                            <xsl:text>&existsStateSuffix;</xsl:text>
                         </xsl:otherwise>
                     </xsl:choose>
                 </xsl:with-param>
@@ -688,12 +756,25 @@
                     </xsl:when>
                     <xsl:otherwise>
                         <xsl:value-of select="rvc:itemName($newStack)"/>
+                        
+                        <xsl:variable name="restrictBase">
+                            <xsl:apply-templates select="key('types',resolve-QName(@type,.))" mode="restrictBase"/>
+                        </xsl:variable>
                         <xsl:choose>
-                            <xsl:when test="not(@bs2:nOccurs)">
-                                <xsl:text>&existsStateSuffix;</xsl:text>
+                            <xsl:when test="@bs2:nOccurs">
+                                <xsl:text>&nOccStateSuffix;</xsl:text>
+                            </xsl:when>
+                            <xsl:when test="$restrictBase = 'bs1:align8'">
+                                <xsl:text>&alignStateSuffix;</xsl:text>
+                            </xsl:when>
+                            <xsl:when test="$restrictBase = 'bs1:align16'">
+                                <xsl:text>&alignStateSuffix;</xsl:text>
+                            </xsl:when>
+                            <xsl:when test="$restrictBase = 'bs1:align32'">
+                                <xsl:text>&alignStateSuffix;</xsl:text>
                             </xsl:when>
                             <xsl:otherwise>
-                                <xsl:text>&nOccStateSuffix;</xsl:text>
+                                <xsl:text>&existsStateSuffix;</xsl:text>
                             </xsl:otherwise>
                         </xsl:choose>
                     </xsl:otherwise>
@@ -742,7 +823,24 @@
         <xsl:variable name="newStack" select="if ($stack[1] is .) then $stack else (.,$stack)"/>
         
         <xsl:value-of select="rvc:itemName($newStack)"/>
-        <xsl:text>&existsStateSuffix;</xsl:text>
+        
+        <xsl:variable name="restrictBase">
+            <xsl:apply-templates select="key('types',resolve-QName(@type,.))" mode="restrictBase"/>
+        </xsl:variable>
+        <xsl:choose>
+            <xsl:when test="$restrictBase = 'bs1:align8'">
+                <xsl:text>&alignStateSuffix;</xsl:text>
+            </xsl:when>
+            <xsl:when test="$restrictBase = 'bs1:align16'">
+                <xsl:text>&alignStateSuffix;</xsl:text>
+            </xsl:when>
+            <xsl:when test="$restrictBase = 'bs1:align32'">
+                <xsl:text>&alignStateSuffix;</xsl:text>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:text>&existsStateSuffix;</xsl:text>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
     
     <xsl:template match="xsd:choice" mode="nextname nextchild" priority="30">
@@ -864,6 +962,48 @@
             <xsl:with-param name="stack" select="$stacko"  tunnel="yes"/> 
         </xsl:apply-templates>
 
+    </xsl:template>
+    
+    <xsl:template name="restrictAlign">
+        <xsl:param name="name" required="yes"/>
+        <xsl:param name="align" required="yes"/>
+        
+        <xsl:call-template name="transition">
+            <xsl:with-param name="from">
+                <xsl:value-of select="$name"/>
+                <xsl:text>&alignStateSuffix;</xsl:text>
+            </xsl:with-param>
+            <xsl:with-param name="to">
+                <xsl:value-of select="$name"/>
+                <xsl:text>&alignStateSuffix;</xsl:text>
+            </xsl:with-param>
+            <xsl:with-param name="action">
+                <xsl:call-template name="qid">
+                    <xsl:with-param name="name">
+                        <xsl:value-of select="$align"/>
+                    </xsl:with-param>
+                </xsl:call-template>
+            </xsl:with-param>
+        </xsl:call-template>
+        
+        <xsl:call-template name="transition">
+            <xsl:with-param name="from">
+                <xsl:value-of select="$name"/>
+                <xsl:text>&alignStateSuffix;</xsl:text>
+            </xsl:with-param>
+            <xsl:with-param name="to">
+                <xsl:value-of select="$name"/>
+                <xsl:text>&existsStateSuffix;</xsl:text>
+            </xsl:with-param>
+            <xsl:with-param name="action">
+                <xsl:call-template name="qid">
+                    <xsl:with-param name="name">
+                        <xsl:text>&skipAction;</xsl:text>
+                    </xsl:with-param>
+                </xsl:call-template>
+            </xsl:with-param>
+        </xsl:call-template>
+        
     </xsl:template>
 
 </xsl:stylesheet>

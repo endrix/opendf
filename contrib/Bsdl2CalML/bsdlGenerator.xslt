@@ -146,7 +146,44 @@
 
         <!-- create the priorities -->
         <xsl:apply-templates mode="priorities" select="*"/>
-        
+        <xsl:call-template name="priority">
+          
+          <xsl:with-param name="greater">
+            <xsl:call-template name="qid">
+              <xsl:with-param name="name">&align8Action;</xsl:with-param>
+            </xsl:call-template>
+          </xsl:with-param>
+          <xsl:with-param name="lesser">
+            <xsl:call-template name="qid">
+              <xsl:with-param name="name">&skipAction;</xsl:with-param>
+            </xsl:call-template>
+          </xsl:with-param>
+        </xsl:call-template>
+        <xsl:call-template name="priority">
+          <xsl:with-param name="greater">
+            <xsl:call-template name="qid">
+              <xsl:with-param name="name">&align16Action;</xsl:with-param>
+            </xsl:call-template>
+          </xsl:with-param>
+           <xsl:with-param name="lesser">
+             <xsl:call-template name="qid">
+               <xsl:with-param name="name">&skipAction;</xsl:with-param>
+             </xsl:call-template>
+           </xsl:with-param>
+        </xsl:call-template>
+        <xsl:call-template name="priority">
+          <xsl:with-param name="greater">
+            <xsl:call-template name="qid">
+              <xsl:with-param name="name">&align32Action;</xsl:with-param>
+            </xsl:call-template>
+          </xsl:with-param>
+          <xsl:with-param name="lesser">
+            <xsl:call-template name="qid">
+              <xsl:with-param name="name">&skipAction;</xsl:with-param>
+            </xsl:call-template>
+          </xsl:with-param>
+        </xsl:call-template>
+
       </xsl:with-param>
 
     </xsl:call-template>

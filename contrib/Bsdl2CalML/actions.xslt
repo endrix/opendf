@@ -366,9 +366,9 @@
                                     <xsl:text>&lt;Expr kind="Var" name="output"/&gt;&nl;</xsl:text>
                                     <xsl:text>&lt;/Stmt&gt;&nl;</xsl:text>  
                                 </xsl:if>
-                                <xsl:text>&lt;Stmt kind="Assign" name="bit_number"&gt;&nl;</xsl:text>
+                                <xsl:text>&lt;Stmt kind="Assign" name="&bitNumber;"&gt;&nl;</xsl:text>
                                 <xsl:text>&lt;Expr kind="BinOpSeq"&gt;&nl;</xsl:text>
-                                <xsl:text>&lt;Expr kind="Var" name="bit_number"/&gt;&nl;</xsl:text>
+                                <xsl:text>&lt;Expr kind="Var" name="&bitNumber;"/&gt;&nl;</xsl:text>
                                 <xsl:text>&lt;Op name="+"/&gt;&nl;</xsl:text> 
                                 <xsl:value-of select="$typename"/>
                                 <xsl:text>&lt;/Expr&gt;&nl;</xsl:text>  
@@ -380,9 +380,9 @@
                                 </xsl:if>
                             </xsl:when>
                             <xsl:otherwise>
-                                <xsl:text>&lt;Stmt kind="Assign" name="bit_number"&gt;&nl;</xsl:text>
+                                <xsl:text>&lt;Stmt kind="Assign" name="&bitNumber;"&gt;&nl;</xsl:text>
                                 <xsl:text>&lt;Expr kind="BinOpSeq"&gt;&nl;</xsl:text>
-                                <xsl:text>&lt;Expr kind="Var" name="bit_number"/&gt;&nl;</xsl:text>
+                                <xsl:text>&lt;Expr kind="Var" name="&bitNumber;"/&gt;&nl;</xsl:text>
                                 <xsl:text>&lt;Op name="+"/&gt;&nl;</xsl:text>  
                                 <xsl:text>&lt;Expr kind="Literal" literal-kind="Integer" value="1"/&gt;&nl;</xsl:text>
                                 <xsl:text>&lt;/Expr&gt;&nl;</xsl:text>  
@@ -687,9 +687,9 @@
                             <xsl:text>&lt;/Args&gt;&nl;</xsl:text>
                             <xsl:text>&lt;/Stmt&gt;&nl;</xsl:text>
                         </xsl:if>
-                        <xsl:text>&lt;Stmt kind="Assign" name="bit_number"&gt;&nl;</xsl:text>
+                        <xsl:text>&lt;Stmt kind="Assign" name="&bitNumber;"&gt;&nl;</xsl:text>
                         <xsl:text>&lt;Expr kind="BinOpSeq"&gt;&nl;</xsl:text>
-                        <xsl:text>&lt;Expr kind="Var" name="bit_number"/&gt;&nl;</xsl:text>
+                        <xsl:text>&lt;Expr kind="Var" name="&bitNumber;"/&gt;&nl;</xsl:text>
                         <xsl:text>&lt;Op name="+"/&gt;&nl;</xsl:text> 
                         <xsl:value-of select="$typename"/>
                         <xsl:text>&lt;/Expr&gt;&nl;</xsl:text>  
@@ -701,9 +701,9 @@
                         </xsl:if>
                     </xsl:when>
                     <xsl:otherwise>
-                        <xsl:text>&lt;Stmt kind="Assign" name="bit_number"&gt;&nl;</xsl:text>
+                        <xsl:text>&lt;Stmt kind="Assign" name="&bitNumber;"&gt;&nl;</xsl:text>
                         <xsl:text>&lt;Expr kind="BinOpSeq"&gt;&nl;</xsl:text>
-                        <xsl:text>&lt;Expr kind="Var" name="bit_number"/&gt;&nl;</xsl:text>
+                        <xsl:text>&lt;Expr kind="Var" name="&bitNumber;"/&gt;&nl;</xsl:text>
                         <xsl:text>&lt;Op name="+"/&gt;&nl;</xsl:text>  
                         <xsl:text>&lt;Expr kind="Literal" literal-kind="Integer" value="1"/&gt;&nl;</xsl:text>
                         <xsl:text>&lt;/Expr&gt;&nl;</xsl:text>  
@@ -813,9 +813,9 @@
                             <xsl:text>&lt;Expr kind="Var" name="output"/&gt;&nl;</xsl:text>
                             <xsl:text>&lt;/Stmt&gt;&nl;</xsl:text>  
                         </xsl:if>
-                        <xsl:text>&lt;Stmt kind="Assign" name="bit_number"&gt;&nl;</xsl:text>
+                        <xsl:text>&lt;Stmt kind="Assign" name="&bitNumber;"&gt;&nl;</xsl:text>
                         <xsl:text>&lt;Expr kind="BinOpSeq"&gt;&nl;</xsl:text>
-                        <xsl:text>&lt;Expr kind="Var" name="bit_number"/&gt;&nl;</xsl:text>
+                        <xsl:text>&lt;Expr kind="Var" name="&bitNumber;"/&gt;&nl;</xsl:text>
                         <xsl:text>&lt;Op name="+"/&gt;&nl;</xsl:text> 
                         <xsl:value-of select="$typename"/>
                         <xsl:text>&lt;/Expr&gt;&nl;</xsl:text>  
@@ -825,9 +825,9 @@
                         </xsl:if>
                     </xsl:when>
                     <xsl:otherwise>
-                        <xsl:text>&lt;Stmt kind="Assign" name="bit_number"&gt;&nl;</xsl:text>
+                        <xsl:text>&lt;Stmt kind="Assign" name="&bitNumber;"&gt;&nl;</xsl:text>
                         <xsl:text>&lt;Expr kind="BinOpSeq"&gt;&nl;</xsl:text>
-                        <xsl:text>&lt;Expr kind="Var" name="bit_number"/&gt;&nl;</xsl:text>
+                        <xsl:text>&lt;Expr kind="Var" name="&bitNumber;"/&gt;&nl;</xsl:text>
                         <xsl:text>&lt;Op name="+"/&gt;&nl;</xsl:text>  
                         <xsl:text>&lt;Expr kind="Literal" literal-kind="Integer" value="1"/&gt;&nl;</xsl:text>
                         <xsl:text>&lt;/Expr&gt;&nl;</xsl:text>  

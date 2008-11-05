@@ -303,6 +303,16 @@
   
   <xsl:template match="*" mode="startCode" priority="-1000"/>
   
+  <xsl:template match="xsd:simpleType" mode="restrictBase">
+    <xsl:value-of select="xsd:restriction/@base"/>
+  </xsl:template>
+  
+  <xsl:template match="xsd:restriction" mode="restrictBase">
+    <xsl:value-of select="@base"/>
+  </xsl:template>
+
+  <xsl:template match="*" mode="restrictBase" priority="-1000"/>
+  
 
   <xsl:variable name="xsdLong" select="resolve-QName('xsd:long',/*[1])"/>
 

@@ -45,143 +45,157 @@
     version="2.0">
     
     <xsl:template match="*[@bs2:if]" mode="priorities" priority="20">
-        <xsl:text>&lt;Priority&gt;&nl;</xsl:text>
-        <xsl:call-template name="qid">
-            <xsl:with-param name="name">
-                <xsl:value-of select="@name"/>
-            </xsl:with-param>
-            <xsl:with-param name="suffix">
-                <xsl:text>&validActionSuffix;</xsl:text>
-                <xsl:number count ="xsd:element[@bs2:if] | xsd:group[@bs2:if]"/>
-            </xsl:with-param>
-        </xsl:call-template>
-        
-        <xsl:call-template name="qid">
-            <xsl:with-param name="name">
-                <xsl:text>&skipAction;</xsl:text>
-            </xsl:with-param>
-        </xsl:call-template>
-        <xsl:text>&lt;/Priority&gt;&nl;</xsl:text>
-        
-        <xsl:next-match/>
-    </xsl:template>
-    
-    <xsl:template match="*[@bs2:ifNext]" mode="priorities" priority="20">
-        <xsl:text>&lt;Priority&gt;&nl;</xsl:text>
-        <xsl:call-template name="qid">
-            <xsl:with-param name="name">
-                <xsl:value-of select="@name"/>
-            </xsl:with-param>
-            <xsl:with-param name="suffix">
-                <xsl:text>&validNextActionSuffix;</xsl:text>
-                <xsl:number count ="xsd:element[@bs2:ifNext] | xsd:group[@bs2:ifNext]"/>
-            </xsl:with-param>
-        </xsl:call-template>
-        
-        <xsl:call-template name="qid">
-            <xsl:with-param name="name">
-                <xsl:text>&skipAction;</xsl:text>
-            </xsl:with-param>
-        </xsl:call-template>
-        <xsl:text>&lt;/Priority&gt;&nl;</xsl:text>
-        
-        <xsl:next-match/>
-    </xsl:template>
-    
-    <xsl:template match="*[@bs2:if]" mode="prioritieschoose" priority="20">
-        <xsl:text>&lt;Priority&gt;&nl;</xsl:text>
-        
-        <xsl:call-template name="qid">
-            <xsl:with-param name="name">
-                <xsl:value-of select="@name"/>
-            </xsl:with-param>
-            <xsl:with-param name="suffix">
-                <xsl:text>&validActionSuffix;</xsl:text>
-                <xsl:number count ="xsd:element[@bs2:if] | xsd:group[@bs2:if]"/>
-            </xsl:with-param>
-        </xsl:call-template>
-        
-        <xsl:choose>
-            <xsl:when test="following-sibling::*[@name]">
+        <xsl:call-template name="priority">
+            <xsl:with-param name="greater">
                 <xsl:call-template name="qid">
                     <xsl:with-param name="name">
-                        <xsl:value-of select="following-sibling::*[1]/@name"/>
+                        <xsl:value-of select="@name"/>
                     </xsl:with-param>
                     <xsl:with-param name="suffix">
                         <xsl:text>&validActionSuffix;</xsl:text>
                         <xsl:number count ="xsd:element[@bs2:if] | xsd:group[@bs2:if]"/>
                     </xsl:with-param>
                 </xsl:call-template>
-            </xsl:when>
-            <xsl:otherwise>
+            </xsl:with-param>
+            <xsl:with-param name="lesser">
                 <xsl:call-template name="qid">
                     <xsl:with-param name="name">
                         <xsl:text>&skipAction;</xsl:text>
                     </xsl:with-param>
                 </xsl:call-template>
-            </xsl:otherwise>
-        </xsl:choose>
-        <xsl:text>&lt;/Priority&gt;&nl;</xsl:text>
+             </xsl:with-param>
+        </xsl:call-template>
+        
         <xsl:next-match/>
     </xsl:template>
     
-    <xsl:template match="*[@bs2:ifNext]" mode="prioritieschoose" priority="20">
-        <xsl:text>&lt;Priority&gt;&nl;</xsl:text>
-        
-        <xsl:call-template name="qid">
-            <xsl:with-param name="name">
-                <xsl:value-of select="@name"/>
-            </xsl:with-param>
-            <xsl:with-param name="suffix">
-                <xsl:text>&validNextActionSuffix;</xsl:text>
-                <xsl:number count ="xsd:element[@bs2:ifNext] | xsd:group[@bs2:ifNext]"/>
-            </xsl:with-param>
-        </xsl:call-template>
-        
-        <xsl:choose>
-            <xsl:when test="following-sibling::*[@name]">
+    <xsl:template match="*[@bs2:ifNext]" mode="priorities" priority="20">
+        <xsl:call-template name="priority">
+            <xsl:with-param name="greater">
                 <xsl:call-template name="qid">
                     <xsl:with-param name="name">
-                        <xsl:value-of select="following-sibling::*[1]/@name"/>
+                        <xsl:value-of select="@name"/>
                     </xsl:with-param>
                     <xsl:with-param name="suffix">
                         <xsl:text>&validNextActionSuffix;</xsl:text>
                         <xsl:number count ="xsd:element[@bs2:ifNext] | xsd:group[@bs2:ifNext]"/>
                     </xsl:with-param>
                 </xsl:call-template>
-            </xsl:when>
-            <xsl:otherwise>
+            </xsl:with-param>
+            <xsl:with-param name="lesser">
                 <xsl:call-template name="qid">
                     <xsl:with-param name="name">
                         <xsl:text>&skipAction;</xsl:text>
                     </xsl:with-param>
                 </xsl:call-template>
-            </xsl:otherwise>
-        </xsl:choose>
-        <xsl:text>&lt;/Priority&gt;&nl;</xsl:text>
+            </xsl:with-param>
+        </xsl:call-template>
+    
+        <xsl:next-match/>
+    </xsl:template>
+    
+    <xsl:template match="*[@bs2:if]" mode="prioritieschoose" priority="20">
+        <xsl:call-template name="priority">
+            <xsl:with-param name="greater">
+                <xsl:call-template name="qid">
+                    <xsl:with-param name="name">
+                        <xsl:value-of select="@name"/>
+                    </xsl:with-param>
+                    <xsl:with-param name="suffix">
+                        <xsl:text>&validActionSuffix;</xsl:text>
+                        <xsl:number count ="xsd:element[@bs2:if] | xsd:group[@bs2:if]"/>
+                    </xsl:with-param>
+                </xsl:call-template>
+            </xsl:with-param>
+            <xsl:with-param name="lesser">
+                <xsl:choose>
+                    <xsl:when test="following-sibling::*[@name]">
+                        <xsl:call-template name="qid">
+                            <xsl:with-param name="name">
+                                <xsl:value-of select="following-sibling::*[1]/@name"/>
+                            </xsl:with-param>
+                            <xsl:with-param name="suffix">
+                                <xsl:text>&validActionSuffix;</xsl:text>
+                                <xsl:number count ="xsd:element[@bs2:if] | xsd:group[@bs2:if]"/>
+                            </xsl:with-param>
+                        </xsl:call-template>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:call-template name="qid">
+                            <xsl:with-param name="name">
+                                <xsl:text>&skipAction;</xsl:text>
+                            </xsl:with-param>
+                        </xsl:call-template>
+                    </xsl:otherwise>
+                </xsl:choose>
+            </xsl:with-param>
+        </xsl:call-template>
+        
+        <xsl:next-match/>
+    </xsl:template>
+    
+    <xsl:template match="*[@bs2:ifNext]" mode="prioritieschoose" priority="20">
+        <xsl:call-template name="priority">
+            <xsl:with-param name="greater">
+                <xsl:call-template name="qid">
+                    <xsl:with-param name="name">
+                        <xsl:value-of select="@name"/>
+                    </xsl:with-param>
+                    <xsl:with-param name="suffix">
+                        <xsl:text>&validNextActionSuffix;</xsl:text>
+                        <xsl:number count ="xsd:element[@bs2:ifNext] | xsd:group[@bs2:ifNext]"/>
+                    </xsl:with-param>
+                </xsl:call-template>
+            </xsl:with-param>
+            <xsl:with-param name="lesser">
+                <xsl:choose>
+                    <xsl:when test="following-sibling::*[@name]">
+                        <xsl:call-template name="qid">
+                            <xsl:with-param name="name">
+                                <xsl:value-of select="following-sibling::*[1]/@name"/>
+                            </xsl:with-param>
+                            <xsl:with-param name="suffix">
+                                <xsl:text>&validNextActionSuffix;</xsl:text>
+                                <xsl:number count ="xsd:element[@bs2:ifNext] | xsd:group[@bs2:ifNext]"/>
+                            </xsl:with-param>
+                        </xsl:call-template>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:call-template name="qid">
+                            <xsl:with-param name="name">
+                                <xsl:text>&skipAction;</xsl:text>
+                            </xsl:with-param>
+                        </xsl:call-template>
+                    </xsl:otherwise>
+                </xsl:choose>
+            </xsl:with-param>
+        </xsl:call-template>
+        
         <xsl:next-match/>
     </xsl:template>
     
     <xsl:template match="*[@bs2:nOccurs]" mode="priorities prioritieschoose" priority="10">
         
-        <xsl:text>&lt;Priority&gt;&nl;</xsl:text>
-        
-        <xsl:call-template name="qid">
-            <xsl:with-param name="name">
-                <xsl:value-of select="@name"/>
+        <xsl:call-template name="priority">
+            <xsl:with-param name="greater">
+                <xsl:call-template name="qid">
+                    <xsl:with-param name="name">
+                        <xsl:value-of select="@name"/>
+                    </xsl:with-param>
+                    <xsl:with-param name="suffix">
+                        <xsl:text>&testActionSuffix;_</xsl:text>
+                        <xsl:number count ="xsd:element[@bs2:nOccurs] | xsd:group[@bs2:nOccurs]"/>
+                    </xsl:with-param>
+                </xsl:call-template>
             </xsl:with-param>
-            <xsl:with-param name="suffix">
-                <xsl:text>&testActionSuffix;_</xsl:text>
-                <xsl:number count ="xsd:element[@bs2:nOccurs] | xsd:group[@bs2:nOccurs]"/>
+            <xsl:with-param name="lesser">
+                <xsl:call-template name="qid">
+                    <xsl:with-param name="name">
+                        <xsl:text>&skipAction;</xsl:text>
+                    </xsl:with-param>
+                </xsl:call-template>
             </xsl:with-param>
         </xsl:call-template>
-        
-        <xsl:call-template name="qid">
-            <xsl:with-param name="name">
-                <xsl:text>&skipAction;</xsl:text>
-            </xsl:with-param>
-        </xsl:call-template>
-        <xsl:text>&lt;/Priority&gt;&nl;</xsl:text>
         
         <xsl:next-match/>
     </xsl:template>
@@ -211,22 +225,25 @@
             <xsl:apply-templates select="key('types',resolve-QName(@type,.))" mode="startCode"/>
         </xsl:variable>
         <xsl:if test="@fixed or (string-length($startCode) &gt; 0)">
-            <xsl:text>&lt;Priority&gt;&nl;</xsl:text>
-            <xsl:call-template name="qid">
-                <xsl:with-param name="name">
-                    <xsl:value-of select="@name"/>
+            <xsl:call-template name="priority">
+                <xsl:with-param name="greater">
+                    <xsl:call-template name="qid">
+                        <xsl:with-param name="name">
+                            <xsl:value-of select="@name"/>
+                        </xsl:with-param>
+                        <xsl:with-param name="suffix">
+                            <xsl:text>&readActionSuffix;</xsl:text>
+                        </xsl:with-param>
+                    </xsl:call-template>
                 </xsl:with-param>
-                <xsl:with-param name="suffix">
-                    <xsl:text>&readActionSuffix;</xsl:text>
+                <xsl:with-param name="lesser">
+                    <xsl:call-template name="qid">
+                        <xsl:with-param name="name">
+                            <xsl:text>&errorAction;</xsl:text>
+                        </xsl:with-param>
+                    </xsl:call-template>
                 </xsl:with-param>
             </xsl:call-template>
-            
-            <xsl:call-template name="qid">
-                <xsl:with-param name="name">
-                    <xsl:text>&errorAction;</xsl:text>
-                </xsl:with-param>
-            </xsl:call-template>
-            <xsl:text>&lt;/Priority&gt;&nl;</xsl:text>
         </xsl:if>
         
         <xsl:next-match/>
@@ -242,28 +259,30 @@
             </xsl:call-template>
         </xsl:if>
         
-        <xsl:text>&lt;Priority&gt;&nl;</xsl:text>
-        <xsl:call-template name="qid">
-            <xsl:with-param name="name">
-                <xsl:value-of select="$name"/>
+        <xsl:call-template name="priority">
+            <xsl:with-param name="greater">
+                <xsl:call-template name="qid">
+                    <xsl:with-param name="name">
+                        <xsl:value-of select="$name"/>
+                    </xsl:with-param>
+                    <xsl:with-param name="suffix">
+                        <xsl:text>&readActionSuffix;</xsl:text>
+                        <xsl:value-of select="$union - 1"/>
+                    </xsl:with-param>
+                </xsl:call-template>
             </xsl:with-param>
-            <xsl:with-param name="suffix">
-                <xsl:text>&readActionSuffix;</xsl:text>
-                <xsl:value-of select="$union - 1"/>
+            <xsl:with-param name="lesser">
+                <xsl:call-template name="qid">
+                    <xsl:with-param name="name">
+                        <xsl:value-of select="$name"/>
+                    </xsl:with-param>
+                    <xsl:with-param name="suffix">
+                        <xsl:text>&readActionSuffix;</xsl:text>
+                        <xsl:value-of select="$union"/>
+                    </xsl:with-param>
+                </xsl:call-template>
             </xsl:with-param>
         </xsl:call-template>
-        
-        <xsl:call-template name="qid">
-            <xsl:with-param name="name">
-                <xsl:value-of select="$name"/>
-            </xsl:with-param>
-            <xsl:with-param name="suffix">
-                <xsl:text>&readActionSuffix;</xsl:text>
-                <xsl:value-of select="$union"/>
-            </xsl:with-param>
-        </xsl:call-template>
-        <xsl:text>&lt;/Priority&gt;&nl;</xsl:text>
-        
     </xsl:template>
             
     

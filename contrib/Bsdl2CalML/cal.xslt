@@ -220,6 +220,35 @@
     <xsl:text>&lt;/Expr&gt;&nl;</xsl:text>
     <xsl:text>&lt;/Decl&gt;&nl;</xsl:text>
     
+    <xsl:text>&lt;Decl kind="Variable" name="numbits"&gt;&nl;</xsl:text>
+    <xsl:text>&lt;Type infer="true" kind="Function"/&gt;&nl;</xsl:text>
+    <xsl:text>&lt;Expr kind="Lambda"&gt;&nl;</xsl:text>
+    <xsl:text>&lt;Decl kind="Parameter" name="value"/&gt;&nl;</xsl:text>
+    <xsl:text>&lt;Expr kind="If"&gt;&nl;</xsl:text>
+    <xsl:text>&lt;Expr kind="BinOpSeq"&gt;&nl;</xsl:text>
+    <xsl:text>&lt;Expr kind="Var" name="value"/&gt;&nl;</xsl:text>
+    <xsl:text>&lt;Op name="&gt;"/&gt;&nl;</xsl:text>
+    <xsl:text>&lt;Expr kind="Literal" literal-kind="Integer" value="1"/&gt;&nl;</xsl:text>
+    <xsl:text>&lt;/Expr&gt;&nl;</xsl:text>
+    <xsl:text>&lt;Expr kind="BinOpSeq"&gt;&nl;</xsl:text>
+    <xsl:text>&lt;Expr kind="Literal" literal-kind="Integer" value="1"/&gt;&nl;</xsl:text>
+    <xsl:text>&lt;Op name="+"/&gt;&nl;</xsl:text>
+    <xsl:text>&lt;Expr kind="Application"&gt;&nl;</xsl:text>
+    <xsl:text>&lt;Expr kind="Var" name="numbits"/&gt;&nl;</xsl:text>
+    <xsl:text>&lt;Args&gt;&nl;</xsl:text>
+    <xsl:text>&lt;Expr kind="BinOpSeq"&gt;&nl;</xsl:text>
+    <xsl:text>&lt;Expr kind="Var" name="value"/&gt;&nl;</xsl:text>
+    <xsl:text>&lt;Op name="/"/&gt;&nl;</xsl:text>
+    <xsl:text>&lt;Expr kind="Literal" literal-kind="Integer" value="2"/&gt;&nl;</xsl:text>
+    <xsl:text>&lt;/Expr&gt;&nl;</xsl:text>
+    <xsl:text>&lt;/Args&gt;&nl;</xsl:text>
+    <xsl:text>&lt;/Expr&gt;&nl;</xsl:text>
+    <xsl:text>&lt;/Expr&gt;&nl;</xsl:text>
+    <xsl:text>&lt;Expr kind="Literal" literal-kind="Integer" value="1"/&gt;&nl;</xsl:text>
+    <xsl:text>&lt;/Expr&gt;&nl;</xsl:text>
+    <xsl:text>&lt;/Expr&gt;&nl;</xsl:text>
+    <xsl:text>&lt;/Decl&gt;&nl;</xsl:text>
+    
     <xsl:call-template name="action">
       <xsl:with-param name="name">
         <xsl:call-template name="qid">
@@ -247,7 +276,61 @@
         <xsl:text>&lt;/Stmt&gt;&nl;</xsl:text>
       </xsl:with-param>
     </xsl:call-template>
+   
+   <xsl:call-template name="alignAction">
+     <xsl:with-param name="name"><xsl:text>&align8Action;</xsl:text></xsl:with-param>
+     <xsl:with-param name="size">8</xsl:with-param>
+   </xsl:call-template>
+    
+    <xsl:call-template name="alignAction">
+      <xsl:with-param name="name"><xsl:text>&align16Action;</xsl:text></xsl:with-param>
+      <xsl:with-param name="size">16</xsl:with-param>
+    </xsl:call-template>
+    
+    <xsl:call-template name="alignAction">
+      <xsl:with-param name="name"><xsl:text>&align32Action;</xsl:text></xsl:with-param>
+      <xsl:with-param name="size">32</xsl:with-param>
+    </xsl:call-template>
 
+  </xsl:template>
+  
+  <xsl:template name="alignAction">
+    <xsl:param name="name" required="yes"/>
+    <xsl:param name="size" required="yes"/>
+    
+    <xsl:call-template name="action">
+      <xsl:with-param name="name">
+        <xsl:call-template name="qid">
+          <xsl:with-param name="name">
+            <xsl:value-of select="$name"/>
+          </xsl:with-param>
+        </xsl:call-template>
+      </xsl:with-param>
+      <xsl:with-param name="inputs">
+        <xsl:call-template name="input"/>
+      </xsl:with-param>
+      <xsl:with-param name="guard">
+        <xsl:text>&lt;Expr kind="BinOpSeq"&gt;&nl;</xsl:text>
+        <xsl:text>&lt;Expr kind="Var" name="&bitNumber;"/&gt;&nl;</xsl:text>
+        <xsl:text>&lt;Op name="mod"/&gt;&nl;</xsl:text>
+        <xsl:text>&lt;Expr kind="Literal" literal-kind="Integer" value="</xsl:text>
+        <xsl:value-of select="$size"/>
+        <xsl:text>"/&gt;&nl;</xsl:text>
+        <xsl:text>&lt;Op name="!="/&gt;&nl;</xsl:text>
+        <xsl:text>&lt;Expr kind="Literal" literal-kind="Integer" value="0"/&gt;&nl;</xsl:text>
+        <xsl:text>&lt;/Expr&gt;&nl;</xsl:text>
+      </xsl:with-param>
+      
+      <xsl:with-param name="do">
+        <xsl:text>&lt;Stmt kind="Assign" name="&bitNumber;"&gt;&nl;</xsl:text>
+        <xsl:text>&lt;Expr kind="BinOpSeq"&gt;&nl;</xsl:text>
+        <xsl:text>&lt;Expr kind="Var" name="&bitNumber;"/&gt;&nl;</xsl:text>
+        <xsl:text>&lt;Op name="+"/&gt;&nl;</xsl:text>  
+        <xsl:text>&lt;Expr kind="Literal" literal-kind="Integer" value="1"/&gt;&nl;</xsl:text>
+        <xsl:text>&lt;/Expr&gt;&nl;</xsl:text>  
+        <xsl:text>&lt;/Stmt&gt;&nl;</xsl:text>  
+      </xsl:with-param>
+    </xsl:call-template>
   </xsl:template>
   
   <xsl:template name="action">
@@ -529,13 +612,10 @@
   <xsl:template name="priority">
     <xsl:param name="greater" required="yes"/>
     <xsl:param name="lesser" required="yes"/>
-    <item>
-      <xsl:text>&tab;&tab;</xsl:text>
-      <xsl:value-of select="$greater"/>
-      <xsl:text> &tab;&gt;&tab;</xsl:text>
-      <xsl:value-of select="$lesser"/>
-      <xsl:text>&nl;</xsl:text>
-    </item>
+    <xsl:text>&lt;Priority&gt;&nl;</xsl:text>
+    <xsl:value-of select="$greater"/>
+    <xsl:value-of select="$lesser"/>
+    <xsl:text>&lt;/Priority&gt;&nl;</xsl:text>
   </xsl:template>
   
   <xsl:template name="foreach">

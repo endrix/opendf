@@ -116,7 +116,7 @@
       <xsl:with-param name="expressions">
         <xsl:call-template name="variableDeclaration">
           <xsl:with-param name="name">
-            <xsl:text>bit_number</xsl:text>
+            <xsl:text>&bitNumber;</xsl:text>
           </xsl:with-param>
           <xsl:with-param name="initialValue" select="0"/>
           <xsl:with-param name="type">int</xsl:with-param>
