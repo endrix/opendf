@@ -268,153 +268,156 @@
 
     <xsl:template match="xsd:element" priority="50" mode="actions">
         
-        <xsl:variable name="union" as="xsd:integer">
-            <xsl:variable name="u">
-                <xsl:apply-templates select="key('types',resolve-QName(@type,.))" mode="unioncount"/>
+        <xsl:if test="not(@type= 'bs1:align8' or @type= 'bs1:align16' or @type= 'bs1:align32')">
+        
+            <xsl:variable name="union" as="xsd:integer">
+                <xsl:variable name="u">
+                    <xsl:apply-templates select="key('types',resolve-QName(@type,.))" mode="unioncount"/>
+                </xsl:variable>
+                <xsl:choose>
+                    <xsl:when test="string-length($u) &gt; 0">
+                        <xsl:value-of select="$u"/>
+                    </xsl:when>
+                    <xsl:otherwise>0</xsl:otherwise>
+                </xsl:choose>
+                
             </xsl:variable>
             <xsl:choose>
-                <xsl:when test="string-length($u) &gt; 0">
-                    <xsl:value-of select="$u"/>
+                <xsl:when test="$union &gt; 0">
+                    <xsl:apply-templates select="." mode="actionsunion">
+                        <xsl:with-param name="union" select="$union"/>
+                    </xsl:apply-templates>
                 </xsl:when>
-                <xsl:otherwise>0</xsl:otherwise>
-            </xsl:choose>
-            
-        </xsl:variable>
-        <xsl:choose>
-            <xsl:when test="$union &gt; 0">
-                <xsl:apply-templates select="." mode="actionsunion">
-                    <xsl:with-param name="union" select="$union"/>
-                </xsl:apply-templates>
-            </xsl:when>
-            <xsl:otherwise>
-
-                <xsl:variable name="typename">
-                    <xsl:if test="not(@type='vlc')">
-                        <xsl:variable name="notfix">
-                            <xsl:apply-templates select="key('types',resolve-QName(@type,.))" mode="notFixLength"/>
-                        </xsl:variable>
-                        <xsl:choose>
-                            <xsl:when test="string-length($notfix) &gt; 0">
-                                <xsl:value-of select="cal:parseExpression($notfix)"/>
-                            </xsl:when>
-                            <xsl:otherwise>
-                                <xsl:text>&lt;Expr kind="Var" name="</xsl:text>
-                                <xsl:variable name="typenamer">
-                                    <xsl:apply-templates select="@type | *" mode="actionlength"/>
-                                </xsl:variable>
-                                <xsl:value-of select="concat(rvc:constant($typenamer),&lengthSuffix;)"/>
-                                <xsl:text>"/&gt;&nl;</xsl:text>
-                            </xsl:otherwise>
-                        </xsl:choose>
-                    </xsl:if>
-                </xsl:variable>
-               
-                <xsl:call-template name="action">
-                    <xsl:with-param name="name">
-                        <xsl:call-template name="qid">
-                            <xsl:with-param name="name">
-                                <xsl:value-of select="@name"/>
-                            </xsl:with-param>
-                            <xsl:with-param name="suffix">
-                                <xsl:text>&readActionSuffix;</xsl:text>
-                            </xsl:with-param>
-                        </xsl:call-template>
-                    </xsl:with-param>
-                    <xsl:with-param name="inputs">
-                        <xsl:call-template name="input">
-                            <xsl:with-param name="length">
-                                <xsl:value-of select="$typename"/>
-                            </xsl:with-param>
-                        </xsl:call-template>
-                    </xsl:with-param>
-                    <xsl:with-param name="outputs">
-                        <xsl:if test="@rvc:port">
+                <xsl:otherwise>
+    
+                    <xsl:variable name="typename">
+                        <xsl:if test="not(@type='vlc')">
+                            <xsl:variable name="notfix">
+                                <xsl:apply-templates select="key('types',resolve-QName(@type,.))" mode="notFixLength"/>
+                            </xsl:variable>
                             <xsl:choose>
-                                <xsl:when test="@type='vlc'">
-                                    <xsl:call-template name="outputvlc">
-                                        <xsl:with-param name="port" select="@rvc:port"/>
-                                    </xsl:call-template>
+                                <xsl:when test="string-length($notfix) &gt; 0">
+                                    <xsl:value-of select="cal:parseExpression($notfix)"/>
                                 </xsl:when>
                                 <xsl:otherwise>
-                                    <xsl:call-template name="output">
-                                        <xsl:with-param name="port" select="@rvc:port"/>
-                                    </xsl:call-template>
+                                    <xsl:text>&lt;Expr kind="Var" name="</xsl:text>
+                                    <xsl:variable name="typenamer">
+                                        <xsl:apply-templates select="@type | *" mode="actionlength"/>
+                                    </xsl:variable>
+                                    <xsl:value-of select="concat(rvc:constant($typenamer),&lengthSuffix;)"/>
+                                    <xsl:text>"/&gt;&nl;</xsl:text>
                                 </xsl:otherwise>
                             </xsl:choose>
                         </xsl:if>
-                    </xsl:with-param>
-                    <xsl:with-param name="do">
-                        <xsl:choose>
-                            <xsl:when test="not(@type='vlc')">
-                                <xsl:variable name="test">
-                                    <xsl:apply-templates select="xsd:annotation/xsd:appinfo/bs2x:variable" mode="iftext"/>
-                                    <xsl:text>false</xsl:text>
-                                </xsl:variable>
-                                <xsl:if test="@bs0:variable or $test or @rvc:port">
-                                    <xsl:text>&lt;Stmt kind="Call"&gt;&nl;</xsl:text>
-                                    <xsl:text>&lt;Expr kind="Var" name="bool2int"/&gt;&nl;</xsl:text>
-                                    <xsl:text>&lt;Args&gt;&nl;</xsl:text>
-                                    <xsl:text>&lt;Expr kind="Var" name="b"/&gt;&nl;</xsl:text>
-                                    <xsl:value-of select="$typename"/>
-                                    <xsl:text>&lt;/Args&gt;&nl;</xsl:text>
-                                    <xsl:text>&lt;/Stmt&gt;&nl;</xsl:text>
-                                </xsl:if>
-                                <xsl:if test="@bs0:variable">
-                                    <xsl:text>&lt;Stmt kind="Assign" name="</xsl:text>
+                    </xsl:variable>
+                   
+                    <xsl:call-template name="action">
+                        <xsl:with-param name="name">
+                            <xsl:call-template name="qid">
+                                <xsl:with-param name="name">
                                     <xsl:value-of select="@name"/>
-                                    <xsl:text>"&gt;&nl;</xsl:text>
-                                    <xsl:text>&lt;Expr kind="Var" name="output"/&gt;&nl;</xsl:text>
+                                </xsl:with-param>
+                                <xsl:with-param name="suffix">
+                                    <xsl:text>&readActionSuffix;</xsl:text>
+                                </xsl:with-param>
+                            </xsl:call-template>
+                        </xsl:with-param>
+                        <xsl:with-param name="inputs">
+                            <xsl:call-template name="input">
+                                <xsl:with-param name="length">
+                                    <xsl:value-of select="$typename"/>
+                                </xsl:with-param>
+                            </xsl:call-template>
+                        </xsl:with-param>
+                        <xsl:with-param name="outputs">
+                            <xsl:if test="@rvc:port">
+                                <xsl:choose>
+                                    <xsl:when test="@type='vlc'">
+                                        <xsl:call-template name="outputvlc">
+                                            <xsl:with-param name="port" select="@rvc:port"/>
+                                        </xsl:call-template>
+                                    </xsl:when>
+                                    <xsl:otherwise>
+                                        <xsl:call-template name="output">
+                                            <xsl:with-param name="port" select="@rvc:port"/>
+                                        </xsl:call-template>
+                                    </xsl:otherwise>
+                                </xsl:choose>
+                            </xsl:if>
+                        </xsl:with-param>
+                        <xsl:with-param name="do">
+                            <xsl:choose>
+                                <xsl:when test="not(@type='vlc')">
+                                    <xsl:variable name="test">
+                                        <xsl:apply-templates select="xsd:annotation/xsd:appinfo/bs2x:variable" mode="iftext"/>
+                                        <xsl:text>false</xsl:text>
+                                    </xsl:variable>
+                                    <xsl:if test="@bs0:variable or $test or @rvc:port">
+                                        <xsl:text>&lt;Stmt kind="Call"&gt;&nl;</xsl:text>
+                                        <xsl:text>&lt;Expr kind="Var" name="bool2int"/&gt;&nl;</xsl:text>
+                                        <xsl:text>&lt;Args&gt;&nl;</xsl:text>
+                                        <xsl:text>&lt;Expr kind="Var" name="b"/&gt;&nl;</xsl:text>
+                                        <xsl:value-of select="$typename"/>
+                                        <xsl:text>&lt;/Args&gt;&nl;</xsl:text>
+                                        <xsl:text>&lt;/Stmt&gt;&nl;</xsl:text>
+                                    </xsl:if>
+                                    <xsl:if test="@bs0:variable">
+                                        <xsl:text>&lt;Stmt kind="Assign" name="</xsl:text>
+                                        <xsl:value-of select="@name"/>
+                                        <xsl:text>"&gt;&nl;</xsl:text>
+                                        <xsl:text>&lt;Expr kind="Var" name="output"/&gt;&nl;</xsl:text>
+                                        <xsl:text>&lt;/Stmt&gt;&nl;</xsl:text>  
+                                    </xsl:if>
+                                    <xsl:text>&lt;Stmt kind="Assign" name="&bitNumber;"&gt;&nl;</xsl:text>
+                                    <xsl:text>&lt;Expr kind="BinOpSeq"&gt;&nl;</xsl:text>
+                                    <xsl:text>&lt;Expr kind="Var" name="&bitNumber;"/&gt;&nl;</xsl:text>
+                                    <xsl:text>&lt;Op name="+"/&gt;&nl;</xsl:text> 
+                                    <xsl:value-of select="$typename"/>
+                                    <xsl:text>&lt;/Expr&gt;&nl;</xsl:text>  
                                     <xsl:text>&lt;/Stmt&gt;&nl;</xsl:text>  
-                                </xsl:if>
-                                <xsl:text>&lt;Stmt kind="Assign" name="&bitNumber;"&gt;&nl;</xsl:text>
+                                    <xsl:if test="xsd:annotation/xsd:appinfo/bs2x:variable">
+                                        <xsl:apply-templates select="xsd:annotation/xsd:appinfo/bs2x:variable" mode="actionexpr">
+                                            <xsl:with-param name="typename" select="$typename" tunnel="yes" />
+                                        </xsl:apply-templates>
+                                    </xsl:if>
+                                </xsl:when>
+                                <xsl:otherwise>
+                                    <xsl:text>&lt;Stmt kind="Assign" name="&bitNumber;"&gt;&nl;</xsl:text>
+                                    <xsl:text>&lt;Expr kind="BinOpSeq"&gt;&nl;</xsl:text>
+                                    <xsl:text>&lt;Expr kind="Var" name="&bitNumber;"/&gt;&nl;</xsl:text>
+                                    <xsl:text>&lt;Op name="+"/&gt;&nl;</xsl:text>  
+                                    <xsl:text>&lt;Expr kind="Literal" literal-kind="Integer" value="1"/&gt;&nl;</xsl:text>
+                                    <xsl:text>&lt;/Expr&gt;&nl;</xsl:text>  
+                                    <xsl:text>&lt;/Stmt&gt;&nl;</xsl:text>  
+                                </xsl:otherwise>
+                            </xsl:choose>
+                        </xsl:with-param>
+                        <xsl:with-param name="guard">
+                            <xsl:if test="@fixed">
+                               <xsl:text>&lt;Expr kind="BinOpSeq"&gt;&nl;</xsl:text>
+                                    <xsl:call-template name="hex2bit">
+                                        <xsl:with-param name="value" select="@fixed"/>
+                                         <xsl:with-param name="smalllength">
+                                              <xsl:apply-templates select="." mode="followingsize"/>
+                                         </xsl:with-param>
+                                   </xsl:call-template> 
+                               <xsl:text>&lt;/Expr&gt;&nl;</xsl:text>
+                            </xsl:if>
+                            <xsl:variable name="startCode">
+                                <xsl:apply-templates select="key('types',resolve-QName(@type,.))" mode="startCode"/>
+                            </xsl:variable>
+                            <xsl:if test="string-length($startCode) &gt; 0">
                                 <xsl:text>&lt;Expr kind="BinOpSeq"&gt;&nl;</xsl:text>
-                                <xsl:text>&lt;Expr kind="Var" name="&bitNumber;"/&gt;&nl;</xsl:text>
-                                <xsl:text>&lt;Op name="+"/&gt;&nl;</xsl:text> 
-                                <xsl:value-of select="$typename"/>
-                                <xsl:text>&lt;/Expr&gt;&nl;</xsl:text>  
-                                <xsl:text>&lt;/Stmt&gt;&nl;</xsl:text>  
-                                <xsl:if test="xsd:annotation/xsd:appinfo/bs2x:variable">
-                                    <xsl:apply-templates select="xsd:annotation/xsd:appinfo/bs2x:variable" mode="actionexpr">
-                                        <xsl:with-param name="typename" select="$typename" tunnel="yes" />
-                                    </xsl:apply-templates>
-                                </xsl:if>
-                            </xsl:when>
-                            <xsl:otherwise>
-                                <xsl:text>&lt;Stmt kind="Assign" name="&bitNumber;"&gt;&nl;</xsl:text>
-                                <xsl:text>&lt;Expr kind="BinOpSeq"&gt;&nl;</xsl:text>
-                                <xsl:text>&lt;Expr kind="Var" name="&bitNumber;"/&gt;&nl;</xsl:text>
-                                <xsl:text>&lt;Op name="+"/&gt;&nl;</xsl:text>  
-                                <xsl:text>&lt;Expr kind="Literal" literal-kind="Integer" value="1"/&gt;&nl;</xsl:text>
-                                <xsl:text>&lt;/Expr&gt;&nl;</xsl:text>  
-                                <xsl:text>&lt;/Stmt&gt;&nl;</xsl:text>  
-                            </xsl:otherwise>
-                        </xsl:choose>
-                    </xsl:with-param>
-                    <xsl:with-param name="guard">
-                        <xsl:if test="@fixed">
-                           <xsl:text>&lt;Expr kind="BinOpSeq"&gt;&nl;</xsl:text>
-                                <xsl:call-template name="hex2bit">
-                                    <xsl:with-param name="value" select="@fixed"/>
-                                     <xsl:with-param name="smalllength">
-                                          <xsl:apply-templates select="." mode="followingsize"/>
-                                     </xsl:with-param>
-                               </xsl:call-template> 
-                           <xsl:text>&lt;/Expr&gt;&nl;</xsl:text>
-                        </xsl:if>
-                        <xsl:variable name="startCode">
-                            <xsl:apply-templates select="key('types',resolve-QName(@type,.))" mode="startCode"/>
-                        </xsl:variable>
-                        <xsl:if test="string-length($startCode) &gt; 0">
-                            <xsl:text>&lt;Expr kind="BinOpSeq"&gt;&nl;</xsl:text>
-                            <xsl:call-template name="bit2bit">
-                                <xsl:with-param name="value" select="$startCode"/>
-                            </xsl:call-template> 
-                            <xsl:text>&lt;/Expr&gt;&nl;</xsl:text>
-                        </xsl:if>
-                    </xsl:with-param>
-                </xsl:call-template>
-            </xsl:otherwise>
-        </xsl:choose>
+                                <xsl:call-template name="bit2bit">
+                                    <xsl:with-param name="value" select="$startCode"/>
+                                </xsl:call-template> 
+                                <xsl:text>&lt;/Expr&gt;&nl;</xsl:text>
+                            </xsl:if>
+                        </xsl:with-param>
+                    </xsl:call-template>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:if>
         
         <xsl:next-match/>
     </xsl:template>
@@ -730,117 +733,120 @@
     <xsl:template match="xsd:element" mode="actionsunion">
         <xsl:param name="union" required="yes"/>
         
-        <xsl:if test="$union &gt; 1">
-            <xsl:apply-templates select="." mode="actionsunion">
-                <xsl:with-param name="union" select="$union - 1"/>
-            </xsl:apply-templates>
-        </xsl:if>
+        <xsl:if test="not(@type= 'bs1:align8' or @type= 'bs1:align16' or @type= 'bs1:align32')">
         
-        <xsl:variable name="typename">
-            <xsl:variable name="typenamer">
-                <xsl:apply-templates select="key('types',resolve-QName(@type,.))" mode="uniontype">
+            <xsl:if test="$union &gt; 1">
+                <xsl:apply-templates select="." mode="actionsunion">
+                    <xsl:with-param name="union" select="$union - 1"/>
+                </xsl:apply-templates>
+            </xsl:if>
+            
+            <xsl:variable name="typename">
+                <xsl:variable name="typenamer">
+                    <xsl:apply-templates select="key('types',resolve-QName(@type,.))" mode="uniontype">
+                        <xsl:with-param name="union" select="$union"/>
+                    </xsl:apply-templates>
+                </xsl:variable>
+                <xsl:text>&lt;Expr kind="Var" name="</xsl:text>
+                <xsl:value-of select="concat(rvc:constant($typenamer),&lengthSuffix;)"/>
+                <xsl:text>"/&gt;&nl;</xsl:text>
+            </xsl:variable>
+            
+            <xsl:variable name="guardExpr">
+                <xsl:apply-templates select="key('types',resolve-QName(@type,.))" mode="unioncond">
                     <xsl:with-param name="union" select="$union"/>
                 </xsl:apply-templates>
             </xsl:variable>
-            <xsl:text>&lt;Expr kind="Var" name="</xsl:text>
-            <xsl:value-of select="concat(rvc:constant($typenamer),&lengthSuffix;)"/>
-            <xsl:text>"/&gt;&nl;</xsl:text>
-        </xsl:variable>
-        
-        <xsl:variable name="guardExpr">
-            <xsl:apply-templates select="key('types',resolve-QName(@type,.))" mode="unioncond">
-                <xsl:with-param name="union" select="$union"/>
-            </xsl:apply-templates>
-        </xsl:variable>
-        
-        <xsl:call-template name="action">
-            <xsl:with-param name="name">
-                <xsl:call-template name="qid">
-                    <xsl:with-param name="name">
-                        <xsl:value-of select="@name"/>
-                    </xsl:with-param>
-                    <xsl:with-param name="suffix">
-                        <xsl:text>&readActionSuffix;</xsl:text>
-                        <xsl:value-of select="$union"/>
-                    </xsl:with-param>
-                </xsl:call-template>
-            </xsl:with-param>
-            <xsl:with-param name="inputs">
-                <xsl:call-template name="input">
-                    <xsl:with-param name="length">
-                        <xsl:value-of select="$typename"/>
-                    </xsl:with-param>
-                </xsl:call-template>
-            </xsl:with-param>
-            <xsl:with-param name="outputs">
-                <xsl:if test="@rvc:port">
+            
+            <xsl:call-template name="action">
+                <xsl:with-param name="name">
+                    <xsl:call-template name="qid">
+                        <xsl:with-param name="name">
+                            <xsl:value-of select="@name"/>
+                        </xsl:with-param>
+                        <xsl:with-param name="suffix">
+                            <xsl:text>&readActionSuffix;</xsl:text>
+                            <xsl:value-of select="$union"/>
+                        </xsl:with-param>
+                    </xsl:call-template>
+                </xsl:with-param>
+                <xsl:with-param name="inputs">
+                    <xsl:call-template name="input">
+                        <xsl:with-param name="length">
+                            <xsl:value-of select="$typename"/>
+                        </xsl:with-param>
+                    </xsl:call-template>
+                </xsl:with-param>
+                <xsl:with-param name="outputs">
+                    <xsl:if test="@rvc:port">
+                        <xsl:choose>
+                            <xsl:when test="@type='vlc'">
+                                <xsl:call-template name="outputvlc">
+                                    <xsl:with-param name="port" select="@rvc:port"/>
+                                </xsl:call-template>
+                            </xsl:when>
+                            <xsl:otherwise>
+                                <xsl:call-template name="output">
+                                    <xsl:with-param name="port" select="@rvc:port"/>
+                                </xsl:call-template>
+                            </xsl:otherwise>
+                        </xsl:choose>
+                    </xsl:if>
+                </xsl:with-param>
+                <xsl:with-param name="do">
+                    
                     <xsl:choose>
-                        <xsl:when test="@type='vlc'">
-                            <xsl:call-template name="outputvlc">
-                                <xsl:with-param name="port" select="@rvc:port"/>
-                            </xsl:call-template>
+                        <xsl:when test="not(@type='vlc')">
+                            <xsl:variable name="test">
+                                <xsl:apply-templates select="xsd:annotation/xsd:appinfo/bs2x:variable" mode="iftext"/>
+                                <xsl:text>false</xsl:text>
+                            </xsl:variable>
+                            
+                            <xsl:if test="@bs0:variable or $test or @rvc:port">
+                                <xsl:text>&lt;Stmt kind="Call"&gt;&nl;</xsl:text>
+                                <xsl:text>&lt;Expr kind="Var" name="bool2int"/&gt;&nl;</xsl:text>
+                                <xsl:text>&lt;Args&gt;&nl;</xsl:text>
+                                <xsl:text>&lt;Expr kind="Var" name="b"/&gt;&nl;</xsl:text>
+                                <xsl:value-of select="$typename"/>
+                                <xsl:text>&lt;/Args&gt;&nl;</xsl:text>
+                                <xsl:text>&lt;/Stmt&gt;&nl;</xsl:text>
+                            </xsl:if>
+                            <xsl:if test="@bs0:variable">
+                                <xsl:text>&lt;Stmt kind="Assign" name="</xsl:text>
+                                <xsl:value-of select="@name"/>
+                                <xsl:text>"&gt;&nl;</xsl:text>
+                                <xsl:text>&lt;Expr kind="Var" name="output"/&gt;&nl;</xsl:text>
+                                <xsl:text>&lt;/Stmt&gt;&nl;</xsl:text>  
+                            </xsl:if>
+                            <xsl:text>&lt;Stmt kind="Assign" name="&bitNumber;"&gt;&nl;</xsl:text>
+                            <xsl:text>&lt;Expr kind="BinOpSeq"&gt;&nl;</xsl:text>
+                            <xsl:text>&lt;Expr kind="Var" name="&bitNumber;"/&gt;&nl;</xsl:text>
+                            <xsl:text>&lt;Op name="+"/&gt;&nl;</xsl:text> 
+                            <xsl:value-of select="$typename"/>
+                            <xsl:text>&lt;/Expr&gt;&nl;</xsl:text>  
+                            <xsl:text>&lt;/Stmt&gt;&nl;</xsl:text>  
+                            <xsl:if test="xsd:annotation/xsd:appinfo/bs2x:variable">
+                                <xsl:apply-templates select="xsd:annotation/xsd:appinfo/bs2x:variable" mode="actionexpr"/>
+                            </xsl:if>
                         </xsl:when>
                         <xsl:otherwise>
-                            <xsl:call-template name="output">
-                                <xsl:with-param name="port" select="@rvc:port"/>
-                            </xsl:call-template>
+                            <xsl:text>&lt;Stmt kind="Assign" name="&bitNumber;"&gt;&nl;</xsl:text>
+                            <xsl:text>&lt;Expr kind="BinOpSeq"&gt;&nl;</xsl:text>
+                            <xsl:text>&lt;Expr kind="Var" name="&bitNumber;"/&gt;&nl;</xsl:text>
+                            <xsl:text>&lt;Op name="+"/&gt;&nl;</xsl:text>  
+                            <xsl:text>&lt;Expr kind="Literal" literal-kind="Integer" value="1"/&gt;&nl;</xsl:text>
+                            <xsl:text>&lt;/Expr&gt;&nl;</xsl:text>  
+                            <xsl:text>&lt;/Stmt&gt;&nl;</xsl:text>  
                         </xsl:otherwise>
                     </xsl:choose>
-                </xsl:if>
-            </xsl:with-param>
-            <xsl:with-param name="do">
-                
-                <xsl:choose>
-                    <xsl:when test="not(@type='vlc')">
-                        <xsl:variable name="test">
-                            <xsl:apply-templates select="xsd:annotation/xsd:appinfo/bs2x:variable" mode="iftext"/>
-                            <xsl:text>false</xsl:text>
-                        </xsl:variable>
-                        
-                        <xsl:if test="@bs0:variable or $test or @rvc:port">
-                            <xsl:text>&lt;Stmt kind="Call"&gt;&nl;</xsl:text>
-                            <xsl:text>&lt;Expr kind="Var" name="bool2int"/&gt;&nl;</xsl:text>
-                            <xsl:text>&lt;Args&gt;&nl;</xsl:text>
-                            <xsl:text>&lt;Expr kind="Var" name="b"/&gt;&nl;</xsl:text>
-                            <xsl:value-of select="$typename"/>
-                            <xsl:text>&lt;/Args&gt;&nl;</xsl:text>
-                            <xsl:text>&lt;/Stmt&gt;&nl;</xsl:text>
-                        </xsl:if>
-                        <xsl:if test="@bs0:variable">
-                            <xsl:text>&lt;Stmt kind="Assign" name="</xsl:text>
-                            <xsl:value-of select="@name"/>
-                            <xsl:text>"&gt;&nl;</xsl:text>
-                            <xsl:text>&lt;Expr kind="Var" name="output"/&gt;&nl;</xsl:text>
-                            <xsl:text>&lt;/Stmt&gt;&nl;</xsl:text>  
-                        </xsl:if>
-                        <xsl:text>&lt;Stmt kind="Assign" name="&bitNumber;"&gt;&nl;</xsl:text>
-                        <xsl:text>&lt;Expr kind="BinOpSeq"&gt;&nl;</xsl:text>
-                        <xsl:text>&lt;Expr kind="Var" name="&bitNumber;"/&gt;&nl;</xsl:text>
-                        <xsl:text>&lt;Op name="+"/&gt;&nl;</xsl:text> 
-                        <xsl:value-of select="$typename"/>
-                        <xsl:text>&lt;/Expr&gt;&nl;</xsl:text>  
-                        <xsl:text>&lt;/Stmt&gt;&nl;</xsl:text>  
-                        <xsl:if test="xsd:annotation/xsd:appinfo/bs2x:variable">
-                            <xsl:apply-templates select="xsd:annotation/xsd:appinfo/bs2x:variable" mode="actionexpr"/>
-                        </xsl:if>
-                    </xsl:when>
-                    <xsl:otherwise>
-                        <xsl:text>&lt;Stmt kind="Assign" name="&bitNumber;"&gt;&nl;</xsl:text>
-                        <xsl:text>&lt;Expr kind="BinOpSeq"&gt;&nl;</xsl:text>
-                        <xsl:text>&lt;Expr kind="Var" name="&bitNumber;"/&gt;&nl;</xsl:text>
-                        <xsl:text>&lt;Op name="+"/&gt;&nl;</xsl:text>  
-                        <xsl:text>&lt;Expr kind="Literal" literal-kind="Integer" value="1"/&gt;&nl;</xsl:text>
-                        <xsl:text>&lt;/Expr&gt;&nl;</xsl:text>  
-                        <xsl:text>&lt;/Stmt&gt;&nl;</xsl:text>  
-                    </xsl:otherwise>
-                </xsl:choose>
-            </xsl:with-param>
-            <xsl:with-param name="guard">
-                <xsl:if test="not($guardExpr = 'true()')">
-                    <xsl:value-of select="cal:parseExpression($guardExpr)"/>
-                </xsl:if>
-            </xsl:with-param> 
-        </xsl:call-template>
+                </xsl:with-param>
+                <xsl:with-param name="guard">
+                    <xsl:if test="not($guardExpr = 'true()')">
+                        <xsl:value-of select="cal:parseExpression($guardExpr)"/>
+                    </xsl:if>
+                </xsl:with-param> 
+            </xsl:call-template>
+        </xsl:if>
         <xsl:next-match/>
     </xsl:template>
     
