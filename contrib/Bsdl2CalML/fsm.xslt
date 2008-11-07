@@ -668,13 +668,16 @@
     <xsl:template match="*" mode="fsmoutput" priority="-1000"/> 
     
     <xsl:template match="xsd:choice" priority="3" mode="fsmoutput">
+        <xsl:param name="stack" required="yes" tunnel="yes"/>
         <xsl:variable name="nextT">
             <xsl:apply-templates select="." mode="fsmnext"/>
         </xsl:variable>
 
         <xsl:apply-templates select="*" mode="fsmchoice">
             <xsl:with-param name="start">
-                <xsl:apply-templates select="." mode="nextname"/>
+                <xsl:value-of select="rvc:itemName($stack)"/>
+                <xsl:text>&chooseStateSuffix;</xsl:text>
+                <xsl:number count ="xsd:choice" level="any"/>
             </xsl:with-param>
             <xsl:with-param name="next" select="$nextT"  tunnel="yes"/>
         </xsl:apply-templates>
@@ -771,23 +774,86 @@
                 </xsl:choose>
             </xsl:with-param>
             <xsl:with-param name="action">
-                <xsl:call-template name="qid">
-                    <xsl:with-param name="name">
-                        <xsl:value-of select="@name"/>
-                    </xsl:with-param>
-                    <xsl:with-param name="suffix">
-                        <xsl:choose>
-                            <xsl:when test="@bs2:if">
+                <xsl:choose>
+                    <xsl:when test="@bs2:if">
+                        <xsl:call-template name="qid">
+                            <xsl:with-param name="name">
+                                <xsl:value-of select="@name"/>
+                            </xsl:with-param>
+                            <xsl:with-param name="suffix">
                                 <xsl:text>&validActionSuffix;</xsl:text>
                                 <xsl:number count ="xsd:element[@bs2:if] | xsd:group[@bs2:if]"/>
-                            </xsl:when>
-                            <xsl:when test="@bs2:ifNext">
+                            </xsl:with-param>
+                        </xsl:call-template>
+                    </xsl:when>
+                    <xsl:when test="@bs2:ifNext">
+                        <xsl:call-template name="qid">
+                            <xsl:with-param name="name">
+                                <xsl:value-of select="@name"/>
+                            </xsl:with-param>
+                            <xsl:with-param name="suffix">
                                 <xsl:text>&validNextActionSuffix;</xsl:text>
                                 <xsl:number count ="xsd:element[@bs2:ifNext] | xsd:group[@bs2:ifNext]"/>
-                            </xsl:when>
-                        </xsl:choose>
-                    </xsl:with-param>
-                </xsl:call-template>
+                            </xsl:with-param>
+                        </xsl:call-template>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:call-template name="qid">
+                            <xsl:with-param name="name">&skipAction;</xsl:with-param>
+                        </xsl:call-template>
+                    </xsl:otherwise>
+                </xsl:choose>
+            </xsl:with-param>
+        </xsl:call-template>
+        <xsl:apply-templates select="." mode="fsmoutput"/>
+    </xsl:template> 
+    
+    <xsl:template match="xsd:choice" mode="fsmchoice" priority="5">
+        <xsl:param name="start" required="yes"/>
+        <xsl:param name="stack" required="yes" tunnel="yes"/>
+        <xsl:param name="next" required="yes" tunnel="yes"/>
+        
+        <xsl:variable name="newStack" select="if ($stack[1] is .) then $stack else (.,$stack)"/>
+        
+        <xsl:call-template name="transition">
+            <xsl:with-param name="from">
+                <xsl:value-of select="$start"/>
+            </xsl:with-param>
+            <xsl:with-param name="to">
+                <xsl:value-of select="rvc:itemName($stack)"/>
+                <xsl:text>&chooseStateSuffix;</xsl:text>
+                <xsl:number count ="xsd:choice" level="any"/>
+            </xsl:with-param>
+            <xsl:with-param name="action">
+                <xsl:choose>
+                    <xsl:when test="@bs2:if">
+                        <xsl:call-template name="qid">
+                            <xsl:with-param name="name">
+                                <xsl:value-of select="@name"/>
+                            </xsl:with-param>
+                            <xsl:with-param name="suffix">
+                                <xsl:text>&validActionSuffix;</xsl:text>
+                                <xsl:number count ="xsd:element[@bs2:if] | xsd:group[@bs2:if]"/>
+                            </xsl:with-param>
+                        </xsl:call-template>
+                    </xsl:when>
+                    <xsl:when test="@bs2:ifNext">
+                        <xsl:call-template name="qid">
+                            <xsl:with-param name="name">
+                                <xsl:value-of select="@name"/>
+                            </xsl:with-param>
+                            <xsl:with-param name="suffix">
+                                <xsl:text>&validNextActionSuffix;</xsl:text>
+                                <xsl:number count ="xsd:element[@bs2:ifNext] | xsd:group[@bs2:ifNext]"/>
+                            </xsl:with-param>
+                        </xsl:call-template>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:call-template name="qid">
+                            <xsl:with-param name="name">&skipAction;</xsl:with-param>
+                        </xsl:call-template>
+                    </xsl:otherwise>
+                </xsl:choose>
             </xsl:with-param>
         </xsl:call-template>
         <xsl:apply-templates select="." mode="fsmoutput"/>
@@ -845,25 +911,38 @@
                 </xsl:choose>
             </xsl:with-param>
             <xsl:with-param name="action">
-                <xsl:call-template name="qid">
-                    <xsl:with-param name="name">
-                        <xsl:value-of select="@name"/>
-                    </xsl:with-param>
-                    <xsl:with-param name="suffix">
-                        <xsl:choose>
-                            <xsl:when test="@bs2:if">
+                <xsl:choose>
+                    <xsl:when test="@bs2:if">
+                        <xsl:call-template name="qid">
+                            <xsl:with-param name="name">
+                                <xsl:value-of select="@name"/>
+                            </xsl:with-param>
+                            <xsl:with-param name="suffix">
                                 <xsl:text>&validActionSuffix;</xsl:text>
                                 <xsl:number count ="xsd:element[@bs2:if] | xsd:group[@bs2:if]"/>
-                            </xsl:when>
-                            <xsl:when test="@bs2:ifNext">
+                            </xsl:with-param>
+                        </xsl:call-template>
+                    </xsl:when>
+                    <xsl:when test="@bs2:ifNext">
+                        <xsl:call-template name="qid">
+                            <xsl:with-param name="name">
+                                <xsl:value-of select="@name"/>
+                            </xsl:with-param>
+                            <xsl:with-param name="suffix">
                                 <xsl:text>&validNextActionSuffix;</xsl:text>
                                 <xsl:number count ="xsd:element[@bs2:ifNext] | xsd:group[@bs2:ifNext]"/>
-                            </xsl:when>
-                        </xsl:choose>
-                    </xsl:with-param>
-                </xsl:call-template>
+                            </xsl:with-param>
+                        </xsl:call-template>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:call-template name="qid">
+                            <xsl:with-param name="name">&skipAction;</xsl:with-param>
+                        </xsl:call-template>
+                    </xsl:otherwise>
+                </xsl:choose>
             </xsl:with-param>
         </xsl:call-template>
+        <xsl:apply-templates select="." mode="fsmoutput"/>
     </xsl:template>
     
     <xsl:template match="xsd:element | xsd:group | xsd:sequence |  xsd:all" priority="5" mode="firstname">
@@ -917,8 +996,10 @@
     </xsl:template>
     
     <xsl:template match="xsd:choice" mode="nextname nextchild" priority="30">
-        <xsl:apply-templates select="*[1]" mode="nextname"/>
+        <xsl:param name="stack" required="yes" tunnel="yes"/>
+        <xsl:value-of select="rvc:itemName($stack)"/>
         <xsl:text>&chooseStateSuffix;</xsl:text>
+        <xsl:number count ="xsd:choice" level="any"/>
     </xsl:template>
     
     <xsl:template match="*[@bs2:if] | *[@bs2:ifNext]" mode="nextname" priority="20">
