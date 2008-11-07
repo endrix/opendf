@@ -249,6 +249,40 @@
     <xsl:text>&lt;/Expr&gt;&nl;</xsl:text>
     <xsl:text>&lt;/Decl&gt;&nl;</xsl:text>
     
+    <xsl:text>&lt;Decl kind="Variable" name="max"&gt;&nl;</xsl:text>
+    <xsl:text>&lt;Type infer="true" kind="Function"/&gt;&nl;</xsl:text>
+    <xsl:text>&lt;Expr kind="Lambda"&gt;&nl;</xsl:text>
+    <xsl:text>&lt;Decl kind="Parameter" name="value1"/&gt;&nl;</xsl:text>
+    <xsl:text>&lt;Decl kind="Parameter" name="value2"/&gt;&nl;</xsl:text>
+    <xsl:text>&lt;Expr kind="If"&gt;&nl;</xsl:text>
+    <xsl:text>&lt;Expr kind="BinOpSeq"&gt;&nl;</xsl:text>
+    <xsl:text>&lt;Expr kind="Var" name="value1"/&gt;&nl;</xsl:text>
+    <xsl:text>&lt;Op name="&amp;gt;"/&gt;&nl;</xsl:text>
+    <xsl:text>&lt;Expr kind="Var" name="value2"/&gt;&nl;</xsl:text>
+    <xsl:text>&lt;/Expr&gt;&nl;</xsl:text>
+    <xsl:text>&lt;Expr kind="Var" name="value1"/&gt;&nl;</xsl:text>
+    <xsl:text>&lt;Expr kind="Var" name="value2"/&gt;&nl;</xsl:text>
+    <xsl:text>&lt;/Expr&gt;&nl;</xsl:text>
+    <xsl:text>&lt;/Expr&gt;&nl;</xsl:text>
+    <xsl:text>&lt;/Decl&gt;&nl;</xsl:text>
+    
+    <xsl:text>&lt;Decl kind="Variable" name="min"&gt;&nl;</xsl:text>
+    <xsl:text>&lt;Type infer="true" kind="Function"/&gt;&nl;</xsl:text>
+    <xsl:text>&lt;Expr kind="Lambda"&gt;&nl;</xsl:text>
+    <xsl:text>&lt;Decl kind="Parameter" name="value1"/&gt;&nl;</xsl:text>
+    <xsl:text>&lt;Decl kind="Parameter" name="value2"/&gt;&nl;</xsl:text>
+    <xsl:text>&lt;Expr kind="If"&gt;&nl;</xsl:text>
+    <xsl:text>&lt;Expr kind="BinOpSeq"&gt;&nl;</xsl:text>
+    <xsl:text>&lt;Expr kind="Var" name="value1"/&gt;&nl;</xsl:text>
+    <xsl:text>&lt;Op name="&amp;lt;"/&gt;&nl;</xsl:text>
+    <xsl:text>&lt;Expr kind="Var" name="value2"/&gt;&nl;</xsl:text>
+    <xsl:text>&lt;/Expr&gt;&nl;</xsl:text>
+    <xsl:text>&lt;Expr kind="Var" name="value1"/&gt;&nl;</xsl:text>
+    <xsl:text>&lt;Expr kind="Var" name="value2"/&gt;&nl;</xsl:text>
+    <xsl:text>&lt;/Expr&gt;&nl;</xsl:text>
+    <xsl:text>&lt;/Expr&gt;&nl;</xsl:text>
+    <xsl:text>&lt;/Decl&gt;&nl;</xsl:text>
+
     <xsl:call-template name="action">
       <xsl:with-param name="name">
         <xsl:call-template name="qid">
