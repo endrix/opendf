@@ -18,7 +18,7 @@
    <Decl kind="Param" name="ACCODED"/>
    <Decl kind="Param" name="ACPRED"/>
    <Decl kind="Param" name="QUANT_SZ"/>
-   <Instance id="Sequence">
+   <Instance id="seq">
       <Class name="Sequence"/>
       <Parameter name="BTYPE_SZ">
          <Expr kind="Var" name="BTYPE_SZ"/>
@@ -51,13 +51,13 @@
          <Expr kind="Var" name="ROUND_TYPE"/>
       </Parameter>
    </Instance>
-   <Instance id="DCSplit">
+   <Instance id="dcsplit">
       <Class name="DCSplit"/>
       <Parameter name="SAMPLE_SZ">
          <Expr kind="Var" name="SAMPLE_SZ"/>
       </Parameter>
    </Instance>
-   <Instance id="DCPred">
+   <Instance id="dcpred">
       <Class name="DCPred"/>
       <Parameter name="ACCODED">
          <Expr kind="Var" name="ACCODED"/>
@@ -100,16 +100,16 @@
          <Expr kind="Var" name="SAMPLE_SZ"/>
       </Parameter>
    </Instance>
-   <Instance id="ZigzagAddr">
+   <Instance id="zzaddr">
       <Class name="ZigzagAddr"/>
    </Instance>
-   <Instance id="Zigzag">
+   <Instance id="zigzag">
       <Class name="Zigzag"/>
       <Parameter name="SAMPLE_SZ">
          <Expr kind="Var" name="SAMPLE_SZ"/>
       </Parameter>
    </Instance>
-   <Instance id="ACPred">
+   <Instance id="acpred">
       <Class name="ACPred"/>
       <Parameter name="MAXW_IN_MB">
          <Expr kind="Var" name="MAXW_IN_MB"/>
@@ -121,7 +121,7 @@
          <Expr kind="Var" name="SAMPLE_SZ"/>
       </Parameter>
    </Instance>
-   <Instance id="Dequant">
+   <Instance id="dequant">
       <Class name="Dequant"/>
       <Parameter name="QUANT_SZ">
          <Expr kind="Var" name="QUANT_SZ"/>
@@ -130,23 +130,23 @@
          <Expr kind="Var" name="SAMPLE_SZ"/>
       </Parameter>
    </Instance>
-   <Connection dst="Sequence" dst-port="BTYPE" src="" src-port="BTYPE"/>
-   <Connection dst="DCPred" dst-port="BTYPE" src="" src-port="BTYPE"/>
-   <Connection dst="DCSplit" dst-port="IN" src="" src-port="data"/>
-   <Connection dst="DCPred" dst-port="A" src="Sequence" src-port="A"/>
-   <Connection dst="DCPred" dst-port="B" src="Sequence" src-port="B"/>
-   <Connection dst="DCPred" dst-port="C" src="Sequence" src-port="C"/>
-   <Connection dst="DCPred" dst-port="IN" src="DCSplit" src-port="DC"/>
-   <Connection dst="Zigzag" dst-port="AC" src="DCSplit" src-port="AC"/>
-   <Connection dst="" dst-port="signed" src="DCPred" src-port="SIGNED"/>
-   <Connection dst="Dequant" dst-port="QP" src="DCPred" src-port="QUANT"/>
-   <Connection dst="Dequant" dst-port="DC" src="DCPred" src-port="OUT"/>
-   <Connection dst="ACPred" dst-port="PTR" src="DCPred" src-port="PTR"/>
-   <Connection dst="ZigzagAddr" dst-port="START" src="DCPred" src-port="START"/>
-   <Connection dst="Zigzag" dst-port="START" src="DCPred" src-port="START"/>
-   <Connection dst="ACPred" dst-port="START" src="DCPred" src-port="START"/>
-   <Connection dst="Zigzag" dst-port="ADDR" src="ZigzagAddr" src-port="ADDR"/>
-   <Connection dst="ACPred" dst-port="AC" src="Zigzag" src-port="OUT"/>
-   <Connection dst="Dequant" dst-port="AC" src="ACPred" src-port="OUT"/>
-   <Connection dst="" dst-port="out" src="Dequant" src-port="OUT"/>
+   <Connection dst="seq" dst-port="BTYPE" src="" src-port="BTYPE"/>
+   <Connection dst="dcpred" dst-port="BTYPE" src="" src-port="BTYPE"/>
+   <Connection dst="dcsplit" dst-port="IN" src="" src-port="data"/>
+   <Connection dst="dcpred" dst-port="A" src="seq" src-port="A"/>
+   <Connection dst="dcpred" dst-port="B" src="seq" src-port="B"/>
+   <Connection dst="dcpred" dst-port="C" src="seq" src-port="C"/>
+   <Connection dst="dcpred" dst-port="IN" src="dcsplit" src-port="DC"/>
+   <Connection dst="zigzag" dst-port="AC" src="dcsplit" src-port="AC"/>
+   <Connection dst="" dst-port="signed" src="dcpred" src-port="SIGNED"/>
+   <Connection dst="dequant" dst-port="QP" src="dcpred" src-port="QUANT"/>
+   <Connection dst="dequant" dst-port="DC" src="dcpred" src-port="OUT"/>
+   <Connection dst="acpred" dst-port="PTR" src="dcpred" src-port="PTR"/>
+   <Connection dst="zzaddr" dst-port="START" src="dcpred" src-port="START"/>
+   <Connection dst="zigzag" dst-port="START" src="dcpred" src-port="START"/>
+   <Connection dst="acpred" dst-port="START" src="dcpred" src-port="START"/>
+   <Connection dst="zigzag" dst-port="ADDR" src="zzaddr" src-port="ADDR"/>
+   <Connection dst="acpred" dst-port="AC" src="zigzag" src-port="OUT"/>
+   <Connection dst="dequant" dst-port="AC" src="acpred" src-port="OUT"/>
+   <Connection dst="" dst-port="out" src="dequant" src-port="OUT"/>
 </XDF>

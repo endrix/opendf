@@ -1,32 +1,41 @@
 <?xml version="1.0" encoding="UTF-8"?><XDF name="testbed">
+   <Decl kind="Param" name="TESTDATA"/>
    <Instance id="decoder">
       <Class name="decoder"/>
    </Instance>
-   <Instance id="fread">
+   <Instance id="source">
       <Class name="fread"/>
       <Parameter name="fname">
-         <Expr kind="Literal" literal-kind="String" value="D:/Sequences/MPEG4/SIMPLE/I-VOP/san000.m4v"/>
+         <Expr kind="BinOpSeq">
+            <Expr kind="Var" name="TESTDATA"/>
+            <Op name="+"/>
+            <Expr kind="Literal" literal-kind="String" value="/foreman_qcif_30.bit"/>
+         </Expr>
       </Parameter>
    </Instance>
-   <Instance id="DispYUV">
+   <Instance id="display">
       <Class name="DispYUV"/>
       <Parameter name="doCompare">
-         <Expr kind="Literal" literal-kind="Integer" value="0"/>
+         <Expr kind="Literal" literal-kind="Integer" value="1"/>
       </Parameter>
       <Parameter name="file">
-         <Expr kind="Literal" literal-kind="String" value="D:/Projects/RVC/OpenDF/models/MPEG4_SP_Decoder/data/foreman_qcif_30.yuv"/>
+         <Expr kind="BinOpSeq">
+            <Expr kind="Var" name="TESTDATA"/>
+            <Op name="+"/>
+            <Expr kind="Literal" literal-kind="String" value="/foreman_qcif_30.yuv"/>
+         </Expr>
       </Parameter>
       <Parameter name="height">
-         <Expr kind="Literal" literal-kind="Integer" value="288"/>
+         <Expr kind="Literal" literal-kind="Integer" value="144"/>
       </Parameter>
       <Parameter name="title">
          <Expr kind="Literal" literal-kind="String" value="Foreman QCIF"/>
       </Parameter>
       <Parameter name="width">
-         <Expr kind="Literal" literal-kind="Integer" value="352"/>
+         <Expr kind="Literal" literal-kind="Integer" value="176"/>
       </Parameter>
    </Instance>
-   <Instance id="DDRModel">
+   <Instance id="ddr">
       <Class name="DDRModel"/>
       <Parameter name="MAXH_IN_MB">
          <Expr kind="Literal" literal-kind="Integer" value="69"/>
@@ -35,10 +44,10 @@
          <Expr kind="Literal" literal-kind="Integer" value="121"/>
       </Parameter>
    </Instance>
-   <Connection dst="decoder" dst-port="bits" src="fread" src-port="O"/>
-   <Connection dst="DispYUV" dst-port="B" src="decoder" src-port="VIDEO"/>
-   <Connection dst="decoder" dst-port="MCD" src="DDRModel" src-port="RD"/>
-   <Connection dst="DDRModel" dst-port="WD" src="decoder" src-port="MBD"/>
-   <Connection dst="DDRModel" dst-port="WA" src="decoder" src-port="MBA"/>
-   <Connection dst="DDRModel" dst-port="RA" src="decoder" src-port="MCA"/>
+   <Connection dst="decoder" dst-port="bits" src="source" src-port="O"/>
+   <Connection dst="display" dst-port="B" src="decoder" src-port="VIDEO"/>
+   <Connection dst="decoder" dst-port="MCD" src="ddr" src-port="RD"/>
+   <Connection dst="ddr" dst-port="WD" src="decoder" src-port="MBD"/>
+   <Connection dst="ddr" dst-port="WA" src="decoder" src-port="MBA"/>
+   <Connection dst="ddr" dst-port="RA" src="decoder" src-port="MCA"/>
 </XDF>

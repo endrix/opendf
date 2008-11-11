@@ -24,7 +24,7 @@
    <Decl kind="Variable" name="FLAG_SZ">
       <Expr kind="Literal" literal-kind="Integer" value="4"/>
    </Decl>
-   <Instance id="MemoryManager">
+   <Instance id="memorymanager">
       <Class name="MemoryManager"/>
       <Parameter name="ADDR_SZ">
          <Expr kind="Var" name="ADDR_SZ"/>
@@ -69,7 +69,7 @@
          <Expr kind="Var" name="SEARCHWIN_IN_MB"/>
       </Parameter>
    </Instance>
-   <Instance id="MBPacker">
+   <Instance id="mbpack">
       <Class name="MBPacker"/>
       <Parameter name="ADDR_SZ">
          <Expr kind="Var" name="ADDR_SZ"/>
@@ -78,7 +78,7 @@
          <Expr kind="Var" name="PIX_SZ"/>
       </Parameter>
    </Instance>
-   <Instance id="SearchWindow">
+   <Instance id="searchwin">
       <Class name="SearchWindow"/>
       <Parameter name="ADDR_SZ">
          <Expr kind="Var" name="ADDR_SZ"/>
@@ -123,7 +123,7 @@
          <Expr kind="Var" name="SEARCHWIN_IN_MB"/>
       </Parameter>
    </Instance>
-   <Instance id="Unpack">
+   <Instance id="unpack">
       <Class name="Unpack"/>
       <Parameter name="ADDR_SZ">
          <Expr kind="Var" name="ADDR_SZ"/>
@@ -168,7 +168,7 @@
          <Expr kind="Var" name="SEARCHWIN_IN_MB"/>
       </Parameter>
    </Instance>
-   <Instance id="Interpolate">
+   <Instance id="interpolate">
       <Class name="Interpolate"/>
       <Parameter name="FLAG_SZ">
          <Expr kind="Var" name="FLAG_SZ"/>
@@ -177,7 +177,7 @@
          <Expr kind="Var" name="PIX_SZ"/>
       </Parameter>
    </Instance>
-   <Instance id="Add">
+   <Instance id="add">
       <Class name="Add"/>
       <Parameter name="ACCODED">
          <Expr kind="Var" name="ACCODED"/>
@@ -198,22 +198,22 @@
          <Expr kind="Var" name="PIX_SZ"/>
       </Parameter>
    </Instance>
-   <Connection dst="SearchWindow" dst-port="MV" src="" src-port="MV"/>
-   <Connection dst="Unpack" dst-port="MV" src="" src-port="MV"/>
-   <Connection dst="MemoryManager" dst-port="BTYPE" src="" src-port="BTYPE"/>
-   <Connection dst="SearchWindow" dst-port="BTYPE" src="" src-port="BTYPE"/>
-   <Connection dst="Unpack" dst-port="BTYPE" src="" src-port="BTYPE"/>
-   <Connection dst="Add" dst-port="BTYPE" src="" src-port="BTYPE"/>
-   <Connection dst="Add" dst-port="TEX" src="" src-port="TEX"/>
-   <Connection dst="MBPacker" dst-port="AI" src="MemoryManager" src-port="WA"/>
-   <Connection dst="" dst-port="MCA" src="MemoryManager" src-port="RA"/>
-   <Connection dst="" dst-port="MBD" src="MBPacker" src-port="DO"/>
-   <Connection dst="" dst-port="MBA" src="MBPacker" src-port="AO"/>
-   <Connection dst="SearchWindow" dst-port="DI" src="" src-port="MCD"/>
-   <Connection dst="Unpack" dst-port="DI" src="SearchWindow" src-port="DO"/>
-   <Connection dst="Interpolate" dst-port="halfpel" src="SearchWindow" src-port="FLAGS"/>
-   <Connection dst="Interpolate" dst-port="RD" src="Unpack" src-port="DO"/>
-   <Connection dst="Add" dst-port="MOT" src="Interpolate" src-port="MOT"/>
-   <Connection dst="MBPacker" dst-port="DI" src="Add" src-port="VID"/>
-   <Connection dst="" dst-port="VID" src="Add" src-port="VID"/>
+   <Connection dst="searchwin" dst-port="MV" src="" src-port="MV"/>
+   <Connection dst="unpack" dst-port="MV" src="" src-port="MV"/>
+   <Connection dst="memorymanager" dst-port="BTYPE" src="" src-port="BTYPE"/>
+   <Connection dst="searchwin" dst-port="BTYPE" src="" src-port="BTYPE"/>
+   <Connection dst="unpack" dst-port="BTYPE" src="" src-port="BTYPE"/>
+   <Connection dst="add" dst-port="BTYPE" src="" src-port="BTYPE"/>
+   <Connection dst="add" dst-port="TEX" src="" src-port="TEX"/>
+   <Connection dst="mbpack" dst-port="AI" src="memorymanager" src-port="WA"/>
+   <Connection dst="" dst-port="MCA" src="memorymanager" src-port="RA"/>
+   <Connection dst="" dst-port="MBD" src="mbpack" src-port="DO"/>
+   <Connection dst="" dst-port="MBA" src="mbpack" src-port="AO"/>
+   <Connection dst="searchwin" dst-port="DI" src="" src-port="MCD"/>
+   <Connection dst="unpack" dst-port="DI" src="searchwin" src-port="DO"/>
+   <Connection dst="interpolate" dst-port="halfpel" src="searchwin" src-port="FLAGS"/>
+   <Connection dst="interpolate" dst-port="RD" src="unpack" src-port="DO"/>
+   <Connection dst="add" dst-port="MOT" src="interpolate" src-port="MOT"/>
+   <Connection dst="mbpack" dst-port="DI" src="add" src-port="VID"/>
+   <Connection dst="" dst-port="VID" src="add" src-port="VID"/>
 </XDF>

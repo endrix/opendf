@@ -71,7 +71,7 @@
    <Decl kind="Variable" name="scs">
       <Expr kind="Literal" literal-kind="Integer" value="8"/>
    </Decl>
-   <Instance id="byte2bit">
+   <Instance id="serialize">
       <Class name="byte2bit"/>
    </Instance>
    <Instance id="parser">
@@ -185,7 +185,7 @@
          <Expr kind="Var" name="PIX_SZ"/>
       </Parameter>
    </Instance>
-   <Instance id="motion3">
+   <Instance id="motion">
       <Class name="motion3"/>
       <Parameter name="ACCODED">
          <Expr kind="Var" name="ACCODED"/>
@@ -230,18 +230,18 @@
          <Expr kind="Literal" literal-kind="Integer" value="3"/>
       </Parameter>
    </Instance>
-   <Connection dst="byte2bit" dst-port="in8" src="" src-port="bits"/>
-   <Connection dst="motion3" dst-port="MCD" src="" src-port="MCD"/>
-   <Connection dst="parser" dst-port="BITS" src="byte2bit" src-port="out"/>
+   <Connection dst="serialize" dst-port="in8" src="" src-port="bits"/>
+   <Connection dst="motion" dst-port="MCD" src="" src-port="MCD"/>
+   <Connection dst="parser" dst-port="BITS" src="serialize" src-port="out"/>
    <Connection dst="acdc" dst-port="BTYPE" src="parser" src-port="BTYPE"/>
-   <Connection dst="motion3" dst-port="BTYPE" src="parser" src-port="BTYPE"/>
+   <Connection dst="motion" dst-port="BTYPE" src="parser" src-port="BTYPE"/>
    <Connection dst="acdc" dst-port="data" src="parser" src-port="B"/>
-   <Connection dst="motion3" dst-port="MV" src="parser" src-port="MV"/>
-   <Connection dst="idct2d" dst-port="in" src="acdc" src-port="out"/>
+   <Connection dst="motion" dst-port="MV" src="parser" src-port="MV"/>
+   <Connection dst="idct2d" dst-port="\in\" src="acdc" src-port="out"/>
    <Connection dst="idct2d" dst-port="signed" src="acdc" src-port="signed"/>
-   <Connection dst="motion3" dst-port="TEX" src="idct2d" src-port="out"/>
-   <Connection dst="" dst-port="MBD" src="motion3" src-port="MBD"/>
-   <Connection dst="" dst-port="MBA" src="motion3" src-port="MBA"/>
-   <Connection dst="" dst-port="MCA" src="motion3" src-port="MCA"/>
-   <Connection dst="" dst-port="VIDEO" src="motion3" src-port="VID"/>
+   <Connection dst="motion" dst-port="TEX" src="idct2d" src-port="out"/>
+   <Connection dst="" dst-port="MBD" src="motion" src-port="MBD"/>
+   <Connection dst="" dst-port="MBA" src="motion" src-port="MBA"/>
+   <Connection dst="" dst-port="MCA" src="motion" src-port="MCA"/>
+   <Connection dst="" dst-port="VIDEO" src="motion" src-port="VID"/>
 </XDF>
