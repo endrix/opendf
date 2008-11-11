@@ -146,8 +146,6 @@
 
   </xsl:template>
 
-  
-
   <xsl:template name="bitAction">
 
     <xsl:text>&lt;Decl assignable="Yes" kind="Variable" name="output"&gt;&nl;</xsl:text>
@@ -389,35 +387,14 @@
     
     <xsl:text>&lt;/Action&gt;&nl;</xsl:text>
   </xsl:template>
-  
- <!-- <xsl:template name="actionPort">
-    <xsl:param name="port" required="yes"/>
-    <xsl:param name="variable" required="yes"/>
-    <xsl:param name="repeat" required="no"/>
-    <xsl:variable name="repeat0"><xsl:value-of select="$repeat"/></xsl:variable>
-    <item>
-      <xsl:value-of select="$port"/>
-      <xsl:text>: [</xsl:text>
-      <xsl:value-of select="$variable"/>
-      <xsl:text>]</xsl:text>
-      <xsl:if test="string-length($repeat0) &gt; 0">
-        <xsl:text> repeat </xsl:text>
-        <xsl:value-of select="$repeat0"/>
-      </xsl:if>
-    </item>
-  </xsl:template>-->
-  
-  
 
   <xsl:template name="variableDeclaration">
-
     <xsl:param name="name" required="yes"/>
-
     <xsl:param name="initialValue"/>
     <xsl:param name="type"/>
+    
     <xsl:variable name="initial0"><xsl:value-of select="$initialValue"/></xsl:variable> <!-- necessary to serialize sequences... -->
-    
-    
+
     <xsl:text>&lt;Decl kind="Variable" name="</xsl:text>
     <xsl:value-of select="$name"/>
     <xsl:text>"&gt;&nl;</xsl:text>
@@ -444,9 +421,7 @@
   
 
   <xsl:template name="fsm">
-
     <xsl:param name="initialState"/>
-
     <xsl:param name="transitions"/>
     
     <xsl:text>&lt;Schedule kind="fsm" initial-state="</xsl:text>
@@ -455,10 +430,7 @@
 
     <xsl:value-of select="string-join($transitions,'&nl;')"/>
       <xsl:text>&lt;/Schedule&gt;&nl;</xsl:text>
-
   </xsl:template>
-
-  
 
   <xsl:template name="assign">
     <xsl:param name="variable" required="yes"/>
@@ -469,131 +441,6 @@
     <xsl:value-of select="$value"/>
     <xsl:text>;&nl;</xsl:text>
   </xsl:template>
-  
-  
-  <xsl:template name="index"><!-- zzz workaround for cal interpreter bug - remove [] -->
-    <xsl:param name="index" required="yes"/>
-    <xsl:text>[</xsl:text>
-    <xsl:value-of select="$index"/>
-    <xsl:text>]</xsl:text>
-  </xsl:template>  
-  
-  <xsl:template name="size">
-    <xsl:param name="collection" required="yes"/>
-    <xsl:text>#</xsl:text>
-    <xsl:value-of select="$collection"/>
-  </xsl:template>
-  
-  <xsl:template name="dereference">
-    <xsl:param name="parent" required="yes"/>
-    <xsl:param name="child" required="yes"/>
-    <xsl:value-of select="$parent"/>
-    <xsl:text>.</xsl:text>
-    <xsl:value-of select="$child"/>
-  </xsl:template>
-  
-  <xsl:template name="statement">
-    <xsl:param name="expressions" required="no"/>
-    <xsl:if test="string-length($expressions) &gt; 0">
-      <xsl:value-of select="$expressions"/>
-    </xsl:if>
-  </xsl:template>
-  
-  <xsl:template name="list1">
-    <xsl:param name="name" as="xsd:string" required="yes"/>
-    <xsl:param name="size" required="no"/>
-    <xsl:param name="type" required="no"/>
-    <xsl:param name="initialValue" as="xsd:string*" required="no"/>
-    <xsl:variable name="sizePresent" select="string-length($size) &gt; 0"/>
-    <xsl:variable name="typePresent" select="string-length($type) &gt; 0"/>
-    <xsl:variable name="nullValue" select="if ($type='int') then 0 else 'null'"/>
-    <item>
-      <xsl:text>list </xsl:text>
-      <xsl:if test="$size or $typePresent">(</xsl:if>
-      <xsl:if test="$typePresent">
-        <xsl:text>type:</xsl:text>
-        <xsl:value-of select="$type"/>
-      </xsl:if> 
-      <xsl:if test="$sizePresent and $typePresent">, </xsl:if>
-      <xsl:if test="$sizePresent">
-        <xsl:text>size:</xsl:text>
-        <xsl:value-of select="$size"/>
-      </xsl:if> 
-      <xsl:if test="$size or $typePresent">)</xsl:if> 
-      <xsl:value-of select="$name"/>
-      <xsl:choose>
-        <xsl:when test="not(empty($initialValue)) or string-length($initialValue) &gt; 0">
-          <xsl:text> := [</xsl:text>
-          <xsl:value-of select="string-join($initialValue,',')"/>
-          <xsl:text>]</xsl:text>
-        </xsl:when>
-        <xsl:when test="$sizePresent">
-          <xsl:variable name="string" select="for $x in 1 to $size return $nullValue"/>
-          <xsl:text> := [</xsl:text>
-          <xsl:value-of select="string-join($string,',')"/>
-          <xsl:text>]</xsl:text>
-        </xsl:when>
-      </xsl:choose>
-    </item>
-  </xsl:template>
-  
-  <xsl:template name="list"><!-- interpreter can't handle current[0].b1 so we're working around it. -->
-    <xsl:param name="name" as="xsd:string" required="yes"/>
-    <xsl:param name="size" as="xsd:integer" required="yes"/>
-    <xsl:param name="type" as="xsd:string" required="yes"/>
-    <xsl:param name="initialValue" required="no"/>
-    <xsl:value-of>
-      <xsl:for-each select="0 to $size -1">
-        <xsl:value-of select="$type"/>
-        <xsl:text> </xsl:text>
-        <xsl:value-of select="$name"/>
-        <xsl:value-of select="."/>
-        <xsl:text> := </xsl:text>
-        <xsl:choose>
-          <xsl:when test="empty($initialValue) or string-length($initialValue)=0">null</xsl:when>
-          <xsl:otherwise><xsl:value-of select="$initialValue[current()]"/></xsl:otherwise>
-        </xsl:choose>
-        <xsl:text>;
-        </xsl:text>
-      </xsl:for-each>
-    </xsl:value-of>
-  </xsl:template>
-  
-  <xsl:template name="functionCall">
-    <xsl:param name="name" required="yes"/>
-    <xsl:param name="arguments" required="no"/>
-    <xsl:value-of select="$name"/>
-    <xsl:text>(</xsl:text>
-    <xsl:value-of select="string-join($arguments,',')"/>
-    <xsl:text>)</xsl:text>
-  </xsl:template>
-  
-  <!-- for convenience -->
-  <xsl:template name="increment">
-    <xsl:param name="variable" required="yes"/>
-    <xsl:call-template name="assign">
-      <xsl:with-param name="variable" select="$variable"/>
-      <xsl:with-param name="value">
-        <xsl:call-template name="operation">
-          <xsl:with-param name="operand0" select="$variable"/>
-          <xsl:with-param name="operation">+</xsl:with-param>
-          <xsl:with-param name="operand1">1</xsl:with-param>
-        </xsl:call-template>
-      </xsl:with-param>
-    </xsl:call-template>  
-  </xsl:template>
-  
-  <xsl:template name="operation">
-    <xsl:param name="operation" required="yes"/>
-    <xsl:param name="operand0" required="yes"/>
-    <xsl:param name="operand1" required="no"/>
-    <xsl:value-of select="$operand0"/>
-    <xsl:text> </xsl:text>
-    <xsl:value-of select="$operation"/>
-    <xsl:text> </xsl:text>
-    <xsl:value-of select="$operand1"/>
-  </xsl:template>
-  
 
   <xsl:template name="transition">
     <xsl:param name="from" required="yes"/>
@@ -634,6 +481,13 @@
     </xsl:if>
     
     <xsl:text>&lt;/QID&gt;&nl;</xsl:text>
+  </xsl:template>
+  
+  <xsl:template name="statement">
+    <xsl:param name="expressions" required="no"/>
+    <xsl:if test="string-length($expressions) &gt; 0">
+      <xsl:value-of select="$expressions"/>
+    </xsl:if>
   </xsl:template>
   
   <xsl:template name="priorities">
