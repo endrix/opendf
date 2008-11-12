@@ -39,6 +39,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.w3c.dom.Element;
+import org.apache.xerces.dom.ElementImpl;
+import org.apache.xerces.dom.CoreDocumentImpl;
+
 
 /**
  *
@@ -46,204 +50,249 @@ import java.util.Set;
  */
 public class ExprParser implements Symbols {
     
-    public static String parseExpression(String expr) throws Exception {
+    private static CoreDocumentImpl ownerDoc;
+    
+    public static Element parseExpression(String expr) throws Exception {
+                
         Scanner scan = new Scanner(expr);
+        
+        ownerDoc = new CoreDocumentImpl();
         
         symbol= scan.nextSymbol();
         
-        String temp = parseStart(scan);
+        Element result = new ElementImpl(ownerDoc,"Expr");
+        parseStart(scan, result);
         
-        if(binOp){
-            return "<Expr kind=\"BinOpSeq\">\n"+temp+"</Expr>\n";
-        }
-        return temp;
+        result.setAttribute("kind", "BinOpSeq");
+        return result;
     }
     
     static int symbol;
     
-    static boolean binOp;
-    
-    private static String parseOp(Scanner scan) throws Exception {
-        String temp;
+    private static void parseOp(Scanner scan, Element result) throws Exception {
+        Element op = new ElementImpl(ownerDoc,"Op");
+        
         if(symbol==AND){
-            temp = "<Op name=\"and\"/>\n";
+            op.setAttribute("name", "and");
+            result.appendChild(op);
             symbol= scan.nextSymbol();
-            temp += parseStart(scan);
-            return temp;
+            parseStart(scan, result);
+            return ;
         }
         if(symbol==OR){
-            temp = "<Op name=\"or\"/>\n";
+            op.setAttribute("name", "or");
+            result.appendChild(op);
             symbol= scan.nextSymbol();
-            temp += parseStart(scan);
-            return temp;
+            parseStart(scan, result);
+            return ;
         }
         if(symbol==EQU){
-            temp = "<Op name=\"=\"/>\n";
+            op.setAttribute("name", "=");
+            result.appendChild(op);
             symbol= scan.nextSymbol();
-            temp += parseStart(scan);
-            return temp;
+            parseStart(scan, result);
+            return;
         }
         if(symbol==DIFF){
-            temp = "<Op name=\"!=\"/>\n";
+            op.setAttribute("name", "!=");
+            result.appendChild(op);
             symbol= scan.nextSymbol();
-            temp += parseStart(scan);
-            return temp;
+            parseStart(scan, result);
+            return;
         }
         if(symbol==MOR){
-            temp = "<Op name=\"&gt;\"/>\n";
+            op.setAttribute("name", "&gt;");
+            result.appendChild(op);
             symbol= scan.nextSymbol();
-            temp += parseStart(scan);
-            return temp;
+            parseStart(scan, result);
+            return;
         }
         if(symbol==MORE){
-            temp = "<Op name=\"&gt;=\"/>\n";
+            op.setAttribute("name", "&gt;=");
+            result.appendChild(op);
             symbol= scan.nextSymbol();
-            temp += parseStart(scan);
-            return temp;
+            parseStart(scan, result);
+            return;
         }
         if(symbol==LES){
-            temp = "<Op name=\"&lt;\"/>\n";
+            op.setAttribute("name", "&lt;");
+            result.appendChild(op);
             symbol= scan.nextSymbol();
-            temp += parseStart(scan);
-            return temp;
+            parseStart(scan, result);
+            return;
         }
         if(symbol==LESE){
-            temp = "<Op name=\"&lt;=\"/>\n";
+            op.setAttribute("name", "&lt;=");
+            result.appendChild(op);
             symbol= scan.nextSymbol();
-            temp += parseStart(scan);
-            return temp;
+            parseStart(scan, result);
+            return;
         }
         if(symbol==PLUS){
-            temp = "<Op name=\"+\"/>\n";
+            op.setAttribute("name", "+");
+            result.appendChild(op);
             symbol= scan.nextSymbol();
-            temp += parseStart(scan);
-            return temp;
+            parseStart(scan, result);
+            return;
         }
         if(symbol==MINUS){
-            temp = "<Op name=\"-\"/>\n";
+            op.setAttribute("name", "-");
+            result.appendChild(op);
             symbol= scan.nextSymbol();
-            temp += parseStart(scan);
-            return temp;
+            parseStart(scan, result);
+            return;
         }
         if(symbol==MUL){
-            temp = "<Op name=\"*\"/>\n";
+            op.setAttribute("name", "*");
+            result.appendChild(op);
             symbol= scan.nextSymbol();
-            temp += parseStart(scan);
-            return temp;
+            parseStart(scan, result);
+            return;
         }
         if(symbol==DIV){
-            temp = "<Op name=\"/\"/>\n";
+            op.setAttribute("name", "/");
+            result.appendChild(op);
             symbol= scan.nextSymbol();
-            temp += parseStart(scan);
-            return temp;
+            parseStart(scan, result);
+            return;
         }
-        return "";
+        return;
     }
     
-    private static String parseStart(Scanner scan) throws Exception {
-        String temp;
-        
+    private static void parseStart(Scanner scan, Element result) throws Exception {
         if(symbol==IF){
+            Element ifop = new ElementImpl(ownerDoc,"Expr");
+            ifop.setAttribute("kind", "If");
+            Element cond = new ElementImpl(ownerDoc,"Expr");
+            cond.setAttribute("kind", "BinOpSeq");
+            
             symbol= scan.nextSymbol();
-            temp = "<Expr kind=\"If\" >\n";
-            temp += "<Expr kind=\"BinOpSeq\" >\n";
-            temp += parseStart(scan);
-            temp += "</Expr>\n";
+            parseStart(scan, cond);
+            ifop.appendChild(cond);
             
             if(symbol!=THEN)
                 throw new Exception("Missing \"then\" after the function name");
             symbol= scan.nextSymbol();
-            temp += "<Expr kind=\"BinOpSeq\" >\n";
-            temp += parseStart(scan);
-            temp += "</Expr>\n";
+            
+            Element ok = new ElementImpl(ownerDoc,"Expr");
+            ok.setAttribute("kind", "BinOpSeq");
+            parseStart(scan, ok);
+            ifop.appendChild(ok);
             
             if(symbol!=ELSE)
                 throw new Exception("Missing \"else\" after the function name");
             symbol= scan.nextSymbol();
-            temp += "<Expr kind=\"BinOpSeq\" >\n";
-            temp += parseStart(scan);
-            temp += "</Expr>\n";
+            
+            Element nok = new ElementImpl(ownerDoc,"Expr");
+            nok.setAttribute("kind", "BinOpSeq");
+            parseStart(scan, nok);
+            ifop.appendChild(nok);
+            
+            result.appendChild(ifop);
             
             if(symbol!=END)
                 throw new Exception("Missing \"end\" after the function name");
             symbol= scan.nextSymbol();
-            temp += "</Expr>\n";
-            return temp;
+            return;
         }
         
         if(symbol==NOT){
+            Element unary = new ElementImpl(ownerDoc,"Expr");
+            unary.setAttribute("kind", "UnaryOp");
+            Element notop = new ElementImpl(ownerDoc,"Op");
+            notop.setAttribute("name", "not");
+
             symbol= scan.nextSymbol();
-            temp = "<Expr kind= \"UnaryOp\">\n";
-            temp += "<Op name=\"not\"/>\n";
-            temp += parsePar(scan);
-            temp += "</Expr>\n";
-            return temp;
+            unary.appendChild(notop);
+            parsePar(scan, unary);
+            
+            result.appendChild(unary);
+            return;
         }
         if(symbol==MINUS){
+            Element unary = new ElementImpl(ownerDoc,"Expr");
+            unary.setAttribute("kind", "UnaryOp");
+            Element minop = new ElementImpl(ownerDoc,"Op");
+            minop.setAttribute("name", "-");
+            
             symbol= scan.nextSymbol();
-            temp = "<Expr kind= \"UnaryOp\">\n";
-            temp += "<Op name=\"-\"/>\n";
-            temp += parsePar(scan);
-            temp += "</Expr>\n";
-            return temp;
+            unary.appendChild(minop);
+            parsePar(scan, unary);
+            
+            result.appendChild(unary);
+            return;
         }
-        return parsePar(scan);
+        parsePar(scan, result);
+        return;
     }
     
-    private static String parsePar(Scanner scan) throws Exception {
-        String temp;
+    private static void parsePar(Scanner scan, Element result) throws Exception {
         if(symbol==LPAR){
-            temp = "<Expr kind=\"BinOpSeq\">\n";
+            Element par = new ElementImpl(ownerDoc,"Expr");
+            par.setAttribute("kind", "BinOpSeq");
+            
             symbol= scan.nextSymbol();
             while(symbol!=RPAR){
-                temp += parseStart(scan);
+                parseStart(scan, par);
             }
-            temp += "</Expr>\n";
+            
+            result.appendChild(par);
+            
             symbol= scan.nextSymbol();
-            temp += parseOp(scan);
+            parseOp(scan, result);
         } else
-            temp = parseEntity(scan);
-        return temp;
+            parseEntity(scan, result);
+        return ;
     }
     
-    private static String parseEntity(Scanner scan) throws Exception {
-        String temp;
-        binOp = true;
+    private static void parseEntity(Scanner scan, Element result) throws Exception {
         if(symbol==INT){
-            temp = "<Expr kind=\"Literal\" literal-kind=\"Integer\" value=\""+ scan.getValue() +"\"/>\n";
+            Element lit = new ElementImpl(ownerDoc,"Expr");
+            lit.setAttribute("kind", "Literal");
+            lit.setAttribute("literal-kind", "Integer");
+            lit.setAttribute("value", String.valueOf(scan.getValue()));
             symbol= scan.nextSymbol();
-            temp += parseOp(scan);
-            return temp;
+            result.appendChild(lit);
+            parseOp(scan, result);
+            return;
         }
         if(symbol==VAR){
-            temp = "<Expr kind=\"Var\" name=\""+ scan.getName() +"\"/>\n";
+            Element var = new ElementImpl(ownerDoc,"Expr");
+            var.setAttribute("kind", "Var");
+            var.setAttribute("name", scan.getName());
             symbol= scan.nextSymbol();
-            temp += parseOp(scan);
-            return temp;
+            result.appendChild(var);
+            parseOp(scan, result);
+            return;
         }
         if(symbol==FUNC){
-            temp = "<Expr kind=\"Application\">\n";
-            temp += "<Expr kind=\"Var\" name=\""+ scan.getName() +"\"/>\n";
-            temp += "<Args>\n";
+            Element app = new ElementImpl(ownerDoc,"Expr");
+            app.setAttribute("kind", "Application");
+            
+            Element var = new ElementImpl(ownerDoc,"Expr");
+            var.setAttribute("kind", "Var");
+            var.setAttribute("name", scan.getName());
+            app.appendChild(var);
+            
+            Element args = new ElementImpl(ownerDoc,"Args");
+
             symbol= scan.nextSymbol();
             if(symbol!=LPAR)
                 throw new Exception("Missing \"(\" after the function name");
             do{
                 symbol= scan.nextSymbol();
-                temp += parseStart(scan);
+                parseStart(scan, args);
             }while (symbol == VIR);
             
             if(symbol!=RPAR)
                 throw new Exception("Missing \")\" after the function name");
             
-            temp += "</Args>\n";
-            temp += "</Expr>\n";
+            app.appendChild(args);
+            result.appendChild(app);
             symbol= scan.nextSymbol();
-            temp += parseOp(scan);
-            return temp;
+            parseOp(scan, result);
+            return;
         }
-        binOp = false;
-        return "";
+        return;
     }
-    
 }
