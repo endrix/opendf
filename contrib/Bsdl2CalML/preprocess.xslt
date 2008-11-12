@@ -59,6 +59,13 @@
         </xsd:group>
     </xsl:template>
     
+    <xsl:template match="xsd:group[@ref]" mode="#all" priority="10">
+        <xsd:group>
+            <xsl:attribute name="name" select="@ref"/>
+            <xsl:apply-templates select="@*" mode="#current"/> 
+        </xsd:group>
+    </xsl:template>
+    
     <xsl:template match="xsd:sequence[@bs2:nOccurs] | xsd:sequence[@bs2:if] | xsd:sequence[@bs2:ifNext]" mode="groupize" priority="20">
         <xsd:group>
             <xsl:attribute name="name">sequence<xsl:number count ="xsd:sequence[@bs2:nOccurs] | xsd:sequence[@bs2:if] | xsd:sequence[@bs2:ifNext]" level="any"/></xsl:attribute>
