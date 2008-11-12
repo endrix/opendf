@@ -101,28 +101,28 @@ public class ExprParser implements Symbols {
             return;
         }
         if(symbol==MOR){
-            op.setAttribute("name", "&gt;");
+            op.setAttribute("name", ">");
             result.appendChild(op);
             symbol= scan.nextSymbol();
             parseStart(scan, result);
             return;
         }
         if(symbol==MORE){
-            op.setAttribute("name", "&gt;=");
+            op.setAttribute("name", ">=");
             result.appendChild(op);
             symbol= scan.nextSymbol();
             parseStart(scan, result);
             return;
         }
         if(symbol==LES){
-            op.setAttribute("name", "&lt;");
+            op.setAttribute("name", "<");
             result.appendChild(op);
             symbol= scan.nextSymbol();
             parseStart(scan, result);
             return;
         }
         if(symbol==LESE){
-            op.setAttribute("name", "&lt;=");
+            op.setAttribute("name", "<=");
             result.appendChild(op);
             symbol= scan.nextSymbol();
             parseStart(scan, result);
