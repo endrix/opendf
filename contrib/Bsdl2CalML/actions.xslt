@@ -230,7 +230,8 @@
     
     
     <xsl:template name="input">
-        <xsl:param name="length" required="no" select="'nolength'"/>
+        <xsl:param name="length" required="no"/>
+        <xsl:param name="islength" required="no" select="no"/>
         <xsl:param name="name">b</xsl:param>
         <xsl:param name="port">bitstream</xsl:param>
         
@@ -240,7 +241,7 @@
                 <xsl:attribute name="name" select="$name"/>
             </Decl> 
             
-            <xsl:if test="$length = 'nolength'">
+            <xsl:if test="$islength">
                 <Repeat>  
                     <xsl:copy-of select="$length" copy-namespaces="no"/>
                 </Repeat>
@@ -342,6 +343,9 @@
                             <xsl:call-template name="input">
                                 <xsl:with-param name="length">
                                     <xsl:copy-of select="$typename" copy-namespaces="no"/>
+                                </xsl:with-param>
+                                <xsl:with-param name="islength">
+                                    <xsl:value-of select="@type='vlc'"/>
                                 </xsl:with-param>
                             </xsl:call-template>
                         </xsl:with-param>
@@ -696,6 +700,9 @@
                     <xsl:with-param name="length">
                         <xsl:copy-of select="$typename" copy-namespaces="no"/>
                     </xsl:with-param>
+                    <xsl:with-param name="islength">
+                        <xsl:value-of select="@type='vlc'"/>
+                    </xsl:with-param>
                 </xsl:call-template>
             </xsl:with-param>
             
@@ -820,6 +827,9 @@
                     <xsl:call-template name="input">
                         <xsl:with-param name="length">
                             <xsl:copy-of select="$typename" copy-namespaces="no"/>
+                        </xsl:with-param>
+                        <xsl:with-param name="islength">
+                            <xsl:value-of select="@type='vlc'"/>
                         </xsl:with-param>
                     </xsl:call-template>
                 </xsl:with-param>
