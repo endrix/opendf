@@ -371,11 +371,10 @@
                         <xsl:with-param name="do">
                             <xsl:choose>
                                 <xsl:when test="not(@type='vlc')">
-                                    <xsl:variable name="test">
-                                        <xsl:apply-templates select="xsd:annotation/xsd:appinfo/bs2x:variable" mode="iftext"/>
-                                        <xsl:text>false</xsl:text>
+                                    <xsl:variable name="test" as="xsd:boolean">
+                                        <xsl:apply-templates select="." mode="iftext"/>
                                     </xsl:variable>
-                                    <xsl:if test="@bs0:variable or $test or @rvc:port">
+                                    <xsl:if test="@bs0:variable or @rvc:port or $test">
                                         <Stmt kind="Call">
                                             <Expr kind="Var" name="bool2int"/>
                                             <Args>
@@ -487,11 +486,6 @@
             
         </xsl:call-template>
         
-        <xsl:variable name="test">
-            <xsl:apply-templates select="xsd:annotation/xsd:appinfo/bs2x:variable" mode="iftext"/>
-            <xsl:text>false</xsl:text>
-        </xsl:variable>
-        
         <xsl:call-template name="action">
             <xsl:with-param name="name">
                 <xsl:call-template name="qid">
@@ -509,6 +503,10 @@
                     <xsl:with-param name="name">f</xsl:with-param>
                     <xsl:with-param name="port" select="concat(@rvc:port,'&vlcActionSuffix;')"/>
                 </xsl:call-template>
+                
+                <xsl:variable name="test" as="xsd:boolean">
+                    <xsl:apply-templates select="." mode="iftext"/>
+                </xsl:variable>
                 <xsl:if test="@bs0:variable or $test">
                     <xsl:call-template name="input">
                         <xsl:with-param name="name">data</xsl:with-param>
@@ -848,11 +846,9 @@
                     
                     <xsl:choose>
                         <xsl:when test="not(@type='vlc')">
-                            <xsl:variable name="test">
-                                <xsl:apply-templates select="xsd:annotation/xsd:appinfo/bs2x:variable" mode="iftext"/>
-                                <xsl:text>false</xsl:text>
+                            <xsl:variable name="test" as="xsd:boolean">
+                                <xsl:apply-templates select="." mode="iftext"/>
                             </xsl:variable>
-                            
                             <xsl:if test="@bs0:variable or $test or @rvc:port">
                                 <Stmt kind="Call">
                                     <Expr kind="Var" name="bool2int"/>
@@ -1115,10 +1111,26 @@
         </Stmt>
     </xsl:template>
     
+    <xsl:template match="xsd:element" mode="iftext">
+        <xsl:choose>
+            <xsl:when test="xsd:annotation/xsd:appinfo/bs2x:variable">
+                <xsl:apply-templates select="xsd:annotation/xsd:appinfo/bs2x:variable[1]" mode="iftext"/>
+            </xsl:when>
+            <xsl:otherwise>false</xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
+    
     <xsl:template match="bs2x:variable" mode="iftext">
         <xsl:choose>
-            <xsl:when test="contains(@value,'./text()')">true or </xsl:when>
-            <xsl:otherwise>false or </xsl:otherwise>
+            <xsl:when test="following-sibling::bs2x:variable[1]">
+                <xsl:variable name="temp">
+                    <xsl:apply-templates select="following-sibling::bs2x:variable[1]"/>
+                </xsl:variable>
+                <xsl:value-of select="contains(@value,'./text()') or temp"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:value-of select="contains(@value,'./text()')"/>
+            </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
     
