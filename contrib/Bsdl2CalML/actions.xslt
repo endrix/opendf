@@ -231,9 +231,9 @@
     
     <xsl:template name="input">
         <xsl:param name="length" required="no"/>
-        <xsl:param name="islength" required="no" select="no"/>
         <xsl:param name="name">b</xsl:param>
         <xsl:param name="port">bitstream</xsl:param>
+        <xsl:param name="isvlc" as="xsd:boolean" tunnel="yes">false</xsl:param>
         
         <Input kind="Elements">
             <xsl:attribute name="port" select="$port"/>
@@ -241,7 +241,7 @@
                 <xsl:attribute name="name" select="$name"/>
             </Decl> 
             
-            <xsl:if test="$islength">
+            <xsl:if test="not($isvlc) and $length">
                 <Repeat>  
                     <xsl:copy-of select="$length" copy-namespaces="no"/>
                 </Repeat>
@@ -279,6 +279,12 @@
                 <xsl:attribute name="value" select="$value"/>
             </Expr>
         </Expr>
+    </xsl:template>
+    
+    <xsl:template match="xsd:element[@type='vlc']" mode="actions" priority="60">
+        <xsl:next-match>
+            <xsl:with-param name="isvlc" tunnel="yes">true</xsl:with-param>
+        </xsl:next-match>
     </xsl:template>
     
     <xsl:template match="xsd:element" priority="50" mode="actions">
@@ -343,9 +349,6 @@
                             <xsl:call-template name="input">
                                 <xsl:with-param name="length">
                                     <xsl:copy-of select="$typename" copy-namespaces="no"/>
-                                </xsl:with-param>
-                                <xsl:with-param name="islength">
-                                    <xsl:value-of select="@type='vlc'"/>
                                 </xsl:with-param>
                             </xsl:call-template>
                         </xsl:with-param>
@@ -526,9 +529,7 @@
             
             <xsl:with-param name="do">
                 <xsl:if test="xsd:annotation/xsd:appinfo/bs2x:variable">
-                    <xsl:apply-templates select="xsd:annotation/xsd:appinfo/bs2x:variable" mode="actionexpr">
-                        <xsl:with-param name="isvlc" tunnel="yes">true</xsl:with-param>
-                    </xsl:apply-templates>
+                    <xsl:apply-templates select="xsd:annotation/xsd:appinfo/bs2x:variable" mode="actionexpr"/>
                 </xsl:if>
                 <xsl:if test="@bs0:variable">
                     <Stmt kind="Assign"> 
@@ -700,9 +701,6 @@
                     <xsl:with-param name="length">
                         <xsl:copy-of select="$typename" copy-namespaces="no"/>
                     </xsl:with-param>
-                    <xsl:with-param name="islength">
-                        <xsl:value-of select="@type='vlc'"/>
-                    </xsl:with-param>
                 </xsl:call-template>
             </xsl:with-param>
             
@@ -827,9 +825,6 @@
                     <xsl:call-template name="input">
                         <xsl:with-param name="length">
                             <xsl:copy-of select="$typename" copy-namespaces="no"/>
-                        </xsl:with-param>
-                        <xsl:with-param name="islength">
-                            <xsl:value-of select="@type='vlc'"/>
                         </xsl:with-param>
                     </xsl:call-template>
                 </xsl:with-param>
