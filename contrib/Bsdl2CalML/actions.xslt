@@ -230,7 +230,7 @@
     
     
     <xsl:template name="input">
-        <xsl:param name="length" required="no"/>
+        <xsl:param name="length" required="no" select="'nolength'"/>
         <xsl:param name="name">b</xsl:param>
         <xsl:param name="port">bitstream</xsl:param>
         
@@ -240,7 +240,7 @@
                 <xsl:attribute name="name" select="$name"/>
             </Decl> 
             
-            <xsl:if test="$length">
+            <xsl:if test="$length = 'nolength'">
                 <Repeat>  
                     <xsl:copy-of select="$length" copy-namespaces="no"/>
                 </Repeat>
@@ -795,7 +795,7 @@
                 </xsl:variable>
                 <Expr kind="Var">
                     <xsl:attribute name="name" select="concat(rvc:constant($typenamer),&lengthSuffix;)"/>
-                    </Expr> 
+                </Expr> 
             </xsl:variable>
             
             <xsl:variable name="guardExpr">
