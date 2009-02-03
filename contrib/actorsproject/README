@@ -60,9 +60,9 @@ example:
 
     mkdir build
     cd build
-    cp ~/opendf/contrib/actorsproj/Makefile .
-    make srcdir=~/opendf/contrib/actorsproj
-    make srcdir=~/opendf/contrib/actorsproj prefix=~/actors install
+    cp ~/opendf/contrib/actorsproject/Makefile .
+    make srcdir=~/opendf/contrib/actorsproject
+    make srcdir=~/opendf/contrib/actorsproject prefix=~/actors install
 
    
 4. Using actors-make
@@ -76,13 +76,13 @@ model (here we assume that we installed using prefix=~/actors):
 
     mkdir example
     cd example
-    cp ~/actors/shared/actors-make/Makefile .
+    cp ~/actors/share/actors-make/Makefile .
 
 In the simplest case the build directory also contains the CAL source
 code. A small example is provided in the installation; copy it into
 the build directory like this:
 
-    cp ~/actors/shared/actors-make/example/* .
+    cp ~/actors/share/actors-make/example/* .
 
 The example consists of the model fib.nl, which produces the first few
 Fibonacci numbers. Build it like this:
@@ -118,7 +118,7 @@ and execute the tests:
 
     mkdir test
     cd test
-    cp ~/actors/shared/actors-test/Makefile .
+    cp ~/actors/share/actors-test/Makefile .
 
 Execute the tests like this:
 
@@ -221,7 +221,7 @@ difference lies in how the actors synchronize. We expect the number of
 context switches to be dramatically reduced. At the same time the work
 on the current XLIM-to-C translator will proceed. In particular, the
 plan is to provide additional analyses and transformations at XLIM
-level. We wil also address the issues listed above.
+level. We will also address the issues listed above.
 
 So, while a lot of work remains, we hope that you'll will find the 
 present release useful for starters...
