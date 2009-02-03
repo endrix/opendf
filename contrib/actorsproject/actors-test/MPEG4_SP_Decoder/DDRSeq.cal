@@ -1,0 +1,71 @@
+/*
+ * This actor has the purpose of sequencing the MBA and MCA sources 
+ * of the ddrTest. Otherwise, the frame buffer will receive read
+ * requests prematurely, by which wrong outputs will be produced.
+ */
+
+import all caltrop.lib.BitOps;
+
+actor DDRSeq (
+    int BTYPE_SZ,
+    int NEWVOP,
+    int INTRA
+ )
+    int(size=BTYPE_SZ) BTYPE, int(size=32) MbaIn, int(size=32) McaIn
+    ==> int(size=32) MbaOut, int(size=32) McaOut :
+
+  bool prediction_is_IVOP:=false;
+  int skipBTYPE:=0;
+  int copyCount:=0;
+
+  cmd.newVop: action BTYPE:[ cmd ] ==>
+  guard
+    bitand( cmd, NEWVOP ) != 0
+  do
+/*    println("newVop: "+cmd); */
+    prediction_is_IVOP := bitand( cmd, INTRA ) != 0;
+    skipBTYPE:=2;  /* skip width/height */
+  end
+
+  cmd.skip: action BTYPE:[ cmd ] ==>
+  guard
+    skipBTYPE > 0
+  do
+/*    println("skip: "+cmd); */
+    skipBTYPE:=skipBTYPE-1;
+  end
+
+  cmd.newMB: action BTYPE:[ cmd ], MbaIn:[wa] ==> MbaOut:[wa]
+  do
+/*    println("newMB: "+cmd+" IVOP="+prediction_is_IVOP); */
+    skipBTYPE:=5; /* skip remaining sub-blocks */
+    if prediction_is_IVOP=false then
+      copyCount:=3; /* three MCAs per macro block */
+    end
+  end
+
+  done: action ==> 
+  guard
+    copyCount=0
+  end
+
+  copyMca: action McaIn:[ra] ==> McaOut:[ra]
+  do
+    copyCount:=copyCount-1;
+  end
+
+  priority
+    done > copyMca;
+    cmd.skip > cmd.newVop > cmd.newMB;
+  end
+
+  schedule fsm cmd:
+    cmd     ( cmd.newVop ) --> cmd;
+    cmd     ( cmd.skip )   --> cmd;
+    cmd     ( cmd.newMB )  --> copy;
+
+    copy    ( done )       --> cmd;
+    copy    ( copyMca )    --> copy;
+  end
+
+end

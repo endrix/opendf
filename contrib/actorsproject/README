@@ -1,0 +1,227 @@
+1. About contrib/actorsproject
+
+ACTORS is a research project, whose scope is tools and methods for
+adaptive real-time systems. CAL and dataflow programming plays a
+central role in the project. For more information on ACTORS, we refer
+to the project home page http://www.actors-project.eu
+
+This contribution consists of the tools, developed within the project,
+that are based on the opendf tool chain. The present contribution
+consists of the following components:
+
+* A translator from XLIM to C. XLIM is the intermediate representation
+  of CAL actors, which is produced by opendf.cli.SSAGenerator.
+* A set of scripts, collectively called actors-make, which automate
+  the task of building an executable from a CAL model.
+* A run-time system (called actors-rts), which handles token transport
+  and the scheduling of actors.
+* A test suite (called actors-test), which automates the task of
+  testing an installation of the tools.
+
+
+2. Prerequisites
+
+Installation of the tools requires a UNIX-like shell, GNU gcc and
+binutils (ld). The intended operating system is Linux. We have found
+that installation on MAC OS/X is possible, but currently the installed
+build scripts have to be modified to work. We have not succeeded in
+using CygWin and Microsoft Windows. Building the XLIM-to-C translator
+requires Java 6.
+
+A patched version of the opendf.jar is provided with the installation
+and it is used by the actors-make build scripts, when compiling CAL
+models. The difference lies in the XLIM sequences that the
+SSAGenerator produces for the evaluation of guard conditons (parallel
+evaluation in the original version and sequential in the patched
+version, called SSAGenerator2).
+
+Running the compiled CAL models requires POSIX threads (the run-time
+system uses libpthread). We have executed compiled models on a
+quad-core ARM11 MPCore system, running Linux, and Intel uni- and
+dual-core systems running Linux and Mac OS/X.
+
+
+3. Build and Install
+
+The Makefile contained in this directory is used to buid the run-time
+system and the XLIM-to-C translator, and install the tools. In the
+simplest case, just do
+
+    make
+    make install
+
+This will build the run-time system (libactors-rts), the XLIM-to-C
+translator (actorsproject.jar) and install the tools under
+contrib/actorsproject (directories ./bin, ./include, ./lib and ./share
+are created as a result). It is possible to specify a different
+location for the installation (using the variable prefix) and to build
+out-of-source tree (using the variable srcdir), as in the following
+example:
+
+    mkdir build
+    cd build
+    cp ~/opendf/contrib/actorsproj/Makefile .
+    make srcdir=~/opendf/contrib/actorsproj
+    make srcdir=~/opendf/contrib/actorsproj prefix=~/actors install
+
+   
+4. Using actors-make
+
+The build-scripts, called actors-make, automate the steps involved in
+translation of a CAL dataflow model to an executable file. The main
+component of actors-make is a makefile that is installed under
+shared/actors-make. Though not a necessary step, it is convenient to
+copy it to the directory, in which you intend to build the dataflow
+model (here we assume that we installed using prefix=~/actors):
+
+    mkdir example
+    cd example
+    cp ~/actors/shared/actors-make/Makefile .
+
+In the simplest case the build directory also contains the CAL source
+code. A small example is provided in the installation; copy it into
+the build directory like this:
+
+    cp ~/actors/shared/actors-make/example/* .
+
+The example consists of the model fib.nl, which produces the first few
+Fibonacci numbers. Build it like this:
+
+    make fib
+
+and run it:
+
+    ./fib
+
+which should result in the following output:
+
+    0 0
+    1 1
+    2 1
+    3 2
+    4 3
+    5 5
+    ...
+    46 1836311903 
+
+There are more make targets, try 'make help'.
+
+
+5. Using actors-test
+
+The test suite, called actors-test, automates the test of the tools. 
+
+The main component of actors-test is a makefile that is installed
+under shared/actors-test. Though not a necessary step, it is
+convenient to copy it to the directory, in which you intend to build
+and execute the tests:
+
+    mkdir test
+    cd test
+    cp ~/actors/shared/actors-test/Makefile .
+
+Execute the tests like this:
+
+    make
+
+The first time the tests are executed, the tests are built from
+source. This is quite a time consuming step. Following the messages
+that are produced by this, first, step is the test report, which is
+produced by running the compiled tests and summarizing the result. The
+expected output is:
+
+    *** SystemActors PASSED ***
+    *** MPEG4_SP_Decoder PASSED ***
+
+    *** All tests PASSED ***
+
+The test suite is organized in categories. Currently, there are two
+categories: SystemActors and MPEG4_SP_Decoder. The system actors are
+built-in actors, which are provided as part of the run-time
+system. The correct operations of the system actors is a prerequisite
+of the test suite, since they provide the mechanisms for reading and
+writing files that all tests make use of. The other category is a set
+of module tests that are derived from the MPEG4 simple-profile decoder
+(that is opendf/models/MPEG4_SP_Decoder).
+
+Again, there are more ways of using the makefile, try 'make help'.
+
+
+6. State of the tools
+
+This is the first release of the tools and there are several known
+problems (and most probably even more -yet unknown- ones),
+particularly in the following two areas:
+* It is very time consuming to compile large CAL models and
+  incremental re-builds are not appropriately supported. 
+* The performance of the generated code is far from being
+  satisfactory.
+
+More specifically the following issues should be mentioned:
+* A necessary first step of compiling a CAL model is "elaboration"
+  (as performed by opendf.cli.Elaborator), by which the model is
+  "flattened" into a single network and actor parameters are
+  determined. Prior to elaboration, we don't even know what actors
+  belong to the model. Elaboration is quite a time consuming process.
+
+* Actors that have large aggregate state variables seem to cause
+  particularly long elaboration times (at least so it seems). The
+  4 MByte frame buffer of the MPEG4_SP_Decoder is currently
+  impractical to elaborate, which is why we have provided a built-in
+  "system" actor for this purpose (art_DDRModel). This is of course a
+  temporary work-around rather than a solution to the general problem. 
+
+* A related issue is that the build scripts do not support minimal
+  rebuilds. Re-elaboration of the entire model is currently the only
+  way of achieving proper instantiation of the actors.
+
+* The dependence on CAL source code (actors and networks) is currently
+  not reflected by the make file. The work-around is to explicitly do a
+  "make cleaner" (which forces a re-elaboration) each time the source
+  is modified.
+
+* The main() function that configures the CAL model and starts the
+  run-time system is found in config.c, which is generated from the
+  elaborated model by the actors-make build scripts. The
+  mechanism that is supposed to provide the actor parameters (such as
+  file names) to the system actors is not working. Currently, config.c
+  instead has to be patched manually to achieve this. Examples of this
+  can be found in the test suite (for instance share/actors-test/ 
+  MPEG4_SP_Decoder/config-acdcTest.c).
+
+* Elaboration and generation of XLIM results in spurious messages like
+
+      Exceptional event: Cannot bitand types
+
+  These messages are in fact expected, although they sound like they
+  indicate fatal errors. Currently, we have found no good way of
+  disabling them while keeping useful diagnostics. 
+
+* When it comes to the poor efficiency of the generated code, one
+  particular issue is that we don't seem to have got the interaction
+  between the compiled actors and the run-time right. Initial tests
+  indicate that the actors are not always blocking as they should and
+  spend a significant amount of the execution time doing useless work.
+
+* Other sources of overhead, we believe, come from the rather direct
+  mapping of XLIM to C. Since we are "piggy backing" on a framework
+  that is used for hardware synthesis, we generate some code sequences
+  that are inappropriate for a realization in software. Our plan is to
+  transform these sequences (at the level of XLIM) to better suit
+  software. 
+
+Looking forward (towards the end of 2009), an additional deliverable
+of the ACTORS project is planned to be published at this site: the so
+called Model Compiler, which performs model-level transformations. A
+re-implementation of the run-time system will also be made (the
+current one was the result of a rather quick effort to fill the gap
+until the proper implementation could start). Whereas our intent is to
+keep the API between the compiled actors and the run-time, the main
+difference lies in how the actors synchronize. We expect the number of
+context switches to be dramatically reduced. At the same time the work
+on the current XLIM-to-C translator will proceed. In particular, the
+plan is to provide additional analyses and transformations at XLIM
+level. We wil also address the issues listed above.
+
+So, while a lot of work remains, we hope that you'll will find the 
+present release useful for starters...
