@@ -29,7 +29,7 @@ srcdir?=.
 override srcdir:=$(abspath $(srcdir))
 
 # Install prefix (required by install/unstall targets only)
-prefix?=./install
+prefix?=.
 override prefix:=$(abspath $(prefix))
 export prefix
 export exec_prefix?=$(prefix)

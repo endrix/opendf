@@ -47,6 +47,7 @@ The Makefile contained in this directory is used to buid the run-time
 system and the XLIM-to-C translator, and install the tools. In the
 simplest case, just do
 
+    cd ~/opendf/contrib/actorsproject
     make
     make install
 
@@ -70,7 +71,7 @@ example:
 The build-scripts, called actors-make, automate the steps involved in
 translation of a CAL dataflow model to an executable file. The main
 component of actors-make is a makefile that is installed under
-shared/actors-make. Though not a necessary step, it is convenient to
+share/actors-make. Though not a necessary step, it is convenient to
 copy it to the directory, in which you intend to build the dataflow
 model (here we assume that we installed using prefix=~/actors):
 
@@ -112,7 +113,7 @@ There are more make targets, try 'make help'.
 The test suite, called actors-test, automates the test of the tools. 
 
 The main component of actors-test is a makefile that is installed
-under shared/actors-test. Though not a necessary step, it is
+under share/actors-test. Though not a necessary step, it is
 convenient to copy it to the directory, in which you intend to build
 and execute the tests:
 
