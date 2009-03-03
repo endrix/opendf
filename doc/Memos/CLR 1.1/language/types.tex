@@ -1,0 +1,476 @@
+
+\chapter{Data types}\label{sect:Types}
+\index{types|(}
+
+\index{types!optional}
+\sidenote{optionally typed}\Cal is {\em optionally typed}, i.e. it
+allows programmers to give each newly introduced identifier a type
+(see section \ref{sect:VarDecls} for more details on declaring variables),
+but it does not require it, in which case the identifier is said to be
+untyped. In general, the type system is considered part of the
+external environment that we try to keep \Cal actor specifications
+orthogonal to. In this chapter we will therefore discuss primarily the
+syntax provided for writing types, leaving the concrete interpretation
+to the description of \Cal implementations on individual platforms.
+
+However, \Cal does assume a few basic types \sidenote{minimal type
+  system} (some of which are parametric), viz. those that are used as
+part of some language constructions. There are also some framework
+rules on how to type checking/inference is to be conducted, which will
+be discussed in section~\ref{sect:TypeFramework}.
+
+
+\section{Objects, variables, and types}\label{sect:ObjectsVariablesTypes}
+
+\index{types!variable|(} \index{variable type|see{types, variable}}
+\index{types!object|(} \index{object types|see{types, object}}
+In general, there are really two kinds of types---the types with which
+variables are declared ({\em variable types}),\footnote{We use {\em
+    variable} here to mean any name inside the language, including
+  parameters etc.} and the types of runtime objects ({\em object
+  types}). In most languages, these are either the same sets, or there
+is a significant overlap. However, even in common languages, these
+sets are not identical: in Java, e.g., abstract classes and interfaces
+are only variable types, never the types of objects.
+
+\index{rationale!optional types}
+\begin{rationale}
+  Most programming languages either require explicit typing, or they
+  do not have constructs for expressing types as part of the program
+  source. Some languages perform {\em type inference}, i.e. they allow
+  users to omit type declarations as long as they can infer enough
+  information from the context to guarantee the safeness of the
+  program.
+  
+  Making types in \Cal optional reflects our choice to allow for a
+  wide range of embeddings and applications of the language. \Cal
+  could thus be used as a scripting language that is interpreted and
+  completely untyped, or as a language that is used to generate C code
+  or hardware from, and which requires complete typing.
+  
+  Tools are free to reject insufficiently typed programs, or to ignore
+  type annotations if they are not helpful. Of course, tools should
+  make a best effort to infer types whenever they need to know a type
+  that has not been explicitly specified, so as to make actors as
+  reusable as possible across platforms. They should also try to check
+  types whenever feasible, in order to locate errors and to detect
+  malformed actor definitions.
+\end{rationale}
+
+
+\index{subtype relation} \index{types!substitutable}
+\index{types!subtypes|see{subtype relation}}
+\index{substitutability|see{types, substitutable}} Each variable or
+parameter in \Cal may be declared with a variable type. If it is, then
+this type remains the same for the variable or parameter in the entire
+scope of the corresponding declaration.  Variable types may be related
+to each other by a \sidenote{subtype relation}{\em subtype relation},
+$\prec$, which is a partial order on the set of all variable types.
+When for two variable types $t$, $t'$ we have $t\prec t'$, then we say
+that $t$ is a {\em subtype} of $t'$, and $t'$ is a {\em supertype} of
+{\em t}.  Furthermore, a $t$\footnote{More precisely, ``a $t$'' is an object whose object
+type is assignable to $t$, see below.} may be used anywhere a $t'$ can be
+\sidenote{substitutability}used---as a consequence, variables of
+subtypes are {\em substitutable} for those of supertypes.
+
+\sidenote{objects of type $t$}It is important that each object has
+precisely one object type. As a consequence, object types induce an
+exhaustive partition on the objects, i.e. for any object type $t$ we
+can uniquely determine the "objects of type $t$".
+
+\index{implementation note!object types}
+\begin{implementation}
+  Stating that each object has an object type does {\em not} imply
+  that this type can be determined at run time, i.e. that there is
+  something like run-time type information associated with each
+  object. In many cases, particularly when efficiency is critical, the
+  type of an object is a compile-time construct whose main use is for
+  establishing the notion of assignability, i.e. for checking whether
+  the result of an expression may legally be stored in a
+  variable. In these scenarios, type information is removed from the
+  runtime representation of data objects.
+\end{implementation}
+
+\index{assignability|see{types, assignability}}
+\index{types!assignability}
+For each implementation context we assume that there is a set $T_V$ of
+variable types and $T_O$ of object types.
+\sidenote{assignability}They are related to each other by an {\em
+  assignability} relation $\assignableFrom \subset T_V \times T_O$
+which has the following interpretation: for any variable type $t_V$
+and object type $t_O$, $t_V \assignableFrom t_O$ iff an object of type
+$t_O$ is a legal value for a variable of type $t_V$.
+
+The assignability relation may or may not be related to subtyping, but
+at a minimum it must be compatible with subtyping in the following
+sense. For any two variable types $t_V$ and $t_V'$, and any object
+type $t_O$: \sidenote{subtyping and assignability}\[ t_V \prec t_V' \wedge
+t_V' \assignableFrom t_O \Longrightarrow t_V \assignableFrom t_O \] In
+other words, if an object type is assignable to a variable type, it is
+also assignable to any of its supertypes.
+
+\index{types!variable|)}
+\index{types!object|)}
+
+\section{Type formats}
+\index{types!syntax|(}
+
+
+Even though the \Cal language itself does not specify the meaning of
+most types, it provides notation for expressing types, so actor
+writers may put this information into their actor descriptions, and an
+implementation context may use it. There are three basic ways to
+express types in \Cal, and two more constructs for expressing the
+types of procedural and functional closures (cf. sections
+\ref{sect:LambdaClosures} and \ref{sect:ProcClosures}).
+
+\bgr
+Type : ID ;
+     | ~ID ~'[' ~TypePars ~']' ;
+     | ~ID ~'(' [TypeAttr ~\mul{'\charComma' ~TypeAttr }] ~')' ;
+     | ~'['~[Types]~'$-$$-$\charMore' ~Type ~']' ;
+     | ~'[' ~[ Types ] ~'$-$$-$\charMore' ~']' .
+
+TypeAttr : ID ~'\charColon' ~Type ;
+     | ~ID ~'=' ~Expression .
+\egr
+
+\index{types!simple}
+A type that is just an identifier either refers to a type parameter
+(if it occurs in the type parameters list of the actor), or it denotes
+the name of some other non-parametric type. Examples may be {\tt
+  String}, {\tt Integer}.
+
+\index{types!parametric} \index{generic type|see{types, parametric}}
+\index{type constructor}
+\index{type parameter}
+The form {\tt T[T1, ..., Tn]} is intended to stand for a {\em parametric type}
+$T$ taking the types {\tt Ti} as parameters. Such a parametric type is also
+called a {\em type constructor}. Many built-in types are of
+this kind, e.g. {\tt List[Integer]} is a list if elements of type {\tt
+  Integer}, or {\tt Map[String, Real]} is a finite map from keys of
+type {\tt String} to values of type {\tt Real}.
+
+\index{type parameter!value}
+The next form can be thought of as a more general version of the
+previous one, where the type constructor has named parameters that may
+be bound to either types or values. For instance, the type {\tt
+  Matrix[element: Real, width = 4, height = 5]} might be the type of
+all matrices of real numbers of a certain size.
+
+\index{types!closure}
+\index{lambda closure!type|see{types, closure}}
+\index{procedural closure!type|see{types, closure}}
+\index{function!type|see{types, closure}}
+The type of a lambda closure is written as {\tt [T1, ..., Tn --> T]},
+where the {\tt Ti} are the argument types, and {\tt T} is the return
+type. Similarly, the type of a procedural closure is written as {\tt [T1,
+..., Tn -->]}, with the {\tt Ti} again being the argument types.
+
+\index{types!syntax|)}
+
+
+\section{Required types}\label{sect:BuiltInTypes}
+
+\index{types!required|(}
+
+Required types are the types of objects created as the result of
+special language constructions, usually expressions. The following is
+a partial list of the required types in \Cal, cf. the appendix
+\ref{app:Runtime} for more details on basic data types, their
+properties, and the operations on them.
+\begin{itemize}
+
+\index{Null@{\tt Null} (type)}
+\index{null@\kwNull}
+\item {\tt Null}---the type containing only the value \kwNull.
+
+\index{Boolean@{\tt Boolean} (type)}
+\index{true@\kwTrue} \index{false@\kwFalse}
+\item {\tt Boolean}---the truth values {\tt true} and {\tt false}.
+
+\index{ChannelID@{\tt ChannelID} (type)}
+\item {\tt ChannelID}---the \sidenote{pseudotype {\tt ChannelID}}data type comprising the identifiers of
+  channels. Most likely this will be a {\em synonym} for some other simple
+  type, like the one of integer or natural numbers.
+
+\index{Collection@{\tt Collection} (type)}
+\item {\tt Collection[T]}---a finite collection of elements of type
+  {\tt T}.
+
+\index{Seq@{\tt Seq} (type)}
+\item {\tt Seq[T]}---a sequence (finite or infinite) of elements of
+  type {\tt T}.
+
+\index{List@{\tt List} (type)}
+\item {\tt List[T]}---finite lists of elements of type {\tt T}. Lists are
+  subtypes of the corresponding sequences and also subtypes or the
+  corresponding collections, i.e.\\
+  {\tt List[T] < Seq[T]} and {\tt List[T] < Collection[T]}
+
+\index{Set@{\tt Set} (type)}
+\item {\tt Set[T]}---finite sets of elements of type {\tt T}. Sets are
+  subtypes of the corresponding collections, i.e.\\
+  {\tt Set[T] < Collection[T]}
+
+\index{Map@{\tt Map} (type)}
+\item {\tt Map[K, V]}---maps from keys of type {\tt K} to values of type
+    {\tt V}.
+
+%\item {\tt [T1, T2, ..., Tn]}---product type of the types $T1$, ...,
+%  $Tn$, i.e. the type of tuples of these types.
+
+%\item {\tt InputPort(tokenType : T, multi = E)}---the type of an input port whose
+%  token type is $T$ and which is a multiport if the boolean
+%  expression $E$ is true, a single port otherwise.
+
+%\item {\tt OutputPort(tokenType : T, multi = E)}---the type of an output port whose
+%  token type is $T$ and which is a multiport if the boolean
+%  expression $E$ is true, a single port otherwise.
+\end{itemize}
+
+In addition to these, the types of functional and procedural closures
+are, of course, also built-in datatypes.
+     
+The choice of many fundamental types, such as those representing
+numeric entities, as well as the operations on them is left to the
+environment. The only built-in support for these types are the
+literals which are a result of the lexical scanning of the actor text.
+Interpretation as well as type assignment to these literals is left up
+to the environment. See section \ref{sect:Literals} for more details,
+including a design rationale.
+
+\index{types!required|)}
+
+\pagebreak[4]
+
+\section{Structured objects and their
+  types}\label{sect:StructuredTypes}
+\index{object!structured|(}
+\index{types!structured|(}
+\index{location|(}
+
+\index{composite object}
+
+\sidenote{composite/structured objects}Many data objects contain other data objects---consider e.g. lists,
+which contain their elements. An object that contains other objects
+is called {\em composite} or {\em
+  structured}, and so is its type.  
+
+\index{field}\index{index}
+\index{location!field}
+\index{location!index}
+
+\Cal provides two mechanisms for identifying a subobject inside a
+structured object (in other words, specifying its {\em location}
+inside the composite): {\em fields} and {\em indices}. The mechanism
+used to identify locations inside a composite, as well as the fields
+and indices  \sidenote{locations = fields $\cup$ indices}that are valid for specifying a location (see below),
+depend on the composite object and its type. 
+
+The location of a subobject can be used to either retrieve it from the
+composite (see sections \ref{sect:SelectorExpr} and
+\ref{sect:Indexing}) or, in the case of mutable objects and types, to
+replace the subobject with another object (see sections
+\ref{sect:MutableTypes}, \ref{sect:FieldAssignment}, and
+\ref{sect:IndexedAssignment}).
+
+\paragraph{Fields.} \sidenote{fields: compile-time locations}
+Fields are names for subobjects inside a composite. Any given object
+type provides a finite number of those field names, and using any
+other name to identify a location inside the composite is an error.
+Since the names are statically provided as part of the program text
+(as opposed to being computed at runtime) it is possible to check
+statically whether a field name is permissible for a given object. If
+$A$ denotes the composite object, and {\tt
+  f} is the field name, then\sidenote{$A${\tt .f}}\\
+\exindent$A${\tt .f}\\
+selects the subobject in that field. Another consequence of the fact
+that fields are provided explicitly is that different fields may
+be associated with different subobject
+types, \sidenote{heterogeneous field locations}i.e. they may be {\em heterogeneous}.
+
+\paragraph{Indices.} \sidenote{indices: runtime locations}
+Indexing into a composite object is a different
+mechanism for identifying a location inside it. Indices are a number
+of objects that can be computed at runtime, and which can be though of
+as the {\em coordinates} of the location inside of the composite.
+Which and how many indices are {\em valid} for a given object is
+determined by the object. If $A$ denotes the composite object, and
+$E_1, ..., E_n$ are $n$ valid
+indices, then \\
+\exindent$A${\tt[}$E_1${\tt ,}$...${\tt ,}$E_n${\tt ]}\\
+selects the subobject at the specified location. Since indices are
+computed at runtime, \sidenote{homogeneous indexed locations}all indexed locations inside a composite object
+must be assumed to be of the same static type, i.e. they are {\em
+  homogeneous}.
+
+\index{example!fields and indices}
+\begin{example}
+  A typical application of fields would be a type {\tt Complex} with
+  fields {\tt real} and {\tt imaginary}.
+
+  Lists in \Cal are indexed by the natural numbers, starting at
+  0. For instance, the list {\tt [11, 7, 19]} can be indexed with the
+  indices 0, 1, and 2, so that e.g.\\
+  \exindent{\tt [11, 7, 19][1]}\\
+  would yield the value {\tt 7}. See section \ref{sect:Lists} for
+  details.
+\end{example}
+
+While natural numbers are very common indices, indexed composites are
+in general not restricted to numeric indices, but can  allow
+any kind of object for the purpose.  \sidenote{indices of any type}See
+section \ref{sect:Maps} for details on how maps are indexed into.
+
+\index{example!non-numeric indices}
+\index{String@{\tt String} (type)}
+\index{Integer@{\tt Integer} (type)}
+\begin{example}
+A {\tt Map[K, V]} from a key type {\tt K} to a value
+type {\tt V} accepts as indices objects of type {\tt K}, and indexing
+is simply the application of the map. Say the map\\
+\exindent{\tt map \{"abc"->15, "def"->7\}}\\
+(of type {\tt Map[String, Integer]}) can be indexed by a string as follows:\\
+\exindent{\tt map \{"abc"->15, "def"->7\}["abc"]}\\
+resulting in the value {\tt 15}.
+\end{example}
+
+The following \Cal types are required to support indexing:
+\begin{itemize}
+\item {\tt Seq[T]}---index type is the natural numbers, starting from 0.
+\item {\tt Map[K, V]}---index type is {\tt K}.
+\end{itemize}
+
+Abstractly, indexing is the invocation of a special function, the {\em
+  indexer} of a given datatype. The type of the resulting expression
+may depend on the number and types of the indices, and of course also
+on the indexed object.
+
+\index{object!structured|)}
+\index{types!structured|)}
+\index{location|)}
+
+\section{Mutable objects and their types}\label{sect:MutableTypes}
+\index{object!mutable|(}
+\index{types!mutable|(}
+
+\index{object modification|see{types, mutable}}
+\index{object mutation|see{types, mutable}}
+Some structured types allow the {\em modification} or {\em mutation} of an object,
+i.e. changing the object at some location inside it. Such a type is
+called {\em mutable}, and so is an object of that type.
+
+\index{variable!mutable}
+Mutating objects without any restrictions would be a technique that
+would render a program essentially unanalyzable in the general case.
+For this reason, \Cal imposes a number of constraints on the ability
+to use this feature, which will be discussed in the context of mutable
+variables in sections \ref{sect:FieldAssignment} and
+\ref{sect:IndexedAssignment}.
+
+\index{types!free} 
+\index{location!independence of}
+\index{location!orthogonality}
+
+\sidenote{orthogonal locations}However, \Cal makes no guarantee that
+the various locations of an object are independent, i.e. that all
+other locations remain unaffected by an assignment. A structured
+mutable type whose locations {\em are} independent is called
+\sidenote{free types} {\em free}, its locations are called {\em
+  orthogonal}---all predefined types in \Cal are of this kind if they
+support mutation.
+
+\begin{example}A common non-orthogonal type might be {\tt Complex},
+  the type of complex numbers. Let us assume its objects are mutable,
+  and each has four locations, represented as fields: {\tt real}, {\tt
+    imag}, {\tt modulus}, and {\tt argument}. If {\tt c} is a mutable
+  variable containing a complex number, then\\
+\exindent{\tt c.real := 4;}\\
+\exindent{\tt c.imag := 3;}\\
+would at the same time result in the {\tt modulus} component to be set
+to $5$, and the {\tt argument} to be set to $\arctan 4/3$. Now the assignment\\
+\exindent{\tt c.argument := 2;}\\
+can be interpreted as leaving the {\tt modulus} unchanged, and
+modifying the {\tt real} and {\tt imag} fields accordingly, viz. to $5
+\cos 2$ and $5 \sin 2$, respectively.
+\end{example}
+
+
+
+\index{types!mutable|)}
+\index{object!mutable|)}
+
+
+\section{Type framework}\label{sect:TypeFramework}
+\index{type framework|(}
+
+\index{subtype relation}
+\index{types!assignability}
+Section \ref{sect:ObjectsVariablesTypes} introduced two
+relations between types: the subtyping relation $\prec$ between variable
+types, and the assignability relation $\assignableFrom$ between
+variable types and object types. It also required that the two
+relations be consistent with each other in the sense that
+assignability to a variable type would imply assignability to any of
+its supertypes.
+
+This section introduces some simple properties that any type system
+provided by an implementation context must have. These properties,
+together with the basic minimal type system presented in section
+\ref{sect:BuiltInTypes}, constitute the \Cal type framework.
+
+\index{type framework!subtype order}
+\paragraph{Subtype ordering.} The subtyping relation $\prec$ on the
+variable types is a partial order, i.e. for any $t_1, t_2, t_3 \in
+T_V$ the following holds:
+\begin{enumerate}
+\item Reflexivity: $t_1 \prec t_1$
+\item Anti-symmetry: $t_1 \prec t_2 \wedge t_2 \prec t_1 \Longrightarrow t_1 = t_2$
+\item Transitivity: $t_1 \prec t_2 \wedge t_2 \prec t_3 \Longrightarrow t_1 \prec t_3$. 
+\end{enumerate}
+
+\index{type framework!finite cover}
+\paragraph{Finite cover.}\sidenote{finite set of direct supertypes} For any variable type $t$, there is a unique
+finite, and possibly empty, set $\Cover t$ of variable types which has
+the following properties:
+\begin{enumerate}
+  \item $t \not \in \Cover t$
+  \item $\forall t'\in\Cover t: t \prec t'$
+  \item $\forall t', t''\in\Cover t: t'\not\prec t''$
+  \item $\forall t' : t \prec t' \Rightarrow \exists t''\in
+    \Cover t: t'' \prec t'$
+\end{enumerate}
+The second condition ensures that the elements of $\Cover t$ are all superclasses of $t$. The third condition requires the set to
+be minimal. The third condition requires it to be exhaustive: all
+proper supertypes of $t$ are supertypes of at least one element in
+$\Cover t$.
+
+\index{type framework!least upper bound}
+\paragraph{Least upper bound.}\sidenote{finite set of supertypes for
+  any pair of types} For any two variable types $t_1, t_2\in T_V$
+there is a unique finite, and possibly empty, set of variable types
+$t_1\lub t_2$ which has the following properties:
+\begin{enumerate}
+  \item $\forall t\in t_1 \lub t_2: t_1 \prec t \wedge t_2 \prec t$
+  \item $\forall t', t''\in t_1\lub t_2: t'\not\prec t''$
+  \item $\forall t : (t_1\prec t \wedge t_2\prec t) \Rightarrow
+    \exists t' \in t_1 \lub t_2: t'\prec t$
+\end{enumerate}
+Again, the first condition ensures that all types in the set are indeed upper
+bounds of the two types in question. The second condition requires
+them to be minimal. The third condition requires the set to be
+exhaustive: all supertypes of $t_1$ and $t_2$ that are not in that set
+are supertypes of a type that is.
+
+\index{type framework|)}
+
+\index{types|)}
+
+
+% Local Variables:
+% TeX-master: "../reference"
+% End:
+
+
+

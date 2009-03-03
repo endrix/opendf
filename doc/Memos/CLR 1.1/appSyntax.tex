@@ -1,0 +1,230 @@
+
+
+\chapter{\Cal ~language syntax}\label{app:Syntax}
+
+The following is a summary of the \Cal language syntax. See
+chapter \ref{chap:SyntaxIntro} for some relevant conventions and the
+syntax of lexical tokens.
+
+\section{Actor}
+
+\bgr
+Actor : [Imports] \kwActor ~ID ;
+    [ '['~TypePars~']' ]~'('~ActorPars~')'~IOSig ~[TimeClause]~'\charColon';
+    \mul{VarDecl | Action | InitializationAction | PriorityOrder} ;
+    [ActionSchedule] ;
+    \mul{VarDecl | Action | InitializationAction | PriorityOrder} ;
+    (\kwEnd|\kwEndActor).
+
+TypePar : ID~ [ '\charLess'~ Type ] .
+
+ActorPar : ~[Type]~ID~['='~Expression] .
+
+IOSig : [PortDecls]~'==\charMore'~[PortDecls] .
+
+PortDecl : [\kwMulti]~[Type]~ID .
+
+TimeClause : \kwTime~ Type .
+
+Import : SingleImport | GroupImport '\charSemi' .
+
+SingleImport : \kwImport~ QualID ~['=' ~ID] .
+
+GroupImport : \kwImport ~\kwAll ~QualID .
+
+QualID : ID ~\mul{\charDot ~ID} .
+
+Type : ID ;
+     | ~ID ~'[' ~TypePars ~']' ;
+     | ~ID ~'(' [TypeAttr ~\mul{'\charComma' ~TypeAttr }] ~')' ;
+     | ~'['~[Types]~'$-$$-$\charMore' ~Type ~']' ;
+     | ~'[' ~[ Types ] ~'$-$$-$\charMore' ~']' .
+
+TypeAttr : ID ~'\charColon' ~Type ;
+     | ~ID ~'=' ~Expression .
+
+  VarDecl : [\kwMutable]~[Type]~ID ~[('=' | '\charColon=')
+  ~Expression];
+  | FunDecl | ProcDecl.
+
+\egr
+
+\section{Expressions}
+
+\bgr
+
+Expression : PrimaryExpression~\mul{Operator~PrimaryExpression} .
+
+PrimaryExpression : [Operator]~SingleExpression~ ;
+     \mul{'('~[Expressions]~')'~|~'['~Expressions~']'~|~'\charDot'~ID } .
+
+SingleExpression : [\kwOld]~ID ;
+     | ExpressionLiteral ;
+     | '('~Expressions~')';
+     | IfExpression;
+     | LambdaExpression;
+     | ProcExpression;
+     | LetExpression;
+     | ListComprehension;
+     | SetComprehension;
+     | MapComprehension .
+
+ExpressionLiteral : IntegerLiteral | DecimalFractionLiteral ;
+       | StringLiteral ;
+       | \kwTrue | \kwFalse | \kwNull.
+\egr
+
+\bgr 
+
+  IfExpression : \kwIf~Expression~\kwThen~Expression~\kwElse~Expression~\kwEnd.
+
+  LetExpression : \kwLet~VarDecls~'\charColon'~Expression~(\kwEnd|\kwEndLet).
+
+LambdaExpression : [\kwConst]~\kwLambda~'('~[FormalPars]~') ~['$-$$-$\charMore'~Type~] ;
+        [\kwVar ~VarDecls] '\charColon' Expression~(\kwEnd|\kwEndLambda).
+
+FormalPar : [Type]~ID.
+
+ProcExpression : \kwProc~'('~[FormalPars]~')'~[\kwVar~VarDecls]~;
+      (\kwDo | \kwBegin)~\mul{Statement}~(\kwEnd|\kwEndProc) .
+
+FuncDecl : \kwFunction~ ID~'('~[FormalPars]~')'~[\kwVar~VarDecls~'\charColon']~Expression~\kwEnd .
+
+ProcDecl : \kwProcedure~ID~'('~[FormalPars]~')'~[\kwVar~VarDecls~(\kwBegin | \kwDo)] ;
+     \mul{Statement}~\kwEnd.
+
+\egr
+
+\bgr 
+
+SetComprehension : '\{'~[Expressions~['\charColon'~Generators]]~'\}'.
+
+ListComprehension : '['~[Expressions~['\charColon'~Generators]~['$\mid$'~Expression~]]~']'.
+
+MapComprehension : \kwMap~'\{'~[Mappings~['\charColon'~Generators]]~'\}'.
+
+Mapping : Expression~'-\charMore'~Expression.
+
+Generator : \kwFor~[Type]~ID~['\charComma'~IDs]~\kwIn~Expression~\mul{'\charComma'~Expression}
+
+TypeAssertionExpr : '('~Expression~'\charColon\charColon'~Type~')'.
+
+\egr
+
+\section{Statements}
+
+\bgr
+
+Statement : AssignmentStmt ;
+    | CallStmt ;
+    | BlockStmt ;
+    | IfStmt ;
+    | WhileStmt ;
+    | ForeachStmt ;
+    | ChooseStmt .
+
+AssignmentStmt :
+   ID~[Index | FieldRef]~'\charColon='~Expression~'\charSemi'.
+
+
+Index : '['~[Expressions]~']'.
+
+FieldRef : '\charDot' ID.
+
+CallStmt : Expression~'('~[Expressions]~')'\charSemi'.
+
+BlockStmt : \kwBegin~[\kwVar~VarDecls~\kwDo]~\mul{Statement}~\kwEnd .
+
+IfStmt : \kwIf~Expression~\kwThen~\mul{Statement}~[\kwElse~\mul{Statement}]~\kwEnd.
+
+\egr
+
+\bgr 
+
+WhileStmt : \kwWhile~Expression~[\kwVar~VarDecls]~\kwDo~[Statements]~(\kwEnd|\kwEndWhile).
+
+ForeachStmt : ForeachGenerator~\mul{'\charComma'~ForeachGenerator};
+ [\kwVar~VarDecls]~\kwDo~[Statements]~(\kwEnd|\kwEndForeach).
+
+ForeachGenerator : \kwForeach~[Type]~ID
+\mul{'\charComma'~ID}~\kwIn~Expression~;
+ ['\charComma'~Expressions].
+
+\egr
+
+\bgr
+
+ChooseStmt : ChooseGenerator~\mul{'\charComma'~ChooseGenerator};
+     [\kwVar~VarDecls]~\kwDo~[Statements]~ ;
+     [\kwElse~[[\kwVar~VarDecls]~\kwDo]~[Statements]~]~(\kwEnd|\kwEndChoose).
+
+ChooseGenerator : \kwChoose~[Type]~ID~['\charComma'~IDs]~\kwIn~Expression~['\charComma'~Expressions].
+\egr
+
+\section{Actions}
+
+\bgr 
+  Action : [ActionTag '\charColon']~\kwAction~ ActionHead ~[\kwDo~Statements]~ (\kwEnd|\kwEndAction).
+
+  ActionTag : ID ~\mul{'\charDot'~ID}.
+
+  ActionHead : InputPatterns~'==\charMore'~OutputExpressions;
+             [\kwGuard~Expressions ] ~[\kwVar~VarDecls ] ~[\kwDelay ~Expression].
+
+InputPattern : [ID~'\charColon']~'['~IDs~']'~[RepeatClause]~[ChannelSelector].
+
+ChannelSelector : \kwAt~Expression ;
+     | \kwAtN~Expression ; 
+     | [\kwAtN]~\kwAny~;
+     | [\kwAtN]~\kwAll.
+
+RepeatClause : \kwRepeat~Expression.
+
+OutputExpression : [ID~'\charColon']~'['~Expressions~']'~[RepeatClause];
+ [ChannelSelector].
+             
+  InitializationAction : [ActionTag
+             '\charColon'] ;
+     \kwInitialize~ InitializerHead ~[\kwDo
+             ~Statements]~ (\kwEnd|\kwEndInitialize).
+
+  InitializerHead : '==\charMore'~OutputExpressions;
+             [\kwGuard~Expressions ] ~[\kwVar~VarDecls ] ~[\kwDelay ~Expression].
+\egr
+
+\pagebreak[4]
+
+\section{Action control}
+
+\bgr
+  ActionSchedule : ScheduleFSM | ScheduleRegExp .
+
+  ScheduleFSM : \kwSchedule ~[\kwFSM] ~ID ~'\charColon' ;
+      \mul{StateTransition '\charSemi'} ;
+      (\kwEnd|\kwEndSchedule).
+
+  StateTransition : ID '(' ActionTag \mul{','~ActionTag}~ ')' '- -\charMore' ID ;
+      \mul{'|' '(' ActionTags ')' '- -\charMore' ID}.
+
+  ActionTags : ActionTag ;
+      | ActionTag '\charComma' ActionTags.
+
+  ScheduleRegExp : \kwSchedule ~\kwRegexp ~RegExp ~(\kwEnd|\kwEndSchedule).
+
+  RegExp : ActionTag ;
+      | '(' RegExp ')' ;
+      | '[' RegExp ']' ;
+      | RegExp '*' ;
+      | RegExp ~RegExp ;
+      | RegExp '|' RegExp .
+
+  PriorityOrder : \kwPriority~ \mul{PriorityInequality '\charSemi'} \kwEnd.
+
+  PriorityInequality : ActionTag '\charMore' ActionTag \mul{'\charMore' ActionTag}.
+\egr
+
+
+
+% Local Variables:
+% TeX-master: "reference.tex"
+% End:
