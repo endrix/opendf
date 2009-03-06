@@ -1,0 +1,184 @@
+#include "actors-rts.h"
+
+enum Fifos{
+  Sequence_0_A,
+  Sequence_0_B,
+  Sequence_0_C,
+  DCSplit_0_DC,
+  DCSplit_0_AC,
+  DCPred_0_OUT,
+  DCPred_0_PTR,
+  DCPred_0_START,
+  DCPred_0_SIGNED,
+  DCPred_0_QUANT,
+  ZigzagAddr_0_ADDR,
+  Zigzag_0_OUT,
+  ACPred_0_OUT,
+  Dequant_0_OUT,
+  art_Source_txt_0_Out,
+  art_Source_txt_1_Out,
+  numberOfFifos
+};
+
+static int ActorClass_Sequence_0_Out[]={Sequence_0_A, Sequence_0_B, Sequence_0_C};
+static int ActorClass_Sequence_0_In[]={art_Source_txt_0_Out};
+
+static int ActorClass_DCSplit_0_Out[]={DCSplit_0_DC, DCSplit_0_AC};
+static int ActorClass_DCSplit_0_In[]={art_Source_txt_1_Out};
+
+static int ActorClass_DCPred_0_Out[]={DCPred_0_OUT, DCPred_0_PTR, DCPred_0_START, DCPred_0_SIGNED, DCPred_0_QUANT};
+static int ActorClass_DCPred_0_In[]={art_Source_txt_0_Out, Sequence_0_A, Sequence_0_B, Sequence_0_C, DCSplit_0_DC};
+
+static int ActorClass_ZigzagAddr_0_Out[]={ZigzagAddr_0_ADDR};
+static int ActorClass_ZigzagAddr_0_In[]={DCPred_0_START};
+
+static int ActorClass_Zigzag_0_Out[]={Zigzag_0_OUT};
+static int ActorClass_Zigzag_0_In[]={DCSplit_0_AC, DCPred_0_START, ZigzagAddr_0_ADDR};
+
+static int ActorClass_ACPred_0_Out[]={ACPred_0_OUT};
+static int ActorClass_ACPred_0_In[]={Zigzag_0_OUT, DCPred_0_PTR, DCPred_0_START};
+
+static int ActorClass_Dequant_0_Out[]={Dequant_0_OUT};
+static int ActorClass_Dequant_0_In[]={DCPred_0_OUT, ACPred_0_OUT, DCPred_0_QUANT};
+
+static int ActorClass_art_Source_txt_0_Out[]={art_Source_txt_0_Out};
+static int ActorClass_art_Source_txt_0_In[]={};
+
+static int ActorClass_art_Source_txt_1_Out[]={art_Source_txt_1_Out};
+static int ActorClass_art_Source_txt_1_In[]={};
+
+static int ActorClass_art_Sink_txt_0_Out[]={};
+static int ActorClass_art_Sink_txt_0_In[]={Dequant_0_OUT};
+
+static int ActorClass_art_Sink_txt_1_Out[]={};
+static int ActorClass_art_Sink_txt_1_In[]={DCPred_0_SIGNED};
+
+
+
+extern ActorClass ActorClass_Sequence_0;
+extern ActorClass ActorClass_DCSplit_0;
+extern ActorClass ActorClass_DCPred_0;
+extern ActorClass ActorClass_ZigzagAddr_0;
+extern ActorClass ActorClass_Zigzag_0;
+extern ActorClass ActorClass_ACPred_0;
+extern ActorClass ActorClass_Dequant_0;
+extern ActorClass ActorClass_art_Source_txt;
+extern ActorClass ActorClass_art_Source_txt;
+extern ActorClass ActorClass_art_Sink_txt;
+extern ActorClass ActorClass_art_Sink_txt;
+
+static ActorConfig actorConfig_Sequence_0={
+   &ActorClass_Sequence_0,
+   ActorClass_Sequence_0_In,
+   ActorClass_Sequence_0_Out
+};
+
+static ActorConfig actorConfig_DCSplit_0={
+   &ActorClass_DCSplit_0,
+   ActorClass_DCSplit_0_In,
+   ActorClass_DCSplit_0_Out
+};
+
+static ActorConfig actorConfig_DCPred_0={
+   &ActorClass_DCPred_0,
+   ActorClass_DCPred_0_In,
+   ActorClass_DCPred_0_Out
+};
+
+static ActorConfig actorConfig_ZigzagAddr_0={
+   &ActorClass_ZigzagAddr_0,
+   ActorClass_ZigzagAddr_0_In,
+   ActorClass_ZigzagAddr_0_Out
+};
+
+static ActorConfig actorConfig_Zigzag_0={
+   &ActorClass_Zigzag_0,
+   ActorClass_Zigzag_0_In,
+   ActorClass_Zigzag_0_Out
+};
+
+static ActorConfig actorConfig_ACPred_0={
+   &ActorClass_ACPred_0,
+   ActorClass_ACPred_0_In,
+   ActorClass_ACPred_0_Out
+};
+
+static ActorConfig actorConfig_Dequant_0={
+   &ActorClass_Dequant_0,
+   ActorClass_Dequant_0_In,
+   ActorClass_Dequant_0_Out
+};
+
+static ActorParameter para_art_Source_txt_0[]={
+  {"fileName", "@datadir@/actors-test/MPEG4_SP_Decoder/input/acdcTest/BTYPE.txt"}
+};
+
+static ActorConfig actorConfig_art_Source_txt_0={
+   &ActorClass_art_Source_txt,
+   ActorClass_art_Source_txt_0_In,
+   ActorClass_art_Source_txt_0_Out,
+   1,
+   para_art_Source_txt_0
+};
+
+static ActorParameter para_art_Source_txt_1[]={
+  {"fileName", "@datadir@/actors-test/MPEG4_SP_Decoder/input/acdcTest/B.txt"}
+};
+
+static ActorConfig actorConfig_art_Source_txt_1={
+   &ActorClass_art_Source_txt,
+   ActorClass_art_Source_txt_1_In,
+   ActorClass_art_Source_txt_1_Out,
+   1,
+   para_art_Source_txt_1
+};
+
+static ActorParameter para_art_Sink_txt_0[]={
+  {"fileName", "./output/acdcTest/out.txt"}
+};
+
+static ActorConfig actorConfig_art_Sink_txt_0={
+   &ActorClass_art_Sink_txt,
+   ActorClass_art_Sink_txt_0_In,
+   ActorClass_art_Sink_txt_0_Out,
+   1,
+   para_art_Sink_txt_0
+};
+
+static ActorParameter para_art_Sink_txt_1[]={
+  {"fileName", "./output/acdcTest/signed.txt"}
+};
+
+static ActorConfig actorConfig_art_Sink_txt_1={
+   &ActorClass_art_Sink_txt,
+   ActorClass_art_Sink_txt_1_In,
+   ActorClass_art_Sink_txt_1_Out,
+   1,
+   para_art_Sink_txt_1
+};
+
+
+static ActorConfig *actors []={
+   &actorConfig_Sequence_0, 
+   &actorConfig_DCSplit_0, 
+   &actorConfig_DCPred_0, 
+   &actorConfig_ZigzagAddr_0, 
+   &actorConfig_Zigzag_0, 
+   &actorConfig_ACPred_0, 
+   &actorConfig_Dequant_0, 
+   &actorConfig_art_Source_txt_0, 
+   &actorConfig_art_Source_txt_1, 
+   &actorConfig_art_Sink_txt_0, 
+   &actorConfig_art_Sink_txt_1 
+};
+
+static NetworkConfig networkConfig = {
+  actors,
+   sizeof(actors)/sizeof(ActorConfig*),
+  numberOfFifos
+};
+
+int main(int argc, char *argv[]) {
+  return execute_network(argc, argv, &networkConfig);
+};
+
