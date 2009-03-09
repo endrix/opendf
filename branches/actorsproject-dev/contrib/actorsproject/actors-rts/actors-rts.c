@@ -77,7 +77,7 @@ static void tprintf(char *buf,char *fmt,va_list ap)
 	vsprintf(buf+strlen(buf),fmt,ap);
 }	
 
-static void mylog(int fd, char *msg,va_list ap)
+static void mylog(FILE *fd, char *msg,va_list ap)
 {
 	char		buf1[2048]="";
 	if (*msg!='\t') timestamp(buf1);	
