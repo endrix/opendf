@@ -39,7 +39,7 @@
 #define _CIRCBUF_H
 
 #define MAX_CIRCBUF_LEN		4096
-#define TOKEN_SIZE			4
+#define TOKEN_SIZE			sizeof(int)
 
 typedef struct _STATS{
 	unsigned int	nodata;
