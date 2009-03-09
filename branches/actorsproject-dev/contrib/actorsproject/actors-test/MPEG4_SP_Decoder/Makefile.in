@@ -103,7 +103,7 @@ init:
 
 clean: init
 	@rm -f $(ALL_TEST_MODELS) *.o *.c *.xlim
-	@rm -f output
+	@rm -rf output
 
 cleaner: clean
 	@rm -f *.timestamp *.calml *.xdf
