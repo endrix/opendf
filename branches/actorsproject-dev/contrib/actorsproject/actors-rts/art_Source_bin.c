@@ -82,8 +82,8 @@ static int read_file(int fd, char *buf,int size)
 // 		ret = read(fd,buf,size);
  		ret = read(fd,tbuf,1);
  		val = (int)tbuf[0];
- 		memcpy(buf,&val,4);
- 		ret *=4;		
+ 		memcpy(buf,&val,sizeof(int));
+ 		ret *= sizeof(int);		
 	}
 	return ret;
 }
@@ -138,6 +138,6 @@ static void set_param(AbstractActorInstance *pBase,ActorParameter *param){
 	ActorInstance *thisActor=(ActorInstance*) pBase;
 	if(strcmp(param->key,"fileName") == 0)
 	{
-		thisActor->fd = (int)(int)open(param->value,O_RDONLY);
+		thisActor->fd = (int)open(param->value,O_RDONLY);
 	}
 }
