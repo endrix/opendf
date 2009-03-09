@@ -104,7 +104,7 @@ static void printstats(int numFifos)
 			printf("    %ld[%d] %d",cb->reader[j].numReads,j,get_circbuf_area(cb,j));
 		}
 		printf("\n  Nodata:  %d\n",s->nodata);
-	}	
+	}
 }
 
 static int wait_on_write(AbstractActorInstance *instance)
@@ -163,8 +163,8 @@ static void exec_unit(AbstractActorInstance *instance)
 	trace(LOG_MUST,"Actor %s start running......\n",instance->actor->name);
 
 	//constructor
-	if(instance->actor->constructor)
-		instance->actor->constructor(instance);
+// 	if(instance->actor->constructor)
+// 		instance->actor->constructor(instance);
 
 	//action scheduler
 	if(!instance->actor->action_scheduler)
@@ -209,7 +209,6 @@ int actors_status(int numInstances)
 			break;
 		}
 	}
-
 	if(ret)
 	{
 		trace(LOG_MUST,"Following actors are blocked on the output port:\n");
@@ -242,13 +241,22 @@ int execute_network(int argc, char *argv[],NetworkConfig *networkConfig)
 	if(log_level >=LOG_INFO) 
 		init_print(numInstances);
 
+	//constructor
+	for (i=0; i<numInstances; i++) {
+		if(actorInstance[i]->actor->constructor){
+			actorInstance[i]->actor->constructor(actorInstance[i]);
+		}
+	}
+
 	/* For portability, explicitly create threads in a joinable state */
 	pthread_attr_init(&attr);
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
 	//actor thread
 	for(i=0;i<numInstances;i++)
+	{
 		pthread_create((pthread_t*)&actorInstance[i]->tid, &attr, (void*)exec_unit, (void *) actorInstance[i]);
+	}
 
  	while(Running)
  	{
