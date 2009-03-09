@@ -52,7 +52,7 @@
 
 typedef struct {
   AbstractActorInstance base;
-  int fd;
+  FILE *fd;
 } ActorInstance;
 
 
@@ -72,14 +72,16 @@ ActorClass ActorClass_art_Source_txt ={
   set_param
 };
 
-static int read_file(int fd, char *buf,int size)
+static int read_file(FILE *fd, char *buf,int size)
 {
-	int ret = 0;
+	int ret = EOF;
 
 	if(fd){
 
  		ret = fscanf((FILE*)fd,"%d",(int*)buf);
-		ret *= 4;
+		if(ret != EOF){
+			ret *= sizeof(int);
+		}
 	}
 	return ret;
 }
@@ -89,7 +91,7 @@ static void Write0(ActorInstance *thisActor) {
 	int			ret;
 
 	ret = read_file(thisActor->fd,buf,thisActor->OUT0_TOKENSIZE);
-	if(ret<=0){
+	if(ret == EOF){
  		fclose((FILE*)thisActor->fd);
 		thisActor->fd = 0;
 		printf("Source exit!\n");
@@ -134,6 +136,6 @@ static void set_param(AbstractActorInstance *pBase,ActorParameter *param){
 	ActorInstance *thisActor=(ActorInstance*) pBase;
 	if(strcmp(param->key,"fileName") == 0)
 	{
-		thisActor->fd = (int)fopen(param->value,"r");
+		thisActor->fd = (FILE *)fopen(param->value,"r");
 	}
 }
