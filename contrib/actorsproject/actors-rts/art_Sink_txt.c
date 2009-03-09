@@ -49,7 +49,7 @@
 
 typedef struct {
   AbstractActorInstance base;
-  int fd;
+  FILE *fd;
 } ActorInstance;
 
 
@@ -71,19 +71,22 @@ ActorClass ActorClass_art_Sink_txt ={
 };
 
 static void Read0(ActorInstance *thisActor) {
-	int			ret;
-	char		buf[MAX_DATA_LENGTH];
-	long		*val = (long*)&buf;
+	int			ret = -1;
+	int			val;
 	static int	count;
 
-	ret = pinRead2(&thisActor->IN0_A,buf,thisActor->IN0_TOKENSIZE);
-	if(thisActor->fd)
+	if (thisActor->IN0_TOKENSIZE == sizeof(val));
+		ret = pinRead2(&thisActor->IN0_A,(char*)&val,thisActor->IN0_TOKENSIZE);
+	if(ret == 0)
 	{
- 		fprintf((FILE*)thisActor->fd,"%ld\n",*val);
-	}
-	else
-	{
-		printf("%d %ld\n",count++,*val);
+		if(thisActor->fd)
+		{
+			fprintf((FILE*)thisActor->fd,"%d\n",val);
+		}
+		else
+		{
+			printf("%d %d\n",count++,val);
+		}
 	}
 }
 
@@ -121,6 +124,6 @@ static void set_param(AbstractActorInstance *pBase,ActorParameter *param){
 	ActorInstance *thisActor=(ActorInstance*) pBase;
 	if(strcmp(param->key,"fileName") == 0)
 	{
-		thisActor->fd = (int)fopen(param->value,"w");
+		thisActor->fd = (FILE*)fopen(param->value,"w");
 	}
 }
