@@ -1,0 +1,1 @@
+../../gold/idct2dTest/out.txt
