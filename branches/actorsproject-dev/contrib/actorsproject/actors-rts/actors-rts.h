@@ -40,6 +40,7 @@
 
 #include <string.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <semaphore.h>
 #include "circbuf.h"
 
@@ -82,13 +83,13 @@ typedef struct {
 typedef struct ActorClass ActorClass;
 
 typedef struct {
-	int				tid;					//thread ID
+	pthread_t 		tid;					//thread ID
 	int				aid;					//actor ID
 	ActorClass		*actor;					//actor
 	ActorPort		*inputPort;	
 	ActorPort		*outputPort;
 
-	int				fd;						//output file descriptor
+	FILE			*fd;
 
 	pthread_mutex_t	mt;
 	pthread_cond_t	cv; 
