@@ -42,6 +42,8 @@ Desirable features
 213. Tools to analyze (diff etc) and visualize traces.
 214. Sources/sinks should write/read in chunks -not bytewise [runtime]
 215. Command-line options to control tracing etc. in runtime [runtime]
+216. Add latency control to action scheduler (=maximum number of
+     actions to fire before yielding) [Xlim2c, runtime]
 
 Nice to have
 ============
