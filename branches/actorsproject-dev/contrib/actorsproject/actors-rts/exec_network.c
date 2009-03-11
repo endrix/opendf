@@ -35,6 +35,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -52,6 +53,7 @@
 
 static int				Running = 1;
 int						log_level=LOG_ERROR;
+int						trace_action=0;
 
 static void stop_run(int sig){
     trace(LOG_MUST,"\nprogram stop running: sig=%x pid=%x\n",sig,getpid());
@@ -121,11 +123,11 @@ static int wait_on_write(AbstractActorInstance *instance)
 		bk = &cb->block;
 		if(bk->num)
 		{
-			actorTrace(instance,LOG_INFO,"%s(%d) waiting for write %d:%d:%d\n",instance->actor->name,instance->aid,port->cid,bk->num,get_circbuf_space(cb));
 			if(get_circbuf_space(cb) >= bk->num){
 				bk->num = 0;
 				return 0;
 			}
+			actorTrace(instance,LOG_EXEC,"%s_%d waiting for write %d, pinAvail(%d)=%d\n",instance->actor->name,instance->aid,port->cid,bk->num,get_circbuf_space(cb));
 		}
 	}
 	return 2;	
@@ -145,11 +147,11 @@ static int wait_on_read(AbstractActorInstance *instance)
 		bk = &cb->reader[port->readIndex].block;
 		if(bk->num)
 		{
-			actorTrace(instance,LOG_INFO,"%s(%d) waiting for read  %d:%d:%d\n",instance->actor->name,instance->aid,port->cid,bk->num,get_circbuf_area(cb,port->readIndex));
 			if(get_circbuf_area(cb,port->readIndex) >= bk->num){
 				bk->num = 0;
 				return 0;
 			}	
+			actorTrace(instance,LOG_EXEC,"%s_%d waiting for read %d, pinAvail(%d,%d)=%d\n",instance->actor->name,instance->aid,bk->num,port->cid,port->readIndex,get_circbuf_area(cb,port->readIndex));
 		}
 	}
 	return 1;
@@ -161,10 +163,6 @@ static void exec_unit(AbstractActorInstance *instance)
 	int				block;
 
 	trace(LOG_MUST,"Actor %s start running......\n",instance->actor->name);
-
-	//constructor
-// 	if(instance->actor->constructor)
-// 		instance->actor->constructor(instance);
 
 	//action scheduler
 	if(!instance->actor->action_scheduler)
@@ -184,11 +182,11 @@ static void exec_unit(AbstractActorInstance *instance)
 
 		if(block)
 		{
- 			actorTrace(instance,LOG_EXEC,"%s[%d] waiting on write/read\n",instance->actor->name,instance->aid);
+ 			actorTrace(instance,LOG_INFO,"%s_%d blocked on %s\n",instance->actor->name,instance->aid,(block==1)?"read":"write");
 			actorStatus[instance->aid]=block;
 			pthread_cond_wait(&instance->cv, &instance->mt);
 			actorStatus[instance->aid]=0;
-			actorTrace(instance,LOG_INFO,"%s[%d] wakeup\n",instance->actor->name,instance->aid);
+			actorTrace(instance,LOG_INFO,"%s_%d wakeup\n",instance->actor->name,instance->aid);
 		}
 		pthread_mutex_unlock(&instance->mt);
 	}
@@ -222,11 +220,41 @@ int actors_status(int numInstances)
 }
 int execute_network(int argc, char *argv[],NetworkConfig *networkConfig)
 {
-	int			i;
+	int			i,c;
 	int			numInstances,numFifos;
 	int			interval=2;
 	int			count=0;
 	pthread_attr_t attr;
+
+	//command line param parser
+	while ((c = getopt (argc, argv, "tvhl:")) != -1)
+	{
+		switch (c)
+		{
+			case 'h':
+				fprintf (stderr, "%s [-l <trace level>] [-h]...\n",argv[0]);
+				fprintf (stderr, "  -l <trace level>   set trace level(0:must 1:error 2:warn 3:info 4:exec)\n");
+				fprintf (stderr, "  -t                 turn on trace for action scheduler\n");
+				fprintf (stderr, "  -h                 print this help and exit\n");
+				fprintf (stderr, "  -v                 priint version information and exit\n");
+				return 0;
+			case 'v':
+				fprintf (stderr, "RTS Version: %s\n",RTS_VERSION);
+				return 0;
+			case 'l':
+				log_level = atoi(optarg);
+				break;
+			case 't':
+				trace_action = 1;
+				break;
+ 			case '?':
+// 			if (optopt == 'l')
+// 				fprintf (stderr, "Option -%c requires an argument.\n", optopt);
+ 				return 0;
+			default:
+				break;
+		}
+	}
 
 	//catch prog faults
 	signal(SIGINT, stop_run);
@@ -234,7 +262,7 @@ int execute_network(int argc, char *argv[],NetworkConfig *networkConfig)
 	numInstances = networkConfig->numNetworkActors;
 	numFifos = networkConfig->numFifos;
 
-	trace(LOG_INFO,"numInstances: %d numFifos: %d\n",numInstances,numFifos);
+	trace(LOG_MUST,"\nModuleName: %s numInstances: %d numFifos: %d\n",argv[0],numInstances,numFifos);
 
 	init_actor_network(networkConfig);
 	
@@ -267,7 +295,7 @@ int execute_network(int argc, char *argv[],NetworkConfig *networkConfig)
  			Running = 0;
 			trace(LOG_MUST,"All the actors got blocked, ready to exit\n");
 		}
-		if(log_level >=LOG_INFO) 
+		if(log_level >=LOG_WARN) 
 			printstats(numFifos);
  	}	
 
