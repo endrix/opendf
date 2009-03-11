@@ -52,7 +52,7 @@
 #define MAX_DATA_LENGTH		1024
 
 #define TRACE_ACTION(INSTANCE,INDEX,NAME) \
-        trace(LOG_EXEC,"%s %d %s\n", (INSTANCE)->actor->name, INDEX, NAME)
+        if(trace_action) trace(LOG_MUST,"%s %d %s\n", (INSTANCE)->actor->name, INDEX, NAME)
 
 #define RANGECHK(X,B) ((unsigned)(X)<(unsigned)(B)?(X):RANGEERR(X,B))
 #define RANGEERR(X,B) (rangeError((X),(B),__FILE__,__LINE__))
@@ -63,6 +63,8 @@
 #define	LOG_INFO			3			//also log info
 #define	LOG_EXEC			4			//also log func exec
 #define	LOG_STOP			(-99)		//disable log file
+
+#define	RTS_VERSION			"1.0"
 
 
 typedef int					bool_t;
@@ -124,6 +126,7 @@ extern AbstractActorInstance	*actorInstance[];
 extern ActorClass				*actorClass[];
 extern int						actorStatus[];
 extern int						log_level;
+extern int						trace_action;
 
 extern int	execute_network(int argc, char *argv[], NetworkConfig *network);
 extern void init_actor_network(NetworkConfig *);
