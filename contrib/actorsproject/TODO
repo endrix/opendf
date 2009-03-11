@@ -44,7 +44,9 @@ Desirable features
 215. Command-line options to control tracing etc. in runtime [runtime]
 216. Add latency control to action scheduler (=maximum number of
      actions to fire before yielding) [Xlim2c, runtime]
-
+217. Support for multi-token writes in the same way as multi-token reads
+     are handled (i.e. pinAvail) [SsaGenerator]
+  
 Nice to have
 ============
 301. Removal of if(1) [Xlim2c]
@@ -76,3 +78,7 @@ Nice to have
      (a) at compile time (b) at run-time (configuration of model).
 320. Don't duplicate stuff that is found elsewhere in the source tree
      (a) MPEG4_SP_Decoder (used in actors-test) (b) the .jars
+321. The HOT encoding of FSA states is inappropriate for s/w: use 
+     a scalar encoding instead [SsaGenerator].
+322. Use switch instead of if-then-else-if structures when appropriate
+     (in particular this goes well with 321) [Xlim2c]. 
