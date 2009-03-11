@@ -94,8 +94,7 @@ void actorTrace(AbstractActorInstance *base,int level,char *msg,...)
 	va_list ap;
 	if (log_level<level) return;
 	va_start(ap,msg);
-	if(strstr(base->actor->name,"Sink")==NULL && strstr(base->actor->name,"Source")==NULL)
-		mylog(base->fd,msg,ap);
+	mylog(base->fd,msg,ap);
 	va_end(ap);
 }
 
@@ -134,13 +133,13 @@ int pinStatus2(ActorPort *actorPort)
 	{
 		cb = &circularBuf[actorPort->cid];
 		val = get_circbuf_area(cb,actorPort->readIndex);
-		actorTrace(actorInstance[actorPort->aid],LOG_EXEC,"status(%d) cid:%d data:%d\n",actorPort->aid,actorPort->cid,val);
+		actorTrace(actorInstance[actorPort->aid],LOG_EXEC,"%s_%d.in pinAvail[%d]=%d\n",actorInstance[actorPort->aid]->actor->name,actorPort->aid,actorPort->cid,val);
 	}
 	else
 	{
 		cb = &circularBuf[actorPort->cid];
 		val = get_circbuf_space(cb);
-		actorTrace(actorInstance[actorPort->aid],LOG_EXEC,"status(%d) cid:%d space:%d\n",actorPort->aid,actorPort->cid,val);
+		actorTrace(actorInstance[actorPort->aid],LOG_EXEC,"%s_%d.out pinAvail[%d]=%d\n",actorInstance[actorPort->aid]->actor->name,actorPort->aid,actorPort->cid,val);
 	}
 	return val;	
 }
@@ -180,7 +179,7 @@ int pinRead2(ActorPort *actorPort,char *buf,int length)
 		trace(LOG_ERROR,"Read port[%d] error\n",actorPort->cid);
 		return -1;
 	}
-	actorTrace(actorInstance[actorPort->aid],LOG_EXEC,"read(%d:%d) cid:%d:%d\n",actorPort->aid,actorPort->readIndex,actorPort->cid,length);
+	actorTrace(actorInstance[actorPort->aid],LOG_EXEC,"%s_%d pinRead[%d:%d]=%d\n",actorInstance[actorPort->aid]->actor->name,actorPort->aid,actorPort->cid,actorPort->readIndex,length);
 
 	//signal waiting writer
   	bk = &cb->block;
@@ -190,8 +189,8 @@ int pinRead2(ActorPort *actorPort,char *buf,int length)
 	{
 		if (get_circbuf_space(cb) >= bk->num)
 		{
-			actorTrace(actorInstance[actorPort->aid],LOG_INFO,"%s(%d) signal %s[%d] to write\n",actorInstance[actorPort->aid]->actor->name,actorPort->aid,instance->actor->name,bk->aid);
-			pthread_cond_signal(&instance->cv);	
+			actorTrace(actorInstance[actorPort->aid],LOG_INFO,"%s_%d signal %s_%d to write(%d)\n",actorInstance[actorPort->aid]->actor->name,actorPort->aid,instance->actor->name,bk->aid,actorPort->cid);
+			pthread_cond_signal(&instance->cv);
 		}
 	}
 	pthread_mutex_unlock(&instance->mt);
@@ -230,7 +229,7 @@ int pinWrite2(ActorPort *actorPort,char *buf, int length)
 		trace(LOG_ERROR,"Write port[%d] error\n",actorPort->cid);
 		return -1;
 	}
-	actorTrace(actorInstance[actorPort->aid],LOG_EXEC,"write(%d) cid:%d:%d\n",actorPort->aid,actorPort->cid,length);
+	actorTrace(actorInstance[actorPort->aid],LOG_EXEC,"%s_%d pinWrite(%d)=%d\n",actorInstance[actorPort->aid]->actor->name,actorPort->aid,actorPort->cid,length);
 
 	//signal waiting readers
 	for(i=0; i<cb->numReaders; i++)
@@ -242,7 +241,7 @@ int pinWrite2(ActorPort *actorPort,char *buf, int length)
 		{
 			if(get_circbuf_area(cb,i) >=bk->num)
 			{
-				actorTrace(actorInstance[actorPort->aid],LOG_INFO,"%s(%d) signal %s[%d] to read %d bytes\n",actorInstance[actorPort->aid]->actor->name,actorPort->aid,instance->actor->name,bk->aid,get_circbuf_area(cb,i));
+				actorTrace(actorInstance[actorPort->aid],LOG_INFO,"%s_%d signal %s_%d to read(%d,%d)=%d \n",actorInstance[actorPort->aid]->actor->name,actorPort->aid,instance->actor->name,bk->aid,actorPort->cid,i,get_circbuf_area(cb,i));
 				pthread_cond_signal(&instance->cv);
 			}
 		}
@@ -280,7 +279,7 @@ void pinWait(ActorPort *actorPort,int length)
 	instance = actorInstance[actorPort->aid];
 
 	pthread_mutex_lock(&instance->mt);
-	actorTrace(instance,LOG_INFO,"%s[%d] pinWait %s %d:%d\n",instance->actor->name,actorPort->aid,(actorPort->portDir == INPUT)?"in":"out",actorPort->cid,length);
+	actorTrace(instance,LOG_EXEC,"%s_%d.%s pinWait(%d)=%d\n",instance->actor->name,actorPort->aid,(actorPort->portDir == INPUT)?"in":"out",actorPort->cid,length);
 	bk->num = length;
 	pthread_mutex_unlock(&instance->mt);
 }
@@ -319,7 +318,6 @@ void init_actor_network(NetworkConfig *network)
 		pInstance->inputPort = (ActorPort*)malloc(sizeof(ActorPort)*ptr->numInputPorts);
 		pInstance->outputPort = (ActorPort*)malloc(sizeof(ActorPort)*ptr->numOutputPorts);
 
-		trace(LOG_INFO,"Input Configuration[%d]:\n",i);
 		for( j=0; j<ptr->numInputPorts; j++)
 		{
 			port = &pInstance->inputPort[j];
@@ -331,10 +329,8 @@ void init_actor_network(NetworkConfig *network)
 			port->tokenSize = TOKEN_SIZE;
 			FifoInputPortIndex[cid][port->readIndex] = i;
 			NumReaderInstances[cid]++;
-			trace(LOG_INFO,"%d FifoInputPortIndex[%d][%d]=%d\n",j,cid,port->readIndex,i);
 		}
 
-		trace(LOG_INFO,"Output Configuration[%d]:\n",i);
 		for( j=0; j<ptr->numOutputPorts; j++)
 		{
 			port = &pInstance->outputPort[j];	
@@ -344,9 +340,8 @@ void init_actor_network(NetworkConfig *network)
 			port->tokenSize = TOKEN_SIZE;
 			port->portDir = OUTPUT;
 			FifoOutputPortIndex[cid] = i;
-			trace(LOG_INFO,"%d FifoOutputPortIndex[%d]=%d\n",j,cid,i);
 		}
-		trace(LOG_INFO,"--------------------------------\n");
+
 		pthread_mutex_init(&pInstance->mt, NULL);
 		pthread_cond_init (&pInstance->cv, NULL);
 
@@ -365,17 +360,18 @@ void init_actor_network(NetworkConfig *network)
 		for(j=0; j<NumReaderInstances[i]; j++)
 			cb->reader[j].block.aid = FifoInputPortIndex[i][j];
 	}
-
-	trace(LOG_INFO,"\nFifo configuration:\n");
+#if 0
+	trace(LOG_EXEC,"\nFifo configuration:\n");
  	for(i=0; i<numFifos; i++)
  	{
 		cb = &circularBuf[i]; 
-		trace(LOG_INFO,"Fifo[%d]:\n",i);
-		trace(LOG_INFO,"Input from actor: ");
-		trace(LOG_INFO,"%d\n",cb->block.aid);
-		trace(LOG_INFO,"Output to actor : ");
+		trace(LOG_EXEC,"Fifo[%d]:\n",i);
+		trace(LOG_EXEC,"Input from actor: ");
+		trace(LOG_EXEC,"%d\n",cb->block.aid);
+		trace(LOG_EXEC,"Output to actor : ");
 		for(j=0; j<NumReaderInstances[i]; j++)
- 			trace(LOG_INFO,"%d ",cb->reader[j].block.aid);
+ 			trace(LOG_EXEC,"%d ",cb->reader[j].block.aid);
 		trace(LOG_INFO,"\n");
  	}
+#endif
 }
