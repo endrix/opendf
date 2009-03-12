@@ -87,7 +87,7 @@ static void init_print(int numInstances)
 	}
 }
 
-static void printstats(int numFifos)
+static void printFifostats(int numFifos)
 {
 	int						i,j;
 	CIRC_BUFFER				*cb;
@@ -107,6 +107,38 @@ static void printstats(int numFifos)
 		}
 		printf("\n  Nodata:  %d\n",s->nodata);
 	}
+}
+
+static void printActorInfo(int numInstances)
+{
+	int						i,j;
+	CIRC_BUFFER				*cb;
+	AbstractActorInstance	*instance;
+	ActorPort				*port;
+	BLOCK					*bk;
+
+	for (i = 0; i < numInstances; i++)
+	{
+		instance = actorInstance[i];
+		printf("\n%s: %s\n",instance->actor->name,(actorStatus[i] == 0)?"running":"blocked");
+		printf("inputPort[index,readIndex,pinWait]=pinAvail:\n");
+		for (j = 0; j < instance->actor->numInputPorts; j++)
+		{
+			port = &instance->inputPort[j];
+			cb = &circularBuf[port->cid];
+			bk = &cb->block;
+			printf("[%d,%d,%d]=%d ",port->cid,port->readIndex,bk->num,get_circbuf_area(cb,port->readIndex)); 
+		}
+		printf("\nOut[index,pinWait]=pinAvail:\n");
+		for (j = 0; j < instance->actor->numOutputPorts; j++)
+		{
+			port = &instance->outputPort[j];
+			cb = &circularBuf[port->cid];
+			bk = &cb->block;
+			printf("[%d,%d]=%d ",port->cid,bk->num,get_circbuf_space(cb)); 
+		}
+	}	
+	printf("\n");
 }
 
 static int wait_on_write(AbstractActorInstance *instance)
@@ -148,7 +180,7 @@ static int wait_on_read(AbstractActorInstance *instance)
 		if(bk->num)
 		{
 			if(get_circbuf_area(cb,port->readIndex) >= bk->num){
-				bk->num = 0;
+ 				bk->num = 0;
 				return 0;
 			}	
 			actorTrace(instance,LOG_EXEC,"%s_%d waiting for read %d, pinAvail(%d,%d)=%d\n",instance->actor->name,instance->aid,bk->num,port->cid,port->readIndex,get_circbuf_area(cb,port->readIndex));
@@ -295,8 +327,12 @@ int execute_network(int argc, char *argv[],NetworkConfig *networkConfig)
  			Running = 0;
 			trace(LOG_MUST,"All the actors got blocked, ready to exit\n");
 		}
-		if(log_level >=LOG_WARN) 
-			printstats(numFifos);
+
+		if(log_level >=LOG_WARN)
+			printActorInfo(numInstances);
+
+		if(log_level >=LOG_EXEC)
+ 			printFifostats(numFifos);
  	}	
 
 	for (i=0; i<numInstances; i++) {
