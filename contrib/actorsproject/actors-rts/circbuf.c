@@ -46,7 +46,66 @@
 
 #define max(a,b)		(a>b)?a:b
 
+#ifdef CB_MUTEXTED
+#define LOCK(_ic)			EnterCriticalSection(&(_ic->lock))
+#define UNLOCK(_ic)			LeaveCriticalSection(&(_ic->lock))
+#define RELEASE(_ic)		DeleteCriticalSection(&(_ic->lock))
+#define INIT(_ic)			InitializeCriticalSection(&(_ic->lock))
+#else
+#define LOCK(_ic)
+#define UNLOCK(_ic)
+#define RELEASE(_ic)
+#define INIT(_ic)
+#endif
+
+
 CIRC_BUFFER				circularBuf[256];
+
+int InitializeCriticalSection(sem_t *semaphore)
+{
+	int ret;
+	ret = sem_init(semaphore, 0, 1);
+	if(ret != 0){
+		perror("Unable to initialize the semaphore");
+	}
+	return ret;
+}
+
+int EnterCriticalSection(sem_t *semaphore)
+{
+	int ret;
+	do {
+		ret = sem_wait(semaphore);
+		if (ret != 0){
+		/* the lock wasn't acquired */
+		if (errno != EINVAL) {
+			perror("Error in sem_wait.");
+			return -1;
+		} else {
+			/* sem_wait() has been interrupted by a signal: looping again */
+			printf("sem_wait interrupted. Trying again for the lock...\n");
+		}
+		}
+	} while (ret != 0);
+
+	return ret;
+}
+
+int LeaveCriticalSection(sem_t *semaphore)
+{
+	int ret;
+	ret = sem_post(semaphore);
+	if (ret != 0)
+		perror("Error in sem_post");
+	return ret;
+}
+
+int DeleteCriticalSection(sem_t *semaphore)
+{
+	int ret;
+	ret = sem_destroy(semaphore);
+	return ret; 
+}
 
 void init_block(BLOCK *b)
 {
@@ -60,7 +119,7 @@ void init_circbuf(CIRC_BUFFER *cb,int numReaders)
 
 	memset(cb,0,sizeof(CIRC_BUFFER));
 	init_block(&cb->block);
-
+	INIT(cb);
 	cb->numReaders = numReaders;
 	cb->reader = (READER*)malloc(sizeof(READER)*numReaders);
 	memset(cb->reader,0,sizeof(READER)*numReaders);
@@ -73,6 +132,8 @@ int get_circbuf_space(CIRC_BUFFER *cb)
 	int space = 0;
 	int	i,area = 0;
 
+	LOCK(cb);
+
 	for(i=0; i<cb->numReaders;i++)
 	{
 		area = max(area,(cb->numWrites - cb->reader[i].numReads));
@@ -83,6 +144,8 @@ int get_circbuf_space(CIRC_BUFFER *cb)
 	if(space < TOKEN_SIZE)
 		cb->stats.nospace++;
 
+	UNLOCK(cb);
+
 	return space;
 }	
 
@@ -90,10 +153,14 @@ int get_circbuf_area(CIRC_BUFFER *cb,int index)
 {
 	int area = 0;
 
+	LOCK(cb);
+
 	area = cb->numWrites - cb->reader[index].numReads;
 	
 	if(area < TOKEN_SIZE)
 		cb->stats.nodata++;
+
+	UNLOCK(cb);
 
 	return area;
 
@@ -103,6 +170,8 @@ int peek_circbuf_area(CIRC_BUFFER *cb,char *buf, int size, int index, int offset
 {
 	int dist;
 	int readptr = cb->reader[index].readptr + offset;
+
+	LOCK(cb);
 
 	if( ( readptr + size) > MAX_CIRCBUF_LEN )  
 	{
@@ -116,12 +185,16 @@ int peek_circbuf_area(CIRC_BUFFER *cb,char *buf, int size, int index, int offset
 
 	}
 
+	UNLOCK(cb);
+
 	return 0;	
 }
 
 int read_circbuf(CIRC_BUFFER *cb,char *buf, int size, int index)
 {
 	int dist;
+
+	LOCK(cb);
 
 	if( ( cb->reader[index].readptr + size) > MAX_CIRCBUF_LEN )  
 	{
@@ -138,12 +211,16 @@ int read_circbuf(CIRC_BUFFER *cb,char *buf, int size, int index)
 	}
 	cb->reader[index].numReads += size; 
 
+	UNLOCK(cb);
+
 	return 0;
 }
 
 int write_circbuf(CIRC_BUFFER *cb,char *buf, int size)
 {
 	int dist;
+
+	LOCK(cb);
 
 	if( ( cb->writeptr + size) > MAX_CIRCBUF_LEN)
 	{
@@ -162,5 +239,14 @@ int write_circbuf(CIRC_BUFFER *cb,char *buf, int size)
 
 	cb->numWrites += size;
 
+	UNLOCK(cb);
+
 	return 0;
+}
+
+void release_circbuf(CIRC_BUFFER *cb)
+{
+	RELEASE(cb);
+
+	return;
 }
