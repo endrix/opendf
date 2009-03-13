@@ -38,8 +38,12 @@
 #ifndef _CIRCBUF_H
 #define _CIRCBUF_H
 
+#include <semaphore.h>
+
 #define MAX_CIRCBUF_LEN		4096
 #define TOKEN_SIZE			sizeof(int)
+
+//#define	CB_MUTEXED
 
 typedef struct _STATS{
 	unsigned int	nodata;
@@ -64,6 +68,7 @@ typedef struct _CIRC_BUFFER{
 	BLOCK			block;						//output port block
 	int				numReaders;					//number of readers
 	READER			*reader;					//reader
+	sem_t			lock;						//mutex	
 
 	STATS			stats;
 }CIRC_BUFFER;
