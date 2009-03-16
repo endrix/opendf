@@ -66,6 +66,18 @@ class IfModule extends PhiContainerModule implements XlimIfModule {
 		return mElseModule;
 	}
 
+	@Override
+	protected boolean updateModuleLevel(AbstractModule parent) {
+		if (super.updateModuleLevel(parent)) {
+			getTestModule().updateModuleLevel(this);
+			mThenModule.updateModuleLevel(this);
+			mElseModule.updateModuleLevel(this);
+			return true;
+		}
+		else
+			return false;
+	}
+	
 	/**
 	 * Gets the predecessor module corresponding to the input ports of the phi-nodes
 	 * @param path (0 or 1) meaning 'then' and 'else' modules, respectively

@@ -77,6 +77,13 @@ abstract class PhiContainerModule extends AbstractModule
 	}
 	
 	@Override
+	public void setParentModule(ContainerModule parent) {
+		mParent=parent;
+		if (parent!=null)
+			updateModuleLevel(parent);
+	}
+	
+	@Override
 	public TestModule getTestModule() {
 		return mTestModule;
 	}

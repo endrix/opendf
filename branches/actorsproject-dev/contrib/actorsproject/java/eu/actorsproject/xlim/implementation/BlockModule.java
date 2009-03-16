@@ -57,6 +57,13 @@ class BlockModule extends ContainerModule implements XlimBlockModule, AbstractBl
 	}
 
 	@Override
+	public void setParentModule(ContainerModule parent) {
+		mParent=parent;
+		if (parent!=null)
+			updateModuleLevel(parent);
+	}
+	
+	@Override
 	public <Result, Arg> Result accept(XlimBlockElement.Visitor<Result, Arg> visitor, Arg arg) {
 		return visitor.visitBlockModule(this, arg);
 	}

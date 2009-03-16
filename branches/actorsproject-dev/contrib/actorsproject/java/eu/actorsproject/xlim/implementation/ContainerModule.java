@@ -100,6 +100,17 @@ abstract class ContainerModule extends AbstractModule implements XlimContainerMo
 		
 		return "kind=\"" + mKind + "\"" + mutex;
 	}
+	
+	@Override
+	protected boolean updateModuleLevel(AbstractModule parent) {
+		if (super.updateModuleLevel(parent)) {
+			for (AbstractBlockElement child: mChildren)
+				child.setParentModule(this);
+			return true;
+		}
+		else
+			return false;
+	}	
 
 	@Override
 	public XlimBlockModule addBlockModule(String kind) {
@@ -152,6 +163,8 @@ abstract class ContainerModule extends AbstractModule implements XlimContainerMo
 	@Override
 	public XlimOperation addOperation(String kind, XlimSource input1, XlimSource input2) {
 		ArrayList<XlimSource> inputs=new ArrayList<XlimSource>(2);
+		inputs.add(input1);
+		inputs.add(input2);
 		return addOperation(kind, inputs);
 	}
 	
