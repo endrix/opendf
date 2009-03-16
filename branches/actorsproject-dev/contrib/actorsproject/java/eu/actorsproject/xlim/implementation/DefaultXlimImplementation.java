@@ -147,7 +147,7 @@ public class DefaultXlimImplementation implements ReaderPlugIn {
 		register(new PlugIn("bitor",binIntOp));
 		register(new PlugIn("$sub",addOp));
 		register(new PlugIn("bitxor",binIntOp));
-		register(new PlugIn("lshift",new LeftShiftTypeRule()));
+		register(new PlugIn("lshift",new IntOpFixedWidthTypeRule(2,33)));
 		register(new PlugIn("rshift",divOp));
 		register(new PlugIn("urshift",divOp));
 		register(new PlugIn("noop",idOp));
@@ -156,7 +156,7 @@ public class DefaultXlimImplementation implements ReaderPlugIn {
 
 		// Added operations (not used by HDL compiler)
 		register(new PortOperationPlugIn("pinAvail",
-                                         new IntOpTypeRule(0),
+                                         new IntOpFixedWidthTypeRule(0,32),
                                          "portName", 
                                          false /* doesn't modify port */, 
                                          null /* no size */));
@@ -442,15 +442,18 @@ public class DefaultXlimImplementation implements ReaderPlugIn {
 		}
 	}
 	
-	class LeftShiftTypeRule extends IntOpTypeRule {
+	class IntOpFixedWidthTypeRule extends IntOpTypeRule {
 		
-		public LeftShiftTypeRule() {
-			super(2);
+		private int mWidth;
+		
+		public IntOpFixedWidthTypeRule(int numInputs, int widthOutput) {
+			super(numInputs);
+			mWidth=widthOutput;
 		}
 	
 		@Override
 		protected XlimType resultType(List<? extends XlimSource> inputs) {
-			return createInteger(33);
+			return createInteger(mWidth);
 		}
 	}
 	
