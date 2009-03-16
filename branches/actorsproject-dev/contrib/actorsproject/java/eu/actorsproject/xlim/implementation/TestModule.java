@@ -71,9 +71,8 @@ class TestModule extends ContainerModule implements XlimTestModule {
 
 	@Override
 	public void setDecision(XlimSource decision) {
-		// Do this once
 		if (mDecision!=null)
-			throw new IllegalStateException("decision attribute already set");
+			mDecision.setValue(null);  // remove from current list of accesses
 		mDecision=new SourceValueUsage(decision, mTestOp);
 	}
 	
@@ -101,7 +100,7 @@ class TestModule extends ContainerModule implements XlimTestModule {
 	@Override
 	public void fixupAddedCode(FixupContext context) {
 		super.fixupAddedCode(context);
-		if (mDecision.getValue()==null)
+		if (mDecision!=null && mDecision.getValue()==null)
 			context.fixup(mDecision);
 	}
 	
