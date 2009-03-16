@@ -58,15 +58,18 @@ public class StatePhiOperator extends Linkage<StatePhiOperator> implements PhiOp
 		mTestModule=testModule;
 		mStateCarrier=carrier;
 		mIsLoopJoin=isLoopJoin;
-		mInputs=new ArrayList<ValueUsage>(3);
+		mInputs=new ArrayList<ValueUsage>(2);
 		mInputs.add(new JoinStateUsage());
 		mInputs.add(new JoinStateUsage());
-		mInputs.add(testModule.getValueUsage());
 	}
 	
 	@Override
-	public Iterable<? extends ValueUsage> getUsedValues() {
-		return mInputs;
+	public Iterable<ValueUsage> getUsedValues() {
+		ArrayList<ValueUsage> usedValues=new ArrayList<ValueUsage>(3);
+		usedValues.add(mInputs.get(0));
+		usedValues.add(mInputs.get(1));
+		usedValues.add(mTestModule.getValueUsage());
+		return usedValues;
 	}
 	
 	@Override
@@ -77,7 +80,7 @@ public class StatePhiOperator extends Linkage<StatePhiOperator> implements PhiOp
 	
 	@Override
 	public Iterable<? extends ValueNode> getInputValues() {
-		return new InputValueIteration(mInputs);
+		return new InputValueIteration(getUsedValues());
 	}
 
 	@Override
@@ -110,10 +113,7 @@ public class StatePhiOperator extends Linkage<StatePhiOperator> implements PhiOp
 	
 	@Override
 	public ValueNode getControlDependence() {
-		if (mInputs.size()==3)
-			return mInputs.get(2).getValue();
-		else
-			return null;
+		return mTestModule.getValueUsage().getValue();
 	}
 
 	@Override
@@ -145,8 +145,8 @@ public class StatePhiOperator extends Linkage<StatePhiOperator> implements PhiOp
 	}
 	
 	public String toString() {
-		String ctrlDep = (mInputs.size()==3)?
-			ctrlDep=";"+mInputs.get(2).getValue().getUniqueId() : "";
+		ValueNode decision=getControlDependence();
+		String ctrlDep = (decision!=null)? decision.getUniqueId() : "";
 		return mOutput.getUniqueId() + "=state-phi(" + attributesToString() + ";" +
 		       mInputs.get(0).getValue().getUniqueId() + "," +
 		       mInputs.get(1).getValue().getUniqueId() + ctrlDep + ")";	
