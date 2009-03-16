@@ -132,8 +132,35 @@
               <xsl:text>, </xsl:text>             
             </xsl:if>
           </xsl:for-each>
+          <xsl:text>};&#xa;</xsl:text>
+          
+          <xsl:text>static ActorParameter params_</xsl:text>
+          <xsl:value-of select="$UID"/>
+          <xsl:text>[]={</xsl:text>
+          <xsl:for-each select="Parameter">
+            <xsl:text>"</xsl:text>
+            <xsl:value-of select="@name" />
+            <xsl:text>", "</xsl:text>  
+            <xsl:choose>
+              <xsl:when test="./Expr/Decl/Expr/Decl/Expr/@value">                            
+                <xsl:value-of select="./Expr/Decl/Expr/Decl/Expr/@value" />
+              </xsl:when>
+              <xsl:otherwise>
+                <xsl:value-of select="./Expr/Decl/Expr/@value" />                
+              </xsl:otherwise>
+            </xsl:choose>
+            
+            
+            <xsl:text>"</xsl:text>
+            <xsl:if test="not(position() = last())">
+              <xsl:text>, </xsl:text>             
+            </xsl:if>
+          </xsl:for-each>
           <xsl:text>};&#xa;&#xa;</xsl:text>
-        </xsl:for-each>    
+          
+          
+          
+        </xsl:for-each>            
         <xsl:text>&#xa;&#xa;</xsl:text>
      
         <!--
@@ -157,20 +184,38 @@
         -->      
 
         <xsl:for-each select="//Instance">       
-          <xsl:variable name='UID' select="art:getActorType(.)"/>   
+          <xsl:variable name='TypeName' select="art:getActorType(.)"/>   
         
           <xsl:text>static ActorConfig actorConfig_</xsl:text>
           <xsl:value-of select="./Note[@kind='UID']/@value"/>
           <xsl:text>={&#xa;</xsl:text>
           <xsl:text>   &amp;ActorClass_</xsl:text>
-          <xsl:value-of select="$UID"/>
+          <xsl:value-of select="$TypeName"/>
           <xsl:text>,&#xa;</xsl:text> 
           <xsl:text>   ActorClass_</xsl:text>
           <xsl:value-of select="./Note[@kind='UID']/@value"/>
           <xsl:text>_In,&#xa;</xsl:text> 
           <xsl:text>   ActorClass_</xsl:text>
           <xsl:value-of select="./Note[@kind='UID']/@value"/>
-          <xsl:text>_Out&#xa;};&#xa;&#xa;</xsl:text>
+          <xsl:text>_Out,&#xa;</xsl:text>
+          
+          <xsl:choose>
+            <xsl:when test="contains(./Note[@kind='UID']/@value, 'art_')">
+              <xsl:text>   </xsl:text>
+              <xsl:value-of select="count(./Parameter)"/>
+              <xsl:text>,&#xa;</xsl:text>  
+              <xsl:text>   params_</xsl:text>
+              <xsl:value-of select="./Note[@kind='UID']/@value"/>
+              <xsl:text>&#xa;</xsl:text>                          
+            </xsl:when>
+            <xsl:otherwise>
+              <xsl:text>   0,&#xa;</xsl:text>  
+              <xsl:text>   null&#xa;</xsl:text>                          
+            </xsl:otherwise>            
+            
+          </xsl:choose> 
+          
+          <xsl:text>};&#xa;&#xa;</xsl:text>
         </xsl:for-each>     
         <xsl:text>&#xa;</xsl:text>
    

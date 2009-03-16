@@ -41,7 +41,7 @@ $(EXE): $(OBJECTS)
 	$(CC) $(LDFLAGS) -o $@ -L$(ACTORS_LIB) $^
 
 #
-# Implicit rules .calml -> .xlim -> .c -> .o
+# Implicit rules .cal -> .xlim -> .c -> .o
 #
 
 %.o : %.c
@@ -62,9 +62,8 @@ ifdef PRESERVE_XLIM
 .SECONDARY: $(XLIM_FILES)
 endif
 
-%.xlim : %.calml
+%.xlim : %.cal
 	$(SSAGENERATOR) $<
-	rm -f $*.ssagenerator2.calml
 
 # clean: removes $(EXE), objects and all intermediate build files,
 #        (but keeps the elaboration, including config.c) 
