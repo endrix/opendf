@@ -92,10 +92,13 @@ public abstract class ConfigGroup implements Cloneable
     public static final String HDL_OUTPUT_FILE= "synth.output.file.name";
     public static final String ACTOR_OUTPUT_DIR = "synth.output.actor.dir";
     public static final String GEN_HDL_SIM_MODEL = "synth.output.hdl.simmodel";
-
+    
     // XSLT Transformations only
     public static final String XSLT_PRESERVE_INTERMEDIATE = "xslt.transform.preserve";
     
+    // Software code generation only
+    public static final String XLIM_SOFTWARE_TARGET="synth.generate.software.xlim";    
+      
     // Resource estimation only
     public final static String REST_EXEC_LOCATION = "synth.resource.estimation.exec";
     public final static String SYNTH_DO_REST = "synth.resource.estimation.enable";
