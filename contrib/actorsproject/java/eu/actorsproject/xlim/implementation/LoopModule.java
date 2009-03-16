@@ -61,6 +61,16 @@ class LoopModule extends PhiContainerModule implements XlimLoopModule {
 		return mBodyModule;
 	}
 
+	@Override
+	protected boolean updateModuleLevel(AbstractModule parent) {
+		if (super.updateModuleLevel(parent)) {
+			getTestModule().updateModuleLevel(this);
+			mBodyModule.updateModuleLevel(this);
+			return true;
+		}
+		else
+			return false;
+	}
 	/**
 	 * Gets the predecessor module corresponding to the input ports of the phi-nodes
 	 * @param path (0 or 1) pre-header and loop body, respectively

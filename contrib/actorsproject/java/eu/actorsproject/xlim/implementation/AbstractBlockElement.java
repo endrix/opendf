@@ -50,6 +50,8 @@ interface AbstractBlockElement extends XlimBlockElement {
 	@Override
 	ContainerModule getParentModule();
 	
+	void setParentModule(ContainerModule parent);
+	
 	Linkage<AbstractBlockElement> getLinkage();
 	
 	/**

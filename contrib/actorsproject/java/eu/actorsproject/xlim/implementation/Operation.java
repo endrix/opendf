@@ -93,6 +93,11 @@ class Operation extends Linkage<AbstractBlockElement>
 	public ContainerModule getParentModule() {
 		return mParent;
 	}
+	
+	@Override
+	public void setParentModule(ContainerModule parent) {
+		mParent=parent;
+	}
 
 	public Iterable<InputPort> getInputPorts() {
 		return mInputs;
