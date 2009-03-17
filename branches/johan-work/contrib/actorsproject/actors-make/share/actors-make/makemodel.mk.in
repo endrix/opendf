@@ -5,6 +5,8 @@ ifeq "$(strip $(MODEL))" ""
   $(error MODEL not set)
 endif
 
+include $(MODEL).depend
+
 EXE?=$(MODEL)
 srcdir?=.
 
@@ -23,9 +25,7 @@ endif
 # (we have to do elaboration first, to get *.calml).
 #
 
-CALML_FILES:=$(wildcard *.calml)
-XLIM_FILES=$(CALML_FILES:.calml=.xlim)
-ACTOR_C_FILES=$(CALML_FILES:.calml=.c)
+ACTOR_C_FILES=$(XLIM_FILES:.xlim=.c)
 CONFIG_FILE?=config.c
 CONFIG_O=$(notdir $(CONFIG_FILE:.c=.o))
 OBJECTS=$(ACTOR_C_FILES:.c=.o) $(CONFIG_O)
@@ -62,8 +62,12 @@ ifdef PRESERVE_XLIM
 .SECONDARY: $(XLIM_FILES)
 endif
 
-%.xlim : %.cal
-	$(SSAGENERATOR) $<
+#
+# Dependence of .xlim on .cal and .par is given by $(MODEL).depend
+#
+%.xlim :
+	$(SSAGENERATOR) -mp "$(srcdir)" `cat $(basename $(@F)).par` $(<F)
+	mv $(basename $(<F)).xlim $@
 
 # clean: removes $(EXE), objects and all intermediate build files,
 #        (but keeps the elaboration, including config.c) 
@@ -74,4 +78,4 @@ clean:
 # cleaner: also clean the elaboration
 
 cleaner:
-	rm -f $(EXE) $(MODEL).xdf *.calml *.xlim *.c *.o
+	rm -f $(EXE) $(MODEL).xdf $(MODEL).depend *.par *.xlim *.c *.o

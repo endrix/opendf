@@ -9,28 +9,33 @@ endif
 # delete the built-in suffixes to avoid surprises
 .SUFFIXES:   
 
+# include $(MODEL).depend (regenerate from .xdf if it doesn't exist)
+# it declares the dependence of .xdf on network (.nl) files
+include $(MODEL).depend
+
 #
 # all: sets up .xdf, *.calml and config.c
 #
 
 .PHONY: all
-all: $(MODEL).timestamp config.c
+all: $(MODEL).depend config.c
 
 #
-# calml.timestamp: sets up *.calml from elaborated network.
+# Dependence of .xlim on .par and .cal (generated from .xdf)
 #
+$(MODEL).depend: $(MODEL).xdf
+	@$(SAXON8) -o $@ $< $(XDF2DEPEND_XSL)
 
-$(MODEL).timestamp: $(MODEL).xdf	
-	@# rm -f *.calml # TODO: find a better way -not OK with actors-test
-	@$(SAXON8) $< "$(XDF2CALMLS_XSL)"
-	@rm -f art_*.calml  # don't build system actors 
-	@touch $@
-
+#
+# Generate network configuration from .xdf
+#
 config.c: $(MODEL).xdf
-	@$(SAXON8) -o $@ $< "$(GENERATECONFIG_XSL)"
+	@$(SAXON8) -o $@ $< $(GENERATECONFIG_XSL)
 
-# TODO: generate a dependence rule when elaborating, include it here
-#       (not only the MODEL, but also submodel -in fact even actors)
-
-$(MODEL).xdf: $(srcdir)/$(MODEL).nl 
-	@$(ELABORATOR) -mp "$(srcdir)" $(MODEL)
+#
+# Dependence of $(MODEL).xdf on network (.nl) files is
+# declared in $(MODEL).depend. 
+#
+$(MODEL).xdf:
+	@$(ELABORATOR) -mp $(srcdir) $(MODEL)
+	@$(SAXON8) $(MODEL).xdf $(XDF2PAR_XSL)
