@@ -38,4 +38,4 @@ config.c: $(MODEL).xdf
 #
 $(MODEL).xdf:
 	@$(ELABORATOR) -mp $(srcdir) $(MODEL)
-	@$(SAXON8) $(MODEL).xdf $(XDF2PAR_XSL)
+	@$(XDF2PAR) $(MODEL).xdf

@@ -4,7 +4,7 @@
 .SUFFIXES:   
 
 # Contents of actors-make
-BIN_FILES=elaborator saxon8 ssagenerator xlim2c
+BIN_FILES=elaborator saxon8 ssagenerator xlim2c xdf2par
 MK_FILES=Makefile definitions.mk elaborate.mk makemodel.mk
 EXAMPLE_FILES=fib.nl AddUntilOverflow.cal art_Sink_txt.cal SingleDelay.cal
 
