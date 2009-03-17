@@ -36,7 +36,7 @@ OPENDF_XSLT_SOURCES = $(shell find $(OPENDF_HOME)/source/java/net/sf/opendf/xslt
 CONTRIB_SOURCES = $(shell find $(OPENDF_HOME)/source/java/net/sf/opendf/actors -name "*.java")
 
 jar: $(OPENDF_CLASSDIR)
-	cd $(OPENDF_CLASSDIR) ; $(JAR) -xvf ../../contrib/actorlib/lib/PtPlot.jar
+	cd $(OPENDF_CLASSDIR) ; $(JAR) -xvf $(OPENDF_HOME)/../contrib/actorlib/lib/PtPlot.jar
 	cd $(OPENDF_CLASSDIR) ; $(JAR) -cvf ../$(JAR_NAME) *
 
 clean:
