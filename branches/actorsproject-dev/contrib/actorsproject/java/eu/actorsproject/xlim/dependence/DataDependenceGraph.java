@@ -190,6 +190,14 @@ public class DataDependenceGraph {
 			return null;
 		}	
 
+		
+		@Override
+		public ValueNode getDominatingDefinition() {
+			// By convention initial values have no previous definition
+			// though they actually have one for each caller
+			return null;  
+		}
+
 		@Override
 		public <Result,Arg> Result accept(Visitor<Result,Arg> visitor, Arg arg) {
 			return visitor.visitInitial(this,mCallNode,arg);

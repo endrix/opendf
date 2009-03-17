@@ -107,8 +107,11 @@ public class StatePhiOperator extends Linkage<StatePhiOperator> implements PhiOp
 	
 	@Override
 	public void removeReferences() {
+		ValueNode dominatingDefinition=mOutput.getDominatingDefinition();
 		mInputs.get(0).setValue(null);
 		mInputs.get(1).setValue(null);
+		// Replace possible remaining uses
+		mOutput.substitute(dominatingDefinition);
 	}
 	
 	@Override
@@ -184,6 +187,22 @@ public class StatePhiOperator extends Linkage<StatePhiOperator> implements PhiOp
 		@Override
 		public ValueOperator getDefinition() {
 			return StatePhiOperator.this;
+		}
+
+		@Override
+		public ValueNode getDominatingDefinition() {
+			// Traverse along the path of input value #0 
+			// (avoid back-edge of loop, which is #1)
+			// Until we're in a module that encloses the test module
+			XlimModule container=mTestModule.getParentModule();
+			ValueNode value=getInputValue(0);
+			ValueOperator def=value.getDefinition();
+			while (def!=null && container.leastCommonAncestor(def.getParentModule())==container) {
+				value=value.getDominatingDefinition();
+				def=value.getDefinition();
+			}
+			
+			return value;
 		}
 	}
 }

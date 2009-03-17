@@ -652,7 +652,13 @@ public class DefaultXlimImplementation implements ReaderPlugIn {
 			@Override
 			public ValueOperator getDefinition() {
 				return PortModificationOperation.this;
-			}			
+			}
+
+			@Override
+			public ValueNode getDominatingDefinition() {
+				ValueUsage input=getStateAccessViaAttribute();
+				return input.getValue();
+			}		
 		}
 	}
 	
@@ -967,6 +973,12 @@ public class DefaultXlimImplementation implements ReaderPlugIn {
 				return AssignOperation.this;
 			}
 			
+			
+			@Override
+			public ValueNode getDominatingDefinition() {
+				return mStateVarAccess.getValue();
+			}
+
 			@Override 
 			public <Result,Arg> Result accept(Visitor<Result,Arg> visitor, Arg arg) {
 				boolean killed=(getNumInputPorts()==1);

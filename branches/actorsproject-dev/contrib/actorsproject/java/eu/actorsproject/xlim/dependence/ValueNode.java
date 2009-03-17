@@ -48,7 +48,7 @@ public abstract class ValueNode {
 	 * @return the operator which defines this value (null for initial values)
 	 */
 	public abstract ValueOperator getDefinition();
-	
+		
 	/**
 	 * @return unique identifier of the value (for debug printouts)
 	 */
@@ -90,10 +90,15 @@ public abstract class ValueNode {
 	 * @return the stateful resource (port/state variable), which corresponds to
 	 *         by this usage (null for values that correspond to OutputPorts)
 	 */
-	public XlimStateCarrier getStateCarrier() {
-		return null;
-	}
+	public abstract XlimStateCarrier getStateCarrier();
 	
+	/**
+	 * @return the dominating definition, which is superseded by this ValueNode
+	 *         null for values that correspond to OutputPorts,
+	 *         by convention also null for initial values of XLIM tasks
+	 */
+	public abstract ValueNode getDominatingDefinition();
+
 	// TODO: we would really need the type of a ValueNode, but that is complicated by
 	// the lack of representation for aggregate types, currently only List(T)
 	// /**
