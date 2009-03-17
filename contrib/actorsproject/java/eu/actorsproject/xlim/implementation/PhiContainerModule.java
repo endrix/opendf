@@ -156,7 +156,15 @@ abstract class PhiContainerModule extends AbstractModule
 			mStatePhis.addLast(phi);
 		}
 	}
-	
+
+	protected void removeStatePhiOperator(StatePhiOperator phiNode) {
+		// Check that this is one of my guys
+		if (phiNode.getParentModule()!=this)
+			throw new IllegalArgumentException("phi-node not contained in module");
+		phiNode.removeReferences();
+		phiNode.out();
+	}
+
 	protected Iterable<ValueNode> getStatePhiOutputs() {
 		return mStatePhis.getOutputs();
 	}
@@ -168,7 +176,7 @@ abstract class PhiContainerModule extends AbstractModule
 	protected Iterable<ValueUsage> getNormalPhiInputs(int path) {
 		return mPhiNodes.getInputs(path);
 	}
-	
+
 	protected void assertNoRemainingNewValues(FixupContext context) {
 		if (context.remainingNewValues()) {
 			// Currently we do not support creation of new phi-nodes, which would be
