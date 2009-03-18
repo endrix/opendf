@@ -34,32 +34,33 @@ BEGINCOPYRIGHT X
   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   
 ENDCOPYRIGHT
-*/
+ */
 package net.sf.opendf.eclipse.plugin.launcher.tabs;
 
-import org.eclipse.debug.ui.AbstractLaunchConfigurationTab;
+import org.eclipse.debug.ui.AbstractLaunchConfigurationTabGroup;
+import org.eclipse.debug.ui.CommonTab;
 import org.eclipse.debug.ui.ILaunchConfigurationDialog;
 import org.eclipse.debug.ui.ILaunchConfigurationTab;
-import org.eclipse.debug.ui.CommonTab;
-import org.eclipse.debug.ui.AbstractLaunchConfigurationTabGroup;
-import org.eclipse.swt.widgets.*;
-import java.util.*;
 
-public abstract class OpendfConfigurationTabGroup extends AbstractLaunchConfigurationTabGroup
-{  
-  public void createTabs( ILaunchConfigurationDialog dialog, String mode, AbstractLaunchConfigurationTab[] tabs  )
-  {   
-    ILaunchConfigurationTab[] launchTabs = new ILaunchConfigurationTab[ tabs.length + 1];
-    int i;
-    
-    for( i = 0; i < tabs.length; i++ )
-    {
-      launchTabs[ i ] = tabs[ i ];
-    };
-    
-    launchTabs[ i ] =  new CommonTab();
-    super.setTabs( launchTabs );
-    
-  }
-  
+public abstract class OpendfConfigurationTabGroup extends AbstractLaunchConfigurationTabGroup {
+	
+	/**
+	 * create a list of tabs that always includes the CommonTab as the last tab
+	 * 
+	 * @param dialog
+	 * @param mode
+	 * @param tabs
+	 */
+	public void createTabs(ILaunchConfigurationDialog dialog, String mode, ILaunchConfigurationTab[] tabs) {
+		ILaunchConfigurationTab[] launchTabs = new ILaunchConfigurationTab[tabs.length + 1];
+
+		for (int i = 0; i < tabs.length; i++) {
+			launchTabs[i] = tabs[i];
+		}
+
+		launchTabs[tabs.length] = new CommonTab();
+		super.setTabs(launchTabs);
+
+	}
+
 }

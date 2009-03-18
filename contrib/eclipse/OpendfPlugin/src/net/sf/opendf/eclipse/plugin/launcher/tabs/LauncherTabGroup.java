@@ -34,29 +34,30 @@ BEGINCOPYRIGHT X
   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   
 ENDCOPYRIGHT
-*/
+ */
 package net.sf.opendf.eclipse.plugin.launcher.tabs;
 
 import net.sf.opendf.eclipse.plugin.config.LoggingConfigTab;
 
-import org.eclipse.debug.ui.AbstractLaunchConfigurationTab;
 import org.eclipse.debug.ui.ILaunchConfigurationDialog;
 import org.eclipse.debug.ui.ILaunchConfigurationTab;
-import org.eclipse.debug.ui.CommonTab;
-import org.eclipse.debug.ui.AbstractLaunchConfigurationTabGroup;
 
-public class SimulationTabGroup extends OpendfConfigurationTabGroup
-{
+public class LauncherTabGroup extends OpendfConfigurationTabGroup {
 
-  public void createTabs( ILaunchConfigurationDialog dialog, String mode  )
-  {
-      AbstractLaunchConfigurationTab[] tabs =
-      {
-              new SimulationModelTab(),
-              new LoggingConfigTab()
-};
-    
-    super.createTabs( dialog, mode, tabs );
-  }
-  
+	public void createTabs(ILaunchConfigurationDialog dialog, String mode) {
+		ILaunchConfigurationTab[] tabs = null;
+		if (mode.equals("run")) {
+			//run tabs
+			tabs = new ILaunchConfigurationTab[] { 
+					new SimulationModelTab(),
+					new LoggingConfigTab() };
+		} else {
+			//debug tabs
+			tabs = new ILaunchConfigurationTab[] { 
+					new SimulationModelTab(),
+					new LoggingConfigTab() };
+		}
+		super.createTabs(dialog, mode, tabs);
+	}
+
 }
