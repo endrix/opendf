@@ -5,7 +5,7 @@
 
 # Contents of actors-make
 BIN_FILES=elaborator saxon8 ssagenerator xlim2c xdf2par
-MK_FILES=Makefile definitions.mk elaborate.mk makemodel.mk
+MK_FILES=Makefile definitions.mk makemodel.mk
 EXAMPLE_FILES=fib.nl AddUntilOverflow.cal art_Sink_txt.cal SingleDelay.cal
 
 XSL_FILES=generateConfig.xsl generateDepend.xsl generateInstanceParameters.xsl
@@ -40,13 +40,15 @@ SEDCMD:=$(shell $(SEDIFY) \
           @includedir@ $(includedir) @datadir@ $(datadir) \
           @javadir@    $(javadir)    @xsldir@  $(xsldir))
 
-.PHONY: all uninstall clean
+.PHONY: all uninstall clean opendf
 .PHONY: install install-dirs install-bin install-mk install-xsl install-java
 .PHONY: $(BIN_FILES_DEST) $(MK_FILES_DEST) $(EXAMPLE_FILES_DEST)
 
 all: opendf.jar
 
-opendf.jar:
+opendf.jar: opendf
+
+opendf:
 	@mkdir -p $(OPENDF_CLASSDIR)
 	@$(MAKE) -C $(OPENDF_CLASSDIR) -f $(OPENDF_HOME)/source/make/Makefile \
                 OPENDF_HOME=$(OPENDF_HOME) OPENDF_CLASSDIR=$(OPENDF_CLASSDIR)
@@ -79,7 +81,7 @@ $(EXAMPLE_FILES_DEST): $(datadir)/% : $(srcdir)/share/%
 install-xsl: 
 	@cp $(XSL_FILES:%=$(srcdir)/share/xsl/%) $(xsldir)/.
 
-install-java: opendf.jar
+install-java: # opendf.jar  <-- TODO opendf Makefile doesn't check timestamps
 	@cp opendf.jar $(JAR_LIB_FILES:%=$(OPENDF_HOME)/lib/%) $(javadir)/.
 
 INSTALLED_FILES=$(BIN_FILES:%=$(bindir)/%) \
