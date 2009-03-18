@@ -48,7 +48,6 @@
 #include <sys/timeb.h>
 #include <stdarg.h>
 #include "actors-rts.h"
-#include "circbuf.h"
 
 extern ActorClass		ActorClass_art_Sink;
 extern ActorClass		ActorClass_art_Source;
@@ -185,12 +184,20 @@ int pinRead2(ActorPort *actorPort,char *buf,int length)
   	bk = &cb->block;
 	instance = actorInstance[bk->aid];
 	pthread_mutex_lock(&instance->mt);
-	if(bk->num)
+	if(rts_mode == THREAD_PER_LIST)
 	{
-		if (get_circbuf_space(cb) >= bk->num)
+		if(!instance->execState)
+			instance->execState = 1;
+	}
+	else
+	{
+		if(bk->num)
 		{
-			actorTrace(actorInstance[actorPort->aid],LOG_INFO,"%s_%d signal %s_%d to write(%d)\n",actorInstance[actorPort->aid]->actor->name,actorPort->aid,instance->actor->name,bk->aid,actorPort->cid);
-			pthread_cond_signal(&instance->cv);
+			if (get_circbuf_space(cb) >= bk->num)
+			{
+				actorTrace(actorInstance[actorPort->aid],LOG_INFO,"%s_%d signal %s_%d to write(%d)\n",actorInstance[actorPort->aid]->actor->name,actorPort->aid,instance->actor->name,bk->aid,actorPort->cid);
+				pthread_cond_signal(&instance->cv);
+			}
 		}
 	}
 	pthread_mutex_unlock(&instance->mt);
@@ -237,12 +244,19 @@ int pinWrite2(ActorPort *actorPort,char *buf, int length)
 		bk = &cb->reader[i].block;
 		instance = actorInstance[bk->aid];
 		pthread_mutex_lock(&instance->mt);
-		if(bk->num)
+		if(rts_mode == THREAD_PER_LIST){
+			if(!instance->execState)
+				instance->execState = 1;
+		}
+		else
 		{
-			if(get_circbuf_area(cb,i) >=bk->num)
+			if(bk->num)
 			{
-				actorTrace(actorInstance[actorPort->aid],LOG_INFO,"%s_%d signal %s_%d to read(%d,%d)=%d \n",actorInstance[actorPort->aid]->actor->name,actorPort->aid,instance->actor->name,bk->aid,actorPort->cid,i,get_circbuf_area(cb,i));
-				pthread_cond_signal(&instance->cv);
+				if(get_circbuf_area(cb,i) >=bk->num)
+				{
+					actorTrace(actorInstance[actorPort->aid],LOG_INFO,"%s_%d signal %s_%d to read(%d,%d)=%d \n",actorInstance[actorPort->aid]->actor->name,actorPort->aid,instance->actor->name,bk->aid,actorPort->cid,i,get_circbuf_area(cb,i));
+					pthread_cond_signal(&instance->cv);
+				}
 			}
 		}
 		pthread_mutex_unlock(&instance->mt);
@@ -290,6 +304,7 @@ void init_actor_network(NetworkConfig *network)
 	ActorClass				*ptr;
 	ActorPort				*port;
 	int						i,j;
+	DLLIST					*lnode;
 	ActorConfig				**actors;
 	AbstractActorInstance	*pInstance;
 	int						cid,numFifos;
@@ -297,9 +312,21 @@ void init_actor_network(NetworkConfig *network)
 	int						FifoOutputPortIndex[128];
 	int						FifoInputPortIndex[128][128];
 
+	int						listIndex = 0;
+	int						numActorsPerList;
+
 	memset(NumReaderInstances,0,sizeof(NumReaderInstances));
 
 	actors = network->networkActors;
+
+	//get number of actors per list in average
+	if(rts_mode == THREAD_PER_LIST)
+	{
+		numActorsPerList = network->numNetworkActors/num_lists;
+		while(network->numNetworkActors - numActorsPerList*num_lists > numActorsPerList)
+			numActorsPerList++;
+	}
+
 	//actor port init
 	for(i=0; i<network->numNetworkActors; i++)
 	{
@@ -346,10 +373,33 @@ void init_actor_network(NetworkConfig *network)
 		pthread_cond_init (&pInstance->cv, NULL);
 
 		pInstance->aid = i;
+		pInstance->execState = 1;
+		actorStatus[i] = 1;
 		actorInstance[i] = pInstance;
 
-	}
+		//append to a double linked list
+		if(rts_mode == THREAD_PER_LIST)
+		{
+			if(i >= numActorsPerList-1){
+				if(i%numActorsPerList == 0){
+					if((network->numNetworkActors - 1 - i) > numActorsPerList/2)
+						listIndex++;
+				}
+			}
+			lnode = (DLLIST *)malloc(sizeof(DLLIST));
+			lnode->obj = pInstance;
+			append_node(&actorLists[listIndex],lnode);
+		}		
 
+	}
+	if(rts_mode == THREAD_PER_LIST)
+	{
+		if(num_lists < listIndex + 1){
+			num_lists = listIndex + 1;
+			trace(LOG_MUST,"Number of list adjusted to %d\n",num_lists); 
+		}
+	}
+		
 	//fifo init
 	numFifos = network->numFifos;
 	for(i=0; i<numFifos; i++)
