@@ -28,16 +28,6 @@ public class NLLoader implements SourceLoader {
 	}
 
 	public Node load(SourceStream s) {
-		//return saxonify(Lib.readNL(s.getInputStream()), s.getFilename());
-		Node n = saxonify(Lib.readNL(s.getInputStream()), s.getFilename());
-        String xmlRes = createXML(n);
-        try{
-          PrintWriter upw = new PrintWriter(new FileOutputStream("/Users/johan/Documents/CAL/work/MPEG4_SP_Decoder/XDF_sample.xml"));
-          upw.print(xmlRes);
-          upw.flush();
-        }  catch (Exception e){
-        	System.out.println("Could not output XM: debug sample");
-       	}
-		return n;
+		return saxonify(Lib.readNL(s.getInputStream()), s.getFilename());
 	}		
 }
