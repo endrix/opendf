@@ -44,16 +44,30 @@
     <xsl:output method="text" indent="yes"/>    
     <xsl:strip-space elements="*" />
   
+    <xsl:template match="XDF">
+      <xsl:value-of select="@name"/>
+      <xsl:text>.xdf </xsl:text>         
+      
+      <xsl:value-of select="substring-after(base-uri(.), 'file:')"/>
+      <xsl:text>&#xa; &#xa;</xsl:text>
+      
+      <xsl:text>XLIM_FILES=</xsl:text>
+      <xsl:for-each select="//Instance/Note[@kind='UID']">
+        <xsl:value-of select="@value"/>
+        <xsl:text>.xlim </xsl:text>              
+      </xsl:for-each>
+      <xsl:text>&#xa; &#xa;</xsl:text> 
+      <xsl:apply-templates select="*"/>
+    </xsl:template>
+
     <xsl:template match="Instance">
       <xsl:variable name='UID' select="./Note[@kind='UID']/@value"/>   
-      <xsl:variable name='className' select="./Note[@kind='className']/@value"/>   
       <xsl:value-of select="$UID"/> 
       <xsl:text>.xlim : </xsl:text>
       <xsl:value-of select="Actor/Note[@kind='filepath']/@value"/> 
-      <xsl:for-each select=".//Note[@kind='hierElement']">
-        <xsl:value-of select="@value"/>        
-        <xsl:text>.nl </xsl:text>        
-      </xsl:for-each>
+      <xsl:text> </xsl:text>      
+      <xsl:value-of select="$UID"/> 
+      <xsl:text>.par </xsl:text>      
       <xsl:text>&#xa;</xsl:text>
     </xsl:template>
   

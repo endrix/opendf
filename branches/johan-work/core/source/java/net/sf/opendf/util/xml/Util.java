@@ -442,7 +442,7 @@ public class Util {
     	Element e= d.createElement("Note");
     	e.setAttribute("kind", "filepath");    	
     	e.setAttribute("value", filepath);
-    	d.getFirstChild().appendChild(e);
+    	d.getDocumentElement().appendChild(e);  //getFirstChild()
     	return saxonify(d);
     }    
     

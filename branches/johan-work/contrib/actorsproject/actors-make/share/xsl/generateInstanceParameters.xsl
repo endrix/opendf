@@ -46,20 +46,13 @@
   
     <xsl:template match="Instance">      
       <xsl:variable name='UID' select="./Note[@kind='UID']/@value"/>   
-      <xsl:variable name="filename" select="concat($UID, '.par')"/>
+      <xsl:variable name="filename" select="concat($UID, '.par.new')"/>
       <xsl:result-document href="{$filename}" format="pars">              
         <xsl:for-each select="Parameter">
-          <xsl:text>-D</xsl:text>
+          <xsl:text>-D </xsl:text>
           <xsl:value-of select="@name" />
-          <xsl:text>=</xsl:text>  
-          <xsl:choose>
-            <xsl:when test="./Expr/Decl/Expr/Decl/Expr/@value">                            
-              <xsl:value-of select="./Expr/Decl/Expr/Decl/Expr/@value" />
-            </xsl:when>
-            <xsl:otherwise>
-              <xsl:value-of select="./Expr/Decl/Expr/@value" />                
-            </xsl:otherwise>
-          </xsl:choose>                
+          <xsl:text>=</xsl:text>            
+          <xsl:value-of select=".//@value" />
           <xsl:text> </xsl:text>
         </xsl:for-each>      
         <xsl:text>&#xa;</xsl:text>
