@@ -1,6 +1,9 @@
 # makemodel.mk - elaborate, compile and link a CAL network/model
 #                Assumed to be used in sub-make from main Makefile
 
+# delete the built-in suffixes to avoid surprises
+.SUFFIXES:   
+
 ifeq "$(strip $(MODEL))" ""
   $(error MODEL not set)
 endif
@@ -17,7 +20,6 @@ endif
 
 ifdef PRESERVE_ALL
 PRESERVE_C=Y
-PRESERVE_XLIM=Y
 endif
 
 #
@@ -26,12 +28,8 @@ endif
 #
 
 ACTOR_C_FILES=$(XLIM_FILES:.xlim=.c)
-CONFIG_FILE?=config.c
-CONFIG_O=$(notdir $(CONFIG_FILE:.c=.o))
-OBJECTS=$(ACTOR_C_FILES:.c=.o) $(CONFIG_O)
-
-# delete the built-in suffixes to avoid surprises
-.SUFFIXES:   
+PAR_FILES=$(XLIM_FILES:.xlim=.par)
+OBJECTS=$(ACTOR_C_FILES:.c=.o) $(MODEL).o
 
 .PHONY: all clean cleaner
 
@@ -41,14 +39,10 @@ $(EXE): $(OBJECTS)
 	$(CC) $(LDFLAGS) -o $@ -L$(ACTORS_LIB) $^
 
 #
-# Implicit rules .cal -> .xlim -> .c -> .o
+# Implicit rules .xlim -> .c -> .o
 #
 
 %.o : %.c
-	$(CC) -c $(CPPFLAGS) $(CFLAGS) -o $@ $<
-
-# Supports config file in different directory
-$(CONFIG_O): $(CONFIG_FILE)
 	$(CC) -c $(CPPFLAGS) $(CFLAGS) -o $@ $<
 
 ifdef PRESERVE_C
@@ -58,24 +52,46 @@ endif
 %.c : %.xlim
 	$(XLIM2C) $< $@
 
-ifdef PRESERVE_XLIM
-.SECONDARY: $(XLIM_FILES)
-endif
+#
+# Generate network configuration from .xdf
+#
+$(MODEL).c: $(MODEL).xdf
+	$(SAXON8) -o $@ $< $(GENERATECONFIG_XSL)
 
 #
-# Dependence of .xlim on .cal and .par is given by $(MODEL).depend
+# Generate .xlim from .cal and .par
+# (dependence of .xlim on .cal and .par is given by $(MODEL).depend)
 #
-%.xlim :
+$(XLIM_FILES): %.xlim :
 	$(SSAGENERATOR) -mp "$(srcdir)" `cat $(basename $(@F)).par` $(<F)
 	mv $(basename $(<F)).xlim $@
 
-# clean: removes $(EXE), objects and all intermediate build files,
-#        (but keeps the elaboration, including config.c) 
+#
+# Generate parameter (.par) files from $(MODEL).xdf
+# (dependence of .par files on $(MODEL).xdf via $(MODEL).timestamp)
+#
+
+$(PAR_FILES): $(MODEL).timestamp
+
+$(MODEL).timestamp: $(MODEL).xdf
+	$(XDF2PAR) $<
+	@touch $@
+
+#
+# Generate dependences from .xdf
+#
+$(MODEL).depend: $(MODEL).xdf
+	$(SAXON8) -o $@ $< $(XDF2DEPEND_XSL)
+
+
+#
+# Generate xdf from network (nl) files
+# (dependence of $(MODEL).xdf on network (.nl) files is
+#  given in $(MODEL).depend). 
+#
+$(MODEL).xdf: $(srcdir)/$(MODEL).nl $(SUB_NETWORKS)
+	$(ELABORATOR) -mp $(srcdir) $(MODEL)
 
 clean:
-	rm -f $(EXE) *.xlim $(ACTOR_C_FILES) *.o
-
-# cleaner: also clean the elaboration
-
-cleaner:
-	rm -f $(EXE) $(MODEL).xdf $(MODEL).depend *.par *.xlim *.c *.o
+	rm -f $(EXE) $(MODEL).xdf $(MODEL).depend $(MODEL).timestamp \
+            *.par *.xlim *.c *.o
