@@ -5,6 +5,7 @@ Bundle-Activator: net.sf.opendf.eclipse.plugin.OpendfPlugin
 Bundle-Vendor: The Open Dataflow Project
 Bundle-Localization: 
 Require-Bundle: org.eclipse.core.runtime,
+ org.eclipse.debug.core,
  org.eclipse.debug.ui,
  org.eclipse.jface.text,
  org.eclipse.ui,
