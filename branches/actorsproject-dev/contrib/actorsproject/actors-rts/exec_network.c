@@ -48,12 +48,17 @@
 #include <sys/stat.h>
 #include "actors-rts.h"
 #include "circbuf.h"
+#include "dll.h"
 
 #define BLOCKED 		1
+#define MAX_LIST_NUM	128
 
 static int				Running = 1;
-int						log_level=LOG_ERROR;
-int						trace_action=0;
+int						log_level = LOG_ERROR;
+int						trace_action = 0;
+int						rts_mode = THREAD_PER_ACTOR;
+LIST					actorLists[MAX_LIST_NUM];
+int						num_lists = 1;
 
 static void stop_run(int sig){
     trace(LOG_MUST,"\nprogram stop running: sig=%x pid=%x\n",sig,getpid());
@@ -120,7 +125,7 @@ static void printActorInfo(int numInstances)
 	for (i = 0; i < numInstances; i++)
 	{
 		instance = actorInstance[i];
-		printf("\n%s: %s\n",instance->actor->name,(actorStatus[i] == 0)?"running":"blocked");
+		printf("\n%s: %s\n",instance->actor->name,(actorStatus[i] == 1)?"running":"blocked");
 		printf("inputPort[index,readIndex,pinWait]=pinAvail:\n");
 		for (j = 0; j < instance->actor->numInputPorts; j++)
 		{
@@ -139,6 +144,18 @@ static void printActorInfo(int numInstances)
 		}
 	}	
 	printf("\n");
+}
+
+static DLLIST *node_select(LIST *actorList, DLLIST *lnode)
+{
+	DLLIST			*node;
+
+	if(lnode && lnode->next)
+		node = lnode->next;
+	else
+		node = actorList->head;
+
+	return node;
 }
 
 static int wait_on_write(AbstractActorInstance *instance)
@@ -189,8 +206,7 @@ static int wait_on_read(AbstractActorInstance *instance)
 	return 1;
 }
 
-
-static void exec_unit(AbstractActorInstance *instance)
+static void exec_actor_unit(AbstractActorInstance *instance)
 {
 	int				block;
 
@@ -215,9 +231,9 @@ static void exec_unit(AbstractActorInstance *instance)
 		if(block)
 		{
  			actorTrace(instance,LOG_INFO,"%s_%d blocked on %s\n",instance->actor->name,instance->aid,(block==1)?"read":"write");
-			actorStatus[instance->aid]=block;
-			pthread_cond_wait(&instance->cv, &instance->mt);
 			actorStatus[instance->aid]=0;
+			pthread_cond_wait(&instance->cv, &instance->mt);
+			actorStatus[instance->aid]=1;
 			actorTrace(instance,LOG_INFO,"%s_%d wakeup\n",instance->actor->name,instance->aid);
 		}
 		pthread_mutex_unlock(&instance->mt);
@@ -226,26 +242,65 @@ static void exec_unit(AbstractActorInstance *instance)
 	pthread_exit(NULL);
 }
 
+static void exec_list_unit(LIST *actorList)
+{
+	DLLIST			*lnode = NULL;
+	AbstractActorInstance *instance;
+	static int		count = 0;
+	int				noRuns = 0;
+
+	if(actorList->numNodes == 0)
+		pthread_exit(NULL);
+
+	trace(LOG_MUST,"Actor List(%d) containing %d actors start running......\n",count++,actorList->numNodes);
+
+	while(Running)
+	{
+		//select actor instance
+		lnode = node_select(actorList,lnode);
+		instance = (AbstractActorInstance*)lnode->obj;
+
+		//actor dispatch
+		if(instance->execState){
+			if(instance->actor->action_scheduler){
+				pthread_mutex_lock(&instance->mt);
+				instance->execState = 0;
+				pthread_mutex_unlock(&instance->mt);
+
+				noRuns = 0;
+				instance->actor->action_scheduler(instance);
+			}
+		}
+		else
+		{
+			noRuns++;
+			if(noRuns>=actorList->numNodes)
+			{
+				noRuns = 0;
+				sched_yield();
+			}
+		}
+	}
+	pthread_exit(NULL);
+}
+
 int actors_status(int numInstances)
 {
 	int i;
 	int ret = 1;
+	int status;
 
 	for(i=0; i<numInstances; i++)
 	{
-		if(actorStatus[i] == 0)
+		if(rts_mode == THREAD_PER_ACTOR)
+			status = actorStatus[i];
+		else
+			status = actorInstance[i]->execState;
+
+		if(status== 1)
 		{
 			ret = 0;
 			break;
-		}
-	}
-	if(ret)
-	{
-		trace(LOG_MUST,"Following actors are blocked on the output port:\n");
-		for(i=0; i<numInstances; i++)
-		{
-			if(actorStatus[i] == 2)
-				trace(LOG_MUST,"Actor[%d] %s\n",i,actorInstance[i]->actor->name);
 		}
 	}
 	return ret;
@@ -259,25 +314,35 @@ int execute_network(int argc, char *argv[],NetworkConfig *networkConfig)
 	pthread_attr_t attr;
 
 	//command line param parser
-	while ((c = getopt (argc, argv, "tvhl:")) != -1)
+	while ((c = getopt (argc, argv, "tvhn:l:m:")) != -1)
 	{
 		switch (c)
 		{
 			case 'h':
 				fprintf (stderr, "%s [-l <trace level>] [-h]...\n",argv[0]);
 				fprintf (stderr, "  -l <trace level>   set trace level(0:must 1:error 2:warn 3:info 4:exec)\n");
+				fprintf (stderr, "  -m <rts mode>      set rts mode (1:thread per actor 2:thread per list\n");
+				fprintf (stderr, "  -n <num of thread> set number of thread(default is 1) for thread per list mode\n");
 				fprintf (stderr, "  -t                 turn on trace for action scheduler\n");
 				fprintf (stderr, "  -h                 print this help and exit\n");
-				fprintf (stderr, "  -v                 priint version information and exit\n");
+				fprintf (stderr, "  -v                 print version information and exit\n");
 				return 0;
 			case 'v':
 				fprintf (stderr, "RTS Version: %s\n",RTS_VERSION);
 				return 0;
 			case 'l':
 				log_level = atoi(optarg);
+			case 'n':
+				num_lists = atoi(optarg);
 				break;
 			case 't':
 				trace_action = 1;
+			case 'm':
+				rts_mode = atoi(optarg);
+				if(rts_mode != THREAD_PER_ACTOR && rts_mode != THREAD_PER_LIST){
+					trace(LOG_MUST, "Invalid rts mode %d, default to THREAD_PER_ACTOR mode\n",rts_mode);
+					rts_mode = THREAD_PER_ACTOR;
+				}
 				break;
  			case '?':
 // 			if (optopt == 'l')
@@ -294,7 +359,9 @@ int execute_network(int argc, char *argv[],NetworkConfig *networkConfig)
 	numInstances = networkConfig->numNetworkActors;
 	numFifos = networkConfig->numFifos;
 
-	trace(LOG_MUST,"\nModuleName: %s numInstances: %d numFifos: %d\n",argv[0],numInstances,numFifos);
+	trace(LOG_MUST,"ModuleName: %s numInstances: %d numFifos: %d\n",argv[0],numInstances,numFifos);
+	if(rts_mode == THREAD_PER_LIST)
+		trace(LOG_MUST,"Number of lists = %d\n",num_lists);
 
 	init_actor_network(networkConfig);
 	
@@ -312,12 +379,21 @@ int execute_network(int argc, char *argv[],NetworkConfig *networkConfig)
 	pthread_attr_init(&attr);
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
-	//actor thread
-	for(i=0;i<numInstances;i++)
+	if(rts_mode == THREAD_PER_ACTOR)
 	{
-		pthread_create((pthread_t*)&actorInstance[i]->tid, &attr, (void*)exec_unit, (void *) actorInstance[i]);
+		for(i=0;i<numInstances;i++)
+		{
+			pthread_create((pthread_t*)&actorInstance[i]->tid, &attr, (void*)exec_actor_unit, (void *) actorInstance[i]);
+		}
 	}
-
+	else
+	{ 
+		//actor list thread
+		for(i=0;i<num_lists;i++)
+		{
+			pthread_create((pthread_t*)&actorInstance[i]->tid, &attr, (void*)exec_list_unit, (void *) &actorLists[i]);
+		}
+	}
  	while(Running)
  	{
 		count++;

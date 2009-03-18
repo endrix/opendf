@@ -43,6 +43,7 @@
 #include <stdio.h>
 #include <semaphore.h>
 #include "circbuf.h"
+#include "dll.h"
 
 #define INPUT				0
 #define OUTPUT				1
@@ -64,8 +65,10 @@
 #define	LOG_EXEC			4			//also log func exec
 #define	LOG_STOP			(-99)		//disable log file
 
-#define	RTS_VERSION			"1.0"
+#define	RTS_VERSION			"1.1.0"
 
+#define THREAD_PER_ACTOR	1
+#define THREAD_PER_LIST		2
 
 typedef int					bool_t;
 
@@ -90,6 +93,7 @@ typedef struct {
 	ActorClass		*actor;					//actor
 	ActorPort		*inputPort;	
 	ActorPort		*outputPort;
+	int				execState;
 
 	FILE			*fd;
 
@@ -124,9 +128,12 @@ typedef struct {
 
 extern AbstractActorInstance	*actorInstance[];
 extern ActorClass				*actorClass[];
+extern LIST						actorLists[];
 extern int						actorStatus[];
 extern int						log_level;
 extern int						trace_action;
+extern int						num_lists;
+extern int						rts_mode;
 
 extern int	execute_network(int argc, char *argv[], NetworkConfig *network);
 extern void init_actor_network(NetworkConfig *);

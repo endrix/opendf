@@ -86,32 +86,42 @@ static int read_file(FILE *fd, char *buf,int size)
 	return ret;
 }
 
-static void Write0(ActorInstance *thisActor) {
+static int Write0(ActorInstance *thisActor) {
 	char		buf[MAX_DATA_LENGTH];
 	int			ret;
 
 	ret = read_file(thisActor->fd,buf,thisActor->OUT0_TOKENSIZE);
 	if(ret == EOF){
- 		fclose((FILE*)thisActor->fd);
-		thisActor->fd = 0;
-		printf("Source exit!\n");
-		actorStatus[thisActor->base.aid]=1;
-		pthread_exit(NULL);
-	}
-	pinWrite2(&thisActor->OUT0_Result,buf,ret);
+		if(rts_mode == THREAD_PER_ACTOR)
+		{
+ 			fclose((FILE*)thisActor->fd);
+ 			thisActor->fd = 0;
+ 			printf("Source %s exit!\n",thisActor->base.actor->name);
+			actorStatus[thisActor->base.aid]=0;
+ 			pthread_exit(NULL);
+		}
+		else
+			thisActor->base.execState = 0;
+	}else
+		pinWrite2(&thisActor->OUT0_Result,buf,ret);
+
+	return ret;
 }
 
 static void a_action_scheduler(AbstractActorInstance *pBase) {
   ActorInstance *thisActor=(ActorInstance*) pBase;
 
 	int available;
+	int	ret;
 
 	while(1)
 	{
 		available=pinStatus2(&thisActor->OUT0_Result);
 		if(available>=thisActor->OUT0_TOKENSIZE)
 		{
-			Write0(thisActor);	
+			ret = Write0(thisActor);
+			if (ret == EOF)
+				return;
 		}
 		else
 		{
