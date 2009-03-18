@@ -134,31 +134,22 @@
           </xsl:for-each>
           <xsl:text>};&#xa;</xsl:text>
           
-          <xsl:text>static ActorParameter params_</xsl:text>
-          <xsl:value-of select="$UID"/>
-          <xsl:text>[]={</xsl:text>
-          <xsl:for-each select="Parameter">
-            <xsl:text>"</xsl:text>
-            <xsl:value-of select="@name" />
-            <xsl:text>", "</xsl:text>  
-            <xsl:choose>
-              <xsl:when test="./Expr/Decl/Expr/Decl/Expr/@value">                            
-                <xsl:value-of select="./Expr/Decl/Expr/Decl/Expr/@value" />
-              </xsl:when>
-              <xsl:otherwise>
-                <xsl:value-of select="./Expr/Decl/Expr/@value" />                
-              </xsl:otherwise>
-            </xsl:choose>
-            
-            
-            <xsl:text>"</xsl:text>
-            <xsl:if test="not(position() = last())">
-              <xsl:text>, </xsl:text>             
-            </xsl:if>
-          </xsl:for-each>
-          <xsl:text>};&#xa;&#xa;</xsl:text>
-          
-          
+          <xsl:if test="contains($UID, 'art_')">          
+            <xsl:text>static ActorParameter params_</xsl:text>
+            <xsl:value-of select="$UID"/>
+            <xsl:text>[]={</xsl:text>
+            <xsl:for-each select="Parameter">
+              <xsl:text>{"</xsl:text>
+              <xsl:value-of select="@name" />
+              <xsl:text>", "</xsl:text>  
+              <xsl:value-of select=".//@value" />
+              <xsl:text>"}</xsl:text>  
+              <xsl:if test="not(position() = last())">
+                <xsl:text>, </xsl:text>             
+              </xsl:if>
+            </xsl:for-each>
+            <xsl:text>};&#xa;&#xa;</xsl:text>
+          </xsl:if>          
           
         </xsl:for-each>            
         <xsl:text>&#xa;&#xa;</xsl:text>
@@ -210,7 +201,7 @@
             </xsl:when>
             <xsl:otherwise>
               <xsl:text>   0,&#xa;</xsl:text>  
-              <xsl:text>   null&#xa;</xsl:text>                          
+              <xsl:text>   0&#xa;</xsl:text>                          
             </xsl:otherwise>            
             
           </xsl:choose> 

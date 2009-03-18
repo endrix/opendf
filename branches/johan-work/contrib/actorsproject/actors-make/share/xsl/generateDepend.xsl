@@ -46,15 +46,16 @@
   
     <xsl:template match="XDF">
       <xsl:value-of select="@name"/>
-      <xsl:text>.xdf </xsl:text>         
-      
+      <xsl:text>.xdf :</xsl:text>               
       <xsl:value-of select="substring-after(base-uri(.), 'file:')"/>
       <xsl:text>&#xa; &#xa;</xsl:text>
       
       <xsl:text>XLIM_FILES=</xsl:text>
       <xsl:for-each select="//Instance/Note[@kind='UID']">
-        <xsl:value-of select="@value"/>
-        <xsl:text>.xlim </xsl:text>              
+        <xsl:if test="not(contains(./@value,'_art'))">
+          <xsl:value-of select="@value"/>
+          <xsl:text>.xlim </xsl:text>  
+        </xsl:if>                   
       </xsl:for-each>
       <xsl:text>&#xa; &#xa;</xsl:text> 
       <xsl:apply-templates select="*"/>
