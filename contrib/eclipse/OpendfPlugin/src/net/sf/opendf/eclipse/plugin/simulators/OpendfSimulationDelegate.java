@@ -37,104 +37,195 @@ ENDCOPYRIGHT
  */
 package net.sf.opendf.eclipse.plugin.simulators;
 
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.debug.core.ILaunch;
-import org.eclipse.debug.core.ILaunchConfiguration;
+import java.io.IOException;
+import java.net.ServerSocket;
+
 import net.sf.opendf.cli.PhasedSimulator;
-import net.sf.opendf.config.*;
+import net.sf.opendf.config.ConfigGroup;
+import net.sf.opendf.config.SimulationConfigGroup;
+import net.sf.opendf.eclipse.plugin.OpendfPlugin;
 import net.sf.opendf.eclipse.plugin.config.ConfigUpdateWrapper;
 import net.sf.opendf.eclipse.plugin.config.OpendfConfigLaunchDelegate;
 
-public class OpendfSimulationDelegate extends OpendfConfigLaunchDelegate
-{
-    private static final String consolePrefix = "Simulation";
-    
-    public void launch(ILaunchConfiguration configuration, String mode,
-            ILaunch launch, IProgressMonitor monitor ) throws CoreException 
-            {
-        ConfigGroup configs = new SimulationConfigGroup();
-        // Update all the configs with the user settings.
-        configs.updateConfig(new ConfigUpdateWrapper(configuration), configs.getConfigs().keySet());
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.debug.core.ILaunch;
+import org.eclipse.debug.core.ILaunchConfiguration;
+import org.eclipse.debug.core.ILaunchManager;
 
-        attachConsole(consolePrefix, configs);
+/**
+ * The Launch delegate for opendf implementing simulation and debugging functionality
+ * 
+ * Note: this could also be extended to implement profiling capability
+ * 
+ * @version 18 March 2009
+ *
+ */
+public class OpendfSimulationDelegate extends OpendfConfigLaunchDelegate {
+	private static final String consolePrefix = "Simulation";
 
-        monitor.beginTask( "Dataflow Simulation", 5 );
-        status().println("Starting dataflow simulator" );
+	public void launch(ILaunchConfiguration configuration, String mode, ILaunch launch, IProgressMonitor monitor) throws CoreException {
+		if (mode.equals(ILaunchManager.RUN_MODE)) {
+			launchSimulator(configuration, mode, launch, monitor);
+		} else {
+			launchDebugger(configuration, mode, launch, monitor);
+		}
+	}
 
-        monitor.setTaskName( "Setup" );
 
-        PhasedSimulator simulator = new PhasedSimulator(configs);
+	/**
+	 * Launch a debugging session
+	 * 
+	 * @param configuration
+	 * @param mode
+	 * @param launch
+	 * @param monitor
+	 */
+	private void launchDebugger(ILaunchConfiguration configuration, String mode, ILaunch launch, IProgressMonitor monitor) throws CoreException {
+		// if in debug mode, add debug arguments - i.e. '-debug requestPort eventPort'
+		int requestPort = -1;
+		int eventPort = -1;
+		if (mode.equals(ILaunchManager.DEBUG_MODE)) {
+			requestPort = findFreePort();
+			eventPort = findFreePort();
+			if (requestPort == -1 || eventPort == -1) {
+				throw new CoreException(new Status(IStatus.ERROR, OpendfPlugin.ID, 0, "Unable to find free port", null));
+			}
+			//debug messages
+			System.out.println("Allocated command socket to port: " + requestPort);
+			System.out.println("Allocated event socket to port: " + eventPort);
+			
+			
+			
+//			commandList.add("-debug");
+//			commandList.add("" + requestPort);
+//			commandList.add("" + eventPort);
+		}
+		
+//		String[] commandLine = (String[]) commandList.toArray(new String[commandList.size()]);
+//		Process process = DebugPlugin.exec(commandLine, null);
+//		IProcess p = DebugPlugin.newProcess(launch, process, path);
+//		// if in debug mode, create a debug target 
+//		if (mode.equals(ILaunchManager.DEBUG_MODE)) {
+//			IDebugTarget target = new PDADebugTarget(launch, p, requestPort, eventPort);
+//			launch.addDebugTarget(target);
+//		}
+	}
 
-        monitor.worked( 1 );
-        monitor.setTaskName( "Elaboration" );
-        status().println( "Elaborating ..." );
 
-        if( ! simulator.elaborate() )
-        {
-            error().println( "Elaboration failed" );
-            status().println("Closing simulator");
-            detachConsole();
-            monitor.done();
-            return;
-        }
+	/**
+	 * The original method to launch a dataflow simulation
+	 * 
+	 * @param configuration
+	 * @param mode
+	 * @param launch
+	 * @param monitor
+	 * @throws CoreException
+	 */
+	private void launchSimulator(ILaunchConfiguration configuration, String mode, ILaunch launch, IProgressMonitor monitor) throws CoreException {
+		ConfigGroup configs = new SimulationConfigGroup();
+		// Update all the configs with the user settings.
+		configs.updateConfig(new ConfigUpdateWrapper(configuration), configs.getConfigs().keySet());
 
-        monitor.worked( 1 );
-        monitor.setTaskName( "Initialization" );
-        status().println( "Initializing ..." );
+		attachConsole(consolePrefix, configs);
 
-        simulator.initialize();
+		monitor.beginTask("Dataflow Simulation", 5);
+		status().println("Starting dataflow simulator");
 
-        monitor.worked( 1 );
-        monitor.setTaskName( "Simulation" );
-        status().println( "Simulating ..." );
+		monitor.setTaskName("Setup");
 
-        int result;
+		PhasedSimulator simulator = new PhasedSimulator(configs);
 
-        while( true )
-        {
-            result = simulator.advanceSimulation( 5000 );
+		monitor.worked(1);
+		monitor.setTaskName("Elaboration");
+		status().println("Elaborating ...");
 
-            if( monitor.isCanceled() )
-            {
-                // print out the final sim status.
-                simulator.cleanup();
-                error().println("Cancellation requested");
-                status().println("Closing simulator");
-                detachConsole();
-                monitor.done();
-                return;
-            }
+		if (!simulator.elaborate()) {
+			error().println("Elaboration failed");
+			status().println("Closing simulator");
+			detachConsole();
+			monitor.done();
+			return;
+		}
 
-            if( result != PhasedSimulator.RUNNING )
-            {
-                if( result == PhasedSimulator.FAILED )
-                {
-                    error().println("Simulation failed");
-                    status().println("Closing simulator");
-                    detachConsole();
-                    monitor.done();
-                    return;
-                }
+		monitor.worked(1);
+		monitor.setTaskName("Initialization");
+		status().println("Initializing ...");
 
-                break;
-            }
-        }
+		simulator.initialize();
 
-        if( result == PhasedSimulator.COMPLETED )
-            status().println("Simulation ran to completion");
-        else
-            status().println("Simulation reached error limit");
+		monitor.worked(1);
+		monitor.setTaskName("Simulation");
+		status().println("Simulating ...");
 
-        monitor.worked( 1 );
-        monitor.setTaskName( "Cleanup" );
+		int result;
 
-        simulator.cleanup();
+		while (true) {
+			result = simulator.advanceSimulation(5000);
 
-        status().println("Closing simulator");
+			if (monitor.isCanceled()) {
+				// print out the final sim status.
+				simulator.cleanup();
+				error().println("Cancellation requested");
+				status().println("Closing simulator");
+				detachConsole();
+				monitor.done();
+				return;
+			}
 
-        detachConsole();
-        monitor.done();
-            }
+			if (result != PhasedSimulator.RUNNING) {
+				if (result == PhasedSimulator.FAILED) {
+					error().println("Simulation failed");
+					status().println("Closing simulator");
+					detachConsole();
+					monitor.done();
+					return;
+				}
 
+				break;
+			}
+		}
+
+		if (result == PhasedSimulator.COMPLETED)
+			status().println("Simulation ran to completion");
+		else
+			status().println("Simulation reached error limit");
+
+		monitor.worked(1);
+		monitor.setTaskName("Cleanup");
+
+		simulator.cleanup();
+
+		status().println("Closing simulator");
+
+		detachConsole();
+		monitor.done();
+	}
+
+	/**
+	 * Returns a free port number on localhost, or -1 if unable to find a free port.
+	 * 
+	 * @return a free port number on localhost, or -1 if unable to find a free port
+	 */
+	public static int findFreePort() {
+		ServerSocket socket= null;
+		try {
+			socket= new ServerSocket(0);
+			return socket.getLocalPort();
+		} catch (IOException e) { 
+		} finally {
+			if (socket != null) {
+				try {
+					socket.close();
+				} catch (IOException e) {
+				}
+			}
+		}
+		return -1;		
+	}		
+
+	
+	
 }
