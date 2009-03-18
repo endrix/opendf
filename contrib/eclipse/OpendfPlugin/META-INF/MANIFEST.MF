@@ -22,5 +22,5 @@ Provide-Package: net.sf.opendf.eclipse.plugin,
  net.sf.opendf.eclipse.plugin.editors.outline,
  net.sf.opendf.eclipse.plugin.editors.rules,
  net.sf.opendf.eclipse.plugin.editors.scanners,
- net.sf.opendf.eclipse.plugin.simulators,
- net.sf.opendf.eclipse.plugin.simulators.tabs
+ net.sf.opendf.eclipse.plugin.launcher,
+ net.sf.opendf.eclipse.plugin.launcher.tabs

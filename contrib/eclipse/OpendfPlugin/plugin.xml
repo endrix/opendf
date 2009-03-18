@@ -23,11 +23,11 @@
          name="Dataflow Simulation"
          point="org.eclipse.debug.core.launchConfigurationTypes">
          <launchConfigurationType
-               delegate="net.sf.opendf.eclipse.plugin.simulators.OpendfSimulationDelegate"
-               delegateName="Dataflow Simulator/Debugger"
+               delegate="net.sf.opendf.eclipse.plugin.launcher.OpendfLaunchDelegate"
+               delegateName="Dataflow System"
                id="net.sf.opendf.eclipse.plugin.simulation"
                modes="run, debug"
-               name="Dataflow Simulation"
+               name="Dataflow System"
                public="true" />
    </extension>
    <extension
@@ -40,7 +40,7 @@
    <extension
          point="org.eclipse.debug.ui.launchConfigurationTabGroups">
       <launchConfigurationTabGroup
-            class="net.sf.opendf.eclipse.plugin.simulators.tabs.SimulationTabGroup"
+            class="net.sf.opendf.eclipse.plugin.launcher.tabs.SimulationTabGroup"
             id="net.sf.opendf.eclipse.plugin.simulation.tabgroup"
             type="net.sf.opendf.eclipse.plugin.simulation"/>
    </extension>
