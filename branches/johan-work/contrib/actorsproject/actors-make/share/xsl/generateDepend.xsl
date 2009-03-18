@@ -45,14 +45,20 @@
     <xsl:strip-space elements="*" />
   
     <xsl:template match="XDF">
+      <!--
       <xsl:value-of select="@name"/>
       <xsl:text>.xdf :</xsl:text>               
       <xsl:value-of select="substring-after(base-uri(.), 'file:')"/>
       <xsl:text>&#xa; &#xa;</xsl:text>
+      -->
+      
+      <xsl:text>SUB_NETWORKS=</xsl:text>
+      <xsl:value-of select="./Note[@kind='filepath']/@value"/>         
+      <xsl:text>&#xa; &#xa;</xsl:text> 
       
       <xsl:text>XLIM_FILES=</xsl:text>
       <xsl:for-each select="//Instance/Note[@kind='UID']">
-        <xsl:if test="not(contains(./@value,'_art'))">
+        <xsl:if test="not(contains(./@value,'art_'))">
           <xsl:value-of select="@value"/>
           <xsl:text>.xlim </xsl:text>  
         </xsl:if>                   
@@ -63,13 +69,15 @@
 
     <xsl:template match="Instance">
       <xsl:variable name='UID' select="./Note[@kind='UID']/@value"/>   
-      <xsl:value-of select="$UID"/> 
-      <xsl:text>.xlim : </xsl:text>
-      <xsl:value-of select="Actor/Note[@kind='filepath']/@value"/> 
-      <xsl:text> </xsl:text>      
-      <xsl:value-of select="$UID"/> 
-      <xsl:text>.par </xsl:text>      
-      <xsl:text>&#xa;</xsl:text>
+      <xsl:if test="not(contains($UID,'art_'))">
+        <xsl:value-of select="$UID"/>   
+        <xsl:text>.xlim : </xsl:text>
+        <xsl:value-of select="Actor/Note[@kind='filepath']/@value"/> 
+        <xsl:text> </xsl:text>      
+        <xsl:value-of select="$UID"/> 
+        <xsl:text>.par </xsl:text>      
+        <xsl:text>&#xa;</xsl:text>
+      </xsl:if>
     </xsl:template>
   
 </xsl:stylesheet>
