@@ -1,4 +1,7 @@
-# MPEG4_SP_Decoder module tests
+# SystemActors module tests
+
+# delete the built-in suffixes to avoid surprises
+.SUFFIXES:   
 
 # The path to the installed ACTOR-specific tools
 export srcdir=@datadir@/actors-test/SystemActors
@@ -13,24 +16,9 @@ ALL_TEST_MODELS=txtTest binTest #yuvTest
 LOCAL_SKIP=$(filter $(SKIPPED_TEST_MODELS:$(TITLE)/%=%), $(ALL_TEST_MODELS))
 RUN_TEST_MODELS=$(filter-out $(LOCAL_SKIP), $(ALL_TEST_MODELS))
 
-# delete the built-in suffixes to avoid surprises
-.SUFFIXES:   
+.PHONY: all init clean
 
-.PHONY: all init elaborate-all clean
-
-all: init elaborate-all report
-
-# .calml prerequisites tell us how to build each test case
-# ($^ used in make -f makemodel.mk, see below). In this way,
-# we can utilize a single (time consuming) elaboration for
-#  all test cases
-
-txtTest: # just system actors no .calml:s
-
-binTest:
-
-yuvTest:
-
+all: init report
 
 report: $(ALL_TEST_MODELS:%=%.result)
 	@if cat $^ | grep -q FAILED;                                 \
@@ -67,21 +55,12 @@ $(LOCAL_SKIP:=.result): %.result :
 	@cat $@
 
 $(RUN_TEST_MODELS):
-	$(MAKE) -f $(ACTORS_MAKE)/makemodel.mk MODEL=$@ \
-          PRESERVE_C=Y "CALML_FILES=$^" CONFIG_FILE=$(srcdir)/config-$@.c
-
-elaborate-all: $(RUN_TEST_MODELS:%=%.timestamp)
-
-$(RUN_TEST_MODELS:%=%.timestamp) : %.timestamp :
-	@$(MAKE) -f $(ACTORS_MAKE)/elaborate.mk MODEL=$(basename $@)
+	$(MAKE) -f $(ACTORS_MAKE)/makemodel.mk MODEL=$@ PRESERVE_C=Y
 
 init:
 	@rm -f report *.result *.diff
 
 clean: init
 	@rm -f $(ALL_TEST_MODELS) *.o *.c *.xlim
+	@rm -f *.timestamp *.par *.depend *.xdf
 	@rm -rf output
-
-cleaner: clean
-	@rm -f *.timestamp *.calml *.xdf
-

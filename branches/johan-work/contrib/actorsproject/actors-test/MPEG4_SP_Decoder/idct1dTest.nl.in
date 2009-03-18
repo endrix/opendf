@@ -5,16 +5,16 @@ var
 
 entities
 
-        sourceX0 = art_Source_txt(fileName = "@datadir@/actors-test/MPEG4_SP_Decoder/input/idct1dTest/X0.in");
-        sourceX1 = art_Source_txt(fileName = "@datadir@/actors-test/MPEG4_SP_Decoder/input/idct1dTest/X1.in");
-        sourceROW = art_Source_txt(fileName = "@datadir@/actors-test/MPEG4_SP_Decoder/input/idct1dTest/ROW.in");
+        sourceX0 = art_Source_txt(fileName = "@datadir@/actors-test/MPEG4_SP_Decoder/input/idct1dTest/X0.txt");
+        sourceX1 = art_Source_txt(fileName = "@datadir@/actors-test/MPEG4_SP_Decoder/input/idct1dTest/X1.txt");
+        sourceROW = art_Source_txt(fileName = "@datadir@/actors-test/MPEG4_SP_Decoder/input/idct1dTest/ROW.txt");
 
         idct1d = idct1d(MEM_SZ = MEM_SZ);
 
-        sinkY0 = art_Sink_txt(fileName = "./output/idct1dTest/Y0.out");
-        sinkY1 = art_Sink_txt(fileName = "./output/idct1dTest/Y1.out");
-        sinkY2 = art_Sink_txt(fileName = "./output/idct1dTest/Y2.out");  
-        sinkY3 = art_Sink_txt(fileName = "./output/idct1dTest/Y3.out");
+        sinkY0 = art_Sink_txt(fileName = "./output/idct1dTest/Y0.txt");
+        sinkY1 = art_Sink_txt(fileName = "./output/idct1dTest/Y1.txt");
+        sinkY2 = art_Sink_txt(fileName = "./output/idct1dTest/Y2.txt");  
+        sinkY3 = art_Sink_txt(fileName = "./output/idct1dTest/Y3.txt");
 
 structure
         sourceX0.Out --> idct1d.X0;

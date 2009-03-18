@@ -8,10 +8,13 @@ ifeq "$(strip $(MODEL))" ""
   $(error MODEL not set)
 endif
 
-include $(MODEL).depend
-
 EXE?=$(MODEL)
 srcdir?=.
+
+.PHONY: all
+all: $(EXE)
+
+include $(MODEL).depend
 
 CFLAGS += "-I$(ACTORS_INCLUDE)"
 ifdef DEBUG
@@ -30,10 +33,6 @@ endif
 ACTOR_C_FILES=$(XLIM_FILES:.xlim=.c)
 PAR_FILES=$(XLIM_FILES:.xlim=.par)
 OBJECTS=$(ACTOR_C_FILES:.c=.o) $(MODEL).o
-
-.PHONY: all clean cleaner
-
-all: $(EXE)
 
 $(EXE): $(OBJECTS)
 	$(CC) $(LDFLAGS) -o $@ -L$(ACTORS_LIB) $^
@@ -91,6 +90,8 @@ $(MODEL).depend: $(MODEL).xdf
 #
 $(MODEL).xdf: $(srcdir)/$(MODEL).nl $(SUB_NETWORKS)
 	$(ELABORATOR) -mp $(srcdir) $(MODEL)
+
+.PHONY: clean
 
 clean:
 	rm -f $(EXE) $(MODEL).xdf $(MODEL).depend $(MODEL).timestamp \
