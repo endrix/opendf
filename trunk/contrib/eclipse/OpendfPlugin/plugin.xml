@@ -19,30 +19,31 @@
             name="NL Editor"/>
    </extension>
    <extension
-         id="net.sf.opendf.eclipse.plugin.simulation"
+         id="net.sf.opendf.eclipse.plugin.launcher"
          name="Dataflow Simulation"
          point="org.eclipse.debug.core.launchConfigurationTypes">
          <launchConfigurationType
                delegate="net.sf.opendf.eclipse.plugin.launcher.OpendfLaunchDelegate"
+               delegateDescription="The Opendf System Launcher supports the running and debugging of dataflow systems."
                delegateName="Dataflow System"
-               id="net.sf.opendf.eclipse.plugin.simulation"
+               id="net.sf.opendf.eclipse.plugin.launcher"
                modes="run, debug"
                name="Dataflow System"
-               public="true" />
+               public="true"/>
    </extension>
    <extension
          point="org.eclipse.debug.ui.launchConfigurationTypeImages">
       <launchConfigurationTypeImage
-            configTypeID="net.sf.opendf.eclipse.plugin.simulation"
+            configTypeID="net.sf.opendf.eclipse.plugin.launcher"
             icon="icons/entity.gif"
-            id="net.sf.opendf.eclipse.plugin.simulation.image"/>
+            id="net.sf.opendf.eclipse.plugin.launcher.image"/>
    </extension>
    <extension
          point="org.eclipse.debug.ui.launchConfigurationTabGroups">
       <launchConfigurationTabGroup
-            class="net.sf.opendf.eclipse.plugin.launcher.tabs.SimulationTabGroup"
-            id="net.sf.opendf.eclipse.plugin.simulation.tabgroup"
-            type="net.sf.opendf.eclipse.plugin.simulation"/>
+            class="net.sf.opendf.eclipse.plugin.launcher.tabs.LauncherTabGroup"
+            id="net.sf.opendf.eclipse.plugin.launcher.tabgroup"
+            type="net.sf.opendf.eclipse.plugin.launcher"/>
    </extension>
 
 </plugin>
