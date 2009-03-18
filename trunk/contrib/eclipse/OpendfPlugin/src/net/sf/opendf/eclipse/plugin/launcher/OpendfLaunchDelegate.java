@@ -63,7 +63,7 @@ import org.eclipse.debug.core.ILaunchManager;
  * @version 18 March 2009
  *
  */
-public class OpendfSimulationDelegate extends OpendfConfigLaunchDelegate {
+public class OpendfLaunchDelegate extends OpendfConfigLaunchDelegate {
 	private static final String consolePrefix = "Simulation";
 
 	public void launch(ILaunchConfiguration configuration, String mode, ILaunch launch, IProgressMonitor monitor) throws CoreException {
