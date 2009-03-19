@@ -153,10 +153,7 @@ public class Elaborator {
             ClassLoader classLoader = new SimulationClassLoader(Simulator.class.getClassLoader(), modelPath, cachePath);
 
             Node result = Elaborator.elaborateModel(configs, null, classLoader);
-            boolean postProcessing = ((ConfigBoolean)configs.get(ConfigGroup.ELABORATE_PP)).getValue().booleanValue();
-            if (postProcessing) {
-              result = Elaborator.elabPostProcess(result, configs, null, classLoader);
-            }
+            result = Elaborator.elabPostProcess(result, configs, null, classLoader);
             
             String xmlRes = createXML(result);
             
