@@ -1,7 +1,7 @@
 network binTest() ==> :
 
 entities
-	source = art_Source_bin(fileName = "@datadir@/actors-test/SystemActors/input/binTest/In.txt");
+	source = art_Source_bin(fileName = "@datadir@/actors-test/SystemActors/input/binTest/In.bin");
 	sink   = art_Sink_bin(fileName = "./output/binTest/Out.bin");
 
 structure
