@@ -38,18 +38,19 @@ ENDCOPYRIGHT
 
 package net.sf.opendf.eclipse.plugin;
 
-import org.eclipse.ui.plugin.*;
-import org.eclipse.ui.console.*;
-import org.eclipse.jface.resource.ImageDescriptor;
-import org.osgi.framework.BundleContext;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eclipse.core.runtime.Status;
+import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.graphics.Image;
-import java.util.*;
+import org.eclipse.ui.plugin.AbstractUIPlugin;
+import org.osgi.framework.BundleContext;
 
 public class OpendfPlugin extends AbstractUIPlugin
 {
 
-	public static final String ID = "net.sf.opendf.eclipse.OpendfEditorPlugin";
+	public static final String ID = "net.sf.opendf.eclipse.plugin.OpendfPlugin";
   
   // indices into the imagePaths array
   public static final int IMAGE_action       =  0;
