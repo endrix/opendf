@@ -62,11 +62,6 @@ public class ActorThread extends OpendfThread {
 	private IBreakpoint currentBreakpoint;
 	
 	/**
-	 * Most recent error event or <code>null</code>
-	 */
-	private String lastErrorEvent;
-	
-	/**
 	 * Table mapping stack frames to current variables
 	 */
 	private Map<IStackFrame, IVariable[]> stackVariables = new HashMap<IStackFrame, IVariable[]>();
@@ -230,27 +225,6 @@ public class ActorThread extends OpendfThread {
 	}
 
 	/**
-	 * Sets the most recent error event encountered, or <code>null</code>
-	 * to clear the most recent error
-	 * 
-	 * @param event 
-	 */
-	private void setError(String event) {
-		lastErrorEvent = event;
-	}
-
-	/**
-	 * Returns the most recent error event encountered since the last
-	 * suspend, or <code>null</code> if none.
-	 * 
-	 * @return the most recent error event encountered since the last
-	 * suspend, or <code>null</code> if none
-	 */
-	public Object getError() {
-		return lastErrorEvent;
-	}
-
-	/**
 	 * Notification the target has resumed for the given reason.
 	 * Clears any error condition that was last encountered and
 	 * fires a resume event, and clears all cached variables
@@ -259,7 +233,6 @@ public class ActorThread extends OpendfThread {
 	 * @param detail reason for the resume
 	 */
 	private void resumed(int detail) {
-		setError(null);
 		synchronized (stackVariables) {
 			stackVariables.clear();
 		}
@@ -335,69 +308,45 @@ public class ActorThread extends OpendfThread {
 		return false;
 	}
 	
-	/**
-	 * Notification the given event occurred in the target program being
-	 * interpreted. The events are
-	 * 
-	 * started - the interpreter has started (guaranteed to be the first event sent)
-	 * 
-	 * terminated - the interpreter has terminated (guaranteed to be the last event sent)
-	 * 
-	 * suspended N:X - the interpreter has suspended component N and entered debug
-	 * mode; X is the cause of the suspension:
-	 * 
-	 *   breakpoint L - a breakpoint at line L was hit
-	 *   client - a client request to suspend has completed
-	 *   drop - a client request to drop a frame has completed
-	 *   event E - an error was encountered, where E describes the error
-	 *   step - a step request has completed
-	 *   watch V A - a watchpoint for variable V was hit for reason A (read or write), on variable V
-	 * 
-	 * resumed N:X - the interpreter has resumed execution of component N in run
-	 * mode; X is the cause of the resume:
-	 * 
-	 *   step - a step request has been initiated
-   *   client - a client request to resume has been initiated
-	 * 
-	 * @param event the event
-	 */
-	public void handleEvent(String event) {
-		// clear previous state
-		currentBreakpoint = null;
-		setStepping(false);
-		
-		// handle events
-		if (event.startsWith("resumed")) {
+	public void handleResumedEvent(String compName, String event) {
+		if (getComponentName().equals(compName)) {
+			// clear previous state
+			currentBreakpoint = null;
+			setStepping(false);
 			setSuspended(false);
 			if (event.endsWith("step")) {
 				setStepping(true);
 				resumed(DebugEvent.STEP_OVER);
 			} else if (event.endsWith("client")) {
 				resumed(DebugEvent.CLIENT_REQUEST);
-			}
-			else if (event.endsWith("drop")) {
+			} else if (event.endsWith("drop")) {
 				resumed(DebugEvent.STEP_RETURN);
 			}
-		} else if (event.startsWith("suspended")) {
+		}
+	}
+
+	public void handleSuspendedEvent(String compName, String event) {
+		if (getComponentName().equals(compName)) {
+			// clear previous state
+			currentBreakpoint = null;
+			setStepping(false);
 			setSuspended(true);
 			if (event.endsWith("client")) {
 				suspended(DebugEvent.CLIENT_REQUEST);
 			} else if (event.endsWith("step")) {
 				suspended(DebugEvent.STEP_END);
-			} else if (event.startsWith("suspended event") && getError() != null) {
+			} else if (event.startsWith("suspended event")) {
 				exceptionHit();
-			} 
-			else if (event.endsWith("drop")) {
+			} else if (event.endsWith("drop")) {
 				suspended(DebugEvent.STEP_END);
 			}
-		} else if (event.equals("started")) {
-			fireCreationEvent();
-		} else if (event.equals("terminated")) {
-			fireTerminateEvent();
-		} else {
-			setError(event);
 		}
-		
+	}
+
+	public void handleStartedEvent() {
+	}
+
+	public void handleTerminatedEvent() {
 	}
 
 	

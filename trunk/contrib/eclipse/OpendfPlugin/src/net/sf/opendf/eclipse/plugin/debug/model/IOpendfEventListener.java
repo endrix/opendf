@@ -39,20 +39,27 @@ ENDCOPYRIGHT
 package net.sf.opendf.eclipse.plugin.debug.model;
 
 /**
- * Interface for received debugging events.
+ * Interface for events received from the execution engine.
  * 
  * @author Rob Esser
- * @version 19 March 2009
+ * @version 20 March 2009
  */
 public interface IOpendfEventListener {
 
 	/**
-	 * Notification the given event occurred in the target program being
-	 * interpreted. The events are
-	 * 
-	 * started - the interpreter has started (guaranteed to be the first event sent)
-	 * 
-	 * terminated - the interpreter has terminated (guaranteed to be the last event sent)
+	 * A started event has been received from the execution engine
+	 * (guaranteed to be the first event sent)
+	 */
+	public void handleStartedEvent();
+
+	/**
+	 * A terminate event has been received from the execution engine
+	 * (guaranteed to be the last event sent) 
+	 */
+	public void handleTerminatedEvent();
+
+	/**
+	 * A suspend event has been received from the execution engine
 	 * 
 	 * suspended N:X - the interpreter has suspended component N and entered debug
 	 * mode; X is the cause of the suspension:
@@ -63,15 +70,24 @@ public interface IOpendfEventListener {
 	 *   event E - an error was encountered, where E describes the error
 	 *   step - a step request has completed
 	 *   watch V A - a watchpoint for variable V was hit for reason A (read or write), on variable V
+
+	 * @param compName the name of the component that is suspended
+	 * @param event the type of the event
+	 */
+	public void handleSuspendedEvent(String compName, String event);
+
+	/**
+	 * A resume event has been received from the execution engine
 	 * 
 	 * resumed N:X - the interpreter has resumed execution of component N in run
 	 * mode; X is the cause of the resume:
 	 * 
-	 * step - a step request has been initiated client - a client request to
-	 * resume has been initiated
+	 *   step - a step request has been initiated client - a client request to
+	 *   resume has been initiated
 	 * 
-	 * @param event the event
+	 * @param compName the name of the component that is suspended
+	 * @param event the type of the event
 	 */
-	public void handleEvent(String event);
+	public void handleResumedEvent(String compName, String event);
 
 }
