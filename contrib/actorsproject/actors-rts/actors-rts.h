@@ -69,6 +69,7 @@
 
 #define THREAD_PER_ACTOR	1
 #define THREAD_PER_LIST		2
+#define SINGLE_LIST			3
 
 typedef int					bool_t;
 
