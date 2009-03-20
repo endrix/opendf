@@ -31,8 +31,8 @@
 	 resumeAll - resume execution of all components; 
 	   reply is ok
 
-   exit - terminate execution
-     reply is ok
+     exit - terminate execution
+       reply is ok
 
 // variables
 
@@ -45,6 +45,12 @@
 	 watch N V K - set a watchpoint on variable V in component N to the kind K;
 	   the kind K corresponds to read | write | readwrite | clear;
 	   reply is ok
+	   
+	 stack N - return the current stack frame for component N;
+	   reply is control stack from oldest to newest as a single string
+	   frame#frame#frame...#frame where each frame is a string
+	   "componentName|pc|function name|variable name|variable name|...|variable name"
+	   
 
 // status
 
