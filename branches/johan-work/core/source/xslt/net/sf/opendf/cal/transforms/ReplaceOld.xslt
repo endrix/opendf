@@ -25,32 +25,30 @@
 
   <xsl:template match="Action">
     <xsl:variable name="this" select="."/>
-    <xsl:variable name="oldRefs">
-      <xsl:copy-of select=".//Expr[@kind='Var'][@old='Yes']"/>
-    </xsl:variable>
-        <xsl:copy>
-            <xsl:for-each select="@*">
-                <xsl:attribute name="{name()}"><xsl:value-of select="."/></xsl:attribute>
-            </xsl:for-each>
+    <xsl:variable name="oldRefs" select=".//Expr[@kind='Var'][@old='Yes']"/>
+    <xsl:copy>
+       <xsl:for-each select="@*">
+          <xsl:attribute name="{name()}"><xsl:value-of select="."/></xsl:attribute>
+       </xsl:for-each>
 
-            <xsl:for-each select="$oldRefs/*"> 			
-                     <xsl:variable name="myName" select="@name"/>
-              <xsl:if test="not(preceding-sibling::*[@name=$myName])">
+      <xsl:for-each select="$oldRefs"> 			
+         <xsl:variable name="myName" select="@name"/>
+         <xsl:if test="not(preceding-sibling::*[@name=$myName])">
                   
-                <!-- find all declarations of this name in scope -->
-                <xsl:variable name="decls" select="ancestor-or-self::*/Decl[@name=$myName]"/>
+           <!-- find all declarations of this name in scope -->
+           <xsl:variable name="decls" select="ancestor-or-self::*/Decl[@name=$myName]"/>
 
-                <Decl kind="Variable" name="$old${@name}" mutable="no" assignable="no">
-                  <!-- Use the same type declaration (if any) -->
-                  <xsl:copy-of select="$decls[1]/Type"/>
-                  <Expr kind="Var" name="{@name}" old="no"/>
-                </Decl>
-              </xsl:if>
-            </xsl:for-each>
+           <Decl kind="Variable" name="$old${@name}" mutable="no" assignable="no">
+             <!-- Use the same type declaration (if any) -->
+             <xsl:copy-of select="$decls[1]/Type"/>
+             <Expr kind="Var" name="{@name}" old="no"/>
+           </Decl>
+         </xsl:if>
+      </xsl:for-each>
 
-            <xsl:apply-templates select="node() | text()"/>
-        </xsl:copy>
-  </xsl:template>
+      <xsl:apply-templates select="node() | text()"/>
+   </xsl:copy>
+ </xsl:template>
 
   <xsl:template match="Expr[@kind='Var'][@old='Yes']">
      <Expr kind="Var" name="$old${@name}" old="no"/>

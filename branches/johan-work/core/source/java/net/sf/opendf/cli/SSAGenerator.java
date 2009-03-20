@@ -80,7 +80,7 @@ public class SSAGenerator extends XSLTTransformRunner
         "net/sf/opendf/cal/transforms/AddInputTypes.xslt",
         "net/sf/opendf/cal/transforms/ReplaceOld.xslt",
         
-//         "net/sf/opendf/cal/transforms/VariableAnnotator.xslt",
+        "net/sf/opendf/cal/transforms/VariableAnnotator.xslt",
 //         "net/sf/opendf/cal/transforms/ContextInfoAnnotator.xslt",
 //         "net/sf/opendf/cal/transforms/CanonicalizeOperators.xslt",
 //         "net/sf/opendf/cal/transforms/AnnotateFreeVars.xslt",
@@ -279,6 +279,8 @@ public class SSAGenerator extends XSLTTransformRunner
             // Register a listener which will report any issues in loading
             // back to the user.
             XSLTProcessCallbacks.registerListener(XSLTProcessCallbacks.SEMANTIC_CHECKS, this.reportListener);
+     
+            if (saveIntermediate) writeFile(new File(rundir, prefix+"._calml"), Util.createXML(calml));
             
             // Because this class may be subclassed, ensure that the obtained resources are located based on the classloader for the subclass
             final Node pcalml = Util.applyTransformsAsResources(calml, getParserTransforms(), locator);
