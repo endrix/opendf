@@ -1,0 +1,45 @@
+
+\chapter{Actor state variables and initialization}\label{sect:StateVars}
+
+The state of an actor is exactly that piece of information which is
+stored between {\em firings}, and which the code associated with an
+action can therefore use to influence the actions taken by future
+firings.
+
+
+\section{State variable declarations}
+
+An actor may contain any number of state variable declarations at its
+top level (cf. section \ref{sect:Variables} for details on variable
+declarations). These variables are called {\em actor state variables}. One such declaration has the
+following syntax:
+
+\bgr
+
+StateVarDecl : SimpleStateVarDecl ;
+     | FunProcVarDecl.
+
+SimpleStateVarDecl : Type~ID~[('\charColon=' | '=')~Expression] ;
+     | [\kwMutable]~Type~ID~[('\charColon=' | '=')~Expression].
+
+FunProcVarDecl : .
+
+\egr
+
+State variable names must be unique actor-wide, and may not coincide
+with the names of actor parameters or ports, because they are defined
+in the same scope. As a consequence, the expressions used to
+define their initial values can refer to actor parameters, ports, and
+any state variable, as long as this does not include any circular
+dependencies (cf. section \ref{sect:VariableScoping}).
+
+
+\section{Initialization rules} \label{sect:InitRules}
+
+TBD
+
+
+
+% Local Variables:
+% TeX-master: "../reference"
+% End:
