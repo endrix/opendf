@@ -10,9 +10,18 @@ else
 MINOR_DOT_BUILD=$(MINOR).$(BUILD)
 endif
 
-LINKER_NAME=libactors-rts.so
+BASENAME=libactors-rts
+ifeq "$(STATIC)" ""
+LINKER_NAME=$(BASENAME).so
 SONAME=$(LINKER_NAME).$(MAJOR)
 REAL_NAME=$(SONAME).$(MINOR_DOT_BUILD)
+else
+REAL_NAME=$(BASENAME).a
+endif
+
+ifneq "$(PROFILE)" ""
+CFLAGS += -pg
+endif
 
 INSTALL_H=actors-rts.h circbuf.h dll.h
 INSTALL_SYSACTORS=art_DDRModel.cal art_Display_yuv.cal \
@@ -44,7 +53,11 @@ LDLIBS=-lpthread -lc
 all: $(REAL_NAME)
 
 $(REAL_NAME): $(OBJECTS)
+ifeq "$(STATIC)" ""
 	$(LD) -shared -soname=$(SONAME) -o $@ $(LDFLAGS) $^ $(LDLIBS)
+else
+	$(AR) rcs $@ $^
+endif
 
 $(OBJECTS): %.o : $(srcdir)/%.c
 	$(CC) -fPIC -c -g -Wall $(CFLAGS) -o $@ $<
@@ -54,8 +67,10 @@ install: install-lib install-include install-sysactors
 install-lib:
 	@mkdir -p $(libdir)
 	@cp $(REAL_NAME) $(libdir)/.
+ifeq "$(STATIC)" ""
 	@cd $(libdir) && ln -sf $(REAL_NAME) $(SONAME)
 	@cd $(libdir) && ln -sf $(SONAME) $(LINKER_NAME)
+endif
 
 install-include:
 	@mkdir -p $(includedir)

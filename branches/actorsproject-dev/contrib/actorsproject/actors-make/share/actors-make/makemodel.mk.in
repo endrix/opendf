@@ -18,6 +18,16 @@ PRESERVE_C=Y
 PRESERVE_XLIM=Y
 endif
 
+ifdef STATIC
+# override inherited LDFLAGS, -Wl--rpath stuff confuses static linking
+LDFLAGS = -static -L$(ACTORS_LIB) -lactors-rts -lpthread
+endif
+
+ifdef PROFILE
+CFLAGS += -pg
+LDFLAGS += -pg
+endif
+
 #
 # We get the actor instances from the CALML-files 
 # (we have to do elaboration first, to get *.calml).
@@ -38,7 +48,7 @@ OBJECTS=$(ACTOR_C_FILES:.c=.o) $(CONFIG_O)
 all: $(EXE)
 
 $(EXE): $(OBJECTS)
-	$(CC) $(LDFLAGS) -o $@ -L$(ACTORS_LIB) $^
+	$(CC) $^ $(LDFLAGS) -o $@
 
 #
 # Implicit rules .calml -> .xlim -> .c -> .o
