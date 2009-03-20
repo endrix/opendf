@@ -11,7 +11,7 @@ else
 CPS = :
 endif
 
-OPENDF_HOME = ../..
+OPENDF_HOME = $(abspath ../..)
 JAR_NAME = opendf.jar
 PTPLOT_CP = $(OPENDF_HOME)/lib/PtPlot.jar
 JFREECHART_CP = $(OPENDF_HOME)/../../jfreechart-1.0.6/jfreechart-1.0.6.jar$(CPS)$(OPENDF_HOME)/../../jfreechart-1.0.6/lib/jcommon-1.0.10.jar
