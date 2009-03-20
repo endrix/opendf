@@ -184,7 +184,7 @@ int pinRead2(ActorPort *actorPort,char *buf,int length)
   	bk = &cb->block;
 	instance = actorInstance[bk->aid];
 	pthread_mutex_lock(&instance->mt);
-	if(rts_mode == THREAD_PER_LIST)
+	if(rts_mode != THREAD_PER_ACTOR)
 	{
 		if(!instance->execState)
 			instance->execState = 1;
@@ -244,7 +244,7 @@ int pinWrite2(ActorPort *actorPort,char *buf, int length)
 		bk = &cb->reader[i].block;
 		instance = actorInstance[bk->aid];
 		pthread_mutex_lock(&instance->mt);
-		if(rts_mode == THREAD_PER_LIST){
+		if(rts_mode != THREAD_PER_ACTOR){
 			if(!instance->execState)
 				instance->execState = 1;
 		}
@@ -320,7 +320,7 @@ void init_actor_network(NetworkConfig *network)
 	actors = network->networkActors;
 
 	//get number of actors per list in average
-	if(rts_mode == THREAD_PER_LIST)
+	if(rts_mode != THREAD_PER_ACTOR)
 	{
 		numActorsPerList = network->numNetworkActors/num_lists;
 		while(network->numNetworkActors - numActorsPerList*num_lists > numActorsPerList)
@@ -378,7 +378,7 @@ void init_actor_network(NetworkConfig *network)
 		actorInstance[i] = pInstance;
 
 		//append to a double linked list
-		if(rts_mode == THREAD_PER_LIST)
+		if(rts_mode != THREAD_PER_ACTOR)
 		{
 			if(i >= numActorsPerList-1){
 				if(i%numActorsPerList == 0){
@@ -392,7 +392,7 @@ void init_actor_network(NetworkConfig *network)
 		}		
 
 	}
-	if(rts_mode == THREAD_PER_LIST)
+	if(rts_mode != THREAD_PER_ACTOR)
 	{
 		if(num_lists < listIndex + 1){
 			num_lists = listIndex + 1;

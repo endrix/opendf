@@ -59,7 +59,7 @@ int						trace_action = 0;
 int						rts_mode = THREAD_PER_ACTOR;
 LIST					actorLists[MAX_LIST_NUM];
 int						num_lists = 1;
-int						num_threads = 0;
+int						num_threads = 1;
 
 static void stop_run(int sig){
     trace(LOG_MUST,"\nprogram stop running: sig=%x pid=%x\n",sig,getpid());
@@ -313,19 +313,19 @@ int execute_network(int argc, char *argv[],NetworkConfig *networkConfig)
 	int			interval=2;
 	int			count=0;
 	int			numThreads;
+	int			num = 1;
 	pthread_attr_t attr;
 
 	//command line param parser
-	while ((c = getopt (argc, argv, "tvhn:l:m:r:")) != -1)
+	while ((c = getopt (argc, argv, "tvhn:l:m:")) != -1)
 	{
 		switch (c)
 		{
 			case 'h':
 				fprintf (stderr, "%s [-l <trace level>] [-h]...\n",argv[0]);
 				fprintf (stderr, "  -l <trace level>   set trace level(0:must 1:error 2:warn 3:info 4:exec)\n");
-				fprintf (stderr, "  -m <rts mode>      set rts mode (1:thread per actor 2:thread per list\n");
-				fprintf (stderr, "  -n <num of lists>  set number of lists(default is 1) for thread per list mode\n");
-				fprintf (stderr, "  -n <num of threads>set number of thread(supersed thread per list mode with signle list)\n");
+				fprintf (stderr, "  -m <rts mode>      set rts mode (1:thread per actor 2:thread per list 3:single list multiple thread\n");
+				fprintf (stderr, "  -n <num of threads>set number of threads for thread per list mode or threads for single list mode (default is 1)\n");
 				fprintf (stderr, "  -t                 turn on trace for action scheduler\n");
 				fprintf (stderr, "  -h                 print this help and exit\n");
 				fprintf (stderr, "  -v                 print version information and exit\n");
@@ -336,20 +336,16 @@ int execute_network(int argc, char *argv[],NetworkConfig *networkConfig)
 			case 'l':
 				log_level = atoi(optarg);
 			case 'n':
-				num_lists = atoi(optarg);
+				num = atoi(optarg);
 				break;
 			case 't':
 				trace_action = 1;
 			case 'm':
 				rts_mode = atoi(optarg);
-				if(rts_mode != THREAD_PER_ACTOR && rts_mode != THREAD_PER_LIST){
+				if(rts_mode != THREAD_PER_ACTOR && rts_mode != THREAD_PER_LIST && rts_mode != SINGLE_LIST){
 					trace(LOG_MUST, "Invalid rts mode %d, default to THREAD_PER_ACTOR mode\n",rts_mode);
 					rts_mode = THREAD_PER_ACTOR;
 				}
-				break;
-			case 'r':
-				num_threads = atoi(optarg);
-				num_lists = 1;
 				break;
  			case '?':
 // 			if (optopt == 'l')
@@ -366,12 +362,25 @@ int execute_network(int argc, char *argv[],NetworkConfig *networkConfig)
 	numInstances = networkConfig->numNetworkActors;
 	numFifos = networkConfig->numFifos;
 
-	trace(LOG_MUST,"ModuleName: %s numInstances: %d numFifos: %d\n",argv[0],numInstances,numFifos);
-	if(rts_mode == THREAD_PER_LIST){
-		numThreads = (num_threads != 0)?num_threads:num_lists;
-		trace(LOG_MUST,"Number of lists = %d\n",num_lists);
-		trace(LOG_MUST, "Number of threads = %d\n",numThreads);
+	switch(rts_mode){
+		case THREAD_PER_LIST:
+			numThreads = num_lists = num;
+			break;
+		case SINGLE_LIST:
+			numThreads = num;
+			num_lists = 1;
+			break;
+		case THREAD_PER_ACTOR:
+			numThreads = numInstances;
+			num_lists = 0;
+			break;
+		default:
+			break;
 	}
+
+	trace(LOG_MUST,"ModuleName: %s numInstances: %d numFifos: %d\n",argv[0],numInstances,numFifos);
+	trace(LOG_MUST,"Number of lists = %d\n",num_lists);
+	trace(LOG_MUST, "Number of threads = %d\n",numThreads);
 
 	init_actor_network(networkConfig);
 	
