@@ -14,7 +14,7 @@ LINKER_NAME=libactors-rts.so
 SONAME=$(LINKER_NAME).$(MAJOR)
 REAL_NAME=$(SONAME).$(MINOR_DOT_BUILD)
 
-INSTALL_H=actors-rts.h circbuf.h
+INSTALL_H=actors-rts.h circbuf.h dll.h
 INSTALL_SYSACTORS=art_DDRModel.cal art_Display_yuv.cal \
                   art_Sink_bin.cal art_Sink_yuv.cal art_Sink_txt.cal \
                   art_Source_bin.cal art_Source_txt.cal
