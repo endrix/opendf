@@ -90,37 +90,11 @@ public class OpendfDebugTarget extends OpendfDebugElement implements IDebugTarge
 
 	// threads
 	private IThread[] threads;
-	//private OpendfThread thread;
 
 	// event dispatch job
 	private EventDispatchJob eventDispatch;
 	// event listeners
 	private List<IOpendfEventListener> eventListeners = new ArrayList<IOpendfEventListener>();
-
-
-
-	/**
-	 * Registers the given event listener. The listener will be notified of events
-	 * in the program being interpreted. Has no effect if the listener is already
-	 * registered.
-	 * 
-	 * @param listener event listener
-	 */
-	public void addEventListener(IOpendfEventListener listener) {
-		if (!eventListeners.contains(listener)) {
-			eventListeners.add(listener);
-		}
-	}
-
-	/**
-	 * Removes registration of the given event listener. Has no effect if the listener is not
-	 * currently registered.
-	 * 
-	 * @param listener event listener
-	 */
-	public void removeEventListener(IOpendfEventListener listener) {
-		eventListeners.remove(listener);
-	}
 
 	/**
 	 * Constructs a new debug target in the given launch for the associated Opendf
@@ -170,6 +144,29 @@ public class OpendfDebugTarget extends OpendfDebugElement implements IDebugTarge
 		// and 'no such label' errors
 		//sendCommand("eventstop unimpinstr 1");
 		//sendCommand("eventstop nosuchlabel 1");
+	}
+
+	/**
+	 * Registers the given event listener. The listener will be notified of events
+	 * in the program being interpreted. Has no effect if the listener is already
+	 * registered.
+	 * 
+	 * @param listener event listener
+	 */
+	public void addEventListener(IOpendfEventListener listener) {
+		if (!eventListeners.contains(listener)) {
+			eventListeners.add(listener);
+		}
+	}
+
+	/**
+	 * Removes registration of the given event listener. Has no effect if the listener is not
+	 * currently registered.
+	 * 
+	 * @param listener event listener
+	 */
+	public void removeEventListener(IOpendfEventListener listener) {
+		eventListeners.remove(listener);
 	}
 
 	/**
@@ -578,22 +575,24 @@ public class OpendfDebugTarget extends OpendfDebugElement implements IDebugTarge
 		sendCommand("pushdata " + value);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * example.debug.core.model.IOpendfEventListener#handleEvent(java.lang.String)
-	 */
-	public void handleEvent(String event) {
-		if (event.equals("started")) {
-			started();
-		} else if (event.equals("terminated")) {
-			terminated();
-		}
+	public void handleResumedEvent(String compName, String event) {
+		//do nothing
 	}
 
+	public void handleStartedEvent() {
+		started();
+	}
+
+	public void handleSuspendedEvent(String compName, String event) {
+		//do nothing
+	}
+
+	public void handleTerminatedEvent() {
+		terminated();
+	}
+	
 	/**
-	 * Listens to events from the Opendf execution engine and fires corresponding debug events.
+	 * Listens to events from the Opendf execution engine and notifies all the listeners.
 	 */
 	class EventDispatchJob extends Job {
 
@@ -602,8 +601,31 @@ public class OpendfDebugTarget extends OpendfDebugElement implements IDebugTarge
 			setSystem(true);
 		}
 
-		/*
-		 * The process to handle asynchronous debug events
+		/**
+		 * Notification the given event occurred in the target program being
+		 * interpreted. The events are
+		 * 
+		 * started - the interpreter has started (guaranteed to be the first event sent)
+		 * 
+		 * terminated - the interpreter has terminated (guaranteed to be the last event sent)
+		 * 
+		 * suspended N:X - the interpreter has suspended component N and entered debug mode; 
+		 * X is the cause of the suspension:
+		 * 
+		 *   breakpoint L - a breakpoint at line L was hit
+		 *   client - a client request to suspend has completed
+		 *   drop - a client request to drop a frame has completed
+		 *   event E - an error was encountered, where E describes the error
+		 *   step - a step request has completed
+		 *   watch V A - a watchpoint for variable V was hit for reason A (read or write), on variable V
+		 * 
+		 * resumed N:X - the interpreter has resumed execution of component N in run
+		 * mode; X is the cause of the resume:
+		 * 
+		 *   step - a step request has been initiated
+	   *   client - a client request to resume has been initiated
+		 * 
+		 * @param event the event
 		 * 
 		 * @see org.eclipse.core.runtime.jobs.Job#run(org.eclipse.core.runtime.IProgressMonitor)
 		 */
@@ -612,11 +634,45 @@ public class OpendfDebugTarget extends OpendfDebugElement implements IDebugTarge
 			while (!isTerminated() && event != null) {
 				try {
 					event = eventReader.readLine();
-					if (event != null) {
-						for (IOpendfEventListener listener : eventListeners) {
-							listener.handleEvent(event);
+					//parse events
+					if (event.startsWith("resumed")) {
+						int index = event.indexOf(":");
+						String compName = event.substring(8, index);
+						if (event.endsWith("step")) {
+							event = "step";
+						} else if (event.endsWith("client")) {
+							event = "client";
 						}
+						for (IOpendfEventListener listener : eventListeners) {
+							listener.handleResumedEvent(compName, event);
+						}
+					} else if (event.startsWith("suspended")) {
+						int index = event.indexOf(":");
+						String compName = event.substring(10, index);
+						if (event.endsWith("client")) {
+						} else if (event.endsWith("step")) {
+							//suspended(DebugEvent.STEP_END);
+						} else if (event.startsWith("suspended event")) {
+							//exceptionHit();
+						} 
+						else if (event.endsWith("drop")) {
+							//suspended(DebugEvent.STEP_END);
+						}
+						for (IOpendfEventListener listener : eventListeners) {
+							listener.handleSuspendedEvent(compName, event);
+						}
+					} else if (event.equals("started")) {
+						for (IOpendfEventListener listener : eventListeners) {
+							listener.handleStartedEvent();
+						}
+					} else if (event.equals("terminated")) {
+						for (IOpendfEventListener listener : eventListeners) {
+							listener.handleTerminatedEvent();
+						}
+					} else {
+						System.err.println("Unexpected event received from execution engine: " + event);
 					}
+
 				} catch (IOException e) {
 					terminated();
 				}
@@ -625,5 +681,6 @@ public class OpendfDebugTarget extends OpendfDebugElement implements IDebugTarge
 		}
 
 	}
+
 
 }

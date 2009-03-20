@@ -46,14 +46,18 @@ import net.sf.opendf.config.SimulationConfigGroup;
 import net.sf.opendf.eclipse.plugin.OpendfPlugin;
 import net.sf.opendf.eclipse.plugin.config.ConfigUpdateWrapper;
 import net.sf.opendf.eclipse.plugin.config.OpendfConfigLaunchDelegate;
+import net.sf.opendf.eclipse.plugin.debug.model.OpendfDebugTarget;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchManager;
+import org.eclipse.debug.core.model.IDebugTarget;
+import org.eclipse.debug.core.model.IProcess;
 
 /**
  * The Launch delegate for opendf implementing simulation and debugging functionality
@@ -107,11 +111,17 @@ public class OpendfLaunchDelegate extends OpendfConfigLaunchDelegate {
 	
 		
 //		String[] commandLine = (String[]) commandList.toArray(new String[commandList.size()]);
-//		Process process = DebugPlugin.exec(commandLine, null);
-//		IProcess p = DebugPlugin.newProcess(launch, process, path);
-//		// if in debug mode, create a debug target 
-//			IDebugTarget target = new PDADebugTarget(launch, p, requestPort, eventPort);
-//			launch.addDebugTarget(target);
+		
+		
+		String[] commandLine = new String[3];
+		commandLine[0] = "cmd";
+		commandLine[1] = "/C";
+		commandLine[2] = "ipconfig /all";
+
+		Process process = DebugPlugin.exec(commandLine, null);
+		IProcess p = DebugPlugin.newProcess(launch, process, "Opendf Debugger");
+		IDebugTarget target = new OpendfDebugTarget(launch, p, requestPort, eventPort);
+		launch.addDebugTarget(target);
 	}
 
 
