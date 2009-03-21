@@ -39,6 +39,8 @@ package net.sf.opendf.eclipse.plugin.launcher;
 
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.util.ArrayList;
+import java.util.List;
 
 import net.sf.opendf.cli.PhasedSimulator;
 import net.sf.opendf.config.ConfigGroup;
@@ -92,35 +94,32 @@ public class OpendfLaunchDelegate extends OpendfConfigLaunchDelegate {
 	private void launchDebugger(ILaunchConfiguration configuration, String mode, ILaunch launch, IProgressMonitor monitor) throws CoreException {
 		// if in debug mode, add debug arguments - i.e. '-debug requestPort eventPort'
 		assert mode.equals(ILaunchManager.DEBUG_MODE);
-		int requestPort = -1;
+		int commandPort = -1;
 		int eventPort = -1;
-		requestPort = findFreePort();
+		commandPort = findFreePort();
 		eventPort = findFreePort();
-		if (requestPort == -1 || eventPort == -1) {
+		if (commandPort == -1 || eventPort == -1) {
 			throw new CoreException(new Status(IStatus.ERROR, OpendfPlugin.ID, 0, "Unable to find free port", null));
 		}
-		// debug messages
-		System.out.println("Allocated command socket to port: " + requestPort);
-		System.out.println("Allocated event socket to port: " + eventPort);
 			
-			
-			
-//			commandList.add("-debug");
-//			commandList.add("" + requestPort);
-//			commandList.add("" + eventPort);
-	
+		List<String> commandList = new ArrayList<String>();
+		commandList.add("java");
+		commandList.add("-jar");
+		commandList.add("/Xilinx/opendf/trunk/contrib/eclipse/OpendfPlugin/debugger.jar");
+		commandList.add("-debug");
+		commandList.add("" + commandPort);
+		commandList.add("" + eventPort);
+
 		
-//		String[] commandLine = (String[]) commandList.toArray(new String[commandList.size()]);
-		
-		
-		String[] commandLine = new String[3];
-		commandLine[0] = "cmd";
-		commandLine[1] = "/C";
-		commandLine[2] = "ipconfig /all";
+//		commandList.add("cmd");
+//		commandList.add("/C");
+//		commandList.add("dir");
+
+  	String[] commandLine = (String[]) commandList.toArray(new String[commandList.size()]);
 
 		Process process = DebugPlugin.exec(commandLine, null);
 		IProcess p = DebugPlugin.newProcess(launch, process, "Opendf Debugger");
-		IDebugTarget target = new OpendfDebugTarget(launch, p, requestPort, eventPort);
+		IDebugTarget target = new OpendfDebugTarget(launch, p, commandPort, eventPort);
 		launch.addDebugTarget(target);
 	}
 
