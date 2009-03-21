@@ -54,6 +54,7 @@ public class SocketServer extends Thread {
   public void run() {
     try {
       socket = serverSocket.accept();
+  		System.out.println("Started socket server on port: " + ipPortNumber);
     } catch (IOException e) {
       System.err.println("*** ERROR Could not listen on socket port: " + ipPortNumber);
     } catch (Exception e) {

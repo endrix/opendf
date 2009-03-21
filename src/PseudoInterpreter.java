@@ -1,8 +1,6 @@
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.PrintStream;
 
 import socket.SocketServer;
 
@@ -23,6 +21,7 @@ public class PseudoInterpreter {
 
 
 	public PseudoInterpreter(int cmdPortNumber, int eventPortNumber) {
+		System.out.println("Opendf Test Debugger Execution Engine");
 		cmdServer = new SocketServer(cmdPortNumber);
 		eventServer = new SocketServer(eventPortNumber);
 		startup();
@@ -30,9 +29,11 @@ public class PseudoInterpreter {
 	}
 
 	private void startup() {
-		System.out.println("Opendf Test Debugger Execution Engine");
+		cmdServer.start();
+		eventServer.start();
+		System.out.println("Waiting to for clients to connect");
 		int timeout = 0;
-		while (!cmdServer.isConnected() && !eventServer.isConnected()) {
+		while (!cmdServer.isConnected() || !eventServer.isConnected()) {
 			//wait a while
 			try {
 				Thread.sleep(LOOPDELAY);
