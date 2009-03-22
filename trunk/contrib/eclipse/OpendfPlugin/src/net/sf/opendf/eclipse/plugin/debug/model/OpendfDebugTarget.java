@@ -278,7 +278,7 @@ public class OpendfDebugTarget extends OpendfDebugElement implements IDebugTarge
 	 * @see org.eclipse.debug.core.model.ITerminate#terminate()
 	 */
 	public void terminate() throws DebugException {
-		sendCommand("terminate");
+		sendCommand("exit");
 	}
 
 	/**

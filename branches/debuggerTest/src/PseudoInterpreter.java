@@ -18,6 +18,10 @@ public class PseudoInterpreter {
 	private static final int LOOPDELAY = 100; //in ms
 	private SocketServer cmdServer;
 	private SocketServer eventServer;
+	private String myName = "MyName";
+	
+	private String state = "Reset";
+	
 
 
 	public PseudoInterpreter(int cmdPortNumber, int eventPortNumber) {
@@ -29,8 +33,6 @@ public class PseudoInterpreter {
 	}
 
 	private void startup() {
-		cmdServer.start();
-		eventServer.start();
 		System.out.println("Waiting to for clients to connect");
 		int timeout = 0;
 		while (!cmdServer.isConnected() || !eventServer.isConnected()) {
@@ -54,6 +56,7 @@ public class PseudoInterpreter {
 
 	private void writeEvent(String event) {
 		synchronized (eventServer) {
+			System.out.println("Sent event: " + event);
 			eventServer.getOutputStream().println(event);
 			eventServer.getOutputStream().flush();
 		}
@@ -132,15 +135,26 @@ public class PseudoInterpreter {
 			while (!terminated) {
 				command = input.readLine();
 				// parse events
-				System.out.println("Command received: " + command);
+				System.out.println("In State : " + state + ", Command received: " + command);
 				if (command.startsWith("exit")) {
 					sendReply("ok");
 					terminate();
 					terminated = true;
-				} else { //if (command.startsWith("step")) {
-					//int index = command.indexOf(" ");
-					//String compName = command.substring(index);
+					state = "Terminated";
+				} else if (command.startsWith("resumeAll")) {
+				  sendReply("ok");
+				  writeEvent("resumed " + myName  + ":client");
+					state = "Running";
+				} else if (command.startsWith("resume")) {
 					sendReply("ok");
+					int index = command.indexOf(" ");
+					String compName = command.substring(index);
+					writeEvent("resumed " + compName + ":client");
+					state = "Running";
+				} else { 
+					System.err.println("Unknown debugger command received: " + command);
+					sendReply("ok");
+					state = "Error";
 				}
 			}
 

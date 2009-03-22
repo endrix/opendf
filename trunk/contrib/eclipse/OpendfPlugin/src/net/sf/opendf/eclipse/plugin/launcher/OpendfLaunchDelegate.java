@@ -110,11 +110,6 @@ public class OpendfLaunchDelegate extends OpendfConfigLaunchDelegate {
 		commandList.add("" + commandPort);
 		commandList.add("" + eventPort);
 
-		
-//		commandList.add("cmd");
-//		commandList.add("/C");
-//		commandList.add("dir");
-
   	String[] commandLine = (String[]) commandList.toArray(new String[commandList.size()]);
 
 		Process process = DebugPlugin.exec(commandLine, null);
