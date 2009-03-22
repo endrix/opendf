@@ -133,7 +133,7 @@ public class OpendfDebugTarget extends OpendfDebugElement implements IDebugTarge
 			requestFailed("Unable to connect to Opendf Execution Engine", e);
 		}
 		//build up an array of threads representing individual actors
-		threads = new IThread[] {  };
+		threads = new IThread[] { new ActorThread(this, "MyName") };
 		
 		eventDispatch = new EventDispatchJob();
 		eventDispatch.schedule();

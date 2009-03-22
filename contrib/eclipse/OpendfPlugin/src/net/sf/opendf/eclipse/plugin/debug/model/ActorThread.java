@@ -331,17 +331,32 @@ public class ActorThread extends OpendfThread {
 			currentBreakpoint = null;
 			setStepping(false);
 			setSuspended(true);
-			if (event.endsWith("client")) {
+			int index = event.indexOf(":");
+			String type = event.substring(index + 1);
+			
+			if (type.startsWith("client")) {
 				suspended(DebugEvent.CLIENT_REQUEST);
-			} else if (event.endsWith("step")) {
+			} else if (type.startsWith("step")) {
 				suspended(DebugEvent.STEP_END);
-			} else if (event.startsWith("suspended event")) {
+			} else if (type.startsWith("drop")) {
+				suspended(DebugEvent.STEP_END);
+			} else if (type.startsWith("breakpoint")) {
 				exceptionHit();
-			} else if (event.endsWith("drop")) {
-				suspended(DebugEvent.STEP_END);
+			} else {
+				System.err.println("unknown suspended event: " + type);
 			}
 		}
 	}
+	/*
+  		client - a client request to suspend has completed
+  		drop - a client request to drop a frame has completed
+  		step - a step request has completed
+  		
+  		event E - an error was encountered, where E describes the error
+  		breakpoint L - a breakpoint at line L was hit
+  		watch V A - a watchpoint for variable V was hit for reason A
+  			(read or write), on variable V
+	 */
 
 	public void handleStartedEvent() {
 	}
