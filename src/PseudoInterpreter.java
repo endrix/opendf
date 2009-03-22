@@ -9,10 +9,10 @@ import socket.SocketServer;
  * execution engine
  * 
  * @author Rob Esser
- * @version 21 March 2009
+ * @version 22 March 2009
  * 
  */
-public class PseudoInterpreter {
+public class PseudoInterpreter extends Thread {
 
 	private static final int MAXTIMEOUT = 100; //actual delay = LOOPDELAY * MAXTIMEOUT (ms)
 	private static final int LOOPDELAY = 100; //in ms
@@ -29,7 +29,7 @@ public class PseudoInterpreter {
 		cmdServer = new SocketServer(cmdPortNumber);
 		eventServer = new SocketServer(eventPortNumber);
 		startup();
-		run();
+		behaviour();
 	}
 
 	private void startup() {
@@ -52,6 +52,8 @@ public class PseudoInterpreter {
 		System.out.println("Connected...");
 		System.out.println("");
 		writeEvent("started");
+		//start the receive command thread
+		start();
 	}
 
 	private void writeEvent(String event) {
@@ -66,6 +68,30 @@ public class PseudoInterpreter {
 		synchronized (cmdServer) {
 			cmdServer.getOutputStream().println(event);
 			cmdServer.getOutputStream().flush();
+		}
+	}
+
+	/**
+	 * In this method we mimic the behaviour of the running dataflow program
+	 */
+	private void behaviour() {
+		while (!state.equals("Terminated")) {
+			if (state.equals("Running")) {
+				// we can let this state persist for a while before we hit a breakpoint
+				try {
+					Thread.sleep(2000);
+				} catch (InterruptedException e) {
+				}
+				// say we hit a breakpoint
+				state = "Suspended";
+				writeEvent("suspended " + myName + ":breakpoint 10");
+			} else {
+				//just wait a moment
+				try {
+					Thread.sleep(200);
+				} catch (InterruptedException e) {
+				}
+			}
 		}
 	}
 
@@ -126,7 +152,7 @@ public class PseudoInterpreter {
 	 set N:L - set a line breakpoint in component N on line L (lines are indexed from 0); 
 	   reply is ok | nok
 	 */
-	private void run() {
+	public void run() {
 		boolean terminated = false;
 		String command = "";
 		//PrintStream output = cmdServer.getOutputStream();
@@ -151,6 +177,15 @@ public class PseudoInterpreter {
 					String compName = command.substring(index);
 					writeEvent("resumed " + compName + ":client");
 					state = "Running";
+				} else if (command.startsWith("suspend")) {
+					sendReply("ok");
+					int index = command.indexOf(" ");
+					String compName = command.substring(index);
+					state = "Suspended";
+				} else if (command.startsWith("stack")) {
+					int index = command.indexOf(" ");
+					String compName = command.substring(index);
+					sendReply(compName + "|10|action 1|a|b");
 				} else { 
 					System.err.println("Unknown debugger command received: " + command);
 					sendReply("ok");
