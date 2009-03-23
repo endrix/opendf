@@ -77,7 +77,7 @@ public class SimulationModelTab extends OpendfConfigTab
 
         Composite buttons = new Composite(tab, SWT.NONE);
         buttons.setLayoutData( new GridData( GridData.HORIZONTAL_ALIGN_CENTER ) );
-        buttons.setLayout( new GridLayout( 2, false ) );
+        buttons.setLayout( new GridLayout( 3, false ) );
 
         setControl( tabScroller );
         tabScroller.setContent(tab);
@@ -85,6 +85,7 @@ public class SimulationModelTab extends OpendfConfigTab
         // Add the relevant controls for selecting parameters
         final UpdatableControlIF topFile = ControlRenderingFactory.fileSelectButton(buttons, "Set top model from file selection", false, (ConfigFile)getConfigs().get(ConfigGroup.TOP_MODEL_FILE));
         final Button defaults = this.getDefaultButton(buttons);
+        final Button plugins = PluginButton.getButton(parent, buttons);
 
         final Composite group2 = new Composite(tab, SWT.SHADOW_IN);
         group2.setLayoutData( new GridData(SWT.FILL, SWT.BEGINNING, true,true) );

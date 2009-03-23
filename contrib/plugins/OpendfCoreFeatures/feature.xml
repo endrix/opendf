@@ -1,47 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <feature
-      id="net.sf.opendf.eclipse.feature"
-      label="Open Dataflow Plugin"
-      version="1.2.11"
+      id="net.sf.opendf.core.eclipse.feature"
+      label="Causation Trace Plugin"
+      version="1.0.0"
       provider-name="The Open Dataflow Project">
 
-   <description>
-      Open Dataflow Project plugin
-V1.2.5
-* improved simulation speed
-* Action priority analysis bug fixed
-* NL parsing bug fixed (type parameters)
-V1.2.4
-* Reverted to Java 1.5
-V1.2.3
-===============================================
-* Improved console I/O behavior
-* Minor bug fixes
-V1.2.0
-===============================================
-* Improved simulator interface
-* Run config dialog tab for console I/O control
-* Improved error reporting from editor
-V1.1.0
-===============================================
-* make dataflow simulator available from the std Eclipse run
-dialog.
-* fix problems opening files outside project
-V1.0.1
-===============================================
-* Improved outlining including icons and preservation of expanded
-state.
-* Changed .CAL and .NL images.
-* Added to PDF documentation.
+   <description url="http://www.example.com/description">
+      [Enter Feature Description here.]
    </description>
 
    <copyright>
-      Copyright (c) 2008, Xilinx Inc.
+      Copyright (c) 2009, EPFL
 All rights reserved.
    </copyright>
 
    <license>
-      Copyright (c) 2008, Xilinx Inc.
+      Copyright (c) 2009, EPFL
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions
@@ -75,34 +49,16 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
    </url>
 
    <requires>
+      <import feature="net.sf.opendf.eclipse.feature" version="1.2.11" match="greaterOrEqual"/>
       <import plugin="org.eclipse.core.runtime"/>
-      <import plugin="org.eclipse.debug.ui"/>
-      <import plugin="org.eclipse.jface.text"/>
-      <import plugin="org.eclipse.ui"/>
-      <import plugin="org.eclipse.ui.console"/>
-      <import plugin="org.eclipse.ui.editors"/>
-      <import plugin="org.eclipse.ui.ide"/>
-      <import plugin="org.eclipse.ui.views"/>
-      <import plugin="org.eclipse.ui.workbench.texteditor"/>
+      <import plugin="net.sf.opendf.eclipse.OpendfEditorPlugin"/>
+      <import plugin="net.sf.opendf.OpendfCorePlugin" version="1.1.10" match="greaterOrEqual"/>
    </requires>
 
    <plugin
-         id="net.sf.opendf.eclipse.doc"
-         download-size="2208"
-         install-size="4156"
-         version="0.0.0"/>
-
-   <plugin
-         id="net.sf.opendf.OpendfCorePlugin"
-         download-size="4598"
-         install-size="4598"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
-         id="net.sf.opendf.eclipse.OpendfEditorPlugin"
-         download-size="127"
-         install-size="127"
+         id="net.sf.opendf.plugin.causationplugin"
+         download-size="0"
+         install-size="0"
          version="0.0.0"
          unpack="false"/>
 

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.2"?>
+<plugin id="net.sf.opendf.plugin.causation" name="Causation Plug-In" version="1.0">
+   <requires>
+      <import plugin="net.sf.opendf.OpendfCorePlugin"/>
+      <import plugin="org.eclipse.equinox.registry"/>
+      <import plugin="org.eclipse.core.runtime"/>
+   </requires>
+   <extension
+         id="net.sf.opendf.plugin.causation"
+         name="Causation Trace Plugin"
+         point="net.sf.opendf.eclipse.plugin.OpendfPlugin.odfcoreplugin">
+      <classloading
+            classloader="net.sf.opendf.plugin.causation.CausationClassLoader"
+            description="Causation Trace Plugin"
+            name="Causation Trace Plugin">
+         <kinds
+               kind="Interpreter"
+               priority="0">
+         </kinds>
+      </classloading>
+   </extension>
+
+
+</plugin>
