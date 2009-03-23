@@ -89,7 +89,7 @@ public class ActorThread extends OpendfThread {
 				IStackFrame[] theFrames = new IStackFrame[frames.length];
 				for (int i = 0; i < frames.length; i++) {
 					String data = frames[i];
-					//theFrames[frames.length - i - 1] = new ActorStackFrame(this, data, i);
+					theFrames[frames.length - i - 1] = new ActorStackFrame(this, data, i);
 				}
 				return theFrames;
 			}

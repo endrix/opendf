@@ -191,35 +191,35 @@ public abstract class OpendfThread extends OpendfDebugElement implements IThread
 	 */
 	public abstract void suspend() throws DebugException;
 	
-	/* (non-Javadoc)
+	/**
 	 * @see org.eclipse.debug.core.model.IStep#canStepInto()
 	 */
 	public boolean canStepInto() {
 		return false;
 	}
 	
-	/* (non-Javadoc)
+	/**
 	 * @see org.eclipse.debug.core.model.IStep#canStepOver()
 	 */
 	public boolean canStepOver() {
 		return isSuspended();
 	}
 	
-	/* (non-Javadoc)
+	/**
 	 * @see org.eclipse.debug.core.model.IStep#canStepReturn()
 	 */
 	public boolean canStepReturn() {
 		return false;
 	}
 	
-	/* (non-Javadoc)
+	/**
 	 * @see org.eclipse.debug.core.model.IStep#isStepping()
 	 */
 	public boolean isStepping() {
 		return isStepping;
 	}
 	
-	/* (non-Javadoc)
+	/**
 	 * @see org.eclipse.debug.core.model.IStep#stepInto()
 	 */
 	public void stepInto() throws DebugException {
@@ -232,13 +232,13 @@ public abstract class OpendfThread extends OpendfDebugElement implements IThread
 	 */
 	public abstract void stepOver() throws DebugException;
 	
-	/* (non-Javadoc)
+	/**
 	 * @see org.eclipse.debug.core.model.IStep#stepReturn()
 	 */
 	public void stepReturn() throws DebugException {
 	}
 	
-	/* (non-Javadoc)
+	/**
 	 * @see org.eclipse.debug.core.model.ITerminate#canTerminate()
 	 */
 	public boolean canTerminate() {
@@ -260,6 +260,7 @@ public abstract class OpendfThread extends OpendfDebugElement implements IThread
 	 * @see org.eclipse.debug.core.model.ITerminate#terminate()
 	 */
 	public void terminate() throws DebugException {
+		getDebugTarget().terminate();
 	}
 
 }
