@@ -38,11 +38,14 @@ ENDCOPYRIGHT
 
 package net.sf.opendf.cal.lib;
 
+import java.math.BigInteger;
+
 import net.sf.opendf.cal.interpreter.Context;
 import net.sf.opendf.cal.interpreter.Function;
 import net.sf.opendf.cal.interpreter.InterpreterException;
 import net.sf.opendf.cal.interpreter.environment.Environment;
 import net.sf.opendf.cal.interpreter.environment.EnvironmentFactory;
+import net.sf.opendf.xslt.cal.TypedObject;
 
 /**
  * 
@@ -167,6 +170,29 @@ public class BitOps implements EnvironmentFactory {
                 return 2;
             }
         }));
+
+		env.bind("bitselect", context.createFunction(new Function()
+		{
+			public Object apply(Object[] args)
+			{
+				try
+				{
+					int a = context.intValue(args[0]);
+					int b = context.intValue(args[1]);
+					BigInteger n = context.asBigInteger(a).mod(new BigInteger("2").pow(context.intValue(b)));
+					return context.createInteger(n, n.bitLength() + 1, true);
+				}
+				catch (Exception ex)
+				{
+					throw new InterpreterException("Function 'bitselect': Cannot apply.", ex);
+				}
+			}
+
+			public int arity()
+			{
+				return 2;
+			}
+		}));
 
         return env;
 	}

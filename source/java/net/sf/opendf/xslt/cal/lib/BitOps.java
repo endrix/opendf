@@ -201,6 +201,36 @@ public class BitOps implements EnvironmentFactory {
         	}
         }));
 
+		env.bind("bitselect", context.createFunction(new AbstractBinarySBFunction()
+		{
+
+			protected TypedObject doValueFunction(TypedObject a, TypedObject b)
+			{
+				if (context.isInteger(a) && context.isInteger(b))
+				{
+					BigInteger n = context.asBigInteger(a).mod(new BigInteger("2").pow(context.intValue(b)));
+					return (TypedObject)context.createInteger(n, n.bitLength() + 1, true);
+				}
+				else
+					throw new RuntimeException("Cannot bitselect. (" + a + "<" + ((a == null) ? "NULL" : a.getType()) + ">, "
+															   + b + "<" + ((b == null) ? "NULL" : b.getType()) + ">");
+			}
+
+			protected Type doTypeFunction(Type a, Type b)
+			{
+				if (Type.nameInt.equals(a.getName()) && Type.nameInt.equals(b.getName()))
+				{
+					return Type.create(Type.nameInt,
+							Collections.EMPTY_MAP,
+							Collections.singletonMap(Type.vparSize, new Integer(32)));
+				}
+				else
+				{
+					throw new RuntimeException("Cannot bitselect types: " + a + ", " + b + ".");
+				}
+			}
+		}));
+
 
         return env;
 	}
