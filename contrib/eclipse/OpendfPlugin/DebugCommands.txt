@@ -16,20 +16,20 @@
 	 step N - single step forward in component N; 
 	   reply is ok | nok
 	   
-	 stepAll - step every component;
-	   reply is ok
+//	 stepAll - step every component;
+//	   reply is ok
 
 	 suspend N - suspend execution of component N;
 	   reply is ok
 	   
-	 suspendAll - suspend execution of all components;
-	   reply is ok
+//	 suspendAll - suspend execution of all components;
+//	   reply is ok
 
 	 resume N - resume execution of component N; 
 	   reply is ok
 
-	 resumeAll - resume execution of all components; 
-	   reply is ok
+//	 resumeAll - resume execution of all components; 
+//	   reply is ok
 
      exit - terminate execution
        reply is ok
@@ -61,9 +61,9 @@
 
 // breakpoints
 
-	 clear N:L - clear the breakpoint in component N on line L;
+	 clear N L - clear the breakpoint in component N on line L;
 	   reply is ok | nok
 
-	 set N:L - set a line breakpoint in component N on line L (lines are indexed from 0); 
+	 set N L - set a line breakpoint in component N on line L (lines are indexed from 0); 
 	   reply is ok | nok
 

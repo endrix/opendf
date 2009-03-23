@@ -248,13 +248,13 @@ public class ActorThread extends OpendfThread {
 		fireSuspendEvent(detail);
 	}
 
-	/**
-     * Notification an error was encountered. Fires a breakpoint
-     * suspend event.
-     */
-    private void exceptionHit() {
-    	suspended(DebugEvent.BREAKPOINT);
-    }  
+//	/**
+//     * Notification an error was encountered. Fires a breakpoint
+//     * suspend event.
+//     */
+//    private void exceptionHit() {
+//    	suspended(DebugEvent.BREAKPOINT);
+//    }  
 	
 	/**
 	 * Sets the current variables for the given stack frame. Called
@@ -333,7 +333,6 @@ public class ActorThread extends OpendfThread {
 			setSuspended(true);
 			int index = event.indexOf(":");
 			String type = event.substring(index + 1);
-			
 			if (type.startsWith("client")) {
 				suspended(DebugEvent.CLIENT_REQUEST);
 			} else if (type.startsWith("step")) {
@@ -341,7 +340,9 @@ public class ActorThread extends OpendfThread {
 			} else if (type.startsWith("drop")) {
 				suspended(DebugEvent.STEP_END);
 			} else if (type.startsWith("breakpoint")) {
-				exceptionHit();
+				//create a breakpoint object and fire event
+	    	suspendedBy(null);
+	    	//suspended(DebugEvent.BREAKPOINT);
 			} else {
 				System.err.println("unknown suspended event: " + type);
 			}
@@ -359,11 +360,11 @@ public class ActorThread extends OpendfThread {
 	 */
 
 	public void handleStartedEvent() {
+		fireEvent(new DebugEvent(this, DebugEvent.CREATE));
 	}
 
 	public void handleTerminatedEvent() {
 	}
 
-	
 	
 }
