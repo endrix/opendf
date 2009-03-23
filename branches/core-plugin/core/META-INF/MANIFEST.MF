@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Open Dataflow Core Plug-in
 Bundle-SymbolicName: net.sf.opendf.eclipse.plugin.OpendfPlugin;singleton:=true
-Bundle-Version: 1.1.10
+Bundle-Version: 1.1.11
 Bundle-Activator: net.sf.opendf.eclipse.coreplugin.Activator
 Bundle-Vendor: The Open Dataflow Project
 Require-Bundle: org.eclipse.core.runtime
@@ -49,7 +49,6 @@ Export-Package: java_cup,
  net.sf.opendf.hades.network,
  net.sf.opendf.hades.simulation,
  net.sf.opendf.hades.util,
- net.sf.opendf.hades.util.causation,
  net.sf.opendf.math,
  net.sf.opendf.math.cmatrix,
  net.sf.opendf.math.matrix,
@@ -57,6 +56,7 @@ Export-Package: java_cup,
  net.sf.opendf.nl,
  net.sf.opendf.nl.parser,
  net.sf.opendf.nl.util,
+ net.sf.opendf.plugin,
  net.sf.opendf.transforms,
  net.sf.opendf.util,
  net.sf.opendf.util.exception,

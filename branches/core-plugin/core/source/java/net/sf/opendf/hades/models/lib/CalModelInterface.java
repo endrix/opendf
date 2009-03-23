@@ -44,10 +44,11 @@ import java.util.List;
 import java.util.Map;
 
 import net.sf.opendf.cal.ast.Actor;
-import net.sf.opendf.hades.cal.CalInterpreter;
+import net.sf.opendf.hades.cal.CalInterpreterIT;
 import net.sf.opendf.hades.des.DiscreteEventComponent;
 import net.sf.opendf.hades.des.components.ParameterDescriptor;
 import net.sf.opendf.hades.models.ModelInterface;
+import net.sf.opendf.plugin.InterpreterFactory;
 
 
 /**
@@ -78,7 +79,7 @@ public class CalModelInterface implements ModelInterface {
 	}
 
 	public DiscreteEventComponent instantiate(Object modelSource, Map env, Map locMap, ClassLoader loader) {
-		CalInterpreter interpreter = new CalInterpreter((Actor) modelSource, env);
+		CalInterpreterIT interpreter = InterpreterFactory.interpreterfactory.newInterpreter((Actor) modelSource, env);
 		return interpreter ;
 	}
 

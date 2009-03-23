@@ -364,6 +364,7 @@ public class PhasedSimulator {
 
     public void cleanup()
     {
+    	sim.finalizeSimulation();
         /*
         if( ! done ) throw new RuntimeException( "Can't clean up before simulation ends" );
         if( dusted ) throw new RuntimeException( "Already cleaned up" );

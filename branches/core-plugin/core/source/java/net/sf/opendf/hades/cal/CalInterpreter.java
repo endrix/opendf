@@ -75,6 +75,7 @@ import net.sf.opendf.cal.i2.util.ImportHandler;
 import net.sf.opendf.cal.i2.util.ImportMapper;
 import net.sf.opendf.cal.i2.util.ImportUtil;
 import net.sf.opendf.cal.i2.util.Platform;
+import net.sf.opendf.cal.interpreter.Context;
 import net.sf.opendf.cal.interpreter.InputChannel;
 import net.sf.opendf.cal.interpreter.InputPort;
 import net.sf.opendf.cal.interpreter.OutputChannel;
@@ -106,7 +107,7 @@ import static net.sf.opendf.util.Misc.deepCopy;
  */
 
 public class CalInterpreter extends AbstractDiscreteEventComponent
-implements EventProcessor, LocationMap, StateChangeProvider { 
+implements CalInterpreterIT { 
 	
 	private static final Object LAST_FIRED_AT = "lastFiredAt";//JTK
 
@@ -196,7 +197,7 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 					TypeSystem ts = theConfiguration.getTypeSystem();
 					Type type =  (ts != null) ? ts.evaluate(te, myInterpreter) : null;
 					if (isStateVariable) 
-						this.actorEnv.bind(var, value, type);  
+						((DynamicEnvironmentFrame)(actorEnv)).bind(var, value, type);  
 					else
 						constantEnv.bind(var, value, type);
 					
@@ -239,7 +240,7 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 		}
 	}
 
-	protected  DynamicEnvironmentFrame  createActorStateEnvironment(Environment parent) {
+	protected Environment createActorStateEnvironment(Environment parent/*, Context context*/) {
 		return new DynamicEnvironmentFrame(parent);
 	}
 	
@@ -595,7 +596,7 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 	 */
 	
 	public Map  getActorStateVariables() {
-		return actorEnv.localBindings();
+		return ((DynamicEnvironmentFrame)actorEnv).localBindings();
 	}
 	
 	/**
@@ -1068,7 +1069,7 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 	 * This environment contains all bindings with actor scope. The local frame contains 
 	 * the actor state variables.
 	 */
-	protected DynamicEnvironmentFrame actorEnv;
+	protected Environment actorEnv;
 
 	
 	
@@ -1581,7 +1582,7 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 	 * happens to be protected for some reason.
 	 */
 	
-	protected static class MyArrayList extends ArrayList {
+	public static class MyArrayList extends ArrayList {
 		public void deleteRange(int a, int b) {
 			removeRange(a, b);
 		}
