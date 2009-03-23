@@ -140,10 +140,6 @@ public class OpendfDebugTarget extends OpendfDebugElement implements IDebugTarge
 		IBreakpointManager breakpointManager = getBreakpointManager();
 		breakpointManager.addBreakpointListener(this);
 		breakpointManager.addBreakpointManagerListener(this);
-		// initialise error handling to suspend on 'unimplemented instructions'
-		// and 'no such label' errors
-		//sendCommand("eventstop unimpinstr 1");
-		//sendCommand("eventstop nosuchlabel 1");
 	}
 
 	/**
@@ -359,7 +355,7 @@ public class OpendfDebugTarget extends OpendfDebugElement implements IDebugTarge
 	}
 
 	/**
-	 * Remove the brealpoint
+	 * Remove the breakpoint
 	 * 
 	 * @see
 	 * org.eclipse.debug.core.IBreakpointListener#breakpointRemoved(org.eclipse
@@ -466,6 +462,7 @@ public class OpendfDebugTarget extends OpendfDebugElement implements IDebugTarge
 	 * Called when this debug target terminates.
 	 */
 	private synchronized void terminated() {
+		try {
 		terminated = true;
 		threads = new OpendfThread[0];
 		IBreakpointManager breakpointManager = getBreakpointManager();
@@ -473,6 +470,9 @@ public class OpendfDebugTarget extends OpendfDebugElement implements IDebugTarge
 		breakpointManager.removeBreakpointManagerListener(this);
 		fireTerminateEvent();
 		removeEventListener(this);
+		} catch (Exception e) {
+			System.err.println(e);
+		}
 	}
 
 	/**
@@ -499,15 +499,16 @@ public class OpendfDebugTarget extends OpendfDebugElement implements IDebugTarge
 	 * 
 	 * @see example.debug.core.model.OpendfDebugElement#sendCommand(java.lang.String)
 	 */
-	public String sendCommand(String request) throws DebugException {
+	public String sendCommand(String command) throws DebugException {
+		//System.out.println(command);
 		synchronized (commandSocket) {
-			commandWriter.println(request);
+			commandWriter.println(command);
 			commandWriter.flush();
 			try {
 				// wait for reply
 				return commandReader.readLine();
 			} catch (IOException e) {
-				requestFailed("Request failed: " + request, e);
+				requestFailed("Request failed: " + command, e);
 			}
 		}
 		return null;
@@ -647,9 +648,7 @@ public class OpendfDebugTarget extends OpendfDebugElement implements IDebugTarge
 						} else if (event.endsWith("client")) {
 							event = "client";
 						}
-						for (IOpendfEventListener listener : eventListeners) {
-							listener.handleResumedEvent(compName, event);
-						}
+						notifyResumedListeners(compName, event);
 					} else if (event.startsWith("suspended")) {
 						int index = event.indexOf(":");
 						String compName = event.substring(10, index);
@@ -662,17 +661,11 @@ public class OpendfDebugTarget extends OpendfDebugElement implements IDebugTarge
 						else if (event.endsWith("drop")) {
 							//suspended(DebugEvent.STEP_END);
 						}
-						for (IOpendfEventListener listener : eventListeners) {
-							listener.handleSuspendedEvent(compName, event);
-						}
+						notifySuspendedListeners(compName, event);
 					} else if (event.equals("started")) {
-						for (IOpendfEventListener listener : eventListeners) {
-							listener.handleStartedEvent();
-						}
+						notifyStartedListeners();
 					} else if (event.equals("terminated")) {
-						for (IOpendfEventListener listener : eventListeners) {
-							listener.handleTerminatedEvent();
-						}
+						notifyTerminatedListeners();
 					} else {
 						System.err.println("Unexpected event received from execution engine: " + event);
 					}
@@ -683,6 +676,69 @@ public class OpendfDebugTarget extends OpendfDebugElement implements IDebugTarge
 			}
 			return Status.OK_STATUS;
 		}
+
+		/**
+		 * Notify listeners in a thread safe manner
+		 * 
+		 * @param compName
+		 * @param event
+		 */
+		private void notifySuspendedListeners(String compName, String event) {
+			int eventListenersSize = eventListeners.size();
+			if ((eventListeners != null) && (eventListenersSize > 0)) {
+				final IOpendfEventListener[] listeners = (IOpendfEventListener[]) eventListeners.toArray(new IOpendfEventListener[eventListenersSize]);
+				for (int i = 0; i < eventListenersSize; i++) {
+					final IOpendfEventListener listener = listeners[i];
+					listener.handleSuspendedEvent(compName, event);
+				}
+			}
+		}
+
+		/**
+		 * Notify listeners in a thread safe manner
+		 * 
+		 * @param compName
+		 * @param event
+		 */
+		private void notifyResumedListeners(String compName, String event) {
+			int eventListenersSize = eventListeners.size();
+			if ((eventListeners != null) && (eventListenersSize > 0)) {
+				final IOpendfEventListener[] listeners = (IOpendfEventListener[]) eventListeners.toArray(new IOpendfEventListener[eventListenersSize]);
+				for (int i = 0; i < eventListenersSize; i++) {
+					final IOpendfEventListener listener = listeners[i];
+					listener.handleResumedEvent(compName, event);
+				}
+			}
+		}
+
+		/**
+		 * Notify listeners in a thread safe manner
+		 */
+		public void notifyStartedListeners() {
+			int eventListenersSize = eventListeners.size();
+			if ((eventListeners != null) && (eventListenersSize > 0)) {
+				final IOpendfEventListener[] listeners = (IOpendfEventListener[]) eventListeners.toArray(new IOpendfEventListener[eventListenersSize]);
+				for (int i = 0; i < eventListenersSize; i++) {
+					final IOpendfEventListener listener = listeners[i];
+					listener.handleStartedEvent();
+				}
+			}
+		}
+
+		/**
+		 * Notify listeners in a thread safe manner
+		 */
+		public void notifyTerminatedListeners() {
+			int eventListenersSize = eventListeners.size();
+			if ((eventListeners != null) && (eventListenersSize > 0)) {
+				final IOpendfEventListener[] listeners = (IOpendfEventListener[]) eventListeners.toArray(new IOpendfEventListener[eventListenersSize]);
+				for (int i = 0; i < eventListenersSize; i++) {
+					final IOpendfEventListener listener = listeners[i];
+					listener.handleTerminatedEvent();
+				}
+			}
+		}
+		
 
 	}
 

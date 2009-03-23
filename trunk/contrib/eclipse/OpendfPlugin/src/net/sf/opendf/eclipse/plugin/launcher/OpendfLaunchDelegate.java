@@ -82,7 +82,6 @@ public class OpendfLaunchDelegate extends OpendfConfigLaunchDelegate {
 		}
 	}
 
-
 	/**
 	 * Launch a debugging session
 	 * 
@@ -101,17 +100,21 @@ public class OpendfLaunchDelegate extends OpendfConfigLaunchDelegate {
 		if (commandPort == -1 || eventPort == -1) {
 			throw new CoreException(new Status(IStatus.ERROR, OpendfPlugin.ID, 0, "Unable to find free port", null));
 		}
-			
+
 		List<String> commandList = new ArrayList<String>();
-		commandList.add("java");
-		commandList.add("-jar");
-		commandList.add("/Xilinx/opendf/trunk/contrib/eclipse/OpendfPlugin/debugger.jar");
+		commandList.add("debugger.bat");
 		commandList.add("-debug");
 		commandList.add("" + commandPort);
 		commandList.add("" + eventPort);
 
   	String[] commandLine = (String[]) commandList.toArray(new String[commandList.size()]);
-
+  	
+  	System.out.print("Launching debugger with command: '");
+  	for (int i = 0; i < commandLine.length; i++) {
+  		System.out.print(commandLine[i] + " ");
+  	}
+  	System.out.println("'");
+  	
 		Process process = DebugPlugin.exec(commandLine, null);
 		IProcess p = DebugPlugin.newProcess(launch, process, "Opendf Debugger");
 		IDebugTarget target = new OpendfDebugTarget(launch, p, commandPort, eventPort);
