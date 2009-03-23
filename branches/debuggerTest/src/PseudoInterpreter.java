@@ -23,7 +23,7 @@ public class PseudoInterpreter extends Thread {
 	private Map<String, String> componentNames = new HashMap<String, String>();
 	private boolean terminateInterpreter = false;
 	
-
+	private Map<String, String> variables = new HashMap<String, String>();
 
 	public PseudoInterpreter(int cmdPortNumber, int eventPortNumber) {
 		System.out.println("Opendf Test Debugger Execution Engine");
@@ -102,19 +102,10 @@ public class PseudoInterpreter extends Thread {
 	 step N - single step forward in component N; 
 	   reply is ok | nok
 	   
-	 stepAll - step every component;
-	   reply is ok
-
 	 suspend N - suspend execution of component N;
 	   reply is ok
 	   
-	 suspendAll - suspend execution of all components;
-	   reply is ok
-
 	 resume N - resume execution of component N; 
-	   reply is ok
-
-	 resumeAll - resume execution of all components; 
 	   reply is ok
 
    exit - terminate execution
@@ -122,10 +113,10 @@ public class PseudoInterpreter extends Thread {
 
    // variables
 
-	 getvar N M - return the contents of variable M in component N;
+	 getvar N F M - return the contents of variable M in function F of component N;
 	   reply is variable value
 
-	 setvar N M V - set the contents of variable M in component N to value V; 
+	 setvar N F M V - set the contents of variable M in function F of component N to value V; 
 	   reply is ok
 
 	 watch N V K - set a watchpoint on variable V in component N to the kind K;
@@ -165,10 +156,6 @@ public class PseudoInterpreter extends Thread {
 				if (command.startsWith("exit")) {
 					sendReply("ok");
 					terminate();
-//				} else if (command.startsWith("resumeAll")) {
-//				  sendReply("ok");
-//				  writeEvent("resumed " + myName  + ":client");
-//					state = "Running";
 				} else if (command.startsWith("resume")) {
 					String compName = extractComponentName(command);
 					sendReply("ok");
@@ -180,8 +167,26 @@ public class PseudoInterpreter extends Thread {
  					writeEvent("suspended " + compName + ":client");
  					componentNames.put(compName, "Suspended");
 				} else if (command.startsWith("stack")) {
+				  //"fileName|componentName|function name|location|variable name|variable name|...|variable name"
 					String compName = extractComponentName(command);
-					sendReply(compName + "|10|action_1|aVar|bVar");
+					sendReply(compName + ".cal|" + compName + "|action_1|10|aVar|bVar");
+				} else if (command.startsWith("getvar")) {
+					String compName = extractComponentName(command);
+					//extract var name
+					int index = command.indexOf(" ");
+					index = command.indexOf(" ", index);
+					String varName = command.substring(index + 1);
+					index = varName.indexOf(" ");
+					if (index > 0) {
+						compName = compName.substring(0, index);
+					}
+					String key = compName + "." + varName;
+					if (variables.containsKey(key)) {
+						sendReply(variables.get(key));
+					} else {
+						sendReply("" + key.hashCode());
+						variables.put(key, "" + key.hashCode());
+					}
 				} else if (command.startsWith("step")) {
 					String compName = extractComponentName(command);
 					sendReply("ok");
