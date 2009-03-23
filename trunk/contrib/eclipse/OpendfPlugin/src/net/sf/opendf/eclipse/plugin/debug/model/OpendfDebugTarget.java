@@ -89,7 +89,7 @@ public class OpendfDebugTarget extends OpendfDebugElement implements IDebugTarge
 	private boolean terminated = false;
 
 	// threads
-	private IThread[] threads;
+	private OpendfThread[] threads;
 
 	// event dispatch job
 	private EventDispatchJob eventDispatch;
@@ -133,7 +133,7 @@ public class OpendfDebugTarget extends OpendfDebugElement implements IDebugTarge
 			requestFailed("Unable to connect to Opendf Execution Engine", e);
 		}
 		//build up an array of threads representing individual actors
-		threads = new IThread[] { new ActorThread(this, "MyName") };
+		threads = new OpendfThread[] { new ActorThread(this, "MyNameA"), new ActorThread(this, "MyNameB") };
 		
 		eventDispatch = new EventDispatchJob();
 		eventDispatch.schedule();
@@ -324,7 +324,9 @@ public class OpendfDebugTarget extends OpendfDebugElement implements IDebugTarge
 	 * @see org.eclipse.debug.core.model.ISuspendResume#resume()
 	 */
 	public void resume() throws DebugException {
-		sendCommand("resumeAll");
+		for (int i = 0; i < threads.length; i++) {
+			sendCommand("resume " + threads[i].getComponentName());
+		}
 	}
 
 	/**
@@ -333,7 +335,9 @@ public class OpendfDebugTarget extends OpendfDebugElement implements IDebugTarge
 	 * @see org.eclipse.debug.core.model.ISuspendResume#suspend()
 	 */
 	public void suspend() throws DebugException {
-		sendCommand("suspendAll");
+		for (int i = 0; i < threads.length; i++) {
+			sendCommand("suspend " + threads[i].getComponentName());
+		}
 	}
 
 	/**
@@ -463,7 +467,7 @@ public class OpendfDebugTarget extends OpendfDebugElement implements IDebugTarge
 	 */
 	private synchronized void terminated() {
 		terminated = true;
-		threads = new IThread[0];
+		threads = new OpendfThread[0];
 		IBreakpointManager breakpointManager = getBreakpointManager();
 		breakpointManager.removeBreakpointListener(this);
 		breakpointManager.removeBreakpointManagerListener(this);
