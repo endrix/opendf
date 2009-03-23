@@ -1,0 +1,244 @@
+#include "actors-rts.h"
+
+enum Fifos{
+  Scale_0_Y0,
+  Scale_0_Y1,
+  Scale_0_Y2,
+  Scale_0_Y3,
+  Combine_0_Y0,
+  Combine_0_Y1,
+  ShuffleFly_0_Y0,
+  ShuffleFly_0_Y1,
+  ShuffleFly_0_Y2,
+  ShuffleFly_0_Y3,
+  Shuffle_0_Y0,
+  Shuffle_0_Y1,
+  Shuffle_0_Y2,
+  Shuffle_0_Y3,
+  Final_0_Y0,
+  Final_0_Y1,
+  Final_0_Y2,
+  Final_0_Y3,
+  RowSort_0_Y0,
+  RowSort_0_Y1,
+  FairMerge_0_Y0,
+  FairMerge_0_Y1,
+  FairMerge_0_ROWOUT,
+  Downsample_0_R2,
+  Separate_0_R0,
+  Separate_0_R1,
+  Separate_0_R2,
+  Separate_0_R3,
+  Separate_0_C0,
+  Separate_0_C1,
+  Separate_0_C2,
+  Separate_0_C3,
+  Transpose_0_Y0,
+  Transpose_0_Y1,
+  Retranspose_0_Y,
+  Clip_0_O,
+  art_Source_txt_0_Out,
+  art_Source_txt_1_Out,
+  numberOfFifos
+};
+
+static int ActorClass_Scale_0_Out[]={Scale_0_Y0, Scale_0_Y1, Scale_0_Y2, Scale_0_Y3};
+static int ActorClass_Scale_0_In[]={FairMerge_0_Y0, FairMerge_0_Y1};
+
+static int ActorClass_Combine_0_Out[]={Combine_0_Y0, Combine_0_Y1};
+static int ActorClass_Combine_0_In[]={Scale_0_Y0, Scale_0_Y1, Scale_0_Y2, Scale_0_Y3, FairMerge_0_ROWOUT};
+
+static int ActorClass_ShuffleFly_0_Out[]={ShuffleFly_0_Y0, ShuffleFly_0_Y1, ShuffleFly_0_Y2, ShuffleFly_0_Y3};
+static int ActorClass_ShuffleFly_0_In[]={Combine_0_Y0, Combine_0_Y1};
+
+static int ActorClass_Shuffle_0_Out[]={Shuffle_0_Y0, Shuffle_0_Y1, Shuffle_0_Y2, Shuffle_0_Y3};
+static int ActorClass_Shuffle_0_In[]={ShuffleFly_0_Y0, ShuffleFly_0_Y1, ShuffleFly_0_Y2, ShuffleFly_0_Y3};
+
+static int ActorClass_Final_0_Out[]={Final_0_Y0, Final_0_Y1, Final_0_Y2, Final_0_Y3};
+static int ActorClass_Final_0_In[]={Shuffle_0_Y0, Shuffle_0_Y1, Shuffle_0_Y2, Shuffle_0_Y3};
+
+static int ActorClass_RowSort_0_Out[]={RowSort_0_Y0, RowSort_0_Y1};
+static int ActorClass_RowSort_0_In[]={art_Source_txt_0_Out};
+
+static int ActorClass_FairMerge_0_Out[]={FairMerge_0_Y0, FairMerge_0_Y1, FairMerge_0_ROWOUT};
+static int ActorClass_FairMerge_0_In[]={RowSort_0_Y0, RowSort_0_Y1, Transpose_0_Y0, Transpose_0_Y1};
+
+static int ActorClass_Downsample_0_Out[]={Downsample_0_R2};
+static int ActorClass_Downsample_0_In[]={FairMerge_0_ROWOUT};
+
+static int ActorClass_Separate_0_Out[]={Separate_0_R0, Separate_0_R1, Separate_0_R2, Separate_0_R3, Separate_0_C0, Separate_0_C1, Separate_0_C2, Separate_0_C3};
+static int ActorClass_Separate_0_In[]={Final_0_Y0, Final_0_Y1, Final_0_Y2, Final_0_Y3, Downsample_0_R2};
+
+static int ActorClass_Transpose_0_Out[]={Transpose_0_Y0, Transpose_0_Y1};
+static int ActorClass_Transpose_0_In[]={Separate_0_R0, Separate_0_R1, Separate_0_R2, Separate_0_R3};
+
+static int ActorClass_Retranspose_0_Out[]={Retranspose_0_Y};
+static int ActorClass_Retranspose_0_In[]={Separate_0_C0, Separate_0_C1, Separate_0_C2, Separate_0_C3};
+
+static int ActorClass_Clip_0_Out[]={Clip_0_O};
+static int ActorClass_Clip_0_In[]={Retranspose_0_Y, art_Source_txt_1_Out};
+
+static int ActorClass_art_Source_txt_0_Out[]={art_Source_txt_0_Out};
+static int ActorClass_art_Source_txt_0_In[]={};
+
+static int ActorClass_art_Source_txt_1_Out[]={art_Source_txt_1_Out};
+static int ActorClass_art_Source_txt_1_In[]={};
+
+static int ActorClass_art_Sink_txt_0_Out[]={};
+static int ActorClass_art_Sink_txt_0_In[]={Clip_0_O};
+
+
+
+extern ActorClass ActorClass_Scale_0;
+extern ActorClass ActorClass_Combine_0;
+extern ActorClass ActorClass_ShuffleFly_0;
+extern ActorClass ActorClass_Shuffle_0;
+extern ActorClass ActorClass_Final_0;
+extern ActorClass ActorClass_RowSort_0;
+extern ActorClass ActorClass_FairMerge_0;
+extern ActorClass ActorClass_Downsample_0;
+extern ActorClass ActorClass_Separate_0;
+extern ActorClass ActorClass_Transpose_0;
+extern ActorClass ActorClass_Retranspose_0;
+extern ActorClass ActorClass_Clip_0;
+extern ActorClass ActorClass_art_Source_txt;
+extern ActorClass ActorClass_art_Source_txt;
+extern ActorClass ActorClass_art_Sink_txt;
+
+static ActorConfig actorConfig_Scale_0={
+   &ActorClass_Scale_0,
+   ActorClass_Scale_0_In,
+   ActorClass_Scale_0_Out
+};
+
+static ActorConfig actorConfig_Combine_0={
+   &ActorClass_Combine_0,
+   ActorClass_Combine_0_In,
+   ActorClass_Combine_0_Out
+};
+
+static ActorConfig actorConfig_ShuffleFly_0={
+   &ActorClass_ShuffleFly_0,
+   ActorClass_ShuffleFly_0_In,
+   ActorClass_ShuffleFly_0_Out
+};
+
+static ActorConfig actorConfig_Shuffle_0={
+   &ActorClass_Shuffle_0,
+   ActorClass_Shuffle_0_In,
+   ActorClass_Shuffle_0_Out
+};
+
+static ActorConfig actorConfig_Final_0={
+   &ActorClass_Final_0,
+   ActorClass_Final_0_In,
+   ActorClass_Final_0_Out
+};
+
+static ActorConfig actorConfig_RowSort_0={
+   &ActorClass_RowSort_0,
+   ActorClass_RowSort_0_In,
+   ActorClass_RowSort_0_Out
+};
+
+static ActorConfig actorConfig_FairMerge_0={
+   &ActorClass_FairMerge_0,
+   ActorClass_FairMerge_0_In,
+   ActorClass_FairMerge_0_Out
+};
+
+static ActorConfig actorConfig_Downsample_0={
+   &ActorClass_Downsample_0,
+   ActorClass_Downsample_0_In,
+   ActorClass_Downsample_0_Out
+};
+
+static ActorConfig actorConfig_Separate_0={
+   &ActorClass_Separate_0,
+   ActorClass_Separate_0_In,
+   ActorClass_Separate_0_Out
+};
+
+static ActorConfig actorConfig_Transpose_0={
+   &ActorClass_Transpose_0,
+   ActorClass_Transpose_0_In,
+   ActorClass_Transpose_0_Out
+};
+
+static ActorConfig actorConfig_Retranspose_0={
+   &ActorClass_Retranspose_0,
+   ActorClass_Retranspose_0_In,
+   ActorClass_Retranspose_0_Out
+};
+
+static ActorConfig actorConfig_Clip_0={
+   &ActorClass_Clip_0,
+   ActorClass_Clip_0_In,
+   ActorClass_Clip_0_Out
+};
+
+static ActorParameter para_art_Source_txt_0[]={
+  {"fileName","@datadir@/actors-test/MPEG4_SP_Decoder/input/idct2dTest/in.txt"}
+};
+
+static ActorConfig actorConfig_art_Source_txt_0={
+   &ActorClass_art_Source_txt,
+   ActorClass_art_Source_txt_0_In,
+   ActorClass_art_Source_txt_0_Out,
+   1,
+   para_art_Source_txt_0
+};
+
+static ActorParameter para_art_Source_txt_1[]={
+  {"fileName","@datadir@/actors-test/MPEG4_SP_Decoder/input/idct2dTest/signed.txt"}
+};
+
+static ActorConfig actorConfig_art_Source_txt_1={
+   &ActorClass_art_Source_txt,
+   ActorClass_art_Source_txt_1_In,
+   ActorClass_art_Source_txt_1_Out,
+   1,
+   para_art_Source_txt_1
+};
+
+static ActorParameter para_art_Sink_txt_0[]={
+  {"fileName","./output/idct2dTest/out.txt"}
+};
+
+static ActorConfig actorConfig_art_Sink_txt_0={
+   &ActorClass_art_Sink_txt,
+   ActorClass_art_Sink_txt_0_In,
+   ActorClass_art_Sink_txt_0_Out,
+   1,
+   para_art_Sink_txt_0
+};
+
+
+static ActorConfig *actors []={
+   &actorConfig_Scale_0, 
+   &actorConfig_Combine_0, 
+   &actorConfig_ShuffleFly_0, 
+   &actorConfig_Shuffle_0, 
+   &actorConfig_Final_0, 
+   &actorConfig_RowSort_0, 
+   &actorConfig_FairMerge_0, 
+   &actorConfig_Downsample_0, 
+   &actorConfig_Separate_0, 
+   &actorConfig_Transpose_0, 
+   &actorConfig_Retranspose_0, 
+   &actorConfig_Clip_0, 
+   &actorConfig_art_Source_txt_0, 
+   &actorConfig_art_Source_txt_1, 
+   &actorConfig_art_Sink_txt_0 
+};
+
+static NetworkConfig networkConfig = {
+  actors,
+   sizeof(actors)/sizeof(ActorConfig*),
+  numberOfFifos
+};
+
+int main(int argc, char *argv[]) {
+  return execute_network(argc, argv, &networkConfig);
+};
+

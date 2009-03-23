@@ -1,0 +1,96 @@
+BIG FAT WARNING: CAL2C IS CURRENTLY BEING MODIFIED TO PARSE CALML FILES. IN THE
+MEANTIME, PLEASE USE REVISION 581 TO GET A WORKING VERSION.
+
+-------------------------------------------------------------------------------
+                                 Prerequisites
+                                 -------------
+
+- CIL (latest version: 1.3.6) available from
+  http://sourceforge.net/projects/cil
+- ocamlgraph, available from http://ocamlgraph.lri.fr/index.en.html
+
+                                    Windows
+                                    -------
+
+- Windows NT, 2000, XP, or Vista.
+- Objective Caml >= 3.10.2, port based on the MinGW toolchain, available from
+  http://caml.inria.fr/download.html
+- The Cygwin port of GNU tools, available from http://www.cygwin.com/
+  * with Devel/gcc installed
+
+                                     Linux
+                                     -----
+
+- Objective Caml >= 3.10.0, available from http://caml.inria.fr/download.html
+  either compiled from source, or obtained from a package manager
+
+                                    MacOS X
+                                    -------
+
+- Objective Caml >= 3.10.0, available from http://caml.inria.fr/download.html
+
+-------------------------------------------------------------------------------
+                            How to compile and run
+                            ----------------------
+
+- Compilation:
+  * compile CIL and ocamlgraph (with the classic ./configure, make, make install)
+  * go to the src folder of Cal2C, and type:
+    - for a bytecode version: ./build.sh cal2c/cli/cal2c.byte
+    - for a native version: ./build.sh cal2c/cli/cal2c.native
+
+    Caution: the target is case-sensitive.
+
+- Cal2C generated code prerequisites
+  * Cal2C creates C files that contain the code of actors (functions,
+    procedures, local variables, actions), C++ headers (SystemC module
+    declarations), and C++ bodies (action schedulers).
+  * The generated code depends on several libraries:
+    - libcal
+    - SDL
+    - SystemC + TLM
+  * libcal is an implementation of a few CAL primitives, and is available in
+    the testbench/libcal folder.
+  * SDL is required by some libcal functions, and can be found on
+    http://www.libsdl.org
+  * SystemC and TLM are libraries created by the Open SystemC Initiative, and
+    are used by the actions schedulers. They can be downloaded from
+    http://www.systemc.org/
+    (you have to register first:
+      http://www.systemc.org/members/
+    )
+
+- Running Cal2C: (this example uses the bytecode version. To use the native
+  one, simply replace "byte" by "native")
+  * go to the root folder of Cal2C
+  * type (or copy/paste ^^)
+    src/_build/cal2c/cli/cal2c.byte -debug -o <output directory> <XML file>
+  * <XML file>: the name of an XML file containing XDF content.
+
+- The -debug option is currently mandatory to be able to understand some of
+  Cal2C most obscure errors.
+
+-------------------------------------------------------------------------------
+                               Cal2C limitations
+                               -----------------
+
+*** to be rewritten... ***
+
+- Limited println functionality: if/then/else are not supported at the moment.
+  println("This println is ok: 3 * a = " + (3 * a));
+  println("This one is not: " + (if e = 0 then "OK" else ("Not OK: " + e) end));
+
+  The underlying reason is a faulty visitor in Cal2C: the second call is
+  transformed to:
+    println(toString("This one is not: ") +
+      toString(if e = 0 then "OK" else ("Not OK: " + e) end));
+  while it should be:
+    println(toString("This one is not: ") +
+      (if e = 0 then toString("OK")
+       else (toString("Not OK: ") + toString(e)) end));
+  So the type inference says "e is not a string", because we do not apply it
+  to toString.
+
+- No variable-size lists, or repeats
+
+- Probably a lot of other things that I'm currently unable to remember...

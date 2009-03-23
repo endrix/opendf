@@ -1,0 +1,221 @@
+
+\chapter{Introductory remarks}\label{chap:SyntaxIntro}
+
+Throughout this part, we will present fragments of \Cal syntax
+along with (informal) descriptions of what these are supposed to
+mean. In order to avoid ambiguity, we will now introduce a few
+conventions as well as the fundamental syntactic elements (lexical
+tokens) of the \Cal language.
+
+
+\section{Lexical tokens}\label{sect:LexicalMatters}
+
+\index{lexical token} \index{token!lexical|see{lexical token}} 
+\Cal
+has the following kinds of lexical tokens:
+
+\index{keywords} 
+\paragraph{Keywords.} Keywords are special strings that are part of
+the language syntax and are consequently not available as
+identifiers. See \ref{app:Keywords} for a list of keywords in \Cal.
+
+\index{identifier}\index{identifier!escape
+  syntax}
+\index{identifier!reserved}
+\index{\$@{\tt \$}!in reserved identifiers}
+\paragraph{Identifiers.} Identifiers are any sequence of alphabetic
+characters of either case, digits, the underscore character and the
+dollar sign that is not a keyword. Sequences of characters that are
+not legal identifiers may be turned into identifiers by delimiting
+them with backslash characters.
+
+Identifiers containing the {\tt \$}-sign are {\em reserved}
+identifiers. They are intended to be used by tools that generate
+\Cal program code and need to produce unique names which do not
+conflict with names chosen by users of the language. Consequently,
+users are discouraged from introducing identifiers that contain the
+{\tt \$}-sign.
+
+\index{operator}
+\paragraph{Operators.} Operators are written as any string of
+characters !, @, \#, \$, \%, $\hat{}$, \&, *, /, +, -, =, $<$, $>$, ?,
+$\sim$, |. In addition to these strings, a few keywords are used as
+operators. The set of operators in \Cal is extensible, different
+platforms may augment the set of operators. The language itself
+defines only a small set of operators---see appendix
+\ref{app:PredefOps} for a list of predefined operators.
+
+\index{delimiter}
+\paragraph{Delimiters.} These are used to indicate the beginning or
+end of syntactical elements in \Cal. The following characters are used
+as delimiters: (, ), \{, \}, [, ], :.
+
+\index{comment}\index{comment!syntax}
+\paragraph{Comments.} Comments are Java-style, i.e. single-line
+comments starting with ``//'' and multi-line comments delimited by
+``/*'' and ``*/''.
+
+\index{literal!numeric}
+\index{numeric literal|see{literal, numeric}}
+\paragraph{Numeric literals.} \Cal provides two kinds of numeric
+literals: those representing an integral number and those representing
+a decimal fraction. Their syntax is as follows:\footnote{In contrast
+  to all other grammar rules in this report, the following rules do not
+  allow whitespace between tokens.}
+
+\bgr
+  Integer : DecimalLiteral | HexadecimalLiteral | OctalLiteral.
+
+  Real : DecimalDigit~\mul{DecimalDigit}~'\charDot'~\mul{DecimalDigit}~[Exponent] ;
+     |  ~'\charDot'~DecimalDigit~\mul{DecimalDigit}~[Exponent] ;
+     | DecimalDigit~\mul{DecimalDigit}~Exponent .
+
+  DecimalLiteral : NonZeroDecimalDigit~\mul{DecimalDigit}.
+
+  HexadecimalLiteral: '0'~('x'|'X') ~HexadecimalDigit
+  ~\mul{HexadecimalDigit}.
+
+  OctalLiteral : '0'~\mul{OctalDigit}.
+
+  Exponent : ('e'|'E')~['+'|'-']~DecimalDigit~\mul{DecimalDigit}.
+
+  NonZeroDecimalDigit : '1'|'2'|'3'|'4'|'5'|'6'|'7'|'8'|'9' .
+
+  DecimalDigit : '0'|~NonZeroDecimalDigit .
+
+  OctalDigit : '0'|'1'|'2'|'3'|'4'|'5'|'6'|'7'|'8'.
+
+  HexadecimalDigit : DecimalDigit ;
+     | 'a'|'b'|'c'|'d'|'e'|'f' ;
+     | 'A'|'B'|'C'|'D'|'E'|'F' .
+\egr
+
+
+\index{rationale!escaped identifier}
+\index{identifier!escaped, rationale|see{rationale, escaped identifier}}
+\begin{rationale}
+  The reason for allowing identifiers to essentially be any sequence
+  of characters (by providing an 'escaped' identifier syntax) is that
+  \Cal is intended to interoperate with as many other languages as
+  possible, and therefore cannot assume any particular identifier
+  syntax.
+  \index{host environment}\index{host language}
+  We expect that most applications will be using C/C++/Java-style host
+  environments, and thus the lexical conventions of \Cal are very
+  similar to those found in these languages. But we did not want to
+  exclude other environments just by a too restrictive choice of the
+  identifier space.
+\end{rationale}
+
+\section{Typographic conventions}
+
+In syntax rules, keywords are shown in {\bf boldface}, while all other
+literal symbols are enclosed in single quotes. 
+
+In examples, \Cal code is represented {\tt monospaced} if it is to be
+read literally. Placeholders inside \Cal code, such as for
+expressions, variables, statements and so forth, are set in italics,
+as e.g., $E$, $v$, and $S$.
+
+\section{Syntax rules}
+
+\index{BNF}
+\index{Backus-Naur-Form}
+
+We use a form of BNF to describe the syntax rules. Literal elements
+are put in quotes (in the case of symbols and delimiters), or set in
+boldface (in the case of keywords). An optional occurrence of a
+sequence of symbols $A$
+is written as $[A]$, while any number of consecutive occurrences
+(including none) are written as $\{A\}$. The alternative occurrence of
+either $A$ or $B$ is expressed as $A \mid B$.
+
+We often use plural forms of
+non-terminal symbols without introducing them explicitly. These are
+supposed to stand for a comma-separated sequence of at least on instance of the
+non-terminal. E.g., if $A$ is the non-terminal, we might use $As$ in
+some production, and we implicitly assume the following definition:
+
+\bgr
+As : A~\mul{'\charComma'~A}.
+\egr
+
+In the examples we will give in this report, we will assume the
+'usual' interpretation of expression literals and mathematical
+operators, even though strictly speaking these are not part of the
+language and depend on the environment. A specific implementation of
+\Cal may not have these these operators, or interpret them or the
+literals in a different manner.
+
+
+\section{Notational idioms}
+
+\index{notational idiom}
+
+Like most programming languages, \Cal involves a fair number of
+syntactical constructs that need to be learned and understood by its
+users in order to use the language productively. The effort involved
+in gaining familiarity with the language can be a considerable
+impediment to its adoption, so it makes sense to employ general
+guidelines for designing the syntax of constructs, which allow users
+to make guesses about the syntax if they are unsure about the details
+of a specific language construction. We call these guidelines, which
+define the {\em style} of a language, its {\em notational idioms}.
+
+The following is a list of notational idioms guiding the design of
+\Cal's language syntax. Not all of them may hold true all the
+time, but we tried to conform to them whenever reasonable.
+
+\index{keyword construct}
+
+\paragraph{Keyword constructs.} Many constructs in \Cal are delimited
+by {\em keywords} rather than more symbolic delimiters---such
+constructs are called {\em keyword constructs}. Examples of these
+would be lambda-expressions (see section
+\ref{sect:LambdaClosures}). Other constructs are delimited by symbols
+(e.g. comprehensions, see section \ref{sect:Comprehensions}), or are
+at least partially lacking delimiters (such as assignments, which
+begin with a variable name, see section \ref{sect:Assignment}).
+
+\index{end marker}
+\index{end@\kwEnd!alternatives}
+
+\paragraph{Alternative end markers.} Every keyword construct ends
+with either the keyword \kwEnd~or the keyword that consists of
+appending the opening keyword to \kwEnd. For instance, a
+lambda-expression can either be written\\
+\exindent{\tt lambda (x) : x * x end}\\
+or alternatively \\
+\exindent{\tt lambda (x) : x * x endlambda}
+
+\index{expression!head} \index{expression!body}
+\index{head!of expression}\index{body!of expression}
+
+\paragraph{Expression head/body separator.} Composite expressions
+often consist of the opening keyword, a {\em head}, a {\em separator}, the
+{\em body}, and the closing end marker keyword. In such expressions, the
+separator is usually the ':'-character, as in the following
+examples:\\
+\exindent{\tt let x = f(k) : g(x, x) end}\\
+or\\
+\exindent{\tt lambda (x) : x + x end}
+
+\index{statement!head} \index{statement!body}
+\index{head!of statement} \index{body!of statement}
+
+\paragraph{Statement head/body separator.} Many statements have a
+similar structure as the one for expressions. For statements, the
+keywords \kwDo~or \kwBegin~are used as a separator:\\
+\exindent{\tt while n > 0 do k := f(k); n := n - 1; end}\\
+or\\
+\exindent{\tt procedure p (x) begin}\\
+\exindent\exindent {\tt println("Result: " + x.toString());}\\
+\exindent{\tt end}
+
+% \paragraph{Semicolon vs comma.}
+
+
+
+% Local Variables:
+% TeX-master: "../reference"
+% End:
