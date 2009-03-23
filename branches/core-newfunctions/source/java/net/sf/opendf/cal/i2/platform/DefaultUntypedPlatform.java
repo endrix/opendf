@@ -51,6 +51,7 @@ import net.sf.opendf.cal.i2.util.ProcedureOf4;
 import net.sf.opendf.cal.i2.util.ReplacePrefixImportMapper;
 import net.sf.opendf.math.Complex;
 import net.sf.opendf.util.logging.Logging;
+import net.sf.opendf.xslt.cal.TypedObject;
 
 import java.io.InputStream;
 import java.net.InetAddress;
@@ -1018,6 +1019,15 @@ public class DefaultUntypedPlatform implements Platform {
                 int aa = intValueOf(a);
                 int bb = intValueOf(b);
                 return createInteger(aa << bb);
+            }
+        }, null);
+
+		env.bind("bitselect", new FunctionOf2() {
+        	@Override
+        	public Object f(Object a, Object b) {
+                int aa = intValueOf(a);
+                int bb = intValueOf(b);
+				return createInteger(aa).mod(new BigInteger("2").pow(bb));
             }
         }, null);
         
