@@ -1,6 +1,8 @@
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.HashMap;
+import java.util.Map;
 
 import socket.SocketServer;
 
@@ -18,9 +20,8 @@ public class PseudoInterpreter extends Thread {
 	private static final int LOOPDELAY = 100; //in ms
 	private SocketServer cmdServer;
 	private SocketServer eventServer;
-	private String myName = "MyName";
-	
-	private String state = "Reset";
+	private Map<String, String> componentNames = new HashMap<String, String>();
+	private boolean terminateInterpreter = false;
 	
 
 
@@ -33,7 +34,7 @@ public class PseudoInterpreter extends Thread {
 	}
 
 	private void startup() {
-		System.out.println("Waiting to for clients to connect");
+		System.out.println("Waiting for clients to connect");
 		int timeout = 0;
 		while (!cmdServer.isConnected() || !eventServer.isConnected()) {
 			//wait a while
@@ -66,6 +67,7 @@ public class PseudoInterpreter extends Thread {
 
 	private void sendReply(String event) {
 		synchronized (cmdServer) {
+			System.out.println("Sent cmd ack: " + event);
 			cmdServer.getOutputStream().println(event);
 			cmdServer.getOutputStream().flush();
 		}
@@ -75,22 +77,21 @@ public class PseudoInterpreter extends Thread {
 	 * In this method we mimic the behaviour of the running dataflow program
 	 */
 	private void behaviour() {
-		while (!state.equals("Terminated")) {
-			if (state.equals("Running")) {
-				// we can let this state persist for a while before we hit a breakpoint
-				try {
-					Thread.sleep(2000);
-				} catch (InterruptedException e) {
+		while (!terminateInterpreter) {
+			for (String compName : componentNames.keySet()) {
+				if (componentNames.get(compName).equals("Running")) {
+					// we can let this state persist for a while before we hit a breakpoint
+					componentNames.put(compName, "Suspended");
+					writeEvent("suspended " + compName + ":breakpoint 10");
+				} else if (componentNames.get(compName).equals("Stepping")) {
+					// we can let this state persist for a while before we complete
+					componentNames.put(compName, "Suspended");
+					writeEvent("suspended " + compName + ":step");
 				}
-				// say we hit a breakpoint
-				state = "Suspended";
-				writeEvent("suspended " + myName + ":breakpoint 10");
-			} else {
-				//just wait a moment
-				try {
-					Thread.sleep(200);
-				} catch (InterruptedException e) {
-				}
+			}
+			try {
+				Thread.sleep(2500);
+			} catch (InterruptedException e) {
 			}
 		}
 	}
@@ -146,50 +147,49 @@ public class PseudoInterpreter extends Thread {
 
    // breakpoints
 
-	 clear N:L - clear the breakpoint in component N on line L;
+	 clear N L - clear the breakpoint in component N on line L;
 	   reply is ok | nok
 
-	 set N:L - set a line breakpoint in component N on line L (lines are indexed from 0); 
+	 set N L - set a line breakpoint in component N on line L (lines are indexed from 0); 
 	   reply is ok | nok
 	 */
 	public void run() {
-		boolean terminated = false;
 		String command = "";
 		//PrintStream output = cmdServer.getOutputStream();
 		BufferedReader input = new BufferedReader(new InputStreamReader(cmdServer.getInputStream()));
 		try {
-			while (!terminated) {
+			while (!terminateInterpreter) {
 				command = input.readLine();
 				// parse events
-				System.out.println("In State : " + state + ", Command received: " + command);
+				System.out.println("Command received: " + command);
 				if (command.startsWith("exit")) {
 					sendReply("ok");
 					terminate();
-					terminated = true;
-					state = "Terminated";
-				} else if (command.startsWith("resumeAll")) {
-				  sendReply("ok");
-				  writeEvent("resumed " + myName  + ":client");
-					state = "Running";
+//				} else if (command.startsWith("resumeAll")) {
+//				  sendReply("ok");
+//				  writeEvent("resumed " + myName  + ":client");
+//					state = "Running";
 				} else if (command.startsWith("resume")) {
+					String compName = extractComponentName(command);
 					sendReply("ok");
-					int index = command.indexOf(" ");
-					String compName = command.substring(index);
-					writeEvent("resumed " + compName + ":client");
-					state = "Running";
+ 					writeEvent("resumed " + compName + ":client");
+ 					componentNames.put(compName, "Running");
 				} else if (command.startsWith("suspend")) {
+					String compName = extractComponentName(command);
 					sendReply("ok");
-					int index = command.indexOf(" ");
-					String compName = command.substring(index);
-					state = "Suspended";
+ 					writeEvent("suspended " + compName + ":client");
+ 					componentNames.put(compName, "Suspended");
 				} else if (command.startsWith("stack")) {
-					int index = command.indexOf(" ");
-					String compName = command.substring(index);
-					sendReply(compName + "|10|action 1|a|b");
+					String compName = extractComponentName(command);
+					sendReply(compName + "|10|action_1|aVar|bVar");
+				} else if (command.startsWith("step")) {
+					String compName = extractComponentName(command);
+					sendReply("ok");
+ 					writeEvent("resumed " + compName + ":step");
+ 					componentNames.put(compName, "Stepping");
 				} else { 
 					System.err.println("Unknown debugger command received: " + command);
 					sendReply("ok");
-					state = "Error";
 				}
 			}
 
@@ -205,8 +205,17 @@ public class PseudoInterpreter extends Thread {
 	private void terminate() {
 		writeEvent("terminated");
 		System.out.println("Opendf Test Debugger Execution Engine. Exit.");
+		terminateInterpreter = true;
 	}
 
+	
+	private String extractComponentName(String command) {
+		int index = command.indexOf(" ");
+		String compName = command.substring(index + 1);
+		index = compName.indexOf(" ");
+		return index < 0 ? compName : compName.substring(0, index);
+	}
+	
 	/**
 	 * @param args
 	 */
