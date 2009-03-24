@@ -335,11 +335,13 @@ int execute_network(int argc, char *argv[],NetworkConfig *networkConfig)
 				return 0;
 			case 'l':
 				log_level = atoi(optarg);
+				break;
 			case 'n':
 				num = atoi(optarg);
 				break;
 			case 't':
 				trace_action = 1;
+				break;
 			case 'm':
 				rts_mode = atoi(optarg);
 				if(rts_mode != THREAD_PER_ACTOR && rts_mode != THREAD_PER_LIST && rts_mode != SINGLE_LIST){
