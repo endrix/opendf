@@ -68,7 +68,7 @@ import org.eclipse.debug.core.model.IValue;
  * Opendf debugger target.
  * 
  * @author Rob Esser
- * @version 20 March 2009
+ * @version 24 March 2009
  */
 public class OpendfDebugTarget extends OpendfDebugElement implements IDebugTarget, IBreakpointManagerListener, IOpendfEventListener {
 
@@ -86,7 +86,9 @@ public class OpendfDebugTarget extends OpendfDebugElement implements IDebugTarge
 	private BufferedReader eventReader;
 
 	// terminated state
-	private boolean terminated = false;
+	private boolean isTerminated = false;
+	
+	private boolean isSuspended = false;
 
 	// threads
 	private OpendfThread[] threads;
@@ -152,6 +154,7 @@ public class OpendfDebugTarget extends OpendfDebugElement implements IDebugTarge
 	 */
 	public void addEventListener(IOpendfEventListener listener) {
 		if (!eventListeners.contains(listener)) {
+			System.out.println("Added listener: " + listener);
 			eventListeners.add(listener);
 		}
 	}
@@ -163,6 +166,7 @@ public class OpendfDebugTarget extends OpendfDebugElement implements IDebugTarge
 	 * @param listener event listener
 	 */
 	public void removeEventListener(IOpendfEventListener listener) {
+		System.out.println("Removed listener: " + listener);
 		eventListeners.remove(listener);
 	}
 
@@ -182,15 +186,49 @@ public class OpendfDebugTarget extends OpendfDebugElement implements IDebugTarge
 	 * @see org.eclipse.debug.core.model.IDebugTarget#getThreads()
 	 */
 	public IThread[] getThreads() throws DebugException {
-		System.out.println("OpendfDebugTarget.getThreads()");
-		if (!terminated) {
+		//System.out.println("OpendfDebugTarget.getThreads()");
+		if (!isTerminated) {
 			//ask the execution engine for the active actors and other stuff
 			String data = sendCommand("getComponents");
 			String[] strings = data.split("\\|");
-			threads = new OpendfThread[strings.length];
-			for (int i = 0; i < strings.length; i++) {
-				threads[i] = new ActorThread(this, strings[i]);
+			//let's see if the threads have changed
+			List<OpendfThread> threadList = new ArrayList<OpendfThread>();
+			//copy over existing threads
+			for (int i = 0; i < threads.length; i++) {
+				String existingName = threads[i].getComponentName();
+				boolean found = false;
+				for (int j = 0; j < strings.length; j++) {
+					String newName = strings[i];
+					if (newName.equals(existingName)) {
+						//want to keep this thread
+						found = true;
+						threadList.add(threads[i]);
+						break;
+					}
+				}
+				if (!found) {
+					//thread no longer used so remove it
+					removeEventListener(threads[i]);
+				}
 			}
+			//add in new threads
+			for (int i = 0; i < strings.length; i++) {
+				String newName = strings[i];
+				boolean found = false;
+				for (int j = 0; j < threads.length; j++) {
+					String existingName = threads[j].getComponentName();
+					if (newName.equals(existingName)) {
+						//want to keep this thread
+						found = true;
+						break;
+					}
+				}
+				if (!found) {
+					//existing thread not present so add a new one
+					threadList.add(new ActorThread(this, newName));
+				}
+			}
+			threads = (OpendfThread[]) threadList.toArray(new OpendfThread[threadList.size()]);
 		}
 		return threads;
 	}
@@ -277,7 +315,7 @@ public class OpendfDebugTarget extends OpendfDebugElement implements IDebugTarge
 	 * @see org.eclipse.debug.core.model.ITerminate#isTerminated()
 	 */
 	public boolean isTerminated() {
-		return terminated || getProcess().isTerminated();
+		return isTerminated || getProcess().isTerminated();
 	}
 
 	/**
@@ -316,14 +354,7 @@ public class OpendfDebugTarget extends OpendfDebugElement implements IDebugTarge
 		if (isTerminated()) {
 			return true;
 		}
-		//now see if all the threads have suspended
-		for (int i = 0; i < threads.length; i++) {
-			if (!threads[i].isSuspended()) {
-				//thread still running
-				return false;
-			}
-		}
-		return true;
+		return isSuspended;
 	}
 
 	/*
@@ -475,7 +506,11 @@ public class OpendfDebugTarget extends OpendfDebugElement implements IDebugTarge
 	 */
 	private synchronized void terminated() {
 		try {
-		terminated = true;
+		isTerminated = true;
+		//remove threads from the listeners
+		for (int i = 0; i < threads.length; i++) {
+			removeEventListener(threads[i]);
+		}
 		threads = new OpendfThread[0];
 		IBreakpointManager breakpointManager = getBreakpointManager();
 		breakpointManager.removeBreakpointListener(this);
@@ -593,7 +628,7 @@ public class OpendfDebugTarget extends OpendfDebugElement implements IDebugTarge
 	}
 
 	public void handleResumedEvent(String compName, String event) {
-		//do nothing
+		isSuspended = false;
 	}
 
 	public void handleStartedEvent() {
@@ -601,7 +636,7 @@ public class OpendfDebugTarget extends OpendfDebugElement implements IDebugTarge
 	}
 
 	public void handleSuspendedEvent(String compName, String event) {
-		//do nothing
+		isSuspended = true;
 	}
 
 	public void handleTerminatedEvent() {
@@ -651,6 +686,7 @@ public class OpendfDebugTarget extends OpendfDebugElement implements IDebugTarge
 			while (!isTerminated() && event != null) {
 				try {
 					event = eventReader.readLine();
+					System.out.println("Event received:  " + event);
 					//parse events
 					if (event.startsWith("resumed")) {
 						int index = event.indexOf(":");

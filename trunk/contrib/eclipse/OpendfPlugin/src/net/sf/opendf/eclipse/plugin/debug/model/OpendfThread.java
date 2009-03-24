@@ -125,7 +125,7 @@ public abstract class OpendfThread extends OpendfDebugElement implements IThread
 	 * @see org.eclipse.debug.core.model.IThread#getName()
 	 */
 	public String getName() {
-		return getComponentName() + " " + (isSuspended() ? "(suspended)" : "(running)");
+		return getComponentName() + " " + (isSuspended() ? "(suspended)" : (isStepping() ? "(stepping)" : "(running)"));
 	}
 	
 	/**
@@ -177,6 +177,15 @@ public abstract class OpendfThread extends OpendfDebugElement implements IThread
 		return isSuspended && !isTerminated();
 	}
 	
+	/**
+	 * Sets whether this thread is suspended
+	 * 
+	 * @param suspended whether suspended
+	 */
+	protected void setSuspended(boolean suspended) {
+		isSuspended = suspended;
+	}
+
 	/**
 	 * Resume the execution of this component
 	 * 

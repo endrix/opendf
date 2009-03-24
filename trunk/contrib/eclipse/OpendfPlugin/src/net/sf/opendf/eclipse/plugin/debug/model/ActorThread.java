@@ -216,15 +216,6 @@ public class ActorThread extends OpendfThread {
 	}
 	
 	/**
-	 * Sets whether this thread is suspended
-	 * 
-	 * @param suspended whether suspended
-	 */
-	private void setSuspended(boolean suspended) {
-		isSuspended = suspended;
-	}
-
-	/**
 	 * Notification the target has resumed for the given reason.
 	 * Clears any error condition that was last encountered and
 	 * fires a resume event, and clears all cached variables
@@ -310,6 +301,7 @@ public class ActorThread extends OpendfThread {
 	
 	public void handleResumedEvent(String compName, String event) {
 		if (getComponentName().equals(compName)) {
+			//System.out.println("Resumed " + compName);
 			// clear previous state
 			currentBreakpoint = null;
 			setStepping(false);
@@ -327,6 +319,7 @@ public class ActorThread extends OpendfThread {
 
 	public void handleSuspendedEvent(String compName, String event) {
 		if (getComponentName().equals(compName)) {
+			//System.out.println("Suspended " + compName);
 			// clear previous state
 			currentBreakpoint = null;
 			setStepping(false);
