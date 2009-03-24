@@ -170,7 +170,7 @@ public class PseudoInterpreter extends Thread {
 				} else if (command.startsWith("stack")) {
 				  //"fileName|componentName|function name|location|variable name|variable name|...|variable name"
 					String compName = extractComponentName(command);
-					sendReply(compName + ".cal|" + compName + "|func_2|20|aFunVar|bFunVar#" + compName + ".cal|" + compName + "|action_1|10|aVar|bVar" );
+					sendReply(compName + ".cal|" + compName + "|action_1|10|aVar|bVar#" + compName + ".cal|" + compName + "|func_2|20|aFunVar|bFunVar");
 				} else if (command.startsWith("getComponents")) {
 					// "componentName|componentName|componentName|..."
 					String[] actors = { "Actor_A", "Actor_B" };
