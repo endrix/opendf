@@ -45,6 +45,9 @@
 
 // status
 
+   getComponents
+     reply is componentName|componentName|componentName....
+
    getComponentStatus N - return the status of component N
      reply is running | suspended | guards(g1, g2, ... gn) where
      gx = insufficientTokens | incorrectState | insufficientPriority | enabled 
