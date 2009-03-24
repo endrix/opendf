@@ -170,6 +170,15 @@ public class PseudoInterpreter extends Thread {
 				  //"fileName|componentName|function name|location|variable name|variable name|...|variable name"
 					String compName = extractComponentName(command);
 					sendReply(compName + ".cal|" + compName + "|action_1|10|aVar|bVar");
+				} else if (command.startsWith("getComponents")) {
+				  //"componentName|componentName|componentName|..."
+					if (!componentNames.containsKey("Actor_A")) {
+						componentNames.put("Actor_A", "Running");
+					}
+					if (!componentNames.containsKey("Actor_B")) {
+						componentNames.put("Actor_B", "Running");
+					}
+					sendReply("Actor_A|Actor_B");
 				} else if (command.startsWith("getvar")) {
 					String compName = extractComponentName(command);
 					//extract var name
