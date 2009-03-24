@@ -183,7 +183,7 @@ int pinRead2(ActorPort *actorPort,char *buf,int length)
 	//signal waiting writer
   	bk = &cb->block;
 	instance = actorInstance[bk->aid];
-	pthread_mutex_lock(&instance->mt);
+
 	if(rts_mode != THREAD_PER_ACTOR)
 	{
 		if(!instance->execState)
@@ -191,6 +191,7 @@ int pinRead2(ActorPort *actorPort,char *buf,int length)
 	}
 	else
 	{
+		pthread_mutex_lock(&instance->mt);
 		if(bk->num)
 		{
 			if (get_circbuf_space(cb) >= bk->num)
@@ -199,8 +200,9 @@ int pinRead2(ActorPort *actorPort,char *buf,int length)
 				pthread_cond_signal(&instance->cv);
 			}
 		}
+		pthread_mutex_unlock(&instance->mt);
 	}
-	pthread_mutex_unlock(&instance->mt);
+		
 
 	return ret;
 }
@@ -243,13 +245,14 @@ int pinWrite2(ActorPort *actorPort,char *buf, int length)
 	{
 		bk = &cb->reader[i].block;
 		instance = actorInstance[bk->aid];
-		pthread_mutex_lock(&instance->mt);
+
 		if(rts_mode != THREAD_PER_ACTOR){
 			if(!instance->execState)
 				instance->execState = 1;
 		}
 		else
 		{
+			pthread_mutex_lock(&instance->mt);
 			if(bk->num)
 			{
 				if(get_circbuf_area(cb,i) >=bk->num)
@@ -258,8 +261,8 @@ int pinWrite2(ActorPort *actorPort,char *buf, int length)
 					pthread_cond_signal(&instance->cv);
 				}
 			}
+			pthread_mutex_unlock(&instance->mt);
 		}
-		pthread_mutex_unlock(&instance->mt);
 	}
 
 	return 0;
@@ -280,6 +283,9 @@ void pinWait(ActorPort *actorPort,int length)
 	CIRC_BUFFER		*cb;
 	BLOCK			*bk;
 	AbstractActorInstance *instance;
+
+	if(rts_mode != THREAD_PER_ACTOR)
+		return;
 
 	cb = &circularBuf[actorPort->cid];
 	if(actorPort->portDir == INPUT)
@@ -313,7 +319,7 @@ void init_actor_network(NetworkConfig *network)
 	int						FifoInputPortIndex[128][128];
 
 	int						listIndex = 0;
-	int						numActorsPerList;
+	int						numActorsPerList = 0;
 
 	memset(NumReaderInstances,0,sizeof(NumReaderInstances));
 

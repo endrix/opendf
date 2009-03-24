@@ -59,7 +59,6 @@ int						trace_action = 0;
 int						rts_mode = THREAD_PER_ACTOR;
 LIST					actorLists[MAX_LIST_NUM];
 int						num_lists = 1;
-int						num_threads = 1;
 
 static void stop_run(int sig){
     trace(LOG_MUST,"\nprogram stop running: sig=%x pid=%x\n",sig,getpid());
@@ -243,7 +242,7 @@ static void exec_actor_unit(AbstractActorInstance *instance)
 	pthread_exit(NULL);
 }
 
-static void exec_list_unit(LIST *actorList)
+static void exec_lists_unit(LIST *actorList)
 {
 	DLLIST			*lnode = NULL;
 	AbstractActorInstance *instance;
@@ -264,10 +263,9 @@ static void exec_list_unit(LIST *actorList)
 		//actor dispatch
 		if(instance->execState){
 			if(instance->actor->action_scheduler){
-				pthread_mutex_lock(&instance->mt);
+				pthread_mutex_lock(&instance->mt);				
 				instance->execState = 0;
 				pthread_mutex_unlock(&instance->mt);
-
 				noRuns = 0;
 				instance->actor->action_scheduler(instance);
 			}
@@ -281,6 +279,36 @@ static void exec_list_unit(LIST *actorList)
 				sched_yield();
 			}
 		}
+	}
+	pthread_exit(NULL);
+}
+
+static void exec_list_unit(LIST *actorList)
+{
+	DLLIST			*lnode = NULL;
+	AbstractActorInstance *instance;
+	static int		count = 0;
+
+	if(actorList->numNodes == 0)
+		pthread_exit(NULL);
+
+	trace(LOG_MUST,"Actor List(%d) containing %d actors start running......\n",count++,actorList->numNodes);
+
+	while(Running)
+	{
+		//select actor instance
+		lnode = node_select(actorList,lnode);
+		instance = (AbstractActorInstance*)lnode->obj;
+
+		//actor dispatch
+		pthread_mutex_lock(&instance->mt);		
+		if(instance->execState){
+			if(instance->actor->action_scheduler){
+				instance->execState = 0;
+				instance->actor->action_scheduler(instance);
+			}
+		}
+		pthread_mutex_unlock(&instance->mt);
 	}
 	pthread_exit(NULL);
 }
@@ -306,15 +334,17 @@ int actors_status(int numInstances)
 	}
 	return ret;
 }
+
 int execute_network(int argc, char *argv[],NetworkConfig *networkConfig)
 {
 	int			i,c;
 	int			numInstances,numFifos;
 	int			interval=2;
 	int			count=0;
-	int			numThreads;
 	int			num = 1;
+	int			numThreads = 1;
 	pthread_attr_t attr;
+	pthread_t	tid[128];
 
 	//command line param parser
 	while ((c = getopt (argc, argv, "tvhn:l:m:")) != -1)
@@ -366,14 +396,13 @@ int execute_network(int argc, char *argv[],NetworkConfig *networkConfig)
 
 	switch(rts_mode){
 		case THREAD_PER_LIST:
-			numThreads = num_lists = num;
+			num_lists = num;
 			break;
 		case SINGLE_LIST:
 			numThreads = num;
 			num_lists = 1;
 			break;
 		case THREAD_PER_ACTOR:
-			numThreads = numInstances;
 			num_lists = 0;
 			break;
 		default:
@@ -382,7 +411,8 @@ int execute_network(int argc, char *argv[],NetworkConfig *networkConfig)
 
 	trace(LOG_MUST,"ModuleName: %s numInstances: %d numFifos: %d\n",argv[0],numInstances,numFifos);
 	trace(LOG_MUST,"Number of lists = %d\n",num_lists);
-	trace(LOG_MUST, "Number of threads = %d\n",numThreads);
+	if(rts_mode == SINGLE_LIST)
+		trace(LOG_MUST, "Number of threads = %d\n",numThreads);
 
 	init_actor_network(networkConfig);
 	
@@ -400,21 +430,29 @@ int execute_network(int argc, char *argv[],NetworkConfig *networkConfig)
 	pthread_attr_init(&attr);
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
-	if(rts_mode == THREAD_PER_ACTOR)
-	{
-		for(i=0;i<numInstances;i++)
-		{
-			pthread_create((pthread_t*)&actorInstance[i]->tid, &attr, (void*)exec_actor_unit, (void *) actorInstance[i]);
-		}
-	}
-	else
-	{ 
-		//actor list thread
-		for(i=0;i<numThreads;i++)
-		{
-			pthread_create((pthread_t*)&actorInstance[i]->tid, &attr, (void*)exec_list_unit, (void *) &actorLists[i]);
-		}
-	}
+	switch(rts_mode){
+		case THREAD_PER_ACTOR:
+			for(i=0;i<numInstances;i++)
+			{
+				pthread_create((pthread_t*)&actorInstance[i]->tid, &attr, (void*)exec_actor_unit, (void *) actorInstance[i]);
+			}
+			break;
+		case THREAD_PER_LIST:
+			for(i=0;i<num_lists;i++)
+			{
+				pthread_create((pthread_t*)&tid[i], &attr, (void*)exec_lists_unit, (void *) &actorLists[i]);
+			}
+			break;
+		case SINGLE_LIST:
+			for(i=0;i<numThreads;i++)
+			{
+				pthread_create((pthread_t*)&tid[i], &attr, (void*)exec_list_unit, (void *) &actorLists[0]);
+			}
+			break;
+		default:
+			break;
+	}	
+
  	while(Running)
  	{
 		count++;
