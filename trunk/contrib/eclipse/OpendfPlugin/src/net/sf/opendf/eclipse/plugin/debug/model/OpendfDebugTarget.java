@@ -133,8 +133,9 @@ public class OpendfDebugTarget extends OpendfDebugElement implements IDebugTarge
 			requestFailed("Unable to connect to Opendf Execution Engine", e);
 		}
 		//build up an array of threads representing individual actors
-		threads = new OpendfThread[] { new ActorThread(this, "MyNameA"), new ActorThread(this, "MyNameB") };
-		
+		//threads = new OpendfThread[] { new ActorThread(this, "MyNameA"), new ActorThread(this, "MyNameB") };
+		threads = new OpendfThread[] {  };
+
 		eventDispatch = new EventDispatchJob();
 		eventDispatch.schedule();
 		IBreakpointManager breakpointManager = getBreakpointManager();
@@ -175,11 +176,22 @@ public class OpendfDebugTarget extends OpendfDebugElement implements IDebugTarge
 	}
 
 	/**
-	 * Return the set of debugger threads (could be misused to represent each actor)
+	 * Return the set of debugger threads representing each actor and perhaps more
+	 * This would have to be modified for dynamic systems
 	 * 
 	 * @see org.eclipse.debug.core.model.IDebugTarget#getThreads()
 	 */
 	public IThread[] getThreads() throws DebugException {
+		System.out.println("OpendfDebugTarget.getThreads()");
+		if (!terminated) {
+			//ask the execution engine for the active actors and other stuff
+			String data = sendCommand("getComponents");
+			String[] strings = data.split("\\|");
+			threads = new OpendfThread[strings.length];
+			for (int i = 0; i < strings.length; i++) {
+				threads[i] = new ActorThread(this, strings[i]);
+			}
+		}
 		return threads;
 	}
 
@@ -740,6 +752,20 @@ public class OpendfDebugTarget extends OpendfDebugElement implements IDebugTarge
 		}
 		
 
+		/**
+		 * Notify listeners in a thread safe manner
+		 */
+		public void notifyTerminatedListenersxxx() {
+			synchronized (eventListeners) {
+				for (IOpendfEventListener listener : eventListeners) {
+					listener.handleTerminatedEvent();
+				}
+			}
+		}
+
+		
+		
+		
 	}
 
 
