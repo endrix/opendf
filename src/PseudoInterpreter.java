@@ -3,6 +3,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.StringTokenizer;
 
 import socket.SocketServer;
 
@@ -11,7 +12,7 @@ import socket.SocketServer;
  * execution engine
  * 
  * @author Rob Esser
- * @version 22 March 2009
+ * @version 24 March 2009
  * 
  */
 public class PseudoInterpreter extends Thread {
@@ -169,33 +170,56 @@ public class PseudoInterpreter extends Thread {
 				} else if (command.startsWith("stack")) {
 				  //"fileName|componentName|function name|location|variable name|variable name|...|variable name"
 					String compName = extractComponentName(command);
-					sendReply(compName + ".cal|" + compName + "|action_1|10|aVar|bVar");
+					sendReply(compName + ".cal|" + compName + "|func_2|20|aFunVar|bFunVar#" + compName + ".cal|" + compName + "|action_1|10|aVar|bVar" );
 				} else if (command.startsWith("getComponents")) {
-				  //"componentName|componentName|componentName|..."
-					if (!componentNames.containsKey("Actor_A")) {
-						componentNames.put("Actor_A", "Running");
+					// "componentName|componentName|componentName|..."
+					String[] actors = { "Actor_A", "Actor_B" };
+					String reply = "";
+					for (int i = 0; i < actors.length; i++) {
+						String name = actors[i];
+						if (!componentNames.containsKey(name)) {
+							componentNames.put(name, "Running");
+						}
+						if (i == 0) {
+							reply += name;
+						} else {
+							reply = reply + "|" + name;
+						}
 					}
-					if (!componentNames.containsKey("Actor_B")) {
-						componentNames.put("Actor_B", "Running");
-					}
-					sendReply("Actor_A|Actor_B");
+					sendReply(reply);
 				} else if (command.startsWith("getvar")) {
-					String compName = extractComponentName(command);
-					//extract var name
-					int index = command.indexOf(" ");
-					index = command.indexOf(" ", index);
-					String varName = command.substring(index + 1);
-					index = varName.indexOf(" ");
-					if (index > 0) {
-						compName = compName.substring(0, index);
-					}
-					String key = compName + "." + varName;
+					//getvar N F M
+					StringTokenizer tokenizer = new StringTokenizer(command, " ");
+					//skip getvar command
+					tokenizer.nextToken();
+					String compName = tokenizer.nextToken();
+					String funcName = tokenizer.nextToken();
+					String varName = tokenizer.nextToken();
+					String key = compName + "." + funcName + "." + varName;
+					//System.out.println("-getvar-: " + key);
 					if (variables.containsKey(key)) {
 						sendReply(variables.get(key));
 					} else {
 						sendReply("" + key.hashCode());
 						variables.put(key, "" + key.hashCode());
 					}
+				} else if (command.startsWith("setvar")) {
+					//setvar Actor_A action_1 bVar 24
+					StringTokenizer tokenizer = new StringTokenizer(command, " ");
+					//skip setvar command
+					tokenizer.nextToken();
+					String compName = tokenizer.nextToken();
+					String funcName = tokenizer.nextToken();
+					String varName = tokenizer.nextToken();
+					String value = tokenizer.nextToken();
+					String key = compName + "." + funcName + "." + varName;
+					//System.out.println("-setvar-: " + key);
+					if (variables.containsKey(key)) {
+						variables.put(key, value);
+					} else {
+						System.err.println("Variable not present, compName: " + compName + " func: " + funcName + " varName: " + varName);
+					}
+					sendReply("ok");
 				} else if (command.startsWith("step")) {
 					String compName = extractComponentName(command);
 					sendReply("ok");
