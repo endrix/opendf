@@ -154,7 +154,7 @@ public class OpendfDebugTarget extends OpendfDebugElement implements IDebugTarge
 	 */
 	public void addEventListener(IOpendfEventListener listener) {
 		if (!eventListeners.contains(listener)) {
-			System.out.println("Added listener: " + listener);
+			//System.out.println("Added listener: " + listener);
 			eventListeners.add(listener);
 		}
 	}
@@ -166,7 +166,7 @@ public class OpendfDebugTarget extends OpendfDebugElement implements IDebugTarge
 	 * @param listener event listener
 	 */
 	public void removeEventListener(IOpendfEventListener listener) {
-		System.out.println("Removed listener: " + listener);
+		//System.out.println("Removed listener: " + listener);
 		eventListeners.remove(listener);
 	}
 
@@ -686,7 +686,7 @@ public class OpendfDebugTarget extends OpendfDebugElement implements IDebugTarge
 			while (!isTerminated() && event != null) {
 				try {
 					event = eventReader.readLine();
-					System.out.println("Event received:  " + event);
+					//System.out.println("Event received:  " + event);
 					//parse events
 					if (event.startsWith("resumed")) {
 						int index = event.indexOf(":");
@@ -786,21 +786,6 @@ public class OpendfDebugTarget extends OpendfDebugElement implements IDebugTarge
 				}
 			}
 		}
-		
-
-		/**
-		 * Notify listeners in a thread safe manner
-		 */
-		public void notifyTerminatedListenersxxx() {
-			synchronized (eventListeners) {
-				for (IOpendfEventListener listener : eventListeners) {
-					listener.handleTerminatedEvent();
-				}
-			}
-		}
-
-		
-		
 		
 	}
 
