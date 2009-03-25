@@ -20,7 +20,8 @@ SEDIFY=$(srcdir)/../../install-scripts/sedify.sh
 SEDCMD:=$(shell $(SEDIFY) @datadir@ $(datadir))
 
 # TODO: we should only provide the files that are neither in opendf/models
-#       nor in share/sysactors: ParseHeaders.cal (patched) and DDRSeq.cal
+#       nor in share/sysactors: ParseHeaders.cal (patched), DDRSeq.cal
+#       and Idct2dSeq.cal
  
 CAL_FILES=ACPred.cal Add.cal art_DDRModel.cal art_Sink_bin.cal \
          art_Sink_txt.cal art_Source_bin.cal art_Source_txt.cal \
@@ -31,7 +32,7 @@ CAL_FILES=ACPred.cal Add.cal art_DDRModel.cal art_Sink_bin.cal \
          ParseHeaders.cal Retranspose.cal RowSort.cal Scale.cal \
          SearchWindow.cal SendDC.cal Separate.cal Sequence.cal \
          Shuffle.cal ShuffleFly.cal Transpose.cal Unpack.cal \
-         ZigzagAddr.cal Zigzag.cal
+         ZigzagAddr.cal Zigzag.cal Idct2dSeq.cal
 
 # TODO: We should need no additional networks
 

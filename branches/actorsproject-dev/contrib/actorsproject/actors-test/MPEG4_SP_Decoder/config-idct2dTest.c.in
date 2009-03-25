@@ -39,6 +39,8 @@ enum Fifos{
   Clip_0_O,
   art_Source_txt_0_Out,
   art_Source_txt_1_Out,
+  Idct2dSeq_0_SignOut,
+  Idct2dSeq_0_DataOut,
   numberOfFifos
 };
 
@@ -58,7 +60,7 @@ static int ActorClass_Final_0_Out[]={Final_0_Y0, Final_0_Y1, Final_0_Y2, Final_0
 static int ActorClass_Final_0_In[]={Shuffle_0_Y0, Shuffle_0_Y1, Shuffle_0_Y2, Shuffle_0_Y3};
 
 static int ActorClass_RowSort_0_Out[]={RowSort_0_Y0, RowSort_0_Y1};
-static int ActorClass_RowSort_0_In[]={art_Source_txt_0_Out};
+static int ActorClass_RowSort_0_In[]={Idct2dSeq_0_DataOut};
 
 static int ActorClass_FairMerge_0_Out[]={FairMerge_0_Y0, FairMerge_0_Y1, FairMerge_0_ROWOUT};
 static int ActorClass_FairMerge_0_In[]={RowSort_0_Y0, RowSort_0_Y1, Transpose_0_Y0, Transpose_0_Y1};
@@ -76,7 +78,7 @@ static int ActorClass_Retranspose_0_Out[]={Retranspose_0_Y};
 static int ActorClass_Retranspose_0_In[]={Separate_0_C0, Separate_0_C1, Separate_0_C2, Separate_0_C3};
 
 static int ActorClass_Clip_0_Out[]={Clip_0_O};
-static int ActorClass_Clip_0_In[]={Retranspose_0_Y, art_Source_txt_1_Out};
+static int ActorClass_Clip_0_In[]={Retranspose_0_Y, Idct2dSeq_0_SignOut};
 
 static int ActorClass_art_Source_txt_0_Out[]={art_Source_txt_0_Out};
 static int ActorClass_art_Source_txt_0_In[]={};
@@ -87,6 +89,8 @@ static int ActorClass_art_Source_txt_1_In[]={};
 static int ActorClass_art_Sink_txt_0_Out[]={};
 static int ActorClass_art_Sink_txt_0_In[]={Clip_0_O};
 
+static int ActorClass_Idct2dSeq_0_Out[]={Idct2dSeq_0_SignOut, Idct2dSeq_0_DataOut};
+static int ActorClass_Idct2dSeq_0_In[]={art_Source_txt_1_Out, art_Source_txt_0_Out};
 
 
 extern ActorClass ActorClass_Scale_0;
@@ -104,6 +108,7 @@ extern ActorClass ActorClass_Clip_0;
 extern ActorClass ActorClass_art_Source_txt;
 extern ActorClass ActorClass_art_Source_txt;
 extern ActorClass ActorClass_art_Sink_txt;
+extern ActorClass ActorClass_Idct2dSeq_0;
 
 static ActorConfig actorConfig_Scale_0={
    &ActorClass_Scale_0,
@@ -213,6 +218,12 @@ static ActorConfig actorConfig_art_Sink_txt_0={
    para_art_Sink_txt_0
 };
 
+static ActorConfig actorConfig_Idct2dSeq_0={
+   &ActorClass_Idct2dSeq_0,
+   ActorClass_Idct2dSeq_0_In,
+   ActorClass_Idct2dSeq_0_Out
+};
+
 
 static ActorConfig *actors []={
    &actorConfig_Scale_0, 
@@ -228,7 +239,8 @@ static ActorConfig *actors []={
    &actorConfig_Retranspose_0, 
    &actorConfig_Clip_0, 
    &actorConfig_art_Source_txt_0, 
-   &actorConfig_art_Source_txt_1, 
+   &actorConfig_art_Source_txt_1,
+   &actorConfig_Idct2dSeq_0, 
    &actorConfig_art_Sink_txt_0 
 };
 

@@ -1,0 +1,23 @@
+/*
+ * This actor has the purpose of sequencing the 'signed' and 'in 
+ * sources of idct2dTest. Otherwise, the Clip actor runs the risk
+ * of processing 'in' tokens prematurely (using old signedness mode).
+ */
+
+actor Idct2dSeq() bool SignIn,  int(size=10) DataIn 
+              ==> bool SignOut, int(size=10) DataOut :
+
+  
+  int count:=0;
+
+  action SignIn:[s] ==> SignOut:[s]
+  do
+    count:=count+64;
+  end
+
+  data: action DataIn:[d] ==> DataOut:[d]
+  guard count>0
+  do
+    count:=count-1; 
+  end
+end
