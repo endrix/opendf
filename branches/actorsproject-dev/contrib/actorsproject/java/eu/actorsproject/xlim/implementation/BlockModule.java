@@ -64,6 +64,14 @@ class BlockModule extends ContainerModule implements XlimBlockModule, AbstractBl
 	}
 	
 	@Override
+	public void substituteStateValueNodes() {
+		// Substitute StateValueNodes (definitions) in the operations that use them
+		// so that this module can be moved
+		for(AbstractBlockElement child: mChildren)
+			child.substituteStateValueNodes();
+	}
+	
+	@Override
 	public <Result, Arg> Result accept(XlimBlockElement.Visitor<Result, Arg> visitor, Arg arg) {
 		return visitor.visitBlockModule(this, arg);
 	}

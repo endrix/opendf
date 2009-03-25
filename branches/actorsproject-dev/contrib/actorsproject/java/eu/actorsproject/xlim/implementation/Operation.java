@@ -273,14 +273,25 @@ class Operation extends Linkage<AbstractBlockElement>
 		}
 	}
 
+	@Override
+	public void substituteStateValueNodes() {
+		// Substitute StateValueNodes (definitions) in the operations that use them
+		// so that this operation can be moved
+		if (mayModifyState()) {
+			for (ValueNode output: getOutputValues()) {
+				ValueNode domDef=output.getDominatingDefinition();
+				output.substitute(domDef);
+			}
+		}
+	}
 	
 	/**
-	 * Sets dependence links (of stateful resources) in added code,
+	 * Sets (or updates) dependence links (of stateful resources) in Operation
 	 * computes the set of exposed uses and new values
-	 * @param context
+	 * @param context (keeps track of exposed uses and new definitions)
 	 */
 	@Override
-	public void fixupAddedCode(FixupContext context) {
+	public void fixupAll(FixupContext context) {
 		if (mayAccessState())
 			context.fixup(getUsedValues());
 		if (mayModifyState())

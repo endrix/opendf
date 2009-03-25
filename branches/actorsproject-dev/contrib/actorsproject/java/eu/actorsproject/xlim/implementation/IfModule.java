@@ -122,21 +122,21 @@ class IfModule extends PhiContainerModule implements XlimIfModule {
 	}
 
 	/**
-	 * Sets dependence links (of stateful resources) in added code,
+	 * Sets (or updates) dependence links (of stateful resources)
 	 * computes the set of exposed uses and new values
-	 * @param dominatingContext
+	 * @param dominatingContext (keeps track of exposed uses and new definitions)
 	 */
 	@Override
-	public void fixupAddedCode(FixupContext dominatingContext) {
-		getTestModule().fixupAddedCode(dominatingContext);
+	public void fixupAll(FixupContext dominatingContext) {
+		getTestModule().fixupAll(dominatingContext);
 		
 		// Create sub-contexts for then/else parts (initially empty set of new values).
 		FixupContext thenContext=dominatingContext.createFixupSubContext();
 		FixupContext elseContext=dominatingContext.createFixupSubContext();
 
 		// Process the sub-modules
-		mThenModule.fixupAddedCode(thenContext);
-		mElseModule.fixupAddedCode(elseContext);
+		mThenModule.fixupAll(thenContext);
+		mElseModule.fixupAll(elseContext);
 		
 		// Create phi-nodes for the union of new values in the two paths
 		HashSet<XlimStateCarrier> phis=
@@ -239,6 +239,9 @@ class IfModule extends PhiContainerModule implements XlimIfModule {
 			}
 			context.endPropagation(getStatePhiOutputs());
 		}
+		// then there should be no remaining new values (since we don't support
+		// creation of new phi-nodes). No need to proceed to parent, thus.
+		assertNoRemainingNewValues(context);
 		propagateInParent(context);
 	}
 	

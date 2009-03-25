@@ -106,5 +106,23 @@ public interface XlimContainerModule extends XlimModule {
 	void completePatchAndFixup();
 	
 	
-	void remove(XlimBlockElement child);
+	/**
+	 * Removes element from container module and data dependence graph
+	 * @param element
+	 */
+	void remove(XlimBlockElement element);
+	
+	/**
+	 * Removes element from its container module, but not from data dependence graph
+	 * and inserts it into this container 
+	 * @param element
+	 */
+	void cutAndPaste(XlimBlockElement element);
+	
+	/**
+	 * Removes all elements from "module", but not from data dependence graph
+	 * and inserts it into this container 
+	 * @param module
+	 */
+	void cutAndPasteAll(XlimContainerModule module);
 }
