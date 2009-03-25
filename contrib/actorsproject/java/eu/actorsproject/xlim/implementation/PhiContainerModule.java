@@ -37,7 +37,9 @@
 
 package eu.actorsproject.xlim.implementation;
 
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Set;
 
 import eu.actorsproject.util.IntrusiveList;
 import eu.actorsproject.util.Linkage;
@@ -132,6 +134,17 @@ abstract class PhiContainerModule extends AbstractModule
 			phi.removeReferences();
 	}
 	
+	@Override
+	public void substituteStateValueNodes() {
+		// Substitute StateValueNodes (definitions/phi-nodes) 
+		// in the operations that use them
+		// so that this module can be moved
+		for (StatePhiOperator phi: mStatePhis) {
+			ValueNode output=phi.getOutput();
+			ValueNode domDef=output.getDominatingDefinition();
+			output.substitute(domDef);
+		}
+	}
 	
 	/**
 	 * Resolves exposed uses by looking for definitions
@@ -145,13 +158,24 @@ abstract class PhiContainerModule extends AbstractModule
 	}
 	
 	/**
-	 * Creates phi-nodes (StatePhiOperator) for each of the stateful resources in carriers
-	 * @param carriers
+	 * Creates phi-nodes (StatePhiOperator) for each of the stateful 
+	 * resources in 'newCarriers' 
+	 * @param newCarriers  
 	 */
-	protected void createStatePhiOperators(Iterable<XlimStateCarrier> carriers) {
+	protected void createStatePhiOperators(Set<XlimStateCarrier> newCarriers) {
+		// Don't create new phi-noces if there already are there
+		if (mStatePhis.isEmpty()==false) {
+			newCarriers=new HashSet<XlimStateCarrier>(newCarriers);  // copy
+			for (StatePhiOperator phi: mStatePhis) {
+				XlimStateCarrier carrier=phi.getOutput().getStateCarrier();
+				newCarriers.remove(carrier);
+			}
+		}
+		
+		// Create new phi-nodes
 		TestModule test=getTestModule();
 		boolean isLoop=isLoop();
-		for (XlimStateCarrier carrier: carriers) {
+		for (XlimStateCarrier carrier: newCarriers) {
 			StatePhiOperator phi=new StatePhiOperator(test,carrier,isLoop);
 			mStatePhis.addLast(phi);
 		}

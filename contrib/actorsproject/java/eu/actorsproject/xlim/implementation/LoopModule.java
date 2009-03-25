@@ -113,16 +113,16 @@ class LoopModule extends PhiContainerModule implements XlimLoopModule {
 	}
 	
 	/**
-	 * Sets dependence links (of stateful resources) in added code,
+	 * Sets (or updates) dependence links (of stateful resources)
 	 * computes the set of exposed uses and new values
-	 * @param dominatingContext
+	 * @param dominatingContext (keeps track of exposed uses and new definitions)
 	 */
 	@Override
-	public void fixupAddedCode(FixupContext dominatingContext) {
+	public void fixupAll(FixupContext dominatingContext) {
 		// Create a sub-context (initially empty set of new values) and process the loop
 		FixupContext loopContext=dominatingContext.createFixupSubContext();
-		getTestModule().fixupAddedCode(loopContext);
-		mBodyModule.fixupAddedCode(loopContext);
+		getTestModule().fixupAll(loopContext);
+		mBodyModule.fixupAll(loopContext);
 
 		// Create phi-nodes and use them to resolve exposed uses in loop
 		createStatePhiOperators(loopContext.getNewValues());

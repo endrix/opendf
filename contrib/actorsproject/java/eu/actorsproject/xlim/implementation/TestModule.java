@@ -93,14 +93,14 @@ class TestModule extends ContainerModule implements XlimTestModule {
 	}
 	
 	/**
-	 * Sets dependence links (of stateful resources) in added code,
+	 * Sets (or updates) dependence links (of stateful resources)
 	 * computes the set of exposed uses and new values
-	 * @param context
+	 * @param context (keeps track of exposed uses and new definitions)
 	 */
 	@Override
-	public void fixupAddedCode(FixupContext context) {
-		super.fixupAddedCode(context);
-		if (mDecision!=null && mDecision.getValue()==null)
+	public void fixupAll(FixupContext context) {
+		super.fixupAll(context);
+		if (mDecision!=null)
 			context.fixup(mDecision);
 	}
 	
