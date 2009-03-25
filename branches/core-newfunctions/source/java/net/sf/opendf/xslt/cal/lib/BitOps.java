@@ -42,6 +42,8 @@ import java.math.BigInteger;
 import java.util.Collections;
 
 import net.sf.opendf.cal.interpreter.Context;
+import net.sf.opendf.cal.interpreter.Function;
+import net.sf.opendf.cal.interpreter.InterpreterException;
 import net.sf.opendf.cal.interpreter.environment.Environment;
 import net.sf.opendf.cal.interpreter.environment.EnvironmentFactory;
 import net.sf.opendf.xslt.cal.AbstractBinarySBFunction;
@@ -220,9 +222,10 @@ public class BitOps implements EnvironmentFactory {
 			{
 				if (Type.nameInt.equals(a.getName()) && Type.nameInt.equals(b.getName()))
 				{
+					int w = ((Integer)a.getValueParameters().get(Type.vparSize)).intValue();
 					return Type.create(Type.nameInt,
 							Collections.EMPTY_MAP,
-							Collections.singletonMap(Type.vparSize, new Integer(32)));
+							Collections.singletonMap(Type.vparSize, new Integer(w)));
 				}
 				else
 				{
@@ -230,7 +233,24 @@ public class BitOps implements EnvironmentFactory {
 				}
 			}
 		}));
+		
+		env.bind("bitconcat", context.createFunction(new Function() {
+            public Object apply(Object[] args) {
+            	  try {
+                      Object a = args[0];
+                      Object b = args[1];
+                      Object c = args[2];
+                      BigInteger n = context.asBigInteger(a).shiftLeft(context.intValue(c)).or(context.asBigInteger(b));
+          	    	  return (TypedObject)context.createInteger(n, n.bitLength() + 1, true);
+                  } catch (Exception ex) {
+                      throw new InterpreterException("Function 'bitconcat': Cannot apply.", ex);
+                  }
+            }
 
+            public int arity() {
+                return 3;
+            }
+        }));
 
         return env;
 	}

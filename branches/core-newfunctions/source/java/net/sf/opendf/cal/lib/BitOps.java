@@ -193,6 +193,30 @@ public class BitOps implements EnvironmentFactory {
 				return 2;
 			}
 		}));
+		
+		env.bind("bitconcat", context.createFunction(new Function()
+		{
+			public Object apply(Object[] args)
+			{
+				try
+				{
+					int a = context.intValue(args[0]);
+					int b = context.intValue(args[1]);
+					int c = context.intValue(args[2]);
+					BigInteger n = context.asBigInteger(a).shiftLeft(context.intValue(c)).or(context.asBigInteger(b));
+					return context.createInteger(n, n.bitLength() + 1, true);
+				}
+				catch (Exception ex)
+				{
+					throw new InterpreterException("Function 'bitselect': Cannot apply.", ex);
+				}
+			}
+
+			public int arity()
+			{
+				return 2;
+			}
+		}));
 
         return env;
 	}

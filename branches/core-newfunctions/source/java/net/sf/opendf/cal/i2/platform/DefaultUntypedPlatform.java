@@ -1030,6 +1030,16 @@ public class DefaultUntypedPlatform implements Platform {
 				return createInteger(aa).mod(new BigInteger("2").pow(bb));
             }
         }, null);
+		
+		env.bind("bitconcat", new FunctionOf3() {
+			@Override
+			public Object f(Object a, Object b, Object c) {
+				int aa = intValueOf(a);
+                int bb = intValueOf(b);
+                int cc = intValueOf(c);
+	            return createInteger((aa<<cc)|bb);
+	        }	        
+	    }, null);
         
         env.bind("openTCP", new FunctionOf1 () {
 			@Override
