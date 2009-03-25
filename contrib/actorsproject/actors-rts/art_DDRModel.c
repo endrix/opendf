@@ -63,10 +63,11 @@ typedef struct {
   AbstractActorInstance base;
   int s0_address;
   int s1_burstSize;
-  int s2_buf[MEMSIZE];  /*** patched MEMSIZE ***/
   int s3;
   int s4;
   int s5;
+  int s6_lastWA;
+  int s2_buf[MEMSIZE];  /*** patched MEMSIZE ***/
 } ActorInstance;
 
 
@@ -93,6 +94,12 @@ static void a0_select_read(ActorInstance *thisActor) {
   t0=pinRead(&thisActor->IN0_RA);
   thisActor->s0_address=t0;
   thisActor->s1_burstSize=(96);
+  /* printf("Read ra=%6x f=%d x=%d y=%d\n",
+   *       t0, 
+   *       t0>>21, 
+   *       (t0>>7) & 0x7f,
+   *        (t0>>14) & 0x7f);
+   */
 }
 
 static void a1_select_write(ActorInstance *thisActor) {
@@ -101,6 +108,13 @@ static void a1_select_write(ActorInstance *thisActor) {
   t7=pinRead(&thisActor->IN1_WA);
   thisActor->s0_address=t7;
   thisActor->s1_burstSize=(96);
+  thisActor->s6_lastWA=t7;
+  /* printf("Write wa=%6x f=%d x=%d y=%d\n",
+   *         t7,
+   *         t7>>21, 
+   *        (t7>>7) & 0x7f,
+   *        (t7>>14) & 0x7f);
+   */
 }
 
 static void a2_data_read(ActorInstance *thisActor) {
@@ -129,8 +143,8 @@ static void a3_data_write(ActorInstance *thisActor) {
 
 static void a4_action_scheduler(ActorInstance *thisActor) {
   while (1) {
-    bool_t t70,t75,t81,t94,t97,t107,t108,t109;
-    int32_t t66,t67,t68,t79,t89,t95,t101;
+    bool_t t70,t75,t81,t94,t97,t107,t108,t109,t999;
+    int32_t t66,t67,t68,t79,t89,t95,t101,t998;
     if (!(1)) break;
     t66=pinAvail(&thisActor->IN0_RA);
     t67=pinAvail(&thisActor->IN1_WA);
@@ -147,6 +161,10 @@ static void a4_action_scheduler(ActorInstance *thisActor) {
     t107=thisActor->s3;
     t108=thisActor->s4;
     t109=thisActor->s5;
+    t998=pinPeek(&thisActor->IN0_RA,0);
+    t999=((t998 ^ thisActor->s6_lastWA) & 0x200000)!=0 // frame(RA)!=frame(WA)
+      || (t998 & 0x1fc000)==0x1fc000                   // y(RA)<0
+      || t998<thisActor->s6_lastWA;                    // WA ahead of RA
     if (t107) {  
       /*** fsm-state=getAddr ***/
       if (t75) {
@@ -158,26 +176,39 @@ static void a4_action_scheduler(ActorInstance *thisActor) {
       else {
         if (t70) {
           /*** RA available ***/
-          if (t101 >= 96) {
-            /*
-             * This is the patch which can't be achieved by
-             * modifying the CAL source. We are checking that
-             * there is sufficient space in the OUTPUT fifo (RD)
-             * for an entire read burst. This prevents the case
-             * of a blocked read burst that keeps following write
-             * bursts from being processed -a situation that may
-             * lead to deadlock due to full buffers along the feed-
-             * back loop (SearchWindow-Unpack-Interpolate-Add-MBPacker-
-             * -DDRModel) when add is forwarding textureOnly.
-             */ 
-            a0_select_read(thisActor);
-            thisActor->s3=(0);
-            thisActor->s4=(1);
-          }
-          else {
-            pinWait(&thisActor->IN1_WA,sizeof(int));
-            pinWait(&thisActor->OUT0_RD,96*sizeof(int)); return;
-          }
+          if (t999) {
+	    /*** and RA is in the right frame ***/ 
+            if (t101 >= 96) {
+              /*
+               * This is the patch which can't be achieved by
+               * modifying the CAL source. We are checking that
+               * there is sufficient space in the OUTPUT fifo (RD)
+               * for an entire read burst. This prevents the case
+               * of a blocked read burst that keeps following write
+               * bursts from being processed -a situation that may
+               * lead to deadlock due to full buffers along the feed-
+               * back loop (SearchWindow-Unpack-Interpolate-Add-MBPacker-
+               * -DDRModel) when add is forwarding textureOnly.
+               */ 
+              a0_select_read(thisActor);
+              thisActor->s3=(0);
+              thisActor->s4=(1);
+            }
+            else {
+              pinWait(&thisActor->IN1_WA,sizeof(int));
+              pinWait(&thisActor->OUT0_RD,96*sizeof(int)); return;
+            }
+	  }
+	  else {
+	    /* printf("Waiting to read ra=%6x f=%d x=%d y=%d\n",
+	     *	      t998, 
+	     *        t998>>21, 
+	     *        (t998>>7) & 0x7f,
+	     *        (t998>>14) & 0x7f);
+             */
+	    pinWait(&thisActor->IN1_WA,sizeof(int));
+	    return;
+	  }
         }
         else {
           pinWait(&thisActor->IN0_RA,sizeof(int));
@@ -237,4 +268,5 @@ static void constructor(AbstractActorInstance *pBase) {
   thisActor->s3=1;
   thisActor->s4=0;
   thisActor->s5=0;
+  thisActor->s6_lastWA=0;
 }

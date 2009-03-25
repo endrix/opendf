@@ -10,6 +10,8 @@ entities
 
         sourceSigned = art_Source_txt(fileName = "@datadir@/actors-test/MPEG4_SP_Decoder/input/idct2dTest/signed.txt");
 
+	seq = Idct2dSeq();
+
         idct2d = idct2d(
 		INP_SZ = SAMPLE_SZ,
 		PIX_SZ = PIX_SZ
@@ -19,8 +21,13 @@ entities
 
 
 structure
-        sourceIn.Out --> idct2d.\in\;
-	sourceSigned.Out --> idct2d.signed;
+        sourceIn.Out --> seq.DataIn;
+	sourceSigned.Out --> seq.SignIn;
+
+	// seq is needed to properly sequence 'in' and 'signed'
+	// Clip actor is timing dependent!
+	seq.DataOut --> idct2d.\in\;
+	seq.SignOut --> idct2d.signed;
 
         idct2d.out --> sinkOut.In;
 end
