@@ -38,13 +38,15 @@
 package eu.actorsproject.xlim.decision;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Set;
 
 import eu.actorsproject.util.XmlElement;
-import eu.actorsproject.xlim.XlimTopLevelPort;
+import eu.actorsproject.xlim.XlimIfModule;
+import eu.actorsproject.xlim.XlimModule;
 
+/**
+ * A ParallelNode groups nodes of a decision tree that are evaluated
+ * in parallel (in Xlim they are enclosed in a "mutex" module).
+ */
 public class ParallelNode extends DecisionTree {
 
 	ArrayList<DecisionTree> mChildren;
@@ -80,11 +82,35 @@ public class ParallelNode extends DecisionTree {
 			mChildren.add(t);
 	}
 	
+	@Override
+	protected XlimModule getModule() {
+		// ParallelNode corresponds to several modules
+		throw new UnsupportedOperationException("ParallelNode.getModule");
+	}
+	
 	
 	@Override
-    protected  void decorateNullNodes(Map<XlimTopLevelPort,Integer> ports) {
-		for (DecisionTree child: mChildren)
-		  child.decorateNullNodes(ports);
+	protected XlimIfModule sinkIntoIfModule() {
+		// ParallelNode corresponds to several modules
+		throw new UnsupportedOperationException("ParallelNode.sinkIntoIfModule");
+	}
+
+	@Override
+	protected PortMap 
+	hoistAvailabilityTests(PortMap dominatingTests) {
+		// We have not implemented any scheme for pinWait generation from "mutex" modules
+		// (which imply parallel evaluation of guard conditions). Use the modified SSA-
+		// generator instead (which uses nested if-then-else constructs instead)
+		
+		// In principle, we could implement hoisting, but we won't be able to test it...
+		throw new UnsupportedOperationException("\"mutex\" modules not supported");
+	}
+
+	@Override
+    protected  DecisionTree topDownPass(PortMap assertedTests, PortMap failedTests) {
+		for (int i=0; i<mChildren.size(); ++i)
+		  mChildren.set(i, mChildren.get(i).topDownPass(assertedTests, failedTests));
+		return this;
 	}
 	
 	@Override

@@ -37,31 +37,65 @@
 
 package eu.actorsproject.xlim.decision;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Set;
-
 import eu.actorsproject.util.XmlElement;
+import eu.actorsproject.xlim.XlimBlockElement;
+import eu.actorsproject.xlim.XlimContainerModule;
+import eu.actorsproject.xlim.XlimIfModule;
 import eu.actorsproject.xlim.XlimModule;
-import eu.actorsproject.xlim.XlimTopLevelPort;
 
+/**
+ * An ActionNode is a leaf of the decision tree, which is
+ * associated with code that has side effects (ports, state variables).
+ * This is an action firing (or what is left of it).
+ */
 public class ActionNode extends DecisionTree {
 
-	private XlimModule mAction;
+	protected XlimContainerModule mAction;
 	
-	public ActionNode(XlimModule action) {
+	public ActionNode(XlimContainerModule action) {
 		assert(action!=null);
 		mAction=action;
 	}
 	
-	public XlimModule getAction() {
+	@Override
+	protected XlimModule getModule() {
 		return mAction;
 	}
 	
 	@Override
-	protected void decorateNullNodes(Map<XlimTopLevelPort,Integer> ports) {
+	protected DecisionTree topDownPass(PortMap assertedTests, PortMap failedTests) {
 		// ActionNode: Do nothing
+		return this;
+	}
+
+	
+	@Override
+	protected XlimIfModule sinkIntoIfModule() {
+		// Insert the IfModule in the current action module
+		mAction.startPatchAtEnd();
+		XlimIfModule result=mAction.addIfModule();
+		mAction.completePatchAndFixup();
+
+		// Move ("sink") action
+		XlimContainerModule dest=result.getThenModule();
+		dest.startPatchAtEnd();
+		XlimBlockElement element=mAction.getChildren().iterator().next();
+		while (element!=result) {
+			dest.cutAndPaste(element);
+			element=mAction.getChildren().iterator().next();
+		}
+        dest.completePatchAndFixup();
+        
+		// update program point
+		mAction=dest;
+		
+		return result;
+	}
+
+	@Override
+	protected PortMap hoistAvailabilityTests(PortMap dominatingTests) {
+		// Return set of dominating token-availability tests 
+		return dominatingTests;
 	}
 
 	@Override

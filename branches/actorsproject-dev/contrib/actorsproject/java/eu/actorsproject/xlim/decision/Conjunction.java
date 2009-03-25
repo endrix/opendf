@@ -37,23 +37,31 @@
 
 package eu.actorsproject.xlim.decision;
 
-import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 
 import eu.actorsproject.util.XmlElement;
+import eu.actorsproject.xlim.XlimContainerModule;
+import eu.actorsproject.xlim.XlimOperation;
 import eu.actorsproject.xlim.XlimSource;
 import eu.actorsproject.xlim.XlimTopLevelPort;
 
+/**
+ * Represents the condition: c1 && c2 && ... && cn
+ */
 public class Conjunction extends Condition {
 
 	private ArrayList<Condition> mConditions;
 	
-	public Conjunction(XlimSource conjunction) {
-		super(conjunction);
+	public Conjunction(XlimContainerModule container, XlimSource xlimSource) {
+		super(container,xlimSource);
 		mConditions=new ArrayList<Condition>();
+	}
+	
+	private Conjunction(XlimContainerModule container, 
+						XlimSource xlimSource,
+						ArrayList<Condition> conditions) {
+		super(container,xlimSource);
+		mConditions=conditions;
 	}
 	
 	@Override
@@ -65,23 +73,78 @@ public class Conjunction extends Condition {
 		mConditions.add(condition);
 	}
 	
+	
 	@Override
-	protected Object updatePortMap(Map<XlimTopLevelPort,Integer> map) {
-		ArrayList<Object> oldValues=new ArrayList<Object>();
-		
+	protected int assertedTokenCount(XlimTopLevelPort port) {
+		int result=0;
+		for (Condition cond: mConditions) {
+			int tokenCount=cond.assertedTokenCount(port);
+			if (tokenCount>result)
+				result=tokenCount;
+		}
+		return result;
+	}
+
+	@Override
+	protected PortMap updateFailedTests(PortMap failedTests) {
 		for (Condition cond: mConditions)
-			oldValues.add(cond.updatePortMap(map));
-		return oldValues;
+			failedTests=cond.updateFailedTests(failedTests);
+		return failedTests;
 	}
+	
 	
 	@Override
-	protected void restorePortMap(Map<XlimTopLevelPort,Integer> map, Object o) {
-		ArrayList<Object> oldValues=(ArrayList<Object>) o;
-		
-		for (int i=mConditions.size()-1; i>=0; --i)
-			mConditions.get(i).restorePortMap(map, oldValues.get(i));
+	protected PortMap updateSuccessfulTests(PortMap successfulTests) {	
+		for (Condition cond: mConditions)
+			successfulTests=cond.updateSuccessfulTests(successfulTests);
+		return successfulTests;
 	}
-	
+
+	@Override
+	public Condition updateCondition(PortMap successfulTests) {
+		ArrayList<Condition> updated=new ArrayList<Condition>();
+		boolean changed=false;
+		
+		for (Condition cond: mConditions) {
+			// 
+			Condition newCondition=cond.updateCondition(successfulTests);
+			if (newCondition.alwaysTrue())
+				changed=true; // skip "cond"
+			else {
+				updated.add(newCondition);
+				if (newCondition!=cond)
+					changed=true;
+			}
+		}
+		
+		if (changed) {
+			if (updated.size()>=2) {
+				// Update conjunction: use simpler condition
+				ArrayList<XlimSource> inputs=new ArrayList<XlimSource>(updated.size());
+				for (Condition cond: updated)
+					inputs.add(cond.getXlimSource());
+
+				XlimContainerModule container=getXlimContainer();
+				container.startPatchAtEnd();
+				XlimOperation op=container.addOperation("$and", inputs);
+			    XlimSource decision=op.getOutputPort(0);
+			    container.completePatchAndFixup();
+			    
+			    return new Conjunction(container,decision,updated);
+			}
+			else if (updated.isEmpty()) {
+				// Create an always true condition
+				return makeAlwaysTrue();
+			}
+			else {
+				// A single condition remains
+				return updated.get(0);
+			}
+		}
+		else
+			return this;
+	}
+    
 	@Override
 	public String getTagName() {
 		return "conjunction";
