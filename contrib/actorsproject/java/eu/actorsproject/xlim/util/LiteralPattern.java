@@ -37,18 +37,24 @@
 
 package eu.actorsproject.xlim.util;
 
-import eu.actorsproject.xlim.XlimDesign;
-import eu.actorsproject.xlim.decision.ActionSchedulerParser;
-import eu.actorsproject.xlim.decision.DecisionTree;
+import eu.actorsproject.xlim.XlimInstruction;
+import eu.actorsproject.xlim.XlimOperation;
 
-public class BlockingWaitGenerator {
-
-	ActionSchedulerParser mParser=new ActionSchedulerParser();
+public class LiteralPattern extends InstructionPattern {
+	long mLiteral;
 	
-	public void generateBlockingWaits(XlimDesign design) {
-		DecisionTree t=mParser.parseXlim(design.getActionScheduler());
-		t=t.hoistAvailabilityTests();
-		t=t.decorateNullNodes();
-		t.generateBlockingWait();
+	public LiteralPattern(long literal) {
+		super("$literal_Integer");
+		mLiteral=literal;
+	}
+	
+	@Override
+	protected boolean matchesAtRoot(XlimInstruction instr) {
+		if (super.matchesAtRoot(instr)) {
+			XlimOperation op=instr.isOperation();
+			return op.getIntegerValueAttribute()==mLiteral;
+		}
+		else
+			return false;
 	}
 }

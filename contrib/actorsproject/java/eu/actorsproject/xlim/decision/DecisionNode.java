@@ -38,21 +38,28 @@
 package eu.actorsproject.xlim.decision;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Set;
 
 import eu.actorsproject.util.XmlElement;
+import eu.actorsproject.xlim.XlimContainerModule;
+import eu.actorsproject.xlim.XlimIfModule;
 import eu.actorsproject.xlim.XlimSource;
-import eu.actorsproject.xlim.XlimTopLevelPort;
+import eu.actorsproject.xlim.XlimTestModule;
 
+
+/**
+ * A DecisionNode selects either of two children, depending on the
+ * outcome of an associated (side-effect free) condition.
+ */
 public class DecisionNode extends DecisionTree {
+	protected XlimIfModule mIfModule;
 	protected Condition mCondition;
 	protected DecisionTree mIfTrue, mIfFalse;
 	
-	public DecisionNode(Condition condition,
+	public DecisionNode(XlimIfModule ifModule,
+			            Condition condition,
 			            DecisionTree ifTrue,
 			            DecisionTree ifFalse) {
+		mIfModule=ifModule;
 		mCondition=condition;
 		mIfTrue=ifTrue;
 		mIfFalse=ifFalse;
@@ -69,24 +76,92 @@ public class DecisionNode extends DecisionTree {
 		return (path)? mIfTrue : mIfFalse;
 	}
 	
+	@Override
+	protected XlimIfModule getModule() {
+		return mIfModule;
+	}
 		
+	
+	@Override
+	protected XlimIfModule sinkIntoIfModule() {
+		XlimContainerModule container=mIfModule.getParentModule();
+		container.startPatchBefore(mIfModule);
+		XlimIfModule result=container.addIfModule();
+		container.completePatchAndFixup();
+		
+		result.getThenModule().cutAndPaste(mIfModule);
+		return result;
+	}
+
+	
+	/** 
+	 * @param dominatingTests tests that are satisfied on the path to this DecisionNode
+	 * @return the tests that are performed on all paths to ActionNodes
+	 */
+	@Override
+	protected PortMap hoistAvailabilityTests(PortMap dominatingTests) {
+		// First update dominatingTests and process ifTrue-branch
+		PortMap ifTrueTests=mCondition.updateSuccessfulTests(dominatingTests);
+		ifTrueTests=mIfTrue.hoistAvailabilityTests(ifTrueTests);
+		
+		// Then process ifFalse-branch
+		PortMap ifFalseTests=mIfFalse.hoistAvailabilityTests(dominatingTests);
+		
+		if (ifFalseTests==null)
+			return ifTrueTests; // No ActionNodes on ifFalse-branch
+		else if (ifTrueTests==null)
+			return ifFalseTests; // No ActionNodes on ifTrue-branch
+		else {
+			
+			// Hoist tests that are on all ifTrue-branches, but not all ifFalse-branches
+			for (AvailabilityTest test: ifTrueTests.diffMax(ifFalseTests))
+				mIfTrue=mIfTrue.hoistAvailabilityTest(test);
+			
+			// Now hoist tests on all ifFalse-branches, but not all ifTrue branches
+			for (AvailabilityTest test: ifFalseTests.diffMax(ifTrueTests))
+				mIfFalse=mIfFalse.hoistAvailabilityTest(test);
+						
+			PortMap onBothPaths=ifTrueTests.intersectMin(ifFalseTests);
+			
+			// Result is updated map of tests on all paths
+			return onBothPaths;
+		}
+	}
+
+
 	/**
-     * Decorates the NullNodes of a decision tree with the set of ports that may
-     * have been tested for availability tokens (input ports) or space (output ports)
-     * and the outcome of that test was failure.
-     * @param ports        ports that have been tested (and failed) on *some* path
-     *                     from the root to the decision tree to this node.
-     *                     the associated integer is the minimum number of tokens 
-     *                     (or empty slots) required for a different outcome of the
-     *                     scheduling decision
+     * @param assertedTests tests that succeeded on *all* paths from the root
+	 * @param failedTests   tests that may have failed on *some* path from the
+     *                      root of the decision tree to this node.
+     * @return possibly updated decision tree
      */
- 	@Override
-    protected  void decorateNullNodes(Map<XlimTopLevelPort,Integer> ports) {
-		// Decorate both paths
-		mIfTrue.decorateNullNodes(ports);
-		Object oldValue=mCondition.updatePortMap(ports);
-		mIfFalse.decorateNullNodes(ports);
-		mCondition.restorePortMap(ports, oldValue);
+	@Override
+    protected DecisionTree topDownPass(PortMap assertedTests, PortMap failedTests) {
+		// Update condition using the asserted tests
+		Condition newCondition=mCondition.updateCondition(assertedTests);
+		if (newCondition!=mCondition) {
+			XlimSource decision=newCondition.getXlimSource();
+			XlimTestModule testModule=mIfModule.getTestModule();
+
+			mCondition=newCondition;
+			
+		    testModule.startPatchAtEnd();
+		    testModule.setDecision(decision);
+		    testModule.completePatchAndFixup();
+		}
+		
+		// Process if-true branch
+		PortMap newAssertions=mCondition.updateSuccessfulTests(assertedTests);
+		mIfTrue=mIfTrue.topDownPass(newAssertions, failedTests);
+		
+		if (mCondition.alwaysTrue()) 
+			return mIfTrue;
+		else {
+			// process if-false branch
+			failedTests=mCondition.updateFailedTests(failedTests);
+			mIfFalse=mIfFalse.topDownPass(assertedTests, failedTests);
+			return this;
+		}
 	}
     	
     

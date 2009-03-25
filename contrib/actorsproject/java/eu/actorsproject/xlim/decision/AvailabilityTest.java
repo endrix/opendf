@@ -37,22 +37,33 @@
 
 package eu.actorsproject.xlim.decision;
 
-import java.util.Map;
-
+import eu.actorsproject.xlim.XlimContainerModule;
 import eu.actorsproject.xlim.XlimSource;
 import eu.actorsproject.xlim.XlimTopLevelPort;
 
+/**
+ * Represents the condition: pinAvail(port) >= numTokens
+ */
 public class AvailabilityTest extends Condition {
 
 	private XlimTopLevelPort mPort;
 	private int mNumTokens;
 	
-	public AvailabilityTest(XlimSource condition, 
+	public AvailabilityTest(XlimContainerModule container, 
+			                XlimSource xlimSource,
 			                XlimTopLevelPort port,
 			                int numTokens) {
-		super(condition);
+		super(container,xlimSource);
 		mPort=port;
 		mNumTokens=numTokens;
+	}
+		
+	public XlimTopLevelPort getPort() {
+		return mPort;
+	}
+	
+	public int getTokenCount() {
+		return mNumTokens;
 	}
 	
 	@Override
@@ -60,22 +71,50 @@ public class AvailabilityTest extends Condition {
 		return "pinAvail";
 	}
 
-	@Override
-	protected Object updatePortMap(Map<XlimTopLevelPort,Integer> map) {
-		Integer oldValue=map.get(mPort);
-		if (oldValue==null || oldValue>mNumTokens)
-			map.put(mPort, mNumTokens);
-		return oldValue;
-	}
 	
 	@Override
-	protected void restorePortMap(Map<XlimTopLevelPort,Integer> map, Object oldValue) {
-		if (oldValue==null)
-			map.remove(mPort);
+	protected int assertedTokenCount(XlimTopLevelPort port) {
+		return (mPort==port)? mNumTokens : 0;
+	}
+
+	@Override
+	protected PortMap updateFailedTests(PortMap failedTests) {
+		AvailabilityTest oldTest=failedTests.get(mPort);
+		if (oldTest==null || oldTest.getTokenCount()>mNumTokens) {
+            // Update (minimum number of tokens that may make this actor fireable again)
+			failedTests=failedTests.add(this);
+		}
+		return failedTests;
+	}
+	
+	
+	/**
+	 * Updates the collection of asserted (successful) token-availability tests
+	 * @param portMap     gives the maximum asserted token availability for port
+	 *                    on a path from the root of the decision tree to the
+	 *                    "true" branch that is guarded by this condition
+	 */
+
+	@Override
+	protected PortMap updateSuccessfulTests(PortMap successfulTests) {
+		AvailabilityTest oldTest=successfulTests.get(mPort);
+		if (oldTest==null || oldTest.getTokenCount()<mNumTokens)
+			successfulTests=successfulTests.add(this); // Update (maximum number of tokens available)
+		return successfulTests;
+	}
+
+	@Override
+	public Condition updateCondition(PortMap successfulTests) {
+		AvailabilityTest successful=successfulTests.get(mPort);
+		
+		if (successful!=null && successful.getTokenCount()>=mNumTokens) {
+			// This AvailabilityTest is dominated by another, at least as strong, one
+			return makeAlwaysTrue();
+		}
 		else
-			map.put(mPort, (Integer) oldValue);
+			return this;
 	}
-	
+		
 	@Override
 	public String getAttributeDefinitions() {
 		return super.getAttributeDefinitions()
