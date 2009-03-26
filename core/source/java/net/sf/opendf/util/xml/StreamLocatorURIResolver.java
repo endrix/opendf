@@ -11,13 +11,14 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.URIResolver;
 import javax.xml.transform.stream.StreamSource;
 
+import net.sf.opendf.util.io.SourceStream;
 import net.sf.opendf.util.io.StreamLocator;
 
 class StreamLocatorURIResolver implements URIResolver {
 
     public Source resolve(String href, String base) throws TransformerException
     {
-        InputStream s = locator.getAsStream(href);
+        SourceStream s = locator.getAsStream(href);
      
         if (s == null) {
             if (resolver != null)
@@ -26,7 +27,7 @@ class StreamLocatorURIResolver implements URIResolver {
                 return null;
             }
         } else {
-            return new StreamSource(s);
+            return new StreamSource(s.getInputStream());
         }
     }
 

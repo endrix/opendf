@@ -174,7 +174,7 @@ public class Logging
 //        {
 //        }
         // Always set default levels.  If the user has set them in a config file they will be non null already
-        if (DBG.getLevel() == null)      DBG.setLevel(Level.SEVERE);
+        if (DBG.getLevel() == null)      DBG.setLevel(Level.SEVERE); 
         if (USER.getLevel() == null)     USER.setLevel(Level.INFO);
         if (SIMSTATE.getLevel() == null) SIMSTATE.setLevel(Level.INFO);
         if (SIMOUT.getLevel() == null)   SIMOUT.setLevel(Level.INFO);

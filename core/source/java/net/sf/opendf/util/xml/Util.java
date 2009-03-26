@@ -177,7 +177,7 @@ public class Util {
         Transformer[] xforms = new Transformer[resNames.length];
         
         for (int i = 0; i < resNames.length; i++) {
-            InputStream is = resourceLocator.getAsStream(resNames[i]);
+            InputStream is = resourceLocator.getAsStream(resNames[i]).getInputStream();
             try {
                 // IDM.  The transformer should use the same resource Locator as the
                 // loaded resources on the assumption that the resources and the things
@@ -436,6 +436,15 @@ public class Util {
         // validate the DOM tree
         validator.validate(new DOMSource(document));
     }
+    
+    public static Node saxonify(Node n, String filepath) {
+    	Document d = (Document) n;    	
+    	Element e= d.createElement("Note");
+    	e.setAttribute("kind", "filepath");    	
+    	e.setAttribute("value", filepath);
+    	d.getDocumentElement().appendChild(e);  //getFirstChild()
+    	return saxonify(d);
+    }    
     
     public static Node  saxonify(Node n) {
     	try {

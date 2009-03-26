@@ -31,7 +31,7 @@ entities
 
         sourceBTYPE = art_Source_txt(fileName = "@datadir@/actors-test/MPEG4_SP_Decoder/input/acdcTest/BTYPE.txt");
 
-        sourceB = art_Source_txt(fileName = "@datadir@/actors-test/MPEG4_SP_Decoder/input/acdcTest/B.gold");
+        sourceB = art_Source_txt(fileName = "@datadir@/actors-test/MPEG4_SP_Decoder/input/acdcTest/B.txt");
 
         acdc = acdc(
 		MAXW_IN_MB = MAXW_IN_MB,
