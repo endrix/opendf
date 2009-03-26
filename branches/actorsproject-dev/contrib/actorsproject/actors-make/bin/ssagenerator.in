@@ -6,5 +6,5 @@
 : ${ACTORS_CLASSPATH:=${OPENDF_JAR}:${SAXON8_JAR}:${SAXON8DOM_JAR}}
 
 ${JAVA:-java} ${JFLAGS:--Xmx1G} -classpath $ACTORS_CLASSPATH \
-              net.sf.opendf.cli.SSAGenerator2 "$@"
+              net.sf.opendf.cli.SSAGenerator --software "$@"
 

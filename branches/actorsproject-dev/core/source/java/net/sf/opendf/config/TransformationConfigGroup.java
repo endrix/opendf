@@ -62,6 +62,14 @@ public class TransformationConfigGroup extends ConfigGroup
                 false, // required
                 false // default
         ));
+        
+        registerConfig(XLIM_SOFTWARE_TARGET, new ConfigBoolean (XLIM_SOFTWARE_TARGET, 
+                "Software xlim",
+                "--software", // cla
+                "Generate xlim targeted for software code generations",
+                false, // required
+                false // default
+        ));
     }
 
     public ConfigGroup getEmptyConfigGroup ()

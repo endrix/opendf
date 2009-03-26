@@ -2,6 +2,9 @@
 #
 # Use 'make help' to view available make targets
 
+# delete the built-in suffixes to avoid surprises
+.SUFFIXES:   
+
 # Default definitions of tools and directories
 include @datadir@/actors-make/definitions.mk
 
@@ -21,15 +24,11 @@ DEBUG=Y
 # Preserve intermediate files
 # export PRESERVE_ALL=Y
 # export PRESERVE_C=Y
-# export PRESERVE_XLIM=Y
 
 
 # ------------------------------------------------------
 # Make-rules start here
 #
-
-# delete the built-in suffixes to avoid surprises
-.SUFFIXES:   
 
 .PHONY: all clean cleaner cleanest help
 
@@ -40,13 +39,13 @@ DEBUG=Y
 srcdir?=.
 CAL_NETWORKS=$(wildcard $(srcdir)/*.nl)
 AVAILABLE_MODELS=$(patsubst %.nl, %, $(notdir $(CAL_NETWORKS)))
-ELABORATED=$(patsubst compiled/%, %, $(wildcard compiled/*))
+CLEAN_TARGETS=$(patsubst compiled/%, clean-%, $(wildcard compiled/*))
 
 #
-# all: make all elaborated models
+# all: display help
 #
 
-all: $(ELABORATED)
+all: help
 
 #
 # Make executable from CAL model/network
@@ -55,34 +54,17 @@ all: $(ELABORATED)
 SRCDIR_ABS=$(abspath $(srcdir))
 MAKEMODEL=$(MAKE) -f $(ACTORS_MAKE)/makemodel.mk srcdir=$(SRCDIR_ABS)
 
-$(AVAILABLE_MODELS) : % : elaborate-%
+# Let makemodel.mk check if executable is up-to-date
+.PHONY: $(AVAILABLE_MODELS)
+
+$(AVAILABLE_MODELS) : % :
+	@mkdir -p compiled/$*
 	@$(MAKEMODEL) -C compiled/$* MODEL=$* EXE=../../$* all
 
 #
-# elaborate-% : Elaborate only (don't build)
+# clean: Clean all build files
 #
 
-ELABORATE_TARGETS=$(AVAILABLE_MODELS:%=elaborate-%)
-.PHONY: $(ELABORATE_TARGETS) 
-
-$(ELABORATE_TARGETS): elaborate-% :
-	@mkdir -p compiled/$*
-	@$(MAKE) -f $(ACTORS_MAKE)/elaborate.mk -C compiled/$* \
-                 srcdir=$(SRCDIR_ABS) MODEL=$* EXE=../../$* all
-
-elaborate-%:
-	@echo Model $* not available in source directory $(srcdir)/
-	@echo $(HELP_AVAILABLE)
-	@false
-
-#
-# clean: Clean all executables, objects and intermediate files,
-#        but keep the elaboration of the CAL networks
-#
-
-
-
-CLEAN_TARGETS=$(ELABORATED:%=clean-%)
 .PHONY: $(CLEAN_TARGETS)
 
 clean: $(CLEAN_TARGETS)
@@ -91,43 +73,7 @@ $(CLEAN_TARGETS) : clean-% :
 	@$(MAKEMODEL) -C compiled/$* MODEL=$* EXE=../../$* clean
 
 clean-%:
-	@echo "Model $* not elaborated (and cannot be cleaned)"
-	@echo $(HELP_ELABORATED) 
-
-#
-# cleaner: Also clean the elaboration
-#
-
-CLEANER_TARGETS=$(ELABORATED:%=cleaner-%)
-.PHONY: $(CLEANER_TARGETS)
-
-cleaner: $(CLEANER_TARGETS)
-
-$(CLEANER_TARGETS) : cleaner-% :
-	@$(MAKEMODEL) -C compiled/$* MODEL=$* EXE=../../$* cleaner
-
-cleaner-%:
-	@echo "Model $* not elaborated (and cannot be cleaned)"
-	@echo $(HELP_ELABORATED) 
-
-#
-# cleanest: Even remove the build subdirectory
-#
-
-cleanest:
-	@rm -f $(ELABORATED)
-	@rm -fR compiled
-
-CLEANEST_TARGETS=$(ELABORATED:%=cleanest-%)
-.PHONY: $(CLEANEST_TARGETS)
-
-$(CLEANEST_TARGETS): cleanest-% :
-	@rm -f $*
-	@rm -fR compiled/$*
-
-cleanest-%:
-	@echo "Model $* not elaborated (and cannot be cleaned)"
-	@echo $(HELP_ELABORATED) 
+	@echo "No build files for model $*"
 
 #
 # help: print usage
@@ -139,12 +85,6 @@ else
   HELP_AVAILABLE=Available models: $(AVAILABLE_MODELS)
 endif
 
-ifeq ("$(ELABORATED)", "")
-  HELP_ELABORATED="Currently, there are no elaborated models"
-else
-  HELP_ELABORATED=Elaborated models: $(ELABORATED)
-endif
-
 help:
 	@echo
 	@echo 'Usage: make [srcdir=<source-directory>] <target>'
@@ -152,15 +92,5 @@ help:
 	@echo '"make <model>" elaborates and builds a CAL model' 
 	@echo $(HELP_AVAILABLE) 
 	@echo
-	@echo '"make all"' builds already elaborated models
-	@echo $(HELP_ELABORATED)
+	@echo '"make clean-<model>" cleans build files'
 	@echo
-	@echo '"make elaborate-<model>" elaborates <model> w/o building it'
-	@echo
-	@echo '"make clean-<model>" cleans build files, but keeps elaboration'
-	@echo
-	@echo '"make cleaner-<model>" also removes elaboration'
-	@echo 
-	@echo '"make cleanest" removes all build files/sub-directories'
-	@echo
-

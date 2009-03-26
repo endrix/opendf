@@ -80,6 +80,8 @@
       
       <!-- just copy package declaration and ports, omit variable declarations --> 
       <xsl:copy-of select="Package | Port"/>	
+      <xsl:copy-of select="//Instance[XDF]/XDF/Note[@kind='filepath']"/>
+      
       
       <!-- process network attributes -->
       <xsl:apply-templates select="Attribute">

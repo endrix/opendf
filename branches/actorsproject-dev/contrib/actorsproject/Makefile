@@ -11,7 +11,7 @@
 SUBPROJECTS=actors-rts java actors-make actors-test
 
 # Sub-projects that are built
-BUILD=actors-rts java
+BUILD=actors-rts java actors-make
 
 # Sub-projects that are installed
 INSTALL=actors-rts java actors-make actors-test
@@ -27,6 +27,8 @@ export SHELL=/bin/sh
 # make srcdir=<path-to-this-dir> -f <path-to-this-dir>/Makefile
 srcdir?=.
 override srcdir:=$(abspath $(srcdir))
+
+export OPENDF_HOME:=$(abspath $(srcdir)/../../core)
 
 # Install prefix (required by install/unstall targets only)
 prefix?=.

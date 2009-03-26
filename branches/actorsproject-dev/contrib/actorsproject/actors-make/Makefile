@@ -4,17 +4,19 @@
 .SUFFIXES:   
 
 # Contents of actors-make
-BIN_FILES=elaborator saxon8 ssagenerator xlim2c
-MK_FILES=Makefile definitions.mk elaborate.mk makemodel.mk
+BIN_FILES=elaborator saxon8 ssagenerator xlim2c xdf2par
+MK_FILES=Makefile definitions.mk makemodel.mk
 EXAMPLE_FILES=fib.nl AddUntilOverflow.cal art_Sink_txt.cal SingleDelay.cal
 
-XSL_FILES=SaveInstantiatedActors.xsl generateConfig.xsl MakeGV.xsl
-JAR_FILES=opendf.jar saxon8.jar saxon8-dom.jar
+XSL_FILES=generateConfig.xsl generateDepend.xsl generateInstanceParameters.xsl
+JAR_LIB_FILES=saxon8.jar saxon8-dom.jar
+JAR_FILES=opendf.jar $(JAR_LIB_FILES)
 
 # Directories
 
 # Source directory (also: location of this Makefile)
 srcdir?=.
+export OPENDF_CLASSDIR:=$(abspath ./classes)
 
 # Installation prefix and sub-directories
 prefix?=.
@@ -38,12 +40,21 @@ SEDCMD:=$(shell $(SEDIFY) \
           @includedir@ $(includedir) @datadir@ $(datadir) \
           @javadir@    $(javadir)    @xsldir@  $(xsldir))
 
-.PHONY: all uninstall clean
+.PHONY: all uninstall clean opendf
 .PHONY: install install-dirs install-bin install-mk install-xsl install-java
 .PHONY: $(BIN_FILES_DEST) $(MK_FILES_DEST) $(EXAMPLE_FILES_DEST)
 
-# Nothing to build
-all:
+all: opendf.jar
+
+opendf.jar: opendf
+
+opendf:
+	@mkdir -p $(OPENDF_CLASSDIR)
+	@$(MAKE) -C $(OPENDF_CLASSDIR) -f $(OPENDF_HOME)/source/make/Makefile \
+                OPENDF_HOME=$(OPENDF_HOME) OPENDF_CLASSDIR=$(OPENDF_CLASSDIR)
+
+clean:
+	@rm -rf opendf.jar $(OPENDF_CLASSDIR)
 
 install: install-dirs install-bin install-mk install-xsl install-java
 
@@ -70,10 +81,8 @@ $(EXAMPLE_FILES_DEST): $(datadir)/% : $(srcdir)/share/%
 install-xsl: 
 	@cp $(XSL_FILES:%=$(srcdir)/share/xsl/%) $(xsldir)/.
 
-# TODO: How will we build/where will we find the jars?
-install-java:
-	@cp $(JAR_FILES:%=$(srcdir)/share/java/%) $(javadir)/.
-
+install-java: # opendf.jar  <-- TODO opendf Makefile doesn't check timestamps
+	@cp opendf.jar $(JAR_LIB_FILES:%=$(OPENDF_HOME)/lib/%) $(javadir)/.
 
 INSTALLED_FILES=$(BIN_FILES:%=$(bindir)/%) \
                 $(MK_FILES:%=$(datadir)/actors-make/%) \
@@ -82,6 +91,3 @@ INSTALLED_FILES=$(BIN_FILES:%=$(bindir)/%) \
 
 uninstall:
 	@rm -f $(INSTALLED_FILES)
-
-clean:
-
