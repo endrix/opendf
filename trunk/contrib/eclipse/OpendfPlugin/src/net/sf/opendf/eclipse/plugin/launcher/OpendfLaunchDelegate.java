@@ -42,6 +42,7 @@ import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.sf.opendf.cli.Elaborator;
 import net.sf.opendf.cli.PhasedSimulator;
 import net.sf.opendf.config.ConfigGroup;
 import net.sf.opendf.config.SimulationConfigGroup;
@@ -60,6 +61,7 @@ import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.debug.core.model.IDebugTarget;
 import org.eclipse.debug.core.model.IProcess;
+import org.w3c.dom.Node;
 
 /**
  * The Launch delegate for opendf implementing simulation and debugging functionality
@@ -93,6 +95,15 @@ public class OpendfLaunchDelegate extends OpendfConfigLaunchDelegate {
 	private void launchDebugger(ILaunchConfiguration configuration, String mode, ILaunch launch, IProgressMonitor monitor) throws CoreException {
 		// if in debug mode, add debug arguments - i.e. '-debug requestPort eventPort'
 		assert mode.equals(ILaunchManager.DEBUG_MODE);
+
+		ConfigGroup configs = new SimulationConfigGroup();
+		// Update all the configs with the user settings.
+		configs.updateConfig(new ConfigUpdateWrapper(configuration), configs.getConfigs().keySet());
+
+		attachConsole(consolePrefix, configs);
+		monitor.beginTask("Starting dataflow debugger", 5);
+		status().println("Starting dataflow debugger ...");
+
 		int commandPort = -1;
 		int eventPort = -1;
 		commandPort = findFreePort();
@@ -101,7 +112,59 @@ public class OpendfLaunchDelegate extends OpendfConfigLaunchDelegate {
 			throw new CoreException(new Status(IStatus.ERROR, OpendfPlugin.ID, 0, "Unable to find free port", null));
 		}
 
-		List<String> commandList = new ArrayList<String>();
+		//elaborate the actor network
+		//this may need to be moved to the model of the graphical viewer
+		//However for debug purposes let's do it here
+		
+		monitor.worked(5);
+		monitor.setTaskName("Elaboration");
+		status().println("Elaborating ...");
+		try {
+			Thread.sleep(2000);
+		} catch (InterruptedException e) {
+		}
+
+//    NodeListenerIF listener = new NodeListenerIF() {
+//
+//      /**
+//       * Called once for each relevant Note in the source XML.
+//       */
+//      public void report (Node report, String message) {
+//      	status().println(report + " " + message);
+//      	System.out.println(report + " " + message);
+//      }
+//
+//      /**
+//       * Returns a node in response to being called.
+//       * 
+//       * @param node a non-null node
+//       * @param message a message
+//       * @return a non null Node
+//       */
+//      public Node respond (Node node, String message) {
+//      	return null;
+//      }
+//    	
+//    };
+    
+    Node dom = null;
+		try {
+			dom = Elaborator.elaborateModel(configs, null, OpendfLaunchDelegate.class.getClassLoader());
+		} catch (Exception e) {
+			error().println("Elaboration failed: " + e.getMessage());
+			status().println("Closing debugger");
+			detachConsole();
+			monitor.done();
+			return;
+		}
+
+		printDom(dom, 0);
+		
+		monitor.worked(5);
+		monitor.setTaskName("Launching Debugger");
+		status().println("Launching Debugger ...");
+	
+	List<String> commandList = new ArrayList<String>();
 		commandList.add("debugger.bat");
 		commandList.add("-debug");
 		commandList.add("" + commandPort);
@@ -117,10 +180,42 @@ public class OpendfLaunchDelegate extends OpendfConfigLaunchDelegate {
   	
 		Process process = DebugPlugin.exec(commandLine, null);
 		IProcess p = DebugPlugin.newProcess(launch, process, "Opendf Debugger");
+		
+		monitor.worked(5);
+		status().println("Debugging");
+		detachConsole();
+		monitor.done();
+
 		IDebugTarget target = new OpendfDebugTarget(launch, p, commandPort, eventPort);
 		launch.addDebugTarget(target);
 	}
 
+
+	private void printDom(Node dom, int indent) {
+		for (int i = 0; i < indent; i++) {
+			System.out.print(" ");
+		}
+		System.out.println("<" + dom.getNodeName() + ">");
+		
+		if (dom.hasAttributes()) {
+			for (int i = 0; i < dom.getAttributes().getLength(); i++) {
+				for (int j = 0; j < indent + 2; j++) {
+					System.out.print(" ");
+				}
+				System.out.println(dom.getAttributes().item(i));
+			}
+		}
+		
+		for (int i = 0; i < dom.getChildNodes().getLength(); i++) {
+			printDom(dom.getChildNodes().item(i), indent + 4);
+		}
+		
+		for (int i = 0; i < indent; i++) {
+			System.out.print(" ");
+		}
+		System.out.println("</" + dom.getNodeName() + ">");
+
+	}
 
 	/**
 	 * The original method to launch a dataflow simulation
