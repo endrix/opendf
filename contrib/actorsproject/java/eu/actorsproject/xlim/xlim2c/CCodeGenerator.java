@@ -37,48 +37,20 @@
 
 package eu.actorsproject.xlim.xlim2c;
 
+import java.io.File;
+import java.io.PrintStream;
 
-import eu.actorsproject.xlim.XlimInputPort;
-import eu.actorsproject.xlim.XlimOutputPort;
-import eu.actorsproject.xlim.XlimStateVar;
-import eu.actorsproject.xlim.XlimTaskModule;
-import eu.actorsproject.xlim.XlimTopLevelPort;
+import eu.actorsproject.xlim.XlimDesign;
+import eu.actorsproject.xlim.codegenerator.OperationGenerator;
 
-public interface ExpressionTreeGenerator {
+public class CCodeGenerator {
 
-	/**
-	 * @param root Root of expression tree
-	 * Generates an expression that represents an input port of an operation 
-	 */
-	void translateSubTree(XlimInputPort root);
-		
-	/**
-	 * @param s
-	 * prints a string to the resulting output stream
-	 */
-	void print(String s);
+	private OperationGenerator mOperator2c=new Operation2c();
 	
-	/**
-	 * @param temp
-	 * prints a reference to a "temporary variable" that is allocated for an output port
-	 */
-	void print(XlimOutputPort port);
-
-	/**
-	 * @param port
-	 * prints a reference to an actor port or internal port
-	 */
-	void print(XlimTopLevelPort port);
-	
-	/**
-	 * @param stateVar
-	 * prints a reference to a state variable
-	 */
-	void print(XlimStateVar stateVar);
-	
-	/**
-	 * @param task
-	 * prints a reference to a "task" (top-level module)
-	 */
-	void print(XlimTaskModule task);	
+	public void generateCode(XlimDesign design, 
+			                 File sourceFile, 
+			                 PrintStream output) {
+		Actor2c unit=new Actor2c(design,sourceFile,output,mOperator2c);
+		unit.translate();
+	}
 }

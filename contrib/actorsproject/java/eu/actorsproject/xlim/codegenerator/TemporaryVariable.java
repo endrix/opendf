@@ -35,7 +35,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package eu.actorsproject.xlim.xlim2c;
+package eu.actorsproject.xlim.codegenerator;
 
 import eu.actorsproject.util.Linkage;
 import eu.actorsproject.xlim.XlimOutputPort;
@@ -54,10 +54,11 @@ public class TemporaryVariable extends Linkage<TemporaryVariable>{
 		return this;
 	}
 	
-	public String getCName() {
-		return mCreatedFrom.getUniqueId();
+	public XlimOutputPort getOutputPort() {
+		return mCreatedFrom;
 	}
 	
+	// TODO: this is not needed
 	public XlimType getType() {
 		return mCreatedFrom.getType();
 	}

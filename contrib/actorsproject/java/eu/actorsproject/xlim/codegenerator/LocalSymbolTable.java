@@ -38,7 +38,7 @@
 /**
  * 
  */
-package eu.actorsproject.xlim.xlim2c;
+package eu.actorsproject.xlim.codegenerator;
 
 import java.util.HashMap;
 
@@ -49,14 +49,13 @@ import eu.actorsproject.xlim.dependence.ValueNode;
 import eu.actorsproject.xlim.dependence.ValueUsage;
 
 /**
- * @author ecarvon
  * The symbol table maintains the mapping from output ports to temporary variables
  * Temporary variables are organized in scopes, which correspond to block modules.
  * Loop modules and if-modules live in the scope of their surrounding block module.
  */
 public class LocalSymbolTable {
 	
-	private HashMap<XlimModule,Scope> mModuleMap=new HashMap<XlimModule,Scope>();
+	private HashMap<XlimModule,LocalScope> mModuleMap=new HashMap<XlimModule,LocalScope>();
 	private HashMap<XlimOutputPort,TemporaryVariable> mPortMap=new HashMap<XlimOutputPort,TemporaryVariable>();
 	
 	/**
@@ -64,10 +63,10 @@ public class LocalSymbolTable {
 	 * @param m  Module
 	 * @return   Scope of module
 	 */
-	public Scope createScope(XlimModule m) {
-		Scope scope=mModuleMap.get(m);
+	public LocalScope createScope(XlimModule m) {
+		LocalScope scope=mModuleMap.get(m);
 	    if (scope==null) {
-	    	scope=new Scope();
+	    	scope=new LocalScope();
 	    	mModuleMap.put(m,scope);
 	    }
 	    return scope;
@@ -79,7 +78,7 @@ public class LocalSymbolTable {
 	 * have no scope of their own, though their parent --a block module-- may have).
 	 */
 
-	public Scope getScope(XlimModule m) {
+	public LocalScope getScope(XlimModule m) {
 		return mModuleMap.get(m);
 	}
 
@@ -87,8 +86,8 @@ public class LocalSymbolTable {
 	 * @param m
 	 * @return The scope that immediately encloses module m
 	 */
-	protected Scope getEnclosingScope(XlimModule m) {
-		Scope scope=mModuleMap.get(m);
+	protected LocalScope getEnclosingScope(XlimModule m) {
+		LocalScope scope=mModuleMap.get(m);
 		while (m!=null && scope==null) {
 			m=m.getParentModule();
 			scope=mModuleMap.get(m);
@@ -109,7 +108,7 @@ public class LocalSymbolTable {
 			for (ValueUsage use: value.getUses()) {
 				module=module.leastCommonAncestor(use.getModule());
 			}				
-			Scope scope=getEnclosingScope(module);
+			LocalScope scope=getEnclosingScope(module);
 			TemporaryVariable temp=new TemporaryVariable(port);
 			scope.add(temp);
 			mPortMap.put(port,temp);

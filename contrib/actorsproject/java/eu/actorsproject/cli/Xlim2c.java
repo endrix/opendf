@@ -44,14 +44,13 @@ import eu.actorsproject.xlim.XlimDesign;
 import eu.actorsproject.xlim.implementation.DefaultXlimImplementation;
 import eu.actorsproject.xlim.io.XlimReader;
 import eu.actorsproject.xlim.util.XlimTransformer;
-import eu.actorsproject.xlim.xlim2c.CodeGenerator;
-import eu.actorsproject.xlim.xlim2c.OperationGenerators;
+import eu.actorsproject.xlim.xlim2c.CCodeGenerator;
 
 public class Xlim2c {
 	
 	protected XlimReader mReader = new XlimReader(new DefaultXlimImplementation());
 	protected XlimTransformer mTransformer = new XlimTransformer();
-	protected CodeGenerator mCodeGen = new CodeGenerator(new OperationGenerators());
+	protected CCodeGenerator mCodeGen = new CCodeGenerator();
 	
 	public void compile(File input, PrintStream output) {
 		XlimDesign design=null;

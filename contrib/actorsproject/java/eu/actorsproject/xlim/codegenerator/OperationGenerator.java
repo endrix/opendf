@@ -35,11 +35,11 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package eu.actorsproject.xlim.xlim2c;
+package eu.actorsproject.xlim.codegenerator;
 
 import eu.actorsproject.xlim.XlimOperation;
 
-public interface TaskGeneratorPlugIn {
+public interface OperationGenerator {
 	/**
 	 * @return true if this handler supports generateExpression() in addition to generateStatement()
 	 * 
