@@ -35,20 +35,15 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package eu.actorsproject.xlim.xlim2c;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+package eu.actorsproject.xlim.codegenerator;
 
 import eu.actorsproject.util.IntrusiveList;
-import eu.actorsproject.util.OutputGenerator;
 
-public class Scope {
+public class LocalScope {
 
 	private IntrusiveList<TemporaryVariable> mTemporaries;
 	
-	public Scope() {
+	public LocalScope() {
 		mTemporaries=new IntrusiveList<TemporaryVariable>();
 	}
 	
@@ -60,31 +55,7 @@ public class Scope {
 		temp.out();
 	}
 	
-	public void generateDeclaration(OutputGenerator output, 
-			                        TopLevelSymbolTable topLevelSymbols) {
-		// Sort allocated temporaries after type
-		HashMap<String,ArrayList<TemporaryVariable>> typeMap =
-			new HashMap<String,ArrayList<TemporaryVariable>>();
-			
-		for (TemporaryVariable temp: mTemporaries) {
-			String cType=topLevelSymbols.getCName(temp.getType());
-			ArrayList<TemporaryVariable> list=typeMap.get(cType);
-			if (list==null) {
-				list=new ArrayList<TemporaryVariable>();
-				typeMap.put(cType, list);
-			}
-			list.add(temp);
-		}
-			
-		// Print them
-		for (Map.Entry<String,ArrayList<TemporaryVariable>> entry: typeMap.entrySet()) {
-			boolean first=true;
-			output.print(entry.getKey());
-			for (TemporaryVariable temp: entry.getValue()) {
-				output.print((first? " ":",")+temp.getCName());
-				first=false;
-			}
-			output.println(";");
-		}
+	public Iterable<TemporaryVariable> getTemporaries() {
+		return mTemporaries;
 	}
 }

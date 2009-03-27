@@ -48,23 +48,22 @@ import eu.actorsproject.xlim.XlimDesign;
 import eu.actorsproject.xlim.XlimTaskModule;
 import eu.actorsproject.xlim.XlimTopLevelPort;
 import eu.actorsproject.xlim.XlimType;
+import eu.actorsproject.xlim.codegenerator.OperationGenerator;
 
 
 /**
  * A Translation unit represents the translation of one actor/xlim document to a C file
  */
-public class TranslationUnit extends OutputGenerator {
+public class Actor2c extends OutputGenerator {
 
 	private XlimDesign mDesign;
 	private File mSourceFile;
-    private TopLevelSymbolTable mSymbols;
-    private String mActorClassName;
-    private TaskGeneratorPlugIn mTaskGeneratorPlugIn;
+    private CSymbolTable mSymbols;
+    private OperationGenerator mTaskGeneratorPlugIn;
      
 	protected static final String sTranslatorVersion="0.5 (Jan 29, 2009)";
 	protected static final String sIncludedHeaderFile="actors-rts.h";
 	protected static final String sActorClassType="ActorClass";
-	protected static final String sActorClassPrefix="ActorClass";
 	protected static final String sActorInstanceBaseType="AbstractActorInstance";
 	protected static final String sActorInstanceBaseName="base";
 	protected static final String sActorInputPortArray="base.inputPort";
@@ -73,26 +72,19 @@ public class TranslationUnit extends OutputGenerator {
 	protected static final String sPortType="ActorPort";
 	protected static final String sIntegerType="int";
 	protected static final String sConstructorName="constructor";
-	protected static final String sActionSchedulerName="actionScheduler";
 	protected static final String sCreatePortAPI="createPort";
 	
-	public TranslationUnit(XlimDesign design,
-                           File sourceFile,
-			               PrintStream output, 
-			               TaskGeneratorPlugIn plugIn) {
+	public Actor2c(XlimDesign design,
+                   File sourceFile,
+			       PrintStream output, 
+			       OperationGenerator plugIn) {
 		super(output);
 		mDesign=design;
 		mSourceFile=sourceFile;
-		mSymbols=new TopLevelSymbolTable();
+		mSymbols=new CSymbolTable();
+		mSymbols.createActorClassName(sourceFile.getName());
+		mSymbols.declareActorScope(design);
 		mTaskGeneratorPlugIn=plugIn;
-		mActorClassName=actorClassName(sourceFile.getName());
-	}
-	
-	private static String actorClassName(String fileName) {
-		int end=fileName.lastIndexOf('.');
-		if (end>0) 
-			fileName=fileName.substring(0, end);
-		return sActorClassPrefix+TopLevelSymbolTable.createCName(fileName);
 	}
 	
 	public void translate() {
@@ -100,7 +92,6 @@ public class TranslationUnit extends OutputGenerator {
 	}
 	
 	protected void generateOutput() {
-		mSymbols.declareTopLevelElements(mDesign);
 		createHeader();
 		defineMacros();
 		declareActorInstance();
@@ -117,7 +108,7 @@ public class TranslationUnit extends OutputGenerator {
 	 */
 	protected void createHeader() {
 		println("/*");
-		println(" * Actor "+mDesign.getName()+" ("+mActorClassName+")");
+		println(" * Actor "+mDesign.getName()+" ("+mSymbols.getActorClassName()+")");
 		println(" * Generated on "+new Date()+" from "+mSourceFile.toString());
 		println(" * by xlim2c version "+sTranslatorVersion);
 		println(" */");
@@ -135,7 +126,7 @@ public class TranslationUnit extends OutputGenerator {
 			                        String portArray) {
 		int index=0;
 		for (XlimTopLevelPort port: ports) {
-			String cName=mSymbols.getCName(port);
+			String cName=mSymbols.getTargetName(port);
 			String portReference=portArray+"["+index+"]";
 			println("#define "+cName+" "+portReference);
 			index++;
@@ -148,13 +139,13 @@ public class TranslationUnit extends OutputGenerator {
 	protected void defineActorClass() {
 		// Constructor prototype
 		println();
-		println(sActorClassType+" "+mActorClassName+" ={");
+		println(sActorClassType+" "+mSymbols.getActorClassName()+" ={");
 		increaseIndentation();
 		println("\""+mDesign.getName()+"\",");
 		println(mDesign.getInputPorts().size()+", /* numInputPorts */");
 		println(mDesign.getOutputPorts().size()+", /* numOutputPorts */");
 		println("sizeof("+sActorInstanceType+"),");
-		println(mSymbols.getCName(mDesign.getActionScheduler())+",");
+		println(mSymbols.getTargetName(mDesign.getActionScheduler())+",");
 		println(sConstructorName);
 		decreaseIndentation();
 		println("};");
@@ -189,7 +180,7 @@ public class TranslationUnit extends OutputGenerator {
 		                         && mDesign.getInternalPorts().isEmpty();
 		if (emptyConstructor==false) {
 			// Avoid declaring an unused actor-instance pointer (C-compiler warning)
-			println(sActorInstanceType+" *"+mSymbols.getActorInstanceName()+
+			println(sActorInstanceType+" *"+mSymbols.getActorInstanceReference()+
 				"=("+sActorInstanceType+"*) pBase;");
 			createInternalPorts();
 			initializeStateVariables();
@@ -203,7 +194,7 @@ public class TranslationUnit extends OutputGenerator {
 	 */
 	protected void declareInternalPorts() {
 		for (XlimTopLevelPort port: mDesign.getInternalPorts()) {
-			println(sPortType+" "+mSymbols.getCName(port));
+			println(sPortType+" "+mSymbols.getTargetName(port));
 		}
 	}
 	
@@ -230,7 +221,7 @@ public class TranslationUnit extends OutputGenerator {
 				optArray="["+length+"]";
 			}
 			
-			println(type + " " + mSymbols.getCName(stateVar) + optArray + ";");
+			println(type + " " + mSymbols.getTargetName(stateVar) + optArray + ";");
 		}
 	}
 	
@@ -300,10 +291,10 @@ public class TranslationUnit extends OutputGenerator {
 				if (actionSchedulerFound)
 					throw new RuntimeException("multiple action schedulers");
 				actionSchedulerFound=true;
-				println("static void "+mSymbols.getCName(task)+"("+sActorInstanceBaseType+"*);");
+				println("static void "+mSymbols.getTargetName(task)+"("+sActorInstanceBaseType+"*);");
 			}
 			else {
-				println("static void "+mSymbols.getCName(task)+"("+sActorInstanceType+"*);");
+				println("static void "+mSymbols.getTargetName(task)+"("+sActorInstanceType+"*);");
 			}
 		}
 		if (!actionSchedulerFound)
@@ -320,17 +311,17 @@ public class TranslationUnit extends OutputGenerator {
 		for (XlimTaskModule task: mDesign.getTasks()) {
 			println();
 			if (task!=actionScheduler) {
-				println("static void "+mSymbols.getCName(task)+"("+
-						sActorInstanceType+" *"+mSymbols.getActorInstanceName()+") {");
+				println("static void "+mSymbols.getTargetName(task)+"("+
+						sActorInstanceType+" *"+mSymbols.getActorInstanceReference()+") {");
 				increaseIndentation();
-				println("TRACE_ACTION(&" + mSymbols.getActorInstanceName() + "->base, "
+				println("TRACE_ACTION(&" + mSymbols.getActorInstanceReference() + "->base, "
 						+ taskIndex + ", \"" + task.getName() + "\");");
 			}
 			else {
-				println("static void "+mSymbols.getCName(task)+"("+sActorInstanceBaseType
+				println("static void "+mSymbols.getTargetName(task)+"("+sActorInstanceBaseType
 						+" *pBase) {");
 				increaseIndentation();
-				println(sActorInstanceType+" *"+mSymbols.getActorInstanceName()+
+				println(sActorInstanceType+" *"+mSymbols.getActorInstanceReference()+
 						"=("+sActorInstanceType+"*) pBase;");
 			}
 		    generateBody(task);
@@ -341,7 +332,7 @@ public class TranslationUnit extends OutputGenerator {
 	}
 	
 	protected void generateBody(XlimTaskModule task) {
-		TaskGenerator gen = new TaskGenerator(mSymbols,mTaskGeneratorPlugIn,this);
+		Task2c gen = new Task2c(mSymbols,mTaskGeneratorPlugIn,this);
 		gen.translateTask(task);
 	}
 }

@@ -35,25 +35,49 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package eu.actorsproject.xlim.xlim2c;
+package eu.actorsproject.xlim.codegenerator;
 
-import java.io.File;
-import java.io.PrintStream;
+import eu.actorsproject.xlim.XlimInputPort;
+import eu.actorsproject.xlim.XlimOutputPort;
+import eu.actorsproject.xlim.XlimStateVar;
+import eu.actorsproject.xlim.XlimTaskModule;
+import eu.actorsproject.xlim.XlimTopLevelPort;
 
-import eu.actorsproject.xlim.XlimDesign;
+public interface ExpressionTreeGenerator {
 
-public class CodeGenerator {
-
-	private TaskGeneratorPlugIn mTaskGenPlugIn;
+	/**
+	 * @param root Root of expression tree
+	 * Generates an expression that represents an input port of an operation 
+	 */
+	void translateSubTree(XlimInputPort root);
+		
+	/**
+	 * @param s
+	 * prints a string to the resulting output stream
+	 */
+	void print(String s);
 	
-	public CodeGenerator(TaskGeneratorPlugIn taskGenPlug) {
-		mTaskGenPlugIn=taskGenPlug;
-	}
+	/**
+	 * @param temp
+	 * prints a reference to a "temporary variable" that is allocated for an output port
+	 */
+	void print(XlimOutputPort port);
+
+	/**
+	 * @param port
+	 * prints a reference to an actor port or internal port
+	 */
+	void print(XlimTopLevelPort port);
 	
-	public void generateCode(XlimDesign design, 
-			                 File sourceFile, 
-			                 PrintStream output) {
-		TranslationUnit unit=new TranslationUnit(design,sourceFile,output,mTaskGenPlugIn);
-		unit.translate();
-	}
+	/**
+	 * @param stateVar
+	 * prints a reference to a state variable
+	 */
+	void print(XlimStateVar stateVar);
+	
+	/**
+	 * @param task
+	 * prints a reference to a "task" (top-level module)
+	 */
+	void print(XlimTaskModule task);	
 }

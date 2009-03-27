@@ -42,14 +42,16 @@ import eu.actorsproject.xlim.XlimOperation;
 import eu.actorsproject.xlim.XlimStateVar;
 
 
+import eu.actorsproject.xlim.codegenerator.ExpressionTreeGenerator;
+import eu.actorsproject.xlim.codegenerator.OperationGenerator;
 import eu.actorsproject.xlim.util.OperationHandler;
 import eu.actorsproject.xlim.util.OperationPlugIn;
 
-public class OperationGenerators implements TaskGeneratorPlugIn {
+public class Operation2c implements OperationGenerator {
 
-	protected OperationPlugIn<OperationGenerator> mGenerators;
+	protected OperationPlugIn<BasicGenerator> mGenerators;
 	
-	private static OperationGenerator sGenerators[] = {
+	private static BasicGenerator sGenerators[] = {
 		new PortOperationGenerator("pinRead","pinRead"),
 		new PortOperationGenerator("pinWrite","pinWrite"),
 		new PortOperationGenerator("pinPeek","pinPeek"),
@@ -87,38 +89,38 @@ public class OperationGenerators implements TaskGeneratorPlugIn {
 		new SignExtendGenerator("signExtend")
 	};
 	
-	public OperationGenerators() {
+	public Operation2c() {
 		// No default handler -throws exception for unhandled operations
-		mGenerators=new OperationPlugIn<OperationGenerator>(null); 
-		for (OperationGenerator generator: sGenerators)
+		mGenerators=new OperationPlugIn<BasicGenerator>(null); 
+		for (BasicGenerator generator: sGenerators)
 			mGenerators.registerHandler(generator.getOperationKind(), generator);
 	}
 	
 	public boolean hasGenerateExpression(XlimOperation op) {
-		OperationGenerator generator=mGenerators.getOperationHandler(op);
+		BasicGenerator generator=mGenerators.getOperationHandler(op);
 		return generator.hasGenerateExpression();
 	}
 	
 	public boolean reEvaluate(XlimOperation op) {
-		OperationGenerator generator=mGenerators.getOperationHandler(op);
+		BasicGenerator generator=mGenerators.getOperationHandler(op);
 		return generator.reEvaluate();
 	}
 	
 	public void generateExpression(XlimOperation op, ExpressionTreeGenerator treeGenerator) {
-		OperationGenerator generator=mGenerators.getOperationHandler(op);
+		BasicGenerator generator=mGenerators.getOperationHandler(op);
 		generator.generateExpression(op,treeGenerator);
 	}
 	
 	public void generateStatement(XlimOperation op, ExpressionTreeGenerator treeGenerator) {
-		OperationGenerator generator=mGenerators.getOperationHandler(op);
+		BasicGenerator generator=mGenerators.getOperationHandler(op);
 		generator.generateStatement(op,treeGenerator);
 	}
 }
 
-abstract class OperationGenerator implements OperationHandler {
+abstract class BasicGenerator implements OperationHandler {
 	private String mOpKind;
 	
-	public OperationGenerator(String opKind) {
+	public BasicGenerator(String opKind) {
 		mOpKind=opKind;
 	}
 	
@@ -208,7 +210,7 @@ abstract class OperationGenerator implements OperationHandler {
 	}
 }
 
-class PortOperationGenerator extends OperationGenerator {
+class PortOperationGenerator extends BasicGenerator {
 	
 	protected String mApiCall;
 	
@@ -239,7 +241,7 @@ class PortOperationGenerator extends OperationGenerator {
 	}
 }
 
-class PinWaitGenerator extends OperationGenerator {
+class PinWaitGenerator extends BasicGenerator {
 
 	private String mApiCall;
 	
@@ -270,7 +272,7 @@ class PinWaitGenerator extends OperationGenerator {
 	}
 }
 
-class VarRefGenerator extends OperationGenerator {
+class VarRefGenerator extends BasicGenerator {
 
 	public VarRefGenerator(String opKind) {
 		super(opKind);
@@ -297,7 +299,7 @@ class VarRefGenerator extends OperationGenerator {
 	}		
 }
 
-class AssignGenerator extends OperationGenerator {
+class AssignGenerator extends BasicGenerator {
 	
 	public AssignGenerator(String opKind) {
 		super(opKind);
@@ -329,7 +331,7 @@ class AssignGenerator extends OperationGenerator {
 	}
 }
 
-class TaskCallGenerator extends OperationGenerator {
+class TaskCallGenerator extends BasicGenerator {
 	
 	public TaskCallGenerator(String opKind) {
 		super(opKind);
@@ -351,7 +353,7 @@ class TaskCallGenerator extends OperationGenerator {
 	}
 }
 
-class LiteralIntegerGenerator extends OperationGenerator {
+class LiteralIntegerGenerator extends BasicGenerator {
 	
 	public LiteralIntegerGenerator(String opKind) {
 		super(opKind);
@@ -381,7 +383,7 @@ class LiteralIntegerGenerator extends OperationGenerator {
 }
 
 
-abstract class ExpressionGenerator extends OperationGenerator {
+abstract class ExpressionGenerator extends BasicGenerator {
 	
 	public ExpressionGenerator(String opKind) {
 		super(opKind);

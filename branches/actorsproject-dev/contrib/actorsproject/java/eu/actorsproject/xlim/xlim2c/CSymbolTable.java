@@ -37,67 +37,35 @@
 
 package eu.actorsproject.xlim.xlim2c;
 
-import java.util.HashMap;
-
-import eu.actorsproject.util.XmlElement;
 import eu.actorsproject.xlim.XlimDesign;
+import eu.actorsproject.xlim.XlimOutputPort;
 import eu.actorsproject.xlim.XlimStateVar;
 import eu.actorsproject.xlim.XlimTaskModule;
 import eu.actorsproject.xlim.XlimTopLevelPort;
 import eu.actorsproject.xlim.XlimType;
-import eu.actorsproject.xlim.util.NativeTypePlugIn;
+import eu.actorsproject.xlim.codegenerator.AbstractSymbolTable;
+import eu.actorsproject.xlim.codegenerator.TemporaryVariable;
 
 /**
  * @author ecarvon
  * Determines the naming of actor ports, state variables, tasks and temoraries
  */
 
-public class TopLevelSymbolTable {
+public class CSymbolTable extends AbstractSymbolTable {
 	
-	protected static final String sActorInstanceName="thisActor";
-	protected static final String sActorClassNamePrefix="Actor";
+	protected static final String sActorClassPrefix="ActorClass";
+	protected static final String sActorNamePrefix="Actor";
+	protected static final String sActorInstanceReference="thisActor";
 	protected static final String sInputPortPrefix="IN";
 	protected static final String sOutputPortPrefix="OUT";
 	protected static final String sInternalPortPrefix="IO";
 	protected static final String sActionPrefix="a";
 	protected static final String sInitializerPrefix="init_";
 	
-	protected HashMap<XmlElement,String> mNameMap;	
-    
-    public TopLevelSymbolTable() {
-    	mNameMap=new HashMap<XmlElement,String>();
-    }
-    
-    public void declareTopLevelElements(XlimDesign design) {
-    	mNameMap.put(design, createCName(design));
-    	int index=0;
-    	for (XlimTopLevelPort port: design.getInputPorts())
-    		mNameMap.put(port, createCName(port, index++));
-    	index=0;
-    	for (XlimTopLevelPort port: design.getOutputPorts())
-    		mNameMap.put(port, createCName(port, index++));
-    	index=0;
-    	for (XlimTopLevelPort port: design.getInternalPorts())
-    		mNameMap.put(port, createCName(port, index++));
-    	for (XlimStateVar stateVar: design.getStateVars())
-    		mNameMap.put(stateVar, createCName(stateVar));
-    	index=0;
-    	for (XlimTaskModule task: design.getTasks())
-    		mNameMap.put(task, createCName(task,index++));
-    }
-    
-    /**
-     * @param element top-level element: a state variable, tasks or an internal port (but actor ports have no name) 
-     * @return "C name" that corresponds to the element
-     */
-    public String getCName(XmlElement element) {
-    	String cName=mNameMap.get(element);
-    	if (cName==null)
-    		throw new IllegalArgumentException("Element has no name");
-    	return cName;
-    }
-    
-    public String getCName(XlimType type) {
+	protected String mActorClassName;
+	
+	@Override
+	public String getTargetTypeName(XlimType type) {
     	if (type.isBoolean())
     		return "bool_t";
     	else {
@@ -105,32 +73,51 @@ public class TopLevelSymbolTable {
     		return "int"+type.getSize()+"_t";
     	}
     }
-    
-	public String getActorInstanceName() {
-		return sActorInstanceName;
+	
+	public String createActorClassName(String fileName) {
+		int end=fileName.lastIndexOf('.');
+		if (end>0) 
+			fileName=fileName.substring(0, end);
+		mActorClassName=sActorClassPrefix+createCName(fileName);
+		return mActorClassName;
+	}
+	
+	public String getActorClassName() {
+		return mActorClassName;
+	}
+	
+	public String getActorInstanceReference() {
+		return sActorInstanceReference;
 	}
 	
 	public String getReference(XlimTopLevelPort port) {
-		return getActorInstanceName()+"->"+getCName(port);
+		return getActorInstanceReference()+"->"+getTargetName(port);
 	}
 	
 	public String getReference(XlimStateVar stateVar) {
-		return getActorInstanceName()+"->"+getCName(stateVar);
+		return getActorInstanceReference()+"->"+getTargetName(stateVar);
 	}
 
 	public String getAggregateInitializer(XlimStateVar stateVar) {
-		return sInitializerPrefix+getCName(stateVar);
+		return sInitializerPrefix+getTargetName(stateVar);
 	}
 
 	public String getReference(XlimTaskModule task) {
-		return getCName(task);
+		return getTargetName(task);
 	}
 	
-	protected String createCName(XlimDesign design) {
-		return sActorClassNamePrefix+createCName(design.getName());
+	public String getTargetName(TemporaryVariable temp) {
+		XlimOutputPort classLeader=temp.getClassLeader().getOutputPort();
+		return classLeader.getUniqueId();
 	}
 	
-	protected String createCName(XlimTopLevelPort port, int index) {
+	@Override
+    protected String createTargetName(XlimDesign design) {
+		return sActorNamePrefix+createCName(design.getName());
+	}
+	
+	@Override
+    protected String createTargetName(XlimTopLevelPort port, int index) {
 		String prefix;
 		switch (port.getDirection()) {
 		case in:   prefix=sInputPortPrefix; break;
@@ -140,31 +127,13 @@ public class TopLevelSymbolTable {
     	return prefix+index+createCName(port.getSourceName());
     }
     
-    protected String createCName(XlimStateVar stateVar) {
+	@Override
+    protected String createTargetName(XlimStateVar stateVar, int index) {
     	return stateVar.getUniqueId()+createCName(stateVar.getSourceName());
     }
     
-    protected String createCName(XlimTaskModule task, int index) {
+    @Override
+    protected String createTargetName(XlimTaskModule task, int index) {
     	return sActionPrefix+index+createCName(task.getName());
-    }
-    
-	/**
-	 * @param xlimName Name used in XLIM, possibly null or containing weird characters
-	 * @return string containing only alpha-numericals and '_' (not guaranteed to be unique 
-	 *         nor non-empty, but useful as suffix).
-	 */
-	protected static String createCName(String xlimName) {
-		if (xlimName==null)
-			return "";
-		else {
-			StringBuffer buf=new StringBuffer(xlimName);
-			for (int i=0; i<buf.length(); ++i) {
-				char c=buf.charAt(i);
-				if (!(c>='a' && c<='z' || c>='A' && c<='Z' || c>='0' && c<='9')) {
-					buf.setCharAt(i, '_');
-				}
-			}
-			return "_"+buf.toString();
-		}
-	}
+    }    
 }
