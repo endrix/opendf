@@ -149,13 +149,13 @@ int get_circbuf_space(CIRC_BUFFER *cb)
 	return space;
 }	
 
-int get_circbuf_area(CIRC_BUFFER *cb,int index)
+int get_circbuf_area(CIRC_BUFFER *cb,int which)
 {
 	int area = 0;
 
 	LOCK(cb);
 
-	area = cb->numWrites - cb->reader[index].numReads;
+	area = cb->numWrites - cb->reader[which].numReads;
 	
 	if(area < TOKEN_SIZE)
 		cb->stats.nodata++;
@@ -166,10 +166,10 @@ int get_circbuf_area(CIRC_BUFFER *cb,int index)
 
 }
 
-int peek_circbuf_area(CIRC_BUFFER *cb,char *buf, int size, int index, int offset)
+int peek_circbuf_area(CIRC_BUFFER *cb,char *buf, int size, int which, int offset)
 {
 	int dist;
-	int readptr = cb->reader[index].readptr + offset;
+	int readptr = cb->reader[which].readptr + offset;
 
 	LOCK(cb);
 
@@ -190,26 +190,26 @@ int peek_circbuf_area(CIRC_BUFFER *cb,char *buf, int size, int index, int offset
 	return 0;	
 }
 
-int read_circbuf(CIRC_BUFFER *cb,char *buf, int size, int index)
+int read_circbuf(CIRC_BUFFER *cb,char *buf, int size, int which)
 {
 	int dist;
 
 	LOCK(cb);
 
-	if( ( cb->reader[index].readptr + size) > MAX_CIRCBUF_LEN )  
+	if( ( cb->reader[which].readptr + size) > MAX_CIRCBUF_LEN )  
 	{
-		dist = MAX_CIRCBUF_LEN - cb->reader[index].readptr;
-		memcpy(buf, (cb->buf + cb->reader[index].readptr), dist);
+		dist = MAX_CIRCBUF_LEN - cb->reader[which].readptr;
+		memcpy(buf, (cb->buf + cb->reader[which].readptr), dist);
 		memcpy(buf + dist, cb->buf, size - dist);
-		cb->reader[index].readptr = size - dist;
+		cb->reader[which].readptr = size - dist;
 	}
 	else
 	{
-		memcpy(buf, (cb->buf + cb->reader[index].readptr), size);
-		cb->reader[index].readptr += size;
+		memcpy(buf, (cb->buf + cb->reader[which].readptr), size);
+		cb->reader[which].readptr += size;
 
 	}
-	cb->reader[index].numReads += size; 
+	cb->reader[which].numReads += size; 
 
 	UNLOCK(cb);
 
