@@ -149,8 +149,9 @@ public class Util {
 		"net/sf/opendf/transforms/xdfBuildXMLAttribute.xslt",
 		"net/sf/opendf/transforms/xdfFoldAttributes.xslt",
         
-		"net/sf/opendf/cal/transforms/xlim/AddDirectives.xslt"
-    };
+		"net/sf/opendf/cal/transforms/xlim/AddDirectives.xslt",
+		"net/sf/opendf/cal/transforms/EvaluateNetworkExpressions.xslt"
+	};
     private static final String [] inlineTransforms = { "net/sf/opendf/cal/transforms/Inline.xslt" };
     private static final String [] postInlineTransforms = {
         "net/sf/opendf/cal/transforms/AddID.xslt",
