@@ -395,6 +395,7 @@ void init_actor_network(NetworkConfig *network)
 			lnode = (DLLIST *)malloc(sizeof(DLLIST));
 			lnode->obj = pInstance;
 			append_node(&actorLists[listIndex],lnode);
+			actorLists[listIndex].lid = listIndex;
 		}		
 
 	}
