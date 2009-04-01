@@ -46,6 +46,8 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/stat.h>
+#include <sched.h>
+#include <syscall.h>
 #include "actors-rts.h"
 #include "circbuf.h"
 #include "dll.h"
@@ -59,6 +61,9 @@ int						trace_action = 0;
 int						rts_mode = THREAD_PER_ACTOR;
 LIST					actorLists[MAX_LIST_NUM];
 int						num_lists = 1;
+static int				numCpusConfigured;
+static int				numCpusOnline;
+static int				dispatchMode;
 
 static void stop_run(int sig){
     trace(LOG_MUST,"\nprogram stop running: sig=%x pid=%x\n",sig,getpid());
@@ -246,13 +251,20 @@ static void exec_lists_unit(LIST *actorList)
 {
 	DLLIST			*lnode = NULL;
 	AbstractActorInstance *instance;
-	static int		count = 0;
 	int				noRuns = 0;
+	unsigned long	mask;
 
 	if(actorList->numNodes == 0)
 		pthread_exit(NULL);
 
-	trace(LOG_MUST,"Actor List(%d) containing %d actors start running......\n",count++,actorList->numNodes);
+	//distribute thread on to cpu
+	if(dispatchMode == 1){	
+		mask = actorList->lid%numCpusOnline;
+		mask = 1<<mask;
+		syscall(__NR_sched_setaffinity, 0, sizeof(mask), &mask);
+	}
+
+	trace(LOG_MUST,"Thread(%d) containing %d actors start running at cpu %d......\n",actorList->lid,actorList->numNodes,sched_getcpu());
 
 	while(Running)
 	{
@@ -283,21 +295,29 @@ static void exec_lists_unit(LIST *actorList)
 	pthread_exit(NULL);
 }
 
-static void exec_list_unit(LIST *actorList)
+static void exec_list_unit(void *t)
 {
 	DLLIST			*lnode = NULL;
 	AbstractActorInstance *instance;
-	static int		count = 0;
+	LIST 			*alist = &actorLists[0];
+	unsigned long	mask;
 
-	if(actorList->numNodes == 0)
+	if(alist->numNodes == 0)
 		pthread_exit(NULL);
 
-	trace(LOG_MUST,"Actor List(%d) containing %d actors start running......\n",count++,actorList->numNodes);
+	//distribute thread on to cpu
+	if(dispatchMode == 1)
+	{
+		mask = (int)t%numCpusOnline;
+		mask = 1<<mask;
+		syscall(__NR_sched_setaffinity, 0, sizeof(mask), &mask);
+	}
+	trace(LOG_MUST,"Thread(%d) containing %d actors start running at cpu %d......\n",(int)t,alist->numNodes,sched_getcpu());
 
 	while(Running)
 	{
 		//select actor instance
-		lnode = node_select(actorList,lnode);
+		lnode = node_select(alist,lnode);
 		instance = (AbstractActorInstance*)lnode->obj;
 
 		//actor dispatch
@@ -335,6 +355,30 @@ int actors_status(int numInstances)
 	return ret;
 }
 
+void display_sys_info()
+{
+	numCpusConfigured = sysconf(_SC_NPROCESSORS_CONF);
+	numCpusOnline     = sysconf(_SC_NPROCESSORS_ONLN);
+
+	if (numCpusConfigured != -1)
+	{
+		trace(LOG_MUST,"Processors configured : %d\n",numCpusConfigured);
+	}
+	else
+	{
+		trace(LOG_MUST,"Unable to read configured processor count.\n");
+	}
+
+	if (numCpusOnline != -1)
+	{
+		trace(LOG_MUST,"Processors online     : %d\n",numCpusOnline);
+	}
+	else
+	{
+		trace(LOG_MUST,"Unable to read online processor count.\n");
+	}
+}
+
 int execute_network(int argc, char *argv[],NetworkConfig *networkConfig)
 {
 	int			i,c;
@@ -347,15 +391,16 @@ int execute_network(int argc, char *argv[],NetworkConfig *networkConfig)
 	pthread_t	tid[128];
 
 	//command line param parser
-	while ((c = getopt (argc, argv, "tvhn:l:m:")) != -1)
+	while ((c = getopt (argc, argv, "tvhn:l:m:d:")) != -1)
 	{
 		switch (c)
 		{
 			case 'h':
 				fprintf (stderr, "%s [-l <trace level>] [-h]...\n",argv[0]);
 				fprintf (stderr, "  -l <trace level>   set trace level(0:must 1:error 2:warn 3:info 4:exec)\n");
-				fprintf (stderr, "  -m <rts mode>      set rts mode (1:thread per actor 2:thread per list 3:single list multiple thread\n");
-				fprintf (stderr, "  -n <num of threads>set number of threads for thread per list mode or threads for single list mode (default is 1)\n");
+				fprintf (stderr, "  -m <rts mode>      set rts mode (1:per actor 2:per list 3:single list\n");
+				fprintf (stderr, "  -n <num of threads>set number of threads (default is 1)\n");
+				fprintf (stderr, "  -d <disptch mode>  set thread dispatch mode (0: auto 1: fixed)\n");
 				fprintf (stderr, "  -t                 turn on trace for action scheduler\n");
 				fprintf (stderr, "  -h                 print this help and exit\n");
 				fprintf (stderr, "  -v                 print version information and exit\n");
@@ -374,10 +419,9 @@ int execute_network(int argc, char *argv[],NetworkConfig *networkConfig)
 				break;
 			case 'm':
 				rts_mode = atoi(optarg);
-				if(rts_mode != THREAD_PER_ACTOR && rts_mode != THREAD_PER_LIST && rts_mode != SINGLE_LIST){
-					trace(LOG_MUST, "Invalid rts mode %d, default to THREAD_PER_ACTOR mode\n",rts_mode);
-					rts_mode = THREAD_PER_ACTOR;
-				}
+				break;
+			case 'd':
+				dispatchMode = atoi(optarg);
 				break;
  			case '?':
 // 			if (optopt == 'l')
@@ -406,13 +450,19 @@ int execute_network(int argc, char *argv[],NetworkConfig *networkConfig)
 			num_lists = 0;
 			break;
 		default:
+			trace(LOG_MUST, "Invalid rts mode %d, default to THREAD_PER_ACTOR mode\n",rts_mode);
+			rts_mode = THREAD_PER_ACTOR;
 			break;
 	}
 
-	trace(LOG_MUST,"ModuleName: %s numInstances: %d numFifos: %d\n",argv[0],numInstances,numFifos);
-	trace(LOG_MUST,"Number of lists = %d\n",num_lists);
+	display_sys_info();
+
+	trace(LOG_MUST,"ModuleName            : %s\n",argv[0],numInstances,numFifos);
+	trace(LOG_MUST,"numInstances          : %d\n",numInstances);
+	trace(LOG_MUST,"numFifos              : %d\n",numFifos);
+	trace(LOG_MUST,"Number of lists       : %d\n",num_lists);
 	if(rts_mode == SINGLE_LIST)
-		trace(LOG_MUST, "Number of threads = %d\n",numThreads);
+		trace(LOG_MUST,"Number of threads     : %d\n",numThreads);
 
 	init_actor_network(networkConfig);
 	
@@ -446,7 +496,7 @@ int execute_network(int argc, char *argv[],NetworkConfig *networkConfig)
 		case SINGLE_LIST:
 			for(i=0;i<numThreads;i++)
 			{
-				pthread_create((pthread_t*)&tid[i], &attr, (void*)exec_list_unit, (void *) &actorLists[0]);
+				pthread_create((pthread_t*)&tid[i], &attr, (void*)exec_list_unit, (void *)i);
 			}
 			break;
 		default:
@@ -475,6 +525,6 @@ int execute_network(int argc, char *argv[],NetworkConfig *networkConfig)
 			actorInstance[i]->actor->destructor(actorInstance[i]);
 		}
 	}
-
+	sleep(1);
 	return 0;
 }

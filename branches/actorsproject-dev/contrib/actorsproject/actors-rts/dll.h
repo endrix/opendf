@@ -15,6 +15,7 @@ typedef struct _list {
 	DLLIST *head;
 	DLLIST *tail;
 	int numNodes;
+	int	lid;
 }LIST;
 
 extern void append_node(LIST *a,DLLIST *lnode);
