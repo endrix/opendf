@@ -161,7 +161,6 @@ ENDCOPYRIGHT
             </xsl:for-each>              
           </port>
         </operation>
-        
       </xsl:otherwise>
     </xsl:choose>
   
@@ -200,21 +199,13 @@ ENDCOPYRIGHT
   <!-- Any number of reads supported --> 
   <xsl:template match="Input">
     <xsl:variable name="port" select="@port"/>
+    <note kind="consumptionRates" name="{$port}" value="{count(Decl)}"/>          
     <xsl:for-each select="Decl">
       <xsl:variable name="type-attrs">
         <xsl:apply-templates select="Type"/>
       </xsl:variable>
-
-      <xsl:variable name="tokenStyleDirectives" select="ancestor-or-self::*/Note[@kind='Directive' and @name='tokenoutputstyle']"/>
-      <xsl:variable name="style">
-        <xsl:choose>
-          <xsl:when test="last() &gt; 1">blocking</xsl:when>
-          <xsl:when test="$tokenStyleDirectives[1]"><xsl:value-of select="$tokenStyleDirectives[1]/Expr/@value"/></xsl:when>
-          <xsl:otherwise>simple</xsl:otherwise>
-        </xsl:choose>
-      </xsl:variable>
       
-      <operation kind="pinRead" portName="{../@port}" removable="no" style="{$style}">
+      <operation kind="pinRead" portName="{../@port}" removable="no" style="simple">
         <port source="{@id}" dir="out">
           <xsl:for-each select="$type-attrs/attr">
             <xsl:attribute name="{@name}"><xsl:value-of select="@value"/></xsl:attribute>
@@ -222,7 +213,7 @@ ENDCOPYRIGHT
         </port>
       </operation>
     </xsl:for-each>
-    
+      
   </xsl:template>
 
   <!-- Pin peeks and ready flags for all actor inputs -->
@@ -234,30 +225,7 @@ ENDCOPYRIGHT
         </xsl:otherwise>
       </xsl:choose>
     </xsl:variable>
-    
-    <!-- TODO: make this work for more than the head token 
-    <xsl:if test="count( Decl ) &gt; 1 and count(../../Action) &gt; 1">
-      Warning: multi-token read may not be scheduled properly
-    </xsl:if>
-    -->
-    
-    <!-- FIXME: pinAvail
-      According to Calle:
-      <operation kind="pinAvail" portName="Input"> 
-        <port dir="out" source=portname + $pinAvail" typeName="int" size="32"/>  
-      </operation>
-      
-      <operation kind="$literal_Integer" value="2"> 
-        <port dir="out" size="3" source="0$id$tokenCount$2" typeName="int"/> 
-      </operation> 
-      
-      <operation kind="$ge"> 
-        <port dir="in" source="0$id$pinAvail"/> 
-        <port dir="in" source="0$id$tokenCount$2"/> 
-        <port dir="out" size="1" source="0$id$w193ab2b1b1$ready" typeName="bool"/> 
-      </operation> 
-    -->
-     
+         
     <operation kind="$literal_Integer" value="{count(Decl)}"> 
       <port dir="out" size="32" source="{concat(./@id, '$',./@port, '$tokenCount')}" typeName="int"/> 
     </operation> 
@@ -284,14 +252,7 @@ ENDCOPYRIGHT
             <xsl:attribute name="{@name}"><xsl:value-of select="@value"/></xsl:attribute>
           </xsl:for-each>
         </port>
-      </operation>
-      
-      <!-- FIXME
-      <operation kind="pinStatus" portName="{../@port}">
-        <xsl:variable name="ready" select="concat(@id, '$ready')"/>
-        <port source="{$ready}" dir="out" size="1" typeName="bool"/>
-      </operation>
-        -->
+      </operation>      
     </xsl:for-each>
     
   </xsl:template>
@@ -407,15 +368,7 @@ ENDCOPYRIGHT
   <xsl:template match="Output">
     <xsl:apply-templates select="Expr"/>
     <xsl:for-each select="Expr">
-      <xsl:variable name="tokenStyleDirectives" select="ancestor-or-self::*/Note[@kind='Directive' and @name='tokenoutputstyle']"/>
-      <xsl:variable name="style">
-        <xsl:choose>
-          <xsl:when test="last() &gt; 1">blocking</xsl:when>
-          <xsl:when test="$tokenStyleDirectives[1]"><xsl:value-of select="$tokenStyleDirectives[1]/Expr/@value"/></xsl:when>
-          <xsl:otherwise>simple</xsl:otherwise>
-        </xsl:choose>
-      </xsl:variable>
-      <operation kind="pinWrite" portName="{../@port}" style="{$style}">
+       <operation kind="pinWrite" portName="{../@port}" style="simple">
         <port dir="in" source="{@id}"/>
       </operation>
     </xsl:for-each>
@@ -653,19 +606,24 @@ ENDCOPYRIGHT
     <!-- Allocate an FSM state variable -->
     <xsl:variable name="nstates" select="count($actor/Note[@kind='state-enum'])"/>
     
-    <xsl:for-each select="$actor/Note[@kind='state-enum']">
-      <stateVar name="{concat($actor/@id,'$fsm$',@name)}">
-        <initValue typeName="bool" size="1">
-          <xsl:attribute name="value">
-            <xsl:choose>
-              <!-- Starting state is the first one in the enumeration -->
-              <xsl:when test="position() = 1">1</xsl:when>
-              <xsl:otherwise>0</xsl:otherwise>
-            </xsl:choose>
-          </xsl:attribute>
-        </initValue>
-      </stateVar>
+    <!--      <xsl:for-each select="$actor/Note[@kind='state-enum']">
+      <operation kind="$literal_Integer" value="{position()}">
+        <port source="{concat($actor/@id,'$fsm$',@name)}" dir="out" typeName="int" size="32"/>
+      </operation>
     </xsl:for-each>
+    -->
+    <xsl:variable name="stateEnumerations">
+       <xsl:for-each select="$actor/Note[@kind='state-enum']">
+            <operation kind="$literal_Integer" value="{position()}">
+              <port source="{concat($actor/@id,'$fsm$',@name)}" dir="out" typeName="int" size="32"/>
+           </operation>
+       </xsl:for-each>    	
+    </xsl:variable>
+     
+    <!-- Starting state is the first one in the enumeration -->
+    <stateVar name="currentState">
+      <initValue typeName="int" size="32" value="1"/>
+    </stateVar>
 
     <!-- Create a list of states and the actions fireable in priority order -->
     <xsl:variable name="state-actions">
@@ -723,6 +681,10 @@ ENDCOPYRIGHT
         <port source="{$true}" dir="out" size="1" typeName="bool"/>
       </operation>
       
+      <xsl:for-each select="$stateEnumerations/operation">
+        <xsl:copy-of select="."/>   
+      </xsl:for-each>
+           
       <module kind="loop">
         <xsl:variable name="loop-test" select="concat($true,'$loop')"/>
         <module kind="test" decision="{$loop-test}">
@@ -733,12 +695,6 @@ ENDCOPYRIGHT
         </module>
         
         <module kind="body">
-          
-          <!-- FIXME: pinAvail           
-          <DoPinAvail for each port here>
-            naming scheme portname$pinAvail  
-          </DoPinAvail>
-          -->
           <xsl:for-each select="$actor/Port[@kind='Input']">
             <operation kind="pinAvail" portName="{@name}"> 
               <port dir="out" source="{concat(@name, '$pinAvail')}" typeName="int" size="32"/> 
@@ -753,44 +709,40 @@ ENDCOPYRIGHT
           <xsl:for-each select="$actor/Port[@kind='Output']">
             <xsl:variable name="status" select="concat(@id,'$status')"/>
             <xsl:variable name="name" select="@name"/>
-            <xsl:choose>
-              <xsl:when test="../Action/Output[@port=$name][ count( Expr ) > 1]">
-                <!-- Multi-token writes so no need to test availability -->
-                <operation kind="$literal_Integer" value="1">
-                  <port source="{$status}" dir="out" size="1" typeName="bool"/>
+                <operation kind="pinAvail" portName="{@name}">
+                  <port source="{$status}" dir="out" size="32" typeName="int" />
                 </operation>
-              </xsl:when>
-              <xsl:otherwise>
-                <!-- Style is simple, so must test availability -->
-                <!-- FIXME -->
-                <operation kind="pinStatus" portName="{@name}">
-                  <port source="{$status}" dir="out" size="1" typeName="bool"/>
-                </operation>
-              </xsl:otherwise>
-            </xsl:choose>
           </xsl:for-each>
- 
+          
           <xsl:for-each select="$actor/Action">
+            <xsl:variable name="actionId" select="@id"/>
             <xsl:variable name="fireable" select="concat(@id,'$fireable')"/>
-            <xsl:variable name="tokenStyleDirectives" select="ancestor-or-self::*/Note[@kind='Directive' and @name='tokenoutputstyle']"/>
-            <xsl:choose>
-              <xsl:when test="Output and not($tokenStyleDirectives[1]/Expr/@value='blocking')">
-                <operation kind="$and">
-                  <xsl:for-each select="Output">
-                    <xsl:variable name="port" select="@port"/>
-                    <port source="{concat(../../Port[@name=$port]/@id,'$status')}" dir="in"/>
-                  </xsl:for-each>
-                  <port source="{$fireable}" dir="out" size="1" typeName="bool"/>
-                </operation>
-              </xsl:when>
-              <xsl:otherwise>
-                <operation kind="$literal_Integer" value="1">
-                  <port source="{$fireable}" dir="out" size="1" typeName="bool"/>
-                </operation>
-              </xsl:otherwise>
-            </xsl:choose>
-          </xsl:for-each>
-                   
+
+            <xsl:for-each select="Output">
+              <xsl:variable name="port" select="@port"/>
+                <operation kind="$literal_Integer" value="{count(Expr)}">
+                  <port source="{concat($actionId, '$', $port, '$exprCount')}" dir="out" typeName="int" size="32"/>
+                </operation>              
+                <operation kind="$ge">                       
+                  <port source="{concat(../../Port[@name=$port]/@id,'$status')}" dir="in"/>
+                  <port source="{concat($actionId, '$', $port, '$exprCount')}" dir="in"/>
+                  <port source="{concat($actionId, '$', $port)}" dir="out" typeName="bool" size="1"/>
+                </operation>   
+            </xsl:for-each>
+
+            <operation kind="$literal_Integer" value="1">
+              <port source="{concat($actionId, '$true')}" dir="out" typeName="bool" size="1"/>
+            </operation>                                      
+            <operation kind="$and">
+               <port source="{concat($actionId, '$true')}" dir="in"/>
+               <xsl:for-each select="Output">
+                  <xsl:variable name="port" select="@port"/>
+                  <port source="{concat($actionId, '$', $port)}" dir="in"/>
+                </xsl:for-each>
+               <port source="{$fireable}" dir="out" size="1" typeName="bool"/>
+            </operation>
+          </xsl:for-each>  
+          
           <!-- Implement action firings -->
           <xsl:call-template name="choose-action">
             <!-- First do the stateless actions -->
@@ -798,36 +750,15 @@ ENDCOPYRIGHT
             <xsl:with-param name="actor-id" select="$actor/@id"/>
             <xsl:with-param name="state-name" select="'always'"/>
             <xsl:with-param name="other-stuff">
-              <!-- Read all the state variables before any firing/update -->
+              <!-- Read all the state variables before any firing/update 
               <xsl:for-each select="$actor/Note[@kind='state-enum']">
                 <operation kind="noop">
                   <port source="{concat($actor/@id,'$fsm$',@name)}" dir="in"/>
                   <port source="{concat($actor/@id,'$fsm$copy$',@name)}" dir="out" typeName="bool" size="1"/>
                 </operation>
               </xsl:for-each>
-              <!-- The stateful actions will all fall in the last else module of the stateless ones -->
-              <!-- FIXME: remove comment
-              <module kind="block" mutex="true">
-                <xsl:for-each select="$state-actions/state[@name]">
-                  <module kind="if">
-                    <module kind="test" decision="{concat(@name,'$enabled')}">
-                      <operation kind="noop">
-                        <port source="{concat($actor/@id,'$fsm$copy$',@name)}" dir="in"/>
-                        <port source="{concat(@name,'$enabled')}" dir="out" typeName="bool" size="1"/>
-                      </operation>
-                    </module>
-                    <module kind="then">
-                      <xsl:call-template name="choose-action">
-                        <xsl:with-param name="actions"><xsl:copy-of select="action"/></xsl:with-param>
-                        <xsl:with-param name="actor-id" select="$actor/@id"/>
-                        <xsl:with-param name="state-name" select="@name"/>
-                      </xsl:call-template>
-                    </module>
-                  </module>
-                </xsl:for-each>
-              </module>
-              -->
-              <xsl:variable name="states" select="$state-actions/state[@name]"/>
+              The stateful actions will all fall in the last else module of the stateless ones -->
+             <xsl:variable name="states" select="$state-actions/state[@name]"/>
               <xsl:if test="count($states) > 0">
                 <xsl:call-template name="IfThenElse">
                   <xsl:with-param name="states" select="$state-actions/state[@name]"/>
@@ -847,8 +778,9 @@ ENDCOPYRIGHT
     <xsl:param name="actor"/>    
     <module kind="if">        
       <module kind="test" decision="{concat($states[1]/@name,'$enabled')}">
-        <operation kind="noop">
-          <port source="{concat($actor/@id,'$fsm$copy$',$states[1]/@name)}" dir="in"/>
+        <operation kind="$eq">
+          <port source="{concat($actor/@id,'$fsm$',$states[1]/@name)}" dir="in"/>
+          <port source="currentState" dir="in"/>         
           <port source="{concat($states[1]/@name,'$enabled')}" dir="out" typeName="bool" size="1"/>
         </operation>
       </module>
@@ -897,8 +829,6 @@ ENDCOPYRIGHT
       </xsl:when>
       <xsl:otherwise>
         <operation kind="$and">
-          <!-- TODO Handle more than one input token -->
-          <!-- Eker changed <xsl:for-each select="Input/Decl[1]"> to: -->
           <xsl:for-each select="Input"> 
             <port source="{concat(@id,'$ready')}" dir="in"/>
           </xsl:for-each>
@@ -959,21 +889,8 @@ ENDCOPYRIGHT
               <module kind="then">
                 <operation kind="taskCall" target="{$action-name}"/>
                 <xsl:if test="$actions/action[1]/@to-name">
-                  <xsl:variable name="random-id" select="generate-id($actions/action[1])"/>
-                  <operation kind="$literal_Integer" value="0">
-                    <port source="{concat($random-id,'$false')}" dir="out" typeName="bool" size="1"/>
-                  </operation>
-                  <operation kind="$literal_Integer" value="1">
-                    <port source="{concat($random-id,'$true')}" dir="out" typeName="bool" size="1"/>
-                  </operation>
-
-                  <xsl:if test="$state-name != $actions/action[1]/@to-name">
-                    <operation kind="assign" target="{concat($actor-id,'$fsm$',$state-name)}">
-                      <port source="{concat($random-id,'$false')}" dir="in"/>
-                    </operation>
-                  </xsl:if>
-                  <operation kind="assign" target="{concat($actor-id,'$fsm$',$actions/action[1]/@to-name)}">
-                    <port source="{concat($random-id,'$true')}" dir="in"/>
+                  <operation kind="assign" target="currentState">
+                    <port source="{concat($actor-id,'$fsm$',$actions/action[1]/@to-name)}" dir="in"/>
                   </operation>
                 </xsl:if>
               </module>
