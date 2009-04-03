@@ -44,6 +44,7 @@ import org.eclipse.debug.ui.AbstractLaunchConfigurationTab;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.swt.graphics.Image;
 import net.sf.opendf.eclipse.plugin.*;
+
 import java.util.*;
 
 public abstract class OpendfConfigurationTab extends AbstractLaunchConfigurationTab
@@ -56,7 +57,7 @@ public abstract class OpendfConfigurationTab extends AbstractLaunchConfiguration
   
   private static String uniqueId()
   {
-    return OpendfPlugin.ID;
+    return OpendfConstants.PLUGIN_ID;
   }
 
   public static String Export( String tabName, String key )
