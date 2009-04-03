@@ -627,6 +627,15 @@ public class OpendfDebugTarget extends OpendfDebugElement implements IDebugTarge
 		sendCommand("pushdata " + value);
 	}
 
+	/**
+	 * Handle all other events
+	 * @param event
+	 */
+	public void handleEvent(String event) {
+		System.out.println(this.getClass().getSimpleName() + ".handleEvent: " + event);
+	}
+
+	
 	public void handleResumedEvent(String compName, String event) {
 		isSuspended = false;
 	}
@@ -715,7 +724,7 @@ public class OpendfDebugTarget extends OpendfDebugElement implements IDebugTarge
 					} else if (event.equals("terminated")) {
 						notifyTerminatedListeners();
 					} else {
-						System.err.println("Unexpected event received from execution engine: " + event);
+						notifyOtherEvents(event);
 					}
 
 				} catch (IOException e) {
@@ -786,6 +795,21 @@ public class OpendfDebugTarget extends OpendfDebugElement implements IDebugTarge
 				}
 			}
 		}
+		
+		/**
+		 * Notify listeners in a thread safe manner
+		 */
+		public void notifyOtherEvents(String event) {
+			int eventListenersSize = eventListeners.size();
+			if ((eventListeners != null) && (eventListenersSize > 0)) {
+				final IOpendfEventListener[] listeners = (IOpendfEventListener[]) eventListeners.toArray(new IOpendfEventListener[eventListenersSize]);
+				for (int i = 0; i < eventListenersSize; i++) {
+					final IOpendfEventListener listener = listeners[i];
+					listener.handleEvent(event);
+				}
+			}
+		}
+
 		
 	}
 

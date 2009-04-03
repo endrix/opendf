@@ -299,6 +299,14 @@ public class ActorThread extends OpendfThread {
 		return false;
 	}
 	
+	/**
+	 * Handle all other events
+	 * @param event
+	 */
+	public void handleEvent(String event) {
+		System.out.println(this.getClass().getSimpleName() + ".handleEvent: " + event);
+	}
+
 	public void handleResumedEvent(String compName, String event) {
 		if (getComponentName().equals(compName)) {
 			//System.out.println("Resumed " + compName);

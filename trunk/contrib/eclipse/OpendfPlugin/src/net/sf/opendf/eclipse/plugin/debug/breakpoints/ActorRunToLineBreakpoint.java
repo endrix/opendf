@@ -1,15 +1,43 @@
-/*******************************************************************************
- * Copyright (c) 2005, 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
- *
- * Contributors:
- *     IBM Corporation - initial API and implementation
- *     Bjorn Freeman-Benson - initial API and implementation
- *******************************************************************************/
-package example.debug.core.breakpoints;
+/* 
+BEGINCOPYRIGHT X
+	
+	Copyright (c) 2007, Xilinx Inc.
+	All rights reserved.
+	
+	Redistribution and use in source and binary forms, 
+	with or without modification, are permitted provided 
+	that the following conditions are met:
+	- Redistributions of source code must retain the above 
+	  copyright notice, this list of conditions and the 
+	  following disclaimer.
+	- Redistributions in binary form must reproduce the 
+	  above copyright notice, this list of conditions and 
+	  the following disclaimer in the documentation and/or 
+	  other materials provided with the distribution.
+	- Neither the name of the copyright holder nor the names 
+	  of its contributors may be used to endorse or promote 
+	  products derived from this software without specific 
+	  prior written permission.
+	
+	THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND 
+	CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, 
+	INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF 
+	MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE 
+	DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
+	CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, 
+	SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT 
+	NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; 
+	LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) 
+	HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
+	CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
+	OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
+	SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+	
+ENDCOPYRIGHT
+ */
+package net.sf.opendf.eclipse.plugin.debug.breakpoints;
+
+import net.sf.opendf.eclipse.plugin.OpendfConstants;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
@@ -22,23 +50,26 @@ import org.eclipse.debug.core.model.IBreakpoint;
 
 /**
  * A run to line breakpoint.
+ * 
+ * @author Rob Esser
+ * @version 3rd April 2009
  */
-public class PDARunToLineBreakpoint extends PDALineBreakpoint {
+public class ActorRunToLineBreakpoint extends ActorLineBreakpoint {
 	
 	private IFile fSourceFile;
 	
 	/**
-	 * Constructs a run-to-line breakpoint in the given PDA program.
+	 * Constructs a run-to-line breakpoint in the given Actor program.
 	 * 
-	 * @param resource PDA source file
+	 * @param resource Actor source file
 	 * @param lineNumber line to run to
 	 * @exception DebugException if unable to create the breakpoint
 	 */
-	public PDARunToLineBreakpoint(final IFile resource, final int lineNumber) throws DebugException {
+	public ActorRunToLineBreakpoint(final IFile resource, final int lineNumber) throws DebugException {
 		IWorkspaceRunnable runnable = new IWorkspaceRunnable() {
 			public void run(IProgressMonitor monitor) throws CoreException {
 				// associate with workspace root to avoid drawing in editor ruler
-				IMarker marker = ResourcesPlugin.getWorkspace().getRoot().createMarker("example.debug.core.pda.markerType.lineBreakpoint");
+				IMarker marker = ResourcesPlugin.getWorkspace().getRoot().createMarker(OpendfConstants.ACTOR_BREAKPOINT_MARKER);
 				setMarker(marker);
 				marker.setAttribute(IBreakpoint.ENABLED, Boolean.TRUE);
 				marker.setAttribute(IMarker.LINE_NUMBER, lineNumber);

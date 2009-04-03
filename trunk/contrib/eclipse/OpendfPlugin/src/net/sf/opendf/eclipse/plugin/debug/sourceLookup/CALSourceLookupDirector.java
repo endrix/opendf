@@ -35,7 +35,7 @@ BEGINCOPYRIGHT X
 	
 ENDCOPYRIGHT
 */
-package net.sf.opendf.eclipse.plugin.debug.util;
+package net.sf.opendf.eclipse.plugin.debug.sourceLookup;
 
 import org.eclipse.debug.core.sourcelookup.AbstractSourceLookupDirector;
 import org.eclipse.debug.core.sourcelookup.ISourceLookupParticipant;

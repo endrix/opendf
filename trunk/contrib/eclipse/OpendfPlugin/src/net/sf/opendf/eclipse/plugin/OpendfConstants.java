@@ -34,22 +34,24 @@ BEGINCOPYRIGHT X
 	SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	
 ENDCOPYRIGHT
-*/
+ */
 
 package net.sf.opendf.eclipse.plugin;
 
 /**
  * @author Rob Esser
  * @version 3rd April 2009
- *
+ * 
  */
 public interface OpendfConstants {
 
 	public static final String PLUGIN_ID = "net.sf.opendf.eclipse.plugin.OpendfPlugin";
 
-	//DEBUG
-	public static final String CAL_DEBUG_MODEL = PLUGIN_ID+".CAL_DEBUG_MODEL";
+	// DEBUG
+	public static final String OPENDF_DEBUG_MODEL = PLUGIN_ID + ".OPENDF_DEBUG_MODEL";
+	
+	public static final String ACTOR_BREAKPOINT_MARKER = PLUGIN_ID + ".ACTOR_BREAKPOINT_MARKER";
 
-	
-	
+	public static final String ACTOR_WATCHPOINT_MARKER = PLUGIN_ID + ".ACTOR_WATCHPOINT_MARKER";
+
 }
