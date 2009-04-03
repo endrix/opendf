@@ -71,25 +71,44 @@
    <extension
          point="org.eclipse.debug.core.sourceLocators">
       <sourceLocator
-            class="net.sf.opendf.eclipse.plugin.debug.util.CALSourceLookupDirector"
+            class="net.sf.opendf.eclipse.plugin.debug.sourceLookup.CALSourceLookupDirector"
             id="net.sf.opendf.eclipse.plugin.CALSourceLookupDirector"
-            name="CALSourceLookupDirector">
+            name="CAL Source Lookup Director">
       </sourceLocator>
    </extension>
    <extension
          point="org.eclipse.debug.core.sourcePathComputers">
       <sourcePathComputer
-            class="net.sf.opendf.eclipse.plugin.debug.util.CALSourcePathComputerDelegate"
+            class="net.sf.opendf.eclipse.plugin.debug.sourceLookup.CALSourcePathComputerDelegate"
             id="net.sf.opendf.eclipse.plugin.CALSourcePathComputer">
       </sourcePathComputer>
    </extension>
    <extension
          point="org.eclipse.debug.core.breakpoints">
       <breakpoint
-            class="net.sf.opendf.eclipse.plugin.debug.model.CALBreakpoint"
-            id="CAL_BREAKPOINT"
-            markerType="net.sf.opendf.eclipse.plugin.CALMARKER_BREAKPOINT">
-      </breakpoint>
+            class="net.sf.opendf.eclipse.plugin.debug.breakpoints.ActorLineBreakpoint"
+            name="Actor Line Breakpoints"
+            markerType="net.sf.opendf.eclipse.plugin.OpendfPlugin.ACTOR_BREAKPOINT_MARKER"
+            id="net.sf.opendf.eclipse.plugin.lineBreakpoint"/>
+      <breakpoint
+            class="net.sf.opendf.eclipse.plugin.debug.breakpoints.ActorWatchpoint"
+            name="Actor Watchpoints"
+            markerType="net.sf.opendf.eclipse.plugin.OpendfPlugin.ACTOR_WATCHPOINT_MARKER"
+            id="net.sf.opendf.eclipse.plugin.watchpoint"/>
+   </extension>
+   <extension
+         id="net.sf.opendf.eclipse.plugin.markerType.lineBreakpoint"
+         name="Actor Line Breakpoint Marker"
+         point="org.eclipse.core.resources.markers">
+      <super type="org.eclipse.debug.core.lineBreakpointMarker"/>
+      <persistent value="true"/>
+   </extension>
+   <extension
+         id="net.sf.opendf.eclipse.plugin.markerType.watchpoint"
+         name="Actor Watchpoint Marker"
+         point="org.eclipse.core.resources.markers">
+      <super type="example.debug.core.pda.markerType.lineBreakpoint"/>
+      <persistent value="true"/>
    </extension>
 
 </plugin>
