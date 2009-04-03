@@ -35,7 +35,7 @@ BEGINCOPYRIGHT X
 	
 ENDCOPYRIGHT
  */
-package net.sf.opendf.eclipse.plugin.debug.util;
+package net.sf.opendf.eclipse.plugin.debug.sourceLookup;
 
 import net.sf.opendf.eclipse.plugin.debug.model.ActorStackFrame;
 

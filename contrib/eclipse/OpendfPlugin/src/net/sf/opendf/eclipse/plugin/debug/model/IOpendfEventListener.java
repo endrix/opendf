@@ -89,5 +89,12 @@ public interface IOpendfEventListener {
 	 * @param event the type of the event
 	 */
 	public void handleResumedEvent(String compName, String event);
+	
+	/**
+	 * Handle all other events
+	 * @param event
+	 */
+	public void handleEvent(String event);
+
 
 }

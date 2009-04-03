@@ -1,15 +1,46 @@
-/*******************************************************************************
- * Copyright (c) 2005, 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
- *
- * Contributors:
- *     IBM Corporation - initial API and implementation
- *     Bjorn Freeman-Benson - initial API and implementation
- *******************************************************************************/
-package example.debug.core.breakpoints;
+/* 
+BEGINCOPYRIGHT X
+	
+	Copyright (c) 2007, Xilinx Inc.
+	All rights reserved.
+	
+	Redistribution and use in source and binary forms, 
+	with or without modification, are permitted provided 
+	that the following conditions are met:
+	- Redistributions of source code must retain the above 
+	  copyright notice, this list of conditions and the 
+	  following disclaimer.
+	- Redistributions in binary form must reproduce the 
+	  above copyright notice, this list of conditions and 
+	  the following disclaimer in the documentation and/or 
+	  other materials provided with the distribution.
+	- Neither the name of the copyright holder nor the names 
+	  of its contributors may be used to endorse or promote 
+	  products derived from this software without specific 
+	  prior written permission.
+	
+	THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND 
+	CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, 
+	INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF 
+	MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE 
+	DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
+	CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, 
+	SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT 
+	NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; 
+	LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) 
+	HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
+	CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
+	OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
+	SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+	
+ENDCOPYRIGHT
+ */
+package net.sf.opendf.eclipse.plugin.debug.breakpoints;
+
+import net.sf.opendf.eclipse.plugin.OpendfConstants;
+import net.sf.opendf.eclipse.plugin.debug.model.ActorThread;
+import net.sf.opendf.eclipse.plugin.debug.model.IOpendfEventListener;
+import net.sf.opendf.eclipse.plugin.debug.model.OpendfDebugTarget;
 
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
@@ -21,18 +52,16 @@ import org.eclipse.debug.core.model.IBreakpoint;
 import org.eclipse.debug.core.model.IThread;
 import org.eclipse.debug.core.model.LineBreakpoint;
 
-import example.debug.core.DebugCorePlugin;
-import example.debug.core.model.IPDAEventListener;
-import example.debug.core.model.PDADebugTarget;
-import example.debug.core.model.PDAThread;
-
 /**
- * PDA line breakpoint
+ * Actor line breakpoint
+ * 
+ * @author Rob Esser
+ * @version 3rd April 2009
  */
-public class PDALineBreakpoint extends LineBreakpoint implements IPDAEventListener {
+public class ActorLineBreakpoint extends LineBreakpoint implements IOpendfEventListener {
 	
 	// target currently installed in
-	private PDADebugTarget fTarget;
+	private OpendfDebugTarget fTarget;
 	
 	/**
 	 * Default constructor is required for the breakpoint manager
@@ -40,23 +69,23 @@ public class PDALineBreakpoint extends LineBreakpoint implements IPDAEventListen
 	 * the <code>setMarker(...)</code> method is called to restore
 	 * this breakpoint's attributes.
 	 */
-	public PDALineBreakpoint() {
+	public ActorLineBreakpoint() {
 	}
 	
 	/**
 	 * Constructs a line breakpoint on the given resource at the given
 	 * line number. The line number is 1-based (i.e. the first line of a
-	 * file is line number 1). The PDA VM uses 0-based line numbers,
+	 * file is line number 1). The Actor VM uses 0-based line numbers,
 	 * so this line number translation is done at breakpoint install time.
 	 * 
 	 * @param resource file on which to set the breakpoint
 	 * @param lineNumber 1-based line number of the breakpoint
 	 * @throws CoreException if unable to create the breakpoint
 	 */
-	public PDALineBreakpoint(final IResource resource, final int lineNumber) throws CoreException {
+	public ActorLineBreakpoint(final IResource resource, final int lineNumber) throws CoreException {
 		IWorkspaceRunnable runnable = new IWorkspaceRunnable() {
 			public void run(IProgressMonitor monitor) throws CoreException {
-				IMarker marker = resource.createMarker("example.debug.core.pda.markerType.lineBreakpoint");
+				IMarker marker = resource.createMarker(OpendfConstants.ACTOR_BREAKPOINT_MARKER);
 				setMarker(marker);
 				marker.setAttribute(IBreakpoint.ENABLED, Boolean.TRUE);
 				marker.setAttribute(IMarker.LINE_NUMBER, lineNumber);
@@ -67,11 +96,11 @@ public class PDALineBreakpoint extends LineBreakpoint implements IPDAEventListen
 		run(getMarkerRule(resource), runnable);
 	}
 	
-	/* (non-Javadoc)
+	/**
 	 * @see org.eclipse.debug.core.model.IBreakpoint#getModelIdentifier()
 	 */
 	public String getModelIdentifier() {
-		return DebugCorePlugin.ID_PDA_DEBUG_MODEL;
+		return OpendfConstants.OPENDF_DEBUG_MODEL;
 	}
 	
 	/**
@@ -88,10 +117,10 @@ public class PDALineBreakpoint extends LineBreakpoint implements IPDAEventListen
      * Registeres this breakpoint as an event listener in the
      * given target and creates the breakpoint specific request.
      * 
-     * @param target PDA interprettor
+     * @param target Actor interpreter
      * @throws CoreException if installation fails
      */
-    public void install(PDADebugTarget target) throws CoreException {
+    public void install(OpendfDebugTarget target) throws CoreException {
     	fTarget = target;
     	target.addEventListener(this);
     	createRequest(target);
@@ -101,33 +130,33 @@ public class PDALineBreakpoint extends LineBreakpoint implements IPDAEventListen
      * Create the breakpoint specific request in the target. Subclasses
      * should override.
      * 
-     * @param target PDA interprettor
+     * @param target Actor interpreter
      * @throws CoreException if request creation fails
      */
-    protected void createRequest(PDADebugTarget target) throws CoreException {
-    	target.sendRequest("set " + (getLineNumber() - 1));
+    protected void createRequest(OpendfDebugTarget target) throws CoreException {
+    	target.sendCommand("set " + (getLineNumber() - 1));
     }
     
     /**
      * Removes this breakpoint's event request from the target. Subclasses
      * should override.
      * 
-     * @param target PDA interprettor
+     * @param target Actor interpreter
      * @throws CoreException if clearing the request fails
      */
-    protected void clearRequest(PDADebugTarget target) throws CoreException {
-    	target.sendRequest("clear " + (getLineNumber() - 1));
+    protected void clearRequest(OpendfDebugTarget target) throws CoreException {
+    	target.sendCommand("clear " + (getLineNumber() - 1));
     }
     
     /**
-     * Removes this breakpoint from the given interprettor.
+     * Removes this breakpoint from the given interpreter.
      * Removes this breakpoint as an event listener and clears
-     * the request for the interprettor.
+     * the request for the interpreter.
      * 
-     * @param target PDA interprettor
+     * @param target Actor interpreter
      * @throws CoreException if removal fails
      */
-    public void remove(PDADebugTarget target) throws CoreException {
+    public void remove(OpendfDebugTarget target) throws CoreException {
     	target.removeEventListener(this);
     	clearRequest(target);
     	fTarget = null;
@@ -139,19 +168,19 @@ public class PDALineBreakpoint extends LineBreakpoint implements IPDAEventListen
      * 
      * @return the target this breakpoint is installed in or <code>null</code>
      */
-    protected PDADebugTarget getDebugTarget() {
+    protected OpendfDebugTarget getDebugTarget() {
     	return fTarget;
     }
     
     /**
-     * Notify's the PDA interprettor that this breakpoint has been hit.
+     * Notify's the Actor interpreter that this breakpoint has been hit.
      */
     protected void notifyThread() {
     	if (fTarget != null) {
 			try {
 				IThread[] threads = fTarget.getThreads();
 				if (threads.length == 1) {
-	    			PDAThread thread = (PDAThread)threads[0];
+	    			ActorThread thread = (ActorThread)threads[0];
 	    			thread.suspendedBy(this);
 	    		}
 			} catch (DebugException e) {
@@ -159,18 +188,6 @@ public class PDALineBreakpoint extends LineBreakpoint implements IPDAEventListen
     	}
     }
 
-	/* (non-Javadoc)
-	 * 
-	 * Subclasses should override to handle their breakpoint specific event.
-	 * 
-	 * @see example.debug.core.model.IPDAEventListener#handleEvent(java.lang.String)
-	 */
-	public void handleEvent(String event) {
-		if (event.startsWith("suspended breakpoint")) {
-			handleHit(event);
-		}
-	}
-    
 	/**
      * Determines if this breakpoint was hit and notifies the thread.
      * 
@@ -190,5 +207,37 @@ public class PDALineBreakpoint extends LineBreakpoint implements IPDAEventListen
     		} catch (CoreException e) {
     		}
     	}
-    }		
+    }
+
+  	/**
+	 * 
+	 * Subclasses should override to handle their breakpoint specific event.
+	 * 
+	 * @see example.debug.core.model.IActorEventListener#handleEvent(java.lang.String)
+	 */
+	public void handleEvent(String event) {
+		if (event.startsWith("suspended breakpoint")) {
+			handleHit(event);
+		}
+	}
+      
+	@Override
+	public void handleResumedEvent(String compName, String event) {
+		System.out.println("ActorLineBreakpoint.handleResumedEvent");
+	}
+
+	@Override
+	public void handleStartedEvent() {
+		System.out.println("ActorLineBreakpoint.handleStartedEvent");
+	}
+
+	@Override
+	public void handleSuspendedEvent(String compName, String event) {
+		System.out.println("ActorLineBreakpoint.handleSuspendedEvent");
+	}
+
+	@Override
+	public void handleTerminatedEvent() {
+		System.out.println("ActorLineBreakpoint.handleTerminatedEvent");
+	}		
 }

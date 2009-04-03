@@ -68,5 +68,28 @@
             id="net.sf.opendf.eclipse.plugin.launcher.tabgroup"
             type="net.sf.opendf.eclipse.plugin.launcher"/>
    </extension>
+   <extension
+         point="org.eclipse.debug.core.sourceLocators">
+      <sourceLocator
+            class="net.sf.opendf.eclipse.plugin.debug.util.CALSourceLookupDirector"
+            id="net.sf.opendf.eclipse.plugin.CALSourceLookupDirector"
+            name="CALSourceLookupDirector">
+      </sourceLocator>
+   </extension>
+   <extension
+         point="org.eclipse.debug.core.sourcePathComputers">
+      <sourcePathComputer
+            class="net.sf.opendf.eclipse.plugin.debug.util.CALSourcePathComputerDelegate"
+            id="net.sf.opendf.eclipse.plugin.CALSourcePathComputer">
+      </sourcePathComputer>
+   </extension>
+   <extension
+         point="org.eclipse.debug.core.breakpoints">
+      <breakpoint
+            class="net.sf.opendf.eclipse.plugin.debug.model.CALBreakpoint"
+            id="CAL_BREAKPOINT"
+            markerType="net.sf.opendf.eclipse.plugin.CALMARKER_BREAKPOINT">
+      </breakpoint>
+   </extension>
 
 </plugin>
