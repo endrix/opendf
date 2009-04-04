@@ -55,7 +55,7 @@ import org.eclipse.ui.texteditor.IDocumentProvider;
 import org.eclipse.ui.texteditor.ITextEditor;
 
 /**
- * Adapter to create breakpoints in PDA files.
+ * Adapter to create breakpoints in Actor files.
  * 
  * @author Rob Esser
  * @version 3rd April 2009
@@ -104,12 +104,12 @@ public class ActorBreakpointAdapter implements IToggleBreakpointsTargetExtension
 	}
 
 	/**
-	 * Returns the editor being used to edit a PDA file, associated with the given
+	 * Returns the editor being used to edit a Actor file, associated with the given
 	 * part, or <code>null</code> if none.
 	 * 
 	 * @param part
 	 *          workbench part
-	 * @return the editor being used to edit a PDA file, associated with the given
+	 * @return the editor being used to edit a Actor file, associated with the given
 	 *         part, or <code>null</code> if none
 	 */
 	private ITextEditor getEditor(IWorkbenchPart part) {
@@ -231,7 +231,7 @@ public class ActorBreakpointAdapter implements IToggleBreakpointsTargetExtension
 	 * the given line number in the specified document.
 	 * 
 	 * @param document
-	 *          PDA source file
+	 *          Actor source file
 	 * @param varName
 	 *          variable name
 	 * @param line

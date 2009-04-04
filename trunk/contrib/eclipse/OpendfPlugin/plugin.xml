@@ -1,24 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <plugin>
    <extension
-         point="org.eclipse.ui.editors">
-      <editor
-            name="CAL Editor"
-            extensions="cal"
-            icon="icons/actor.gif"
-            contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
-            class="net.sf.opendf.eclipse.plugin.editors.CALEditor"
-            id="net.sf.opendf.eclipse.plugin.editors.CAL">
-      </editor>
-      <editor
-            class="net.sf.opendf.eclipse.plugin.editors.NLEditor"
-            contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
-            extensions="nl"
-            icon="icons/network.gif"
-            id="net.sf.opendf.eclipse.plugin.editors.NL"
-            name="NL Editor"/>
-   </extension>
-   <extension
          id="net.sf.opendf.eclipse.plugin.launcher"
          name="Dataflow Simulation"
          point="org.eclipse.debug.core.launchConfigurationTypes">
@@ -42,17 +24,22 @@
       </factory>
    </extension>
    <extension
-         point="org.eclipse.ui.editorActions">
-      <editorContribution
-            id="net.sf.opendf.eclipse.plugin.editors.CAL.ToggleBreakpointContribution"
-            targetID="net.sf.opendf.eclipse.plugin.editors.CAL">
-         <action
-               actionID="RulerDoubleClick"
-               class="org.eclipse.debug.ui.actions.RulerToggleBreakpointActionDelegate"
-               id="org.eclipse.debug.ui.actions.ToggleBreakpointAction"
-               label="Toogle Breakpoint">
-         </action>
-      </editorContribution>
+         point="org.eclipse.ui.editors">
+      <editor
+            name="CAL Editor"
+            extensions="cal"
+            icon="icons/actor.gif"
+            contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
+            class="net.sf.opendf.eclipse.plugin.editors.CALEditor"
+            id="net.sf.opendf.eclipse.plugin.editors.CAL">
+      </editor>
+      <editor
+            class="net.sf.opendf.eclipse.plugin.editors.NLEditor"
+            contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
+            extensions="nl"
+            icon="icons/network.gif"
+            id="net.sf.opendf.eclipse.plugin.editors.NL"
+            name="NL Editor"/>
    </extension>
    <extension
          point="org.eclipse.debug.ui.launchConfigurationTypeImages">
@@ -109,6 +96,19 @@
          point="org.eclipse.core.resources.markers">
       <super type="example.debug.core.pda.markerType.lineBreakpoint"/>
       <persistent value="true"/>
+   </extension>
+   <extension
+         point="org.eclipse.ui.editorActions">
+      <editorContribution
+            targetID="net.sf.opendf.eclipse.plugin.editors.CAL"
+            id="net.sf.opendf.eclipse.plugin.rulerActions">
+         <action
+               label="Toogle Breakpoint"
+               class="org.eclipse.debug.ui.actions.RulerToggleBreakpointActionDelegate"
+               style="push"
+               actionID="RulerDoubleClick"
+               id="net.sf.opendf.eclipse.plugin.doubleClickBreakpointAction"/>
+      </editorContribution>
    </extension>
 
 </plugin>
