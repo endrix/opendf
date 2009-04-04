@@ -37,19 +37,19 @@ ENDCOPYRIGHT
  */
 package net.sf.opendf.eclipse.plugin.debug.sourceLookup;
 
+import java.io.File;
+
 import net.sf.opendf.config.ConfigGroup;
 import net.sf.opendf.config.ConfigList;
-import net.sf.opendf.eclipse.plugin.OpendfConstants;
+import net.sf.opendf.config.SimulationConfigGroup;
+import net.sf.opendf.eclipse.plugin.config.ConfigUpdateWrapper;
 
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.sourcelookup.ISourceContainer;
 import org.eclipse.debug.core.sourcelookup.ISourcePathComputerDelegate;
-import org.eclipse.debug.core.sourcelookup.containers.ProjectSourceContainer;
-import org.eclipse.debug.core.sourcelookup.containers.WorkspaceSourceContainer;
+import org.eclipse.debug.core.sourcelookup.containers.DirectorySourceContainer;
 
 /**
  * @author Rob Esser
@@ -58,20 +58,26 @@ import org.eclipse.debug.core.sourcelookup.containers.WorkspaceSourceContainer;
  */
 public class CALSourcePathComputerDelegate implements ISourcePathComputerDelegate {
 
+	private ConfigGroup configs = null;
+	
+	
 	public ISourceContainer[] computeSourceContainers(ILaunchConfiguration configuration, IProgressMonitor monitor) throws CoreException {
-		String projectName = configuration.getAttribute(OpendfConstants.PLUGIN_ID, "");
-    //String[] modelPath = (String[])((ConfigList)configs.get(ConfigGroup.MODEL_PATH)).getValue().toArray(new String[0]);
-
 		System.out.println("CALSourcePathComputerDelegate.computeSourceContainers");
-		
-		ISourceContainer ret = new WorkspaceSourceContainer();
 
-		if (projectName.trim().length() != 0) {
-			IProject project = ResourcesPlugin.getWorkspace().getRoot().getProject(projectName);
-			if (project != null && project.exists()) {
-				ret = new ProjectSourceContainer(project, false);
-			}
+		if (configs == null) {
+			ConfigGroup configs = new SimulationConfigGroup();
+			// Update all the configs with the user settings.
+			configs.updateConfig(new ConfigUpdateWrapper(configuration), configs.getConfigs().keySet());
 		}
-		return new ISourceContainer[] { ret };
+
+		String[] modelPath = (String[]) ((ConfigList) configs.get(ConfigGroup.MODEL_PATH)).getValue().toArray(new String[0]);
+
+		ISourceContainer[] ret = new DirectorySourceContainer[modelPath.length];
+
+		for (int i = 0; i < modelPath.length; i++) {
+			ret[i] = new DirectorySourceContainer(new File(modelPath[i]), true);
+		}
+
+		return ret;
 	}
 }

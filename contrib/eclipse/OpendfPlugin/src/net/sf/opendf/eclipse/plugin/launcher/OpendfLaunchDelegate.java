@@ -124,47 +124,24 @@ public class OpendfLaunchDelegate extends OpendfConfigLaunchDelegate {
 		} catch (InterruptedException e) {
 		}
 
-//    NodeListenerIF listener = new NodeListenerIF() {
+//    Node dom = null;
+//		try {
+//			dom = Elaborator.elaborateModel(configs, null, OpendfLaunchDelegate.class.getClassLoader());
+//		} catch (Exception e) {
+//			error().println("Elaboration failed: " + e.getMessage());
+//			status().println("Closing debugger");
+//			detachConsole();
+//			monitor.done();
+//			return;
+//		}
 //
-//      /**
-//       * Called once for each relevant Note in the source XML.
-//       */
-//      public void report (Node report, String message) {
-//      	status().println(report + " " + message);
-//      	System.out.println(report + " " + message);
-//      }
-//
-//      /**
-//       * Returns a node in response to being called.
-//       * 
-//       * @param node a non-null node
-//       * @param message a message
-//       * @return a non null Node
-//       */
-//      public Node respond (Node node, String message) {
-//      	return null;
-//      }
-//    	
-//    };
-    
-    Node dom = null;
-		try {
-			dom = Elaborator.elaborateModel(configs, null, OpendfLaunchDelegate.class.getClassLoader());
-		} catch (Exception e) {
-			error().println("Elaboration failed: " + e.getMessage());
-			status().println("Closing debugger");
-			detachConsole();
-			monitor.done();
-			return;
-		}
-
-		printDom(dom, 0);
+//		printDom(dom, 0);
 		
 		monitor.worked(5);
 		monitor.setTaskName("Launching Debugger");
 		status().println("Launching Debugger ...");
 	
-	List<String> commandList = new ArrayList<String>();
+		List<String> commandList = new ArrayList<String>();
 		commandList.add("debugger.bat");
 		commandList.add("-debug");
 		commandList.add("" + commandPort);

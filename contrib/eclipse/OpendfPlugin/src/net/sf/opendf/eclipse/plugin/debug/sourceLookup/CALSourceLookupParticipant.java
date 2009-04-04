@@ -56,11 +56,10 @@ public class CALSourceLookupParticipant extends AbstractSourceLookupParticipant 
 			System.out.println("CALSourceLookupParticipant.getSourceName");
 //			if (f == null || f.isInternalAction()) {
 //				IDebugTarget t = f.getThread().getDebugTarget();
-//				if (t != null && t instanceof GDebugTarget)
-//					return ((GDebugTarget) t).getGFileName();
+//				if (t != null && t instanceof OpendfDebugTarget) {
+//					return ((OpendfDebugTarget) t).getFileName();
+//			  }
 //			}
-//			// TODO add additional checks to ensure we are returning the correct file
-//			// for tcp debug sessions
 //			return f.getSourceName();
 		}
 		return null;

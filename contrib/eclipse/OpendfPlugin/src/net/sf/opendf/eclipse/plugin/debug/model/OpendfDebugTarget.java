@@ -47,10 +47,18 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.sf.opendf.eclipse.plugin.OpendfConstants;
+import net.sf.opendf.eclipse.plugin.debug.breakpoints.ActorLineBreakpoint;
+import net.sf.opendf.eclipse.plugin.debug.breakpoints.ActorRunToLineBreakpoint;
+
+import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IMarkerDelta;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.debug.core.DebugException;
@@ -134,8 +142,6 @@ public class OpendfDebugTarget extends OpendfDebugElement implements IDebugTarge
 		} catch (IOException e) {
 			requestFailed("Unable to connect to Opendf Execution Engine", e);
 		}
-		//build up an array of threads representing individual actors
-		//threads = new OpendfThread[] { new ActorThread(this, "MyNameA"), new ActorThread(this, "MyNameB") };
 		threads = new OpendfThread[] {  };
 
 		eventDispatch = new EventDispatchJob();
@@ -258,26 +264,26 @@ public class OpendfDebugTarget extends OpendfDebugElement implements IDebugTarge
 	 */
 	public boolean supportsBreakpoint(IBreakpoint breakpoint) {
 		if (!isTerminated() && breakpoint.getModelIdentifier().equals(getModelIdentifier())) {
-//			try {
-//				String program = getLaunch().getLaunchConfiguration().getAttribute(DebugCorePlugin.ATTR_Opendf_PROGRAM, (String) null);
-//				if (program != null) {
-//					IResource resource = null;
-//					if (breakpoint instanceof OpendfRunToLineBreakpoint) {
-//						OpendfRunToLineBreakpoint rtl = (OpendfRunToLineBreakpoint) breakpoint;
-//						resource = rtl.getSourceFile();
-//					} else {
-//						IMarker marker = breakpoint.getMarker();
-//						if (marker != null) {
-//							resource = marker.getResource();
-//						}
-//					}
-//					if (resource != null) {
-//						IPath p = new Path(program);
-//						return resource.getFullPath().equals(p);
-//					}
-//				}
-//			} catch (CoreException e) {
-//			}
+			try {
+				String program = getLaunch().getLaunchConfiguration().getAttribute(OpendfConstants.PLUGIN_ID, (String) null);
+				if (program != null) {
+					IResource resource = null;
+					if (breakpoint instanceof ActorRunToLineBreakpoint) {
+						ActorRunToLineBreakpoint rtl = (ActorRunToLineBreakpoint) breakpoint;
+						resource = rtl.getSourceFile();
+					} else {
+						IMarker marker = breakpoint.getMarker();
+						if (marker != null) {
+							resource = marker.getResource();
+						}
+					}
+					if (resource != null) {
+						IPath p = new Path(program);
+						return resource.getFullPath().equals(p);
+					}
+				}
+			} catch (CoreException e) {
+			}
 		}
 		return false;
 	}
@@ -385,16 +391,15 @@ public class OpendfDebugTarget extends OpendfDebugElement implements IDebugTarge
 	 * @see org.eclipse.debug.core.IBreakpointListener#breakpointAdded(org.eclipse.debug.core.model.IBreakpoint)
 	 */
 	public void breakpointAdded(IBreakpoint breakpoint) {
-		// if (supportsBreakpoint(breakpoint)) {
-		// try {
-		// if ((breakpoint.isEnabled() && getBreakpointManager().isEnabled()) ||
-		// !breakpoint.isRegistered()) {
-		// OpendfLineBreakpoint OpendfBreakpoint = (OpendfLineBreakpoint)breakpoint;
-		// OpendfBreakpoint.install(this);
-		// }
-		// } catch (CoreException e) {
-		// }
-		// }
+		if (supportsBreakpoint(breakpoint)) {
+			try {
+				if ((breakpoint.isEnabled() && getBreakpointManager().isEnabled()) || !breakpoint.isRegistered()) {
+					ActorLineBreakpoint actorBreakpoint = (ActorLineBreakpoint) breakpoint;
+					actorBreakpoint.install(this);
+				}
+			} catch (CoreException e) {
+			}
+		}
 	}
 
 	/**
@@ -405,13 +410,13 @@ public class OpendfDebugTarget extends OpendfDebugElement implements IDebugTarge
 	 * .debug.core.model.IBreakpoint, org.eclipse.core.resources.IMarkerDelta)
 	 */
 	public void breakpointRemoved(IBreakpoint breakpoint, IMarkerDelta delta) {
-		// if (supportsBreakpoint(breakpoint)) {
-		// try {
-		// OpendfLineBreakpoint OpendfBreakpoint = (OpendfLineBreakpoint)breakpoint;
-		// OpendfBreakpoint.remove(this);
-		// } catch (CoreException e) {
-		// }
-		// }
+		if (supportsBreakpoint(breakpoint)) {
+			try {
+				ActorLineBreakpoint actorBreakpoint = (ActorLineBreakpoint) breakpoint;
+				actorBreakpoint.remove(this);
+			} catch (CoreException e) {
+			}
+		}
 	}
 
 	/**
@@ -635,7 +640,6 @@ public class OpendfDebugTarget extends OpendfDebugElement implements IDebugTarge
 		System.out.println(this.getClass().getSimpleName() + ".handleEvent: " + event);
 	}
 
-	
 	public void handleResumedEvent(String compName, String event) {
 		isSuspended = false;
 	}
