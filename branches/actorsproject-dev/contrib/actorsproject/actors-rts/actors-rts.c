@@ -116,7 +116,7 @@ int pinPeek(ActorPort *actorPort, int which)
 		ret = pinAvail(actorPort);
 		if(ret >= which){
 			cb = &circularBuf[actorPort->cid];
-			peek_circbuf_area(cb,(char*)&val,TOKEN_SIZE,actorPort->readIndex,which*TOKEN_SIZE);
+			peek_circbuf_area(cb,(char*)&val,actorPort->tokenSize,actorPort->readIndex,which*actorPort->tokenSize);
 		}
 	}
 
@@ -149,7 +149,7 @@ int pinStatus(ActorPort *actorPort)
 
 	val = pinStatus2(actorPort);
 
-	if(val < TOKEN_SIZE)
+	if(val < actorPort->tokenSize)
 		return 0;
 
 	return 1;	
@@ -161,7 +161,7 @@ int pinAvail(ActorPort *actorPort)
 	
 	val = pinStatus2(actorPort);
 	
-	return (val >> 2);
+	return (val/actorPort->tokenSize);
 }
 
 int pinRead2(ActorPort *actorPort,char *buf,int length)
@@ -212,7 +212,7 @@ int pinRead(ActorPort *actorPort)
 	int				ret;
 	int				buf;
 
-	ret = pinRead2(actorPort,(char*)&buf,TOKEN_SIZE);
+	ret = pinRead2(actorPort,(char*)&buf,actorPort->tokenSize);
 
 	if(ret!=0)
 	{
@@ -272,7 +272,7 @@ int pinWrite(ActorPort *actorPort,int val)
 {
 	int ret;
 
-	ret = pinWrite2(actorPort,(char*)&val,TOKEN_SIZE);
+	ret = pinWrite2(actorPort,(char*)&val,actorPort->tokenSize);
 
 	return ret;
 
