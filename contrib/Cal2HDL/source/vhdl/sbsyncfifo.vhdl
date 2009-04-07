@@ -1,6 +1,5 @@
 -- sbsyncfifo.vhd
 --
--- Xilinx Confidential
 -- Copyright (c) 2004-2007 Xilinx Inc.
 
 --  2005-06-23 DBP   Added fanout building blocks 
