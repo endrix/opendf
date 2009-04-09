@@ -92,7 +92,7 @@ typedef struct {
 static void a_action_scheduler(ActorInstance *);
 static void constructor(AbstractActorInstance*);
 static void destructor(AbstractActorInstance*);
-static void set_param(AbstractActorInstance*,ActorParameter*);
+static void set_param(AbstractActorInstance*,int,ActorParameter*);
 
 ActorClass ActorClass_art_Display_yuv ={
   "art_Display_yuv",
@@ -263,29 +263,34 @@ static void destructor(AbstractActorInstance *pBase)
     	close(thisActor->fbfd);
 }
 
-static void set_param(AbstractActorInstance *pBase,ActorParameter *param){
+static void set_param(AbstractActorInstance *pBase,int numParams,ActorParameter *param){
 	ActorInstance *thisActor=(ActorInstance*) pBase;
-	if(strcmp(param->key,"displayMode") == 0)
+	ActorParameter *p;
+	int	i;
+	for(i=0,p=param; i<numParams; i++,p++)
 	{
-		if(strcmp(param->value,"sqcif")==0){
-			thisActor->hight = 128;
-			thisActor->width = 96;
-		}
-		else if(strcmp(param->value,"qcif")==0){
-			thisActor->hight = 144;
-			thisActor->width = 176;
-		}
-		else if(strcmp(param->value,"qvga")==0){
-			thisActor->hight = 320;
-			thisActor->width = 240;
-		}
-		else if(strcmp(param->value,"vga")==0){
-			thisActor->hight = 720;
-			thisActor->width = 480;
-		}
-		else{
-			thisActor->hight = 320;
-			thisActor->width = 240;
+		if(strcmp(p->key,"displayMode") == 0)
+		{
+			if(strcmp(p->value,"sqcif")==0){
+				thisActor->hight = 128;
+				thisActor->width = 96;
+			}
+			else if(strcmp(p->value,"qcif")==0){
+				thisActor->hight = 144;
+				thisActor->width = 176;
+			}
+			else if(strcmp(p->value,"qvga")==0){
+				thisActor->hight = 320;
+				thisActor->width = 240;
+			}
+			else if(strcmp(p->value,"vga")==0){
+				thisActor->hight = 720;
+				thisActor->width = 480;
+			}
+			else{
+				thisActor->hight = 320;
+				thisActor->width = 240;
+			}
 		}
 	}
 }
