@@ -56,7 +56,7 @@ typedef struct {
 static void a_action_scheduler(AbstractActorInstance*);
 static void constructor(AbstractActorInstance*);
 static void destructor(AbstractActorInstance*);
-static void set_param(AbstractActorInstance*,ActorParameter*);
+static void set_param(AbstractActorInstance*,int,ActorParameter*);
 
 
 ActorClass ActorClass_art_Sink_bin ={
@@ -113,10 +113,15 @@ static void destructor(AbstractActorInstance *pBase)
 		close(thisActor->fd);
 }
 
-static void set_param(AbstractActorInstance *pBase,ActorParameter *param){
+static void set_param(AbstractActorInstance *pBase,int numParams,ActorParameter *param){
 	ActorInstance *thisActor=(ActorInstance*) pBase;
-	if(strcmp(param->key,"fileName") == 0)
+	ActorParameter *p;
+	int	i;
+	for(i=0,p=param; i<numParams; i++,p++)
 	{
-		thisActor->fd = (int)open(param->value,O_CREAT|O_TRUNC|O_RDWR,S_IREAD|S_IWRITE);
+		if(strcmp(p->key,"fileName") == 0)
+		{
+			thisActor->fd = (int)open(p->value,O_CREAT|O_TRUNC|O_RDWR,S_IREAD|S_IWRITE);
+		}
 	}
 }

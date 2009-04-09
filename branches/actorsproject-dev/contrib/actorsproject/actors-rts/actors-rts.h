@@ -110,7 +110,7 @@ struct ActorClass {
 	void			(*action_scheduler)(AbstractActorInstance*);
 	void			(*constructor)(AbstractActorInstance*);
 	void			(*destructor)(AbstractActorInstance*);
-	void			(*set_param)(AbstractActorInstance*,                                  ActorParameter*);
+	void			(*set_param)(AbstractActorInstance*,int,                       ActorParameter*);
 };
 
 typedef struct {

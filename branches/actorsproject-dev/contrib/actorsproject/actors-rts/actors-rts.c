@@ -343,10 +343,9 @@ void init_actor_network(NetworkConfig *network)
 		pInstance->actor = ptr;
 		pInstance->aid = i;
 
-		for(j=0; j<actors[i]->numParams; j++){
-			if(pInstance->actor->set_param)
-				pInstance->actor->set_param(pInstance,&actors[i]->params[j]);
-		}
+		//setup parameters if any
+		if(pInstance->actor->set_param)
+			pInstance->actor->set_param(pInstance,actors[i]->numParams,actors[i]->params);
 
 		pInstance->inputPort = (ActorPort*)malloc(sizeof(ActorPort)*ptr->numInputPorts);
 		pInstance->outputPort = (ActorPort*)malloc(sizeof(ActorPort)*ptr->numOutputPorts);
