@@ -44,12 +44,13 @@ import org.eclipse.ui.editors.text.TextEditor;
 import org.eclipse.ui.texteditor.ITextEditor;
 import org.eclipse.ui.views.contentoutline.*;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.jface.text.*;
 import org.eclipse.core.resources.IFile;
 import net.sf.opendf.eclipse.plugin.editors.outline.*;
 import net.sf.opendf.eclipse.plugin.OpendfPlugin;
 
-public abstract class OpendfEditor extends TextEditor
+public abstract class OpendfEditor extends TextEditor implements IAdaptable
 {
 	// Must be specialized for NL or CAL
 	public abstract OpendfDocumentListener     createDocumentListener( IFile file, IDocument document );
