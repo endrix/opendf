@@ -17,26 +17,33 @@
          point="org.eclipse.core.runtime.adapters">
       <factory
             adaptableType="net.sf.opendf.eclipse.plugin.editors.CALEditor"
-            class="net.sf.opendf.eclipse.plugin.editors.util.CALBreakpointAdapterFactory">
+            class="net.sf.opendf.eclipse.plugin.debug.breakpoints.ActorEditorAdapterFactory">
          <adapter
                type="org.eclipse.debug.ui.actions.IToggleBreakpointsTarget">
+         </adapter>
+         <adapter
+               type="org.eclipse.debug.ui.actions.IRunToLineTarget">
          </adapter>
       </factory>
    </extension>
    <extension
          point="org.eclipse.ui.editors">
       <editor
-            name="CAL Editor"
-            extensions="cal"
-            icon="icons/actor.gif"
-            contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
             class="net.sf.opendf.eclipse.plugin.editors.CALEditor"
-            id="net.sf.opendf.eclipse.plugin.editors.CAL">
+            contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
+            default="true"
+            extensions="cal"
+            filenames="*.cal"
+            icon="icons/actor.gif"
+            id="net.sf.opendf.eclipse.plugin.editors.CAL"
+            name="CAL Editor">
       </editor>
       <editor
             class="net.sf.opendf.eclipse.plugin.editors.NLEditor"
             contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
+            default="true"
             extensions="nl"
+            filenames="*.nl"
             icon="icons/network.gif"
             id="net.sf.opendf.eclipse.plugin.editors.NL"
             name="NL Editor"/>
