@@ -47,11 +47,11 @@ import net.sf.opendf.config.ConfigGroup;
 import net.sf.opendf.config.SynthesisConfigGroup;
 import net.sf.opendf.eclipse.plugin.config.ConfigUpdateWrapper;
 import net.sf.opendf.eclipse.plugin.config.OpendfConfigLaunchDelegate;
+import net.sf.opendf.hardware.cli.Synthesizer;
 
 import net.sf.opendf.nl.Network;
 import net.sf.opendf.util.exception.ReportingExceptionHandler;
 
-import com.xilinx.systembuilder.cli_private.Synthesizer;
 
 /**
  * Front end for HDL compilation of network.  Does not yet support compilation of CAL directly 

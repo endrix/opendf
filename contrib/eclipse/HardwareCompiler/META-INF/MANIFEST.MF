@@ -9,7 +9,6 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
  net.sf.opendf.OpendfCorePlugin,
  net.sf.opendf.eclipse.OpendfEditorPlugin,
- com.xilinx.systembuilder.SystemBuilder,
  org.eclipse.debug.ui,
  org.eclipse.ui.console
 Eclipse-LazyStart: true
