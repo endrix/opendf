@@ -3,5 +3,7 @@
 	<classpathentry kind="src" path="source/java"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/OpenForge"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/Cal2HDL"/>
 	<classpathentry kind="output" path="classes"/>
 </classpath>
