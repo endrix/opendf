@@ -52,17 +52,17 @@ import org.eclipse.debug.core.model.IWatchpoint;
  * A watchpoint.
  * 
  * @author Rob Esser
- * @version 3rd April 2009
+ * @version 14th April 2009
  */
 public class ActorWatchpoint extends ActorLineBreakpoint implements IWatchpoint {
 
 	// 'read' or 'write' depending on what caused the last suspend for this watchpoint
-	private String fLastSuspendType;
+	private String lastSuspendType;
 
 	// marker attributes
 	public static final String ACCESS = "ACCESS";
 	public static final String MODIFICATION = "MODIFICATION";
-	public static final String FUNCTION_NAME = "FUNCTION_NAME";
+	public static final String ACTOR_NAME = "ACTOR_NAME";
 	public static final String VAR_NAME = "VAR_NAME";
 
 	/**
@@ -84,8 +84,8 @@ public class ActorWatchpoint extends ActorLineBreakpoint implements IWatchpoint 
 	 *          file on which to set the breakpoint
 	 * @param lineNumber
 	 *          1-based line number of the breakpoint
-	 * @param functionName
-	 *          function name the variable is defined in
+	 * @param actorName
+	 *          actor name the variable is defined in
 	 * @param varName
 	 *          variable name that watchpoint is set on
 	 * @param access
@@ -95,7 +95,7 @@ public class ActorWatchpoint extends ActorLineBreakpoint implements IWatchpoint 
 	 * @throws CoreException
 	 *           if unable to create the watchpoint
 	 */
-	public ActorWatchpoint(final IResource resource, final int lineNumber, final String functionName, final String varName, final boolean access, final boolean modification) throws CoreException {
+	public ActorWatchpoint(final IResource resource, final int lineNumber, final String actorName, final String varName, final boolean access, final boolean modification) throws CoreException {
 		IWorkspaceRunnable runnable = new IWorkspaceRunnable() {
 			public void run(IProgressMonitor monitor) throws CoreException {
 				IMarker marker = resource.createMarker(OpendfConstants.ID_ACTOR_WATCHPOINT_MARKER);
@@ -105,7 +105,7 @@ public class ActorWatchpoint extends ActorLineBreakpoint implements IWatchpoint 
 				ensureMarker().setAttribute(IBreakpoint.ID, getModelIdentifier());
 				setAccess(access);
 				setModification(modification);
-				setVariable(functionName, varName);
+				setVariable(actorName, varName);
 				marker.setAttribute(IMarker.MESSAGE, "Watchpoint: " + resource.getName() + " [line: " + lineNumber + "]");
 			}
 		};
@@ -155,18 +155,18 @@ public class ActorWatchpoint extends ActorLineBreakpoint implements IWatchpoint 
 	}
 
 	/**
-	 * Sets the variable and function names the watchpoint is set on.
+	 * Sets the variable and actor names the watchpoint is set on.
 	 * 
-	 * @param functionName
-	 *          function name
+	 * @param actorName
+	 *          actor name
 	 * @param variableName
 	 *          variable name
 	 * @throws CoreException
-	 *           if an exception occurrs setting marker attribtues
+	 *           if an exception occurs setting marker attributes
 	 */
-	protected void setVariable(String functionName, String variableName) throws CoreException {
+	protected void setVariable(String actorName, String variableName) throws CoreException {
 		setAttribute(VAR_NAME, variableName);
-		setAttribute(FUNCTION_NAME, functionName);
+		setAttribute(ACTOR_NAME, actorName);
 	}
 
 	/**
@@ -181,16 +181,16 @@ public class ActorWatchpoint extends ActorLineBreakpoint implements IWatchpoint 
 	}
 
 	/**
-	 * Returns the name of the function the variable associted with this
+	 * Returns the name of the actor the variable associated with this
 	 * watchpoint is defined in.
 	 * 
-	 * @return the name of the function the variable associted with this
+	 * @return the name of the actor the variable associated with this
 	 *         watchpoint is defined in
 	 * @throws CoreException
 	 *           if unable to access the attribute
 	 */
-	public String getFunctionName() throws CoreException {
-		return getMarker().getAttribute(FUNCTION_NAME, (String) null);
+	public String getActorName() throws CoreException {
+		return getMarker().getAttribute(ACTOR_NAME, (String) null);
 	}
 
 	/**
@@ -200,7 +200,7 @@ public class ActorWatchpoint extends ActorLineBreakpoint implements IWatchpoint 
 	 *          one of 'read' or 'write'
 	 */
 	public void setSuspendType(String description) {
-		fLastSuspendType = description;
+		lastSuspendType = description;
 	}
 
 	/**
@@ -209,28 +209,36 @@ public class ActorWatchpoint extends ActorLineBreakpoint implements IWatchpoint 
 	 * @return 'read', 'write', or <code>null</code> if undefined
 	 */
 	public String getSuspendType() {
-		return fLastSuspendType;
+		return lastSuspendType;
 	}
 
 	/**
+	 * read | write | readwrite | clear;
 	 * @see example.debug.core.breakpoints.ActorLineBreakpoint#createRequest(example.debug.core.model.ActorDebugTarget)
 	 */
 	protected void createRequest(OpendfDebugTarget target) throws CoreException {
-		int flag = 0;
+		String kind = "";
 		if (isAccess()) {
-			flag = flag | 1;
+			if (isModification()) {
+				kind = "readwrite";
+			} else {
+				kind = "read";
+			}
+		} else {
+			if (isModification()) {
+				kind = "write";
+			} else {
+				kind = "clear";
+			}
 		}
-		if (isModification()) {
-			flag = flag | 2;
-		}
-		target.sendCommand("watch " + getFunctionName() + "::" + getVariableName() + " " + flag);
+		target.sendCommand("watch " + getActorName() + " " + getVariableName() + " " + kind);
 	}
 
 	/**
 	 * @see example.debug.core.breakpoints.ActorLineBreakpoint#clearRequest(example.debug.core.model.ActorDebugTarget)
 	 */
 	protected void clearRequest(OpendfDebugTarget target) throws CoreException {
-		target.sendCommand("watch " + getFunctionName() + "::" + getVariableName() + " " + 0);
+		target.sendCommand("watch " + getActorName() + " " + getVariableName() + " clear");
 	}
 
 	/**
@@ -244,21 +252,21 @@ public class ActorWatchpoint extends ActorLineBreakpoint implements IWatchpoint 
 
 	/**
 	 * Determines if this breakpoint was hit and notifies the thread.
-	 * 
+	 * suspended N:watch V A
 	 * @param event
 	 *          breakpoint event
 	 */
 	private void handleHit(String event) {
 		String[] strings = event.split(" ");
 		if (strings.length == 4) {
-			String fv = strings[3];
-			int j = fv.indexOf("::");
+			String fv = strings[1];
+			int j = fv.indexOf(":");
 			if (j > 0) {
-				String fcn = fv.substring(0, j);
-				String var = fv.substring(j + 2);
+				String actor = fv.substring(0, j);
+				String var = strings[2];
 				try {
-					if (getVariableName().equals(var) && getFunctionName().equals(fcn)) {
-						setSuspendType(strings[2]);
+					if (getVariableName().equals(var) && getActorName().equals(actor)) {
+						setSuspendType(strings[3]);
 						notifyThread();
 					}
 				} catch (CoreException e) {

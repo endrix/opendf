@@ -96,7 +96,7 @@ public class OpendfModelPresentation extends LabelProvider implements IDebugMode
 	 */
 	private String getWatchpointText(ActorWatchpoint watchpoint) {
 		try {
-			String label = watchpoint.getVariableName() + " (" + watchpoint.getFunctionName() + ")";
+			String label = watchpoint.getVariableName() + " (" + watchpoint.getActorName() + ")";
 			if (watchpoint.isAccess()) {
 				label += " [read]";
 			}
