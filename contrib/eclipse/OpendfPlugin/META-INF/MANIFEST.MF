@@ -1,6 +1,6 @@
 Bundle-Name: Open Dataflow Editor Plugin
 Bundle-SymbolicName: net.sf.opendf.eclipse.plugin;singleton:=true
-Bundle-Version: 1.2.9
+Bundle-Version: 1.2.10
 Bundle-Activator: net.sf.opendf.eclipse.plugin.OpendfPlugin
 Bundle-Vendor: The Open Dataflow Project
 Bundle-Localization: 
@@ -14,7 +14,7 @@ Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.ui.ide,
  org.eclipse.ui.views,
  org.eclipse.ui.workbench.texteditor,
- net.sf.opendf.OpendfCorePlugin
+ net.sf.opendf.eclipse.core
 Eclipse-LazyStart: true
 Provide-Package: net.sf.opendf.eclipse.plugin,
  net.sf.opendf.eclipse.plugin.config,
