@@ -61,7 +61,7 @@ import org.eclipse.debug.core.model.LineBreakpoint;
 public class ActorLineBreakpoint extends LineBreakpoint implements IOpendfEventListener {
 	
 	// target currently installed in
-	private OpendfDebugTarget fTarget;
+	private OpendfDebugTarget debugTarget;
 	
 	/**
 	 * Default constructor is required for the breakpoint manager
@@ -85,7 +85,7 @@ public class ActorLineBreakpoint extends LineBreakpoint implements IOpendfEventL
 	public ActorLineBreakpoint(final IResource resource, final int lineNumber) throws CoreException {
 		IWorkspaceRunnable runnable = new IWorkspaceRunnable() {
 			public void run(IProgressMonitor monitor) throws CoreException {
-				IMarker marker = resource.createMarker(OpendfConstants.ACTOR_BREAKPOINT_MARKER);
+				IMarker marker = resource.createMarker(OpendfConstants.ID_ACTOR_BREAKPOINT_MARKER);
 				setMarker(marker);
 				marker.setAttribute(IBreakpoint.ENABLED, Boolean.TRUE);
 				marker.setAttribute(IMarker.LINE_NUMBER, lineNumber);
@@ -100,7 +100,7 @@ public class ActorLineBreakpoint extends LineBreakpoint implements IOpendfEventL
 	 * @see org.eclipse.debug.core.model.IBreakpoint#getModelIdentifier()
 	 */
 	public String getModelIdentifier() {
-		return OpendfConstants.OPENDF_DEBUG_MODEL;
+		return OpendfConstants.ID_OPENDF_DEBUG_MODEL;
 	}
 	
 	/**
@@ -113,15 +113,15 @@ public class ActorLineBreakpoint extends LineBreakpoint implements IOpendfEventL
 	}
     
     /**
-     * Installs this breakpoint in the given interprettor.
-     * Registeres this breakpoint as an event listener in the
+     * Installs this breakpoint in the given interpreter.
+     * Registers this breakpoint as an event listener in the
      * given target and creates the breakpoint specific request.
      * 
      * @param target Actor interpreter
      * @throws CoreException if installation fails
      */
     public void install(OpendfDebugTarget target) throws CoreException {
-    	fTarget = target;
+    	debugTarget = target;
     	target.addEventListener(this);
     	createRequest(target);
     }
@@ -159,8 +159,7 @@ public class ActorLineBreakpoint extends LineBreakpoint implements IOpendfEventL
     public void remove(OpendfDebugTarget target) throws CoreException {
     	target.removeEventListener(this);
     	clearRequest(target);
-    	fTarget = null;
-    	
+    	debugTarget = null;
     }
     
     /**
@@ -169,16 +168,16 @@ public class ActorLineBreakpoint extends LineBreakpoint implements IOpendfEventL
      * @return the target this breakpoint is installed in or <code>null</code>
      */
     protected OpendfDebugTarget getDebugTarget() {
-    	return fTarget;
+    	return debugTarget;
     }
     
     /**
      * Notify's the Actor interpreter that this breakpoint has been hit.
      */
     protected void notifyThread() {
-    	if (fTarget != null) {
+    	if (debugTarget != null) {
 			try {
-				IThread[] threads = fTarget.getThreads();
+				IThread[] threads = debugTarget.getThreads();
 				if (threads.length == 1) {
 	    			ActorThread thread = (ActorThread)threads[0];
 	    			thread.suspendedBy(this);

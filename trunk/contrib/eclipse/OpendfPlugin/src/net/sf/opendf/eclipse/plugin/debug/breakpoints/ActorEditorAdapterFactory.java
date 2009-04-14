@@ -81,6 +81,6 @@ public class ActorEditorAdapterFactory implements IAdapterFactory {
 	 */
 	@SuppressWarnings("unchecked")
 	public Class[] getAdapterList() {
-		return new Class[]{IToggleBreakpointsTarget.class};
+		return new Class[]{IToggleBreakpointsTarget.class, IRunToLineTarget.class};
 	}
 }

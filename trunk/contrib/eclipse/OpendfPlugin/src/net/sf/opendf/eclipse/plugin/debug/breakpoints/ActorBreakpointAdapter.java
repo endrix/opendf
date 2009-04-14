@@ -74,11 +74,10 @@ public class ActorBreakpointAdapter implements IToggleBreakpointsTargetExtension
 			IResource resource = (IResource) textEditor.getEditorInput().getAdapter(IResource.class);
 			ITextSelection textSelection = (ITextSelection) selection;
 			int lineNumber = textSelection.getStartLine();
-			IBreakpoint[] breakpoints = DebugPlugin.getDefault().getBreakpointManager().getBreakpoints(OpendfConstants.OPENDF_DEBUG_MODEL);
+			IBreakpoint[] breakpoints = DebugPlugin.getDefault().getBreakpointManager().getBreakpoints(OpendfConstants.ID_OPENDF_DEBUG_MODEL);
 			for (int i = 0; i < breakpoints.length; i++) {
 				IBreakpoint breakpoint = breakpoints[i];
-				if (breakpoint instanceof ILineBreakpoint
-						&& resource.equals(breakpoint.getMarker().getResource())) {
+				if (breakpoint instanceof ILineBreakpoint && resource.equals(breakpoint.getMarker().getResource())) {
 					if (((ILineBreakpoint) breakpoint).getLineNumber() == (lineNumber + 1)) {
 						// remove
 						breakpoint.delete();
@@ -87,7 +86,7 @@ public class ActorBreakpointAdapter implements IToggleBreakpointsTargetExtension
 				}
 			}
 			// create line breakpoint (doc line numbers start at 0)
-			ActorLineBreakpoint lineBreakpoint = new ActorLineBreakpoint(resource,lineNumber + 1);
+			ActorLineBreakpoint lineBreakpoint = new ActorLineBreakpoint(resource, lineNumber + 1);
 			DebugPlugin.getDefault().getBreakpointManager().addBreakpoint(lineBreakpoint);
 		}
 	}
@@ -148,9 +147,7 @@ public class ActorBreakpointAdapter implements IToggleBreakpointsTargetExtension
 
 	/**
 	 * 
-	 * @see
-	 * org.eclipse.debug.ui.actions.IToggleBreakpointsTarget#toggleWatchpoints
-	 * (org.eclipse.ui.IWorkbenchPart, org.eclipse.jface.viewers.ISelection)
+	 * @see org.eclipse.debug.ui.actions.IToggleBreakpointsTarget#toggleWatchpoints(org.eclipse.ui.IWorkbenchPart, org.eclipse.jface.viewers.ISelection)
 	 */
 	public void toggleWatchpoints(IWorkbenchPart part, ISelection selection) throws CoreException {
 		String[] variableAndFunctionName = getVariableAndFunctionName(part, selection);
@@ -161,7 +158,7 @@ public class ActorBreakpointAdapter implements IToggleBreakpointsTargetExtension
 			String var = variableAndFunctionName[0];
 			String fcn = variableAndFunctionName[1];
 			// look for existing watchpoint to delete
-			IBreakpoint[] breakpoints = DebugPlugin.getDefault().getBreakpointManager().getBreakpoints(OpendfConstants.OPENDF_DEBUG_MODEL);
+			IBreakpoint[] breakpoints = DebugPlugin.getDefault().getBreakpointManager().getBreakpoints(OpendfConstants.ID_OPENDF_DEBUG_MODEL);
 			for (int i = 0; i < breakpoints.length; i++) {
 				IBreakpoint breakpoint = breakpoints[i];
 				if (breakpoint instanceof ActorWatchpoint && resource.equals(breakpoint.getMarker().getResource())) {
@@ -235,14 +232,13 @@ public class ActorBreakpointAdapter implements IToggleBreakpointsTargetExtension
 	 * @param varName
 	 *          variable name
 	 * @param line
-	 *          line numbner at which the variable is defined
+	 *          line number at which the variable is defined
 	 * @return name of function defining the variable
 	 */
 	private String getFunctionName(IDocument document, String varName, int line) {
 		// This is a simple guess at the function name - look for the labels
-		// preceeding
-		// the variable definition, and then see if there are any 'calls' to that
-		// label. If none, assumet the variable is in the "_main_" function
+		// preceding the variable definition, and then see if there are any 'calls' to that
+		// label. If none, assume the variable is in the "_main_" function
 		String source = document.get();
 		int lineIndex = line - 1;
 		while (lineIndex >= 0) {
@@ -278,9 +274,7 @@ public class ActorBreakpointAdapter implements IToggleBreakpointsTargetExtension
 
 	/**
 	 * 
-	 * @see org.eclipse.debug.ui.actions.IToggleBreakpointsTargetExtension#
-	 * canToggleBreakpoints(org.eclipse.ui.IWorkbenchPart,
-	 * org.eclipse.jface.viewers.ISelection)
+	 * @see org.eclipse.debug.ui.actions.IToggleBreakpointsTargetExtension#canToggleBreakpoints(org.eclipse.ui.IWorkbenchPart, org.eclipse.jface.viewers.ISelection)
 	 */
 	public boolean canToggleBreakpoints(IWorkbenchPart part, ISelection selection) {
 		return canToggleLineBreakpoints(part, selection) || canToggleWatchpoints(part, selection);

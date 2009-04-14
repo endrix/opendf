@@ -65,7 +65,7 @@ public class OpendfPlugin extends AbstractUIPlugin {
 
   public static String getId()
   {
-    return OpendfConstants.PLUGIN_ID;
+    return OpendfConstants.ID_PLUGIN;
   }
   
   private static final String[] imagePaths =
@@ -95,12 +95,12 @@ public class OpendfPlugin extends AbstractUIPlugin {
 
 	public static void logInfoMessage( String msg )
 	{
-		plugin.getLog().log( new Status( Status.INFO, OpendfConstants.PLUGIN_ID, Status.OK, msg, null ));	
+		plugin.getLog().log( new Status( Status.INFO, OpendfConstants.ID_PLUGIN, Status.OK, msg, null ));	
 	}
 
   public static void logErrorMessage( String msg, Throwable exception )
   {
-    plugin.getLog().log( new Status( Status.ERROR, OpendfConstants.PLUGIN_ID, Status.OK, msg, exception ));  
+    plugin.getLog().log( new Status( Status.ERROR, OpendfConstants.ID_PLUGIN, Status.OK, msg, exception ));  
   }
   
 	public void start( BundleContext context ) throws Exception
@@ -130,7 +130,7 @@ public class OpendfPlugin extends AbstractUIPlugin {
 	 */
 	public static ImageDescriptor getImageDescriptor(String path)
 	{
-		return AbstractUIPlugin.imageDescriptorFromPlugin( OpendfConstants.PLUGIN_ID, path );
+		return AbstractUIPlugin.imageDescriptorFromPlugin( OpendfConstants.ID_PLUGIN, path );
 	}
   
   private void createImages()

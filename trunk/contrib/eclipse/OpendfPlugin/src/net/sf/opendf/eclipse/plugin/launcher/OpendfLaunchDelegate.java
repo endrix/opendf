@@ -80,7 +80,7 @@ public class OpendfLaunchDelegate extends OpendfConfigLaunchDelegate {
 		} else if (mode.equals(ILaunchManager.DEBUG_MODE)) {
 			launchDebugger(configuration, mode, launch, monitor);
 		} else {
-			throw new CoreException(new Status(IStatus.ERROR, OpendfConstants.PLUGIN_ID, 0, "Unknown launch mode: " + mode, null));
+			throw new CoreException(new Status(IStatus.ERROR, OpendfConstants.ID_PLUGIN, 0, "Unknown launch mode: " + mode, null));
 		}
 	}
 
@@ -109,7 +109,7 @@ public class OpendfLaunchDelegate extends OpendfConfigLaunchDelegate {
 		commandPort = findFreePort();
 		eventPort = findFreePort();
 		if (commandPort == -1 || eventPort == -1) {
-			throw new CoreException(new Status(IStatus.ERROR, OpendfConstants.PLUGIN_ID, 0, "Unable to find free port", null));
+			throw new CoreException(new Status(IStatus.ERROR, OpendfConstants.ID_PLUGIN, 0, "Unable to find free port", null));
 		}
 
 		//elaborate the actor network

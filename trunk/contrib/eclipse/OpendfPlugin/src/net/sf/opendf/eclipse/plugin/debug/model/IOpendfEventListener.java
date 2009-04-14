@@ -44,7 +44,7 @@ package net.sf.opendf.eclipse.plugin.debug.model;
  * @author Rob Esser
  * @version 20 March 2009
  */
-public interface IOpendfEventListener {
+public interface IOpendfEventListener { 
 
 	/**
 	 * A started event has been received from the execution engine

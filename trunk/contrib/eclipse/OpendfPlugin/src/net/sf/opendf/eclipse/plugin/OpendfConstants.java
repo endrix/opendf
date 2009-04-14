@@ -40,18 +40,20 @@ package net.sf.opendf.eclipse.plugin;
 
 /**
  * @author Rob Esser
- * @version 3rd April 2009
+ * @version 14th April 2009
  * 
  */
 public interface OpendfConstants {
 
-	public static final String PLUGIN_ID = "net.sf.opendf.eclipse.plugin.OpendfPlugin";
+	public static final String ID_PLUGIN = "net.sf.opendf.eclipse.plugin";
 
-	// DEBUG
-	public static final String OPENDF_DEBUG_MODEL = PLUGIN_ID + ".OPENDF_DEBUG_MODEL";
+	public static final String ID_CAL_EDITOR = "opendf.editors.CAL";
 	
-	public static final String ACTOR_BREAKPOINT_MARKER = PLUGIN_ID + ".ACTOR_BREAKPOINT_MARKER";
+	// DEBUG
+	public static final String ID_OPENDF_DEBUG_MODEL = "opendf.debugModel"; 
+	
+	public static final String ID_ACTOR_BREAKPOINT_MARKER = "markerType.lineBreakpoint";
 
-	public static final String ACTOR_WATCHPOINT_MARKER = PLUGIN_ID + ".ACTOR_WATCHPOINT_MARKER";
+	public static final String ID_ACTOR_WATCHPOINT_MARKER = "markerType.watchBreakpoint";
 
 }

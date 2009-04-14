@@ -57,7 +57,7 @@ public abstract class OpendfConfigurationTab extends AbstractLaunchConfiguration
   
   private static String uniqueId()
   {
-    return OpendfConstants.PLUGIN_ID;
+    return OpendfConstants.ID_PLUGIN;
   }
 
   public static String Export( String tabName, String key )
