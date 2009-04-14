@@ -49,7 +49,7 @@ import org.eclipse.ui.texteditor.ITextEditor;
  * Creates a toggle breakpoint adapter
  * 
  * @author Rob Esser
- * @version 3rd April 2009
+ * @version 14th April 2009
  */
 public class ActorEditorAdapterFactory implements IAdapterFactory {
 	
