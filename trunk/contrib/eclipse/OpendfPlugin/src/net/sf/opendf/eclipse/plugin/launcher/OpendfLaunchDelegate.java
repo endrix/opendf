@@ -42,7 +42,6 @@ import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.sf.opendf.cli.Elaborator;
 import net.sf.opendf.cli.PhasedSimulator;
 import net.sf.opendf.config.ConfigGroup;
 import net.sf.opendf.config.SimulationConfigGroup;
