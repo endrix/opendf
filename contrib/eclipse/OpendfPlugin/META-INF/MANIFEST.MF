@@ -1,5 +1,5 @@
 Bundle-Name: Open Dataflow Editor Plugin
-Bundle-SymbolicName: net.sf.opendf.eclipse.OpendfPlugin;singleton:=true
+Bundle-SymbolicName: net.sf.opendf.eclipse.plugin;singleton:=true
 Bundle-Version: 1.2.9
 Bundle-Activator: net.sf.opendf.eclipse.plugin.OpendfPlugin
 Bundle-Vendor: The Open Dataflow Project

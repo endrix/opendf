@@ -90,7 +90,6 @@ public class ActorRunToLineAdapter implements IRunToLineTarget {
 	 * @see org.eclipse.debug.ui.actions.IRunToLineTarget#canRunToLine(org.eclipse.ui.IWorkbenchPart, org.eclipse.jface.viewers.ISelection, org.eclipse.debug.core.model.ISuspendResume)
 	 */
 	public boolean canRunToLine(IWorkbenchPart part, ISelection selection, ISuspendResume target) {
-		return target instanceof IDebugElement &&
-		 ((IDebugElement)target).getModelIdentifier().equals(OpendfConstants.OPENDF_DEBUG_MODEL);
+		return target instanceof IDebugElement && ((IDebugElement)target).getModelIdentifier().equals(OpendfConstants.ID_OPENDF_DEBUG_MODEL);
 	}
 }

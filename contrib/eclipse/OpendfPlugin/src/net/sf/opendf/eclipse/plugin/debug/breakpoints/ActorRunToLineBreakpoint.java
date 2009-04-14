@@ -69,7 +69,7 @@ public class ActorRunToLineBreakpoint extends ActorLineBreakpoint {
 		IWorkspaceRunnable runnable = new IWorkspaceRunnable() {
 			public void run(IProgressMonitor monitor) throws CoreException {
 				// associate with workspace root to avoid drawing in editor ruler
-				IMarker marker = ResourcesPlugin.getWorkspace().getRoot().createMarker(OpendfConstants.ACTOR_BREAKPOINT_MARKER);
+				IMarker marker = ResourcesPlugin.getWorkspace().getRoot().createMarker(OpendfConstants.ID_ACTOR_BREAKPOINT_MARKER);
 				setMarker(marker);
 				marker.setAttribute(IBreakpoint.ENABLED, Boolean.TRUE);
 				marker.setAttribute(IMarker.LINE_NUMBER, lineNumber);

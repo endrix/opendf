@@ -265,7 +265,7 @@ public class OpendfDebugTarget extends OpendfDebugElement implements IDebugTarge
 	public boolean supportsBreakpoint(IBreakpoint breakpoint) {
 		if (!isTerminated() && breakpoint.getModelIdentifier().equals(getModelIdentifier())) {
 			try {
-				String program = getLaunch().getLaunchConfiguration().getAttribute(OpendfConstants.PLUGIN_ID, (String) null);
+				String program = getLaunch().getLaunchConfiguration().getAttribute(OpendfConstants.ID_PLUGIN, (String) null);
 				if (program != null) {
 					IResource resource = null;
 					if (breakpoint instanceof ActorRunToLineBreakpoint) {
