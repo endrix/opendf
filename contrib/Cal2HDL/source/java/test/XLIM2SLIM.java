@@ -21,6 +21,20 @@ public class XLIM2SLIM {
 		
 		Node doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(new File(args[0]));
 		
+		doc = Util.applyTransforms(doc, xlimTransforms);
+
+		String s = Util.createXML(doc);
+		FileOutputStream f = new FileOutputStream(args[1]);
+		PrintWriter pw = new PrintWriter(f);
+		pw.print(s);
+		pw.flush();
+		f.close();
+	}
+	
+	public static void _main(String [] args) throws Exception {
+		
+		Node doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(new File(args[0]));
+		
 		for (int i = 0; i < xlimTransforms.length; i++) {
 			doc = Util.applyTransform(doc, xlimTransforms[i]);
 			String s = Util.createXML(doc);
