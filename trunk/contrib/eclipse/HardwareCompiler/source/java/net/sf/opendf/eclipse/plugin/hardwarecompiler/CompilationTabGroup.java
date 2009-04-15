@@ -37,14 +37,11 @@ ENDCOPYRIGHT
 */
 package net.sf.opendf.eclipse.plugin.hardwarecompiler;
 
+import net.sf.opendf.eclipse.plugin.config.LoggingConfigTab;
+import net.sf.opendf.eclipse.plugin.launcher.tabs.OpendfConfigurationTabGroup;
+
 import org.eclipse.debug.ui.AbstractLaunchConfigurationTab;
 import org.eclipse.debug.ui.ILaunchConfigurationDialog;
-import org.eclipse.debug.ui.ILaunchConfigurationTab;
-import org.eclipse.debug.ui.CommonTab;
-import org.eclipse.debug.ui.AbstractLaunchConfigurationTabGroup;
-
-import net.sf.opendf.eclipse.plugin.config.LoggingConfigTab;
-import net.sf.opendf.eclipse.plugin.launcher.tabs.*;
 
 public class CompilationTabGroup extends OpendfConfigurationTabGroup
 {
