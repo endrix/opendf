@@ -68,8 +68,7 @@ public abstract class OpendfDebugElement extends DebugElement {
 	 * @see org.eclipse.debug.core.model.IDebugElement#getModelIdentifier()
 	 */
 	public String getModelIdentifier() {
-		return OpendfConstants.ID_PLUGIN;
-		//return OpendfConstants.ID_OPENDF_DEBUG_MODEL;
+		return OpendfConstants.ID_OPENDF_DEBUG_MODEL;
 	}
 
 	/**
