@@ -1,0 +1,11 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Cal2HDL Plug-in
+Bundle-SymbolicName: net.sf.opendf.hardware.cli;singleton:=true
+Bundle-Version: 1.0.0
+Bundle-Activator: cal2hdl.Activator
+Require-Bundle: org.eclipse.core.runtime,
+ net.sf.opendf.eclipse.core
+Bundle-ActivationPolicy: lazy
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Export-Package: net.sf.opendf.hardware.cli
