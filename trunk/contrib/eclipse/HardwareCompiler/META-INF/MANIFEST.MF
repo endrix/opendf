@@ -7,10 +7,10 @@ Bundle-Activator: net.sf.opendf.eclipse.plugin.hardwarecompiler.Activator
 Bundle-Vendor: The Open Dataflow Project
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
- net.sf.opendf.OpendfCorePlugin,
- net.sf.opendf.eclipse.OpendfEditorPlugin,
+ net.sf.opendf.eclipse.core,
  org.eclipse.debug.ui,
- org.eclipse.ui.console
+ org.eclipse.ui.console,
+ net.sf.opendf.eclipse.plugin
 Eclipse-LazyStart: true
 Export-Package: net.sf.opendf.eclipse.plugin.hardwarecompiler
 Bundle-ClassPath: .
