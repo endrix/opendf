@@ -69,6 +69,7 @@ Export-Package: java_cup,
  net.sf.opendf.xslt.nl,
  net.sf.opendf.xslt.util,
  net.sf.saxon,
+ net.sf.saxon.dom,
  ptolemy.media
 Bundle-ClassPath: .,
  source/xslt/,

@@ -56,7 +56,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
    <requires>
       <import plugin="org.eclipse.ui"/>
       <import plugin="org.eclipse.core.runtime"/>
-      <import plugin="com.xilinx.systembuilder.SystemBuilder"/>
       <import plugin="org.eclipse.debug.ui"/>
       <import plugin="org.eclipse.ui.console"/>
       <import plugin="org.eclipse.jface.text"/>
