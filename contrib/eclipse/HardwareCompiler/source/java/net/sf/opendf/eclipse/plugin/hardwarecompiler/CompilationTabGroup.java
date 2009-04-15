@@ -44,7 +44,7 @@ import org.eclipse.debug.ui.CommonTab;
 import org.eclipse.debug.ui.AbstractLaunchConfigurationTabGroup;
 
 import net.sf.opendf.eclipse.plugin.config.LoggingConfigTab;
-import net.sf.opendf.eclipse.plugin.simulators.tabs.*;
+import net.sf.opendf.eclipse.plugin.launcher.tabs.*;
 
 public class CompilationTabGroup extends OpendfConfigurationTabGroup
 {
