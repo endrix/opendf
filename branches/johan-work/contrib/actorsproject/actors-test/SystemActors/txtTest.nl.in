@@ -1,9 +1,0 @@
-network txtTest() ==> :
-
-entities
-	source = art_Source_txt(fileName = "@datadir@/actors-test/SystemActors/input/txtTest/In.txt");
-	sink   = art_Sink_txt(fileName = "./output/txtTest/Out.txt");
-
-structure
-	source.Out --> sink.In;
-end
