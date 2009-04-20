@@ -298,10 +298,13 @@ void pinWait(ActorPort *actorPort,int length)
 	}
 	instance = actorInstance[actorPort->aid];
 
-	pthread_mutex_lock(&instance->mt);
-	actorTrace(instance,LOG_EXEC,"%s_%d.%s pinWait(%d)=%d\n",instance->actor->name,actorPort->aid,(actorPort->portDir == INPUT)?"in":"out",actorPort->cid,length);
-	bk->num = length;
-	pthread_mutex_unlock(&instance->mt);
+	if(rts_mode == THREAD_PER_ACTOR)
+	{
+		pthread_mutex_lock(&instance->mt);
+		actorTrace(instance,LOG_EXEC,"%s_%d.%s pinWait(%d)=%d\n",instance->actor->name,actorPort->aid,(actorPort->portDir == INPUT)?"in":"out",actorPort->cid,length);
+		bk->num = length;
+		pthread_mutex_unlock(&instance->mt);
+	}
 }
 
 void init_actor_network(NetworkConfig *network)
