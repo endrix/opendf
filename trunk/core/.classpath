@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry kind="src" path="lib/source"/>
-	<classpathentry kind="src" path="source/java"/>
+	<classpathentry excluding=".svn/" kind="src" path="lib/source"/>
+	<classpathentry excluding=".svn/" kind="src" path="source/java"/>
 	<classpathentry exported="true" kind="lib" path="lib/PtPlot.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
