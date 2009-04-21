@@ -15,7 +15,8 @@ Known issues
      unblocked too early.
 106. Elaboration of non-existant actors should be an error.
      Currently, some weird $classname_0.calml is generated [actors-make]
-108.
+108. "old" state variable does not work [SSAGenerator]
+109.
  
 Desirable features
 ==================
@@ -29,12 +30,21 @@ Desirable features
 212. Use TRACE macros to record/dump traces [runtime]
 213. Tools to analyze (diff etc) and visualize traces.
 214. Sources/sinks should write/read in chunks -not bytewise [runtime]
+     a) Sources (probably simpler)
+     b) Sinks (possibly relates to 223: flush at termination)
 215. Command-line options to control tracing etc. in runtime [runtime]
 216. Add latency control to action scheduler (=maximum number of
      actions to fire before yielding) [Xlim2c, runtime]
 217. Support for multi-token writes in the same way as multi-token reads
      are handled (i.e. pinAvail) [SsaGenerator]
-218.
+218. Generate actor info, needed to produce action traces [Xlim2c]
+219. Support for repeat input/output patterns [SSAGenerator]
+220. Floating-point support [Xlim2c]
+221. 64-bit tokens, optimization for all token-sizes [Xlim2c, runtime]
+222. Fixed-point support [opendf core, Xlim2c]
+223. Support actor termination in the action scheduler/run-time
+     interface [Xlim2c, runtime]
+224.
   
 Nice to have
 ============
