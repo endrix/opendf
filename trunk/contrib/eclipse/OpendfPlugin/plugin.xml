@@ -19,7 +19,7 @@
       <launchConfigurationTabGroup
             class="net.sf.opendf.eclipse.plugin.launcher.tabs.LauncherTabGroup"
             id="opendf.launcher.tabgroup"
-            type="opendf.launcher"/>
+            type="opendf.launchType"/>
    </extension>
    <extension
          point="org.eclipse.debug.ui.launchConfigurationTypeImages">
