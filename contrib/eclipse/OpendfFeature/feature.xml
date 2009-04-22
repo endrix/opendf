@@ -100,10 +100,10 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
          version="1.0.1"/>
 
    <plugin
-         id="net.sf.opendf.eclipse.plugin"
+         id="net.sf.opendf.eclipse.OpendfPlugin"
          download-size="0"
          install-size="0"
-         version="1.2.10"
+         version="1.2.9"
          unpack="false"/>
 
 </feature>
