@@ -4,13 +4,14 @@ Bundle-Name: OpendfHWCodegen Plug-in
 Bundle-SymbolicName: net.sf.opendf.hardware.cli;singleton:=true
 Bundle-Version: 1.0.0
 Bundle-Activator: opendfhwcodegen.Activator
-Require-Bundle: org.eclipse.core.runtime,
- net.sf.opendf.eclipse.core,
- org.eclipse.core.runtime,
+Require-Bundle: net.sf.opendf.eclipse.core,
  net.sf.openforge.core
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
-Export-Package: net.sf.opendf.hardware.cli
 Bundle-ActivationPolicy: lazy
 Bundle-Vendor: The Opendataflow Project
-Bundle-ClassPath: source/xslt/
+Bundle-ClassPath: source/xslt/,
+ lib/saxon8-dom.jar,
+ lib/saxon8.jar
+Import-Package: org.eclipse.core.runtime,
+ org.osgi.framework
 
