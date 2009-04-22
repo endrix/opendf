@@ -136,21 +136,60 @@ extern int						trace_action;
 extern int						num_lists;
 extern int						rts_mode;
 
-extern int	execute_network(int argc, char *argv[], NetworkConfig *network);
-extern void init_actor_network(NetworkConfig *);
-extern int pinStatus(ActorPort *);
-extern int pinStatus2(ActorPort *);
-extern int pinAvail(ActorPort *);	
-extern int pinRead(ActorPort *);
-extern int pinRead2(ActorPort *,char *,int);
-extern int pinPeek(ActorPort *,int);
-extern int pinWrite(ActorPort *,int);
-extern int pinWrite2(ActorPort *,char *, int);
-extern void source(AbstractActorInstance *);
-extern void sink(AbstractActorInstance *);
-extern void pinWait(ActorPort *,int);
-extern int getNumOfInstances();
-extern void actorTrace(AbstractActorInstance *,int,char *,...);
-extern void trace(int,char*,...);
+
+/** Runs the actors network, including evaluating command line arguments, error message output,
+ * network setup and finally execution. */
+extern int execute_network(int argc, char *argv[], NetworkConfig *network);
+
+/** Sets up the actors network according to the information provided in \a network . */
+extern void init_actor_network(NetworkConfig * network);
+
+/** Returns 1 if there is at least one token available for reading if \a port is an input port,
+ * or if at least one token can be written if it is an output port.
+ * Returns 0 otherwise. */
+extern int pinStatus(ActorPort * port);
+
+/** For an input port, pinStatus2 returns the number of readable bytes available in the ActorPort \a port.
+ *  For an output port, pinStatus2 returns the number of bytes which can be written into the ActorPort \a port. */
+extern int pinStatus2(ActorPort * port);
+
+/** This function is similar to pinStatus(). Instead of 0 and 1 it returns 0 or the actual
+ * number of tokens which can be read from \a port / written to \a port . */
+extern int pinAvail(ActorPort * port);
+
+/** Reads one integer-sized token from \a port and returns it. Breaks if tokenSize > sizeof(int) . */
+extern int pinRead(ActorPort * port);
+
+/** Reads nonblocking \a length bytes from \a port into the buffer \a buf .
+ * Potentially blocked writers waiting that enough space in \a port becomes free
+ * are signalled. */
+extern int pinRead2(ActorPort * port, char * buf, int length);
+
+/** Reads one integer-sized token from \a port at the given \a offset relative to the current
+ * read position (in tokens) and returns it. The current read position is not modified.
+ * Breaks if tokenSize > sizeof(int) . */
+extern int pinPeek(ActorPort * port, int offset);
+
+/** Writes nonblocking the int-sized token with the given \a value into the given \a port .
+ * Potentially blocked readers waiting that data becomes available in \a port are signalled. */
+extern int pinWrite(ActorPort * port, int value);
+
+/** Writes nonblocking the int-sized token with the given \a value into the given \a port .
+ * Potentially blocked readers waiting that data becomes available in \a port are signalled. */
+extern int pinWrite2(ActorPort * port, char * buf, int length);
+
+/** Marks the actor as waiting for \a port , i.e. waiting that \a length bytes
+ * become available for reading or writing.
+ * Does not block itself ! */
+extern void pinWait(ActorPort * port, int length);
+
+/** Printf-like tracing function to stderr. Prints only if \a level >= the current log_level. */
+extern void actorTrace(AbstractActorInstance * base, int level, char * message, ...);
+
+/** Printf-like tracing function to stderr. Prints only if \a level >= the current log_level. */
+extern void trace(int level, char*,...);
+
+/** Prints a range error message to stdout. */
 int rangeError(int x, int y, char *filename, int line);
+
 #endif

@@ -75,11 +75,25 @@ typedef struct _CIRC_BUFFER{
 
 extern CIRC_BUFFER		circularBuf[];
 
+/** Initializes the CIRC_BUFFER \a cb for the given number of \a numReaders .*/
 extern void init_circbuf(CIRC_BUFFER *cb,int numReaders);
+
+/** Returns the free space in CIRC_BUFFER \a cb in bytes, all readers are considered. */
 extern int get_circbuf_space(CIRC_BUFFER *cb);
+
+/** Returns the number of readable bytes in the CIRC_BUFFER \a cb for reader \a index. */
 extern int get_circbuf_area(CIRC_BUFFER *cb,int index);
+
+/** Reads \a size number of bytes from the CIRC_BUFFER \a cb into the buffer \a buf
+  * for the reader \a index .*/
 extern int read_circbuf(CIRC_BUFFER *cb,char *buf, int size, int index);
+
+/** Writes \a size number of bytes from the buffer \a buf into the CIRC_BUFFER \a cb. */
 extern int write_circbuf(CIRC_BUFFER *cb,char *buf, int size);
+
+/** Reads \a size number of bytes from the CIRC_BUFFER \a cb starting from the given \a offset
+ * relative to the current read position into the buffer \a buf for the reader \a index .
+ * It doesn't modify the current read position in the buffer. */
 extern int peek_circbuf_area(CIRC_BUFFER *cb,char *buf, int size, int index, int offset);
 
 #endif

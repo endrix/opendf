@@ -226,7 +226,7 @@ int write_circbuf(CIRC_BUFFER *cb,char *buf, int size)
 	{
 
 		dist = MAX_CIRCBUF_LEN - cb->writeptr;
-		memcpy( (buf + cb->writeptr), buf,dist);
+		memcpy( (cb->buf + cb->writeptr), buf,dist);
 		
 		memcpy(cb->buf, (buf + dist), size - dist);
 		cb->writeptr = size - dist;

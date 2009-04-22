@@ -106,7 +106,7 @@ void trace(int level,char *msg,...)
 	va_end(ap);	
 }
 
-int pinPeek(ActorPort *actorPort, int which)
+int pinPeek(ActorPort *actorPort, int offset)
 {
 	CIRC_BUFFER		*cb;
 	int				ret,val=-1;
@@ -114,9 +114,9 @@ int pinPeek(ActorPort *actorPort, int which)
 	if(actorPort->portDir == INPUT)
 	{
 		ret = pinAvail(actorPort);
-		if(ret >= which){
+		if(ret >= offset){
 			cb = &circularBuf[actorPort->cid];
-			peek_circbuf_area(cb,(char*)&val,actorPort->tokenSize,actorPort->readIndex,which*actorPort->tokenSize);
+			peek_circbuf_area(cb,(char*)&val,actorPort->tokenSize,actorPort->readIndex,offset*actorPort->tokenSize);
 		}
 	}
 
