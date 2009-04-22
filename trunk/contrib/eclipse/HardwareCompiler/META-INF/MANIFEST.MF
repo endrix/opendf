@@ -2,12 +2,11 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Hardware Compiler Plug-in
 Bundle-SymbolicName: net.sf.opendf.eclipse.HardwareCompiler;singleton:=true
-Bundle-Version: 1.0.9
+Bundle-Version: 1.0.12
 Bundle-Activator: net.sf.opendf.eclipse.plugin.hardwarecompiler.Activator
 Bundle-Vendor: The Open Dataflow Project
 Require-Bundle: net.sf.opendf.eclipse.core,
  net.sf.opendf.eclipse.plugin,
- net.sf.opendf.hardware.cli,
  org.eclipse.ui,
  org.eclipse.core.runtime,
  org.eclipse.debug.ui,
@@ -17,5 +16,7 @@ Bundle-ClassPath: .,
  lib/saxon8-dom.jar,
  lib/saxon8.jar,
  source/xslt/
-Export-Package: net.sf.opendf.hardware.cli
-Import-Package: net.sf.openforge.app
+Import-Package: net.sf.openforge.app,
+ net.sf.openforge.frontend.xlim.builder,
+ net.sf.openforge.util.io,
+ net.sf.openforge.util.xml
