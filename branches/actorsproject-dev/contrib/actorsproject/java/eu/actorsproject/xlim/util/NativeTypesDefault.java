@@ -44,7 +44,7 @@ public class NativeTypesDefault implements NativeTypePlugIn {
 	protected XlimType mInt8, mInt16, mInt32, mInt64;
 	
 	public NativeTypesDefault() {
-		TypeFactory typeFact=TypeFactory.getInstance();
+		TypeFactory typeFact=Session.getTypeFactory();
 		mInt8=typeFact.createInteger(8);
 		mInt16=typeFact.createInteger(16);
 		mInt32=typeFact.createInteger(32);

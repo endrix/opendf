@@ -41,19 +41,26 @@ import org.w3c.dom.NamedNodeMap;
 
 import eu.actorsproject.xlim.XlimType;
 
-public interface TypeFactory {
-		
-	TypeKind getTypeKind(String typeName);
+/**
+ * Type kind, which is common to all integer types
+ */
+class IntegerTypeKind extends ParametricTypeKind {
+	IntegerTypeKind() {
+		super("int");
+	}
 	
-	// TODO: replace by create w parameter
-	XlimType createInteger(int size);
+	@Override
+	protected Integer getParameter(NamedNodeMap attributes) {
+		return getIntegerAttribute("size",attributes);
+	}
 	
-	// TODO: replace by "plain" create
-	XlimType createBoolean();
-	
-	XlimType create(String typeName);
-	
-	XlimType create(String typeName, Object param);
-	
-	XlimType create(String typeName, NamedNodeMap attributes);	
+	@Override
+	protected XlimType create(Object param) {
+		if (param instanceof Integer) {
+			Integer size=(Integer) param;
+			return new IntegerType(size);
+		}
+		else
+			throw new IllegalArgumentException("Type \"int\" requires Integer parameter");
+	}
 }

@@ -50,10 +50,8 @@ class TaskModule extends ContainerModule implements XlimTaskModule {
 	
 	public TaskModule(String kind,
 				      String name,
-			          boolean autoStart,
-			          AbstractModule parent, 
-			          Factory factory) {
-		super(kind,parent,factory);
+			          boolean autoStart) {
+		super(kind,null /* parent */);
 		mName=name;
 		mAutoStart=autoStart;
 		mCallNode=new CallNode(this);

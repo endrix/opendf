@@ -52,9 +52,9 @@ class LoopModule extends PhiContainerModule implements XlimLoopModule {
 
 	ContainerModule mBodyModule;
 		
-	public LoopModule(ContainerModule parent, Factory factory) {
-		super(parent, factory);
-		mBodyModule = new SubModule("body",factory);
+	public LoopModule(ContainerModule parent) {
+		super(parent);
+		mBodyModule = new SubModule("body");
 	}
 	
 	public XlimContainerModule getBodyModule() {

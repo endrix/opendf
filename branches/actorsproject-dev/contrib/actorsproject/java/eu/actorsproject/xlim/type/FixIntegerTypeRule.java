@@ -37,23 +37,38 @@
 
 package eu.actorsproject.xlim.type;
 
-import org.w3c.dom.NamedNodeMap;
+import java.util.List;
 
-import eu.actorsproject.xlim.XlimType;
+import eu.actorsproject.xlim.XlimOperation;
+import eu.actorsproject.xlim.XlimSource;
 
-public interface TypeFactory {
-		
-	TypeKind getTypeKind(String typeName);
+/**
+ * TypeRule, with a single (scalar) integer, with constant
+ * default width, as output
+ *
+ */
+public class FixIntegerTypeRule extends IntegerTypeRule {
+
+	private int mDefaultWidth;
 	
-	// TODO: replace by create w parameter
-	XlimType createInteger(int size);
+	public FixIntegerTypeRule(Signature signature, int defaultWidth) {
+		super(signature);
+		mDefaultWidth=defaultWidth;
+	}
+
 	
-	// TODO: replace by "plain" create
-	XlimType createBoolean();
+	@Override
+	protected int defaultWidth(List<? extends XlimSource> inputs) {
+		return mDefaultWidth;
+	}
+
+	@Override
+	protected int actualWidth(XlimOperation op) {
+		return mDefaultWidth;
+	}
 	
-	XlimType create(String typeName);
-	
-	XlimType create(String typeName, Object param);
-	
-	XlimType create(String typeName, NamedNodeMap attributes);	
+	@Override
+	protected String outputToString() {
+		return "int(size="+mDefaultWidth+")"; 
+	}
 }

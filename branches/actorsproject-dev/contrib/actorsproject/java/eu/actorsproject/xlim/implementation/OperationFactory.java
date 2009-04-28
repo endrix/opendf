@@ -35,25 +35,21 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package eu.actorsproject.xlim.type;
+package eu.actorsproject.xlim.implementation;
 
-import org.w3c.dom.NamedNodeMap;
+import java.util.List;
 
-import eu.actorsproject.xlim.XlimType;
+import eu.actorsproject.xlim.XlimOutputPort;
+import eu.actorsproject.xlim.XlimSource;
 
-public interface TypeFactory {
-		
-	TypeKind getTypeKind(String typeName);
-	
-	// TODO: replace by create w parameter
-	XlimType createInteger(int size);
-	
-	// TODO: replace by "plain" create
-	XlimType createBoolean();
-	
-	XlimType create(String typeName);
-	
-	XlimType create(String typeName, Object param);
-	
-	XlimType create(String typeName, NamedNodeMap attributes);	
+
+public interface OperationFactory {
+	Operation createOperation(String name, 
+                              List<? extends XlimSource> inputs,
+                              ContainerModule parent);
+
+	Operation createOperation(String name, 
+                              List<? extends XlimSource> inputs,
+                              List<? extends XlimOutputPort> outputs,
+                              ContainerModule parent);
 }

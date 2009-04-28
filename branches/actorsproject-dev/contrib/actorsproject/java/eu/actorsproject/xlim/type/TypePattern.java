@@ -35,60 +35,35 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package eu.actorsproject.xlim.implementation;
+package eu.actorsproject.xlim.type;
 
-import java.util.Collections;
-import java.util.List;
-
-import eu.actorsproject.xlim.XlimOutputPort;
-import eu.actorsproject.xlim.XlimSource;
 import eu.actorsproject.xlim.XlimType;
-import eu.actorsproject.xlim.type.TypeFactory;
 
-public abstract class TypeRule {
+public interface TypePattern {
 
-	protected int mNumInputs;
-	protected int mNumOutputs;
-	
-	public TypeRule(int numInputs, int numOutputs) {
-		mNumInputs=numInputs;
-		mNumOutputs=numOutputs;
-	}
-	
-	public abstract List<XlimType> defaultOutputTypes(List<? extends XlimSource> inputs);
-	
-	public void checkInputs(List<? extends XlimSource> inputs, String kind) {
-		if (inputs.size()!=mNumInputs) {
-			throw new IllegalArgumentException(kind+": Unexpected number of input ports: "+inputs.size());
+	enum Match {
+		ExactType,     // Matches type exactly (including possible parameters)
+		ExactTypeKind, // Matches kind of type exactly
+		PromotedType,  // Matches a promotion of the type
+		DoesNotMatch;
+		
+		boolean matches() {
+			return this!=DoesNotMatch;
 		}
 	}
 	
-	public void checkOutputs(List<? extends XlimOutputPort> outputs, String kind) {
-		if (outputs.size()!=mNumOutputs) {
-			throw new IllegalArgumentException(kind+": Unexpected number of output ports: "+outputs.size());
-		}
-	}
+	/**
+	 * @param t
+	 * @return result of matching type 't'
+	 */
+	Match match(XlimType t);
 	
-	protected void failedTypeCheck(XlimType t, String kind) {
-		throw new IllegalArgumentException(kind+": Unexpected type: "+t.getTypeName());
-	}
-	
-	protected void checkThatBoolean(XlimType t, String kind) {
-		if (!t.isBoolean())
-			failedTypeCheck(t, kind);
-	}
-	
-	protected void checkThatInteger(XlimType t, String kind) {
-		if (!t.isInteger())
-			failedTypeCheck(t, kind);
-	}
-	
-	protected void checkThatIntegerOrBoolean(XlimType t1, XlimType t2, String kind) {
-		if (t1.isBoolean())
-			checkThatBoolean(t2, kind);
-		else if (t1.isInteger())
-			checkThatInteger(t2, kind);
-		else
-			failedTypeCheck(t1, kind);
-	}
-}
+	/**
+	 * @return maximal TypeKind that is matched by the pattern
+	 *         (null if no such TypeKind exists: e.g. wildcard patttern)
+	 *         
+	 * Used to order 'PromotedType' matches (check if one Pattern is a 
+	 * sub-pattern of the other).
+	 */
+	TypeKind patternTypeKind();
+ }

@@ -37,23 +37,55 @@
 
 package eu.actorsproject.xlim.type;
 
-import org.w3c.dom.NamedNodeMap;
+import java.util.List;
 
+import eu.actorsproject.xlim.XlimOperation;
+import eu.actorsproject.xlim.XlimOutputPort;
+import eu.actorsproject.xlim.XlimSource;
 import eu.actorsproject.xlim.XlimType;
+import eu.actorsproject.xlim.util.Session;
 
-public interface TypeFactory {
-		
-	TypeKind getTypeKind(String typeName);
+/**
+ * TypeRule, with a single, scalar integer as output
+ *
+ */
+public abstract class IntegerTypeRule extends TypeRule {
+
+	public IntegerTypeRule(Signature signature) {
+		super(signature);
+	}
 	
-	// TODO: replace by create w parameter
-	XlimType createInteger(int size);
+	@Override
+	public boolean matchesOutputs(List<? extends XlimOutputPort> outputs) {
+		return outputs.size()==1 && outputs.get(0).getType().getTypeName().equals("int");
+	}
 	
-	// TODO: replace by "plain" create
-	XlimType createBoolean();
+	@Override
+	public int defaultNumberOfOutputs() {
+		return 1;
+	}
 	
-	XlimType create(String typeName);
+	@Override
+	public XlimType defaultOutputType(List<? extends XlimSource> inputs, int i) {
+		assert(i==0);
+		TypeFactory fact=Session.getTypeFactory();
+		return fact.create("int", defaultWidth(inputs));
+	}
+
+	protected abstract int defaultWidth(List<? extends XlimSource> inputs);
 	
-	XlimType create(String typeName, Object param);
+	@Override
+	public XlimType actualOutputType(XlimOperation op, int i) {
+		assert(i==0);
+		TypeFactory fact=Session.getTypeFactory();
+		return fact.create("int", actualWidth(op));
+	}
+
+	protected abstract int actualWidth(XlimOperation op);
 	
-	XlimType create(String typeName, NamedNodeMap attributes);	
+	
+	@Override
+	protected String outputToString() {
+		return "int";
+	}
 }

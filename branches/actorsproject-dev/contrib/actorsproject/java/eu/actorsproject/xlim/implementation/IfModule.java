@@ -52,10 +52,10 @@ class IfModule extends PhiContainerModule implements XlimIfModule {
 
 	private ContainerModule mThenModule, mElseModule;
 	
-	public IfModule(ContainerModule parent, Factory factory) {
-		super(parent, factory);
-		mThenModule = new SubModule("then",factory);
-		mElseModule = new SubModule("else",factory);
+	public IfModule(ContainerModule parent) {
+		super(parent);
+		mThenModule = new SubModule("then");
+		mElseModule = new SubModule("else");
 	}
 
 	public XlimContainerModule getThenModule() {

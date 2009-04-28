@@ -37,23 +37,33 @@
 
 package eu.actorsproject.xlim.type;
 
-import org.w3c.dom.NamedNodeMap;
-
 import eu.actorsproject.xlim.XlimType;
 
-public interface TypeFactory {
-		
-	TypeKind getTypeKind(String typeName);
+public class TypeConversion {
+
+	protected TypeKind mSourceKind;
+	protected TypeKind mTargetKind;
 	
-	// TODO: replace by create w parameter
-	XlimType createInteger(int size);
+	public TypeConversion(TypeKind sourceKind, TypeKind targetKind) {
+		mSourceKind=sourceKind;
+		mTargetKind=targetKind;
+	}
 	
-	// TODO: replace by "plain" create
-	XlimType createBoolean();
+	public TypeKind getSourceTypeKind() {
+		return mSourceKind;
+	}
 	
-	XlimType create(String typeName);
+	public TypeKind getTargetTypeKind() {
+		return mTargetKind;
+	}
 	
-	XlimType create(String typeName, Object param);
+	public boolean isApplicable(XlimType t) {
+		return mSourceKind.hasPromotionFrom(t);
+	}
 	
-	XlimType create(String typeName, NamedNodeMap attributes);	
+	public XlimType apply(XlimType sourceT) {
+		// Default implementation only works for SingletonTypeKinds
+		// -Override for conversion to Parametric types
+		return mTargetKind.getType();
+	}
 }

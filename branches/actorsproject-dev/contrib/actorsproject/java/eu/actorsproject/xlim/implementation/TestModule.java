@@ -54,8 +54,8 @@ class TestModule extends ContainerModule implements XlimTestModule {
 	private PhiContainerModule mParent;
 	private ValueOperator mTestOp=new TestValueOperator();
 	
-	public TestModule(PhiContainerModule parent, Factory factory) {
-		super("test",parent,factory);
+	public TestModule(PhiContainerModule parent) {
+		super("test",parent);
 		mParent=parent;
 	}
 	

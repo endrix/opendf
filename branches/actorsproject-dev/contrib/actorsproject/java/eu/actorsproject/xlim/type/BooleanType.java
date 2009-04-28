@@ -37,23 +37,46 @@
 
 package eu.actorsproject.xlim.type;
 
-import org.w3c.dom.NamedNodeMap;
-
 import eu.actorsproject.xlim.XlimType;
 
-public interface TypeFactory {
-		
-	TypeKind getTypeKind(String typeName);
+class BooleanType implements XlimType {
+	@Override
+	public int getSize() { 
+		return 1; 
+	}
 	
-	// TODO: replace by create w parameter
-	XlimType createInteger(int size);
+	@Override
+	public String getTypeName() { 
+		return "bool"; 
+	}
 	
-	// TODO: replace by "plain" create
-	XlimType createBoolean();
+	@Override
+	public String getAttributeDefinitions() {
+		return "typeName=\"bool\"";
+	}
 	
-	XlimType create(String typeName);
+	@Override
+	public String toString() {
+		return "bool";
+	}
 	
-	XlimType create(String typeName, Object param);
+	@Override
+	public long minValue() {
+		return 0;
+	}
 	
-	XlimType create(String typeName, NamedNodeMap attributes);	
+	@Override
+	public long maxValue() {
+		return 1;
+	}
+	
+	@Override
+	public boolean isBoolean() {
+		return true;
+	}
+	
+	@Override
+	public boolean isInteger() {
+		return false;
+	}
 }

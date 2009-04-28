@@ -71,6 +71,7 @@ import eu.actorsproject.xlim.XlimType;
 import eu.actorsproject.xlim.XlimOperation;
 import eu.actorsproject.xlim.XlimInstruction;
 import eu.actorsproject.xlim.XlimOutputPort;
+import eu.actorsproject.xlim.util.Session;
 
 public class XlimReader {
 	
@@ -102,9 +103,9 @@ public class XlimReader {
 	protected static final int PORT_TAG=8;
 	
 	
-	public XlimReader(ReaderPlugIn plugIn) {
-		mPlugIn=plugIn;
-		mFactory=plugIn.getFactory();
+	public XlimReader() {
+		mPlugIn=Session.getReaderPlugIn();
+		mFactory=Session.getXlimFactory();
 		mTags=new HashMap<String,Integer>();
 		mTags.put("design", DESIGN_TAG);
 		mTags.put("actor-port", ACTOR_PORT_TAG);
@@ -201,7 +202,7 @@ public class XlimReader {
 
 		mPortPass.findPorts(child,context,inputs,outputs);
 		XlimOperation op=parent.addOperation(kind,inputs,outputs);
-		mPlugIn.setAttributes(op,child.getAttributes(),context);	
+		mPlugIn.setAttributes(op,child.getAttributes(),context);
 	}
 
 	protected void createModule(Element child,

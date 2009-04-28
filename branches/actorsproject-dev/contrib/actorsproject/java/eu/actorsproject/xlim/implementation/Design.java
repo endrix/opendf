@@ -57,7 +57,6 @@ import eu.actorsproject.xlim.dependence.CallGraph;
 class Design implements XlimDesign {
 
 	private String mName;
-	private Factory mFactory;
 	private CallGraph mCallGraph;
 	
 	protected ArrayList<XlimTopLevelPort> mInputPorts, mOutputPorts, mInternalPorts;
@@ -65,9 +64,8 @@ class Design implements XlimDesign {
 	protected ArrayList<XlimTaskModule> mTasks;
 	protected ArrayList<XmlElement> mChildren;
 	
-	public Design(String name, Factory factory) {
+	public Design(String name) {
 		mName = name;
-		mFactory = factory;
 		mInputPorts = new ArrayList<XlimTopLevelPort>();
 		mOutputPorts = new ArrayList<XlimTopLevelPort>();
 		mInternalPorts = new ArrayList<XlimTopLevelPort>();
@@ -130,15 +128,15 @@ class Design implements XlimDesign {
 
 	@Override
 	public XlimStateVar addStateVar(String sourceName, XlimInitValue initValue) {
-		XlimStateVar stateVar = mFactory.createStateVar(sourceName, initValue);
+		XlimStateVar stateVar = new StateVar(sourceName,initValue);
 		mStateVars.add(stateVar);
 		mChildren.add(stateVar);
 		return stateVar;
 	}
 
 	@Override
-	public XlimTaskModule addTask(String kind, String name, boolean autostart) {
-		XlimTaskModule task = mFactory.createTask(kind,name,autostart,null);
+	public XlimTaskModule addTask(String kind, String name, boolean isAutostart) {
+		XlimTaskModule task = new TaskModule(kind, name, isAutostart);
 		mTasks.add(task);
 		mChildren.add(task);
 		return task;
@@ -146,7 +144,7 @@ class Design implements XlimDesign {
 
 	@Override
 	public XlimTopLevelPort addTopLevelPort(String name, Direction dir, XlimType type) {
-		XlimTopLevelPort port = mFactory.createTopLevelPort(name,dir,type);
+		XlimTopLevelPort port = new TopLevelPort(name,dir,type);
 		switch (dir) {
 		case in:
 			mInputPorts.add(port);

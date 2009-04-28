@@ -41,6 +41,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 
+import org.w3c.dom.NamedNodeMap;
+
 
 import eu.actorsproject.util.Linkage;
 import eu.actorsproject.util.XmlElement;
@@ -57,19 +59,20 @@ import eu.actorsproject.xlim.dependence.InputValueIteration;
 import eu.actorsproject.xlim.dependence.ValueNode;
 import eu.actorsproject.xlim.dependence.ValueOperator;
 import eu.actorsproject.xlim.dependence.ValueUsage;
+import eu.actorsproject.xlim.io.ReaderContext;
 
 class Operation extends Linkage<AbstractBlockElement> 
                        implements XlimOperation, Instruction, AbstractBlockElement {
 
-	private OperationKind mKind;
+	protected OperationKind mKind;
 	private ContainerModule mParent;
 	private ArrayList<InputPort> mInputs;
 	private ArrayList<OutputPort> mOutputs;
 	
 	public Operation(OperationKind kind,
-	                        Collection<? extends XlimSource> inputs,
-	                        Collection<? extends XlimOutputPort> outputs,
-	                        ContainerModule parent) {
+	                 Collection<? extends XlimSource> inputs,
+	                 Collection<? extends XlimOutputPort> outputs,
+	                 ContainerModule parent) {
 		mKind=kind;
 		mParent=parent;
 		mInputs = new ArrayList<InputPort>(inputs.size());
@@ -165,7 +168,7 @@ class Operation extends Linkage<AbstractBlockElement>
 	
 	@Override
 	public String getKind() {
-		return mKind.toString();
+		return mKind.getKindAttribute();
 	}
 
 	@Override
@@ -226,6 +229,10 @@ class Operation extends Linkage<AbstractBlockElement>
 	@Override
 	public boolean setBlockingStyle() {
 		return false;
+	}
+	
+	void setAttributes(NamedNodeMap attributes, ReaderContext context) {
+		mKind.setAttributes(this,attributes,context);
 	}
 	
 	@Override

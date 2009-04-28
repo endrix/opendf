@@ -37,23 +37,20 @@
 
 package eu.actorsproject.xlim.type;
 
-import org.w3c.dom.NamedNodeMap;
+import eu.actorsproject.xlim.util.XlimFeature;
 
-import eu.actorsproject.xlim.XlimType;
+/**
+ * @author ecarvon
+ *
+ */
+public class BasicXlimTypes extends XlimFeature {
 
-public interface TypeFactory {
+	@Override
+	public void initialize(TypeSystem typeSystem) {
+		TypeKind boolKind=new SingletonTypeKind(new BooleanType());
+		TypeKind intKind=new IntegerTypeKind();
 		
-	TypeKind getTypeKind(String typeName);
-	
-	// TODO: replace by create w parameter
-	XlimType createInteger(int size);
-	
-	// TODO: replace by "plain" create
-	XlimType createBoolean();
-	
-	XlimType create(String typeName);
-	
-	XlimType create(String typeName, Object param);
-	
-	XlimType create(String typeName, NamedNodeMap attributes);	
+		typeSystem.addTypeKind(boolKind);
+		typeSystem.addTypeKind(intKind);
+	}
 }

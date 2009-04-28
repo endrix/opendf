@@ -37,37 +37,26 @@
 
 package eu.actorsproject.xlim.type;
 
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Node;
 import eu.actorsproject.xlim.XlimType;
 
-public abstract class TypeKindPlugIn {
-	
-	private String mTypeName;
-	
-	public TypeKindPlugIn(String typeName) {
-		mTypeName=typeName;
+/**
+ * @author ecarvon
+ *
+ */
+public class WildCardTypePattern implements TypePattern {
+
+	@Override
+	public Match match(XlimType t) {
+		return Match.PromotedType; // Not an exact match
+	}
+
+	@Override
+	public TypeKind patternTypeKind() {
+		return null; // All types matched -no maximal TypeKind
 	}
 	
-	public String getTypeName() {
-		return mTypeName;
+	@Override
+	public String toString() {
+		return "?";
 	}
-	
-	protected String getAttribute(String name, NamedNodeMap attributes) {
-		Node node=attributes.getNamedItem(name);
-		if (node==null)
-			return null;
-		else
-			return node.getNodeValue();
-	}
-	
-	protected Integer getIntegerAttribute(String name, NamedNodeMap attributes) {
-		String value=getAttribute(name,attributes);
-		if (value!=null)
-			return Integer.valueOf(value);
-		else
-			return null;
-	}
-	
-	public abstract XlimType getType(NamedNodeMap attributes);
 }
