@@ -54,20 +54,20 @@ import eu.actorsproject.xlim.XlimOutputPort;
 import eu.actorsproject.xlim.XlimSource;
 import eu.actorsproject.xlim.XlimType;
 import eu.actorsproject.xlim.dependence.FixupContext;
-import eu.actorsproject.xlim.type.TypeFactory;
-import eu.actorsproject.xlim.util.Session;
 
 
 abstract class ContainerModule extends AbstractModule implements XlimContainerModule {
 
 	private String mKind;
+	private Factory mFactory;
 	private boolean mMutex;
 	
 	protected ElementList mChildren;
 	
-	public ContainerModule(String kind, AbstractModule parent) {
+	public ContainerModule(String kind, AbstractModule parent, Factory factory) {
 		super(parent);
 		mKind = kind;
+		mFactory = factory;
 		mChildren = new ElementList();
 	}
 
@@ -114,117 +114,100 @@ abstract class ContainerModule extends AbstractModule implements XlimContainerMo
 
 	@Override
 	public XlimBlockModule addBlockModule(String kind) {
-		BlockModule module = new BlockModule(kind,this);
+		BlockModule module = mFactory.createBlockModule(kind,this);
 		mChildren.add(module);
 		return module;
 	}
 
 	@Override
 	public XlimIfModule addIfModule() {
-		IfModule module = new IfModule(this);
+		IfModule module = mFactory.createIfModule(this);
 		mChildren.add(module);
 		return module;
 	}
 
 	@Override
 	public XlimLoopModule addLoopModule() {
-		LoopModule module = new LoopModule(this);
+		LoopModule module = mFactory.createLoopModule(this);
 		mChildren.add(module);
 		return module;
 	}
 
 	@Override
-	public XlimOperation addOperation(String name,
+	public void addOperation(XlimOperation xlimOp) {
+		assert(xlimOp instanceof Operation);
+		// TODO: pointless to set the parent in createOperation only to check it here...
+		assert(xlimOp.getParentModule()==this);
+		Operation op=(Operation) xlimOp;
+		op.typecheck();
+		mChildren.add(op);
+	}
+
+	@Override
+	public XlimOperation createOperation(String kind,
 			List<? extends XlimSource> inputs,
 			List<? extends XlimOutputPort> outputs) {
-		OperationFactory fact=Session.getOperationFactory();
-		Operation op = fact.createOperation(name, inputs, outputs, this);
-		mChildren.add(op);
-		return op;
+		return mFactory.createOperation(kind,inputs,outputs,this);
 	}
 	
 	@Override
-	public XlimOperation addOperation(String kind, List<? extends XlimSource> inputs) {
-		OperationFactory fact=Session.getOperationFactory();
-		Operation op = fact.createOperation(kind, inputs, this);
-		mChildren.add(op);
-		return op;
+	public XlimOperation createOperation(String kind, List<? extends XlimSource> inputs) {
+		return mFactory.createOperation(kind, inputs, this);
 	}
 	
 	@Override
-	public XlimOperation addOperation(String kind) {
+	public XlimOperation createOperation(String kind) {
 		List<XlimSource> empty=Collections.emptyList();
-		return addOperation(kind, empty);
+		return createOperation(kind, empty);
 	}
 	
 	@Override
-	public XlimOperation addOperation(String kind, XlimSource input) {
-		return addOperation(kind, Collections.singletonList(input));
+	public XlimOperation createOperation(String kind, XlimSource input) {
+		return createOperation(kind, Collections.singletonList(input));
 	}
 	
 	@Override
-	public XlimOperation addOperation(String kind, XlimSource input1, XlimSource input2) {
+	public XlimOperation createOperation(String kind, XlimSource input1, XlimSource input2) {
 		ArrayList<XlimSource> inputs=new ArrayList<XlimSource>(2);
 		inputs.add(input1);
 		inputs.add(input2);
-		return addOperation(kind, inputs);
+		return createOperation(kind, inputs);
 	}
 	
 	@Override
-	public XlimOperation addOperation(String kind, List<? extends XlimSource> inputs,  XlimType outT) {
-		XlimOutputPort output=new OutputPort(outT);
-		return addOperation(kind, inputs, Collections.singletonList(output));
+	public XlimOperation createOperation(String kind, List<? extends XlimSource> inputs,  XlimType outT) {
+		XlimOutputPort output=mFactory.createOutputPort(outT);
+		return createOperation(kind, inputs, Collections.singletonList(output));
 	}
 	
 	@Override
-	public XlimOperation addOperation(String kind, XlimType outT) {
+	public XlimOperation createOperation(String kind, XlimType outT) {
 		List<XlimSource> inputs=Collections.emptyList();
-		return addOperation(kind, inputs, outT);
+		return createOperation(kind, inputs, outT);
 	}
 	
 	@Override
-	public XlimOperation addOperation(String kind, XlimSource input, XlimType outT) {
-		return addOperation(kind, Collections.singletonList(input), outT);
+	public XlimOperation createOperation(String kind, XlimSource input, XlimType outT) {
+		return createOperation(kind, Collections.singletonList(input), outT);
 	}
 	
 	@Override
-	public XlimOperation addOperation(String kind, 
+	public XlimOperation createOperation(String kind, 
 			                          XlimSource input1, XlimSource input2, XlimType outT) {
 		List<XlimSource> inputs=new ArrayList<XlimSource>(2);
 		inputs.add(input1);
 		inputs.add(input2);
-		return addOperation(kind, inputs, outT);
-	}
-	
-	private Operation createLiteral(XlimType type, ContainerModule parent) {
-		List<XlimSource> inputs=Collections.emptyList();
-		XlimOutputPort output=new OutputPort(type);
-		OperationFactory fact=Session.getOperationFactory();
-		return fact.createOperation("$literal_Integer",
-                                    inputs,
-                                    Collections.singletonList(output),
-				                    this);
+		return createOperation(kind, inputs, outT);
 	}
 	
 	@Override
-	public XlimOperation addLiteral(long value) {
-		int width=LiteralIntegerTypeRule.actualWidth(value);
-		TypeFactory typeFact=Session.getTypeFactory();
-		XlimType intType=typeFact.create("int", width);
-		Operation op = createLiteral(intType, this);
-		op.setIntegerValueAttribute(value);
-		mChildren.add(op);
-		return op;
+	public XlimOperation createLiteral(long value) {
+		return mFactory.createLiteral(value, this);
 	}
 	
 	@Override
-	public XlimOperation addLiteral(boolean value) {
-		TypeFactory typeFact=Session.getTypeFactory();
-		XlimType boolType=typeFact.create("bool");
-		Operation op = createLiteral(boolType, this);
-		op.setIntegerValueAttribute(value? 1 : 0);
-		mChildren.add(op);
-		return op;
+	public XlimOperation createLiteral(boolean value) {
+		return mFactory.createLiteral(value, this);
 	}
 	
 	@Override

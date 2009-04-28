@@ -37,23 +37,52 @@
 
 package eu.actorsproject.xlim.type;
 
-import org.w3c.dom.NamedNodeMap;
-
 import eu.actorsproject.xlim.XlimType;
 
-public interface TypeFactory {
-		
-	TypeKind getTypeKind(String typeName);
+class IntegerType implements XlimType {
+	private int mSize;
 	
-	// TODO: replace by create w parameter
-	XlimType createInteger(int size);
+	IntegerType(int size) {
+		mSize=size;
+	}
 	
-	// TODO: replace by "plain" create
-	XlimType createBoolean();
+	@Override
+	public int getSize() { 
+		return mSize; 
+	}
 	
-	XlimType create(String typeName);
+	@Override
+	public String getTypeName() { 
+		return "int"; 
+	}
 	
-	XlimType create(String typeName, Object param);
+	@Override
+	public String getAttributeDefinitions() {
+		return "typeName=\"int\" size=\"" + mSize + "\"";
+	}
 	
-	XlimType create(String typeName, NamedNodeMap attributes);	
+	@Override
+	public String toString() {
+		return "int(size="+mSize+")";
+	}
+	
+	@Override
+	public long minValue() {
+		return ((long) -1)<<(mSize-1);
+	}
+	
+	@Override
+	public long maxValue() {
+		return ~minValue();
+	}
+	
+	@Override
+	public boolean isBoolean() {
+		return false;
+	}
+	
+	@Override
+	public boolean isInteger() {
+		return true;
+	}
 }

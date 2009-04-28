@@ -41,16 +41,34 @@ import java.io.File;
 import java.io.PrintStream;
 
 import eu.actorsproject.xlim.XlimDesign;
-import eu.actorsproject.xlim.implementation.DefaultXlimImplementation;
+import eu.actorsproject.xlim.implementation.BasicXlimOperations;
+import eu.actorsproject.xlim.implementation.SoftwareExtensions;
 import eu.actorsproject.xlim.io.XlimReader;
+import eu.actorsproject.xlim.type.BasicXlimTypes;
+import eu.actorsproject.xlim.util.Session;
 import eu.actorsproject.xlim.util.XlimTransformer;
 import eu.actorsproject.xlim.xlim2c.CCodeGenerator;
 
-public class Xlim2c {
+public class Xlim2c extends Session {
 	
-	protected XlimReader mReader = new XlimReader(new DefaultXlimImplementation());
-	protected XlimTransformer mTransformer = new XlimTransformer();
-	protected CCodeGenerator mCodeGen = new CCodeGenerator();
+	protected XlimReader mReader; 
+	protected XlimTransformer mTransformer;
+	protected CCodeGenerator mCodeGen; 
+	
+	public Xlim2c() {
+		register(new BasicXlimTypes());
+		register(new BasicXlimOperations());
+		register(new SoftwareExtensions());
+	}
+	
+	@Override
+	protected void initSession(String args[]) {
+		// Constructions of fields after initialization of session
+		super.initSession(args);
+		mReader = new XlimReader();
+		mTransformer = new XlimTransformer();
+		mCodeGen = new CCodeGenerator();
+	}
 	
 	public void compile(File input, PrintStream output) {
 		XlimDesign design=null;
@@ -101,6 +119,7 @@ public class Xlim2c {
 	
 	public static void main(String[] args) {
 		Xlim2c compilerSession=new Xlim2c();
+		compilerSession.initSession(args);
 		compilerSession.compile(args);
 	}
 }

@@ -37,23 +37,46 @@
 
 package eu.actorsproject.xlim.type;
 
-import org.w3c.dom.NamedNodeMap;
+import java.util.List;
 
+import eu.actorsproject.xlim.XlimOperation;
+import eu.actorsproject.xlim.XlimOutputPort;
+import eu.actorsproject.xlim.XlimSource;
 import eu.actorsproject.xlim.XlimType;
 
-public interface TypeFactory {
-		
-	TypeKind getTypeKind(String typeName);
+/**
+ * TypeRule for void-valued operations with no required typechecking
+ * (other than what is given by matching the signature)
+ */
+public class VoidTypeRule extends TypeRule {
+
+	public VoidTypeRule(Signature signature) {
+		super(signature);
+	}
+
+	@Override
+	public boolean matchesOutputs(List<? extends XlimOutputPort> outputs) {
+		return outputs.isEmpty();
+	}
 	
-	// TODO: replace by create w parameter
-	XlimType createInteger(int size);
+	@Override
+	public int defaultNumberOfOutputs() {
+		return 0;
+	}
 	
-	// TODO: replace by "plain" create
-	XlimType createBoolean();
 	
-	XlimType create(String typeName);
-	
-	XlimType create(String typeName, Object param);
-	
-	XlimType create(String typeName, NamedNodeMap attributes);	
+	@Override
+	public XlimType defaultOutputType(List<? extends XlimSource> inputs, int i) {
+		throw new UnsupportedOperationException("VoidTypeRule: defaultOutputType");
+	}
+
+	@Override
+	public XlimType actualOutputType(XlimOperation op, int i) {
+		throw new UnsupportedOperationException("VoidTypeRule: actualOutputType");
+	}
+
+	@Override
+	protected String outputToString() {
+		return "()"; // void
+	}
 }

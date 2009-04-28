@@ -46,8 +46,8 @@ class BlockModule extends ContainerModule implements XlimBlockModule, AbstractBl
 
 	ContainerModule mParent;
 	
-	public BlockModule(String kind, ContainerModule parent, Factory factory) {
-		super(kind, parent, factory);
+	public BlockModule(String kind, ContainerModule parent) {
+		super(kind, parent);
 		mParent=parent;
 	}
 

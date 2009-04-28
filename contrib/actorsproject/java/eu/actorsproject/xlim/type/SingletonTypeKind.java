@@ -41,7 +41,7 @@ import org.w3c.dom.NamedNodeMap;
 
 import eu.actorsproject.xlim.XlimType;
 
-public class SingletonTypeKind extends TypeKindPlugIn {
+public class SingletonTypeKind extends TypeKind {
 
 	private XlimType mSingleton;
 	
@@ -50,9 +50,17 @@ public class SingletonTypeKind extends TypeKindPlugIn {
 		mSingleton=singleton;
 	}
 	
+	@Override
 	public XlimType getType() {
 		return mSingleton;
 	}
+	
+	@Override
+	public XlimType getType(Object param) {
+		throw new UnsupportedOperationException("Type "+getTypeName()+" takes no parameter");
+	}
+	
+	@Override
 	public XlimType getType(NamedNodeMap attributes) {
 		return mSingleton;
 	}

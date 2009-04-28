@@ -168,8 +168,8 @@ public class NativeTypeTransformation {
 
 			if (mKind==TransformKind.SignExtend) {
 				XlimOperation sex=module.addOperation("signExtend", 
-						                              oldSource, 
-						                              mExtendToType);
+						                               oldSource, 
+						                               mExtendToType);
 				sex.setIntegerValueAttribute(mFromWidth);
 				newSource=sex.getOutputPort(0);
 				
@@ -245,8 +245,8 @@ public class NativeTypeTransformation {
 
 			// Generate sign-extension
 			XlimOperation sex=module.addOperation("signExtend", 
-						                           oldOut, 
-						                           mExtendToType);
+						                             oldOut, 
+						                             mExtendToType);
 			sex.setIntegerValueAttribute(mFromWidth);
 			XlimOutputPort newOut=sex.getOutputPort(0);
 			
@@ -723,7 +723,7 @@ public class NativeTypeTransformation {
 				XlimOperation op=output.getParent().isOperation();
 				long value=op.getIntegerValueAttribute();
 				int width=1;
-				if (value>=256 || value<-256) {
+				while (value>=256 || value<-256) {
 					width+=8;
 					value>>=8;
 				}

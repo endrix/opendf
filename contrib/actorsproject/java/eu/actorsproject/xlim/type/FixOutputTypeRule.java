@@ -37,23 +37,50 @@
 
 package eu.actorsproject.xlim.type;
 
-import org.w3c.dom.NamedNodeMap;
+import java.util.List;
 
+import eu.actorsproject.xlim.XlimOperation;
+import eu.actorsproject.xlim.XlimOutputPort;
+import eu.actorsproject.xlim.XlimSource;
 import eu.actorsproject.xlim.XlimType;
 
-public interface TypeFactory {
-		
-	TypeKind getTypeKind(String typeName);
+/**
+ * A TypeRule, with a fix output type
+ */
+public class FixOutputTypeRule extends TypeRule {
+
+	protected XlimType mDefaultType;
 	
-	// TODO: replace by create w parameter
-	XlimType createInteger(int size);
+	public FixOutputTypeRule(Signature signature, XlimType defaultType) {
+		super(signature);
+		mDefaultType=defaultType;
+	}
+
+	@Override
+	public boolean matchesOutputs(List<? extends XlimOutputPort> outputs) {
+		return outputs.size()==1 && outputs.get(0).getType()==mDefaultType;
+	}
 	
-	// TODO: replace by "plain" create
-	XlimType createBoolean();
+	@Override
+	public int defaultNumberOfOutputs() {
+		return 1;
+	}
 	
-	XlimType create(String typeName);
 	
-	XlimType create(String typeName, Object param);
+	@Override
+	public XlimType defaultOutputType(List<? extends XlimSource> inputs, int i) {
+		assert(i==0);
+		return mDefaultType;
+	}
 	
-	XlimType create(String typeName, NamedNodeMap attributes);	
+	@Override
+	public XlimType actualOutputType(XlimOperation op, int i) {
+		assert(i==0);
+		return mDefaultType;
+	}
+
+	@Override
+	protected String outputToString() {
+		return mDefaultType.toString(); 
+	}
 }

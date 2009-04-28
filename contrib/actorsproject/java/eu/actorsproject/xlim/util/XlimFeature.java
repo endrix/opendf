@@ -35,25 +35,23 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package eu.actorsproject.xlim.type;
+package eu.actorsproject.xlim.util;
 
-import org.w3c.dom.NamedNodeMap;
+import eu.actorsproject.xlim.implementation.InstructionSet;
+import eu.actorsproject.xlim.type.TypeSystem;
 
-import eu.actorsproject.xlim.XlimType;
+/**
+ * An XlimFeature packages features ("extensions"): types and operations
+ * Used by Session to initialize type system and instruction set (in that order).
+ * 
+ * Override methods as appropriate -default implementation is the
+ * "empty" extension
+ */
+public class XlimFeature {
 
-public interface TypeFactory {
-		
-	TypeKind getTypeKind(String typeName);
+	public void initialize(TypeSystem typeSystem) {
+	}
 	
-	// TODO: replace by create w parameter
-	XlimType createInteger(int size);
-	
-	// TODO: replace by "plain" create
-	XlimType createBoolean();
-	
-	XlimType create(String typeName);
-	
-	XlimType create(String typeName, Object param);
-	
-	XlimType create(String typeName, NamedNodeMap attributes);	
+	public void initialize(InstructionSet instructionSet) {
+	}
 }

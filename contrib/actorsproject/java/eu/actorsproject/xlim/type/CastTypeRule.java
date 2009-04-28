@@ -37,23 +37,55 @@
 
 package eu.actorsproject.xlim.type;
 
-import org.w3c.dom.NamedNodeMap;
+import java.util.List;
 
+import eu.actorsproject.xlim.XlimOperation;
+import eu.actorsproject.xlim.XlimOutputPort;
+import eu.actorsproject.xlim.XlimSource;
 import eu.actorsproject.xlim.XlimType;
+import eu.actorsproject.xlim.util.Session;
 
-public interface TypeFactory {
-		
-	TypeKind getTypeKind(String typeName);
+/**
+ * @author ecarvon
+ *
+ */
+public class CastTypeRule extends TypeRule {
+
+	public CastTypeRule() {
+		super(new Signature(new WildCardTypePattern()));
+	}
+
+	@Override
+	public int defaultNumberOfOutputs() {
+		return 1;
+	}
+
+	@Override
+	public boolean matchesOutputs(List<? extends XlimOutputPort> outputs) {
+		return outputs.size()==1;
+	}
 	
-	// TODO: replace by create w parameter
-	XlimType createInteger(int size);
+	@Override
+	public XlimType actualOutputType(XlimOperation op, int i) {
+		// Not possible to deduce the type, it simply is the type of the output
+		return op.getOutputPort(i).getType();
+	}
+
 	
-	// TODO: replace by "plain" create
-	XlimType createBoolean();
-	
-	XlimType create(String typeName);
-	
-	XlimType create(String typeName, Object param);
-	
-	XlimType create(String typeName, NamedNodeMap attributes);	
+	@Override
+	public XlimType defaultOutputType(List<? extends XlimSource> inputs, int i) {
+		throw new UnsupportedOperationException("CastTypeRule: defaultOutputType");
+	}
+
+	@Override
+	public boolean typecheck(XlimOperation op) {
+		XlimType tOut=op.getOutputPort(0).getType();
+		if (tOut!=null) {
+			XlimType tIn=op.getInputPort(0).getSource().getSourceType();
+			TypeKind kindOut=Session.getTypeFactory().getTypeKind(tOut.getTypeName());
+			return kindOut.hasConversionFrom(tIn);
+		}
+		else
+			return false; // output type required -there is no default 
+	}
 }

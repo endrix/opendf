@@ -65,10 +65,10 @@ abstract class PhiContainerModule extends AbstractModule
 	private PhiList<PhiNode> mPhiNodes;
 	private PhiList<StatePhiOperator> mStatePhis; // state variables/ports
 	
-	protected PhiContainerModule(ContainerModule parent, Factory factory) {
+	protected PhiContainerModule(ContainerModule parent) {
 		super(parent);
 		mParent=parent;
-		mTestModule = factory.createTestModule(this);
+		mTestModule = new TestModule(this);
 		mPhiNodes=new PhiList<PhiNode>();
 		mStatePhis=new PhiList<StatePhiOperator>();
 	}
@@ -222,8 +222,8 @@ abstract class PhiContainerModule extends AbstractModule
 	
 	protected class SubModule extends ContainerModule {
 		
-		public SubModule(String kind, Factory factory) {
-			super(kind, PhiContainerModule.this, factory);
+		public SubModule(String kind) {
+			super(kind, PhiContainerModule.this);
 		}
 		
 		@Override

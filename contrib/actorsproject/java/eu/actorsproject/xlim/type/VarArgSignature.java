@@ -37,23 +37,48 @@
 
 package eu.actorsproject.xlim.type;
 
-import org.w3c.dom.NamedNodeMap;
+import java.util.List;
 
-import eu.actorsproject.xlim.XlimType;
+/**
+ * Represents the signature of an operation: type patterns of input ports,
+ * the last of which may be repeated indefinitely
+ */
+public class VarArgSignature extends Signature {
 
-public interface TypeFactory {
-		
-	TypeKind getTypeKind(String typeName);
+	public VarArgSignature(TypePattern p) {
+		super(p);
+	}
 	
-	// TODO: replace by create w parameter
-	XlimType createInteger(int size);
+	public VarArgSignature(TypePattern p1, TypePattern p2) {
+		super(p1,p2);
 	
-	// TODO: replace by "plain" create
-	XlimType createBoolean();
+	}
 	
-	XlimType create(String typeName);
+	public VarArgSignature(List<TypePattern> patterns) {
+		super(patterns);
+	}
+
+	@Override
+	protected boolean matchesArity(int arity) {
+		return arity>=mPatterns.size();
+	}
 	
-	XlimType create(String typeName, Object param);
+	@Override
+	protected TypePattern getPattern(int i) {
+		if (i>=mPatterns.size())
+			i=mPatterns.size()-1;
+		return mPatterns.get(i);
+	}
 	
-	XlimType create(String typeName, NamedNodeMap attributes);	
+	@Override
+	public String toString() {
+		String result="(";
+		String delimiter="";
+		for (TypePattern p: mPatterns) {
+			result += delimiter + p.toString();
+			delimiter=",";
+		}
+		result += "...)";
+		return result;
+	}
 }
