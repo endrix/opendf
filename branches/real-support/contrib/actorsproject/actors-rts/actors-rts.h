@@ -111,6 +111,9 @@ struct ActorClass {
 	void			(*constructor)(AbstractActorInstance*);
 	void			(*destructor)(AbstractActorInstance*);
 	void			(*set_param)(AbstractActorInstance*,int,                       ActorParameter*);
+	int				*inputPortSizes;
+	int				*outputPortSizes;
+	int				actorExecMode;
 };
 
 typedef struct {

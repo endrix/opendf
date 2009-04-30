@@ -40,6 +40,7 @@ package eu.actorsproject.xlim.xlim2c;
 import java.io.File;
 import java.io.PrintStream;
 import java.util.Date;
+import java.util.List;
 
 import eu.actorsproject.util.OutputGenerator;
 import eu.actorsproject.xlim.XlimInitValue;
@@ -131,12 +132,40 @@ public class Actor2c extends OutputGenerator {
 			index++;
 		}
 	}
-	
+
+	protected void definePortSizes(List<? extends XlimTopLevelPort> ports,
+			                         String name) {
+		println();
+
+		if (ports.isEmpty())
+			println("#define "+name+" 0 /* empty */");
+		else {	
+			boolean first=true;
+		
+			println("static int "+name+"[]={");
+			increaseIndentation();
+			for (XlimTopLevelPort p: ports) {
+				if (!first)
+					println(",");
+				first=false;
+				
+				String type=mSymbols.getTargetTypeName(p.getType());
+				print("sizeof("+type+")");
+			}
+			decreaseIndentation();
+			println();
+			println("};");
+		}
+	}
 	/**
 	 * Generate the actor class struct (which is used to instantiate the actor)
 	 */
 	protected void defineActorClass() {
-		// Constructor prototype
+		// Define input/output port sizes
+		definePortSizes(mDesign.getInputPorts(), "inputPortSizes");
+		definePortSizes(mDesign.getOutputPorts(), "outputPortSizes");
+		
+		// ActorClass
 		println();
 		println(sActorClassType+" "+mSymbols.getActorClassName()+" ={");
 		increaseIndentation();
@@ -145,7 +174,12 @@ public class Actor2c extends OutputGenerator {
 		println(mDesign.getOutputPorts().size()+", /* numOutputPorts */");
 		println("sizeof("+sActorInstanceType+"),");
 		println(mSymbols.getTargetName(mDesign.getActionScheduler())+",");
-		println(sConstructorName);
+		println(sConstructorName+",");
+		println("0, /* destructor */");
+		println("0, /* set_param */");
+		println("inputPortSizes,");
+		println("outputPortSizes,");
+		println("0 /* actorExecMode */");
 		decreaseIndentation();
 		println("};");
 		println();
