@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="lib/source"/>
+	<classpathentry kind="src" path="source/java"/>
+	<classpathentry exported="true" kind="lib" path="lib/PtPlot.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry exported="true" kind="lib" path="source/xslt"/>
+	<classpathentry kind="lib" path="lib/saxon8.jar"/>
+	<classpathentry kind="lib" path="lib/saxon8-dom.jar"/>
+	<classpathentry kind="lib" path="lib/JFlex.jar"/>
+	<classpathentry kind="lib" path="/Applications/eclipse-3.4.1/plugins/org.eclipse.osgi_3.4.2.R34x_v20080826-1230.jar"/>
+	<classpathentry kind="lib" path="/Applications/eclipse-3.4.1/plugins/org.eclipse.core.runtime_3.4.0.v20080512.jar"/>
+	<classpathentry kind="output" path="classes"/>
+</classpath>

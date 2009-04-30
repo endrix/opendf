@@ -1,0 +1,632 @@
+
+\chapter{Basic runtime infrastructure}\label{app:Runtime}
+
+This appendix describes the basic runtime infrastructure, i.e. the
+kinds of objects and operations on them that implementations must
+provide in order to implement \Cal. A realistic
+implementation might support many more data types and have a much more
+extensive library of functions and procedures. Most of the facilities described in
+this appendix are used in \Cal constructs, such as collections in
+generators, or maps and sets in input patterns and output expressions. 
+
+\section{Operator symbols}\label{app:PredefOps}
+
+\index{operator!basic|(}
+\index{operator!predefined|(}
+
+The following table summarizes the predefined unary operator symbols
+in \Cal.
+
+\index{operator!basic!unary}
+\index{operator!predefined!unary}
+\index{unary operator!predefined}
+
+\begin{center}
+\begin{tabular}[h]{|r|c|l|}
+{\bf Operator}   &  {\bf Operand type} & {\bf Meaning}  \\
+\hline\hline
+{\tt not}   & {\tt Boolean} & logical negation \\\hline
+{\tt \#}    & {\tt Collection[T]} & number of elements \\ \cline{2-3}
+            & {\tt Map[K, V]} & number of mappings \\\hline
+{\tt dom}   & {\tt Map[K, V]} & domain of a map \\\hline
+{\tt rng}   & {\tt Map[K, V]} & range of a map \\\hline
+{\tt -}     & {\tt Number} & arithmetic negation \\ \hline
+\end{tabular}
+\end{center}\vspace{3mm}
+
+\index{operator!precedence}
+\index{operator!binding strength}
+
+The next table lists the predefined binary operator symbols in the
+\Cal language. They are sorted by increasing binding strength. Their
+binding strength is given by a precedence figure $P$, higher precedence
+binds stronger.
+
+\index{operator!basic!binary}
+\index{operator!predefined!binary}
+\index{binary operator!predefined}
+\index{operator!symbols}
+
+\begin{center}
+\begin{tabular}[h]{|c|r|c|c|p{3.5cm}|}
+{\bf P} & {\bf Operator}  & {\bf Operand 1} & {\bf Operand 2} & {\bf Meaning}  \\
+\hline\hline
+1 & {\tt and}  & {\tt Boolean} & {\tt Boolean} & logical conjunction \\ \cline{2-5}
+  & {\tt or}   & {\tt Boolean} & {\tt Boolean} & logical disjunction \\ \hline
+
+2  & {\tt =}     & {\tt Object} & {\tt Object} & equality \\ \cline{2-5}
+   & {\tt !=}    & {\tt Object} & {\tt Object} & inequality \\ \cline{2-5}
+   & {\tt <}     & {\tt Number} & {\tt Number} &  less than\\ \cline{3-5}
+   &             & {\tt Set[T]} & {\tt Set[T]} &  \\ \cline{3-5}
+            &    & {\tt String} & {\tt String} &  \\ \cline{3-5}
+            &    & {\tt Character} & {\tt Character} &  \\ \cline{2-5}
+   & {\tt <=}     & \multicolumn{2}{c|}{\em analogous to {\tt <}} &  less then or equal \\ \cline{2-5}
+   & {\tt >}      & \multicolumn{2}{c|}{\em analogous to {\tt <}} &  greater than \\ \cline{2-5}
+   & {\tt >=}     & \multicolumn{2}{c|}{\em analogous to {\tt <}} &  greater than or equal \\ \hline
+
+3 & {\tt in}    & {\tt T} & {\tt Collection[T]} & membership \\\hline
+
+4 & {\tt +}     & {\tt Number} & {\tt Number} &  addition \\ \cline{3-5}
+  &           &  {\tt Set[T]} & {\tt Set[T]} & union \\ \cline{3-5}
+  &           &  {\tt List[T]} & {\tt List[T]} & concatenation \\ \cline{3-5}
+  &           &  {\tt Map[K, V]} & {\tt Map[K, V]} & map union \\ \cline{2-5}
+  & {\tt -}     & {\tt Number} & {\tt Number} & difference \\ \cline{3-5}
+  &           &  {\tt Set[T]} & {\tt Set[T]} & set difference \\ \hline
+
+5 & {\tt div}   & {\tt Number} & {\tt Number} & integral division \\ \cline{2-5}
+  & {\tt mod}   & {\tt Number} & {\tt Number} & modulo \\ \cline{2-5}
+  & {\tt *}     & {\tt Number} & {\tt Number} & multiplication \\ \cline{3-5}
+  &             & {\tt Set[T]} & {\tt Set} & intersection \\ \cline{2-5}
+  & {\tt /}     & {\tt Number} & {\tt Number} & division \\ \hline
+
+6 & $\widehat{\ }$  & {\tt Number} & {\tt Number} & exponentiation \\ \hline
+
+\end{tabular}
+\end{center}
+
+\index{operator!predefined|)}
+\index{operator!basic|)}
+
+
+\section{Basic data types and their operations}\label{app:BasicTypes}
+
+This section shortly lists the basic data types used by \Cal,
+describes their fundamental properties, and the operations they can be
+expected to support.
+
+Many of the basic data types are {\em composite}, i.e. elements of
+these types may be objects that contain other objects. In the cases
+presented in this section, such a composite can be recursively
+decomposed into a subobject and a residual composite, until a
+canonical {\em empty} composite is reached. Functions operating on
+such composites can often easily be described by
+using\sidenote{selector function} {\em selector
+  functions}. A selector function takes a composite and another
+function as arguments. It picks one of the subobjects and passes it
+and the residual composite into the argument function. In the cases
+below, we can describe our composite data types by some properties of
+the data objects and the behavior of the selector function.
+
+
+\subsection{{\tt Collection[T]}---collections}\label{sect:Collections}
+
+\index{Collection@{\tt Collection} (type)|(}
+
+\index{selector function}
+
+An object of type {\tt Collection[T]} is a finite collection of
+objects of type {\tt T}. The most fundamental operation on it is {\em
+  selecting} an {\em element}, which is really dividing the collection
+into an element and a residual collection of the same kind.
+\sidenote{{\tt selectf}}The {\tt selectf} selector function does this,
+and has the following signature:
+
+\index{selector function!of collection}
+\index{selectf@{\tt selectf}!for collection}
+\index{Collection@{\tt Collection} (type)!selector function}
+
+\begin{alltt}  selectf<A, B>: [[A, Collection[A] --> B], 
+                  Collection[A], 
+                  B --> B]
+\end{alltt}
+
+Different kinds of collections may differ in the way the selector
+function picks the element from the collection (e.g., in the case of
+lists, it is guaranteed to pick the first element of the list, see
+\ref{sect:Lists}).
+
+The two \sidenote{size and membership}fundamental operations on a
+collection are computing its {\em size} and testing whether a given
+object is contained by it. These are represented by two operators, the
+prefix operator {\tt \#} and the infix operator {\tt in}. We assume
+that these are substituted by function calls as follows:
+
+\index{Collection@{\tt Collection} (type)!size|(}
+\index{size!of collection|(}
+\index{Collection@{\tt Collection} (type)!membership test|(}
+\index{membership test!in collection|(}
+\index{in@{\tt in} (operator)!on collection|(}
+\index{\#@{\tt \#}!on collection|(}
+
+\begin{tabular}[h]{c@{~$\equiv$~}l}
+  {\tt \# C} & {\tt \$size(C)}\\
+  {\tt a in C} & {\tt \$member(a, C)}
+\end{tabular}
+
+We can define the {\tt \$size} and {\tt \$member} functions using the
+{\tt selectf} function in the following manner:
+
+\begin{alltt}function \$size(C) : // prefix \#
+    selectf(lambda (a, C1) :
+              1 + \$size(C1)
+            end, C, 0)
+end  
+
+function \$member(x, C) :
+    selectf(lambda (a, C1) :
+                if a = x then true else 
+                    \$member(x, C1)
+                end
+            end, C, false) 
+end
+\end{alltt}
+
+\index{Collection@{\tt Collection} (type)!size|)}
+\index{size!of collection|)}
+\index{Collection@{\tt Collection} (type)!membership test|)}
+\index{membership test!in collection|)}
+\index{in@{\tt in} (operator)!on collection|)}
+\index{\#@{\tt \#}!on collection|)}
+
+\index{selector procedure!of collection}
+\index{selectp@{\tt selectp}!definition}
+
+Finally, we can define iteration over a collection by writing a
+procedure that works somewhat analogous to the {\tt selectf} function:
+
+\begin{alltt}procedure selectp(p, C) begin
+    selectf(lambda (a, C1) : 
+                proc () do p(a, C1); end 
+            end, 
+            C,
+            proc () do end)();
+    end 
+end
+\end{alltt}
+
+Consequently, the signature of {\tt selectp} is as follows:
+
+\begin{alltt}  selectp<A>: [[A, Collection[A] -->], Collection[A]]\end{alltt}
+
+\subsubsection{Generator functions and procedures}
+
+\index{\$mapadd@{\tt \$mapadd}!definition|(}
+
+The selection function and procedure also allow us to construct the
+various functions and procedures used in defining generators in
+\Cal. For instance, the {\tt \$mapadd} function used in comprehensions
+(see section \ref{sect:ComprehensionsWithGenerators}), which is slightly
+different depending on whether it produces a set, a list, or a map:
+
+\begin{alltt}function \$mapaddset (C, f) :
+    selectf(lambda (a, C1) : f(a) + \$mapaddset(C1, f) end, 
+            C, \{\})
+end
+
+function \$mapaddlist (C, f) :
+    selectf(lambda (a, C1) : f(a) + \$mapaddlist(C1, f) end, 
+            C, [])
+end
+
+function \$mapaddmap (M, f) :
+    selectf(lambda (a, M1) : f(a) + \$mapaddmap(M1, f) end, 
+            M, map \{\})
+end\end{alltt}
+
+\index{\$mapadd@{\tt \$mapadd}!definition|)}
+
+\index{\$iterate@{\tt \$iterate}!definition|(}
+
+The {\tt \$iterate} procedure used in the foreach-statement (see
+section \ref{sect:ForeachStmt}) can be built on top of {\tt selectp}
+as follows:
+
+\begin{alltt}procedure \$iterate (C, p) begin
+    selectp(proc (a, C1) do p(a); \$iterate(C1, p); end, C);
+end
+\end{alltt}
+
+\index{\$iterate@{\tt \$iterate}!definition|)}
+
+\index{\$try@{\tt \$try}!definition|(}
+
+Finally, the {\tt \$try} procedure used in the choose-statement (see
+section \ref{sect:NDChoice}) can be constructed as follows:
+
+\begin{alltt}procedure \$try (C, f, p) begin
+    selectp(proc (a, C1) do
+                if f() then
+                    p(a);
+                    \$try(C1, f, p);
+                end
+            end, C);
+end
+\end{alltt}
+
+\index{\$try@{\tt \$try}!definition|)}
+
+\index{Collection@{\tt Collection} (type)|)}
+
+
+\subsection{{\tt Seq[T]}---sequences}\label{sect:Sequences}
+
+\index{Seq@{\tt Seq} (type)|(}
+
+\index{Seq@{\tt Seq} (type)!index into}
+\index{Seq@{\tt Seq} (type)!finite|see{{\tt List} (type)}}
+\index{Seq@{\tt Seq} (type)!infinite}
+
+Sequences are arrangements of objects that are indexed by non-negative
+integers, starting at zero if not empty, and either ending at some maximal index
+$k$, or not at all. The first kind of sequence is called {\em finite
+  sequence} or {\em list} (see section \ref{sect:Lists}), the second
+kind is called {\em infinite sequence}.
+
+\index{selector function!of sequence}
+\index{selectf@{\tt selectf}!for sequence}
+\index{Seq@{\tt Seq} (type)!selector function}
+
+The selector function of sequences splits the non-empty
+sequence into its first element and the rest of the sequence:
+\begin{alltt}  selectf<A, B>: [[A, Seq[A] --> B], 
+                  Seq[A], 
+                  B --> B]
+\end{alltt}
+
+\index{Seq@{\tt Seq} (type)!indexer!definition|(}
+\index{Seq@{\tt Seq} (type)!hasElement@{\tt hasElement}!definition|(}
+\index{hasElement@{\tt hasElement}!definition|(}
+
+The\sidenote{{\tt hasElement}} only operations on sequences are
+indexing (using a single integral index) and testing whether a given
+non-negative integer is a valid index. They can be expressed in terms
+of the selector as follows:
+\begin{alltt}function \$nth(n, S) : // indexer
+    selectf(lambda (a, R) :
+                if n = 0 then a else
+                    \$nth(n - 1, R)
+                end, S, null)
+end
+
+function hasElement (n, S) :
+    selectf(lambda (a, R) :
+                if n = 0 then true else
+                    hasElement(n - 1, R)
+                end, S, false)
+end
+\end{alltt}
+
+\index{Seq@{\tt Seq} (type)!indexer!definition|)}
+\index{Seq@{\tt Seq} (type)!hasElement@{\tt hasElement}!definition|)}
+\index{hasElement@{\tt hasElement}!definition|)}
+
+\index{Seq@{\tt Seq} (type)|)}
+
+
+\subsection{{\tt Set[T] < Collection[T]}---sets}\label{sect:Sets}
+
+\index{Set@{\tt Set} (type)|(}
+
+\index{selector function!of set}
+\index{selectf@{\tt selectf}!for set}
+\index{Set@{\tt Set} (type)!selector function}
+
+Sets are a special kind of collection (see section
+\ref{sect:Collections}) that guarantee that each object occurs in them
+at most once. The selection function \sidenote{nondeterministic {\tt
+    selectf}}{\tt selectf} is {\em nondeterministic} on sets with two
+or more elements, i.e. it is unspecified which element will be chosen.
+
+\index{Set@{\tt Set} (type)!subset order}
+\index{subset order}
+
+Sets\sidenote{{\tt subset}: partial order} are partially ordered by
+the {\em subset} order, which can be defined as follows:
+\begin{alltt}function subset(S1, S2) :
+    selectf(lambda (a, S) :
+                if a in S2 then
+                    subset(S, S2)
+                else
+                    false
+                end
+            end, S1, true)
+end\end{alltt}
+
+\index{Set@{\tt Set} (type)!comparison operators}
+\index{Set@{\tt Set} (type)!equality}
+
+The\sidenote{set equality} comparison operators ({\tt <}, {\tt <=},
+{\tt >}, {\tt >=}) are based on the subset order. In addition, two
+sets are considered {\em equal} if they are subsets of each other,
+i.e. they contain the same elements.
+
+\index{Set@{\tt Set} (type)!construction}
+\index{Set@{\tt Set} (type)!addElement@{\tt addElement}}
+
+The\sidenote{\tt addElement} fundamental way of constructing sets is
+to add one element to an existing set. This can be done using the
+function {\tt addElement}, which has the following signature:
+\begin{alltt}
+  addElement<T> : [T, Set[T] --> Set[T]]
+\end{alltt}
+The result of {\tt addElement(a, S)} is the smallest set that contains
+both, {\tt a} and all the elements in {\tt S}.
+
+\index{Set@{\tt Set} (type)!union|(}
+\index{Set@{\tt Set} (type)!intersection|(}
+\index{Set@{\tt Set} (type)!difference|(}
+
+
+Sets also have operators for union ({\tt +}), intersection ({\tt *})
+and set difference ({\tt -}), which can be defined as follows:
+
+\begin{alltt}function \$union (S1, S2) : // infix +
+    selectf(lambda(a, S) :
+                addElement(a, \$union(S, S2))
+            end, S1, \{\})
+end
+
+function \$intersection(S1, S2) : // infix *
+    selectf(lambda(a, S) :
+                if a in S2 then
+                    addElement(a, \$intersection(S, S2))
+                else              
+                    \$intersection(S, S2)
+                end
+            end, S1, \{\})
+end
+
+function \$setDifference(S1, S2) : // infix -
+    selectf(lambda(a, S) :
+                if a in S2 then
+                    \$setDifference(S, S2)
+                else
+                    addElement(a, \$setDifference(S, S2))
+                end
+            end, S1, \{\})
+end      
+\end{alltt}
+
+\index{Set@{\tt Set} (type)!union|)}
+\index{Set@{\tt Set} (type)!intersection|)}
+\index{Set@{\tt Set} (type)!difference|)}
+
+
+In addition to these basic operations, there are set comprehensions
+for computing sets (section \ref{sect:Comprehensions}).
+
+\index{Set@{\tt Set} (type)|)}
+
+
+\subsection{{\tt List[T] < Collection[T],
+    Seq[T]}---lists}\label{sect:Lists}
+
+\index{List@{\tt List} (type)|(}
+
+\index{selector function!of list}
+\index{selectf@{\tt selectf}!for list}
+\index{List@{\tt List} (type)!selector function}
+
+Lists are finite, sequential arrangements of objects. They are
+collections and sequences at
+the same time. As a consequence, its selector function splits the
+(non-empty) list into its first element and the rest of the list.
+
+\index{List@{\tt List} (type)!size}
+\index{List@{\tt List} (type)!valid indices}
+\index{List@{\tt List} (type)!hasElement@{\tt hasElement}}
+
+
+For any list, the value computed by the {\tt \$size} function (section
+\ref{sect:Collections}) defines the valid indices (via {\tt \$nth} and
+{\tt hasElement}, see section \ref{sect:Sequences}) into the list, which
+are the non-negative integers smaller than that number.
+
+\index{List@{\tt List} (type)!constructor}
+\index{List@{\tt List} (type)!cons@{\tt cons}}
+
+Similar\sidenote{{\tt cons} constructor} to sets, lists can be
+constructed elementwise using a {\tt cons} function, that adds an
+element to the front of an existing list:
+\begin{alltt}
+  cons<T> : [T, List[T] --> List[T]]
+\end{alltt}
+
+\index{List@{\tt List} (type)!concatenation}
+
+Lists can be concatenated using the {\tt +} operator, which can be
+defined as follows:
+\begin{alltt}function \$add (L1, L2) : // operator +
+    selectf(lambda (a, L) :
+                cons(a, \$add(L, L2))
+            end, L1, L2)
+end
+\end{alltt}
+
+Similarly to sets, list can be created using list comprehensions
+(section \ref{sect:Comprehensions}).
+
+\index{List@{\tt List} (type)|)}
+
+
+\subsection{{\tt Map[K, V]}---maps}\label{sect:Maps}
+
+\index{Map@{\tt Map} (type)|(}
+
+\index{Map@{\tt Map} (type)!key}
+\index{key!of map}
+\index{Map@{\tt Map} (type)!value}
+\index{value!of map}
+\index{Map@{\tt Map} (type)!domain}
+\index{domain!of map}
+\index{Map@{\tt Map} (type)!range}
+\index{range!of map}
+
+A map of type {\tt Map[K, V]} maps finitely many {\em keys} of type {\tt K} to {\em values} of
+type {\tt V}. The set of keys of a map is called its {\em domain},
+while the set of values is called its {\em range}. 
+
+\index{selector function!of map}
+\index{selectf@{\tt selectf}!for map}
+\index{Map@{\tt Map} (type)!selector function}
+
+Like collections, maps are accessed using a selector
+function. In the case of maps, this has the following signature:
+\begin{alltt}selectf<K, V>: [[K, V, Map[K, V] --> A],
+                Map[K, V],
+                A --> A]\end{alltt}
+
+It separates a non-empty map into a key, the corresponding value, and
+the residual map, which it then applies its first argument to.
+
+\index{Map@{\tt Map} (type)!domain!definition|(}
+\index{domain!of map!definition|(}
+\index{Map@{\tt Map} (type)!range!definition|(}
+\index{range!of map!definition|(}
+
+The domain and range of a map can then be defined like this:
+\begin{alltt}function \$domain(M) : // operator dom
+    selectf(lambda (k, v, M1) :
+                addElement(k, \$domain(M1))
+            end, M, \{\})
+end
+
+function \$range(M) : // operator rng
+    selectf(lambda (k, v, M1) :
+                addElement(v, \$range(M1))
+            end, M, \{\})
+end
+\end{alltt}
+
+\index{Map@{\tt Map} (type)!domain!definition|)}
+\index{domain!of map!definition|)}
+\index{Map@{\tt Map} (type)!range!definition|)}
+\index{range!of map!definition|)}
+
+\index{Map@{\tt Map} (type)!indexer}
+
+
+The value corresponding to a key in a map is retrieved via an indexer,
+using the key as in index into the map. The indexing function is
+defined as follows:
+\begin{alltt}function \$get(x, M) // indexer
+    selectf(lambda(k, v, M1) :
+                if x = k then v else
+                    \$get(x, M1)
+                end
+            end, M, null)
+end\end{alltt}
+
+
+\index{Map@{\tt Map} (type)|)}
+
+\subsection{{\tt Number}---numbers}\label{sect:Numbers}
+
+\index{Number@{\tt Number} (type)|(}
+
+Most of the number system of \Cal is left to
+platform definition. The language itself provides two kinds of
+numeric literals (integers are decimal fractions). There are a number
+of operators on numbers, cf. section \ref{app:PredefOps} for details.
+
+
+\index{Integer@{\tt Integer} (type)}
+
+The type {\tt Number} contains the subtype {\tt Integer} of integer numbers.
+
+\index{Number@{\tt Number} (type)|)}
+
+\subsection{{\tt Character}---characters}
+
+\index{Character@{\tt Character} (type)|(}
+
+Characters are usually related to other data types, such as numbers
+(via some encoding) or strings (as components of strings). The details
+of this are left to the definition of platforms.
+
+Characters are (possibly partially) ordered, and thus support the
+relational operators {\tt <}, {\tt <=}, {\tt >}, {\tt >=}.
+
+\index{Character@{\tt Character} (type)|)}
+
+
+\subsection{{\tt String < List[Character]}---strings}
+
+\index{String@{\tt String} (type)|(}
+
+Strings are lists of characters, supported by a special syntax for
+their construction. It is left to an implementation whether they are
+identical to a corresponding list of characters, i.e. whether\\
+\exindent{\tt "abc" = ['a', 'b', 'c']}
+
+\index{String@{\tt String} (type)!order}
+\index{lexicographical order}
+\index{order!lexicographical}
+
+Strings `inherit' the order from characters, and expand it
+lexicographically:
+\begin{alltt}function \$stringLE (s1, s2) : // operator <=
+    selectf(lambda (c1, r1) :
+                selectf(lambda (c2, r2) :
+                            if c1 = c2 then
+                                \$stringLE(r1, r2)
+                            else 
+                                c1 < c2
+                            end
+                        end, s2, false)
+            end, s1, true)
+end
+\end{alltt}
+
+\index{String@{\tt String} (type)|)}
+
+
+\subsection{{\tt Boolean}---truth values}\label{sect:Booleans}
+
+\index{Boolean@{\tt Boolean} (type)|(}
+\index{true@\kwTrue}
+\index{false@\kwFalse}
+
+The {\tt Boolean} data type represents truth values. It is supported
+by two constant literals (\kwTrue ~and \kwFalse) as well as a number
+of operators, cf. section \ref{app:PredefOps}.
+
+
+\index{Boolean@{\tt Boolean} (type)|)}
+
+
+\subsection{{\tt Null}---the null value}\label{sect:Null}
+
+\index{Null@{\tt Null} (type)|(}
+
+The {\tt Null} data type has only one representative, the object
+denoted by the literal \kwNull. Apart from equality tests, no
+operations are defined on this type.
+
+\index{Null@{\tt Null} (type)|)}
+
+
+% Local Variables:
+% TeX-master: "reference.tex"
+% End:
+
+
+
+
+
+
+
+
+
+
+
