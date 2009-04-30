@@ -37,30 +37,39 @@
 
 package eu.actorsproject.xlim.type;
 
-import org.w3c.dom.NamedNodeMap;
-
 import eu.actorsproject.xlim.XlimType;
+import eu.actorsproject.xlim.util.XlimFeature;
 
 /**
- * Type kind, which is common to all integer types
+ * Packages support for the RealType
+ *
  */
-class IntegerTypeKind extends ParametricTypeKind {
-	IntegerTypeKind() {
-		super("int");
-	}
-	
+public class RealTypeFeature extends XlimFeature {
+
 	@Override
-	protected Integer getParameter(NamedNodeMap attributes) {
-		return getIntegerAttribute("size",attributes);
+	public void initialize(TypeSystem typeSystem) {
+		TypeKind intKind=typeSystem.getTypeKind("int");
+		XlimType int32_t=typeSystem.create("int",32);
+		TypeKind realKind=new RealType();
+		
+		typeSystem.addTypeKind(realKind);
+		typeSystem.addSpecificTypePromotion(new TypeConversion(intKind, realKind));
+		typeSystem.addTypeConversion(new RealToIntConversion(realKind, intKind, int32_t));
 	}
-	
+}
+
+class RealToIntConversion extends TypeConversion {
+
+	XlimType mTargetType;
+	public RealToIntConversion(TypeKind sourceKind, 
+				               TypeKind targetKind,
+				               XlimType targetType) {
+		super(sourceKind, targetKind);
+		mTargetType=targetType;
+	}
+
 	@Override
-	protected XlimType create(Object param) {
-		if (param instanceof Integer) {
-			Integer size=(Integer) param;
-			return new IntegerType(this, size);
-		}
-		else
-			throw new IllegalArgumentException("Type \"int\" requires Integer parameter");
+	public XlimType apply(XlimType sourceT) {
+		return mTargetType;
 	}
 }

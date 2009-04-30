@@ -37,6 +37,8 @@
 
 package eu.actorsproject.xlim.xlim2c;
 
+import java.util.HashMap;
+
 import eu.actorsproject.xlim.XlimDesign;
 import eu.actorsproject.xlim.XlimOutputPort;
 import eu.actorsproject.xlim.XlimStateVar;
@@ -45,6 +47,8 @@ import eu.actorsproject.xlim.XlimTopLevelPort;
 import eu.actorsproject.xlim.XlimType;
 import eu.actorsproject.xlim.codegenerator.AbstractSymbolTable;
 import eu.actorsproject.xlim.codegenerator.TemporaryVariable;
+import eu.actorsproject.xlim.type.TypeFactory;
+import eu.actorsproject.xlim.util.Session;
 
 /**
  * @author ecarvon
@@ -63,15 +67,26 @@ public class CSymbolTable extends AbstractSymbolTable {
 	protected static final String sInitializerPrefix="init_";
 	
 	protected String mActorClassName;
+	protected HashMap<XlimType, String> mTargetTypeNames;
+	
+	public CSymbolTable() {
+		mTargetTypeNames=new HashMap<XlimType,String>();
+
+		TypeFactory fact=Session.getTypeFactory();
+		mTargetTypeNames.put(fact.createInteger(8),  "int8_t");
+		mTargetTypeNames.put(fact.createInteger(16), "int16_t");
+		mTargetTypeNames.put(fact.createInteger(32), "int32_t");
+		mTargetTypeNames.put(fact.createInteger(64), "int64_t");
+		mTargetTypeNames.put(fact.create("bool"),    "bool_t");
+		mTargetTypeNames.put(fact.create("real"),    "double");
+	}
 	
 	@Override
 	public String getTargetTypeName(XlimType type) {
-    	if (type.isBoolean())
-    		return "bool_t";
-    	else {
-    		assert(type.isInteger());
-    		return "int"+type.getSize()+"_t";
-    	}
+		String result=mTargetTypeNames.get(type);
+		if (result==null)
+			throw new RuntimeException("CSymbolTable: Unsupported target type: "+type.toString());
+		return result;
     }
 	
 	public String createActorClassName(String fileName) {

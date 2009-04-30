@@ -70,7 +70,6 @@ public class Actor2c extends OutputGenerator {
 	protected static final String sActorOutputPortArray="base.outputPort";
 	protected static final String sActorInstanceType="ActorInstance";
 	protected static final String sPortType="ActorPort";
-	protected static final String sIntegerType="int";
 	protected static final String sConstructorName="constructor";
 	protected static final String sCreatePortAPI="createPort";
 	
@@ -207,6 +206,11 @@ public class Actor2c extends OutputGenerator {
 		}
 	}
 	
+	protected String getElementType(XlimInitValue initValue) {
+		XlimType elementT=initValue.getCommonElementType();
+		return mSymbols.getTargetTypeName(elementT);
+	}
+	
 	/**
 	 * Declare the state variables within the actor instance struct
 	 */
@@ -214,7 +218,7 @@ public class Actor2c extends OutputGenerator {
 		for (XlimStateVar stateVar: mDesign.getStateVars()) {
 			XlimInitValue initValue=stateVar.getInitValue();
 			XlimType scalarType=initValue.getScalarType();
-			String type=sIntegerType;
+			String type=getElementType(initValue);
 			String optArray="";
 			if (scalarType==null) {
 				int length=initValue.totalNumberOfElements();
@@ -229,9 +233,10 @@ public class Actor2c extends OutputGenerator {
 		for (XlimStateVar stateVar: mDesign.getStateVars()) {
 			XlimInitValue initValue=stateVar.getInitValue();
 			if (initValue.getScalarType()==null && initValue.isZero()==false) {
+				String type=getElementType(initValue);
 				String name=mSymbols.getAggregateInitializer(stateVar);
 				int length=initValue.totalNumberOfElements();
-				println("const "+sIntegerType+" "+name+"["+length+"] = {");
+				println("const " + type + " " + name + "[" + length + "] = {");
 				increaseIndentation();
 				
 				String delimiter="";
@@ -240,9 +245,9 @@ public class Actor2c extends OutputGenerator {
 					delimiter=", ";
 					lineWrap(60);
 					
-					Integer scalarValue=v.getScalarValue();
+					String scalarValue=v.getScalarValue();
 					assert(scalarValue!=null);
-					print(scalarValue.toString());
+					print(scalarValue);
 				}
 				println();
 				decreaseIndentation();
@@ -264,7 +269,7 @@ public class Actor2c extends OutputGenerator {
 			}
 			else {
 				int length=initValue.totalNumberOfElements();
-				String type=sIntegerType;
+				String type=getElementType(initValue);
 				
 				if (initValue.isZero())
 					println("memset(" + mSymbols.getReference(stateVar) + ", 0, "

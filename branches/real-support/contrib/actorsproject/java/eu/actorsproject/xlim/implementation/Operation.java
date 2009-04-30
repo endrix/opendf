@@ -131,7 +131,7 @@ class Operation extends Linkage<AbstractBlockElement>
 	}	
 	
 	@Override
-	public XlimOperation isOperation() {
+	public Operation isOperation() {
 		return this;
 	}
 	
@@ -165,17 +165,26 @@ class Operation extends Linkage<AbstractBlockElement>
 	/*
 	 * Implementation of XlimOperation
 	 */
-	
+		
 	@Override
 	public String getKind() {
 		return mKind.getKindAttribute();
 	}
 
+	OperationKind getOperationKind() {
+		return mKind;
+	}
+	
 	@Override
 	public Long getIntegerValueAttribute() {
 		return null;
 	}
 
+	@Override
+	public String getValueAttribute() {
+		return null;
+	}
+	
 	@Override
 	public XlimTopLevelPort getPortAttribute() {
 		return null;
@@ -211,6 +220,11 @@ class Operation extends Linkage<AbstractBlockElement>
 		return false;
 	}
 
+	@Override
+	public boolean setValueAttribute(String value) {
+		return false;
+	}
+	
 	@Override
 	public boolean setPortAttribute(XlimTopLevelPort port) {
 		return false;

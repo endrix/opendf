@@ -35,32 +35,33 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package eu.actorsproject.xlim.type;
+package eu.actorsproject.xlim.util;
 
-import org.w3c.dom.NamedNodeMap;
+import java.util.HashMap;
 
 import eu.actorsproject.xlim.XlimType;
 
-/**
- * Type kind, which is common to all integer types
- */
-class IntegerTypeKind extends ParametricTypeKind {
-	IntegerTypeKind() {
-		super("int");
+public class TypePlugInManager<T> {
+
+	protected T mDefaultPlugIn;
+	protected HashMap<String,T> mPlugIns;
+	
+	public TypePlugInManager(T defaultPlugIn) {
+		mPlugIns=new HashMap<String,T>();
+		mDefaultPlugIn=defaultPlugIn;
 	}
 	
-	@Override
-	protected Integer getParameter(NamedNodeMap attributes) {
-		return getIntegerAttribute("size",attributes);
+	public void registerTypePlugIn(String typeKind, T plugIn) {
+		mPlugIns.put(typeKind, plugIn);
 	}
 	
-	@Override
-	protected XlimType create(Object param) {
-		if (param instanceof Integer) {
-			Integer size=(Integer) param;
-			return new IntegerType(this, size);
+	public T getTypePlugIn(XlimType t) {
+		T plugIn=mPlugIns.get(t.getTypeName());
+		if (plugIn==null) {
+			if (mDefaultPlugIn==null)
+				throw new RuntimeException("Unhandled type: "+t.getTypeName());
+			plugIn=mDefaultPlugIn;
 		}
-		else
-			throw new IllegalArgumentException("Type \"int\" requires Integer parameter");
+		return plugIn;
 	}
 }

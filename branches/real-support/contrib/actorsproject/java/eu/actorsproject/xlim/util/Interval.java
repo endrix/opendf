@@ -125,8 +125,9 @@ public class Interval implements Cloneable, AbstractValue<Interval> {
 	}
 	
 	@Override
-	public Interval getAbstractValue(long constant) {
-		return new Interval(constant, constant);
+	public Interval getAbstractValue(String constant) {
+		long k=Long.valueOf(constant);
+		return new Interval(k, k);
 	}
 	
 	@Override

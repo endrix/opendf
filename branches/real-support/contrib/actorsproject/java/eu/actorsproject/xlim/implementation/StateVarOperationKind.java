@@ -17,8 +17,10 @@ import eu.actorsproject.xlim.dependence.ValueOperator;
 import eu.actorsproject.xlim.dependence.ValueUsage;
 import eu.actorsproject.xlim.io.ReaderContext;
 import eu.actorsproject.xlim.type.Signature;
+import eu.actorsproject.xlim.type.TypeKind;
 import eu.actorsproject.xlim.type.TypeRule;
 import eu.actorsproject.xlim.type.VoidTypeRule;
+import eu.actorsproject.xlim.util.Session;
 
 
 
@@ -105,15 +107,21 @@ class VarRefTypeRule extends TypeRule {
 
 	@Override
 	public XlimType actualOutputType(XlimOperation op, int i) {
-        // Not possible to deduce the type, it simply is the type of the output
-		return op.getOutputPort(i).getType();
+		return op.getStateVarAttribute().getInitValue().getCommonElementType();
 	}
 
 	@Override
 	public boolean typecheck(XlimOperation op) {
+		if (op.getStateVarAttribute()!=null) {
+		    XlimType t=op.getOutputPort(0).getType();
+		    // TODO: to strong to require exact match (e.g. different integer widths)?
+		    return t==actualOutputType(op, 0);
+		}
+		else
+			return true; // "port" required (defer typecheck)
 		// The type of a state variable (initializer) is constructed using "list" and "int"
 		// There is thus no way of telling different types apart (output type must be provided)
-		return op.getOutputPort(0).getType()!=null;
+		// return op.getOutputPort(0).getType()!=null;
 	}
 }
 
@@ -130,9 +138,16 @@ class AssignTypeRule extends VoidTypeRule {
 	
 	@Override
 	public boolean typecheck(XlimOperation op) {
-		// The type of a state variable (initializer) is constructed using "list" and "int"
-		// There is thus no way of telling different types apart (cannot typecheck)
-		return true;
+		XlimStateVar target=op.getStateVarAttribute();
+		if (target!=null) {
+			int dataPort=op.getNumInputPorts()-1;
+		    XlimType inT=op.getInputPort(dataPort).getSource().getSourceType();
+		    XlimType targetT=target.getInitValue().getCommonElementType();
+		    TypeKind targetKind=Session.getTypeFactory().getTypeKind(targetT.getTypeName());
+		    return targetKind.hasConversionFrom(inT);
+		}
+		else
+			return true; // "port" needed (defer typecheck)
 	}
 }
 
@@ -158,6 +173,7 @@ class StateVarOperation extends Operation {
 		    throw new IllegalStateException("state variable attribute already set"); // Do this once!
 		mStateVar=stateVar;
 		mStateVarAccess=new StateVarUsage();
+		mKind.doDeferredTypecheck(this);
 		return true;
 	}
 
@@ -226,6 +242,7 @@ class AssignOperation extends StateVarOperation {
 		mStateVar=stateVar;
 		mStateVarAccess=new AssignmentStateVarUsage();
 		mSideEffect=new AssignmentSideEffect();
+		mKind.doDeferredTypecheck(this);
 		return true;
 	}
 	

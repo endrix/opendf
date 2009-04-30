@@ -46,10 +46,12 @@ package eu.actorsproject.xlim;
  */
 public interface XlimType {
 	String getTypeName();
+	XlimTypeKind getTypeKind();
 	int getSize();
 	long minValue();
 	long maxValue();
-	public String getAttributeDefinitions();
+	String getAttributeDefinitions();
+	boolean isZero(String value);
 	boolean isBoolean();
 	boolean isInteger();
 }

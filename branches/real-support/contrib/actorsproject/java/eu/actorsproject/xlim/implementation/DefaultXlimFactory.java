@@ -59,7 +59,7 @@ public class DefaultXlimFactory implements XlimFactory {
 	}
 
 	@Override
-	public XlimInitValue createInitValue(int value, XlimType type) {
+	public XlimInitValue createInitValue(String value, XlimType type) {
 		return new ScalarInitValue(value,type);
 	}
 

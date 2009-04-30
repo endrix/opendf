@@ -67,7 +67,7 @@ public interface AbstractValue<T> {
 	 * @param constant
 	 * @return the abstract value that represents the constant
 	 */
-	T getAbstractValue(long constant);	
+	T getAbstractValue(String constant);	
 
 	/**
 	 * @param constant

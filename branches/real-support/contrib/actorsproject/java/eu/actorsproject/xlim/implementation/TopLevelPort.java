@@ -70,6 +70,11 @@ class TopLevelPort implements XlimTopLevelPort {
 	}
 
 	@Override
+	public void setType(XlimType t) {
+		mType=t;
+	}
+	
+	@Override
 	public String getAttributeDefinitions() {
 		String dir;
 		if (mDirection==Direction.internal)

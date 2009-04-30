@@ -42,25 +42,47 @@ import org.w3c.dom.NamedNodeMap;
 import eu.actorsproject.xlim.XlimType;
 
 /**
- * Type kind, which is common to all integer types
+ * An unparamteric type is both a TypeKind (type constructor etc.) and
+ * an XlimType.
  */
-class IntegerTypeKind extends ParametricTypeKind {
-	IntegerTypeKind() {
-		super("int");
+public abstract class UnparametricType extends TypeKind implements XlimType {
+
+	public UnparametricType(String typeName) {
+		super(typeName);
 	}
 	
 	@Override
-	protected Integer getParameter(NamedNodeMap attributes) {
-		return getIntegerAttribute("size",attributes);
+	public XlimType createType() {
+		return this;
 	}
 	
 	@Override
-	protected XlimType create(Object param) {
-		if (param instanceof Integer) {
-			Integer size=(Integer) param;
-			return new IntegerType(this, size);
-		}
-		else
-			throw new IllegalArgumentException("Type \"int\" requires Integer parameter");
+	public XlimType createType(Object param) {
+		throw new UnsupportedOperationException("Type "+getTypeName()+" takes no parameter");
+	}
+	
+	@Override
+	public XlimType createTypeFromAttributes(NamedNodeMap attributes) {
+		return this;
+	}
+	
+	@Override
+	public TypeKind getTypeKind() {
+		return this;
+	}
+			
+	@Override
+	public String getAttributeDefinitions() {
+		return "typeName=\"" + getTypeName() + "\"";
+	}
+		
+	@Override
+	public boolean isBoolean() {
+		return false;
+	}
+	
+	@Override
+	public boolean isInteger() {
+		return false;
 	}
 }

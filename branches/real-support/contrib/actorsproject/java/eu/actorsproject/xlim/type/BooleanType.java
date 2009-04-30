@@ -37,27 +37,16 @@
 
 package eu.actorsproject.xlim.type;
 
-import eu.actorsproject.xlim.XlimType;
 
-class BooleanType implements XlimType {
+class BooleanType extends UnparametricType {
+	
+	BooleanType() {
+		super("bool");
+	}
+	
 	@Override
 	public int getSize() { 
 		return 1; 
-	}
-	
-	@Override
-	public String getTypeName() { 
-		return "bool"; 
-	}
-	
-	@Override
-	public String getAttributeDefinitions() {
-		return "typeName=\"bool\"";
-	}
-	
-	@Override
-	public String toString() {
-		return "bool";
 	}
 	
 	@Override
@@ -71,12 +60,12 @@ class BooleanType implements XlimType {
 	}
 	
 	@Override
-	public boolean isBoolean() {
-		return true;
+	public boolean isZero(String s) {
+		return Long.valueOf(s)==0;
 	}
 	
 	@Override
-	public boolean isInteger() {
-		return false;
+	public boolean isBoolean() {
+		return true;
 	}
 }

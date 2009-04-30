@@ -35,32 +35,37 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package eu.actorsproject.xlim.type;
-
-import org.w3c.dom.NamedNodeMap;
-
-import eu.actorsproject.xlim.XlimType;
+package eu.actorsproject.xlim;
 
 /**
- * Type kind, which is common to all integer types
+ * XlimTypeKind groups the type constructor (createType methods) and
+ * type conversions of a set of XlimTypes. 
  */
-class IntegerTypeKind extends ParametricTypeKind {
-	IntegerTypeKind() {
-		super("int");
-	}
+public interface XlimTypeKind {
+
+	/**
+	 * @return (unparametric) type (=result of this type kind's type
+	 *         constructor).
+	 */
+	XlimType createType();
 	
-	@Override
-	protected Integer getParameter(NamedNodeMap attributes) {
-		return getIntegerAttribute("size",attributes);
-	}
+	/**
+	 * @param param
+	 * @return (parametric) type (=result of this type kind's type
+	 *         constructor applied to 'param').
+	 */
+	XlimType createType(Object param);
 	
-	@Override
-	protected XlimType create(Object param) {
-		if (param instanceof Integer) {
-			Integer size=(Integer) param;
-			return new IntegerType(this, size);
-		}
-		else
-			throw new IllegalArgumentException("Type \"int\" requires Integer parameter");
-	}
+	/**
+	 * @param kind
+	 * @return true iff 'kind' promotes (converts implicitly and losslessly)
+	 *         to this type kind.
+	 */
+	boolean hasPromotionFrom(XlimTypeKind kind);
+	
+	/**
+	 * @param t
+	 * @return type (f this type kind, which is the result of promotion from 't'
+	 */
+	XlimType promote(XlimType t);
 }

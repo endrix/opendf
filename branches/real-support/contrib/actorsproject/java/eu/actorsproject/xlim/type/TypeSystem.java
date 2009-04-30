@@ -61,7 +61,7 @@ public class TypeSystem implements TypeFactory {
 	/**
 	 * Adds a "specific" type promotion, which is used when it matches
 	 * (source type, target type) exactly. 
-	 * @param tp - TypePromotion
+	 * @param tp - type promotion
 	 */
 	public void addSpecificTypePromotion(TypeConversion tp) {
 		TypeKind sourceKind=tp.getSourceTypeKind();
@@ -72,13 +72,21 @@ public class TypeSystem implements TypeFactory {
 	 * Sets the "default" type promotion of a particular source type,
 	 * which is used in the event that no exact match (source type, target type)
 	 * is found.
-	 * @param tp - TypePromotion
+	 * @param tp - type promotion
 	 */
 	public void addDefaultTypePromotion(TypeConversion tp) {
 		TypeKind sourceKind=tp.getSourceTypeKind();
 		sourceKind.setDefaultTypePromotion(tp);
 	}
 	
+	/**
+	 * Adds an (explicit) type conversion.
+	 * @param tc - TypeConversion
+	 */
+	public void addTypeConversion(TypeConversion tc) {
+		TypeKind sourceKind=tc.getSourceTypeKind();
+		sourceKind.addTypeConversion(tc);
+	}
 	
 	/**
 	 * Determine the relation between the types
@@ -121,18 +129,18 @@ public class TypeSystem implements TypeFactory {
 	@Override
 	public XlimType create(String typeName) {
 		TypeKind kind=getTypeKind(typeName);
-		return kind.getType();
+		return kind.createType();
 	}
 	
 	@Override
 	public XlimType create(String typeName, Object param) {
 		TypeKind kind=getTypeKind(typeName);
-		return kind.getType(param);
+		return kind.createType(param);
 	}
 	
 	@Override
 	public XlimType create(String typeName, NamedNodeMap attributes) {
 		TypeKind kind=getTypeKind(typeName);
-		return kind.getType(attributes);
+		return kind.createTypeFromAttributes(attributes);
 	}
 }

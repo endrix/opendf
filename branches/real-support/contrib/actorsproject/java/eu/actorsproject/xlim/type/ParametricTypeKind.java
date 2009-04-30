@@ -49,12 +49,14 @@ public abstract class ParametricTypeKind extends TypeKind {
 		super(name);
 		mTypeMap=new HashMap<Object,XlimType>();
 	}
-		
-	public XlimType getType() {
+
+	@Override
+	public XlimType createType() {
 		throw new UnsupportedOperationException("Type "+getTypeName()+" requires a parameter");
 	}
 	
-	public XlimType getType(Object parameter) {
+	@Override
+	public XlimType createType(Object parameter) {
 		XlimType type=mTypeMap.get(parameter);
 		if (type==null) {
 			type=create(parameter);
@@ -63,10 +65,11 @@ public abstract class ParametricTypeKind extends TypeKind {
 		return type;
 	}
 
-	public XlimType getType(NamedNodeMap attributes) {
+	@Override
+	public XlimType createTypeFromAttributes(NamedNodeMap attributes) {
 		Object parameter=getParameter(attributes);
 		if (parameter!=null)
-			return getType(parameter);
+			return createType(parameter);
 		else
 			return null;
 	}

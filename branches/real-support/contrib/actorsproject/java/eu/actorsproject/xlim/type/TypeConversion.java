@@ -64,6 +64,6 @@ public class TypeConversion {
 	public XlimType apply(XlimType sourceT) {
 		// Default implementation only works for SingletonTypeKinds
 		// -Override for conversion to Parametric types
-		return mTargetKind.getType();
+		return mTargetKind.createType();
 	}
 }

@@ -126,9 +126,9 @@ public class Signature {
 					return 0; // equally good/unordered
 			}
 			else if (kind1!=kind2) {
-				if (kind2.hasPromotionTo(kind1))
+				if (kind1.hasPromotionFrom(kind2))
 					return 1; // m2 is the petter match
-				else if (kind1.hasPromotionTo(kind2))
+				else if (kind2.hasPromotionFrom(kind1))
 					return -1; // m1 is the better match
 				else
 					return 0; // equally good/unordered

@@ -635,12 +635,8 @@ public class XlimReader {
 	protected class InitValuePass extends PassPlugin<Collection<XlimInitValue>,Object> {
 		protected XlimInitValue createScalar(Element domElement) {
 			XlimType type=getType(domElement);
-			String value=getRequiredAttribute("value",domElement); 
-			try {
-				return mFactory.createInitValue(Integer.valueOf(value),type);
-			} catch (NumberFormatException ex) {
-				throw new RuntimeException("Unexpected attribute value=\""+value+"\"");
-			}			
+			String value=getRequiredAttribute("value",domElement);
+			return mFactory.createInitValue(value,type);
 		}
 		
 		protected XlimInitValue createAggregate(Element domElement) {
