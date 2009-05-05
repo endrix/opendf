@@ -44,7 +44,6 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import eu.actorsproject.xlim.XlimType;
 import eu.actorsproject.xlim.XlimTypeKind;
-import eu.actorsproject.xlim.util.Session;
 
 public abstract class TypeKind implements TypePattern, XlimTypeKind {
 	
@@ -97,6 +96,8 @@ public abstract class TypeKind implements TypePattern, XlimTypeKind {
 	public void addTypeConversion(TypeConversion tc) {
 		mSpecificConversions.add(tc);
 	}
+	
+	abstract XlimType createLub(XlimType t1, XlimType t2);
 	
 	public boolean hasPromotionFrom(XlimType t) {
 		XlimTypeKind sourceKind=t.getTypeKind();

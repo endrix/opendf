@@ -38,6 +38,7 @@
 package eu.actorsproject.xlim.xlim2c;
 
 import java.util.HashMap;
+import java.util.Map;
 
 import eu.actorsproject.xlim.XlimDesign;
 import eu.actorsproject.xlim.XlimOutputPort;
@@ -67,7 +68,7 @@ public class CSymbolTable extends AbstractSymbolTable {
 	protected static final String sInitializerPrefix="init_";
 	
 	protected String mActorClassName;
-	protected HashMap<XlimType, String> mTargetTypeNames;
+	protected Map<XlimType, String> mTargetTypeNames;
 	
 	public CSymbolTable() {
 		mTargetTypeNames=new HashMap<XlimType,String>();
