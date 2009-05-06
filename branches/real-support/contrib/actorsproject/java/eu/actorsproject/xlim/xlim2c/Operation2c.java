@@ -487,7 +487,7 @@ abstract class ExpressionGenerator extends BasicGenerator {
 	}
 	
 	protected String getUnsignedCast(int size) {
-		return "(uint_"+size+"_t) ";
+		return "(uint"+size+"_t) ";
 	}
 }
 
