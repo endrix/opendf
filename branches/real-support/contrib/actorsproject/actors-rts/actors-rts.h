@@ -45,12 +45,18 @@
 #include "circbuf.h"
 #include "dll.h"
 
+/* make the header usable from C++ */
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 #define INPUT				0
 #define OUTPUT				1
 #define INTERNAL			0
 #define EXTERNAL			1
 #define COPY(a)				a
 #define MAX_DATA_LENGTH		1024
+#define MAX_ACTOR_NUM		128
 
 #define TRACE_ACTION(INSTANCE,INDEX,NAME) \
         if(trace_action) trace(LOG_MUST,"%s %d %s\n", (INSTANCE)->actor->name, INDEX, NAME)
@@ -125,7 +131,7 @@ typedef struct {
 }ActorConfig;
 
 typedef struct {
-	ActorConfig	**networkActors;
+	ActorConfig		**networkActors;
 	int				numNetworkActors;
 	int				numFifos;
 }NetworkConfig;
@@ -142,10 +148,10 @@ extern int						rts_mode;
 
 /** Runs the actors network, including evaluating command line arguments, error message output,
  * network setup and finally execution. */
-extern int execute_network(int argc, char *argv[], NetworkConfig *network);
+extern int execute_network(int argc, char *argv[], const NetworkConfig *network);
 
 /** Sets up the actors network according to the information provided in \a network . */
-extern void init_actor_network(NetworkConfig * network);
+extern void init_actor_network(const NetworkConfig * network);
 
 /** Returns 1 if there is at least one token available for reading if \a port is an input port,
  * or if at least one token can be written if it is an output port.
@@ -160,6 +166,15 @@ extern int pinStatus2(ActorPort * port);
  * number of tokens which can be read from \a port / written to \a port . */
 extern int pinAvail(ActorPort * port);
 
+/** Return number of tokens in int32 size which can be read from \a port / written to \a port . */
+extern int pinAvail_int32_t(ActorPort *actorPort);
+
+/** Return number of tokens in double size which can be read from \a port / written to \a port . */
+extern int pinAvail_double(ActorPort *actorPort);
+
+/** Return number of tokens in bool_t size which can be read from \a port / written to \a port . */
+extern int pinAvail_bool_t(ActorPort *actorPort);
+
 /** Reads one integer-sized token from \a port and returns it. Breaks if tokenSize > sizeof(int) . */
 extern int pinRead(ActorPort * port);
 
@@ -168,10 +183,31 @@ extern int pinRead(ActorPort * port);
  * are signalled. */
 extern int pinRead2(ActorPort * port, char * buf, int length);
 
+/** Reads one double-sized token from \a port and returns it. */
+extern double pinRead_double(ActorPort *actorPort);
+
+/** Reads one int32_t-sized token from \a port and returns it. */
+extern int32_t pinRead_int32_t(ActorPort *actorPort);
+
+/** Reads one bool_t-sized token from \a port and returns it. */
+extern bool_t pinRead_bool_t(ActorPort *actorPort);
+
 /** Reads one integer-sized token from \a port at the given \a offset relative to the current
  * read position (in tokens) and returns it. The current read position is not modified.
  * Breaks if tokenSize > sizeof(int) . */
 extern int pinPeek(ActorPort * port, int offset);
+
+/** Reads one int32_t-sized token from \a port at the given \a offset relative to the current
+ * read position (in tokens) and returns it. The current read position is not modified. */
+extern int32_t pinPeek_int32_t(ActorPort *actorPort, int offset);
+
+/** Reads one double-sized token from \a port at the given \a offset relative to the current
+ * read position (in tokens) and returns it. The current read position is not modified. */
+extern double pinPeek_double(ActorPort *actorPort, int offset);
+
+/** Reads one bool_t-sized token from \a port at the given \a offset relative to the current
+ * read position (in tokens) and returns it. The current read position is not modified. */
+extern bool_t pinPeek_bool_t(ActorPort *actorPort, int offset);
 
 /** Writes nonblocking the int-sized token with the given \a value into the given \a port .
  * Potentially blocked readers waiting that data becomes available in \a port are signalled. */
@@ -179,7 +215,19 @@ extern int pinWrite(ActorPort * port, int value);
 
 /** Writes nonblocking the int-sized token with the given \a value into the given \a port .
  * Potentially blocked readers waiting that data becomes available in \a port are signalled. */
-extern int pinWrite2(ActorPort * port, char * buf, int length);
+extern int pinWrite2(ActorPort * port, const char * buf, int length);
+
+/** Writes nonblocking the double-sized token with the given \a value into the given \a port .
+ * Potentially blocked readers waiting that data becomes available in \a port are signalled. */
+extern int pinWrite_double(ActorPort *actorPort,double val);
+
+/** Writes nonblocking the int32_t-sized token with the given \a value into the given \a port .
+ * Potentially blocked readers waiting that data becomes available in \a port are signalled. */
+extern int pinWrite_int32_t(ActorPort *actorPort,int32_t val);
+
+/** Writes nonblocking the bool_t-sized token with the given \a value into the given \a port .
+ * Potentially blocked readers waiting that data becomes available in \a port are signalled. */
+extern int pinWrite_bool_t(ActorPort *actorPort,bool_t val);
 
 /** Marks the actor as waiting for \a port , i.e. waiting that \a length bytes
  * become available for reading or writing.
@@ -187,12 +235,16 @@ extern int pinWrite2(ActorPort * port, char * buf, int length);
 extern void pinWait(ActorPort * port, int length);
 
 /** Printf-like tracing function to stderr. Prints only if \a level >= the current log_level. */
-extern void actorTrace(AbstractActorInstance * base, int level, char * message, ...);
+extern void actorTrace(AbstractActorInstance * base, int level, const char * message, ...);
 
 /** Printf-like tracing function to stderr. Prints only if \a level >= the current log_level. */
-extern void trace(int level, char*,...);
+extern void trace(int level, const char*,...);
 
 /** Prints a range error message to stdout. */
-int rangeError(int x, int y, char *filename, int line);
+int rangeError(int x, int y, const char *filename, int line);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

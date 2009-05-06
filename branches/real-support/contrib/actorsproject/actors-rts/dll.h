@@ -4,6 +4,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+/* make the header usable from C++ */
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 typedef struct _dllist {
 	struct _dllist *next;
 	struct _dllist *prev;
@@ -21,5 +26,9 @@ typedef struct _list {
 extern void append_node(LIST *a,DLLIST *lnode);
 extern void insert_node(LIST *a,DLLIST *lnode, DLLIST *after);
 extern void remove_node(LIST *a,DLLIST *lnode);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

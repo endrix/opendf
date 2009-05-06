@@ -39,6 +39,8 @@
  * Actor Display
  */
 
+#define FB
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -47,6 +49,9 @@
 #include <linux/fb.h>
 #include <sys/mman.h>
 #include <sys/ioctl.h>
+#ifndef FB
+#include <gtk/gtk.h>
+#endif
 #include "actors-rts.h"
 
 /*To make sure that you are bounding your inputs in the range of 0 & 255*/
@@ -59,11 +64,13 @@
 // #define WIDTH	176
 // #define HIGHT	144
 #define DEPTH	12
-#define FRAME_YUV_SIZE			thisActor->width*thisActor->hight*DEPTH/8
+#define FRAME_YUV_SIZE			thisActor->width*thisActor->height*DEPTH/8
 #define	MICRO_YUV_SIZE			6*64
 #define MICRO_RGB_SIZE			4*64
 #define WIDTH_IN_MB				11
 #define HIGHT_IN_MB				9
+#define IMAGE_WIDTH				176
+#define IMAGE_HEIGHT			144
 
 #define IN0_A					base.inputPort[0]
 #define IN0_TOKENSIZE			base.inputPort[0].tokenSize
@@ -74,9 +81,14 @@ typedef struct {
   struct fb_fix_screeninfo	finfo;
   char						*fbp;
   int 						fbfd;
-  int						hight;
+  int						height;
   int						width;
-
+#ifndef FB
+  GtkWidget					*window;
+  GtkWidget					*darea;
+  int						ppf;	
+  guchar					rgbbuf[IMAGE_WIDTH*IMAGE_HEIGHT*3];
+#endif
   int 						START_U;
   int 						START_V;
   int 						MB_SIZE;
@@ -105,14 +117,37 @@ ActorClass ActorClass_art_Display_yuv ={
   set_param
 };
 
+#ifndef FB
+static void on_darea_expose(GtkWidget *widget,GdkEventExpose *event,gpointer user_data)
+{
+	ActorInstance *thisActor = (ActorInstance *)user_data;
+	gdk_draw_rgb_image(widget->window, widget->style->fg_gc[GTK_STATE_NORMAL],
+		      0, 0, thisActor->width, thisActor->height,
+		      GDK_RGB_DITHER_MAX, thisActor->rgbbuf, thisActor->width*3);
+	gtk_main_quit();
+}
+
+static void display_gdk(ActorInstance *thisActor)
+{
+	gtk_signal_connect(GTK_OBJECT(thisActor->darea), "expose-event",GTK_SIGNAL_FUNC(on_darea_expose), thisActor);
+	gtk_drawing_area_size(GTK_DRAWING_AREA(thisActor->darea), thisActor->width,thisActor->height);
+	gtk_widget_show_all(thisActor->window);
+	gtk_main();
+}
+#endif
+
 static void display_mb(ActorInstance *thisActor){
 	int i,j,k;
 	int tu,tv;
 	int	dj,dk;
 	int	ruv,guv,buv;
 	int	y,t,r,g,b,jj,kk;
+#ifdef FB
 	unsigned long location;
 	unsigned short rgb565;
+#else
+	int xy;
+#endif
 
 	for(j=0; j<8; j++){
 		for(k=0; k<8; k++){
@@ -131,13 +166,30 @@ static void display_mb(ActorInstance *thisActor){
 					r = (t+ruv)>>8;
 					g = (t+guv)>>8;
 					b = (t+buv)>>8;
+#ifdef FB
 					rgb565 = RGB565(SATURATE8(r),SATURATE8(g),SATURATE8(b));
 					location = (thisActor->mbx+kk+thisActor->vinfo.xoffset) * (thisActor->vinfo.bits_per_pixel/8) + (thisActor->mby+jj+thisActor->vinfo.yoffset) * thisActor->finfo.line_length;
 					*((unsigned short int*)(thisActor->fbp + location)) = rgb565;
+#else
+					xy = (thisActor->mby+jj) * thisActor->width;
+					xy += thisActor->mbx+kk;
+					xy *= 3;
+					thisActor->rgbbuf[xy++]=SATURATE8(r);
+					thisActor->rgbbuf[xy++]=SATURATE8(g);
+					thisActor->rgbbuf[xy++]=SATURATE8(b);
+					thisActor->ppf += 3;
+#endif	
 				}
 			}
 		}
 	}
+#ifndef FB
+	if(thisActor->ppf == thisActor->width*thisActor->height*3)
+	{
+		thisActor->ppf = 0;
+		display_gdk(thisActor);
+	}
+#endif
 }
 
 static void done_mb(ActorInstance *thisActor)
@@ -205,6 +257,7 @@ static void constructor(AbstractActorInstance *pBase)
 {
 	ActorInstance	*thisActor=(ActorInstance*) pBase;
 
+#ifdef FB
 	/* size of video memory in bytes */
 	long int screensize;
 
@@ -239,7 +292,17 @@ static void constructor(AbstractActorInstance *pBase)
         perror("mmap()");
         exit(4);
     }
-
+#else
+	gtk_init(NULL,NULL);
+	gdk_init(NULL, NULL);
+	gdk_rgb_init();
+	thisActor->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+	thisActor->darea = gtk_drawing_area_new();
+ 	gtk_drawing_area_size(GTK_DRAWING_AREA(thisActor->darea), IMAGE_WIDTH, IMAGE_HEIGHT);
+ 	gtk_container_add(GTK_CONTAINER(thisActor->window),thisActor->darea);
+	gtk_window_set_title(GTK_WINDOW(thisActor->window),"foreman");
+	thisActor->ppf=0;
+#endif
 	thisActor->START_U = 4*64;
 	thisActor->START_V = 5*64;
 	thisActor->MB_SIZE = 6*64;
@@ -272,23 +335,23 @@ static void set_param(AbstractActorInstance *pBase,int numParams,ActorParameter 
 		if(strcmp(p->key,"displayMode") == 0)
 		{
 			if(strcmp(p->value,"sqcif")==0){
-				thisActor->hight = 128;
+				thisActor->height = 128;
 				thisActor->width = 96;
 			}
 			else if(strcmp(p->value,"qcif")==0){
-				thisActor->hight = 144;
+				thisActor->height = 144;
 				thisActor->width = 176;
 			}
 			else if(strcmp(p->value,"qvga")==0){
-				thisActor->hight = 320;
+				thisActor->height = 320;
 				thisActor->width = 240;
 			}
 			else if(strcmp(p->value,"vga")==0){
-				thisActor->hight = 720;
+				thisActor->height = 720;
 				thisActor->width = 480;
 			}
 			else{
-				thisActor->hight = 320;
+				thisActor->height = 320;
 				thisActor->width = 240;
 			}
 		}

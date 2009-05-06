@@ -52,7 +52,8 @@
 #include "circbuf.h"
 #include "dll.h"
 
-#define BLOCKED 		1
+#define BLOCKED			0
+#define RUNNING			1
 #define MAX_LIST_NUM	128
 
 static int				Running = 1;
@@ -61,16 +62,20 @@ int						trace_action = 0;
 int						rts_mode = THREAD_PER_ACTOR;
 LIST					actorLists[MAX_LIST_NUM];
 int						num_lists = 1;
+int						numThreads = 1;
+int						numInstances = 0;
+int						numFifos = 0;
 static int				numCpusConfigured;
 static int				numCpusOnline;
 static int				dispatchMode;
 
-static void stop_run(int sig){
-    trace(LOG_MUST,"\nprogram stop running: sig=%x pid=%x\n",sig,getpid());
+static void stop_run(int sig)
+{
+	trace(LOG_MUST,"\nprogram stop running: sig=%x pid=%x\n",sig,getpid());
 	Running = 0;
 }
 
-static void init_print(int numInstances)
+static void init_print(void)
 {
 	int						i,j;
 	AbstractActorInstance	*pInstance;
@@ -97,7 +102,7 @@ static void init_print(int numInstances)
 	}
 }
 
-static void printFifostats(int numFifos)
+static void printFifostats(void)
 {
 	int						i,j;
 	CIRC_BUFFER				*cb;
@@ -119,7 +124,7 @@ static void printFifostats(int numFifos)
 	}
 }
 
-static void printActorInfo(int numInstances)
+static void printActorInfo(void)
 {
 	int						i,j;
 	CIRC_BUFFER				*cb;
@@ -236,9 +241,9 @@ static void exec_actor_unit(AbstractActorInstance *instance)
 		if(block)
 		{
  			actorTrace(instance,LOG_INFO,"%s_%d blocked on %s\n",instance->actor->name,instance->aid,(block==1)?"read":"write");
-			actorStatus[instance->aid]=0;
+			actorStatus[instance->aid]=BLOCKED;
 			pthread_cond_wait(&instance->cv, &instance->mt);
-			actorStatus[instance->aid]=1;
+			actorStatus[instance->aid]=RUNNING;
 			actorTrace(instance,LOG_INFO,"%s_%d wakeup\n",instance->actor->name,instance->aid);
 		}
 		pthread_mutex_unlock(&instance->mt);
@@ -275,9 +280,9 @@ static void exec_lists_unit(LIST *actorList)
 		//actor dispatch
 		if(instance->execState){
 			if(instance->actor->action_scheduler){
-				pthread_mutex_lock(&instance->mt);				
+// 				pthread_mutex_lock(&instance->mt);				
 				instance->execState = 0;
-				pthread_mutex_unlock(&instance->mt);
+// 				pthread_mutex_unlock(&instance->mt);
 				noRuns = 0;
 				instance->actor->action_scheduler(instance);
 			}
@@ -333,10 +338,10 @@ static void exec_list_unit(void *t)
 	pthread_exit(NULL);
 }
 
-int actors_status(int numInstances)
+int actors_status(void)
 {
 	int i;
-	int ret = 1;
+	int ret = BLOCKED;
 	int status;
 
 	for(i=0; i<numInstances; i++)
@@ -346,9 +351,9 @@ int actors_status(int numInstances)
 		else
 			status = actorInstance[i]->execState;
 
-		if(status== 1)
+		if(status== RUNNING)
 		{
-			ret = 0;
+			ret = RUNNING;
 			break;
 		}
 	}
@@ -357,9 +362,6 @@ int actors_status(int numInstances)
 
 void display_sys_info()
 {
-	numCpusConfigured = sysconf(_SC_NPROCESSORS_CONF);
-	numCpusOnline     = sysconf(_SC_NPROCESSORS_ONLN);
-
 	if (numCpusConfigured != -1)
 	{
 		trace(LOG_MUST,"Processors configured : %d\n",numCpusConfigured);
@@ -379,17 +381,158 @@ void display_sys_info()
 	}
 }
 
-int execute_network(int argc, char *argv[],NetworkConfig *networkConfig)
+void init_actor_network(const NetworkConfig *network)
 {
-	int			i,c;
-	int			numInstances,numFifos;
-	int			interval=2;
-	int			count=0;
-	int			num = 1;
-	int			numThreads = 1;
-	pthread_attr_t attr;
-	pthread_t	tid[128];
+	CIRC_BUFFER				*cb;
+	ActorClass				*ptr;
+	ActorPort				*port;
+	int						i,j;
+	DLLIST					*lnode;
+	ActorConfig				**actors;
+	AbstractActorInstance	*pInstance;
+	int						cid;
+	int						FifoSizes[MAX_CIRCBUF_LEN];
+	int						NumReaderInstances[128];
+	int						FifoOutputPortIndex[128];
+	int						FifoInputPortIndex[128][128];
 
+	int						listIndex = 0;
+	int						numActorsPerList = 0;
+
+	memset(NumReaderInstances,0,sizeof(NumReaderInstances));
+
+	actors = network->networkActors;
+	numCpusConfigured = sysconf(_SC_NPROCESSORS_CONF);
+	numCpusOnline     = sysconf(_SC_NPROCESSORS_ONLN);
+
+	numInstances = network->numNetworkActors;
+
+	for(i=0; i<MAX_CIRCBUF_LEN;i++)
+		FifoSizes[i] = MAX_CIRCBUF_LEN;
+
+	//get number of actors per list in average
+	if(rts_mode != THREAD_PER_ACTOR)
+	{
+		numActorsPerList = network->numNetworkActors/num_lists;
+		while(network->numNetworkActors - numActorsPerList*num_lists > numActorsPerList)
+			numActorsPerList++;
+	}
+
+	//actor port init
+	for(i=0; i<network->numNetworkActors; i++)
+	{
+		
+		ptr = actors[i]->actorClass;
+		pInstance = (AbstractActorInstance*)malloc(ptr->sizeActorInstance);
+		memset(pInstance,0,ptr->sizeActorInstance);
+		pInstance->actor = ptr;
+		pInstance->aid = i;
+
+		//setup parameters if any
+		if(pInstance->actor->set_param)
+			pInstance->actor->set_param(pInstance,actors[i]->numParams,actors[i]->params);
+
+		pInstance->inputPort = (ActorPort*)malloc(sizeof(ActorPort)*ptr->numInputPorts);
+		pInstance->outputPort = (ActorPort*)malloc(sizeof(ActorPort)*ptr->numOutputPorts);
+
+		for( j=0; j<ptr->numInputPorts; j++)
+		{
+			port = &pInstance->inputPort[j];
+			cid = actors[i]->inputPorts[j];
+			port->cid = cid;
+			port->aid = i;
+			port->portDir = INPUT;
+			port->readIndex = NumReaderInstances[cid];
+// 			port->tokenSize = TOKEN_SIZE;
+			port->tokenSize = ptr->inputPortSizes[j];
+			FifoInputPortIndex[cid][port->readIndex] = i;
+			NumReaderInstances[cid]++;
+		}
+
+		for( j=0; j<ptr->numOutputPorts; j++)
+		{
+			port = &pInstance->outputPort[j];	
+			cid = actors[i]->outputPorts[j];
+			port->cid = cid;
+			port->aid = i;
+// 			port->tokenSize = TOKEN_SIZE;
+ 			port->tokenSize = ptr->outputPortSizes[j];
+			port->portDir = OUTPUT;
+			//per fifo size
+// 			portSizes[cid] = actors[i]->portSizes[j];
+			FifoOutputPortIndex[cid] = i;
+		}
+
+		pthread_mutex_init(&pInstance->mt, NULL);
+		pthread_cond_init (&pInstance->cv, NULL);
+
+		pInstance->aid = i;
+		pInstance->execState = 1;
+		actorStatus[i] = 1;
+		actorInstance[i] = pInstance;
+
+		//append to a double linked list
+		if(rts_mode != THREAD_PER_ACTOR)
+		{
+			if(i >= numActorsPerList-1){
+				if(i%numActorsPerList == 0){
+					if((network->numNetworkActors - 1 - i) > numActorsPerList/2)
+						listIndex++;
+				}
+			}
+			lnode = (DLLIST *)malloc(sizeof(DLLIST));
+			lnode->obj = pInstance;
+			append_node(&actorLists[listIndex],lnode);
+			actorLists[listIndex].lid = listIndex;
+		}		
+
+	}
+	if(rts_mode != THREAD_PER_ACTOR)
+	{
+		if(num_lists < listIndex + 1){
+			num_lists = listIndex + 1;
+			trace(LOG_MUST,"Number of list adjusted to %d\n",num_lists); 
+		}
+	}
+		
+	//fifo init
+	numFifos = network->numFifos;
+	for(i=0; i<numFifos; i++)
+	{
+		cb = &circularBuf[i]; 
+		init_circbuf(cb, NumReaderInstances[i],FifoSizes[i]);
+		cb->block.aid = FifoOutputPortIndex[i];
+		for(j=0; j<NumReaderInstances[i]; j++)
+			cb->reader[j].block.aid = FifoInputPortIndex[i][j];
+	}
+
+#if 0
+	trace(LOG_EXEC,"\nFifo configuration:\n");
+ 	for(i=0; i<numFifos; i++)
+ 	{
+		cb = &circularBuf[i]; 
+		trace(LOG_EXEC,"Fifo[%d]:\n",i);
+		trace(LOG_EXEC,"Input from actor: ");
+		trace(LOG_EXEC,"%d\n",cb->block.aid);
+		trace(LOG_EXEC,"Output to actor : ");
+		for(j=0; j<NumReaderInstances[i]; j++)
+ 			trace(LOG_EXEC,"%d ",cb->reader[j].block.aid);
+		trace(LOG_INFO,"\n");
+ 	}
+#endif
+
+	//constructor
+	for (i=0; i<numInstances; i++) {
+		if(actorInstance[i]->actor->constructor){
+			actorInstance[i]->actor->constructor(actorInstance[i]);
+		}
+	}
+}
+
+int evaluate_args(int argc, char *argv[])
+{
+	int c;
+	int num = 1;
 	//command line param parser
 	while ((c = getopt (argc, argv, "tvhn:l:m:d:")) != -1)
 	{
@@ -404,10 +547,10 @@ int execute_network(int argc, char *argv[],NetworkConfig *networkConfig)
 				fprintf (stderr, "  -t                 turn on trace for action scheduler\n");
 				fprintf (stderr, "  -h                 print this help and exit\n");
 				fprintf (stderr, "  -v                 print version information and exit\n");
-				return 0;
+				return 1;
 			case 'v':
 				fprintf (stderr, "RTS Version: %s\n",RTS_VERSION);
-				return 0;
+				return 1;
 			case 'l':
 				log_level = atoi(optarg);
 				break;
@@ -426,7 +569,7 @@ int execute_network(int argc, char *argv[],NetworkConfig *networkConfig)
  			case '?':
 // 			if (optopt == 'l')
 // 				fprintf (stderr, "Option -%c requires an argument.\n", optopt);
- 				return 0;
+ 				return 1;
 			default:
 				break;
 		}
@@ -434,9 +577,6 @@ int execute_network(int argc, char *argv[],NetworkConfig *networkConfig)
 
 	//catch prog faults
 	signal(SIGINT, stop_run);
-
-	numInstances = networkConfig->numNetworkActors;
-	numFifos = networkConfig->numFifos;
 
 	switch(rts_mode){
 		case THREAD_PER_LIST:
@@ -454,49 +594,43 @@ int execute_network(int argc, char *argv[],NetworkConfig *networkConfig)
 			rts_mode = THREAD_PER_ACTOR;
 			break;
 	}
+	return 0;
+}
 
-	display_sys_info();
+int run_actor_network(void)
+{
+	int			interval=2;
+	int			count=0;
+	pthread_attr_t attr;
+	pthread_t	tid[MAX_ACTOR_NUM];
+	int numberOfThreads = 0;
 
-	trace(LOG_MUST,"ModuleName            : %s\n",argv[0],numInstances,numFifos);
-	trace(LOG_MUST,"numInstances          : %d\n",numInstances);
-	trace(LOG_MUST,"numFifos              : %d\n",numFifos);
-	trace(LOG_MUST,"Number of lists       : %d\n",num_lists);
-	if(rts_mode == SINGLE_LIST)
-		trace(LOG_MUST,"Number of threads     : %d\n",numThreads);
+	int i = 0;
 
-	init_actor_network(networkConfig);
-	
-	if(log_level >=LOG_INFO) 
-		init_print(numInstances);
-
-	//constructor
-	for (i=0; i<numInstances; i++) {
-		if(actorInstance[i]->actor->constructor){
-			actorInstance[i]->actor->constructor(actorInstance[i]);
-		}
-	}
-
-	/* For portability, explicitly create threads in a joinable state */
+        /* For portability, explicitly create threads in a joinable state */
 	pthread_attr_init(&attr);
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
 	switch(rts_mode){
 		case THREAD_PER_ACTOR:
-			for(i=0;i<numInstances;i++)
+			numberOfThreads = numInstances;
+			for(i=0; i<numberOfThreads; i++)
 			{
-				pthread_create((pthread_t*)&actorInstance[i]->tid, &attr, (void*)exec_actor_unit, (void *) actorInstance[i]);
+				pthread_create(&tid[i], &attr, (void*)exec_actor_unit, (void *) actorInstance[i]);
 			}
 			break;
 		case THREAD_PER_LIST:
-			for(i=0;i<num_lists;i++)
+			numberOfThreads = num_lists;
+			for(i=0; i<numberOfThreads; i++)
 			{
-				pthread_create((pthread_t*)&tid[i], &attr, (void*)exec_lists_unit, (void *) &actorLists[i]);
+				pthread_create(&tid[i], &attr, (void*)exec_lists_unit, (void *) &actorLists[i]);
 			}
 			break;
 		case SINGLE_LIST:
-			for(i=0;i<numThreads;i++)
+			numberOfThreads = numThreads;
+			for(i=0; i<numberOfThreads; i++)
 			{
-				pthread_create((pthread_t*)&tid[i], &attr, (void*)exec_list_unit, (void *)i);
+				pthread_create(&tid[i], &attr, (void*)exec_list_unit, (void *)i);
 			}
 			break;
 		default:
@@ -507,18 +641,25 @@ int execute_network(int argc, char *argv[],NetworkConfig *networkConfig)
  	{
 		count++;
  		sleep(interval);
-		if(actors_status(numInstances) == BLOCKED)
+		if(actors_status() == BLOCKED)
 		{
  			Running = 0;
 			trace(LOG_MUST,"All the actors got blocked, ready to exit\n");
 		}
 
 		if(log_level >=LOG_WARN)
-			printActorInfo(numInstances);
+			printActorInfo();
 
 		if(log_level >=LOG_EXEC)
- 			printFifostats(numFifos);
- 	}	
+ 			printFifostats();
+	}
+
+	/* doesn't work yet, because in thread-per-actor mode the threads are sitting in
+	 a pthread_cond_wait(), which is not signalled
+	for (i=0; i<numberOfThreads; i++) {
+	   pthread_join(tid[i], NULL);
+	} */
+
 
 	for (i=0; i<numInstances; i++) {
 		if(actorInstance[i]->actor->destructor){
@@ -526,5 +667,31 @@ int execute_network(int argc, char *argv[],NetworkConfig *networkConfig)
 		}
 	}
 	sleep(1);
+	return 0;
+}
+
+int execute_network(int argc, char *argv[], const NetworkConfig *networkConfig)
+{
+	int result = evaluate_args(argc, argv);
+	if (result != 0) {
+		return result;
+	}
+
+	init_actor_network(networkConfig);
+
+	display_sys_info();
+
+	trace(LOG_MUST,"ModuleName            : %s\n",argv[0],numInstances,numFifos);
+	trace(LOG_MUST,"numInstances          : %d\n",numInstances);
+	trace(LOG_MUST,"numFifos              : %d\n",numFifos);
+	trace(LOG_MUST,"Number of lists       : %d\n",num_lists);
+	if(rts_mode == SINGLE_LIST)
+		trace(LOG_MUST,"Number of threads     : %d\n",numThreads);
+
+	if(log_level >=LOG_INFO) 
+		init_print();
+
+	run_actor_network();
+
 	return 0;
 }
