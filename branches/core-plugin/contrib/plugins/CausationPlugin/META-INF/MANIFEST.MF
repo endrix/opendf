@@ -1,13 +1,19 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: Causation Plugin
+Bundle-Name: %Bundle-Name.0
 Bundle-SymbolicName: net.sf.opendf.plugin.causationplugin;singleton:=true
-Bundle-Version: 1.0.0
+Bundle-Version: 1.2.11
 Bundle-Activator: net.sf.opendf.plugin.causation.Activator
 Require-Bundle: org.eclipse.core.runtime,
  net.sf.opendf.eclipse.plugin.OpendfPlugin;bundle-version="1.1.11"
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
-Export-Package: net.sf.opendf.plugin.causation;
+Export-Package: att.grappa,
+ java_cup.runtime,
+ net,
+ net.sf,
+ net.sf.opendf,
+ net.sf.opendf.plugin,
+ net.sf.opendf.plugin.causation;
   uses:="net.sf.opendf.hades.des.schedule,
    org.eclipse.core.runtime,
    net.sf.opendf.eclipse.plugin.simulators.tabs,
@@ -45,4 +51,5 @@ Bundle-ActivationPolicy: lazy
 Bundle-Localization: plugin
 Bundle-ClassPath: .,
  lib/jgrapht-jdk1.6.jar,
- lib/jgraph.jar
+ lib/jgraph.jar,
+ lib/grappa1_2.jar
