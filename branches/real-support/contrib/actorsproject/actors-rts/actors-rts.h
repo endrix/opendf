@@ -77,6 +77,9 @@ extern "C" {
 #define THREAD_PER_LIST		2
 #define SINGLE_LIST			3
 
+#define ACTOR_NORMAL		0
+#define ACTOR_STANDALONE	1
+
 typedef int					bool_t;
 
 typedef struct {

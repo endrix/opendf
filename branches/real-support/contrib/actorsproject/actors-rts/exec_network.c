@@ -61,6 +61,7 @@ int						log_level = LOG_ERROR;
 int						trace_action = 0;
 int						rts_mode = THREAD_PER_ACTOR;
 LIST					actorLists[MAX_LIST_NUM];
+LIST					actorLists2[MAX_LIST_NUM];
 int						num_lists = 1;
 int						numThreads = 1;
 int						numInstances = 0;
@@ -338,6 +339,27 @@ static void exec_list_unit(void *t)
 	pthread_exit(NULL);
 }
 
+static void exec_standalone_unit(void *t)
+{
+	AbstractActorInstance *instance = t;
+	unsigned long	mask;
+
+	//distribute thread on to cpu
+	if(dispatchMode == 1)
+	{
+		mask = (int)t%numCpusOnline;
+		mask = 1<<mask;
+		syscall(__NR_sched_setaffinity, 0, sizeof(mask), &mask);
+	}
+	trace(LOG_MUST,"Standalone actor %s start running at cpu %d......\n",instance->actor->name,sched_getcpu());
+
+	if(instance->actor->action_scheduler){
+		instance->actor->action_scheduler(instance);
+	}
+
+	pthread_exit(NULL);
+}
+
 int actors_status(void)
 {
 	int i;
@@ -384,16 +406,16 @@ void display_sys_info()
 void init_actor_network(const NetworkConfig *network)
 {
 	CIRC_BUFFER				*cb;
+	int						cid;
+	int						i,j;
 	ActorClass				*ptr;
 	ActorPort				*port;
-	int						i,j;
 	DLLIST					*lnode;
 	ActorConfig				**actors;
 	AbstractActorInstance	*pInstance;
-	int						cid;
-	int						FifoSizes[MAX_CIRCBUF_LEN];
 	int						NumReaderInstances[128];
 	int						FifoOutputPortIndex[128];
+	int						FifoSizes[MAX_CIRCBUF_LEN];
 	int						FifoInputPortIndex[128][128];
 
 	int						listIndex = 0;
@@ -443,7 +465,6 @@ void init_actor_network(const NetworkConfig *network)
 			port->aid = i;
 			port->portDir = INPUT;
 			port->readIndex = NumReaderInstances[cid];
-// 			port->tokenSize = TOKEN_SIZE;
 			port->tokenSize = ptr->inputPortSizes[j];
 			FifoInputPortIndex[cid][port->readIndex] = i;
 			NumReaderInstances[cid]++;
@@ -455,11 +476,8 @@ void init_actor_network(const NetworkConfig *network)
 			cid = actors[i]->outputPorts[j];
 			port->cid = cid;
 			port->aid = i;
-// 			port->tokenSize = TOKEN_SIZE;
  			port->tokenSize = ptr->outputPortSizes[j];
 			port->portDir = OUTPUT;
-			//per fifo size
-// 			portSizes[cid] = actors[i]->portSizes[j];
 			FifoOutputPortIndex[cid] = i;
 		}
 
@@ -472,21 +490,32 @@ void init_actor_network(const NetworkConfig *network)
 		actorInstance[i] = pInstance;
 
 		//append to a double linked list
-		if(rts_mode != THREAD_PER_ACTOR)
-		{
-			if(i >= numActorsPerList-1){
-				if(i%numActorsPerList == 0){
-					if((network->numNetworkActors - 1 - i) > numActorsPerList/2)
-						listIndex++;
+		switch (ptr->actorExecMode) {
+			case ACTOR_NORMAL:
+				if(rts_mode != THREAD_PER_ACTOR)
+				{
+					if(i >= numActorsPerList-1){
+						if(i%numActorsPerList == 0){
+							if((network->numNetworkActors - 1 - i) > numActorsPerList/2)
+								listIndex++;
+						}
+					}
+					lnode = (DLLIST *)malloc(sizeof(DLLIST));
+					lnode->obj = pInstance;
+					append_node(&actorLists[listIndex],lnode);
+					actorLists[listIndex].lid = listIndex;
 				}
-			}
-			lnode = (DLLIST *)malloc(sizeof(DLLIST));
-			lnode->obj = pInstance;
-			append_node(&actorLists[listIndex],lnode);
-			actorLists[listIndex].lid = listIndex;
-		}		
-
+				break;
+			case ACTOR_STANDALONE:
+				lnode = (DLLIST *)malloc(sizeof(DLLIST));
+				lnode->obj = pInstance;
+				append_node(&actorLists2[ACTOR_STANDALONE-1],lnode);
+				break;
+			default:
+				break;
+		}
 	}
+
 	if(rts_mode != THREAD_PER_ACTOR)
 	{
 		if(num_lists < listIndex + 1){
@@ -533,6 +562,7 @@ int evaluate_args(int argc, char *argv[])
 {
 	int c;
 	int num = 1;
+
 	//command line param parser
 	while ((c = getopt (argc, argv, "tvhn:l:m:d:")) != -1)
 	{
@@ -599,24 +629,30 @@ int evaluate_args(int argc, char *argv[])
 
 int run_actor_network(void)
 {
-	int			interval=2;
-	int			count=0;
+	DLLIST		*node;
 	pthread_attr_t attr;
 	pthread_t	tid[MAX_ACTOR_NUM];
-	int numberOfThreads = 0;
+	pthread_t	tid2[MAX_ACTOR_NUM];
 
-	int i = 0;
+	int			i = 0;
+	int			count=0;
+	int			interval=2;
+	int 		numberOfThreads = 0;
 
-        /* For portability, explicitly create threads in a joinable state */
+
+
+	/* For portability, explicitly create threads in a joinable state */
 	pthread_attr_init(&attr);
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
+	//dispatch normal actors
 	switch(rts_mode){
 		case THREAD_PER_ACTOR:
 			numberOfThreads = numInstances;
 			for(i=0; i<numberOfThreads; i++)
 			{
-				pthread_create(&tid[i], &attr, (void*)exec_actor_unit, (void *) actorInstance[i]);
+				if (actorInstance[i]->actor->actorExecMode == ACTOR_NORMAL)
+					pthread_create(&tid[i], &attr, (void*)exec_actor_unit, (void *) actorInstance[i]);
 			}
 			break;
 		case THREAD_PER_LIST:
@@ -636,6 +672,10 @@ int run_actor_network(void)
 		default:
 			break;
 	}	
+
+	//dispatch standalone actors
+	for(node=actorLists2[ACTOR_STANDALONE-1].head; node; node=node->next)
+		pthread_create(&tid2[i], &attr, (void*)exec_standalone_unit, node->obj);
 
  	while(Running)
  	{
@@ -659,7 +699,6 @@ int run_actor_network(void)
 	for (i=0; i<numberOfThreads; i++) {
 	   pthread_join(tid[i], NULL);
 	} */
-
 
 	for (i=0; i<numInstances; i++) {
 		if(actorInstance[i]->actor->destructor){
