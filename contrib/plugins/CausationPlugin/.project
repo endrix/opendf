@@ -3,7 +3,7 @@
 	<name>CausationPlugin</name>
 	<comment></comment>
 	<projects>
-		<project>OpenDF core</project>
+		<project>OpendfCore</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
