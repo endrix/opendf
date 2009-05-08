@@ -47,7 +47,7 @@ public class BasicXlimTypes extends XlimFeature {
 
 	@Override
 	public void initialize(TypeSystem typeSystem) {
-		TypeKind boolKind=new SingletonTypeKind(new BooleanType());
+		TypeKind boolKind=new BooleanType();
 		TypeKind intKind=new IntegerTypeKind();
 		
 		typeSystem.addTypeKind(boolKind);

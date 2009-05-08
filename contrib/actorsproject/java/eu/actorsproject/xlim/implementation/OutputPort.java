@@ -112,6 +112,24 @@ class OutputPort extends ValueNode implements XlimOutputPort {
 		return mType;
 	}
 	
+	
+	@Override
+	public XlimType actualOutputType() {
+		Operation op=mParent.isOperation();
+		if (op==null) {
+			// Phi-node: actual type and declared type the same
+			return mType;
+		}
+		else {
+			for (int i=0; i<op.getNumOutputPorts(); ++i)
+				if (op.getOutputPort(i)==this) {
+					OperationKind kind=op.getOperationKind();
+					return kind.actualOutputType(op, i);
+				}
+			throw new IllegalStateException("OutputPort not found in its parent");
+		}
+	}
+
 	@Override
 	public OutputPort isOutputPort() {
 		return this; // yes, it's an OutputPort (see XlimSource)

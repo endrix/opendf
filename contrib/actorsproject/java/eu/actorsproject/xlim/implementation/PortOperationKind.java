@@ -128,7 +128,7 @@ class PortOperationKind extends OperationKind {
 		    op.setPortAttribute(port);
 		// Possibly there is also an integer attribute
 		if (mIntAttributeName!=null) {
-			Integer attrib=getIntegerAttribute(mIntAttributeName,attributes);
+			Long attrib=getIntegerAttribute(mIntAttributeName,attributes);
 			op.setIntegerValueAttribute(attrib);
 		}
 	}
@@ -362,6 +362,14 @@ class PinWaitOperation extends PortAccessOperation {
 	}
 	
 	@Override
+	public String getValueAttribute() {
+		if (mValue!=null)
+			return mValue.toString();
+		else
+			return null;
+	}
+	
+	@Override
 	public boolean isRemovable() {
 		return false;
 	}
@@ -381,6 +389,11 @@ class PinWaitOperation extends PortAccessOperation {
 	public boolean setIntegerValueAttribute(long value) {
 		mValue=value;
 		return true;
+	}
+	
+	@Override
+	public boolean setValueAttribute(String value) {
+		return setIntegerValueAttribute(Long.valueOf(value));
 	}
 	
 	/**

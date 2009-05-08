@@ -40,10 +40,17 @@ package eu.actorsproject.xlim.type;
 import eu.actorsproject.xlim.XlimType;
 
 class IntegerType implements XlimType {
+	private TypeKind mIntegerTypeKind;
 	private int mSize;
 	
-	IntegerType(int size) {
+	IntegerType(TypeKind integerTypeKind, int size) {
+		mIntegerTypeKind=integerTypeKind;
 		mSize=size;
+	}
+	
+	@Override
+	public TypeKind getTypeKind() {
+		return mIntegerTypeKind;
 	}
 	
 	@Override
@@ -74,6 +81,11 @@ class IntegerType implements XlimType {
 	@Override
 	public long maxValue() {
 		return ~minValue();
+	}
+	
+	@Override
+	public boolean isZero(String s) {
+		return Long.valueOf(s)==0;
 	}
 	
 	@Override

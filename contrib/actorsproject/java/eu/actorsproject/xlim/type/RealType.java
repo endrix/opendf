@@ -37,31 +37,36 @@
 
 package eu.actorsproject.xlim.type;
 
-import org.w3c.dom.NamedNodeMap;
 
-import eu.actorsproject.xlim.XlimType;
-
-public class SingletonTypeKind extends TypeKind {
-
-	private XlimType mSingleton;
+/**
+ * The "real" type (64-bit IEEE-754 double precision)
+ *
+ */
+class RealType extends UnparametricType {
 	
-	public SingletonTypeKind(XlimType singleton) {
-		super(singleton.getTypeName());
-		mSingleton=singleton;
+	RealType() {
+		super("real");
 	}
 	
 	@Override
-	public XlimType getType() {
-		return mSingleton;
+	public int getSize() {
+		return 64;
+	}
+
+	@Override
+	public boolean isZero(String s) {
+		return Double.doubleToRawLongBits(Double.valueOf(s))==0;
 	}
 	
 	@Override
-	public XlimType getType(Object param) {
-		throw new UnsupportedOperationException("Type "+getTypeName()+" takes no parameter");
+	public long minValue() {
+		// FIXME: -Inf as long, but is it useful...?
+		return 0xfff0000000000000L;
 	}
-	
+
 	@Override
-	public XlimType getType(NamedNodeMap attributes) {
-		return mSingleton;
-	}
+	public long maxValue() {
+		// FIXME: +Inf as long, but is it useful...?
+		return 0x7ff0000000000000L;
+	}		
 }

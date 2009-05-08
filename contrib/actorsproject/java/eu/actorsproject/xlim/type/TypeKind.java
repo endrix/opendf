@@ -43,9 +43,9 @@ import java.util.BitSet;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import eu.actorsproject.xlim.XlimType;
-import eu.actorsproject.xlim.util.Session;
+import eu.actorsproject.xlim.XlimTypeKind;
 
-public abstract class TypeKind implements TypePattern {
+public abstract class TypeKind implements TypePattern, XlimTypeKind {
 	
 	private String mTypeName;
 	private TypeConversion mDefaultPromotion;
@@ -63,17 +63,21 @@ public abstract class TypeKind implements TypePattern {
 	public TypeKind(String typeName) {
 		mTypeName=typeName;
 		mSpecificPromotions=new ArrayList<TypeConversion>();
+		mSpecificConversions=new ArrayList<TypeConversion>();
 	}
 	
 	public String getTypeName() {
 		return mTypeName;
 	}
 	
-	public abstract XlimType getType();
+	@Override
+	public abstract XlimType createType();
 	
-	public abstract XlimType getType(Object param);
 	
-	public abstract XlimType getType(NamedNodeMap attributes);
+	@Override
+	public abstract XlimType createType(Object param);
+	
+	public abstract XlimType createTypeFromAttributes(NamedNodeMap attributes);
 	
 	public void setDefaultTypePromotion(TypeConversion tp) {
 		if (mDefaultPromotion!=null)
@@ -89,14 +93,30 @@ public abstract class TypeKind implements TypePattern {
 		mSpecificPromotions.add(tp);
 	}
 		
-	public boolean hasPromotionTo(TypeKind kind) {
-		assert(kind.mDfsNumber>=DFS_MIN);
-		return mAncestors.get(kind.mDfsNumber);
+	public void addTypeConversion(TypeConversion tc) {
+		mSpecificConversions.add(tc);
 	}
 	
+	abstract XlimType createLub(XlimType t1, XlimType t2);
+	
 	public boolean hasPromotionFrom(XlimType t) {
-		TypeKind sourceKind=Session.getTypeFactory().getTypeKind(t.getTypeName());
-		return sourceKind.hasPromotionTo(this);
+		XlimTypeKind sourceKind=t.getTypeKind();
+		return sourceKind.hasPromotionFrom(this);
+	}
+
+	@Override
+	public boolean hasPromotionFrom(XlimTypeKind tk) {
+		if (tk instanceof TypeKind) {
+			TypeKind kind=(TypeKind) tk;
+			return kind.hasPromotionTo(this);
+		}
+		else
+			return false;
+	}
+	
+	private boolean hasPromotionTo(TypeKind kind) {
+		assert(kind.mDfsNumber>=DFS_MIN);
+		return mAncestors.get(kind.mDfsNumber);
 	}
 	
 	public TypeConversion getTypePromotion(TypeKind kind) {
@@ -106,14 +126,20 @@ public abstract class TypeKind implements TypePattern {
 		return mDefaultPromotion;
 	}
 	
+	@Override
 	public XlimType promote(XlimType t) {
-		TypeKind sourceKind=Session.getTypeFactory().getTypeKind(t.getTypeName());
-		while (sourceKind!=null && sourceKind!=this) {
-			TypeConversion tp=sourceKind.getTypePromotion(this);
-			t=tp.apply(t);
-			sourceKind=tp.getTargetTypeKind();
+		XlimTypeKind tk=t.getTypeKind();
+		if (tk instanceof TypeKind) {
+			TypeKind sourceKind=(TypeKind) tk;
+			while (sourceKind!=null && sourceKind!=this) {
+				TypeConversion tp=sourceKind.getTypePromotion(this);
+				t=tp.apply(t);
+				sourceKind=tp.getTargetTypeKind();
+			}
+			return t;
 		}
-		return t;
+		else
+			return null;
 	}
 	
 	public boolean hasConversionTo(TypeKind kind) {
@@ -128,8 +154,13 @@ public abstract class TypeKind implements TypePattern {
 	}
 	
 	public boolean hasConversionFrom(XlimType t) {
-		TypeKind sourceKind=Session.getTypeFactory().getTypeKind(t.getTypeName());
-		return sourceKind.hasConversionTo(this);
+		XlimTypeKind tk=t.getTypeKind();
+		if (tk instanceof TypeKind) {
+			TypeKind sourceKind=(TypeKind) tk;
+			return sourceKind.hasConversionTo(this);
+		}
+		else
+			return false;
 	}
 	
 	public TypeConversion getTypeConversion(TypeKind kind) {
@@ -145,13 +176,18 @@ public abstract class TypeKind implements TypePattern {
 	}
 	
 	public XlimType convert(XlimType t) {
-		TypeKind sourceKind=Session.getTypeFactory().getTypeKind(t.getTypeName());
-		while (sourceKind!=null && sourceKind!=this) {
-			TypeConversion tp=sourceKind.getTypeConversion(this);
-			t=tp.apply(t);
-			sourceKind=tp.getTargetTypeKind();
+		XlimTypeKind tk=t.getTypeKind();
+		if (tk instanceof TypeKind) {
+			TypeKind sourceKind=(TypeKind) tk;
+			while (sourceKind!=null && sourceKind!=this) {
+				TypeConversion tp=sourceKind.getTypeConversion(this);
+				t=tp.apply(t);
+				sourceKind=tp.getTargetTypeKind();
+			}
+			return t;
 		}
-		return t;
+		else
+			return null;
 	}
 	
 	/**
@@ -160,10 +196,10 @@ public abstract class TypeKind implements TypePattern {
 	 */
 	@Override
 	public Match match(XlimType t) {
-		TypeKind sourceKind=Session.getTypeFactory().getTypeKind(t.getTypeName());
+		XlimTypeKind sourceKind=t.getTypeKind();
 		if (sourceKind==this)
 			return Match.ExactTypeKind;
-		else if (sourceKind.hasPromotionTo(this))
+		else if (hasPromotionFrom(sourceKind))
 			return Match.PromotedType;
 		else
 			return Match.DoesNotMatch;

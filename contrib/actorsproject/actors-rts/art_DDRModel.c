@@ -78,13 +78,28 @@ static void a3_data_write(ActorInstance *);
 static void a4_action_scheduler(ActorInstance *);
 static void constructor(AbstractActorInstance*);
 
+static int inputPortSizes[]={
+  sizeof(int32_t),
+  sizeof(int32_t),
+  sizeof(int32_t)
+};
+
+static int outputPortSizes[]={
+  sizeof(int32_t)
+};
+
 ActorClass ActorClass_art_DDRModel ={
   "DDRModel",
   3, /* numInputPorts */
   1, /* numOutputPorts */
   sizeof(ActorInstance),
   (void*)a4_action_scheduler,
-  constructor
+  constructor,
+  0, /* destructor */
+  0, /* set_param */
+  inputPortSizes,
+  outputPortSizes,
+  0 /* actorExecMode */
 };
 
 

@@ -81,7 +81,7 @@ public class IntegerAttributeOperationKind extends OperationKind {
 	public void setAttributes(XlimOperation op,
 			                  NamedNodeMap attributes, 
 			                  ReaderContext context) {
-		Integer value=getIntegerAttribute(mAttributeName,attributes);
+		Long value=getIntegerAttribute(mAttributeName,attributes);
 		if (value!=null)
 			op.setIntegerValueAttribute(value);
 	}		
@@ -103,10 +103,23 @@ class IntegerAttributeOperation extends Operation {
 	}
 	
 	@Override
+	public String getValueAttribute() {
+		if (mValue!=null)
+			return mValue.toString();
+		else
+			return null;
+	}
+	
+	@Override
 	public boolean setIntegerValueAttribute(long value) {
 		mValue=value;
-		mKind.doDeferredTypecheck(this);
+		mKind.doDeferredTypecheck(this); // set width (if not done already)
 		return true;
+	}
+	
+	@Override
+	public boolean setValueAttribute(String value) {
+		return setIntegerValueAttribute(Long.valueOf(value));
 	}
 	
 	@Override

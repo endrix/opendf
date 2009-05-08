@@ -42,9 +42,11 @@ import java.io.PrintStream;
 
 import eu.actorsproject.xlim.XlimDesign;
 import eu.actorsproject.xlim.implementation.BasicXlimOperations;
+import eu.actorsproject.xlim.implementation.RealOperations;
 import eu.actorsproject.xlim.implementation.SoftwareExtensions;
 import eu.actorsproject.xlim.io.XlimReader;
 import eu.actorsproject.xlim.type.BasicXlimTypes;
+import eu.actorsproject.xlim.type.RealTypeFeature;
 import eu.actorsproject.xlim.util.Session;
 import eu.actorsproject.xlim.util.XlimTransformer;
 import eu.actorsproject.xlim.xlim2c.CCodeGenerator;
@@ -59,6 +61,8 @@ public class Xlim2c extends Session {
 		register(new BasicXlimTypes());
 		register(new BasicXlimOperations());
 		register(new SoftwareExtensions());
+		register(new RealTypeFeature());
+		register(new RealOperations());
 	}
 	
 	@Override

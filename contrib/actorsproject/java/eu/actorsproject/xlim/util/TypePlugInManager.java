@@ -37,61 +37,31 @@
 
 package eu.actorsproject.xlim.util;
 
+import java.util.HashMap;
+
 import eu.actorsproject.xlim.XlimType;
-import eu.actorsproject.xlim.XlimTypeKind;
-import eu.actorsproject.xlim.type.TypeFactory;
 
-public class NativeTypesDefault implements NativeTypePlugIn {
-	protected XlimTypeKind mIntTypeKind;
-	protected XlimType mInt8, mInt16, mInt32, mInt64;
+public class TypePlugInManager<T> {
+
+	protected T mDefaultPlugIn;
+	protected HashMap<String,T> mPlugIns;
 	
-	public NativeTypesDefault() {
-		TypeFactory typeFact=Session.getTypeFactory();
-		mIntTypeKind=typeFact.getTypeKind("int");
-		mInt8=typeFact.createInteger(8);
-		mInt16=typeFact.createInteger(16);
-		mInt32=typeFact.createInteger(32);
-		mInt64=typeFact.createInteger(64);
+	public TypePlugInManager(T defaultPlugIn) {
+		mPlugIns=new HashMap<String,T>();
+		mDefaultPlugIn=defaultPlugIn;
 	}
-
-	@Override
-	public XlimType nativeType(XlimType type) {
-		return nativeType(type, mInt32);
+	
+	public void registerTypePlugIn(String typeKind, T plugIn) {
+		mPlugIns.put(typeKind, plugIn);
 	}
-
-	@Override
-	public XlimType nativeElementType(XlimType type) {
-		// TODO: Support small integer types for aggregates
-		// return nativeType(type, mInt8);
-		return nativeType(type, mInt32);
-	}
-
-	@Override
-	public XlimType nativePortType(XlimType type) {
-		// TODO: Support small integer types for aggregates
-		// return nativeType(type, mInt8);
-		return nativeType(type, mInt32);
-	}
-
-	protected XlimType nativeType(XlimType type, XlimType smallestInt) {
-		if (type.getTypeKind()==mIntTypeKind) {
-			assert(type.isInteger());
-			int width=type.getSize();
-			assert(width<=64);
-
-			if (width<=smallestInt.getSize())
-				return smallestInt;
-			else if (width<=16)
-				if (width<=8)
-					return mInt8;
-				else
-					return mInt16;
-			else if (width<=32)
-				return mInt32;
-			else
-				return mInt64;
+	
+	public T getTypePlugIn(XlimType t) {
+		T plugIn=mPlugIns.get(t.getTypeName());
+		if (plugIn==null) {
+			if (mDefaultPlugIn==null)
+				throw new RuntimeException("Unhandled type: "+t.getTypeName());
+			plugIn=mDefaultPlugIn;
 		}
-		else
-			return type;
+		return plugIn;
 	}
 }

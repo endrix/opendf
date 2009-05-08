@@ -42,6 +42,7 @@ import eu.actorsproject.xlim.XlimOutputPort;
 import eu.actorsproject.xlim.XlimStateVar;
 import eu.actorsproject.xlim.XlimTaskModule;
 import eu.actorsproject.xlim.XlimTopLevelPort;
+import eu.actorsproject.xlim.XlimType;
 
 public interface ExpressionTreeGenerator {
 
@@ -51,6 +52,12 @@ public interface ExpressionTreeGenerator {
 	 */
 	void translateSubTree(XlimInputPort root);
 		
+	/**
+	 * @param t
+	 * @return Name of type 't' that is used in the target language
+	 */
+	String getTargetTypeName(XlimType t);
+	
 	/**
 	 * @param s
 	 * prints a string to the resulting output stream

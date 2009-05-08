@@ -44,7 +44,6 @@ import java.util.NoSuchElementException;
 
 import eu.actorsproject.util.Linkage;
 import eu.actorsproject.util.XmlElement;
-import eu.actorsproject.xlim.XlimOperation;
 import eu.actorsproject.xlim.XlimOutputPort;
 import eu.actorsproject.xlim.XlimPhiNode;
 import eu.actorsproject.xlim.XlimSource;
@@ -119,7 +118,7 @@ class PhiNode extends Linkage<PhiNode> implements XlimPhiNode, Instruction, PhiO
 	}
 
 	@Override
-	public XlimOperation isOperation() {
+	public Operation isOperation() {
 		return null;
 	}
 	

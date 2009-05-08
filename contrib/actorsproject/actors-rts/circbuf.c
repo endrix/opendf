@@ -59,7 +59,7 @@
 #endif
 
 
-CIRC_BUFFER				circularBuf[256];
+CIRC_BUFFER				circularBuf[MAX_CIRCBUF_LEN];
 
 int InitializeCriticalSection(sem_t *semaphore)
 {
@@ -113,11 +113,13 @@ void init_block(BLOCK *b)
 	b->num = 0;
 }
 
-void init_circbuf(CIRC_BUFFER *cb,int numReaders)
+void init_circbuf(CIRC_BUFFER *cb,int numReaders, int length)
 {
 	int i;
 
 	memset(cb,0,sizeof(CIRC_BUFFER));
+	cb->length = length;
+	cb->buf = (char*)malloc(cb->length);
 	init_block(&cb->block);
 	INIT(cb);
 	cb->numReaders = numReaders;
@@ -139,7 +141,7 @@ int get_circbuf_space(CIRC_BUFFER *cb)
 		area = max(area,(cb->numWrites - cb->reader[i].numReads));
 	}	
 	
-	space = MAX_CIRCBUF_LEN - area;
+	space = cb->length - area;
 
 	if(space < TOKEN_SIZE)
 		cb->stats.nospace++;
@@ -173,9 +175,9 @@ int peek_circbuf_area(CIRC_BUFFER *cb,char *buf, int size, int which, int offset
 
 	LOCK(cb);
 
-	if( ( readptr + size) > MAX_CIRCBUF_LEN )  
+	if( ( readptr + size) > cb->length )  
 	{
-		dist = MAX_CIRCBUF_LEN - readptr;
+		dist = cb->length - readptr;
 		memcpy(buf, (cb->buf + readptr), dist);
 		memcpy(buf + dist, cb->buf, size - dist);
 	}
@@ -196,9 +198,9 @@ int read_circbuf(CIRC_BUFFER *cb,char *buf, int size, int which)
 
 	LOCK(cb);
 
-	if( ( cb->reader[which].readptr + size) > MAX_CIRCBUF_LEN )  
+	if( ( cb->reader[which].readptr + size) > cb->length )  
 	{
-		dist = MAX_CIRCBUF_LEN - cb->reader[which].readptr;
+		dist = cb->length - cb->reader[which].readptr;
 		memcpy(buf, (cb->buf + cb->reader[which].readptr), dist);
 		memcpy(buf + dist, cb->buf, size - dist);
 		cb->reader[which].readptr = size - dist;
@@ -216,16 +218,16 @@ int read_circbuf(CIRC_BUFFER *cb,char *buf, int size, int which)
 	return 0;
 }
 
-int write_circbuf(CIRC_BUFFER *cb,char *buf, int size)
+int write_circbuf(CIRC_BUFFER *cb,const char *buf, int size)
 {
 	int dist;
 
 	LOCK(cb);
 
-	if( ( cb->writeptr + size) > MAX_CIRCBUF_LEN)
+	if( ( cb->writeptr + size) > cb->length)
 	{
 
-		dist = MAX_CIRCBUF_LEN - cb->writeptr;
+		dist = cb->length - cb->writeptr;
 		memcpy( (cb->buf + cb->writeptr), buf,dist);
 		
 		memcpy(cb->buf, (buf + dist), size - dist);

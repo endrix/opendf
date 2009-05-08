@@ -51,6 +51,10 @@ interface Instruction extends XlimInstruction, ValueOperator {
 	
 	@Override
 	OutputPort getOutputPort(int i);
+	
 	@Override
 	Iterable<OutputPort> getOutputPorts();	
+	
+	@Override
+	Operation isOperation();
 }

@@ -44,10 +44,10 @@ import java.util.List;
 
 class ScalarInitValue implements XlimInitValue {
 
-	private int mValue;
+	private String mValue;
 	private XlimType mType;
 	
-	public ScalarInitValue(int value, XlimType type) {
+	public ScalarInitValue(String value, XlimType type) {
 		mValue = value;
 		mType = type;
 	}
@@ -63,7 +63,7 @@ class ScalarInitValue implements XlimInitValue {
 	}
 
 	@Override
-	public Integer getScalarValue() {
+	public String getScalarValue() {
 		return mValue;
 	}
 
@@ -73,13 +73,18 @@ class ScalarInitValue implements XlimInitValue {
 	}
 
 	@Override
+	public void setCommonElementType(XlimType t) {
+		mType=t;
+	}
+	
+	@Override
 	public int totalNumberOfElements() {
 		return 1;
 	}
 
 	@Override
 	public boolean isZero() {
-		return mValue==0;
+		return mType.isZero(mValue);
 	}
 	
 	@Override

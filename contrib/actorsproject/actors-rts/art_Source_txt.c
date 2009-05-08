@@ -50,6 +50,8 @@
 #define OUT0_Result				base.outputPort[0]
 #define OUT0_TOKENSIZE			base.outputPort[0].tokenSize
 
+#define TOKENSIZE_IN_INT32		8
+
 typedef struct {
   AbstractActorInstance base;
   FILE *fd;
@@ -61,6 +63,10 @@ static void constructor(AbstractActorInstance*);
 static void destructor(AbstractActorInstance*);
 static void set_param(AbstractActorInstance*,int,ActorParameter*);
 
+static int outputPortSizes[]={
+  TOKENSIZE_IN_INT32*sizeof(int32_t)
+};
+
 ActorClass ActorClass_art_Source_txt ={
   "art_Source_txt",
   0, /* numInputPorts */
@@ -69,29 +75,40 @@ ActorClass ActorClass_art_Source_txt ={
   a_action_scheduler,
   constructor,
   destructor,
-  set_param
+  set_param,
+  0,
+  outputPortSizes,
+  0	
 };
 
 static int read_file(FILE *fd, char *buf,int size)
 {
-	int ret = EOF;
+	int i,ret,tnum = 0;
+	int32_t *pbuf = (int32_t*)buf;
 
-	if(fd){
-
- 		ret = fscanf((FILE*)fd,"%d",(int*)buf);
-		if(ret != EOF){
-			ret *= sizeof(int);
+	if(fd)
+	{
+		for(i=0;i<size;i++)
+		{
+			ret = fscanf((FILE*)fd,"%d",pbuf++);
+			if(ret != EOF)
+			{
+				tnum++;
+			}
+			else
+				return (tnum*sizeof(int32_t));
 		}
 	}
-	return ret;
+	return (tnum*sizeof(int32_t));
 }
 
 static int Write0(ActorInstance *thisActor) {
 	char		buf[MAX_DATA_LENGTH];
 	int			ret;
 
-	ret = read_file(thisActor->fd,buf,thisActor->OUT0_TOKENSIZE);
-	if(ret == EOF){
+// 	ret = read_file(thisActor->fd,buf,thisActor->OUT0_TOKENSIZE);
+	ret = read_file(thisActor->fd,buf,TOKENSIZE_IN_INT32);
+	if(ret<=0){
 		if(rts_mode == THREAD_PER_ACTOR)
 		{
  			fclose((FILE*)thisActor->fd);
@@ -117,10 +134,10 @@ static void a_action_scheduler(AbstractActorInstance *pBase) {
 	while(1)
 	{
 		available=pinStatus2(&thisActor->OUT0_Result);
-		if(available>=thisActor->OUT0_TOKENSIZE)
+ 		if(available>=thisActor->OUT0_TOKENSIZE)
 		{
 			ret = Write0(thisActor);
-			if (ret == EOF)
+			if(ret <=0)
 				return;
 		}
 		else
