@@ -205,7 +205,7 @@ public class BasicXlimOperations extends XlimFeature {
 	private void addBooleanOperations(InstructionSet s) {
 		TypeFactory fact=Session.getTypeFactory();
 		TypeKind boolKind=fact.getTypeKind("bool");
-		XlimType boolType=boolKind.getType();
+		XlimType boolType=boolKind.createType();
 		TypeRule unaryRule=new FixOutputTypeRule(new Signature(boolKind),
 				                                 boolType);
 		TypeRule binaryRule=new FixOutputTypeRule(new Signature(boolKind, boolKind),
@@ -266,7 +266,7 @@ public class BasicXlimOperations extends XlimFeature {
 		Signature unary=new Signature(intKind);
 		Signature binary=new Signature(intKind,intKind);
 		TypeKind boolKind=fact.getTypeKind("bool");
-		XlimType boolType=boolKind.getType();
+		XlimType boolType=boolKind.createType();
 		
 		// $literal_Integer: void -> int
 		OperationKind literal=new IntegerAttributeOperationKind("$literal_Integer",

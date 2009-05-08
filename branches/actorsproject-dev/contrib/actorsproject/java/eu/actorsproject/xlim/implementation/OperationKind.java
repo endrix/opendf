@@ -91,10 +91,10 @@ public class OperationKind {
 			return node.getNodeValue();
 	}
 	
-	protected Integer getIntegerAttribute(String name, NamedNodeMap attributes) {
+	protected Long getIntegerAttribute(String name, NamedNodeMap attributes) {
 		String value=getAttribute(name,attributes);
 		if (value!=null)
-			return Integer.valueOf(value);
+			return Long.valueOf(value);
 		else
 			return null;
 	}

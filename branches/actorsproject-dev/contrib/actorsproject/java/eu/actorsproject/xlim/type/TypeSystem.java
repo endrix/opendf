@@ -42,6 +42,7 @@ import java.util.HashMap;
 import org.w3c.dom.NamedNodeMap;
 
 import eu.actorsproject.xlim.XlimType;
+import eu.actorsproject.xlim.XlimTypeKind;
 
 /**
  * Container for all type kinds, types and type conversions
@@ -61,7 +62,7 @@ public class TypeSystem implements TypeFactory {
 	/**
 	 * Adds a "specific" type promotion, which is used when it matches
 	 * (source type, target type) exactly. 
-	 * @param tp - TypePromotion
+	 * @param tp - type promotion
 	 */
 	public void addSpecificTypePromotion(TypeConversion tp) {
 		TypeKind sourceKind=tp.getSourceTypeKind();
@@ -72,13 +73,21 @@ public class TypeSystem implements TypeFactory {
 	 * Sets the "default" type promotion of a particular source type,
 	 * which is used in the event that no exact match (source type, target type)
 	 * is found.
-	 * @param tp - TypePromotion
+	 * @param tp - type promotion
 	 */
 	public void addDefaultTypePromotion(TypeConversion tp) {
 		TypeKind sourceKind=tp.getSourceTypeKind();
 		sourceKind.setDefaultTypePromotion(tp);
 	}
 	
+	/**
+	 * Adds an (explicit) type conversion.
+	 * @param tc - TypeConversion
+	 */
+	public void addTypeConversion(TypeConversion tc) {
+		TypeKind sourceKind=tc.getSourceTypeKind();
+		sourceKind.addTypeConversion(tc);
+	}
 	
 	/**
 	 * Determine the relation between the types
@@ -106,6 +115,35 @@ public class TypeSystem implements TypeFactory {
 			throw new RuntimeException("Unsupported typename: "+typeName);
 	}
 	
+	
+	public TypeKind leastUpperBound(XlimTypeKind xlimKind1, XlimTypeKind xlimKind2) {
+		if (xlimKind1 instanceof TypeKind 
+		    && xlimKind2 instanceof TypeKind) {
+			TypeKind kind1=(TypeKind) xlimKind1;
+			TypeKind kind2=(TypeKind) xlimKind2;
+			if (kind1==kind2 || kind1.hasPromotionFrom(kind2))
+				return kind1;
+			else if (kind2.hasPromotionFrom(kind1))
+				return kind2;
+			else {
+				// TODO: there may also be a common LUB, which is
+				// neither kind1 nor kind2
+				return null;
+			}
+		}
+		else
+			return null;
+	}
+	
+	@Override
+	public XlimType leastUpperBound(XlimType t1, XlimType t2) {
+		TypeKind kind=leastUpperBound(t1.getTypeKind(), t2.getTypeKind());
+		if (kind!=null)
+			return kind.createLub(t1, t2);
+		else
+			return null;
+	}
+
 	// TODO: replace by create w parameter
 	@Override
 	public XlimType createInteger(int size) {
@@ -121,18 +159,18 @@ public class TypeSystem implements TypeFactory {
 	@Override
 	public XlimType create(String typeName) {
 		TypeKind kind=getTypeKind(typeName);
-		return kind.getType();
+		return kind.createType();
 	}
 	
 	@Override
 	public XlimType create(String typeName, Object param) {
 		TypeKind kind=getTypeKind(typeName);
-		return kind.getType(param);
+		return kind.createType(param);
 	}
 	
 	@Override
 	public XlimType create(String typeName, NamedNodeMap attributes) {
 		TypeKind kind=getTypeKind(typeName);
-		return kind.getType(attributes);
+		return kind.createTypeFromAttributes(attributes);
 	}
 }

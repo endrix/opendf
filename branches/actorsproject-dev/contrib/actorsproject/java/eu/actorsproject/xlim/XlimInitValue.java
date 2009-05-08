@@ -42,10 +42,9 @@ import java.util.List;
 import eu.actorsproject.util.XmlElement;
 
 /**
- * @author ecarvon
  * An XlimInitValue is either scalar, in which case getScalarType() returns its type
- * and getValueAsInteger() returns its value (interpreted as an integer), or
- * a list of initial values (scalar or aggregates), for which an iterator is provided. 
+ * and getValueAsInteger() returns its value, or a list of initial values (scalar or 
+ * aggregates). 
  */
 public interface XlimInitValue extends XmlElement {
 	
@@ -58,7 +57,7 @@ public interface XlimInitValue extends XmlElement {
 	/**
 	 * @return scalar initial value, null for aggregate values
 	 */
-	Integer getScalarValue();
+	String getScalarValue();
 
 	
 	/**
@@ -74,6 +73,11 @@ public interface XlimInitValue extends XmlElement {
 	 */
 	XlimType getCommonElementType();
 	
+	/**
+	 * Transforms the element type of an scalar/array/matrix kind of initializer
+	 * @param t new type
+	 */
+	void setCommonElementType(XlimType t);
 	
 	/**
 	 * @return the total number of scalar elements in the structure

@@ -45,6 +45,8 @@ public interface TypeFactory {
 		
 	TypeKind getTypeKind(String typeName);
 	
+	XlimType leastUpperBound(XlimType t1, XlimType t2);
+	
 	// TODO: replace by create w parameter
 	XlimType createInteger(int size);
 	

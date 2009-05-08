@@ -35,63 +35,37 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package eu.actorsproject.xlim.util;
+package eu.actorsproject.xlim;
 
-import eu.actorsproject.xlim.XlimType;
-import eu.actorsproject.xlim.XlimTypeKind;
-import eu.actorsproject.xlim.type.TypeFactory;
+/**
+ * XlimTypeKind groups the type constructor (createType methods) and
+ * type conversions of a set of XlimTypes. 
+ */
+public interface XlimTypeKind {
 
-public class NativeTypesDefault implements NativeTypePlugIn {
-	protected XlimTypeKind mIntTypeKind;
-	protected XlimType mInt8, mInt16, mInt32, mInt64;
+	/**
+	 * @return (unparametric) type (=result of this type kind's type
+	 *         constructor).
+	 */
+	XlimType createType();
 	
-	public NativeTypesDefault() {
-		TypeFactory typeFact=Session.getTypeFactory();
-		mIntTypeKind=typeFact.getTypeKind("int");
-		mInt8=typeFact.createInteger(8);
-		mInt16=typeFact.createInteger(16);
-		mInt32=typeFact.createInteger(32);
-		mInt64=typeFact.createInteger(64);
-	}
-
-	@Override
-	public XlimType nativeType(XlimType type) {
-		return nativeType(type, mInt32);
-	}
-
-	@Override
-	public XlimType nativeElementType(XlimType type) {
-		// TODO: Support small integer types for aggregates
-		// return nativeType(type, mInt8);
-		return nativeType(type, mInt32);
-	}
-
-	@Override
-	public XlimType nativePortType(XlimType type) {
-		// TODO: Support small integer types for aggregates
-		// return nativeType(type, mInt8);
-		return nativeType(type, mInt32);
-	}
-
-	protected XlimType nativeType(XlimType type, XlimType smallestInt) {
-		if (type.getTypeKind()==mIntTypeKind) {
-			assert(type.isInteger());
-			int width=type.getSize();
-			assert(width<=64);
-
-			if (width<=smallestInt.getSize())
-				return smallestInt;
-			else if (width<=16)
-				if (width<=8)
-					return mInt8;
-				else
-					return mInt16;
-			else if (width<=32)
-				return mInt32;
-			else
-				return mInt64;
-		}
-		else
-			return type;
-	}
+	/**
+	 * @param param
+	 * @return (parametric) type (=result of this type kind's type
+	 *         constructor applied to 'param').
+	 */
+	XlimType createType(Object param);
+	
+	/**
+	 * @param kind
+	 * @return true iff 'kind' promotes (converts implicitly and losslessly)
+	 *         to this type kind.
+	 */
+	boolean hasPromotionFrom(XlimTypeKind kind);
+	
+	/**
+	 * @param t
+	 * @return type (f this type kind, which is the result of promotion from 't'
+	 */
+	XlimType promote(XlimType t);
 }

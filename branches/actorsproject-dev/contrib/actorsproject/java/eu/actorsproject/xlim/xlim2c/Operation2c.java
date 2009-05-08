@@ -40,22 +40,24 @@ package eu.actorsproject.xlim.xlim2c;
 import eu.actorsproject.xlim.XlimInputPort;
 import eu.actorsproject.xlim.XlimOperation;
 import eu.actorsproject.xlim.XlimStateVar;
-
+import eu.actorsproject.xlim.XlimType;
 
 import eu.actorsproject.xlim.codegenerator.ExpressionTreeGenerator;
 import eu.actorsproject.xlim.codegenerator.OperationGenerator;
+import eu.actorsproject.xlim.type.TypeFactory;
 import eu.actorsproject.xlim.util.OperationHandler;
 import eu.actorsproject.xlim.util.OperationPlugIn;
+import eu.actorsproject.xlim.util.Session;
 
 public class Operation2c implements OperationGenerator {
 
 	protected OperationPlugIn<BasicGenerator> mGenerators;
 	
 	private static BasicGenerator sGenerators[] = {
-		new PortOperationGenerator("pinRead","pinRead"),
-		new PortOperationGenerator("pinWrite","pinWrite"),
-		new PortOperationGenerator("pinPeek","pinPeek"),
-		new PortOperationGenerator("pinStatus","pinStatus"),
+		new TypedPortOperationGenerator("pinRead","pinRead",true),
+		new TypedPortOperationGenerator("pinWrite","pinWrite",false),
+		new TypedPortOperationGenerator("pinPeek","pinPeek",true),
+		new PortOperationGenerator("pinStatus","pinStatus",true),
 		new VarRefGenerator("var_ref"),
 		new AssignGenerator("assign"),
 		new TaskCallGenerator("taskCall"),
@@ -84,7 +86,7 @@ public class Operation2c implements OperationGenerator {
 		new NoopGenerator("noop"),
 		new NoopGenerator("cast"),
 		new SelectorGenerator("$selector"),
-		new PortOperationGenerator("pinAvail","pinAvail"),
+		new TypedPortOperationGenerator("pinAvail","pinAvail",true),
 		new PinWaitGenerator("pinWait","pinWait"),
 		new SignExtendGenerator("signExtend")
 	};
@@ -93,24 +95,32 @@ public class Operation2c implements OperationGenerator {
 		// No default handler -throws exception for unhandled operations
 		mGenerators=new OperationPlugIn<BasicGenerator>(null); 
 		for (BasicGenerator generator: sGenerators)
-			mGenerators.registerHandler(generator.getOperationKind(), generator);
+			register(generator);
+	}
+		
+	protected void register(BasicGenerator generator) {
+		mGenerators.registerHandler(generator.getOperationKind(), generator);
 	}
 	
+	@Override
 	public boolean hasGenerateExpression(XlimOperation op) {
 		BasicGenerator generator=mGenerators.getOperationHandler(op);
 		return generator.hasGenerateExpression();
 	}
 	
+	@Override
 	public boolean reEvaluate(XlimOperation op) {
 		BasicGenerator generator=mGenerators.getOperationHandler(op);
 		return generator.reEvaluate();
 	}
 	
+	@Override
 	public void generateExpression(XlimOperation op, ExpressionTreeGenerator treeGenerator) {
 		BasicGenerator generator=mGenerators.getOperationHandler(op);
 		generator.generateExpression(op,treeGenerator);
 	}
 	
+	@Override
 	public void generateStatement(XlimOperation op, ExpressionTreeGenerator treeGenerator) {
 		BasicGenerator generator=mGenerators.getOperationHandler(op);
 		generator.generateStatement(op,treeGenerator);
@@ -157,7 +167,7 @@ abstract class BasicGenerator implements OperationHandler {
 	 * @return true if it's possible and preferable to re-evaluate the root of the expression tree
 	 * 
 	 *  The effect of returning "true" is that generateExpression() will be used multiple times 
-	 *  rather than introducing a temporary variable (implies hasGenerateExpression). 
+	 *  rather than introducing a BasicGeneratortemporary variable (implies hasGenerateExpression). 
 	 */
 	public boolean reEvaluate() {
 		return false;
@@ -187,40 +197,38 @@ abstract class BasicGenerator implements OperationHandler {
 		gen.print("=");
 		generateExpression(op,gen);
 	}
-	
-	/*
-	 * Methods that get the type right
-	 */
-	protected static String signedCast(int size) {
-		if (size==1)
-			return "(bool_t)";
-		else
-			return "(int"+size+"_t)";
-	}
-			
-	protected static String unsignedCast(int size) {
-		if (size==1)
-			return "(bool_t)";
-		else
-			return "(uint"+size+"_t)";
-	}
-	
-	protected static int getSize(XlimInputPort input) {
-		return input.getSource().getSourceType().getSize();
-	}
 }
 
-class PortOperationGenerator extends BasicGenerator {
+/**
+ * Generic support for operations realized as API calls
+ */
+class ApiCallGenerator extends BasicGenerator {
 	
-	protected String mApiCall;
+	private String mFunctionName;
+	private boolean mHasGenerateExpression;
 	
-	public PortOperationGenerator(String opKind, String apiCall) {
+	public ApiCallGenerator(String opKind, 
+			                String functionName, 
+			                boolean hasGenerateExpression) {
 		super(opKind);
-		mApiCall=apiCall;
+		mFunctionName=functionName;
+		mHasGenerateExpression=hasGenerateExpression;
 	}
-				
+	
+	protected String getFunctionName(XlimOperation op, ExpressionTreeGenerator gen) {
+		return mFunctionName;
+	}
+	
+	@Override
 	public boolean hasGenerateExpression() {
-		return false;
+		return mHasGenerateExpression;
+	}
+	
+	@Override
+	public void generateExpression(XlimOperation op, ExpressionTreeGenerator gen) {
+		gen.print(getFunctionName(op, gen)+"(");
+		generateArguments(op, gen);
+		gen.print(")");
 	}
 	
 	@Override
@@ -231,44 +239,88 @@ class PortOperationGenerator extends BasicGenerator {
 			gen.print(op.getOutputPort(0));
 			gen.print("=");
 		}
-		gen.print(mApiCall+"(&");
-		gen.print(op.getPortAttribute());
+		generateExpression(op,gen);
+	}
+	
+	protected void generateArguments(XlimOperation op, ExpressionTreeGenerator gen) {
 		for (int i=0; i<op.getNumInputPorts(); ++i) {
-			gen.print(",");
+			if (i!=0)
+				gen.print(", ");
 			gen.translateSubTree(op.getInputPort(i));
 		}
-		gen.print(")");
 	}
 }
 
-class PinWaitGenerator extends BasicGenerator {
-
-	private String mApiCall;
+/**
+ * Operations on ports (realized as API calls)
+ */
+class PortOperationGenerator extends ApiCallGenerator {
 	
-	public PinWaitGenerator(String opKind, String apiCall) {
-		super(opKind);
-		mApiCall=apiCall;
+	public PortOperationGenerator(String opKind, 
+			                      String functionName,
+			                      boolean hasGenerateExpression) {
+		super(opKind, functionName, hasGenerateExpression);
+	}
+				
+	@Override
+	protected void generateArguments(XlimOperation op, ExpressionTreeGenerator gen) {
+		// Add the port attribute as first argument
+		gen.print("&");
+		gen.print(op.getPortAttribute());
+		if (op.getNumInputPorts()!=0)
+			gen.print(", ");
+		super.generateArguments(op, gen);
+	}
+}
+
+/**
+ * Port operations that add a type suffix to the function name
+ */
+class TypedPortOperationGenerator extends PortOperationGenerator {
+	
+	public TypedPortOperationGenerator(String opKind, 
+                                       String functionName,
+                                       boolean hasGenerateExpression) {
+		super(opKind, functionName, hasGenerateExpression);
 	}
 	
-	public boolean hasGenerateExpression() {
-		return true;
+	@Override
+	protected String getFunctionName(XlimOperation op, ExpressionTreeGenerator gen) {
+		XlimType t=op.getPortAttribute().getType();
+		String suffix=gen.getTargetTypeName(t);
+		return super.getFunctionName(op, gen) + "_" + suffix;
+	}	
+}
+
+class PinWaitGenerator extends PortOperationGenerator {
+
+	public PinWaitGenerator(String opKind, String functionName) {
+		super(opKind, functionName, /* hasGenerateExpression */ false);
 	}
 	
 	@Override
 	public void generateStatement(XlimOperation op, ExpressionTreeGenerator gen) {
 		assert(op.getNumOutputPorts()==0 && op.getNumOutputPorts()==0);
-		gen.print(mApiCall+"(&");
-		gen.print(op.getPortAttribute());
-		gen.print(",");
-		Long numTokens=op.getIntegerValueAttribute();
-		if (numTokens!=1)
-			gen.print(numTokens.toString()+"*");
-		// TODO: Probably a good idea to represent ports with smallest possible integral type
-		gen.print("sizeof(int))");
+		super.generateStatement(op, gen);
+		
+		// Add return to the last pinWait
 		if (op.hasBlockingStyle()) {
 			gen.print("; return");
 		}
-			
+	}
+	
+	@Override
+	protected void generateArguments(XlimOperation op, ExpressionTreeGenerator gen) {
+		super.generateArguments(op, gen);
+		
+		// Add a final argument: numTokens*sizeof(portType)
+		XlimType portType=op.getPortAttribute().getType();
+		
+		gen.print(", ");
+		Long numTokens=op.getIntegerValueAttribute();
+		if (numTokens!=1)
+			gen.print(numTokens.toString()+"*");
+		gen.print("sizeof(" + gen.getTargetTypeName(portType) + ")");
 	}
 }
 
@@ -376,9 +428,9 @@ class LiteralIntegerGenerator extends BasicGenerator {
 	
 	@Override
 	public void generateExpression(XlimOperation op, ExpressionTreeGenerator gen) {
-		Long value=op.getIntegerValueAttribute();
-		String suffix=(value>Integer.MAX_VALUE || value<Integer.MIN_VALUE)? "L" : "";
-		gen.print(value.toString()+suffix);
+		XlimType t=op.getOutputPort(0).getType();
+		String suffix=(t.isInteger() && t.getSize()>32)? "L" : "";
+		gen.print(op.getValueAttribute()+suffix);
 	}		
 }
 
@@ -401,31 +453,42 @@ abstract class ExpressionGenerator extends BasicGenerator {
 
 	@Override
 	public void generateExpression(XlimOperation op, ExpressionTreeGenerator gen) {
-		int opSize=operationSize(op);
-		int declaredSize=op.getOutputPort(0).getType().getSize();
-		if (opSize!=declaredSize) {
-			gen.print("("+signedCast(declaredSize)+" ");
-			generateExpression(op, opSize, gen);
+		XlimType opType=operationType(op);
+		XlimType declaredType=op.getOutputPort(0).getType();
+		if (opType!=declaredType) {
+			gen.print("(" + getCast(declaredType, gen));
+			generateExpression(op, opType, gen);
 			gen.print(")");
 		}
 		else
-			generateExpression(op, opSize, gen);
+			generateExpression(op, opType, gen);
 	}
 
-	protected abstract int operationSize(XlimOperation op);
+	protected abstract XlimType operationType(XlimOperation op);
 
-	protected abstract void generateExpression(XlimOperation op, int opSize, ExpressionTreeGenerator gen);
+	protected abstract void generateExpression(XlimOperation op, 
+			                                   XlimType opType, 
+			                                   ExpressionTreeGenerator gen);
 	
-	protected void translateSubTree(XlimInputPort input, int opSize, ExpressionTreeGenerator gen) {
-		int inputSize=getSize(input);
-		if (inputSize!=opSize) {
-			gen.print("("+signedCast(opSize)+" ");
+	protected void translateSubTree(XlimInputPort input, XlimType opType, ExpressionTreeGenerator gen) {
+		XlimType inputType=input.getSource().getSourceType();
+		if (inputType!=opType) {
+			gen.print("(" + getCast(opType,gen));
 			gen.translateSubTree(input);
 			gen.print(")");
 		}
 		else
 			gen.translateSubTree(input);
 	}	
+	
+	protected String getCast(XlimType toType, ExpressionTreeGenerator gen) {
+		String typeName=gen.getTargetTypeName(toType);
+		return "(" + typeName + ") ";
+	}
+	
+	protected String getUnsignedCast(int size) {
+		return "(uint"+size+"_t) ";
+	}
 }
 
 class OperatorGenerator extends ExpressionGenerator {
@@ -438,24 +501,24 @@ class OperatorGenerator extends ExpressionGenerator {
 	}
 		
 	@Override
-	public void generateExpression(XlimOperation op, int opSize, ExpressionTreeGenerator gen) {
+	public void generateExpression(XlimOperation op, XlimType opType, ExpressionTreeGenerator gen) {
 		if (op.getNumInputPorts()==1) {
 			gen.print("COPY(");
-			translateSubTree(op.getInputPort(0), opSize, gen);
+			translateSubTree(op.getInputPort(0), opType, gen);
 			gen.print(" /* "+mOperator+" */)");
 		}
 		else {
-			translateSubTree(op.getInputPort(0),opSize,gen);
+			translateSubTree(op.getInputPort(0),opType,gen);
 			for (int i=1; i<op.getNumInputPorts(); ++i) {
 				gen.print(mOperator);
-				translateSubTree(op.getInputPort(i),opSize,gen);
+				translateSubTree(op.getInputPort(i),opType,gen);
 			}
 		}
 	}
 
 	@Override
-	protected int operationSize(XlimOperation op) {
-		return op.getOutputPort(0).getType().getSize();
+	protected XlimType operationType(XlimOperation op) {
+		return op.getOutputPort(0).getType();
 	}
 }
 
@@ -465,11 +528,13 @@ class BitwiseGenerator extends OperatorGenerator {
 		super(opKind, operator);
 	}
 
-	protected void translateSubTree(XlimInputPort input, int opSize, ExpressionTreeGenerator gen) {
-		int inputSize=getSize(input);
-		if (inputSize!=opSize) {
-			String cast=(inputSize<opSize)? unsignedCast(inputSize) : signedCast(opSize);
-			gen.print("("+cast+" ");
+	protected void translateSubTree(XlimInputPort input, XlimType opType, ExpressionTreeGenerator gen) {
+		XlimType inputType=input.getSource().getSourceType();
+		if (inputType!=opType) {
+			int inputSize=inputType.getSize();
+			String cast=(inputSize<opType.getSize())? 
+					getUnsignedCast(inputSize) : getCast(opType, gen); 
+			gen.print("(" + cast);
 			gen.translateSubTree(input);
 			gen.print(")");
 		}
@@ -492,13 +557,16 @@ class RelOpGenerator extends OperatorGenerator {
 	@Override
 	public void generateExpression(XlimOperation op, ExpressionTreeGenerator gen) {
 		// Override since we don't want to cast the result (is and should be bool)
-		generateExpression(op, operationSize(op), gen);
+		generateExpression(op, operationType(op), gen);
 	}
 
 	// operationSize refers to the inputs
 	@Override
-    protected int operationSize(XlimOperation op) {
-		return Math.max(getSize(op.getInputPort(0)), getSize(op.getInputPort(1)));
+    protected XlimType operationType(XlimOperation op) {
+		TypeFactory fact=Session.getTypeFactory();
+		XlimType t1=op.getInputPort(0).getSource().getSourceType();
+		XlimType t2=op.getInputPort(1).getSource().getSourceType();
+		return fact.leastUpperBound(t1, t2);
     }
 }
 
@@ -514,16 +582,16 @@ class DivAndShiftGenerator extends OperatorGenerator {
 	}
 	
 	@Override
-	public void generateExpression(XlimOperation op, int opSize, ExpressionTreeGenerator gen) {
-		translateSubTree(op.getInputPort(0), opSize, gen);
+	public void generateExpression(XlimOperation op, XlimType opType, ExpressionTreeGenerator gen) {
+		translateSubTree(op.getInputPort(0), opType, gen);
 		gen.print(mOperator);
 		gen.translateSubTree(op.getInputPort(1));
 	}
 	
 	// operationSize determined by the first input
 	@Override
-    protected int operationSize(XlimOperation op) {
-		return getSize(op.getInputPort(0));
+    protected XlimType operationType(XlimOperation op) {
+		return op.getInputPort(0).getSource().getSourceType();
 	}
 }
 
@@ -534,8 +602,11 @@ class UrshiftGenerator extends DivAndShiftGenerator {
 	}
 	
 	@Override
-	public void generateExpression(XlimOperation op, int opSize, ExpressionTreeGenerator gen) {
-		gen.print("("+unsignedCast(opSize));
+	public void generateExpression(XlimOperation op, XlimType opType, ExpressionTreeGenerator gen) {
+		int inputSize=op.getInputPort(0).getSource().getSourceType().getSize();
+		
+		gen.print("(" + getCast(opType, gen) + " ");
+		gen.print("("+getUnsignedCast(inputSize));
 		gen.translateSubTree(op.getInputPort(0));
 		gen.print(">>");
 		gen.translateSubTree(op.getInputPort(1));
@@ -555,9 +626,9 @@ class PrefixOperatorGenerator extends OperatorGenerator {
 	}
 		
 	@Override
-	public void generateExpression(XlimOperation op, int opSize, ExpressionTreeGenerator gen) {
+	public void generateExpression(XlimOperation op, XlimType opType, ExpressionTreeGenerator gen) {
 		gen.print(mOperator);
-		translateSubTree(op.getInputPort(0), opSize, gen);
+		translateSubTree(op.getInputPort(0), opType, gen);
 	}
 }
 
@@ -568,8 +639,8 @@ class NoopGenerator extends PrefixOperatorGenerator {
 	}
 	
 	@Override
-	public void generateExpression(XlimOperation op, int opSize, ExpressionTreeGenerator gen) {
-		translateSubTree(op.getInputPort(0), opSize, gen);
+	public void generateExpression(XlimOperation op, XlimType opType, ExpressionTreeGenerator gen) {
+		translateSubTree(op.getInputPort(0), opType, gen);
 	}
 }
 
@@ -579,19 +650,22 @@ class SignExtendGenerator extends PrefixOperatorGenerator {
 	}
 		
 	@Override
-	public void generateExpression(XlimOperation op, int opSize, ExpressionTreeGenerator gen) {
+	public void generateExpression(XlimOperation op, XlimType opType, ExpressionTreeGenerator gen) {
 		int fromSize=(int)(long)op.getIntegerValueAttribute();
-		int shifts=opSize-fromSize;
+		int shifts=opType.getSize()-fromSize;
 		assert(shifts>=0);
-		translateSubTree(op.getInputPort(0), opSize, gen);
+		translateSubTree(op.getInputPort(0), opType, gen);
 		gen.print("<<"+shifts+">>"+shifts);
 	}
 }
 
 class SelectorGenerator extends ExpressionGenerator {
 	
+	private XlimType mBoolType;
+	
 	public SelectorGenerator(String opKind) {
 		super(opKind);
+		mBoolType=Session.getTypeFactory().create("bool");
 	}
 	
 	@Override
@@ -600,17 +674,16 @@ class SelectorGenerator extends ExpressionGenerator {
 	}
 		
 	@Override
-	public void generateExpression(XlimOperation op, int opSize, ExpressionTreeGenerator gen) {
-		translateSubTree(op.getInputPort(0),1 /*bool*/, gen);
+	public void generateExpression(XlimOperation op, XlimType opType, ExpressionTreeGenerator gen) {
+		translateSubTree(op.getInputPort(0),mBoolType, gen);
 		gen.print("? ");
-		translateSubTree(op.getInputPort(1), opSize, gen);
+		translateSubTree(op.getInputPort(1), opType, gen);
 		gen.print(" : ");
-		translateSubTree(op.getInputPort(2), opSize, gen);
+		translateSubTree(op.getInputPort(2), opType, gen);
 	}
 	
 	@Override
-	protected int operationSize(XlimOperation op) {
-		// max of "then"/"else" expressions
-		return Math.max(getSize(op.getInputPort(1)), getSize(op.getInputPort(2)));
+	protected XlimType operationType(XlimOperation op) {
+		return op.getOutputPort(0).getType();
 	}
 }

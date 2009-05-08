@@ -35,63 +35,41 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package eu.actorsproject.xlim.util;
+package eu.actorsproject.xlim.type;
 
 import eu.actorsproject.xlim.XlimType;
-import eu.actorsproject.xlim.XlimTypeKind;
-import eu.actorsproject.xlim.type.TypeFactory;
+import eu.actorsproject.xlim.util.XlimFeature;
 
-public class NativeTypesDefault implements NativeTypePlugIn {
-	protected XlimTypeKind mIntTypeKind;
-	protected XlimType mInt8, mInt16, mInt32, mInt64;
-	
-	public NativeTypesDefault() {
-		TypeFactory typeFact=Session.getTypeFactory();
-		mIntTypeKind=typeFact.getTypeKind("int");
-		mInt8=typeFact.createInteger(8);
-		mInt16=typeFact.createInteger(16);
-		mInt32=typeFact.createInteger(32);
-		mInt64=typeFact.createInteger(64);
+/**
+ * Packages support for the RealType
+ *
+ */
+public class RealTypeFeature extends XlimFeature {
+
+	@Override
+	public void initialize(TypeSystem typeSystem) {
+		TypeKind intKind=typeSystem.getTypeKind("int");
+		XlimType int32_t=typeSystem.create("int",32);
+		TypeKind realKind=new RealType();
+		
+		typeSystem.addTypeKind(realKind);
+		typeSystem.addSpecificTypePromotion(new TypeConversion(intKind, realKind));
+		typeSystem.addTypeConversion(new RealToIntConversion(realKind, intKind, int32_t));
+	}
+}
+
+class RealToIntConversion extends TypeConversion {
+
+	XlimType mTargetType;
+	public RealToIntConversion(TypeKind sourceKind, 
+				               TypeKind targetKind,
+				               XlimType targetType) {
+		super(sourceKind, targetKind);
+		mTargetType=targetType;
 	}
 
 	@Override
-	public XlimType nativeType(XlimType type) {
-		return nativeType(type, mInt32);
-	}
-
-	@Override
-	public XlimType nativeElementType(XlimType type) {
-		// TODO: Support small integer types for aggregates
-		// return nativeType(type, mInt8);
-		return nativeType(type, mInt32);
-	}
-
-	@Override
-	public XlimType nativePortType(XlimType type) {
-		// TODO: Support small integer types for aggregates
-		// return nativeType(type, mInt8);
-		return nativeType(type, mInt32);
-	}
-
-	protected XlimType nativeType(XlimType type, XlimType smallestInt) {
-		if (type.getTypeKind()==mIntTypeKind) {
-			assert(type.isInteger());
-			int width=type.getSize();
-			assert(width<=64);
-
-			if (width<=smallestInt.getSize())
-				return smallestInt;
-			else if (width<=16)
-				if (width<=8)
-					return mInt8;
-				else
-					return mInt16;
-			else if (width<=32)
-				return mInt32;
-			else
-				return mInt64;
-		}
-		else
-			return type;
+	public XlimType apply(XlimType sourceT) {
+		return mTargetType;
 	}
 }

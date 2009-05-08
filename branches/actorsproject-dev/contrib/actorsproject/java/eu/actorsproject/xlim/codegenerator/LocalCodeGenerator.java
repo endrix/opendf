@@ -51,6 +51,7 @@ import eu.actorsproject.xlim.XlimSource;
 import eu.actorsproject.xlim.XlimStateVar;
 import eu.actorsproject.xlim.XlimTaskModule;
 import eu.actorsproject.xlim.XlimTopLevelPort;
+import eu.actorsproject.xlim.XlimType;
 
 /**
  * Generates code for a TaskModule and its sub-modules
@@ -100,6 +101,12 @@ public abstract class LocalCodeGenerator implements ExpressionTreeGenerator {
 	protected abstract void generateLoop(XlimLoopModule m);
 	protected abstract void generateStatement(XlimOperation stmt);
 	protected abstract void generatePhi(XlimInputPort input, TemporaryVariable dest);
+
+	
+	@Override
+	public String getTargetTypeName(XlimType t) {
+		return mActorScope.getTargetTypeName(t);
+	}
 
 	/**
 	 * @param temp

@@ -58,6 +58,9 @@ static void constructor(AbstractActorInstance*);
 static void destructor(AbstractActorInstance*);
 static void set_param(AbstractActorInstance*,int,ActorParameter*);
 
+static int inputPortSizes[]={
+  sizeof(int32_t),
+};
 
 ActorClass ActorClass_art_Sink_txt ={
   "art_Sink_txt",
@@ -67,7 +70,10 @@ ActorClass ActorClass_art_Sink_txt ={
   a_action_scheduler,
   constructor,
   destructor,
-  set_param
+  set_param,
+  inputPortSizes,
+  0,
+  0,
 };
 
 static void Read0(ActorInstance *thisActor) {
