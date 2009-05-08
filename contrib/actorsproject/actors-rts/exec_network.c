@@ -632,7 +632,6 @@ int run_actor_network(void)
 	DLLIST		*node;
 	pthread_attr_t attr;
 	pthread_t	tid[MAX_ACTOR_NUM];
-	pthread_t	tid2[MAX_ACTOR_NUM];
 
 	int			i = 0;
 	int			count=0;
@@ -675,7 +674,7 @@ int run_actor_network(void)
 
 	//dispatch standalone actors
 	for(node=actorLists2[ACTOR_STANDALONE-1].head; node; node=node->next)
-		pthread_create(&tid2[i], &attr, (void*)exec_standalone_unit, node->obj);
+		pthread_create(&tid[i++], &attr, (void*)exec_standalone_unit, node->obj);
 
  	while(Running)
  	{
