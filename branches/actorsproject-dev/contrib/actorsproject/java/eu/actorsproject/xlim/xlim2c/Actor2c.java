@@ -73,6 +73,7 @@ public class Actor2c extends OutputGenerator {
 	protected static final String sPortType="ActorPort";
 	protected static final String sConstructorName="constructor";
 	protected static final String sCreatePortAPI="createPort";
+	protected static final String sActionDescriptionType="ActionDescription";
 	
 	public Actor2c(XlimDesign design,
                    File sourceFile,
@@ -133,45 +134,119 @@ public class Actor2c extends OutputGenerator {
 		}
 	}
 
-	protected void definePortSizes(List<? extends XlimTopLevelPort> ports,
+	protected int definePortSizes(List<? extends XlimTopLevelPort> ports,
 			                         String name) {
 		println();
 
-		if (ports.isEmpty())
+		if (ports.isEmpty()) {
 			println("#define "+name+" 0 /* empty */");
+			return 0;
+		}
 		else {	
-			boolean first=true;
+			int i=0;
 		
 			println("static int "+name+"[]={");
 			increaseIndentation();
 			for (XlimTopLevelPort p: ports) {
-				if (!first)
+				if (i!=0)
 					println(",");
-				first=false;
-				
 				String type=mSymbols.getTargetTypeName(p.getType());
 				print("sizeof("+type+")");
+				++i;
+			}
+			decreaseIndentation();
+			println();
+			println("};");
+			return i;
+		}
+	}
+	
+	private void actionOnPorts(XlimTaskModule action, 
+				              List<? extends XlimTopLevelPort> ports,
+				              String arrayName) {
+		if (ports.isEmpty()==false) {
+			int i=0;
+			println();
+			println("static const int " + arrayName + "[] = {");
+			increaseIndentation();
+			for (XlimTopLevelPort port: ports) {
+				if (i!=0)
+					print(", ");
+				lineWrap(60);
+				print("0");
+				++i;
 			}
 			decreaseIndentation();
 			println();
 			println("};");
 		}
 	}
+	
+	protected void describeAction(XlimTaskModule action, int index) {
+		print("{\""+action.getName()+"\", ");
+		if (mDesign.getInputPorts().isEmpty())
+			print("0, ");
+		else
+			print("consumption" + index + ", ");
+			
+		if (mDesign.getOutputPorts().isEmpty())
+			print("0}");
+		else
+			print("production" + index + "}");
+	}
+
+	protected int describeActions(String descriptionArray) {
+		int numActions=0;
+		XlimTaskModule actionScheduler = mDesign.getActionScheduler();
+		
+		for (XlimTaskModule action: mDesign.getTasks())
+		    if (action!=actionScheduler) {
+		    	actionOnPorts(action, mDesign.getInputPorts(), "consumption"+numActions);
+				actionOnPorts(action, mDesign.getOutputPorts(), "production"+numActions);
+		    	++numActions;
+		    }
+		
+		println();
+		if (numActions==0) 
+			println("#define actionDescriptions 0 /* empty */");
+		else {
+			int index=0;
+			println("static const " + sActionDescriptionType + " " 
+					+ descriptionArray + "[] = {");
+			increaseIndentation();
+			for (XlimTaskModule action: mDesign.getTasks()) 
+			    if (action!=actionScheduler) {
+			    	if (index!=0)
+			    		println(",");
+			    	describeAction(action, index);
+			    	++index;
+			    }
+			println();
+			decreaseIndentation();
+			println("};");
+		}
+		
+		return numActions;
+	}
+	
 	/**
 	 * Generate the actor class struct (which is used to instantiate the actor)
 	 */
 	protected void defineActorClass() {
-		// Define input/output port sizes
-		definePortSizes(mDesign.getInputPorts(), "inputPortSizes");
-		definePortSizes(mDesign.getOutputPorts(), "outputPortSizes");
+		// Describe ports
+		int numInputPorts=definePortSizes(mDesign.getInputPorts(), "inputPortSizes");
+		int numOutputPorts=definePortSizes(mDesign.getOutputPorts(), "outputPortSizes");
+		
+		// Describe actions
+		int numActions=describeActions("actionDescriptions");
 		
 		// ActorClass
 		println();
 		println(sActorClassType+" "+mSymbols.getActorClassName()+" ={");
 		increaseIndentation();
 		println("\""+mDesign.getName()+"\",");
-		println(mDesign.getInputPorts().size()+", /* numInputPorts */");
-		println(mDesign.getOutputPorts().size()+", /* numOutputPorts */");
+		println(numInputPorts +", /* numInputPorts */");
+		println(numOutputPorts+", /* numOutputPorts */");
 		println("sizeof("+sActorInstanceType+"),");
 		println(mSymbols.getTargetName(mDesign.getActionScheduler())+",");
 		println(sConstructorName+",");
@@ -179,7 +254,9 @@ public class Actor2c extends OutputGenerator {
 		println("0, /* set_param */");
 		println("inputPortSizes,");
 		println("outputPortSizes,");
-		println("0 /* actorExecMode */");
+		println("0, /* actorExecMode */");
+		println(numActions + ", /* numActions */");
+		println("actionDescriptions");
 		decreaseIndentation();
 		println("};");
 		println();
@@ -345,7 +422,7 @@ public class Actor2c extends OutputGenerator {
 	 * Generates a C function per action and one for the action scheduler
 	 */
 	protected void defineTasks() {
-		int taskIndex=0;
+		int actionIndex=0;
 		XlimTaskModule actionScheduler = mDesign.getActionScheduler();
 		for (XlimTaskModule task: mDesign.getTasks()) {
 			println();
@@ -354,7 +431,8 @@ public class Actor2c extends OutputGenerator {
 						sActorInstanceType+" *"+mSymbols.getActorInstanceReference()+") {");
 				increaseIndentation();
 				println("TRACE_ACTION(&" + mSymbols.getActorInstanceReference() + "->base, "
-						+ taskIndex + ", \"" + task.getName() + "\");");
+						+ actionIndex + ", \"" + task.getName() + "\");");
+				++actionIndex;
 			}
 			else {
 				println("static void "+mSymbols.getTargetName(task)+"("+sActorInstanceBaseType
@@ -366,7 +444,6 @@ public class Actor2c extends OutputGenerator {
 		    generateBody(task);
 		    decreaseIndentation();
 		    println("}");
-		    taskIndex++;
 		}
 	}
 	

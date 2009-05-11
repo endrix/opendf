@@ -111,6 +111,12 @@ typedef struct {
 	pthread_cond_t	cv; 
 }AbstractActorInstance;
 
+typedef struct {
+	const char	*name;
+	const int	*consumption;
+	const int *production;
+} ActionDescription;
+
 struct ActorClass {
 	char			*name;
 	int				numInputPorts;
@@ -123,6 +129,8 @@ struct ActorClass {
 	int				*inputPortSizes;
 	int				*outputPortSizes;
 	int				actorExecMode;
+	int				numActions;
+	const ActionDescription *actionDescriptions;
 };
 
 typedef struct {
