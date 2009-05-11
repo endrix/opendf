@@ -39,8 +39,6 @@
  * Actor Display
  */
 
-#define FB
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -49,7 +47,7 @@
 #include <linux/fb.h>
 #include <sys/mman.h>
 #include <sys/ioctl.h>
-#ifndef FB
+#ifdef GTK
 #include <gtk/gtk.h>
 #endif
 #include "actors-rts.h"
@@ -83,12 +81,13 @@ typedef struct {
   int 						fbfd;
   int						height;
   int						width;
-#ifndef FB
+#ifdef GTK
   GtkWidget					*window;
   GtkWidget					*darea;
   int						ppf;	
   guchar					rgbbuf[IMAGE_WIDTH*IMAGE_HEIGHT*3];
 #endif
+  char						*title;	
   int 						START_U;
   int 						START_V;
   int 						MB_SIZE;
@@ -106,6 +105,10 @@ static void constructor(AbstractActorInstance*);
 static void destructor(AbstractActorInstance*);
 static void set_param(AbstractActorInstance*,int,ActorParameter*);
 
+static int inputPortSizes[]={
+  sizeof(int32_t),
+};
+
 ActorClass ActorClass_art_Display_yuv ={
   "art_Display_yuv",
   1, /* numInputPorts */
@@ -114,10 +117,13 @@ ActorClass ActorClass_art_Display_yuv ={
   (void*)a_action_scheduler,
   constructor,
   destructor,
-  set_param
+  set_param,
+  inputPortSizes,
+  0,
+  0
 };
 
-#ifndef FB
+#ifdef GTK
 static void on_darea_expose(GtkWidget *widget,GdkEventExpose *event,gpointer user_data)
 {
 	ActorInstance *thisActor = (ActorInstance *)user_data;
@@ -142,10 +148,10 @@ static void display_mb(ActorInstance *thisActor){
 	int	dj,dk;
 	int	ruv,guv,buv;
 	int	y,t,r,g,b,jj,kk;
-#ifdef FB
+#if defined FB
 	unsigned long location;
 	unsigned short rgb565;
-#else
+#elif defined GTK
 	int xy;
 #endif
 
@@ -166,11 +172,11 @@ static void display_mb(ActorInstance *thisActor){
 					r = (t+ruv)>>8;
 					g = (t+guv)>>8;
 					b = (t+buv)>>8;
-#ifdef FB
+#if defined FB
 					rgb565 = RGB565(SATURATE8(r),SATURATE8(g),SATURATE8(b));
 					location = (thisActor->mbx+kk+thisActor->vinfo.xoffset) * (thisActor->vinfo.bits_per_pixel/8) + (thisActor->mby+jj+thisActor->vinfo.yoffset) * thisActor->finfo.line_length;
 					*((unsigned short int*)(thisActor->fbp + location)) = rgb565;
-#else
+#elif defined GTK
 					xy = (thisActor->mby+jj) * thisActor->width;
 					xy += thisActor->mbx+kk;
 					xy *= 3;
@@ -183,7 +189,7 @@ static void display_mb(ActorInstance *thisActor){
 			}
 		}
 	}
-#ifndef FB
+#ifdef GTK
 	if(thisActor->ppf == thisActor->width*thisActor->height*3)
 	{
 		thisActor->ppf = 0;
@@ -292,7 +298,7 @@ static void constructor(AbstractActorInstance *pBase)
         perror("mmap()");
         exit(4);
     }
-#else
+#elif defined GTK
 	gtk_init(NULL,NULL);
 	gdk_init(NULL, NULL);
 	gdk_rgb_init();
@@ -300,7 +306,7 @@ static void constructor(AbstractActorInstance *pBase)
 	thisActor->darea = gtk_drawing_area_new();
  	gtk_drawing_area_size(GTK_DRAWING_AREA(thisActor->darea), IMAGE_WIDTH, IMAGE_HEIGHT);
  	gtk_container_add(GTK_CONTAINER(thisActor->window),thisActor->darea);
-	gtk_window_set_title(GTK_WINDOW(thisActor->window),"foreman");
+	gtk_window_set_title(GTK_WINDOW(thisActor->window),thisActor->title);
 	thisActor->ppf=0;
 #endif
 	thisActor->START_U = 4*64;
@@ -326,34 +332,18 @@ static void destructor(AbstractActorInstance *pBase)
     	close(thisActor->fbfd);
 }
 
-static void set_param(AbstractActorInstance *pBase,int numParams,ActorParameter *param){
+static void set_param(AbstractActorInstance *pBase,int numParams,ActorParameter *param)
+{
 	ActorInstance *thisActor=(ActorInstance*) pBase;
 	ActorParameter *p;
 	int	i;
 	for(i=0,p=param; i<numParams; i++,p++)
 	{
-		if(strcmp(p->key,"displayMode") == 0)
-		{
-			if(strcmp(p->value,"sqcif")==0){
-				thisActor->height = 128;
-				thisActor->width = 96;
-			}
-			else if(strcmp(p->value,"qcif")==0){
-				thisActor->height = 144;
-				thisActor->width = 176;
-			}
-			else if(strcmp(p->value,"qvga")==0){
-				thisActor->height = 320;
-				thisActor->width = 240;
-			}
-			else if(strcmp(p->value,"vga")==0){
-				thisActor->height = 720;
-				thisActor->width = 480;
-			}
-			else{
-				thisActor->height = 320;
-				thisActor->width = 240;
-			}
-		}
+		if(strcmp(p->key,"title") == 0)
+			thisActor->title = p->value;
+		else if(strcmp(p->key,"height") == 0)
+			thisActor->height = atoi(p->value);
+		else if(strcmp(p->key,"width") == 0)	
+			thisActor->width = atoi(p->value);
 	}
 }
