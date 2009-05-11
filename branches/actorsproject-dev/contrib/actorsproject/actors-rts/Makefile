@@ -23,6 +23,14 @@ ifneq "$(PROFILE)" ""
 CFLAGS += -pg
 endif
 
+ifeq ($(FB), y)
+CFLAGS += -DFB
+endif
+
+ifeq ($(GTK), y)
+CFLAGS += -I/usr/include/gtk-2.0 -I/usr/lib/gtk-2.0/include -I/usr/include/atk-1.0 -I/usr/include/cairo -I/usr/include/pango-1.0 -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I/usr/include/pixman-1 -I/usr/include/freetype2 -I/usr/include/libpng12 -DGTK
+endif
+
 INSTALL_H=actors-rts.h circbuf.h dll.h
 INSTALL_SYSACTORS=art_DDRModel.cal art_Display_yuv.cal \
                   art_Sink_bin.cal art_Sink_yuv.cal art_Sink_txt.cal \
