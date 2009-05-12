@@ -38,10 +38,8 @@
 #ifndef _ACTORS_RTS_H
 #define _ACTORS_RTS_H
 
-#include <string.h>
-#include <stdint.h>
 #include <stdio.h>
-#include <semaphore.h>
+#include <pthread.h>
 #include "circbuf.h"
 #include "dll.h"
 

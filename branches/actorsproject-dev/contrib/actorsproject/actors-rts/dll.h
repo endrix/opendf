@@ -1,9 +1,6 @@
 #ifndef _DLL_H
 #define _DLL_H
 
-#include <stdio.h>
-#include <stdlib.h>
-
 /* make the header usable from C++ */
 #ifdef __cplusplus
 extern "C" {

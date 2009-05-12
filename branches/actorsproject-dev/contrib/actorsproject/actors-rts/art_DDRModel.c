@@ -41,6 +41,7 @@
  * by xlim2c version 0.4 (Jan 14, 2009)
  */
 
+#include <string.h>
 #include "actors-rts.h"
 
 #define IN0_RA base.inputPort[0]
