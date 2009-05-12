@@ -134,8 +134,8 @@ public class Actor2c extends OutputGenerator {
 		}
 	}
 
-	protected int definePortSizes(List<? extends XlimTopLevelPort> ports,
-			                         String name) {
+	protected int describePorts(List<? extends XlimTopLevelPort> ports,
+			                    String name) {
 		println();
 
 		if (ports.isEmpty()) {
@@ -145,13 +145,13 @@ public class Actor2c extends OutputGenerator {
 		else {	
 			int i=0;
 		
-			println("static int "+name+"[]={");
+			println("static PortDescription "+name+"[]={");
 			increaseIndentation();
 			for (XlimTopLevelPort p: ports) {
 				if (i!=0)
 					println(",");
 				String type=mSymbols.getTargetTypeName(p.getType());
-				print("sizeof("+type+")");
+				print("{\"" + p.getSourceName() + "\", sizeof("+type+")}");
 				++i;
 			}
 			decreaseIndentation();
@@ -234,8 +234,8 @@ public class Actor2c extends OutputGenerator {
 	 */
 	protected void defineActorClass() {
 		// Describe ports
-		int numInputPorts=definePortSizes(mDesign.getInputPorts(), "inputPortSizes");
-		int numOutputPorts=definePortSizes(mDesign.getOutputPorts(), "outputPortSizes");
+		int numInputPorts=describePorts(mDesign.getInputPorts(), "inputPortDescriptions");
+		int numOutputPorts=describePorts(mDesign.getOutputPorts(), "outputPortDescriptions");
 		
 		// Describe actions
 		int numActions=describeActions("actionDescriptions");
@@ -252,8 +252,8 @@ public class Actor2c extends OutputGenerator {
 		println(sConstructorName+",");
 		println("0, /* destructor */");
 		println("0, /* set_param */");
-		println("inputPortSizes,");
-		println("outputPortSizes,");
+		println("inputPortDescriptions,");
+		println("outputPortDescriptions,");
 		println("0, /* actorExecMode */");
 		println(numActions + ", /* numActions */");
 		println("actionDescriptions");

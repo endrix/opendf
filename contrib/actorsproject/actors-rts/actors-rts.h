@@ -114,9 +114,14 @@ typedef struct {
 
 typedef struct {
 	const char	*name;
-	const int	*consumption;
-	const int *production;
+	const int 	*consumption;
+	const int 	*production;
 } ActionDescription;
+
+typedef struct {
+	const char	*name;
+	int 				tokenSize;
+} PortDescription;
 
 struct ActorClass {
 	char			*name;
@@ -126,9 +131,9 @@ struct ActorClass {
 	void			(*action_scheduler)(AbstractActorInstance*);
 	void			(*constructor)(AbstractActorInstance*);
 	void			(*destructor)(AbstractActorInstance*);
-	void			(*set_param)(AbstractActorInstance*,int,                       ActorParameter*);
-	int				*inputPortSizes;
-	int				*outputPortSizes;
+	void			(*set_param)(AbstractActorInstance*,int,ActorParameter*);
+	const PortDescription		*inputPortDescriptions;
+	const PortDescription		*outputPortDescriptions;
 	int				actorExecMode;
 	int				numActions;
 	const ActionDescription *actionDescriptions;

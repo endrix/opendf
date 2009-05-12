@@ -77,17 +77,23 @@ void xmlDeclareNetwork(FILE *f,
 
     // <input>
     // id is a running index 0,1,2... (unique among input ports)
+    // name is the name used in the source
     // source is the identity of the source (output port)
-    // TODO: port names not known here, would be nice...
     for (j=0; j<numInputs; ++j) {
-      fprintf(f, "    <input id=\"%d\" source=\"%d\"/>\n", 
-	      firstInput+j, inputs[j].cid);
+      const char *name=actorClass->inputPortDescriptions[j].name;
+
+      fprintf(f, "    <input id=\"%d\" name=\"%s\" source=\"%d\"/>\n", 
+	      firstInput+j, name, inputs[j].cid);
     }
 
     // <output>
     // id is unique among output ports
+    // name is the name used in the source
     for (j=0; j<numOutputs; ++j) {
-      fprintf(f, "    <output id=\"%d\"/>\n", outputs[j].cid);
+      const char *name=actorClass->outputPortDescriptions[j].name;
+
+      fprintf(f, "    <output id=\"%d\" name=\"%s\"/>\n", 
+	      outputs[j].cid, name);
     }
 
     // <action>
@@ -95,9 +101,13 @@ void xmlDeclareNetwork(FILE *f,
     // name is not necessarily unique (not even within an actor)
     for (j=0; j<numActions; ++j) {
       int p;
+      const char *name=actions[j].name;
 
-      fprintf(f, "    <action id=\"%d\" name=\"%s\">\n",
-	      firstAction+j, actions[j].name);
+      if (name)
+	fprintf(f, "    <action id=\"%d\" name=\"%s\">\n",
+		firstAction+j, actions[j].name);
+      else
+	fprintf(f, "    <action id=\"%d\">\n", firstAction+j);
 
       // <consumes>
       // count=number of tokens consumed

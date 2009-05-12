@@ -79,14 +79,26 @@ static void a3_data_write(ActorInstance *);
 static void a4_action_scheduler(ActorInstance *);
 static void constructor(AbstractActorInstance*);
 
-static int inputPortSizes[]={
-  sizeof(int32_t),
-  sizeof(int32_t),
-  sizeof(int32_t)
+static const PortDescription inputPortDescriptions[]={
+  {"RA", sizeof(int32_t)},
+  {"WA", sizeof(int32_t)},
+  {"WD", sizeof(int32_t)}
 };
 
-static int outputPortSizes[]={
-  sizeof(int32_t)
+static const PortDescription outputPortDescriptions[]={
+  {"RD", sizeof(int32_t)}
+};
+
+static const int consumption_RA[] = {1, 0, 0};
+static const int consumption_WA[] = {0, 1, 0};
+static const int consumption_WD[] = {0, 0, 1};
+static const int production_RD[] = { 1 };
+
+static const ActionDescription actionDescriptions[] = {
+  {"select.read",  consumption_RA, 0},
+  {"select.write", consumption_WA, 0},
+  {"data.read",    0,              production_RD},
+  {"data.write",   consumption_WD, 0}
 };
 
 ActorClass ActorClass_art_DDRModel ={
@@ -98,9 +110,11 @@ ActorClass ActorClass_art_DDRModel ={
   constructor,
   0, /* destructor */
   0, /* set_param */
-  inputPortSizes,
-  outputPortSizes,
-  0 /* actorExecMode */
+  inputPortDescriptions,
+  outputPortDescriptions,
+  0, /* actorExecMode */
+  4, /* numActions */
+  actionDescriptions
 };
 
 

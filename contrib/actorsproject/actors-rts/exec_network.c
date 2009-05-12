@@ -486,7 +486,8 @@ void init_actor_network(const NetworkConfig *network)
 			port->aid = i;
 			port->portDir = INPUT;
 			port->readIndex = NumReaderInstances[cid];
-			port->tokenSize = ptr->inputPortSizes[j];
+			port->tokenSize = 
+			  ptr->inputPortDescriptions[j].tokenSize;
 			FifoInputPortIndex[cid][port->readIndex] = i;
 			NumReaderInstances[cid]++;
 		}
@@ -497,7 +498,8 @@ void init_actor_network(const NetworkConfig *network)
 			cid = actors[i]->outputPorts[j];
 			port->cid = cid;
 			port->aid = i;
- 			port->tokenSize = ptr->outputPortSizes[j];
+ 			port->tokenSize = 
+			  ptr->outputPortDescriptions[j].tokenSize;
 			port->portDir = OUTPUT;
 			FifoOutputPortIndex[cid] = i;
 		}
