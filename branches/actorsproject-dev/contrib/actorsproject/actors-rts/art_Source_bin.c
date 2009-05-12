@@ -63,9 +63,18 @@ static void constructor(AbstractActorInstance*);
 static void destructor(AbstractActorInstance*);
 static void set_param(AbstractActorInstance*,int,ActorParameter*);
 
-static int outputPortSizes[]={
-  TOKENSIZE_IN_INT32*sizeof(int32_t)
+// TODO: TOKENSIZE_IN_INT32 prevents us from type checking inputs/outputs
+// The token size is not really 8*sizeof(int32_t), we are writing 8 tokens
+static const PortDescription outputPortDescriptions[]={
+  {"Out", TOKENSIZE_IN_INT32*sizeof(int32_t)}
 };
+
+static const int production[] = { TOKENSIZE_IN_INT32 };
+
+static const ActionDescription actionDescriptions[] = {
+  {0, 0, production}
+};
+
 
 ActorClass ActorClass_art_Source_bin ={
   "art_Source_bin",
@@ -76,9 +85,11 @@ ActorClass ActorClass_art_Source_bin ={
   constructor,
   destructor,
   set_param,
-  0,
-  outputPortSizes,
-  0	
+  0, /* inputPortDescriptions */
+  outputPortDescriptions,
+  0, /* actorExecMode */
+  1, /* numActions */
+  actionDescriptions
 };
 
 static int read_file(int fd, char *buf,int size)

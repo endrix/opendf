@@ -59,8 +59,14 @@ static void constructor(AbstractActorInstance*);
 static void destructor(AbstractActorInstance*);
 static void set_param(AbstractActorInstance*,int,ActorParameter*);
 
-static int inputPortSizes[]={
-  sizeof(int32_t),
+static const PortDescription inputPortDescriptions[]={
+  {"In", sizeof(int32_t)}
+};
+
+static const int consumption[] = { 1 };
+
+static const ActionDescription actionDescriptions[] = {
+  {0, consumption, 0}
 };
 
 ActorClass ActorClass_art_Sink_bin ={
@@ -72,9 +78,11 @@ ActorClass ActorClass_art_Sink_bin ={
   constructor,
   destructor,
   set_param,
-  inputPortSizes,
-  0,
-  0,
+  inputPortDescriptions,
+  0, /* outputPortDescriptions */
+  0, /* actorExecMode */
+  1, /* numActions */
+  actionDescriptions
 };
 
 static void Read0(ActorInstance *thisActor) {
