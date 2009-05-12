@@ -51,6 +51,7 @@
 #include "actors-rts.h"
 #include "circbuf.h"
 #include "dll.h"
+#include "xmlTrace.h"
 
 #define BLOCKED			0
 #define RUNNING			1
@@ -69,11 +70,26 @@ int						numFifos = 0;
 static int				numCpusConfigured;
 static int				numCpusOnline;
 static int				dispatchMode;
+static int				text_action_trace=0;
+static FILE				*xmlTraceFile=0;
 
 static void stop_run(int sig)
 {
 	trace(LOG_MUST,"\nprogram stop running: sig=%x pid=%x\n",sig,getpid());
 	Running = 0;
+}
+
+void actionTrace(AbstractActorInstance *instance,
+		 int localActionIndex,
+		 char *actionName) {
+  if (text_action_trace)
+    trace(LOG_MUST, "%s %d %s\n", instance->actor->name,
+	  localActionIndex,
+	  actionName);
+
+  // TODO: it should be the "global" action index
+  if (xmlTraceFile)
+    xmlTraceAction(xmlTraceFile,instance->firstActionIndex + localActionIndex);
 }
 
 static void init_print(void)
@@ -420,6 +436,7 @@ void init_actor_network(const NetworkConfig *network)
 
 	int						listIndex = 0;
 	int						numActorsPerList = 0;
+	int						firstActionIndex = 0;
 
 	memset(NumReaderInstances,0,sizeof(NumReaderInstances));
 
@@ -449,6 +466,10 @@ void init_actor_network(const NetworkConfig *network)
 		memset(pInstance,0,ptr->sizeActorInstance);
 		pInstance->actor = ptr;
 		pInstance->aid = i;
+
+		// global action index (used in traces)
+		pInstance->firstActionIndex=firstActionIndex;
+		firstActionIndex += ptr->numActions;
 
 		//setup parameters if any
 		if(pInstance->actor->set_param)
@@ -564,7 +585,7 @@ int evaluate_args(int argc, char *argv[])
 	int num = 1;
 
 	//command line param parser
-	while ((c = getopt (argc, argv, "tvhn:l:m:d:")) != -1)
+	while ((c = getopt (argc, argv, "tvhn:l:m:d:x:")) != -1)
 	{
 		switch (c)
 		{
@@ -575,6 +596,7 @@ int evaluate_args(int argc, char *argv[])
 				fprintf (stderr, "  -n <num of threads>set number of threads (default is 1)\n");
 				fprintf (stderr, "  -d <disptch mode>  set thread dispatch mode (0: auto 1: fixed)\n");
 				fprintf (stderr, "  -t                 turn on trace for action scheduler\n");
+				fprintf (stderr, "  -x <file>          generate XML action trace to <file>\n");
 				fprintf (stderr, "  -h                 print this help and exit\n");
 				fprintf (stderr, "  -v                 print version information and exit\n");
 				return 1;
@@ -589,6 +611,17 @@ int evaluate_args(int argc, char *argv[])
 				break;
 			case 't':
 				trace_action = 1;
+				text_action_trace = 1;
+				break;
+			case 'x':
+				trace_action = 1;
+				xmlTraceFile = xmlCreateTrace(optarg);
+				if (xmlTraceFile==0) {
+				  fprintf(stderr, 
+					  "Cannot open trace file \"%s\" for output\n",
+					  optarg);
+				  return 1;
+				}
 				break;
 			case 'm':
 				rts_mode = atoi(optarg);
@@ -729,7 +762,13 @@ int execute_network(int argc, char *argv[], const NetworkConfig *networkConfig)
 	if(log_level >=LOG_INFO) 
 		init_print();
 
+	if (xmlTraceFile)
+	  xmlDeclareNetwork(xmlTraceFile, argv[0], actorInstance, numInstances);
+
 	run_actor_network();
+
+	if (xmlTraceFile)
+	  xmlCloseTrace(xmlTraceFile);
 
 	return 0;
 }

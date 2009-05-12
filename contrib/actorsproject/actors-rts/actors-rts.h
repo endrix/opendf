@@ -57,7 +57,7 @@ extern "C" {
 #define MAX_ACTOR_NUM		128
 
 #define TRACE_ACTION(INSTANCE,INDEX,NAME) \
-        if(trace_action) trace(LOG_MUST,"%s %d %s\n", (INSTANCE)->actor->name, INDEX, NAME)
+  if(trace_action) actionTrace(INSTANCE,INDEX,NAME)
 
 #define RANGECHK(X,B) ((unsigned)(X)<(unsigned)(B)?(X):RANGEERR(X,B))
 #define RANGEERR(X,B) (rangeError((X),(B),__FILE__,__LINE__))
@@ -107,6 +107,7 @@ typedef struct {
 
 	pthread_mutex_t	mt;
 	pthread_cond_t	cv; 
+	int				firstActionIndex;
 }AbstractActorInstance;
 
 typedef struct {
@@ -245,6 +246,13 @@ extern void pinWait(ActorPort * port, int length);
 
 /** Printf-like tracing function to stderr. Prints only if \a level >= the current log_level. */
 extern void actorTrace(AbstractActorInstance * base, int level, const char * message, ...);
+
+/** Produces a trace of action firings to stderr (if -t option is used)
+ *  and/or to an xml trace file (if -x option is used)
+ */
+extern void actionTrace(AbstractActorInstance *instance,
+			int localActionIndex,
+			char *actionName);
 
 /** Printf-like tracing function to stderr. Prints only if \a level >= the current log_level. */
 extern void trace(int level, const char*,...);
