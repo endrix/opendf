@@ -96,7 +96,7 @@ static void Read0(ActorInstance *thisActor) {
 	{
 		if(thisActor->fd)
 		{
-			fprintf((FILE*)thisActor->fd,"%d\n",val);
+			fprintf(thisActor->fd,"%d\n",val);
 		}
 		else
 		{
@@ -132,18 +132,19 @@ static void destructor(AbstractActorInstance *pBase)
 {
 	ActorInstance *thisActor=(ActorInstance*) pBase;
 	if(thisActor->fd)
-		fclose((FILE*)thisActor->fd);
+		fclose(thisActor->fd);
 }
 
 static void set_param(AbstractActorInstance *pBase,int numParams,ActorParameter *param){
 	ActorInstance *thisActor=(ActorInstance*) pBase;
 	ActorParameter *p;
 	int	i;
+	thisActor->fd = NULL;
 	for(i=0,p=param; i<numParams; i++,p++)
 	{
 		if(strcmp(param->key,"fileName") == 0)
 		{
-			thisActor->fd = (FILE*)fopen(p->value,"w");
+			thisActor->fd = fopen(p->value,"w");
 		}
 	}
 }

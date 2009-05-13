@@ -176,6 +176,7 @@ static void set_param(AbstractActorInstance *pBase,int numParams,ActorParameter 
 	ActorInstance *thisActor=(ActorInstance*) pBase;
 	ActorParameter *p;
 	int	i;
+	thisActor->fd = 0;
 	for(i=0,p=param; i<numParams; i++,p++)
 	{
 		if(strcmp(p->key,"fileName") == 0)

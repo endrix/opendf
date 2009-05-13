@@ -101,7 +101,7 @@ static int read_file(FILE *fd, char *buf,int size)
 	{
 		for(i=0;i<size;i++)
 		{
-			ret = fscanf((FILE*)fd,"%d",pbuf++);
+			ret = fscanf(fd,"%d",pbuf++);
 			if(ret != EOF)
 			{
 				tnum++;
@@ -122,7 +122,7 @@ static int Write0(ActorInstance *thisActor) {
 	if(ret<=0){
 		if(rts_mode == THREAD_PER_ACTOR)
 		{
- 			fclose((FILE*)thisActor->fd);
+ 			fclose(thisActor->fd);
  			thisActor->fd = 0;
  			printf("Source %s exit!\n",thisActor->base.actor->name);
 			actorStatus[thisActor->base.aid]=0;
@@ -167,18 +167,19 @@ static void destructor(AbstractActorInstance *pBase)
 {
 	ActorInstance *thisActor=(ActorInstance*) pBase;
 	if(thisActor->fd)
-		fclose((FILE*)thisActor->fd);
+		fclose(thisActor->fd);
 }
 
 static void set_param(AbstractActorInstance *pBase,int numParams,ActorParameter *param){
 	ActorInstance *thisActor=(ActorInstance*) pBase;
 	ActorParameter *p;
 	int	i;
+	thisActor->fd = NULL;
 	for(i=0,p=param; i<numParams; i++,p++)
 	{
 		if(strcmp(p->key,"fileName") == 0)
 		{
-			thisActor->fd = (FILE *)fopen(param->value,"r");
+			thisActor->fd = fopen(param->value,"r");
 		}
 	}
 }
