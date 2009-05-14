@@ -80,7 +80,7 @@ extern "C" {
 #define ACTOR_NORMAL		0
 #define ACTOR_STANDALONE	1
 
-typedef int					bool_t;
+typedef int32_t				bool_t;
 
 typedef struct {
 	char			*key;
@@ -169,6 +169,17 @@ extern int execute_network(int argc, char *argv[], const NetworkConfig *network)
 
 /** Sets up the actors network according to the information provided in \a network . */
 extern void init_actor_network(const NetworkConfig * network);
+
+/** Runs the completely set up network of actors until completion. */
+extern int run_actor_network(void);
+
+/** Marks the given actor \a instance as ready to execute. If it was blocked due to a
+ * CIRC_BUFFER, this buffer must be given in \a cb. Otherwise it should be NULL (this should
+ * usually only be the case for input system actors).
+ * If \a cb is not NULL, \a readerIndex is the readers index if \a instance was blocked waiting for
+ * data to become available for reading, if the actor was blocked because the buffer was full
+ * and it couldn't write more data into the buffer, \a readerIndex has to be set to -1. */
+void make_actor_executable(AbstractActorInstance *instance, CIRC_BUFFER* cb, int readerIndex);
 
 /** Returns 1 if there is at least one token available for reading if \a port is an input port,
  * or if at least one token can be written if it is an output port.

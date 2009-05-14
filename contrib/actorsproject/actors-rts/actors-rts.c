@@ -242,25 +242,7 @@ int pinRead2(ActorPort *actorPort,char *buf,int length)
   	bk = &cb->block;
 	instance = actorInstance[bk->aid];
 
-	if(rts_mode != THREAD_PER_ACTOR)
-	{
-		if(!instance->execState)
-			instance->execState = 1;
-	}
-	else
-	{
-		pthread_mutex_lock(&instance->mt);
-		if(bk->num)
-		{
-			if (get_circbuf_space(cb) >= bk->num)
-			{
-				actorTrace(actorInstance[actorPort->aid],LOG_INFO,"%s_%d signal %s_%d to write(%d)\n",actorInstance[actorPort->aid]->actor->name,actorPort->aid,instance->actor->name,bk->aid,actorPort->cid);
-				pthread_cond_signal(&instance->cv);
-			}
-		}
-		pthread_mutex_unlock(&instance->mt);
-	}
-		
+	make_actor_executable(instance, cb, -1);
 
 	return ret;
 }
@@ -325,23 +307,7 @@ int pinWrite2(ActorPort *actorPort,const char *buf, int length)
 		bk = &cb->reader[i].block;
 		instance = actorInstance[bk->aid];
 
-		if(rts_mode != THREAD_PER_ACTOR){
-			if(!instance->execState)
-				instance->execState = 1;
-		}
-		else
-		{
-			pthread_mutex_lock(&instance->mt);
-			if(bk->num)
-			{
-				if(get_circbuf_area(cb,i) >=bk->num)
-				{
-					actorTrace(actorInstance[actorPort->aid],LOG_INFO,"%s_%d signal %s_%d to read(%d,%d)=%d \n",actorInstance[actorPort->aid]->actor->name,actorPort->aid,instance->actor->name,bk->aid,actorPort->cid,i,get_circbuf_area(cb,i));
-					pthread_cond_signal(&instance->cv);
-				}
-			}
-			pthread_mutex_unlock(&instance->mt);
-		}
+		make_actor_executable(instance, cb, i);
 	}
 
 	return 0;
