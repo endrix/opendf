@@ -173,6 +173,32 @@ static void printActorInfo(void)
 	printf("\n");
 }
 
+void make_actor_executable(AbstractActorInstance *instance, CIRC_BUFFER* cb, int readerIndex)
+{
+	if(rts_mode != THREAD_PER_ACTOR) {
+		if(!instance->execState)
+		instance->execState = 1;
+	}
+	else {
+		int actorReady = 1;
+		pthread_mutex_lock(&instance->mt);
+		if (cb != NULL) {
+			if (readerIndex == -1) {
+				BLOCK* bk = &cb->block;
+				actorReady = ((bk->num) && (get_circbuf_space(cb) >= bk->num));
+			}
+			else {
+				BLOCK* bk = &cb->reader[readerIndex].block;
+				actorReady = ((bk->num) && (get_circbuf_area(cb, readerIndex) >=bk->num));
+			}
+		}
+		if (actorReady) {
+			pthread_cond_signal(&instance->cv);
+		}
+		pthread_mutex_unlock(&instance->mt);
+	}
+}
+
 static DLLIST *node_select(LIST *actorList, DLLIST *lnode)
 {
 	DLLIST			*node;
