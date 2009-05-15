@@ -133,13 +133,10 @@ public class LocalStorageAllocation implements XlimBlockElement.Visitor<Object,X
 				// if multiple or non-local references, make it a statement
 				// FIXME: Not quite this simple, we get unnecessary temporaries for conditions.
 				// Why? We get multiple references from phis (control dependence)
-				// Another problem is that a phi-node is modelled as a use in If/Loop, but
-				// is actually a use in predecessor blocks (then/else/preheader/body)
-				// We would have to (a) model only "true" uses (b) allow for different modules per used value 
 				ValueNode value=op.getOutputPort(0).getValue();
 				Iterator<? extends ValueUsage> pUse=value.getUses().iterator();
 				XlimModule localModule=op.getParentModule();
-				if (pUse.next().getModule()!=localModule || pUse.hasNext())
+				if (pUse.next().usedInModule()!=localModule || pUse.hasNext())
 					return true;
 			}
 			

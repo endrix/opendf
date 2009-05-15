@@ -67,6 +67,19 @@ public interface ValueOperator {
 	XlimModule getParentModule();	
 	
 	/**
+	 * @param usage  One of the values, which is used by the operator
+	 * @return       the module, to which the usage is attributed.
+	 * 
+	 * With the exception of PhiOperators, all usages are simply attributed
+	 * to the parent module of the operator. For phi-nodes the usage is 
+	 * attributed to the predecessor that corresponds to the usage
+	 * (this not only models what is actually going on, but it is also required to
+	 * maintain the property that a value can only be used in a context that is
+	 * dominated by the definition of the value).
+	 */
+	XlimModule usedInModule(ValueUsage usage);
+	
+	/**
 	 * Removes all references this operator makes to ValueNodes
 	 */
 	public abstract void removeReferences();

@@ -44,6 +44,7 @@ import java.util.NoSuchElementException;
 
 import eu.actorsproject.util.Linkage;
 import eu.actorsproject.util.XmlElement;
+import eu.actorsproject.xlim.XlimModule;
 import eu.actorsproject.xlim.XlimOutputPort;
 import eu.actorsproject.xlim.XlimPhiNode;
 import eu.actorsproject.xlim.XlimSource;
@@ -187,6 +188,28 @@ class PhiNode extends Linkage<PhiNode> implements XlimPhiNode, Instruction, PhiO
 		usedValues.add(mInputs.get(1).getValueUsage());
 		usedValues.add(mParent.getTestModule().getValueUsage());
 		return usedValues;
+	}
+	
+	@Override
+	public XlimModule usedInModule(ValueUsage usage) {
+		/*
+		 * Phi-nodes are special in that the usage is 
+	     * attributed to the predecessor that corresponds to the usage
+		 */
+		if (usage==mInputs.get(0).getValueUsage()) {
+			return mParent.predecessorModule(0); 
+		}
+		else if (usage==mInputs.get(1).getValueUsage()) {
+			return mParent.predecessorModule(1);
+		}
+		else {
+			TestModule testModule=mParent.getTestModule();
+			if (usage==testModule.getValueUsage())
+				return testModule;
+			else
+				throw new IllegalArgumentException("Value not used by this operator: "
+						                            +usage.getValue().getUniqueId());
+		}
 	}
 	
 	@Override

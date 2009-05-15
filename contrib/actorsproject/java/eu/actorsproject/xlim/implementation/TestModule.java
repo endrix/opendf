@@ -144,8 +144,7 @@ class TestModule extends ContainerModule implements XlimTestModule {
 		public XlimModule getParentModule() {
 			return TestModule.this;
 		}
-		
-		
+
 		@Override
 		public void removeReferences() {
 			mDecision.setValue(null);
@@ -157,6 +156,11 @@ class TestModule extends ContainerModule implements XlimTestModule {
 				return Collections.singletonList(mDecision);
 			else
 				return Collections.emptyList();
+		}
+
+		@Override
+		public XlimModule usedInModule(ValueUsage usage) {
+			return TestModule.this;
 		}
 		
 		@Override

@@ -83,15 +83,24 @@ public abstract class ValueUsage extends Linkage<ValueUsage> {
 	}
 		
 	/**
-	 * @return the XlimModule, in which the usage is made (the XlimTaskModule
-	 *         in the case of "final" usage of state value that represent the output
-	 *         of a CallNode/TaskModule).
+	 * @return the XlimModule, in which the usage is made 
+	 * 
+	 * In most cases this is the parent module of the operator that uses the value.
+	 * Two exceptions:
+	 * 1) The "final" usage of a state variable/port, which represents the output of
+	 *    a CallNode/TaskModule. It has no associated operator. Instead the value is
+	 *    considered used in the XlimTaskModule, itself.
+	 * 2) PhiNodes, in which the usage is considered to take place in one of the
+	 *    predecessors: the pre-header or the body of a LoopModule,
+	 *    and the then/else modules of an IfModule.
+	 *    This not only models what is actually going on, but this is also required to
+	 *    maintain the property that a value can only be used in a context that is
+	 *    dominated by the definition of the value.
 	 */
-	public XlimModule getModule() {
-		return usedByOperator().getParentModule();
+	public XlimModule usedInModule() {
+		return usedByOperator().usedInModule(this);
 	}
-	
-	
+		
 	public interface Visitor<Result,Arg> {
 		Result visitCall(ValueUsage use, CallSite call, Arg arg);
 		Result visitAssign(ValueUsage use, ValueNode newValue, boolean killsUse, Arg arg);

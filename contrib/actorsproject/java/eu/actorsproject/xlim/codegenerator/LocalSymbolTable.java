@@ -106,7 +106,7 @@ public class LocalSymbolTable {
 		if (mPortMap.get(port)==null) {
 			ValueNode value=port.getValue();
 			for (ValueUsage use: value.getUses()) {
-				module=module.leastCommonAncestor(use.getModule());
+				module=module.leastCommonAncestor(use.usedInModule());
 			}				
 			LocalScope scope=getEnclosingScope(module);
 			TemporaryVariable temp=new TemporaryVariable(port);
