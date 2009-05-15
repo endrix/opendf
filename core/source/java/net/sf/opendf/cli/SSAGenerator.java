@@ -75,12 +75,25 @@ public class SSAGenerator extends XSLTTransformRunner
     private static final String CALMLEXT = ".calml";
 
     // Cannot cache the transformers as they are returned from the method calls below. 
-    private static String[] parserTransforms = {
+    private static String[] parserTransforms = {    
         "net/sf/opendf/cal/transforms/CanonicalizePortTags.xslt",
-        "net/sf/opendf/cal/transforms/AddInputTypes.xslt",
-        "net/sf/opendf/cal/transforms/ReplaceOld.xslt",
+ 
+        //"net/sf/opendf/cal/transforms/AddInputTypes2.xslt",
         
+        "net/sf/opendf/cal/transforms/AddInputTypes.xslt", 
+        "net/sf/opendf/cal/transforms/ReplaceOld.xslt",
+               
+        //Replace Generators        
+        "net/sf/opendf/cal/transforms/ReplaceConstantGenerators.xslt",
+        "net/sf/opendf/cal/transforms/EvaluateConstantExpressions.xslt",
+
+        // Convert repeats into multiple reads and writes
+        "net/sf/opendf/cal/transforms/xlim/VariableUsage.xslt",  
+        "net/sf/opendf/cal/transforms/AnnotateConstantIndexers.xslt",        
+        "net/sf/opendf/cal/transforms/Scalarize.xslt", 
+        "net/sf/opendf/cal/transforms/AddID.xslt",
         "net/sf/opendf/cal/transforms/VariableAnnotator.xslt",
+        
 //         "net/sf/opendf/cal/transforms/ContextInfoAnnotator.xslt",
 //         "net/sf/opendf/cal/transforms/CanonicalizeOperators.xslt",
 //         "net/sf/opendf/cal/transforms/AnnotateFreeVars.xslt",
@@ -103,8 +116,8 @@ public class SSAGenerator extends XSLTTransformRunner
         "net/sf/opendf/cal/checks/callbackProblemSummary.xslt",
         "net/sf/opendf/cal/transforms/EliminateDeadCode.xslt",
         "net/sf/opendf/cal/transforms/AddID.xslt",
-        
-        "net/sf/opendf/cal/transforms/xlim/VariableUsage.xslt",
+         
+        "net/sf/opendf/cal/transforms/xlim/VariableUsage.xslt",        
         "net/sf/opendf/cal/transforms/xlim/SSANotes.xslt",
         "net/sf/opendf/cal/transforms/xlim/TrueSource.xslt",
         "net/sf/opendf/cal/transforms/xlim/UsedInGuard.xslt",
