@@ -42,25 +42,29 @@ import java.util.Collections;
 
 import eu.actorsproject.util.Linkage;
 import eu.actorsproject.xlim.XlimModule;
+import eu.actorsproject.xlim.XlimPhiContainerModule;
 import eu.actorsproject.xlim.XlimStateCarrier;
-import eu.actorsproject.xlim.XlimTestModule;
 
 public class StatePhiOperator extends Linkage<StatePhiOperator> implements PhiOperator {
 
 	private ArrayList<ValueUsage> mInputs;
 	private JoinValueNode mOutput;
-	private XlimTestModule mTestModule;
+	private XlimPhiContainerModule mParentModule;
 	private XlimStateCarrier mStateCarrier;
 	private boolean mIsLoopJoin;
 	
-	public StatePhiOperator(XlimTestModule testModule, XlimStateCarrier carrier, boolean isLoopJoin) {
+	public StatePhiOperator(XlimPhiContainerModule parent, XlimStateCarrier carrier, boolean isLoopJoin) {
 		mOutput=new JoinValueNode();
-		mTestModule=testModule;
+		mParentModule=parent;
 		mStateCarrier=carrier;
 		mIsLoopJoin=isLoopJoin;
 		mInputs=new ArrayList<ValueUsage>(2);
 		mInputs.add(new JoinStateUsage());
 		mInputs.add(new JoinStateUsage());
+	}
+
+	private ValueUsage getTestValueUsage() {
+		return mParentModule.getTestModule().getValueUsage();
 	}
 	
 	@Override
@@ -68,7 +72,7 @@ public class StatePhiOperator extends Linkage<StatePhiOperator> implements PhiOp
 		ArrayList<ValueUsage> usedValues=new ArrayList<ValueUsage>(3);
 		usedValues.add(mInputs.get(0));
 		usedValues.add(mInputs.get(1));
-		usedValues.add(mTestModule.getValueUsage());
+		usedValues.add(getTestValueUsage());
 		return usedValues;
 	}
 	
@@ -102,9 +106,28 @@ public class StatePhiOperator extends Linkage<StatePhiOperator> implements PhiOp
 	@Override
 	public XlimModule getParentModule() {
 		// return the enclosing loop/if module
-		return mTestModule.getParentModule();
+		return mParentModule;
 	}	
 	
+	
+	@Override
+	public XlimModule usedInModule(ValueUsage usage) {
+		/*
+		 * Phi-nodes are special in that the usage is 
+	     * attributed to the predecessor that corresponds to the usage
+		 */
+		if (usage==mInputs.get(0)) {
+			return mParentModule.predecessorModule(0); 
+		}
+		else if (usage==mInputs.get(1)) {
+			return mParentModule.predecessorModule(1);
+		}
+		else if (usage==getTestValueUsage())
+			return mParentModule.getTestModule();
+		else
+			throw new IllegalArgumentException("Value not used by this operator: "+usage.getValue().getUniqueId());
+	}
+
 	@Override
 	public void removeReferences() {
 		ValueNode dominatingDefinition=mOutput.getDominatingDefinition();
@@ -116,7 +139,7 @@ public class StatePhiOperator extends Linkage<StatePhiOperator> implements PhiOp
 	
 	@Override
 	public ValueNode getControlDependence() {
-		return mTestModule.getValueUsage().getValue();
+		return getTestValueUsage().getValue();
 	}
 
 	@Override
@@ -194,7 +217,7 @@ public class StatePhiOperator extends Linkage<StatePhiOperator> implements PhiOp
 			// Traverse along the path of input value #0 
 			// (avoid back-edge of loop, which is #1)
 			// Until we're in a module that encloses the test module
-			XlimModule container=mTestModule.getParentModule();
+			XlimModule container=StatePhiOperator.this.getParentModule();
 			ValueNode value=getInputValue(0);
 			ValueOperator def=value.getDefinition();
 			while (def!=null && container.leastCommonAncestor(def.getParentModule())==container) {

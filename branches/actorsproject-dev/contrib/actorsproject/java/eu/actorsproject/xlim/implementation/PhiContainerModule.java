@@ -173,10 +173,9 @@ abstract class PhiContainerModule extends AbstractModule
 		}
 		
 		// Create new phi-nodes
-		TestModule test=getTestModule();
 		boolean isLoop=isLoop();
 		for (XlimStateCarrier carrier: newCarriers) {
-			StatePhiOperator phi=new StatePhiOperator(test,carrier,isLoop);
+			StatePhiOperator phi=new StatePhiOperator(this,carrier,isLoop);
 			mStatePhis.addLast(phi);
 		}
 	}

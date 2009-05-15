@@ -47,6 +47,7 @@ import org.w3c.dom.NamedNodeMap;
 import eu.actorsproject.util.Linkage;
 import eu.actorsproject.util.XmlElement;
 import eu.actorsproject.xlim.XlimBlockElement;
+import eu.actorsproject.xlim.XlimModule;
 import eu.actorsproject.xlim.XlimOperation;
 import eu.actorsproject.xlim.XlimOutputPort;
 import eu.actorsproject.xlim.XlimSource;
@@ -97,6 +98,11 @@ class Operation extends Linkage<AbstractBlockElement>
 		return mParent;
 	}
 	
+	
+	public XlimModule usedInModule(ValueUsage usage) {
+		return mParent;
+	}
+
 	@Override
 	public void setParentModule(ContainerModule parent) {
 		mParent=parent;

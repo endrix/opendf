@@ -226,7 +226,12 @@ public class DataDependenceGraph {
 		}
 		
 		@Override
-		public XlimModule getModule() {
+		public XlimModule usedInModule() {
+			/* 
+			 * The "final" usage of a state variable/port, which represents the output of
+			 * a CallNode/TaskModule has no associated operator. Instead the value is
+			 * considered used in the XlimTaskModule, itself.
+			 */
 			return mCallNode.getTask();
 		}
 		
