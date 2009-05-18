@@ -34,11 +34,13 @@ endif
 INSTALL_H=actors-rts.h circbuf.h dll.h
 INSTALL_SYSACTORS=art_DDRModel.cal art_Display_yuv.cal \
                   art_Sink_bin.cal art_Sink_yuv.cal art_Sink_txt.cal \
-                  art_Source_bin.cal art_Source_txt.cal
+                  art_Source_bin.cal art_Source_txt.cal art_Source_real.cal \
+                  art_Sink_real.cal
 
 OBJECTS=actors-rts.o exec_network.o circbuf.o \
         art_Sink_bin.o art_Sink_txt.o art_Source_bin.o art_Source_txt.o \
-        art_DDRModel.o art_Display_yuv.o dll.o xmlTrace.o
+        art_DDRModel.o art_Display_yuv.o dll.o xmlTrace.o art_Source_real.o \
+        art_Sink_real.o
 
 # delete the built-in suffixes to avoid surprises
 .SUFFIXES:   
