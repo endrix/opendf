@@ -39,8 +39,11 @@ ENDCOPYRIGHT
 package net.sf.opendf.eclipse.plugin;
 
 /**
+ * Constants are defined here. 
+ * Note: if changing a constant make sure that it is also changed in the plugin.xml file
+ * 
  * @author Rob Esser
- * @version 14th April 2009
+ * @version 18th May 2009
  * 
  */
 public interface OpendfConstants {
@@ -52,8 +55,8 @@ public interface OpendfConstants {
 	// DEBUG
 	public static final String ID_OPENDF_DEBUG_MODEL = "opendf.debugModel"; 
 	
-	public static final String ID_ACTOR_BREAKPOINT_MARKER = "markerType.lineBreakpoint";
+	public static final String ID_ACTOR_BREAKPOINT_MARKER = ID_PLUGIN + ".markerType.lineBreakpoint";
 
-	public static final String ID_ACTOR_WATCHPOINT_MARKER = "markerType.watchBreakpoint";
+	public static final String ID_ACTOR_WATCHPOINT_MARKER = ID_PLUGIN + ".markerType.watchBreakpoint";
 
 }
