@@ -38,7 +38,7 @@ ${JARFILE}:	${CLASSDIR}PseudoInterpreter.class
 	rm -rf ${CLASSDIR}META-INF
 	${ECHO} "Main-class: PseudoInterpreter" > ${CLASSDIR}jar-manifest
 	cd ${CLASSDIR}; ${JAR} ${JAROPTS} ../${JARFILE} jar-manifest *
-	cp ${JARFILE} ../../trunk/contrib/eclipse/OpendfPlugin
+#	cp ${JARFILE} ../../trunk/contrib/eclipse/OpendfPlugin
 
 
 .PHONY:	clean
