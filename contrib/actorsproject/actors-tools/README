@@ -1,0 +1,73 @@
+actors-trace-diff
+-----------------
+
+The actors-trace-diff tool inspects two traces and determines whether they are
+equivalent. It currently does NOT handle traces from non-deterministic actors
+correctly.
+
+Usage is illustrated by an example using the MPEG4_SP_Decoder tests.
+
+EXAMPLE
+-------
+
+Create some traces using different schedulers:
+
+# ./acdcTest -m 1 -n 2 -x acdcTest-1x2.xml
+# ./acdcTest -m 2 -n 2 -x acdcTest-2x2.xml
+# ./acdcTest -m 3 -n 2 -x acdcTest-3x2.xml
+# ./idct2dTest -m 1 -n 2 -x idct2dTest-1x2.xml
+# ./idct2dTest -m 2 -n 2 -x idct2dTest-2x2.xml
+# ./idct2dTest -m 3 -n 2 -x idct2dTest-3x2.xml
+
+Run the tool:
+
+# actors-trace-diff acdcTest-1x2.xml acdcTest-2x2.xml 
+splitting...checking...comparing...
+-------------------------
+traces are equivalent
+-------------------------
+# actors-trace-diff acdcTest-1x2.xml acdcTest-3x2.xml 
+splitting...checking...comparing...
+-------------------------
+traces are equivalent
+-------------------------
+# actors-trace-diff acdcTest-2x2.xml acdcTest-3x2.xml 
+splitting...checking...comparing...
+-------------------------
+traces are equivalent
+-------------------------
+
+Traces from non-deterministic actors are incorrectly flagged as not equivalent
+(will be rectified in a coming release):
+
+# actors-trace-diff idct2dTest-1x2.xml idct2dTest-2x2.xml 
+splitting...checking...comparing...
+traces for 10-Retranspose differ
+traces for 1-Combine differ
+traces for 5-RowSort differ
+traces for 6-FairMerge differ
+traces for 8-Separate differ
+traces for 9-Transpose differ
+-------------------------
+traces are NOT equivalent
+-------------------------
+# actors-trace-diff idct2dTest-1x2.xml idct2dTest-3x2.xml 
+splitting...checking...comparing...
+traces for 10-Retranspose differ
+traces for 1-Combine differ
+traces for 5-RowSort differ
+traces for 6-FairMerge differ
+traces for 8-Separate differ
+traces for 9-Transpose differ
+-------------------------
+traces are NOT equivalent
+-------------------------
+# actors-trace-diff idct2dTest-2x2.xml idct2dTest-3x2.xml 
+splitting...checking...comparing...
+traces for 10-Retranspose differ
+traces for 5-RowSort differ
+traces for 9-Transpose differ
+-------------------------
+traces are NOT equivalent
+-------------------------
+
