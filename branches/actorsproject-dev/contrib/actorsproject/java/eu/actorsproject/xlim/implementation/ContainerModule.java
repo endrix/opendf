@@ -82,6 +82,11 @@ abstract class ContainerModule extends AbstractModule implements XlimContainerMo
 	}
 
 	@Override
+	public Iterable<AbstractBlockElement> getChildrenReverse() {
+		return mChildren.getReverseList();
+	}
+
+	@Override
 	public boolean isMutex() {
 		return mMutex;
 	}
@@ -310,6 +315,11 @@ abstract class ContainerModule extends AbstractModule implements XlimContainerMo
 	}
 	
 	@Override
+	public void startPatchAtBeginning() {
+		mChildren.startPatchAtBeginning();
+	}
+	
+	@Override
 	public void startPatchBefore(XlimBlockElement child) {
 		mChildren.startPatchBefore(checkChild(child).getLinkage());
 	}
@@ -485,6 +495,12 @@ class ElementList extends IntrusiveList<AbstractBlockElement> {
 			mEndOfPatch=mEndOfPatch.getNext();
 	}
 
+	void startPatchAtBeginning() {
+		assert(!isPatched());  // We don't want to loose an ongoing patch! 
+		mEndOfPatch=mHead.getNext();
+		mLastFixup=mHead;
+	}
+	
 	void startPatchBefore(Linkage<AbstractBlockElement> endOfPatch) {
 		assert(!isPatched());  // We don't want to loose an ongoing patch! 
 		mEndOfPatch=endOfPatch;

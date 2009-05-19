@@ -35,15 +35,39 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package eu.actorsproject.xlim;
+package eu.actorsproject.xlim.util;
 
-import eu.actorsproject.xlim.dependence.PhiOperator;
+import eu.actorsproject.xlim.XlimBlockElement;
+import eu.actorsproject.xlim.XlimContainerModule;
+import eu.actorsproject.xlim.XlimIfModule;
+import eu.actorsproject.xlim.XlimLoopModule;
 
-public interface XlimPhiNode extends XlimInstruction {
+/**
+ * Traverses the XLIM representation bottom up (dominated modules before dominators,
+ * uses before defintions).
+ */
+public abstract class BottomUpXlimTraversal<ResultT,ArgT> extends XlimTraversal<ResultT,ArgT> {
 
-	@Override
-	XlimPhiContainerModule getParentModule();
-
-	@Override
-	PhiOperator getValueOperator();
+    @Override
+	protected ResultT traverseContainerModule(XlimContainerModule m, ArgT arg) {
+		for (XlimBlockElement element: m.getChildrenReverse())
+			element.accept(mVisitor, arg);
+		return null;
+	}
+	
+    @Override
+	protected ResultT traverseIfModule(XlimIfModule m, ArgT arg) {
+    	traversePhiNodes(m.getPhiNodes(),arg);
+		traverseContainerModule(m.getThenModule(),arg);
+		traverseContainerModule(m.getElseModule(),arg);
+		traverseTestModule(m.getTestModule(),arg);
+		return null;
+	}
+	
+	protected ResultT traverseLoopModule(XlimLoopModule m, ArgT arg) {
+		traverseContainerModule(m.getBodyModule(),arg);
+		traverseTestModule(m.getTestModule(),arg);
+		traversePhiNodes(m.getPhiNodes(),arg);
+		return null;
+	}	
 }
