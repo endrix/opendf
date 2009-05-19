@@ -41,9 +41,14 @@ package net.sf.opendf.plugin.causation;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.geom.Rectangle2D;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.net.URL;
@@ -274,6 +279,182 @@ public class XmlCausationTraceBuilder implements CausationTraceBuilder {
         f.add(sp);
         f.pack();
         f.setVisible(true);*/
+        
+        // Display of JGrapht
+		JGraphModelAdapter<String, DefaultEdge> adapter = new JGraphModelAdapter<String, DefaultEdge>( lg );
+        JGraph jgraph = new JGraph( adapter );
+
+        // Maps used to order JGraph
+        Map<String, Integer> ap  = new HashMap<String, Integer>();
+        Map<String, Integer> at  = new HashMap<String, Integer>();
+        Vector<String> color = new Vector<String>();
+        int proc = 0;
+		Map<Integer, Integer> plevel = new HashMap<Integer, Integer>();
+        Map<String, Integer> alevel = new HashMap<String, Integer>();
+        int number=0;
+        
+        try{
+	        // read files for ap/at
+	        BufferedReader br=new BufferedReader(new FileReader("ap.txt"));
+	        // Reads the file
+	        while (br.ready()){
+	        	String[] line = br.readLine().split(":");
+	        	int cproc = Integer.parseInt(line[1]);
+	        	ap.put(line[0], cproc);
+	        	plevel.put(cproc, 0);
+	        	color.add(line[0]);
+	        	proc = (proc<cproc)?cproc:proc;
+	        }
+	        number = color.size();
+	        br.close();
+	        br=new BufferedReader(new FileReader("at.txt"));
+	        // Reads the file
+	        while (br.ready()){
+	        	String[] line = br.readLine().split(":");
+	        	at.put(line[0], Integer.parseInt(line[ap.get(line[0])]));
+	        }
+	        br.close();
+        }
+        catch(Exception e){
+        	System.out.println("ERROR in file reading");
+        	return;
+        }
+        
+        String svg = new String();
+        int width = 0;
+        
+		// Draw the Graph, note : it's a Node^2 algorithm
+		Iterator<String> it = nodesn.iterator();
+		while (it.hasNext()) { // Draw each node
+			String vertex = it.next();
+			Iterator<String> it2 = nodesn.iterator();
+			String vertex2 = it2.next();
+
+			String action=vertex.substring(0, vertex.indexOf('*'));
+			Integer cp = ap.get(action);
+			int clevel = plevel.get(cp);
+			while (vertex!=vertex2){ // Get the level => is the X location
+				if(lg.getEdge(vertex2, vertex) != null){
+					int temp = alevel.get(vertex2);
+					clevel = (clevel<temp)?temp:clevel;
+				}
+				vertex2 = it2.next();
+			}
+			
+			int nlevel = clevel+ at.get(action);
+			plevel.put(cp, nlevel);
+			alevel.put(vertex, nlevel);
+			width = (width<nlevel)?nlevel:width;
+			
+			int ylevel = (cp-1)*50+5;
+			
+			// Put the node to the calculated position
+			this.positionVertexAt(vertex, clevel, ylevel, adapter);
+			this.sizeVertexAt(vertex, at.get(action), 40, adapter);
+			
+			svg += "<rect x=\""+ clevel + "\" y=\""+ ylevel + 
+				"\" width=\"" + at.get(action) + 
+				"\" height=\"40\" fill=\"#" +
+				getColor(color.indexOf(action), number)+
+				"\" stroke=\"black\" stroke-width=\"1\" />\n";
+		}
+		
+		for(int i=0;i<proc;i++){
+			int ylevel = i*50+49;;
+			svg += "<rect x=\"0\" y=\""+ylevel+"\" width=\"" + 
+			width + "\" height=\"2\" fill=\"black\"/>\n";
+		}
+		
+		it = color.iterator();
+		int count = 0;
+		int defs = (width/150);
+		int height = proc * 50 + 10 + ((color.size()+defs-1)/defs)*30;
+		
+		while (it.hasNext()){
+			
+			int xpos = (count%defs)*150 + 10;
+			int ypos = (count/defs)* 30 + proc * 50 + 15;
+			svg += "<rect x=\""+ xpos +"\" y=\""+ ypos + 
+			"\" width=\"10\" height=\"10\" fill=\"#" +
+			getColor(count, number)+
+			"\" stroke=\"black\" stroke-width=\"1\" />\n";
+			
+			svg += "<text x=\""+(xpos+15)+"\" y=\"" + (ypos+10) + "\">\n";
+			svg += it.next() + "\n";
+			svg += "</text>\n";
+			count++;
+		}
+		
+		svg = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" + 
+			  "<svg xmlns=\"http://www.w3.org/2000/svg\" " + 
+			  "version=\"1.1\" width=\""+ width +"\" height=\""+ height +"\">\n" + 
+			  svg + "</svg>\n";
+		
+        try {
+        	BufferedWriter out = new BufferedWriter(new FileWriter("ct.svg"));
+			out.write(svg);
+			out.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+        JFrame f = new JFrame();
+        f.setTitle("Causation Trace Graph");
+        f.setPreferredSize(new Dimension(640, 480));
+        f.setLocationByPlatform(true);
+        
+        JScrollPane sp = new JScrollPane(jgraph);
+        f.add(sp);
+        f.pack();
+        f.setVisible(true);
+        
+        /*GmlExporter<String, DefaultEdge> expg = new GmlExporter<String, DefaultEdge>();
+        expg.setPrintLabels(GmlExporter.PRINT_VERTEX_LABELS);
+        try{
+        expg.export(new PrintWriter(new FileOutputStream("test.gml")), lg);
+        }
+        catch(Exception e){
+        	
+        }*/
+	}
+	
+	private String getColor(int ncolor, int number){
+		if (number == 1)
+			return "00FF00";
+		double tint;
+		double alpha = (ncolor%3)*0.25-0.25;
+		if (ncolor*3<number)
+		{
+			tint = 3*(double)ncolor/(double)number;
+			return alphaToHexa(1-tint,tint,0,alpha);
+		}
+		else if (ncolor*3>=2*number)
+		{
+			tint = 3*(double)ncolor/(double)number-2;
+			return alphaToHexa(tint,0,1-tint,alpha);
+		}
+		else
+		{
+			tint = 3*(double)ncolor/(double)number-1;
+			return alphaToHexa(0,1-tint,tint,alpha);
+		}
+	}
+	
+	private static String alphaToHexa(double r, double g, double b, double alpha){
+		return doubleToHexa(setAlpha(r,alpha))+
+		doubleToHexa(setAlpha(g,alpha))+
+		doubleToHexa(setAlpha(b,alpha));
+	}
+	
+	private static double setAlpha(double color, double alpha){
+		double result = color+alpha;
+		return (result<0)?0:(result>1)?1:result;
+	}
+	
+	private static String doubleToHexa(double number){
+		String temp = "00" + Integer.toHexString((int)(number*255)).toUpperCase();
+		return temp.substring(temp.length()-2);
 	}
 	
 	protected void positionVertexAt(Object vertex, int x, int y, JGraphModelAdapter<String, DefaultEdge> adapter) {
@@ -294,7 +475,22 @@ public class XmlCausationTraceBuilder implements CausationTraceBuilder {
 		adapter.edit(cellAttr, null, null, null);
 	}
 
-	
+	protected void sizeVertexAt(Object vertex, int x, int y, JGraphModelAdapter<String, DefaultEdge> adapter) {
+		DefaultGraphCell cell = adapter.getVertexCell(vertex);
+		
+		AttributeMap attr = cell.getAttributes();
+		Rectangle2D bounds = GraphConstants.getBounds(attr);
+
+
+		Rectangle2D newBounds = new Rectangle2D.Double(bounds.getX(), bounds.getY(), x, y);
+
+		GraphConstants.setBounds(attr, newBounds);
+
+		// TODO: Clean up generics once JGraph goes generic
+		AttributeMap cellAttr = new AttributeMap();
+		cellAttr.put(cell, attr);
+		adapter.edit(cellAttr, null, null, null);
+	}
 
 	public Object beginStep() {
 		if (!activeTrace)
