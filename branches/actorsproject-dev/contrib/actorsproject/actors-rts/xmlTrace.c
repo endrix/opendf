@@ -139,5 +139,6 @@ void xmlDeclareNetwork(FILE *f,
 }
 
 void xmlTraceAction(FILE *f, int actionIndex) {
-  fprintf(f, "<trace action=\"%d\"/>\n", actionIndex);
+  static unsigned int step = 0;
+  fprintf(f, "<trace action=\"%d\" step=\"%u\"/>\n", actionIndex, step++);
 }

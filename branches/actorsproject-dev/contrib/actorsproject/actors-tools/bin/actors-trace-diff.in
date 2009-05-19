@@ -62,7 +62,11 @@ FILE2="$2"
 DIR1="$TMPDIR"/$(basename "$FILE1" .xml)
 DIR2="$TMPDIR"/$(basename "$FILE2" .xml)
 
-rm -rf "$DIR1" "$DIR2"
+# Temporary files used in comparison phase below
+TMPFILE1=$TMPDIR/.tmp1
+TMPFILE2=$TMPDIR/.tmp2
+
+rm -rf "$DIR1" "$DIR2" "$TMPFILE1" "$TMPFILE2"
 
 # -----------------------------------------------------------------------------
 
@@ -93,11 +97,15 @@ done
 # Compare individual files and see whether they are equal
 #
 
+SEDCMD="sed -e s/step=\".*\"//"
+
 echo comparing...
 STATUS=0
 for FILE in "$DIR1"/*; do
     OTHER="$DIR2"/$(basename "$FILE")
-    diff --brief $DIFF_OPTS "$FILE" "$OTHER" > /dev/null
+    $SEDCMD < $FILE > $TMPFILE1
+    $SEDCMD < $OTHER > $TMPFILE2
+    diff --brief $DIFF_OPTS "$TMPFILE1" "$TMPFILE2" > /dev/null
     if [ $? != 0 ]; then
 	STATUS=$(( STATUS + 1 ))
 	echo traces for $(basename "$FILE") differ

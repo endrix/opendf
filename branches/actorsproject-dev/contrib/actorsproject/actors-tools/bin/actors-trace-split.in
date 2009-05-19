@@ -63,9 +63,11 @@ class FilterHandler(xml.sax.handler.ContentHandler):
             action_id = int(attrs['id'])
             self.actions_to_files[action_id] = self.curr_file
         elif name == 'trace':
-            action_id = int(attrs['action']) 
-            self.actions_to_files[action_id].write("<trace action=%d/>\n"
-                                                   % action_id)
+            action_id = int(attrs['action'])
+            action_step = int(attrs['step'])
+            xml = "<trace action=\"%d\" step=\"%d\"/>\n" % (action_id,
+                                                            action_step)
+            self.actions_to_files[action_id].write(xml);
 
 # -----------------------------------------------------------------------------
 
