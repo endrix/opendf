@@ -34,16 +34,17 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+ 
+package eu.actorsproject.xlim.util;
 
-package eu.actorsproject.xlim;
+import eu.actorsproject.xlim.XlimModule;
+import eu.actorsproject.xlim.XlimOperation;
 
-import eu.actorsproject.xlim.dependence.PhiOperator;
+public interface CodeMotionPlugIn {
 
-public interface XlimPhiNode extends XlimInstruction {
-
-	@Override
-	XlimPhiContainerModule getParentModule();
-
-	@Override
-	PhiOperator getValueOperator();
+	/**
+	 * @param op  Operation
+	 * @return    Insertion point of 'op' (its current module if it shouldn't move)
+	 */
+	XlimModule insertionPoint(XlimOperation op); 
 }

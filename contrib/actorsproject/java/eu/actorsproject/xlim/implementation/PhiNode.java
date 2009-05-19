@@ -172,7 +172,7 @@ class PhiNode extends Linkage<PhiNode> implements XlimPhiNode, Instruction, PhiO
 	}
 	
 	@Override
-	public ValueOperator getValueOperator() {
+	public PhiOperator getValueOperator() {
 		return this;
 	}
 	
