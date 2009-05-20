@@ -71,8 +71,6 @@
             };
       -->     
     
-    <xsl:variable name="fifos" select="//Connection"/>      
-    <xsl:variable name="actors" select="//Instance"/>            
     <xsl:text>enum Fifos{</xsl:text>
     <xsl:text>&#xa;</xsl:text>
     <xsl:for-each select="//Port[@kind='Output']">
@@ -85,6 +83,28 @@
     <xsl:text>  numberOfFifos&#xa;</xsl:text>                          
     <xsl:text>};</xsl:text>
     <xsl:text>&#xa;&#xa;</xsl:text>
+    
+    <!--
+      create an array containing the fifo sizes   
+    -->
+        
+    <xsl:text>int FifoSizes[] = {</xsl:text>
+    <xsl:text>&#xa;</xsl:text>
+    <xsl:for-each select="//Port[@kind='Output']">
+      <xsl:variable name="src_id" select="../../@id"/>
+      <xsl:variable name="port_name" select="@name"/>
+      <xsl:variable name="sz" select="//Connection[@src=$src_id]/Attribute[@name='bufferSize']"/>  
+      <xsl:text>  </xsl:text> 
+      <xsl:choose>
+        <xsl:when test="$sz">
+           <xsl:value-of select="$sz[1]/Expr/@value"/> 
+        </xsl:when>
+        <xsl:otherwise>0</xsl:otherwise>
+      </xsl:choose>
+      <xsl:text>,&#xa;</xsl:text> 
+    </xsl:for-each>
+    <xsl:text>};</xsl:text>
+    <xsl:text>&#xa;&#xa;</xsl:text>    
     
     <!--
         2. define a new network structure:
