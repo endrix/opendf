@@ -169,14 +169,27 @@ extern LIST						*waitingQueue;
 
 
 /** Runs the actors network, including evaluating command line arguments, error message output,
- * network setup and finally execution. */
+ * network setup and finally execution.
+ * This includes calling evaluate_args(), init_actor_network() and run_actor_network() . */
 extern int execute_network(int argc, char *argv[], const NetworkConfig *network);
+
+/** Evaluates the command line arguments in argc/argv and sets the execution parameters for the actors
+  * scheduler accordingly. */
+int evaluate_args(int argc, char *argv[]);
 
 /** Sets up the actors network according to the information provided in \a network . */
 extern void init_actor_network(const NetworkConfig * network);
 
 /** Runs the completely set up network of actors until completion. */
 extern int run_actor_network(void);
+
+/** This function has to be called once by every thread executed within the runtime.
+ * It registers the thread id of that thread, so it can be queried later. */
+extern void register_thread_id(void);
+
+/** Returns an array containing all thread ids of the currently existing threads.
+ * The array has been allocated via malloc() and must be freed by the caller via free(). */
+extern void get_thread_ids(int* count, pid_t** threadIds);
 
 /** Marks the given actor \a instance as ready to execute. If it was blocked due to a
  * CIRC_BUFFER, this buffer must be given in \a cb. Otherwise it should be NULL (this should
