@@ -69,8 +69,8 @@ public class XlimTransformer {
 			codeMotion(design);
 		if (mTransformToNativeTypes)
 			mNativeTypeTransformation.transform(design);
-		//if (mDoDeadCodeRemoval)
-		//	deadCodeElimination(design);
+		if (mDoDeadCodeRemoval)
+			deadCodeElimination(design);
 	}
 
 	public void copyPropagate(XlimDesign design) {

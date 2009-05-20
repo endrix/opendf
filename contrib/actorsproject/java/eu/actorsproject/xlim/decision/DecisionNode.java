@@ -87,9 +87,9 @@ public class DecisionNode extends DecisionTree {
 		XlimContainerModule container=mIfModule.getParentModule();
 		container.startPatchBefore(mIfModule);
 		XlimIfModule result=container.addIfModule();
-		container.completePatchAndFixup();
-		
 		result.getThenModule().cutAndPaste(mIfModule);
+		container.completePatchAndFixup();
+	
 		return result;
 	}
 
