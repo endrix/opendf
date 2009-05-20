@@ -103,6 +103,10 @@ extern int write_circbuf(CIRC_BUFFER *cb,const char *buf, int size);
  * It doesn't modify the current read position in the buffer. */
 extern int peek_circbuf_area(CIRC_BUFFER *cb,char *buf, int size, int index, int offset);
 
+extern int InitializeCriticalSection(sem_t *semaphore);
+extern int EnterCriticalSection(sem_t *semaphore);
+extern int LeaveCriticalSection(sem_t *semaphore);
+
 #ifdef __cplusplus
 }
 #endif
