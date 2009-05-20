@@ -56,6 +56,8 @@
 #define BLOCKED			0
 #define RUNNING			1
 #define MAX_LIST_NUM	128
+#define RELEASE(_ic)		DeleteCriticalSection(&(_ic->lock))
+#define INIT(_ic)			InitializeCriticalSection(&(_ic->lock))
 
 static int				Running = 1;
 int						log_level = LOG_ERROR;
@@ -72,6 +74,9 @@ static int				numCpusOnline;
 static int				dispatchMode;
 static int				text_action_trace=0;
 static FILE				*xmlTraceFile=0;
+
+LIST					*readyQueue;
+LIST					*waitingQueue;
 
 static void stop_run(int sig)
 {
@@ -175,7 +180,22 @@ static void printActorInfo(void)
 
 void make_actor_executable(AbstractActorInstance *instance, CIRC_BUFFER* cb, int readerIndex)
 {
-	if(rts_mode != THREAD_PER_ACTOR) {
+	if(rts_mode == QUEUE_BASED){
+		if(find_node(readyQueue,instance->lnode))
+			return;
+		if(get_node(waitingQueue,instance->lnode))
+		{
+			instance->execState = 1;
+			push_node(readyQueue,instance->lnode);
+			if(readyQueue->numNodes < 2){
+				//someone's waiting
+				pthread_mutex_lock(&readyQueue->mt);
+				pthread_cond_signal(&readyQueue->cv);
+				pthread_mutex_unlock(&readyQueue->mt);
+			}
+		}
+	}
+	else if(rts_mode != THREAD_PER_ACTOR) {
 		if(!instance->execState)
 		instance->execState = 1;
 	}
@@ -381,6 +401,46 @@ static void exec_list_unit(void *t)
 	pthread_exit(NULL);
 }
 
+static void exec_queue_based(void *t)
+{
+	DLLIST			*lnode = NULL;
+	AbstractActorInstance *instance;
+	LIST 			*alist = &actorLists[0];
+	unsigned long	mask;
+
+	//distribute thread on to cpu
+	if(dispatchMode == 1)
+	{
+		mask = (int)t%numCpusOnline;
+		mask = 1<<mask;
+		syscall(__NR_sched_setaffinity, 0, sizeof(mask), &mask);
+	}
+	trace(LOG_MUST,"Thread(%d) containing %d actors start running at cpu %d......\n",(int)t,alist->numNodes,sched_getcpu());
+
+	while(Running)
+	{
+		lnode = pop_node(readyQueue);
+
+		while(lnode == NULL){
+			pthread_mutex_lock(&readyQueue->mt);
+			pthread_cond_wait(&readyQueue->cv, &readyQueue->mt);
+			pthread_mutex_unlock(&readyQueue->mt);
+			lnode = pop_node(readyQueue);
+		}
+
+		instance = (AbstractActorInstance*)lnode->obj;
+
+		if(instance->actor->action_scheduler){
+			instance->actor->action_scheduler(instance);
+// 			push_node(waitingQueue,instance->lnode);
+// 			instance->execState = 0;
+		}
+		push_node(waitingQueue,instance->lnode);
+		instance->execState = 0;
+	}
+	pthread_exit(NULL);
+}
+
 static void exec_standalone_unit(void *t)
 {
 	AbstractActorInstance *instance = t;
@@ -553,6 +613,12 @@ void init_actor_network(const NetworkConfig *network)
 					lnode->obj = pInstance;
 					append_node(&actorLists[listIndex],lnode);
 					actorLists[listIndex].lid = listIndex;
+					if(rts_mode == QUEUE_BASED)
+					{
+						actorInstance[i]->lnode = lnode;
+						pthread_mutex_init(&readyQueue->mt, NULL);
+						pthread_cond_init (&readyQueue->cv, NULL);
+					}
 				}
 				break;
 			case ACTOR_STANDALONE:
@@ -620,7 +686,7 @@ int evaluate_args(int argc, char *argv[])
 			case 'h':
 				fprintf (stderr, "%s [-l <trace level>] [-h]...\n",argv[0]);
 				fprintf (stderr, "  -l <trace level>   set trace level(0:must 1:error 2:warn 3:info 4:exec)\n");
-				fprintf (stderr, "  -m <rts mode>      set rts mode (1:per actor 2:per list 3:single list\n");
+				fprintf (stderr, "  -m <rts mode>      set rts mode (1:per actor 2:per list 3:single list 4:queue based\n");
 				fprintf (stderr, "  -n <num of threads>set number of threads (default is 1)\n");
 				fprintf (stderr, "  -d <disptch mode>  set thread dispatch mode (0: auto 1: fixed)\n");
 				fprintf (stderr, "  -t                 turn on trace for action scheduler\n");
@@ -680,6 +746,14 @@ int evaluate_args(int argc, char *argv[])
 		case THREAD_PER_ACTOR:
 			num_lists = 0;
 			break;
+		case QUEUE_BASED:
+			numThreads = num;
+			num_lists = 1;
+			readyQueue = &actorLists[0];
+			waitingQueue = &actorLists[1];
+			INIT(readyQueue);
+			INIT(waitingQueue);
+			break;
 		default:
 			trace(LOG_MUST, "Invalid rts mode %d, default to THREAD_PER_ACTOR mode\n",rts_mode);
 			rts_mode = THREAD_PER_ACTOR;
@@ -729,6 +803,15 @@ int run_actor_network(void)
 				pthread_create(&tid[i], &attr, (void*)exec_list_unit, (void *)i);
 			}
 			break;
+
+		case QUEUE_BASED:
+			numberOfThreads = numThreads;
+			for(i=0; i<numberOfThreads; i++)
+			{
+				pthread_create(&tid[i], &attr, (void*)exec_queue_based, (void *)i);
+			}
+			break;
+
 		default:
 			break;
 	}	
