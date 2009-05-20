@@ -76,6 +76,7 @@ extern "C" {
 #define THREAD_PER_ACTOR	1
 #define THREAD_PER_LIST		2
 #define SINGLE_LIST			3
+#define QUEUE_BASED			4
 
 #define ACTOR_NORMAL		0
 #define ACTOR_STANDALONE	1
@@ -110,6 +111,7 @@ typedef struct {
 	pthread_mutex_t	mt;
 	pthread_cond_t	cv; 
 	int				firstActionIndex;
+	DLLIST			*lnode;
 }AbstractActorInstance;
 
 typedef struct {
@@ -151,6 +153,7 @@ typedef struct {
 	ActorConfig		**networkActors;
 	int				numNetworkActors;
 	int				numFifos;
+	int				*fifoSizes;
 }NetworkConfig;
 
 extern AbstractActorInstance	*actorInstance[];
@@ -161,6 +164,8 @@ extern int						log_level;
 extern int						trace_action;
 extern int						num_lists;
 extern int						rts_mode;
+extern LIST						*readyQueue;
+extern LIST						*waitingQueue;
 
 
 /** Runs the actors network, including evaluating command line arguments, error message output,

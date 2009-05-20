@@ -347,6 +347,8 @@ void pinWait(ActorPort *actorPort,int length)
 	if(rts_mode != THREAD_PER_ACTOR)
 		return;
 
+	instance = actorInstance[actorPort->aid];
+
 	cb = &circularBuf[actorPort->cid];
 	if(actorPort->portDir == INPUT)
 	{
@@ -356,7 +358,6 @@ void pinWait(ActorPort *actorPort,int length)
 	{	
 		bk = &cb->block;
 	}
-	instance = actorInstance[actorPort->aid];
 
 	pthread_mutex_lock(&instance->mt);
 	actorTrace(instance,LOG_EXEC,"%s_%d.%s pinWait(%d)=%d\n",instance->actor->name,actorPort->aid,(actorPort->portDir == INPUT)?"in":"out",actorPort->cid,length);
