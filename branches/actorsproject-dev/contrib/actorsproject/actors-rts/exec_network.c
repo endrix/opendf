@@ -69,6 +69,9 @@ int						num_lists = 1;
 int						numThreads = 1;
 int						numInstances = 0;
 int						numFifos = 0;
+pthread_mutex_t			threadIdsMutex;
+int						numberOfCreatedThreads = 0;
+pid_t					threadIds[MAX_ACTOR_NUM];
 static int				numCpusConfigured;
 static int				numCpusOnline;
 static int				dispatchMode;
@@ -278,11 +281,43 @@ static int wait_on_read(AbstractActorInstance *instance)
 	return 1;
 }
 
+// if gettid() is not available in the system headers, but we have
+// __NR_gettid, then create a gettid() ourselves: e.g. on ubuntu 7.10
+#include <linux/unistd.h>
+
+void register_thread_id(void)
+{
+	pthread_mutex_lock(&threadIdsMutex);
+
+	// this is gettid(), which does not exist everywhere
+	pid_t my_tid = syscall(__NR_gettid);
+
+	threadIds[numberOfCreatedThreads] = my_tid;
+	numberOfCreatedThreads++;
+	pthread_mutex_unlock(&threadIdsMutex);
+}
+
+void get_thread_ids(int* count, pid_t** theThreadIds)
+{
+	if ((count == NULL) || (theThreadIds == NULL))
+	{
+		return;
+	}
+	pthread_mutex_lock(&threadIdsMutex);
+	*count = numberOfCreatedThreads;
+	*theThreadIds = (pid_t*)malloc(numberOfCreatedThreads * sizeof(pid_t));
+	memcpy(*theThreadIds, threadIds, numberOfCreatedThreads * sizeof(pid_t));
+
+	pthread_mutex_unlock(&threadIdsMutex);
+}
+
 static void exec_actor_unit(AbstractActorInstance *instance)
 {
 	int				block;
 
 	trace(LOG_MUST,"Actor %s start running......\n",instance->actor->name);
+
+	register_thread_id();
 
 	//action scheduler
 	if(!instance->actor->action_scheduler)
@@ -323,6 +358,8 @@ static void exec_lists_unit(LIST *actorList)
 
 	if(actorList->numNodes == 0)
 		pthread_exit(NULL);
+
+	register_thread_id();
 
 	//distribute thread on to cpu
 	if(dispatchMode == 1){	
@@ -381,6 +418,8 @@ static void exec_list_unit(void *t)
 	}
 	trace(LOG_MUST,"Thread(%d) containing %d actors start running at cpu %d......\n",(int)t,alist->numNodes,sched_getcpu());
 
+	register_thread_id();
+
 	while(Running)
 	{
 		//select actor instance
@@ -406,6 +445,8 @@ static void exec_queue_based(void *t)
 	AbstractActorInstance *instance;
 	LIST 			*alist = &actorLists[0];
 	unsigned long	mask;
+
+	register_thread_id();
 
 	//distribute thread on to cpu
 	if(dispatchMode == 1)
@@ -444,6 +485,8 @@ static void exec_standalone_unit(void *t)
 {
 	AbstractActorInstance *instance = t;
 	unsigned long	mask;
+
+	register_thread_id();
 
 	//distribute thread on to cpu
 	if(dispatchMode == 1)
@@ -783,6 +826,8 @@ int run_actor_network(void)
 	/* For portability, explicitly create threads in a joinable state */
 	pthread_attr_init(&attr);
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
+	pthread_mutex_init(&threadIdsMutex, 0);
+	register_thread_id();
 
 	//dispatch normal actors
 	switch(rts_mode){
@@ -854,6 +899,7 @@ int run_actor_network(void)
 		}
 	}
 	sleep(1);
+	pthread_mutex_destroy(&threadIdsMutex);
 	return 0;
 }
 
