@@ -185,7 +185,7 @@ void make_actor_executable(AbstractActorInstance *instance, CIRC_BUFFER* cb, int
 			return;
 		if(get_node(waitingQueue,instance->lnode))
 		{
-			instance->execState = 1;
+			instance->execState = RUNNING;
 			push_node(readyQueue,instance->lnode);
 			if(readyQueue->numNodes < 2){
 				//someone's waiting
@@ -196,8 +196,7 @@ void make_actor_executable(AbstractActorInstance *instance, CIRC_BUFFER* cb, int
 		}
 	}
 	else if(rts_mode != THREAD_PER_ACTOR) {
-		if(!instance->execState)
-		instance->execState = 1;
+		instance->execState = RUNNING;
 	}
 	else {
 		int actorReady = 1;
@@ -344,7 +343,7 @@ static void exec_lists_unit(LIST *actorList)
 		if(instance->execState){
 			if(instance->actor->action_scheduler){
 // 				pthread_mutex_lock(&instance->mt);				
-				instance->execState = 0;
+				instance->execState = BLOCKED;
 // 				pthread_mutex_unlock(&instance->mt);
 				noRuns = 0;
 				instance->actor->action_scheduler(instance);
@@ -392,7 +391,7 @@ static void exec_list_unit(void *t)
 		pthread_mutex_lock(&instance->mt);		
 		if(instance->execState){
 			if(instance->actor->action_scheduler){
-				instance->execState = 0;
+				instance->execState = BLOCKED;
 				instance->actor->action_scheduler(instance);
 			}
 		}
@@ -436,7 +435,7 @@ static void exec_queue_based(void *t)
 // 			instance->execState = 0;
 		}
 		push_node(waitingQueue,instance->lnode);
-		instance->execState = 0;
+		instance->execState = BLOCKED;
 	}
 	pthread_exit(NULL);
 }
@@ -459,6 +458,12 @@ static void exec_standalone_unit(void *t)
 		instance->actor->action_scheduler(instance);
 	}
 
+	trace(LOG_MUST,"Standalone actor %s stopped running at cpu\n",instance->actor->name,sched_getcpu());
+	if(rts_mode == THREAD_PER_ACTOR) {
+		actorStatus[instance->aid] = BLOCKED;
+	} else {
+		instance->execState = BLOCKED;
+	}
 	pthread_exit(NULL);
 }
 
@@ -594,8 +599,8 @@ void init_actor_network(const NetworkConfig *network)
 		pthread_cond_init (&pInstance->cv, NULL);
 
 		pInstance->aid = i;
-		pInstance->execState = 1;
-		actorStatus[i] = 1;
+		pInstance->execState = RUNNING;
+		actorStatus[i] = RUNNING;
 		actorInstance[i] = pInstance;
 
 		//append to a double linked list
