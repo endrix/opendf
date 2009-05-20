@@ -172,7 +172,7 @@ public class StatePhiOperator extends Linkage<StatePhiOperator> implements PhiOp
 	
 	public String toString() {
 		ValueNode decision=getControlDependence();
-		String ctrlDep = (decision!=null)? decision.getUniqueId() : "";
+		String ctrlDep = (decision!=null)? ","+decision.getUniqueId() : "";
 		return mOutput.getUniqueId() + "=state-phi(" + attributesToString() + ";" +
 		       mInputs.get(0).getValue().getUniqueId() + "," +
 		       mInputs.get(1).getValue().getUniqueId() + ctrlDep + ")";	
