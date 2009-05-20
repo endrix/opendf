@@ -32,6 +32,7 @@ extern void remove_node(LIST *a,DLLIST *lnode);
 extern DLLIST *pop_node(LIST *a);
 extern void push_node(LIST *a,DLLIST *n);
 extern int get_node(LIST *a, DLLIST *lnode);
+extern int find_node(LIST *a, DLLIST *lnode);
 
 #ifdef __cplusplus
 }
