@@ -75,7 +75,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 /**
- *  @author Jörn W. Janneck <janneck@eecs.berkeley.edu>
+ *  @author Jorn W. Janneck <janneck@eecs.berkeley.edu>
  */
 
 public class DefaultPlatform implements Platform {

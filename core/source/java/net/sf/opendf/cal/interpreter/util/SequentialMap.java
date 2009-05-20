@@ -53,7 +53,7 @@ import java.util.Set;
  *
  * @see HashMap
  *
- *  @author Jörn W. Janneck <janneck@eecs.berkeley.edu>
+ *  @author Jorn W. Janneck <janneck@eecs.berkeley.edu>
  */
 
 public class SequentialMap implements Map {

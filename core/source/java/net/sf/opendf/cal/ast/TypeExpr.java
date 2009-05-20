@@ -50,7 +50,7 @@ import net.sf.opendf.cal.i2.types.TypeSystem;
 
 /**
  * @author Christopher Chang <cbc@eecs.berkeley.edu>
- * @author Jörn W. Janneck <jorn.janneck@xilinx.com>
+ * @author Jorn W. Janneck <jorn.janneck@xilinx.com>
  */
 
 public class TypeExpr extends ASTNode {

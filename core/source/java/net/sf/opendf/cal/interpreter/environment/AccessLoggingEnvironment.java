@@ -56,7 +56,7 @@ import java.util.Set;
  * @see AccessLog
  * @see AccessRecord
  *
- *  @author Jörn W. Janneck <janneck@eecs.berkeley.edu>
+ *  @author Jorn W. Janneck <janneck@eecs.berkeley.edu>
  */
 
 public class AccessLoggingEnvironment implements Environment {

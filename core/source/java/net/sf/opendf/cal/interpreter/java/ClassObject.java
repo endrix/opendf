@@ -51,7 +51,7 @@ import net.sf.opendf.cal.interpreter.InterpreterException;
  * functionality that allows to apply the class to arguments in order to construct new instances
  * of it.
  *
- *  @author Jörn W. Janneck <janneck@eecs.berkeley.edu>, Christopher Chang <cbc@eecs.berkeley.edu>
+ *  @author Jorn W. Janneck <janneck@eecs.berkeley.edu>, Christopher Chang <cbc@eecs.berkeley.edu>
  */
 
 public class ClassObject implements Function {

@@ -75,7 +75,7 @@ import net.sf.opendf.cal.interpreter.generator.VariableGenerator;
  * The expression evaluator interprets expressions in a given environment and context and computes the value
  * denoted by them.
  *
- * @author Jörn W. Janneck <janneck@eecs.berkeley.edu>
+ * @author Jorn W. Janneck <janneck@eecs.berkeley.edu>
  * @see Expression
  * @see Context
  * @see Environment

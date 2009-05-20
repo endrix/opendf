@@ -47,7 +47,7 @@ import net.sf.opendf.cal.interpreter.environment.DataStructureManipulator;
 
 
 /**
- *  @author Jörn W. Janneck <janneck@eecs.berkeley.edu>
+ *  @author Jorn W. Janneck <janneck@eecs.berkeley.edu>
  */
 
 public class DefaultDataStructureManipulator implements DataStructureManipulator {
