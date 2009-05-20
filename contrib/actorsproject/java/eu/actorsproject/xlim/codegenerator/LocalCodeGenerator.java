@@ -50,6 +50,7 @@ import eu.actorsproject.xlim.XlimOutputPort;
 import eu.actorsproject.xlim.XlimSource;
 import eu.actorsproject.xlim.XlimStateVar;
 import eu.actorsproject.xlim.XlimTaskModule;
+import eu.actorsproject.xlim.XlimTestModule;
 import eu.actorsproject.xlim.XlimTopLevelPort;
 import eu.actorsproject.xlim.XlimType;
 
@@ -192,6 +193,23 @@ public abstract class LocalCodeGenerator implements ExpressionTreeGenerator {
 		// Generate else-part if non-empty or if there are phi-nodes
 		return (m.getElseModule().getChildren().iterator().hasNext()
 				|| m.getPhiNodes().iterator().hasNext());
+	}
+	
+	/**
+	 * @param test a test module (of a loop or an if-statement)
+	 * @return true if test module contains only a condition, which can be
+	 *         generated as an expression; false if there are statements in 'test'.
+	 */
+	protected boolean simpleTest(XlimTestModule test) {
+		for (XlimBlockElement element: test.getChildren()) {
+			if (element instanceof XlimOperation) {
+				if (isRoot((XlimOperation) element))
+					return false;
+			}
+			else
+				return false; // Hey, it's not even an operation!!!
+		}
+		return true;
 	}
 	
 	protected void visitPhiNodes(Iterable<? extends XlimInstruction> phiNodes, int fromPath) {

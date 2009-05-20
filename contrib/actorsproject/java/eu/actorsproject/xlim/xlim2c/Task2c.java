@@ -99,7 +99,10 @@ public class Task2c extends LocalCodeGenerator {
 	protected void generateIf(XlimIfModule m) {
 		XlimTestModule test=m.getTestModule();
 		
-		generateCode(test);
+		// Do we need to generate test module separately?
+		// (i.e. does it contain "roots"/statements)
+		if (simpleTest(test)==false)
+			generateCode(test);  
 		mOutput.print("if (");
 		generateExpression(test.getDecision());
 		mOutput.println(") {");
@@ -124,20 +127,34 @@ public class Task2c extends LocalCodeGenerator {
 	@Override
 	protected void generateLoop(XlimLoopModule m) {
 		XlimTestModule test=m.getTestModule();
+		LocalScope scope=mLocalSymbols.getScope(m);
 		
 		visitPhiNodes(m.getPhiNodes(),0);
-		mOutput.println("while (1) {");
-		mOutput.increaseIndentation();			
-		
-		LocalScope scope=mLocalSymbols.getScope(m);
-		if (scope!=null) {
-			generateDeclaration(scope);
+		if (simpleTest(test)) {
+			// Generate condition with while
+			mOutput.print("while (");
+			generateExpression(test.getDecision());
+			mOutput.println(") {");
+			mOutput.increaseIndentation();
+			
+			if (scope!=null)
+				generateDeclaration(scope);
 		}
+		else {
+			// Here, we have a complex test that
+			// requires multiple statements
+			mOutput.println("while (1) {");
+			mOutput.increaseIndentation();			
 		
-		generateCode(m.getTestModule());
-		mOutput.print("if (!");
-		generateExpression(test.getDecision());
-		mOutput.println(") break;");
+		
+			if (scope!=null)
+				generateDeclaration(scope);
+
+			generateCode(test);
+			mOutput.print("if (!");
+			generateExpression(test.getDecision());
+			mOutput.println(") break;");
+		}
 		
 		generateCode(m.getBodyModule());
 		

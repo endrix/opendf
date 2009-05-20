@@ -37,8 +37,6 @@
 
 package eu.actorsproject.xlim.codegenerator;
 
-import java.util.Iterator;
-
 import eu.actorsproject.xlim.XlimBlockElement;
 import eu.actorsproject.xlim.XlimBlockModule;
 import eu.actorsproject.xlim.XlimContainerModule;
@@ -48,7 +46,10 @@ import eu.actorsproject.xlim.XlimLoopModule;
 import eu.actorsproject.xlim.XlimModule;
 import eu.actorsproject.xlim.XlimOperation;
 import eu.actorsproject.xlim.XlimTaskModule;
+import eu.actorsproject.xlim.dependence.PhiOperator;
+import eu.actorsproject.xlim.dependence.TestOperator;
 import eu.actorsproject.xlim.dependence.ValueNode;
+import eu.actorsproject.xlim.dependence.ValueOperator;
 import eu.actorsproject.xlim.dependence.ValueUsage;
 
 /**
@@ -59,11 +60,12 @@ public class LocalStorageAllocation implements XlimBlockElement.Visitor<Object,X
 
 	protected LocalSymbolTable mLocalSymbols;
 	protected OperationGenerator mPlugIn;
-
+	private RealUseInModule mRealUseInModule;
 	
 	public LocalStorageAllocation(LocalSymbolTable localSymbols, OperationGenerator plugIn) {
 		mLocalSymbols = localSymbols;
 		mPlugIn = plugIn;
+		mRealUseInModule=new RealUseInModule();
 	}
 
 	public void allocateStorage(XlimTaskModule task) {
@@ -133,20 +135,45 @@ public class LocalStorageAllocation implements XlimBlockElement.Visitor<Object,X
 				// if multiple or non-local references, make it a statement
 				// FIXME: Not quite this simple, we get unnecessary temporaries for conditions.
 				// Why? We get multiple references from phis (control dependence)
+				ValueOperator valueOp=op.getValueOperator();
 				ValueNode value=op.getOutputPort(0).getValue();
-				Iterator<? extends ValueUsage> pUse=value.getUses().iterator();
 				XlimModule localModule=op.getParentModule();
-				if (pUse.next().usedInModule()!=localModule || pUse.hasNext())
-					return true;
+				boolean foundFirstUse=false;
+				for (ValueUsage use: value.getUses()) {
+					XlimModule usedInModule=valueOp.accept(mRealUseInModule, use);
+					if (usedInModule!=null)
+						if (usedInModule!=localModule || foundFirstUse)
+							return true; // Non-local usage or multiple uses
+						else
+							foundFirstUse=true;							
+				}
 			}
 			
-			// Else: qualified as an expression!
+			// Else: qualified as an expression (needs no temporary)!
 			// In particular, op has a unique reference or it can be re-evaluated
 			return false; 
 		}
 	}
-	
+		
 	protected void visitPhiNode(XlimInstruction phi, XlimModule inScopeOfModule) {
 		mLocalSymbols.createTemporaryVariable(phi.getOutputPort(0), inScopeOfModule);
+	}
+	
+	private static class RealUseInModule implements ValueOperator.Visitor<XlimModule,ValueUsage> {
+
+		public XlimModule visitOperation(XlimOperation xlimOp, ValueUsage use) {
+			return xlimOp.getParentModule();
+		}
+
+		public XlimModule visitPhi(PhiOperator phi, ValueUsage use) {
+			if (phi.getControlDependence()==use.getValue())
+				return null;  // Not a "real" use
+			else
+				return use.usedInModule();
+		}
+
+		public XlimModule visitTest(TestOperator test, ValueUsage use) {
+			return test.getTestModule();
+		}
 	}
 }
