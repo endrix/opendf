@@ -96,30 +96,41 @@ done
 #
 # Compare individual files and see whether they are equal
 #
-
-SEDCMD="sed -e s/step=\".*\"//"
+# NOTE: When a difference is found, several iterations over the files are
+#       made. This could be made more efficient. As long as the traces are
+#       equal, two iterations are made of each file.
+#
 
 echo comparing...
-STATUS=0
+COUNT=0
 for FILE in "$DIR1"/*; do
     OTHER="$DIR2"/$(basename "$FILE")
-    $SEDCMD < $FILE > $TMPFILE1
-    $SEDCMD < $OTHER > $TMPFILE2
+    cut -d' ' -f1 < $FILE > $TMPFILE1
+    cut -d' ' -f1 < $OTHER > $TMPFILE2
     diff --brief $DIFF_OPTS "$TMPFILE1" "$TMPFILE2" > /dev/null
     if [ $? != 0 ]; then
-	STATUS=$(( STATUS + 1 ))
-	echo traces for $(basename "$FILE") differ
+	COUNT=$(( COUNT + 1 ))
+
+	# Identify the differing line
+	LINE_NBR=$(diff $DIFF_OPTS "$TMPFILE1" "$TMPFILE2" \
+	    | head -n1 \
+	    | sed -e "s/[acd,].*//")
+
+	# Pick out the differing action steps from FILE
+	STEP1=$(head -n $(( LINE_NBR + 1 )) $FILE  | tail -n 1 | cut -d' ' -f2)
+	STEP2=$(head -n $(( LINE_NBR + 1 )) $OTHER | tail -n 1 | cut -d' ' -f2)
+	echo $(basename "$FILE") $STEP1 $STEP2
     fi
 done
 
 # -----------------------------------------------------------------------------
 
 echo "-------------------------"
-if [ $STATUS != 0 ]; then
+if [ $COUNT != 0 ]; then
     echo traces are NOT equivalent
 else
     echo traces are equivalent
 fi
 echo "-------------------------"
 
-exit $STATUS
+exit $COUNT
