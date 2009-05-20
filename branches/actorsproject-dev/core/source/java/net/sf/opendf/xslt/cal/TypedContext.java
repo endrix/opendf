@@ -25,7 +25,7 @@ import net.sf.opendf.cal.interpreter.java.ClassObject;
 import net.sf.opendf.cal.interpreter.java.MethodObject;
 
 /**
- *  @author Jörn W. Janneck <janneck@eecs.berkeley.edu>
+ *  @author Jorn W. Janneck <janneck@eecs.berkeley.edu>
  */
 
 public class TypedContext implements Context {

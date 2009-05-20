@@ -52,7 +52,7 @@ import net.sf.opendf.cal.interpreter.UndefinedVariableException;
  * This class implements the <tt>Environment</tt> interface based on <tt>java.util.HashMap</tt> objects.
  * The local environment frame is stored as a HashMap.
  *
- * @author Jörn W. Janneck <janneck@eecs.berkeley.edu>
+ * @author Jorn W. Janneck <janneck@eecs.berkeley.edu>
  */
 
 public class HashEnvironment extends AbstractEnvironment implements Environment {

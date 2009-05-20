@@ -67,7 +67,7 @@ import org.w3c.dom.Node;
 
 
 /**
- *  @author J�rn W. Janneck <janneck@eecs.berkeley.edu>
+ *  @author Jorn W. Janneck <janneck@eecs.berkeley.edu>
  */
 
 public class SourceReader
