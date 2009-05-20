@@ -73,12 +73,17 @@ public class CodeMotion {
 		protected Object handleOperation(XlimOperation op, CodeMotionPlugIn arg) {
 			// Collect all operations that are to be moved to a particular module
 			// Data dependences are preserved by insertion in top-down order
-			XlimModule m=arg.insertionPoint(op);
-			if (m!=op.getParentModule()) {
-				List<XlimOperation> operations=mInsert.get(m);
+			XlimModule toModule=arg.insertionPoint(op);
+			// We can't move to the entry of loops/if-modules, so the code
+			// will instead be moved to the pre-header/surrounding container
+			XlimModule toContainer=(toModule instanceof XlimContainerModule)? 
+					toModule : toModule.getParentModule();	
+			// Avoid local code motion 
+			if (toContainer!=op.getParentModule()) {
+				List<XlimOperation> operations=mInsert.get(toModule);
 				if (operations==null) {
 					operations=new ArrayList<XlimOperation>();
-					mInsert.put(m, operations);
+					mInsert.put(toModule, operations);
 				}
 				operations.add(op);
 			}

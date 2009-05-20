@@ -65,12 +65,12 @@ public class XlimTransformer {
 			deadCodeElimination(design);
 		if (mGenerateBlockingWaits)
 			mBlockingWaitGenerator.generateBlockingWaits(design);
+		if (mDoDeadCodeRemoval)
+			deadCodeElimination(design);
 		if (mDoCodeMotion)
 			codeMotion(design);
 		if (mTransformToNativeTypes)
 			mNativeTypeTransformation.transform(design);
-		if (mDoDeadCodeRemoval)
-			deadCodeElimination(design);
 	}
 
 	public void copyPropagate(XlimDesign design) {
