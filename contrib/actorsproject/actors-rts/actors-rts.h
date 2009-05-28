@@ -141,6 +141,28 @@ struct ActorClass {
 	const ActionDescription *actionDescriptions;
 };
 
+#define INIT_ActorClass(aClassName,              \
+                        instance_t,              \
+                        ctor,                    \
+                        sched,	                 \
+                        nInputs, inputDescr,	 \
+                        nOutputs, outputDescr,	 \
+                        nActions, actionDescr) { \
+    .name=aClassName,                            \
+    .numInputPorts=nInputs,                      \
+    .numOutputPorts=nOutputs,                    \
+    .sizeActorInstance=sizeof(instance_t),       \
+    .action_scheduler=sched,                     \
+    .constructor=ctor,                           \
+    .destructor=0,                               \
+    .set_param=0,                                \
+    .inputPortDescriptions=inputDescr,           \
+    .outputPortDescriptions=outputDescr,         \
+    .actorExecMode=0,                            \
+    .numActions=nActions,                        \
+    .actionDescriptions=actionDescr              \
+  }
+
 typedef struct {
 	ActorClass		*actorClass;
 	int				*inputPorts;

@@ -242,23 +242,17 @@ public class Actor2c extends OutputGenerator {
 		
 		// ActorClass
 		println();
-		println(sActorClassType+" "+mSymbols.getActorClassName()+" ={");
+		println(sActorClassType+" "+mSymbols.getActorClassName()+" = INIT_ActorClass(");
 		increaseIndentation();
-		println("\""+mDesign.getName()+"\",");
-		println(numInputPorts +", /* numInputPorts */");
-		println(numOutputPorts+", /* numOutputPorts */");
-		println("sizeof("+sActorInstanceType+"),");
-		println(mSymbols.getTargetName(mDesign.getActionScheduler())+",");
-		println(sConstructorName+",");
-		println("0, /* destructor */");
-		println("0, /* set_param */");
-		println("inputPortDescriptions,");
-		println("outputPortDescriptions,");
-		println("0, /* actorExecMode */");
-		println(numActions + ", /* numActions */");
-		println("actionDescriptions");
+		println("\"" + mDesign.getName() + "\",");
+		println(sActorInstanceType + ",");
+		println(sConstructorName + ",");
+		println(mSymbols.getTargetName(mDesign.getActionScheduler()) + ",");
+		println(numInputPorts +", inputPortDescriptions,");
+		println(numOutputPorts+", outputPortDescriptions,");
+		println(numActions + ", actionDescriptions");		
 		decreaseIndentation();
-		println("};");
+		println(");");
 		println();
 	}
 	
