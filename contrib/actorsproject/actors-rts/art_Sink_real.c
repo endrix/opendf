@@ -107,18 +107,16 @@ static void Read0(ActorInstance *thisActor) {
 
 static void a_action_scheduler(AbstractActorInstance *pBase) {
   ActorInstance *thisActor=(ActorInstance*) pBase;
-	int available;
 
 	while(1)
 	{
-		available=pinStatus2(&thisActor->IN0_A);
-		if(available>=thisActor->IN0_TOKENSIZE)
+		if(pinAvailIn_double(&thisActor->IN0_A)>=1)
 		{
 			Read0(thisActor);	
 		}
 		else
 		{
-			pinWait(&thisActor->IN0_A,thisActor->IN0_TOKENSIZE);
+			pinWaitIn(&thisActor->IN0_A,thisActor->IN0_TOKENSIZE);
 			return;
 		}
 	}

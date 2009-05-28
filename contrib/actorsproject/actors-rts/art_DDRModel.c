@@ -176,9 +176,9 @@ static void a4_action_scheduler(ActorInstance *thisActor) {
     bool_t t70,t75,t81,t94,t97,t107,t108,t109,t999;
     int32_t t66,t67,t68,t79,t89,t95,t101,t998;
     if (!(1)) break;
-    t66=pinAvail(&thisActor->IN0_RA);
-    t67=pinAvail(&thisActor->IN1_WA);
-    t68=pinAvail(&thisActor->IN2_WD);
+    t66=pinAvailIn_int32_t(&thisActor->IN0_RA);
+    t67=pinAvailIn_int32_t(&thisActor->IN1_WA);
+    t68=pinAvailIn_int32_t(&thisActor->IN2_WD);
     t70=t66>=(1);
     t75=t67>=(1);
     t79=thisActor->s1_burstSize;
@@ -187,11 +187,11 @@ static void a4_action_scheduler(ActorInstance *thisActor) {
     t94=(t68>=(1)) && (t89>(0));
     t95=thisActor->s1_burstSize;
     t97=t95==(0);
-    t101=pinAvail(&thisActor->OUT0_RD);
+    t101=pinAvailOut_int32_t(&thisActor->OUT0_RD);
     t107=thisActor->s3;
     t108=thisActor->s4;
     t109=thisActor->s5;
-    t998=pinPeek(&thisActor->IN0_RA,0);
+    t998=pinPeek_int32_t(&thisActor->IN0_RA,0);
     t999=((t998 ^ thisActor->s6_lastWA) & 0x200000)!=0 // frame(RA)!=frame(WA)
       || (t998 & 0x1fc000)==0x1fc000                   // y(RA)<0
       || t998<thisActor->s6_lastWA;                    // WA ahead of RA
@@ -225,8 +225,8 @@ static void a4_action_scheduler(ActorInstance *thisActor) {
               thisActor->s4=(1);
             }
             else {
-              pinWait(&thisActor->IN1_WA,sizeof(int));
-              pinWait(&thisActor->OUT0_RD,96*sizeof(int)); return;
+              pinWaitIn(&thisActor->IN1_WA,sizeof(int));
+              pinWaitOut(&thisActor->OUT0_RD,96*sizeof(int)); return;
             }
 	  }
 	  else {
@@ -236,13 +236,13 @@ static void a4_action_scheduler(ActorInstance *thisActor) {
 	     *        (t998>>7) & 0x7f,
 	     *        (t998>>14) & 0x7f);
              */
-	    pinWait(&thisActor->IN1_WA,sizeof(int));
+	    pinWaitIn(&thisActor->IN1_WA,sizeof(int));
 	    return;
 	  }
         }
         else {
-          pinWait(&thisActor->IN0_RA,sizeof(int));
-          pinWait(&thisActor->IN1_WA,sizeof(int)); return;
+          pinWaitIn(&thisActor->IN0_RA,sizeof(int));
+          pinWaitIn(&thisActor->IN1_WA,sizeof(int)); return;
         }
       }
     }
@@ -257,7 +257,7 @@ static void a4_action_scheduler(ActorInstance *thisActor) {
             thisActor->s4=(1);
           }
           else {
-            pinWait(&thisActor->OUT0_RD,sizeof(int)); return;
+            pinWaitOut(&thisActor->OUT0_RD,sizeof(int)); return;
           }
         }
         else {
@@ -281,7 +281,7 @@ static void a4_action_scheduler(ActorInstance *thisActor) {
               thisActor->s3=(1);
             }
             else {
-              pinWait(&thisActor->IN2_WD,sizeof(int)); return;
+              pinWaitIn(&thisActor->IN2_WD,sizeof(int)); return;
             }
           }
         }

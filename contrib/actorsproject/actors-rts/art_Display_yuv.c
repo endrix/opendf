@@ -248,21 +248,17 @@ static void Read0(ActorInstance *thisActor) {
 
 static void a_action_scheduler(ActorInstance *thisActor)
 {
-	int available;
-
 	while(1)
 	{
-		available=pinStatus2(&thisActor->IN0_A);
-
 		if(thisActor->count == 64 && thisActor->comp == 5)
 			done_mb(thisActor);
 		else if(thisActor->count == 64)
 			done_comp(thisActor);
-		else if(available>=thisActor->IN0_TOKENSIZE)
+		else if(pinAvailIn_int32_t(&thisActor->IN0_A)>=1)
 			Read0(thisActor);	
 		else
 		{
-			pinWait(&thisActor->IN0_A,thisActor->IN0_TOKENSIZE);
+			pinWaitIn(&thisActor->IN0_A,thisActor->IN0_TOKENSIZE);
 			return;
 		}
 	}

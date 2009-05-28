@@ -204,6 +204,9 @@ void make_actor_executable(AbstractActorInstance *instance, CIRC_BUFFER* cb, int
  * Returns 0 otherwise. */
 extern int pinStatus(ActorPort * port);
 
+#define pinStatusIn(port) pinStatus(port)
+#define pinStatusOut(port) pinStatus(port)
+
 /** For an input port, pinStatus2 returns the number of readable bytes available in the ActorPort \a port.
  *  For an output port, pinStatus2 returns the number of bytes which can be written into the ActorPort \a port. */
 extern int pinStatus2(ActorPort * port);
@@ -215,11 +218,20 @@ extern int pinAvail(ActorPort * port);
 /** Return number of tokens in int32 size which can be read from \a port / written to \a port . */
 extern int pinAvail_int32_t(ActorPort *actorPort);
 
+#define pinAvailIn_int32_t(port) pinAvail_int32_t(port)
+#define pinAvailOut_int32_t(port) pinAvail_int32_t(port)
+
 /** Return number of tokens in double size which can be read from \a port / written to \a port . */
 extern int pinAvail_double(ActorPort *actorPort);
 
+#define pinAvailIn_double(port) pinAvail_double(port)
+#define pinAvailOut_double(port) pinAvail_double(port)
+
 /** Return number of tokens in bool_t size which can be read from \a port / written to \a port . */
 extern int pinAvail_bool_t(ActorPort *actorPort);
+
+#define pinAvailIn_bool_t(port) pinAvail_bool_t(port)
+#define pinAvailOut_bool_t(port) pinAvail_bool_t(port)
 
 /** Reads one integer-sized token from \a port and returns it. Breaks if tokenSize > sizeof(int) . */
 extern int pinRead(ActorPort * port);
@@ -279,6 +291,9 @@ extern int pinWrite_bool_t(ActorPort *actorPort,bool_t val);
  * become available for reading or writing.
  * Does not block itself ! */
 extern void pinWait(ActorPort * port, int length);
+
+#define pinWaitIn(port, length) pinWait(port,length)
+#define pinWaitOut(port, length) pinWait(port, length)
 
 /** Printf-like tracing function to stderr. Prints only if \a level >= the current log_level. */
 extern void actorTrace(AbstractActorInstance * base, int level, const char * message, ...);

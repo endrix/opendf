@@ -139,13 +139,11 @@ static int Write0(ActorInstance *thisActor) {
 static void a_action_scheduler(AbstractActorInstance *pBase) {
   ActorInstance *thisActor=(ActorInstance*) pBase;
 
-	int available;
 	int	ret;
 
 	while(1)
 	{
-		available=pinStatus2(&thisActor->OUT0_Result);
- 		if(available>=thisActor->OUT0_TOKENSIZE)
+ 		if(pinAvailOut_double(&thisActor->OUT0_Result)>=1)
 		{
 			ret = Write0(thisActor);
 			if(ret <=0)
@@ -153,7 +151,7 @@ static void a_action_scheduler(AbstractActorInstance *pBase) {
 		}
 		else
 		{
-			pinWait(&thisActor->OUT0_Result,thisActor->OUT0_TOKENSIZE);
+			pinWaitOut(&thisActor->OUT0_Result,thisActor->OUT0_TOKENSIZE);
 			return;
 		}
 	}
