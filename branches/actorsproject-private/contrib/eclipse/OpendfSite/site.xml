@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site>
+   <description url="http://opendf.sourceforge.net/eclipse">
+      The Open Dataflow Project Update Site
+   </description>
+   <feature url="features/net.sf.opendf.eclipse.feature_1.2.6.jar" id="net.sf.opendf.eclipse.feature" version="1.2.6" patch="true">
+      <category name="Open Dataflow Project Plugin"/>
+   </feature>
+   <feature url="features/net.sf.opendf.eclipse.feature_1.2.7.jar" id="net.sf.opendf.eclipse.feature" version="1.2.7" patch="true">
+      <category name="Open Dataflow Project Plugin"/>
+   </feature>
+   <feature url="features/net.sf.opendf.eclipse.feature_1.2.8.jar" id="net.sf.opendf.eclipse.feature" version="1.2.8" patch="true">
+      <category name="Open Dataflow Project Plugin"/>
+   </feature>
+   <feature url="features/net.sf.opendf.eclipse.feature_1.2.9.jar" id="net.sf.opendf.eclipse.feature" version="1.2.9" patch="true">
+      <category name="Open Dataflow Project Plugin"/>
+   </feature>
+   <feature url="features/net.sf.opendf.eclipse.feature_1.2.10.jar" id="net.sf.opendf.eclipse.feature" version="1.2.10" patch="true">
+      <category name="Open Dataflow Project Plugin"/>
+   </feature>
+   <category-def name="Open Dataflow Project Plugin" label="net.sf.opendf.eclipse.basic">
+      <description>
+         Provides CAL/NL editing capablity and documentation.
+      </description>
+   </category-def>
+</site>

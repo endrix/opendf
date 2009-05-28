@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8"?><XDF name="motion3">
+   <Port kind="Input" name="MV"/>
+   <Port kind="Input" name="BTYPE"/>
+   <Port kind="Input" name="TEX"/>
+   <Port kind="Input" name="MCD"/>
+   <Port kind="Output" name="MBD"/>
+   <Port kind="Output" name="MBA"/>
+   <Port kind="Output" name="MCA"/>
+   <Port kind="Output" name="VID"/>
+   <Decl kind="Param" name="SEARCHWIN_IN_MB"/>
+   <Decl kind="Param" name="MAXW_IN_MB"/>
+   <Decl kind="Param" name="MAXH_IN_MB"/>
+   <Decl kind="Param" name="ADDR_SZ"/>
+   <Decl kind="Param" name="MV_SZ"/>
+   <Decl kind="Param" name="PIX_SZ"/>
+   <Decl kind="Param" name="MB_COORD_SZ"/>
+   <Decl kind="Param" name="BTYPE_SZ"/>
+   <Decl kind="Param" name="NEWVOP"/>
+   <Decl kind="Param" name="INTRA"/>
+   <Decl kind="Param" name="INTER"/>
+   <Decl kind="Param" name="ACCODED"/>
+   <Decl kind="Param" name="ROUND_TYPE"/>
+   <Decl kind="Param" name="MOTION"/>
+   <Decl kind="Variable" name="FLAG_SZ">
+      <Expr kind="Literal" literal-kind="Integer" value="4"/>
+   </Decl>
+   <Instance id="memorymanager">
+      <Class name="MemoryManager"/>
+      <Parameter name="ADDR_SZ">
+         <Expr kind="Var" name="ADDR_SZ"/>
+      </Parameter>
+      <Parameter name="BTYPE_SZ">
+         <Expr kind="Var" name="BTYPE_SZ"/>
+      </Parameter>
+      <Parameter name="FLAG_SZ">
+         <Expr kind="Var" name="FLAG_SZ"/>
+      </Parameter>
+      <Parameter name="INTER">
+         <Expr kind="Var" name="INTER"/>
+      </Parameter>
+      <Parameter name="INTRA">
+         <Expr kind="Var" name="INTRA"/>
+      </Parameter>
+      <Parameter name="MAXH_IN_MB">
+         <Expr kind="Var" name="MAXH_IN_MB"/>
+      </Parameter>
+      <Parameter name="MAXW_IN_MB">
+         <Expr kind="Var" name="MAXW_IN_MB"/>
+      </Parameter>
+      <Parameter name="MB_COORD_SZ">
+         <Expr kind="Var" name="MB_COORD_SZ"/>
+      </Parameter>
+      <Parameter name="MOTION">
+         <Expr kind="Var" name="MOTION"/>
+      </Parameter>
+      <Parameter name="MV_SZ">
+         <Expr kind="Var" name="MV_SZ"/>
+      </Parameter>
+      <Parameter name="NEWVOP">
+         <Expr kind="Var" name="NEWVOP"/>
+      </Parameter>
+      <Parameter name="PIX_SZ">
+         <Expr kind="Var" name="PIX_SZ"/>
+      </Parameter>
+      <Parameter name="ROUND_TYPE">
+         <Expr kind="Var" name="ROUND_TYPE"/>
+      </Parameter>
+      <Parameter name="SEARCHWIN_IN_MB">
+         <Expr kind="Var" name="SEARCHWIN_IN_MB"/>
+      </Parameter>
+   </Instance>
+   <Instance id="mbpack">
+      <Class name="MBPacker"/>
+      <Parameter name="ADDR_SZ">
+         <Expr kind="Var" name="ADDR_SZ"/>
+      </Parameter>
+      <Parameter name="PIX_SZ">
+         <Expr kind="Var" name="PIX_SZ"/>
+      </Parameter>
+   </Instance>
+   <Instance id="searchwin">
+      <Class name="SearchWindow"/>
+      <Parameter name="ADDR_SZ">
+         <Expr kind="Var" name="ADDR_SZ"/>
+      </Parameter>
+      <Parameter name="BTYPE_SZ">
+         <Expr kind="Var" name="BTYPE_SZ"/>
+      </Parameter>
+      <Parameter name="FLAG_SZ">
+         <Expr kind="Var" name="FLAG_SZ"/>
+      </Parameter>
+      <Parameter name="INTER">
+         <Expr kind="Var" name="INTER"/>
+      </Parameter>
+      <Parameter name="INTRA">
+         <Expr kind="Var" name="INTRA"/>
+      </Parameter>
+      <Parameter name="MAXH_IN_MB">
+         <Expr kind="Var" name="MAXH_IN_MB"/>
+      </Parameter>
+      <Parameter name="MAXW_IN_MB">
+         <Expr kind="Var" name="MAXW_IN_MB"/>
+      </Parameter>
+      <Parameter name="MB_COORD_SZ">
+         <Expr kind="Var" name="MB_COORD_SZ"/>
+      </Parameter>
+      <Parameter name="MOTION">
+         <Expr kind="Var" name="MOTION"/>
+      </Parameter>
+      <Parameter name="MV_SZ">
+         <Expr kind="Var" name="MV_SZ"/>
+      </Parameter>
+      <Parameter name="NEWVOP">
+         <Expr kind="Var" name="NEWVOP"/>
+      </Parameter>
+      <Parameter name="PIX_SZ">
+         <Expr kind="Var" name="PIX_SZ"/>
+      </Parameter>
+      <Parameter name="ROUND_TYPE">
+         <Expr kind="Var" name="ROUND_TYPE"/>
+      </Parameter>
+      <Parameter name="SEARCHWIN_IN_MB">
+         <Expr kind="Var" name="SEARCHWIN_IN_MB"/>
+      </Parameter>
+   </Instance>
+   <Instance id="unpack">
+      <Class name="Unpack"/>
+      <Parameter name="ADDR_SZ">
+         <Expr kind="Var" name="ADDR_SZ"/>
+      </Parameter>
+      <Parameter name="BTYPE_SZ">
+         <Expr kind="Var" name="BTYPE_SZ"/>
+      </Parameter>
+      <Parameter name="FLAG_SZ">
+         <Expr kind="Var" name="FLAG_SZ"/>
+      </Parameter>
+      <Parameter name="INTER">
+         <Expr kind="Var" name="INTER"/>
+      </Parameter>
+      <Parameter name="INTRA">
+         <Expr kind="Var" name="INTRA"/>
+      </Parameter>
+      <Parameter name="MAXH_IN_MB">
+         <Expr kind="Var" name="MAXH_IN_MB"/>
+      </Parameter>
+      <Parameter name="MAXW_IN_MB">
+         <Expr kind="Var" name="MAXW_IN_MB"/>
+      </Parameter>
+      <Parameter name="MB_COORD_SZ">
+         <Expr kind="Var" name="MB_COORD_SZ"/>
+      </Parameter>
+      <Parameter name="MOTION">
+         <Expr kind="Var" name="MOTION"/>
+      </Parameter>
+      <Parameter name="MV_SZ">
+         <Expr kind="Var" name="MV_SZ"/>
+      </Parameter>
+      <Parameter name="NEWVOP">
+         <Expr kind="Var" name="NEWVOP"/>
+      </Parameter>
+      <Parameter name="PIX_SZ">
+         <Expr kind="Var" name="PIX_SZ"/>
+      </Parameter>
+      <Parameter name="ROUND_TYPE">
+         <Expr kind="Var" name="ROUND_TYPE"/>
+      </Parameter>
+      <Parameter name="SEARCHWIN_IN_MB">
+         <Expr kind="Var" name="SEARCHWIN_IN_MB"/>
+      </Parameter>
+   </Instance>
+   <Instance id="interpolate">
+      <Class name="Interpolate"/>
+      <Parameter name="FLAG_SZ">
+         <Expr kind="Var" name="FLAG_SZ"/>
+      </Parameter>
+      <Parameter name="PIX_SZ">
+         <Expr kind="Var" name="PIX_SZ"/>
+      </Parameter>
+   </Instance>
+   <Instance id="add">
+      <Class name="Add"/>
+      <Parameter name="ACCODED">
+         <Expr kind="Var" name="ACCODED"/>
+      </Parameter>
+      <Parameter name="BTYPE_SZ">
+         <Expr kind="Var" name="BTYPE_SZ"/>
+      </Parameter>
+      <Parameter name="INTRA">
+         <Expr kind="Var" name="INTRA"/>
+      </Parameter>
+      <Parameter name="MB_COORD_SZ">
+         <Expr kind="Var" name="MB_COORD_SZ"/>
+      </Parameter>
+      <Parameter name="NEWVOP">
+         <Expr kind="Var" name="NEWVOP"/>
+      </Parameter>
+      <Parameter name="PIX_SZ">
+         <Expr kind="Var" name="PIX_SZ"/>
+      </Parameter>
+   </Instance>
+   <Connection dst="searchwin" dst-port="MV" src="" src-port="MV"/>
+   <Connection dst="unpack" dst-port="MV" src="" src-port="MV"/>
+   <Connection dst="memorymanager" dst-port="BTYPE" src="" src-port="BTYPE"/>
+   <Connection dst="searchwin" dst-port="BTYPE" src="" src-port="BTYPE"/>
+   <Connection dst="unpack" dst-port="BTYPE" src="" src-port="BTYPE"/>
+   <Connection dst="add" dst-port="BTYPE" src="" src-port="BTYPE"/>
+   <Connection dst="add" dst-port="TEX" src="" src-port="TEX"/>
+   <Connection dst="mbpack" dst-port="AI" src="memorymanager" src-port="WA"/>
+   <Connection dst="" dst-port="MCA" src="memorymanager" src-port="RA"/>
+   <Connection dst="" dst-port="MBD" src="mbpack" src-port="DO"/>
+   <Connection dst="" dst-port="MBA" src="mbpack" src-port="AO"/>
+   <Connection dst="searchwin" dst-port="DI" src="" src-port="MCD"/>
+   <Connection dst="unpack" dst-port="DI" src="searchwin" src-port="DO"/>
+   <Connection dst="interpolate" dst-port="halfpel" src="searchwin" src-port="FLAGS"/>
+   <Connection dst="interpolate" dst-port="RD" src="unpack" src-port="DO"/>
+   <Connection dst="add" dst-port="MOT" src="interpolate" src-port="MOT"/>
+   <Connection dst="mbpack" dst-port="DI" src="add" src-port="VID"/>
+   <Connection dst="" dst-port="VID" src="add" src-port="VID"/>
+</XDF>
