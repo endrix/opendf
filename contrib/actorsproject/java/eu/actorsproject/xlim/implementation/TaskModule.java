@@ -37,7 +37,10 @@
 
 package eu.actorsproject.xlim.implementation;
 
+import java.util.ArrayList;
+
 import eu.actorsproject.xlim.XlimTaskModule;
+import eu.actorsproject.xlim.XlimTopLevelPort;
 import eu.actorsproject.xlim.dependence.CallNode;
 import eu.actorsproject.xlim.dependence.DataDependenceGraph;
 import eu.actorsproject.xlim.dependence.FixupContext;
@@ -47,6 +50,8 @@ class TaskModule extends ContainerModule implements XlimTaskModule {
 	private String mName;
 	private boolean mAutoStart;
 	private CallNode mCallNode;
+	private ArrayList<XlimTopLevelPort> mPorts;
+	private ArrayList<Integer> mRates;
 	
 	public TaskModule(String kind,
 				      String name,
@@ -55,6 +60,8 @@ class TaskModule extends ContainerModule implements XlimTaskModule {
 		mName=name;
 		mAutoStart=autoStart;
 		mCallNode=new CallNode(this);
+		mPorts=new ArrayList<XlimTopLevelPort>();
+		mRates=new ArrayList<Integer>();
 	}
 	
 	@Override
@@ -82,6 +89,26 @@ class TaskModule extends ContainerModule implements XlimTaskModule {
 		return mCallNode;
 	}
 	
+	
+	@Override 
+	public int getPortRate(XlimTopLevelPort port) {
+		for (int i=0; i<mPorts.size(); ++i)
+			if (mPorts.get(i)==port)
+				return mRates.get(i);
+		return 0;
+	}
+
+	@Override 
+	public void setPortRate(XlimTopLevelPort port, int rate) {
+		for (int i=0; i<mPorts.size(); ++i)
+			if (mPorts.get(i)==port) {
+				mRates.set(i, rate);
+				return;
+			}
+		mPorts.add(port);
+		mRates.add(rate);
+	}
+
 	@Override
 	public <Result, Arg> Result accept(Visitor<Result, Arg> visitor, Arg arg) {
 		return visitor.visitTaskModule(this,arg);

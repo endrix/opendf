@@ -113,7 +113,7 @@ void xmlDeclareNetwork(FILE *f,
       // count=number of tokens consumed
       // port=reference to input (id)
       for (p=0; p<numInputs; ++p) {
-	int cns=actions->consumption[p];
+	int cns=actions[j].consumption[p];
 	if (cns)
 	  fprintf(f, "      <consumes count=\"%d\" port=\"%d\"/>\n",
 		  cns, firstInput+p);
@@ -123,7 +123,7 @@ void xmlDeclareNetwork(FILE *f,
       // count=number of tokens consumed
       // port=reference to output (id)
       for (p=0; p<numOutputs; ++p) {
-	int prd=actions->production[p];
+	int prd=actions[j].production[p];
 	if (prd)
 	  fprintf(f, "      <produces count=\"%d\" port=\"%d\"/>\n",
 		  prd, outputs[p].cid);
