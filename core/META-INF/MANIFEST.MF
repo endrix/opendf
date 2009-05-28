@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Open Dataflow Core Plug-in
-Bundle-SymbolicName: net.sf.opendf.eclipse.core;singleton:=true
+Bundle-SymbolicName: net.sf.opendf.OpendfCorePlugin
 Bundle-Version: 1.1.10
 Bundle-Activator: net.sf.opendf.eclipse.coreplugin.Activator
 Bundle-Vendor: The Open Dataflow Project
@@ -69,7 +69,6 @@ Export-Package: java_cup,
  net.sf.opendf.xslt.nl,
  net.sf.opendf.xslt.util,
  net.sf.saxon,
- net.sf.saxon.dom,
  ptolemy.media
 Bundle-ClassPath: .,
  source/xslt/,

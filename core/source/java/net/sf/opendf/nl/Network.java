@@ -297,7 +297,15 @@ public class Network {
  			Element e = (Element) structureStmts.item(i);
  			sse.execute(e);
  		}
-		
+
+		//
+		// notes
+		//
+	
+		for (Element ae : xpathEvalElements("/Network/Note", nldoc)) {
+			n.addNetworkElement((Element)n.importNode(ae));
+		}	 
+ 		
 		
 		return n.getXDF();
 	}

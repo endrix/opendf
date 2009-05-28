@@ -47,7 +47,8 @@ public class BlockingWaitGenerator {
 	
 	public void generateBlockingWaits(XlimDesign design) {
 		DecisionTree t=mParser.parseXlim(design.getActionScheduler());
-		t.decorateNullNodes();
+		t=t.hoistAvailabilityTests();
+		t=t.decorateNullNodes();
 		t.generateBlockingWait();
 	}
 }

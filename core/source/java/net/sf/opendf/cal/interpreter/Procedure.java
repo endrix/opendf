@@ -43,7 +43,7 @@ package net.sf.opendf.cal.interpreter;
  * This interface describes a procedure, which is an abstract object that can be called with a number of
  * arguments. Such a call may result in changes to variable bindings in an environment.
  *
- * @author Jörn W. Janneck <janneck@eecs.berkeley.edu>
+ * @author Jorn W. Janneck <janneck@eecs.berkeley.edu>
  */
 
 public interface Procedure {

@@ -2,49 +2,48 @@
 <feature
       id="net.sf.opendf.eclipse.hwcompiler"
       label="OpenDF Hardware Compiler Feature"
-      version="1.0.17"
+      version="1.0.10"
       provider-name="The Open Dataflow Project Team">
 
-   <description>
-      This feature enables compilation of CAL/NL Dataflow networks
-to Hardware Description Language (HDL) implementations.  This
-feature requires the com.xilinx.df.core plugin to supply the
-compiler core.
+   <description url="http://www.example.com/description">
+      This feature enables compilation of CAL/NL Dataflow networks to Hardware Description Language (HDL) implementations.  This feature requires the com.xilinx.df.core plugin to supply the compiler core.
    </description>
 
-   <copyright>
+   <copyright url="http://www.example.com/copyright">
       Copyright (c) 2008, Xilinx Inc.
 All rights reserved.
    </copyright>
 
-   <license>
+   <license url="http://www.example.com/license">
       Copyright (c) 2008, Xilinx Inc.
 All rights reserved.
+
 Redistribution and use in source and binary forms, 
 with or without modification, are permitted provided 
 that the following conditions are met:
 - Redistributions of source code must retain the above 
-copyright notice, this list of conditions and the 
-following disclaimer.
+  copyright notice, this list of conditions and the 
+  following disclaimer.
 - Redistributions in binary form must reproduce the 
-above copyright notice, this list of conditions and 
-the following disclaimer in the documentation and/or 
-other materials provided with the distribution.
+  above copyright notice, this list of conditions and 
+  the following disclaimer in the documentation and/or 
+  other materials provided with the distribution.
 - Neither the name of the copyright holder nor the names 
-of its contributors may be used to endorse or promote 
-products derived from this software without specific 
-prior written permission.
+  of its contributors may be used to endorse or promote 
+  products derived from this software without specific 
+  prior written permission.
+
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND 
 CONTRIBUTORS &quot;AS IS&quot; AND ANY EXPRESS OR IMPLIED WARRANTIES, 
 INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF 
 MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE 
 DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
-CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
-NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, 
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT 
+NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; 
 LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) 
 HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
-CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
 OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
    </license>
@@ -54,14 +53,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
       <discovery label="Open Dataflow Project" url="http://opendf.sourceforge.net/eclipse"/>
    </url>
 
-   <includes
-         id="net.sf.opendf.eclipse.feature"
-         version="1.2.13"
-         name="Opendf simulator"/>
-
    <requires>
-      <import plugin="org.eclipse.core.runtime"/>
       <import plugin="org.eclipse.ui"/>
+      <import plugin="org.eclipse.core.runtime"/>
+      <import plugin="com.xilinx.systembuilder.SystemBuilder"/>
       <import plugin="org.eclipse.debug.ui"/>
       <import plugin="org.eclipse.ui.console"/>
       <import plugin="org.eclipse.jface.text"/>
@@ -69,24 +64,27 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
       <import plugin="org.eclipse.ui.ide"/>
       <import plugin="org.eclipse.ui.views"/>
       <import plugin="org.eclipse.ui.workbench.texteditor"/>
-      <import plugin="net.sf.opendf.eclipse.core"/>
-      <import plugin="net.sf.opendf.eclipse.plugin"/>
-      <import plugin="org.eclipse.debug.core"/>
-      <import plugin="net.sf.openforge.core"/>
    </requires>
 
    <plugin
-         id="net.sf.openforge.core"
-         download-size="0"
-         install-size="0"
-         version="1.0.11"
+         id="net.sf.opendf.eclipse.HardwareCompiler"
+         download-size="2"
+         install-size="2"
+         version="0.0.0"
          unpack="false"/>
 
    <plugin
-         id="net.sf.opendf.eclipse.HardwareCompiler"
-         download-size="0"
-         install-size="0"
-         version="1.0.12"
+         id="net.sf.opendf.eclipse.OpendfEditorPlugin"
+         download-size="125"
+         install-size="125"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="net.sf.opendf.OpendfCorePlugin"
+         download-size="4628"
+         install-size="4628"
+         version="0.0.0"
          unpack="false"/>
 
 </feature>

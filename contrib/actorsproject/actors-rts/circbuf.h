@@ -38,8 +38,18 @@
 #ifndef _CIRCBUF_H
 #define _CIRCBUF_H
 
+#include <semaphore.h>
+
+/* make the header usable from C++ */
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 #define MAX_CIRCBUF_LEN		4096
-#define TOKEN_SIZE			4
+#define TOKEN_SIZE			sizeof(int32_t)
+#define MAX_CIRCBUF_NUM		256
+
+//#define	CB_MUTEXED
 
 typedef struct _STATS{
 	unsigned int	nodata;
@@ -58,24 +68,48 @@ typedef struct _READER{
 }READER;
 
 typedef struct _CIRC_BUFFER{
-	char			buf[MAX_CIRCBUF_LEN];		//data buffer
+	char			*buf;						//data buffer
+	int				length;						//data length
 	int				writeptr;					//write pointer
 	long			numWrites;					//number of writes
 	BLOCK			block;						//output port block
 	int				numReaders;					//number of readers
 	READER			*reader;					//reader
+	sem_t			lock;						//mutex	
 
 	STATS			stats;
 }CIRC_BUFFER;
 
 extern CIRC_BUFFER		circularBuf[];
 
-extern void init_circbuf(CIRC_BUFFER *cb,int numReaders);
+/** Initializes the CIRC_BUFFER \a cb for the given number of \a numReaders .*/
+extern void init_circbuf(CIRC_BUFFER *cb,int numReaders,int length);
+
+/** Returns the free space in CIRC_BUFFER \a cb in bytes, all readers are considered. */
 extern int get_circbuf_space(CIRC_BUFFER *cb);
+
+/** Returns the number of readable bytes in the CIRC_BUFFER \a cb for reader \a index. */
 extern int get_circbuf_area(CIRC_BUFFER *cb,int index);
+
+/** Reads \a size number of bytes from the CIRC_BUFFER \a cb into the buffer \a buf
+  * for the reader \a index .*/
 extern int read_circbuf(CIRC_BUFFER *cb,char *buf, int size, int index);
-extern int write_circbuf(CIRC_BUFFER *cb,char *buf, int size);
+
+/** Writes \a size number of bytes from the buffer \a buf into the CIRC_BUFFER \a cb. */
+extern int write_circbuf(CIRC_BUFFER *cb,const char *buf, int size);
+
+/** Reads \a size number of bytes from the CIRC_BUFFER \a cb starting from the given \a offset
+ * relative to the current read position into the buffer \a buf for the reader \a index .
+ * It doesn't modify the current read position in the buffer. */
 extern int peek_circbuf_area(CIRC_BUFFER *cb,char *buf, int size, int index, int offset);
+
+extern int InitializeCriticalSection(sem_t *semaphore);
+extern int EnterCriticalSection(sem_t *semaphore);
+extern int LeaveCriticalSection(sem_t *semaphore);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 

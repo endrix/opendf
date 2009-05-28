@@ -51,7 +51,7 @@ import net.sf.opendf.cal.interpreter.Procedure;
  * A MethodObject represents a Java method inside the interpreter. It encapsulates the functionality required
  * to apply the method like a function, or to call it like a procedure.
  *
- *  @author Jörn W. Janneck <janneck@eecs.berkeley.edu>, Christopher Chang <cbc@eecs.berkeley.edu>
+ *  @author Jorn W. Janneck <janneck@eecs.berkeley.edu>, Christopher Chang <cbc@eecs.berkeley.edu>
  */
 
 public class MethodObject implements Function, Procedure {

@@ -46,8 +46,8 @@ class BlockModule extends ContainerModule implements XlimBlockModule, AbstractBl
 
 	ContainerModule mParent;
 	
-	public BlockModule(String kind, ContainerModule parent, Factory factory) {
-		super(kind, parent, factory);
+	public BlockModule(String kind, ContainerModule parent) {
+		super(kind, parent);
 		mParent=parent;
 	}
 
@@ -56,6 +56,21 @@ class BlockModule extends ContainerModule implements XlimBlockModule, AbstractBl
 		return mParent;
 	}
 
+	@Override
+	public void setParentModule(ContainerModule parent) {
+		mParent=parent;
+		if (parent!=null)
+			updateModuleLevel(parent);
+	}
+	
+	@Override
+	public void substituteStateValueNodes() {
+		// Substitute StateValueNodes (definitions) in the operations that use them
+		// so that this module can be moved
+		for(AbstractBlockElement child: mChildren)
+			child.substituteStateValueNodes();
+	}
+	
 	@Override
 	public <Result, Arg> Result accept(XlimBlockElement.Visitor<Result, Arg> visitor, Arg arg) {
 		return visitor.visitBlockModule(this, arg);

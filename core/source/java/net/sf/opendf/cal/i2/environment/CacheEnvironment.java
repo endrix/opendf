@@ -48,7 +48,7 @@ import net.sf.opendf.cal.i2.Environment;
  * This is useful if some environments take significant time to look up values, such as is
  * the case for classloader-based environments.
  *
- *  @author Jörn W. Janneck <janneck@eecs.berkeley.edu>
+ *  @author Jorn W. Janneck <janneck@eecs.berkeley.edu>
  */
 
 public class CacheEnvironment extends DynamicEnvironmentFrame {

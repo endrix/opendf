@@ -38,17 +38,18 @@ ENDCOPYRIGHT
 
 package net.sf.opendf.eclipse.plugin;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.eclipse.core.runtime.Status;
+import org.eclipse.ui.plugin.*;
+import org.eclipse.ui.console.*;
 import org.eclipse.jface.resource.ImageDescriptor;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.swt.graphics.Image;
+import java.util.*;
 
-public class OpendfPlugin extends AbstractUIPlugin {
+public class OpendfPlugin extends AbstractUIPlugin
+{
 
+	public static final String ID = "net.sf.opendf.eclipse.OpendfEditorPlugin";
   
   // indices into the imagePaths array
   public static final int IMAGE_action       =  0;
@@ -65,7 +66,7 @@ public class OpendfPlugin extends AbstractUIPlugin {
 
   public static String getId()
   {
-    return OpendfConstants.ID_PLUGIN;
+    return ID;
   }
   
   private static final String[] imagePaths =
@@ -95,12 +96,12 @@ public class OpendfPlugin extends AbstractUIPlugin {
 
 	public static void logInfoMessage( String msg )
 	{
-		plugin.getLog().log( new Status( Status.INFO, OpendfConstants.ID_PLUGIN, Status.OK, msg, null ));	
+		plugin.getLog().log( new Status( Status.INFO, ID, Status.OK, msg, null ));	
 	}
 
   public static void logErrorMessage( String msg, Throwable exception )
   {
-    plugin.getLog().log( new Status( Status.ERROR, OpendfConstants.ID_PLUGIN, Status.OK, msg, exception ));  
+    plugin.getLog().log( new Status( Status.ERROR, ID, Status.OK, msg, exception ));  
   }
   
 	public void start( BundleContext context ) throws Exception
@@ -130,7 +131,7 @@ public class OpendfPlugin extends AbstractUIPlugin {
 	 */
 	public static ImageDescriptor getImageDescriptor(String path)
 	{
-		return AbstractUIPlugin.imageDescriptorFromPlugin( OpendfConstants.ID_PLUGIN, path );
+		return AbstractUIPlugin.imageDescriptorFromPlugin( ID, path );
 	}
   
   private void createImages()

@@ -49,7 +49,7 @@ import net.sf.opendf.cal.i2.types.Type;
  * A LambdaFunction is a function object that is created as the result of evaluating
  * a lambda expression.
  *
- * @author Jörn W. Janneck <janneck@eecs.berkeley.edu>
+ * @author Jorn W. Janneck <janneck@eecs.berkeley.edu>
  */
 
 public class LambdaFunction implements Function

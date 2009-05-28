@@ -42,7 +42,7 @@ package net.sf.opendf.cal.interpreter;
 /**
  * This implementation of the InputPort interface represents ports that are not multiports.
  *
- * @author Jörn W. Janneck <janneck@eecs.berkeley.edu>
+ * @author Jorn W. Janneck <janneck@eecs.berkeley.edu>
  * @see InputPort
  */
 

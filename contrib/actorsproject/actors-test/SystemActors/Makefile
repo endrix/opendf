@@ -13,7 +13,7 @@ DEST_DIR=$(datadir)/actors-test/SystemActors
 TESTS=txtTest binTest
 
 # Files that need to be modified when installed (excluding .in suffix)
-IN_FILES=Makefile $(TESTS:%=config-%.c) $(TESTS:%=%.nl)
+IN_FILES=Makefile $(TESTS:%=%.nl)
 
 # Generate sed scripts that substitutes @datadir@
 SEDIFY=$(srcdir)/../../install-scripts/sedify.sh

@@ -37,8 +37,13 @@
 
 package eu.actorsproject.xlim;
 
+import eu.actorsproject.xlim.dependence.PhiOperator;
+
 public interface XlimPhiNode extends XlimInstruction {
 
 	@Override
 	XlimPhiContainerModule getParentModule();
+
+	@Override
+	PhiOperator getValueOperator();
 }

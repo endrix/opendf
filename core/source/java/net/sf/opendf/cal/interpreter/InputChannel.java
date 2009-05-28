@@ -43,7 +43,7 @@ package net.sf.opendf.cal.interpreter;
  * An input channel provides the actor with a finite or infinite sequence of tokens on each firing. A key property is
  * that the value of a token at a given position will not change during a firing.
  *
- * @author Jörn W. Janneck <janneck@eecs.berkeley.edu>
+ * @author Jorn W. Janneck <janneck@eecs.berkeley.edu>
  */
 
 public interface InputChannel {

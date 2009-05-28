@@ -49,7 +49,7 @@ public interface XlimFactory {
 
 	XlimDesign createDesign(String name);
 	
-	XlimInitValue createInitValue(int value, XlimType type);
+	XlimInitValue createInitValue(String value, XlimType type);
 	XlimInitValue createInitValue(List<? extends XlimInitValue> aggregate);
 
 	XlimOutputPort createOutputPort(XlimType type);

@@ -43,7 +43,7 @@ package net.sf.opendf.cal.interpreter;
  * This interface describes a function, which is an object that can be applied to a number of arguments to yield
  * a value.
  *
- * @author Jörn W. Janneck <janneck@eecs.berkeley.edu>
+ * @author Jorn W. Janneck <janneck@eecs.berkeley.edu>
  */
 
 public interface Function {

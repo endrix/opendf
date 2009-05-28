@@ -43,6 +43,7 @@ import java.util.Collections;
 import eu.actorsproject.util.XmlElement;
 import eu.actorsproject.xlim.XlimInstruction;
 import eu.actorsproject.xlim.XlimOutputPort;
+import eu.actorsproject.xlim.XlimStateCarrier;
 import eu.actorsproject.xlim.XlimType;
 import eu.actorsproject.xlim.dependence.ValueNode;
 import eu.actorsproject.xlim.dependence.ValueOperator;
@@ -65,7 +66,17 @@ class OutputPort extends ValueNode implements XlimOutputPort {
 	public ValueOperator getDefinition() {
 		return mParent.getValueOperator();
 	}
-	
+		
+	@Override
+	public XlimStateCarrier getStateCarrier() {
+		return null; // null for OutputPorts
+	}
+
+	@Override
+	public ValueNode getDominatingDefinition() {
+		return null; // null for OutputPorts
+	}
+
 	@Override
 	public XlimInstruction getParent() {
 		return mParent;
@@ -101,6 +112,24 @@ class OutputPort extends ValueNode implements XlimOutputPort {
 		return mType;
 	}
 	
+	
+	@Override
+	public XlimType actualOutputType() {
+		Operation op=mParent.isOperation();
+		if (op==null) {
+			// Phi-node: actual type and declared type the same
+			return mType;
+		}
+		else {
+			for (int i=0; i<op.getNumOutputPorts(); ++i)
+				if (op.getOutputPort(i)==this) {
+					OperationKind kind=op.getOperationKind();
+					return kind.actualOutputType(op, i);
+				}
+			throw new IllegalStateException("OutputPort not found in its parent");
+		}
+	}
+
 	@Override
 	public OutputPort isOutputPort() {
 		return this; // yes, it's an OutputPort (see XlimSource)

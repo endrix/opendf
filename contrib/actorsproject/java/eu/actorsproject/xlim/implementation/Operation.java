@@ -41,10 +41,13 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 
+import org.w3c.dom.NamedNodeMap;
+
 
 import eu.actorsproject.util.Linkage;
 import eu.actorsproject.util.XmlElement;
 import eu.actorsproject.xlim.XlimBlockElement;
+import eu.actorsproject.xlim.XlimModule;
 import eu.actorsproject.xlim.XlimOperation;
 import eu.actorsproject.xlim.XlimOutputPort;
 import eu.actorsproject.xlim.XlimSource;
@@ -57,19 +60,20 @@ import eu.actorsproject.xlim.dependence.InputValueIteration;
 import eu.actorsproject.xlim.dependence.ValueNode;
 import eu.actorsproject.xlim.dependence.ValueOperator;
 import eu.actorsproject.xlim.dependence.ValueUsage;
+import eu.actorsproject.xlim.io.ReaderContext;
 
 class Operation extends Linkage<AbstractBlockElement> 
                        implements XlimOperation, Instruction, AbstractBlockElement {
 
-	private OperationKind mKind;
+	protected OperationKind mKind;
 	private ContainerModule mParent;
 	private ArrayList<InputPort> mInputs;
 	private ArrayList<OutputPort> mOutputs;
 	
 	public Operation(OperationKind kind,
-	                        Collection<? extends XlimSource> inputs,
-	                        Collection<? extends XlimOutputPort> outputs,
-	                        ContainerModule parent) {
+	                 Collection<? extends XlimSource> inputs,
+	                 Collection<? extends XlimOutputPort> outputs,
+	                 ContainerModule parent) {
 		mKind=kind;
 		mParent=parent;
 		mInputs = new ArrayList<InputPort>(inputs.size());
@@ -92,6 +96,16 @@ class Operation extends Linkage<AbstractBlockElement>
 	@Override
 	public ContainerModule getParentModule() {
 		return mParent;
+	}
+	
+	
+	public XlimModule usedInModule(ValueUsage usage) {
+		return mParent;
+	}
+
+	@Override
+	public void setParentModule(ContainerModule parent) {
+		mParent=parent;
 	}
 
 	public Iterable<InputPort> getInputPorts() {
@@ -123,7 +137,7 @@ class Operation extends Linkage<AbstractBlockElement>
 	}	
 	
 	@Override
-	public XlimOperation isOperation() {
+	public Operation isOperation() {
 		return this;
 	}
 	
@@ -157,17 +171,26 @@ class Operation extends Linkage<AbstractBlockElement>
 	/*
 	 * Implementation of XlimOperation
 	 */
-	
+		
 	@Override
 	public String getKind() {
-		return mKind.toString();
+		return mKind.getKindAttribute();
 	}
 
+	OperationKind getOperationKind() {
+		return mKind;
+	}
+	
 	@Override
 	public Long getIntegerValueAttribute() {
 		return null;
 	}
 
+	@Override
+	public String getValueAttribute() {
+		return null;
+	}
+	
 	@Override
 	public XlimTopLevelPort getPortAttribute() {
 		return null;
@@ -204,6 +227,11 @@ class Operation extends Linkage<AbstractBlockElement>
 	}
 
 	@Override
+	public boolean setValueAttribute(String value) {
+		return false;
+	}
+	
+	@Override
 	public boolean setPortAttribute(XlimTopLevelPort port) {
 		return false;
 	}
@@ -221,6 +249,10 @@ class Operation extends Linkage<AbstractBlockElement>
 	@Override
 	public boolean setBlockingStyle() {
 		return false;
+	}
+	
+	void setAttributes(NamedNodeMap attributes, ReaderContext context) {
+		mKind.setAttributes(this,attributes,context);
 	}
 	
 	@Override
@@ -268,14 +300,25 @@ class Operation extends Linkage<AbstractBlockElement>
 		}
 	}
 
+	@Override
+	public void substituteStateValueNodes() {
+		// Substitute StateValueNodes (definitions) in the operations that use them
+		// so that this operation can be moved
+		if (mayModifyState()) {
+			for (ValueNode output: getOutputValues()) {
+				ValueNode domDef=output.getDominatingDefinition();
+				output.substitute(domDef);
+			}
+		}
+	}
 	
 	/**
-	 * Sets dependence links (of stateful resources) in added code,
+	 * Sets (or updates) dependence links (of stateful resources) in Operation
 	 * computes the set of exposed uses and new values
-	 * @param context
+	 * @param context (keeps track of exposed uses and new definitions)
 	 */
 	@Override
-	public void fixupAddedCode(FixupContext context) {
+	public void fixupAll(FixupContext context) {
 		if (mayAccessState())
 			context.fixup(getUsedValues());
 		if (mayModifyState())

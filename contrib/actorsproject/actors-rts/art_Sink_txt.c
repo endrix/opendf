@@ -39,6 +39,7 @@
  * Actor Sink
  */
 
+#include <string.h>
 #include <unistd.h>
 #include <stdio.h>
 #include <fcntl.h>
@@ -49,15 +50,24 @@
 
 typedef struct {
   AbstractActorInstance base;
-  int fd;
+  FILE *fd;
 } ActorInstance;
 
 
 static void a_action_scheduler(AbstractActorInstance*);
 static void constructor(AbstractActorInstance*);
 static void destructor(AbstractActorInstance*);
-static void set_param(AbstractActorInstance*,ActorParameter*);
+static void set_param(AbstractActorInstance*,int,ActorParameter*);
 
+static const PortDescription inputPortDescriptions[]={
+  {"In", sizeof(int32_t)}
+};
+
+static const int consumption[] = { 1 };
+
+static const ActionDescription actionDescriptions[] = {
+  {0, consumption, 0}
+};
 
 ActorClass ActorClass_art_Sink_txt ={
   "art_Sink_txt",
@@ -67,40 +77,46 @@ ActorClass ActorClass_art_Sink_txt ={
   a_action_scheduler,
   constructor,
   destructor,
-  set_param
+  set_param,
+  inputPortDescriptions,
+  0, /* outputPortDescriptions */
+  0, /* actorExecMode */
+  1, /* numActions */
+  actionDescriptions
 };
 
 static void Read0(ActorInstance *thisActor) {
-	int			ret;
-	char		buf[MAX_DATA_LENGTH];
-	long		*val = (long*)&buf;
+	int			ret = -1;
+	int			val;
 	static int	count;
 
-	ret = pinRead2(&thisActor->IN0_A,buf,thisActor->IN0_TOKENSIZE);
-	if(thisActor->fd)
+	if (thisActor->IN0_TOKENSIZE == sizeof(val));
+		ret = pinRead2(&thisActor->IN0_A,(char*)&val,thisActor->IN0_TOKENSIZE);
+	if(ret == 0)
 	{
- 		fprintf((FILE*)thisActor->fd,"%ld\n",*val);
-	}
-	else
-	{
-		printf("%d %ld\n",count++,*val);
+		if(thisActor->fd)
+		{
+			fprintf(thisActor->fd,"%d\n",val);
+		}
+		else
+		{
+			printf("%d %d\n",count++,val);
+		}
 	}
 }
 
 static void a_action_scheduler(AbstractActorInstance *pBase) {
   ActorInstance *thisActor=(ActorInstance*) pBase;
-	int available;
 
 	while(1)
 	{
-		available=pinStatus2(&thisActor->IN0_A);
-		if(available>=thisActor->IN0_TOKENSIZE)
+		if(pinAvailIn_int32_t(&thisActor->IN0_A)>=1)
 		{
 			Read0(thisActor);	
 		}
 		else
 		{
-			pinWait(&thisActor->IN0_A,thisActor->IN0_TOKENSIZE);
+			pinWaitIn(&thisActor->IN0_A,thisActor->IN0_TOKENSIZE);
 			return;
 		}
 	}
@@ -114,13 +130,19 @@ static void destructor(AbstractActorInstance *pBase)
 {
 	ActorInstance *thisActor=(ActorInstance*) pBase;
 	if(thisActor->fd)
-		fclose((FILE*)thisActor->fd);
+		fclose(thisActor->fd);
 }
 
-static void set_param(AbstractActorInstance *pBase,ActorParameter *param){
+static void set_param(AbstractActorInstance *pBase,int numParams,ActorParameter *param){
 	ActorInstance *thisActor=(ActorInstance*) pBase;
-	if(strcmp(param->key,"fileName") == 0)
+	ActorParameter *p;
+	int	i;
+	thisActor->fd = NULL;
+	for(i=0,p=param; i<numParams; i++,p++)
 	{
-		thisActor->fd = (int)fopen(param->value,"w");
+		if(strcmp(param->key,"fileName") == 0)
+		{
+			thisActor->fd = fopen(p->value,"w");
+		}
 	}
 }

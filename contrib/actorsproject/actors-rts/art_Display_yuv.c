@@ -47,6 +47,9 @@
 #include <linux/fb.h>
 #include <sys/mman.h>
 #include <sys/ioctl.h>
+#ifdef GTK
+#include <gtk/gtk.h>
+#endif
 #include "actors-rts.h"
 
 /*To make sure that you are bounding your inputs in the range of 0 & 255*/
@@ -59,11 +62,13 @@
 // #define WIDTH	176
 // #define HIGHT	144
 #define DEPTH	12
-#define FRAME_YUV_SIZE			thisActor->width*thisActor->hight*DEPTH/8
+#define FRAME_YUV_SIZE			thisActor->width*thisActor->height*DEPTH/8
 #define	MICRO_YUV_SIZE			6*64
 #define MICRO_RGB_SIZE			4*64
 #define WIDTH_IN_MB				11
 #define HIGHT_IN_MB				9
+#define IMAGE_WIDTH				176
+#define IMAGE_HEIGHT			144
 
 #define IN0_A					base.inputPort[0]
 #define IN0_TOKENSIZE			base.inputPort[0].tokenSize
@@ -74,9 +79,15 @@ typedef struct {
   struct fb_fix_screeninfo	finfo;
   char						*fbp;
   int 						fbfd;
-  int						hight;
+  int						height;
   int						width;
-
+#ifdef GTK
+  GtkWidget					*window;
+  GtkWidget					*darea;
+  int						ppf;	
+  guchar					rgbbuf[IMAGE_WIDTH*IMAGE_HEIGHT*3];
+#endif
+  char						*title;	
   int 						START_U;
   int 						START_V;
   int 						MB_SIZE;
@@ -92,7 +103,18 @@ typedef struct {
 static void a_action_scheduler(ActorInstance *);
 static void constructor(AbstractActorInstance*);
 static void destructor(AbstractActorInstance*);
-static void set_param(AbstractActorInstance*,ActorParameter*);
+static void set_param(AbstractActorInstance*,int,ActorParameter*);
+
+static const PortDescription inputPortDescriptions[]={
+  {"In", sizeof(int32_t)}
+};
+
+static const int consumption[] = { 1 };
+
+static const ActionDescription actionDescriptions[] = {
+  {0, consumption, 0}
+};
+
 
 ActorClass ActorClass_art_Display_yuv ={
   "art_Display_yuv",
@@ -102,8 +124,32 @@ ActorClass ActorClass_art_Display_yuv ={
   (void*)a_action_scheduler,
   constructor,
   destructor,
-  set_param
+  set_param,
+  inputPortDescriptions,
+  0, /* outputPortDescriptions */
+  0, /* actorExecMode */
+  1, /* numActions */
+  actionDescriptions
 };
+
+#ifdef GTK
+static void on_darea_expose(GtkWidget *widget,GdkEventExpose *event,gpointer user_data)
+{
+	ActorInstance *thisActor = (ActorInstance *)user_data;
+	gdk_draw_rgb_image(widget->window, widget->style->fg_gc[GTK_STATE_NORMAL],
+		      0, 0, thisActor->width, thisActor->height,
+		      GDK_RGB_DITHER_MAX, thisActor->rgbbuf, thisActor->width*3);
+	gtk_main_quit();
+}
+
+static void display_gdk(ActorInstance *thisActor)
+{
+	gtk_signal_connect(GTK_OBJECT(thisActor->darea), "expose-event",GTK_SIGNAL_FUNC(on_darea_expose), thisActor);
+	gtk_drawing_area_size(GTK_DRAWING_AREA(thisActor->darea), thisActor->width,thisActor->height);
+	gtk_widget_show_all(thisActor->window);
+	gtk_main();
+}
+#endif
 
 static void display_mb(ActorInstance *thisActor){
 	int i,j,k;
@@ -111,8 +157,12 @@ static void display_mb(ActorInstance *thisActor){
 	int	dj,dk;
 	int	ruv,guv,buv;
 	int	y,t,r,g,b,jj,kk;
+#if defined FB
 	unsigned long location;
 	unsigned short rgb565;
+#elif defined GTK
+	int xy;
+#endif
 
 	for(j=0; j<8; j++){
 		for(k=0; k<8; k++){
@@ -131,13 +181,30 @@ static void display_mb(ActorInstance *thisActor){
 					r = (t+ruv)>>8;
 					g = (t+guv)>>8;
 					b = (t+buv)>>8;
+#if defined FB
 					rgb565 = RGB565(SATURATE8(r),SATURATE8(g),SATURATE8(b));
 					location = (thisActor->mbx+kk+thisActor->vinfo.xoffset) * (thisActor->vinfo.bits_per_pixel/8) + (thisActor->mby+jj+thisActor->vinfo.yoffset) * thisActor->finfo.line_length;
 					*((unsigned short int*)(thisActor->fbp + location)) = rgb565;
+#elif defined GTK
+					xy = (thisActor->mby+jj) * thisActor->width;
+					xy += thisActor->mbx+kk;
+					xy *= 3;
+					thisActor->rgbbuf[xy++]=SATURATE8(r);
+					thisActor->rgbbuf[xy++]=SATURATE8(g);
+					thisActor->rgbbuf[xy++]=SATURATE8(b);
+					thisActor->ppf += 3;
+#endif	
 				}
 			}
 		}
 	}
+#ifdef GTK
+	if(thisActor->ppf == thisActor->width*thisActor->height*3)
+	{
+		thisActor->ppf = 0;
+		display_gdk(thisActor);
+	}
+#endif
 }
 
 static void done_mb(ActorInstance *thisActor)
@@ -181,21 +248,17 @@ static void Read0(ActorInstance *thisActor) {
 
 static void a_action_scheduler(ActorInstance *thisActor)
 {
-	int available;
-
 	while(1)
 	{
-		available=pinStatus2(&thisActor->IN0_A);
-
 		if(thisActor->count == 64 && thisActor->comp == 5)
 			done_mb(thisActor);
 		else if(thisActor->count == 64)
 			done_comp(thisActor);
-		else if(available>=thisActor->IN0_TOKENSIZE)
+		else if(pinAvailIn_int32_t(&thisActor->IN0_A)>=1)
 			Read0(thisActor);	
 		else
 		{
-			pinWait(&thisActor->IN0_A,thisActor->IN0_TOKENSIZE);
+			pinWaitIn(&thisActor->IN0_A,thisActor->IN0_TOKENSIZE);
 			return;
 		}
 	}
@@ -205,6 +268,7 @@ static void constructor(AbstractActorInstance *pBase)
 {
 	ActorInstance	*thisActor=(ActorInstance*) pBase;
 
+#ifdef FB
 	/* size of video memory in bytes */
 	long int screensize;
 
@@ -239,7 +303,17 @@ static void constructor(AbstractActorInstance *pBase)
         perror("mmap()");
         exit(4);
     }
-
+#elif defined GTK
+	gtk_init(NULL,NULL);
+	gdk_init(NULL, NULL);
+	gdk_rgb_init();
+	thisActor->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+	thisActor->darea = gtk_drawing_area_new();
+ 	gtk_drawing_area_size(GTK_DRAWING_AREA(thisActor->darea), IMAGE_WIDTH, IMAGE_HEIGHT);
+ 	gtk_container_add(GTK_CONTAINER(thisActor->window),thisActor->darea);
+	gtk_window_set_title(GTK_WINDOW(thisActor->window),thisActor->title);
+	thisActor->ppf=0;
+#endif
 	thisActor->START_U = 4*64;
 	thisActor->START_V = 5*64;
 	thisActor->MB_SIZE = 6*64;
@@ -263,29 +337,18 @@ static void destructor(AbstractActorInstance *pBase)
     	close(thisActor->fbfd);
 }
 
-static void set_param(AbstractActorInstance *pBase,ActorParameter *param){
+static void set_param(AbstractActorInstance *pBase,int numParams,ActorParameter *param)
+{
 	ActorInstance *thisActor=(ActorInstance*) pBase;
-	if(strcmp(param->key,"displayMode") == 0)
+	ActorParameter *p;
+	int	i;
+	for(i=0,p=param; i<numParams; i++,p++)
 	{
-		if(strcmp(param->value,"sqcif")==0){
-			thisActor->hight = 128;
-			thisActor->width = 96;
-		}
-		else if(strcmp(param->value,"qcif")==0){
-			thisActor->hight = 144;
-			thisActor->width = 176;
-		}
-		else if(strcmp(param->value,"qvga")==0){
-			thisActor->hight = 320;
-			thisActor->width = 240;
-		}
-		else if(strcmp(param->value,"vga")==0){
-			thisActor->hight = 720;
-			thisActor->width = 480;
-		}
-		else{
-			thisActor->hight = 320;
-			thisActor->width = 240;
-		}
+		if(strcmp(p->key,"title") == 0)
+			thisActor->title = p->value;
+		else if(strcmp(p->key,"height") == 0)
+			thisActor->height = atoi(p->value);
+		else if(strcmp(p->key,"width") == 0)	
+			thisActor->width = atoi(p->value);
 	}
 }

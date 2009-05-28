@@ -51,7 +51,8 @@ public interface XlimOperation extends XlimBlockElement, XlimInstruction {
 	XlimStateVar getStateVarAttribute(); // target of assign, name of var_ref
 	XlimTaskModule getTaskAttribute();   // target of taskCall
 	XlimTopLevelPort getPortAttribute(); // portName of pinRead, pinWrite, pinPeek, pinStatus
-	Long getIntegerValueAttribute();     // value of $literal_integer
+	Long getIntegerValueAttribute();     // value of $literal_Integer (interpreted as integer)
+	String getValueAttribute();          // value of $literal_Integer
 	boolean hasBlockingStyle();          // "style" attribute is "blocking"
 	
 	/**
@@ -67,5 +68,6 @@ public interface XlimOperation extends XlimBlockElement, XlimInstruction {
 	boolean setTaskAttribute(XlimTaskModule task);
 	boolean setPortAttribute(XlimTopLevelPort port);
 	boolean setIntegerValueAttribute(long value);
+	boolean setValueAttribute(String value);
 	boolean setBlockingStyle();
 }

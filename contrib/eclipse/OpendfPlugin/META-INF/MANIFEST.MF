@@ -1,11 +1,10 @@
 Bundle-Name: Open Dataflow Editor Plugin
-Bundle-SymbolicName: net.sf.opendf.eclipse.plugin;singleton:=true
-Bundle-Version: 1.2.10
+Bundle-SymbolicName: net.sf.opendf.eclipse.OpendfEditorPlugin;singleton:=true
+Bundle-Version: 1.2.8
 Bundle-Activator: net.sf.opendf.eclipse.plugin.OpendfPlugin
 Bundle-Vendor: The Open Dataflow Project
 Bundle-Localization: 
 Require-Bundle: org.eclipse.core.runtime,
- org.eclipse.debug.core,
  org.eclipse.debug.ui,
  org.eclipse.jface.text,
  org.eclipse.ui,
@@ -14,7 +13,7 @@ Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.ui.ide,
  org.eclipse.ui.views,
  org.eclipse.ui.workbench.texteditor,
- net.sf.opendf.eclipse.core
+ net.sf.opendf.OpendfCorePlugin
 Eclipse-LazyStart: true
 Provide-Package: net.sf.opendf.eclipse.plugin,
  net.sf.opendf.eclipse.plugin.config,
@@ -23,5 +22,5 @@ Provide-Package: net.sf.opendf.eclipse.plugin,
  net.sf.opendf.eclipse.plugin.editors.outline,
  net.sf.opendf.eclipse.plugin.editors.rules,
  net.sf.opendf.eclipse.plugin.editors.scanners,
- net.sf.opendf.eclipse.plugin.launcher,
- net.sf.opendf.eclipse.plugin.launcher.tabs
+ net.sf.opendf.eclipse.plugin.simulators,
+ net.sf.opendf.eclipse.plugin.simulators.tabs

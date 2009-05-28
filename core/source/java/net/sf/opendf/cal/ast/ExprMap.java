@@ -40,7 +40,7 @@ ENDCOPYRIGHT
 package net.sf.opendf.cal.ast;
 
 /**
- * @author Jörn W. Janneck <jwj@acm.org>
+ * @author Jorn W. Janneck <jwj@acm.org>
  */
 
 public class ExprMap extends Expression {

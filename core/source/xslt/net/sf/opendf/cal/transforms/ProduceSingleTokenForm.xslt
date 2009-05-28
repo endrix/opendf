@@ -21,7 +21,8 @@
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
   xmlns:math="http://exslt.org/math"
   xmlns:fn="http://www.w3.org/2004/10/xpath-functions"
-  extension-element-prefixes="xsl math fn"
+  xmlns:sb="systembuilder"
+  extension-element-prefixes="xsl math fn sb"
   version="2.0">
   <xsl:output method="xml"/>
 

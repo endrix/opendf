@@ -52,15 +52,25 @@ class LoopModule extends PhiContainerModule implements XlimLoopModule {
 
 	ContainerModule mBodyModule;
 		
-	public LoopModule(ContainerModule parent, Factory factory) {
-		super(parent, factory);
-		mBodyModule = new SubModule("body",factory);
+	public LoopModule(ContainerModule parent) {
+		super(parent);
+		mBodyModule = new SubModule("body");
 	}
 	
 	public XlimContainerModule getBodyModule() {
 		return mBodyModule;
 	}
 
+	@Override
+	protected boolean updateModuleLevel(AbstractModule parent) {
+		if (super.updateModuleLevel(parent)) {
+			getTestModule().updateModuleLevel(this);
+			mBodyModule.updateModuleLevel(this);
+			return true;
+		}
+		else
+			return false;
+	}
 	/**
 	 * Gets the predecessor module corresponding to the input ports of the phi-nodes
 	 * @param path (0 or 1) pre-header and loop body, respectively
@@ -103,16 +113,16 @@ class LoopModule extends PhiContainerModule implements XlimLoopModule {
 	}
 	
 	/**
-	 * Sets dependence links (of stateful resources) in added code,
+	 * Sets (or updates) dependence links (of stateful resources)
 	 * computes the set of exposed uses and new values
-	 * @param dominatingContext
+	 * @param dominatingContext (keeps track of exposed uses and new definitions)
 	 */
 	@Override
-	public void fixupAddedCode(FixupContext dominatingContext) {
+	public void fixupAll(FixupContext dominatingContext) {
 		// Create a sub-context (initially empty set of new values) and process the loop
 		FixupContext loopContext=dominatingContext.createFixupSubContext();
-		getTestModule().fixupAddedCode(loopContext);
-		mBodyModule.fixupAddedCode(loopContext);
+		getTestModule().fixupAll(loopContext);
+		mBodyModule.fixupAll(loopContext);
 
 		// Create phi-nodes and use them to resolve exposed uses in loop
 		createStatePhiOperators(loopContext.getNewValues());

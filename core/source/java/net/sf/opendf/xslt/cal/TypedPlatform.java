@@ -41,7 +41,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 /**
- *  @author Jörn W. Janneck <janneck@eecs.berkeley.edu>
+ *  @author Jorn W. Janneck <janneck@eecs.berkeley.edu>
  */
 
 public class TypedPlatform implements Platform {
@@ -472,47 +472,7 @@ public class TypedPlatform implements Platform {
         	}
         }));
 
-
-		env.bind("bitselect", context().createFunction(new AbstractBinarySBFunction() {
-
-    	    protected TypedObject  doValueFunction(TypedObject a, TypedObject b) {
-    	    	if (context().isInteger(a) && context().isInteger(b)) {
-					BigInteger n = context().asBigInteger(a).mod(new BigInteger("2").pow(context().intValue(b)));
-    	    		return (TypedObject)context().createInteger(n, n.bitLength() + 1, true);
-    	    	} else
-					throw new RuntimeException("Cannot bitselect. (" + a + "<" + ((a == null) ? "NULL" : a.getType()) + ">, " 
-    	    				                                   + b + "<" + ((b == null) ? "NULL" : b.getType()) + ">");
-    	    }
-
-    	    protected Type doTypeFunction(Type a, Type b) {
-        		if (Type.nameInt.equals(a.getName()) && Type.nameInt.equals(b.getName())) {
-        			int w = ((Integer)a.getValueParameters().get(Type.vparSize)).intValue();
-					return Type.create(Type.nameInt,
-							Collections.EMPTY_MAP,
-							Collections.singletonMap(Type.vparSize, new Integer(w)));
-        		} else {
-					throw new RuntimeException("Cannot bitselect types: " + a + ", " + b + ".");
-        		}
-    	    }
-        }));
-		
-		env.bind("bitconcat", context().createFunction(new Function() {
-            public Object apply(Object[] args) {
-            	  try {
-                      Object a = args[0];
-                      Object b = args[1];
-                      Object c = args[2];
-                      BigInteger n = context().asBigInteger(a).shiftLeft(context().intValue(c)).or(context().asBigInteger(b));
-          	    	  return (TypedObject)context().createInteger(n, n.bitLength() + 1, true);
-                  } catch (Exception ex) {
-                      throw new InterpreterException("Function 'bitconcat': Cannot apply.", ex);
-                  }
-            }
-
-            public int arity() {
-                return 3;
-            }
-        }));
+        
 
         env.bind("$negate", context().createFunction(new AbstractUnarySBFunction() {
 

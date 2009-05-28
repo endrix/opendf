@@ -1,5 +1,5 @@
 /*
- * 
+ * Xilinx Top Secret.
  *
  * Copyright (c) 2007 Xilinx, Inc.  All rights reserved.
  */

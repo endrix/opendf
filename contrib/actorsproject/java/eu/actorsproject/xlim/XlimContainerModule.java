@@ -40,9 +40,17 @@ package eu.actorsproject.xlim;
 import java.util.List;
 
 public interface XlimContainerModule extends XlimModule {
+	/** 
+	 * @return Block elements of this container module
+	 */
 	@Override
 	Iterable<? extends XlimBlockElement> getChildren();
 
+	/** 
+	 * @return Block elements of this container module (in reverse order)
+	 */
+	Iterable<? extends XlimBlockElement> getChildrenReverse();
+	
 	/**
 	 * @return value of mutex attribute (if present and "true")
 	 */	
@@ -82,6 +90,14 @@ public interface XlimContainerModule extends XlimModule {
 	void startPatchAtEnd();
 	
 	/**
+	 * Starts a patch at the beginning of the module. Subsequent calls to
+	 * addOperation, addBlockModule, etc. will insert the new elements 
+	 * at the beginning of the module.
+	 * Complete the patch using completePatchAndFixup().
+	 */
+	void startPatchAtBeginning();
+	
+	/**
 	 * Starts a patch before the given block element. Subsequent calls to
 	 * addOperation, addBlockModule, etc. will insert the new elements prior
 	 * to 'element'.
@@ -106,5 +122,23 @@ public interface XlimContainerModule extends XlimModule {
 	void completePatchAndFixup();
 	
 	
-	void remove(XlimBlockElement child);
+	/**
+	 * Removes element from container module and data dependence graph
+	 * @param element
+	 */
+	void remove(XlimBlockElement element);
+	
+	/**
+	 * Removes element from its container module, but not from data dependence graph
+	 * and inserts it into this container 
+	 * @param element
+	 */
+	void cutAndPaste(XlimBlockElement element);
+	
+	/**
+	 * Removes all elements from "module", but not from data dependence graph
+	 * and inserts it into this container 
+	 * @param module
+	 */
+	void cutAndPasteAll(XlimContainerModule module);
 }

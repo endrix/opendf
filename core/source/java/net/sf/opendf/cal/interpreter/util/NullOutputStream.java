@@ -46,7 +46,7 @@ import java.io.OutputStream;
  * This class realizes /dev/null-like output streams, i.e. writing to this stream does not have any
  * effect. It also has a static field that contains an instance of this class.
  *
- *  @author Jörn W. Janneck <janneck@eecs.berkeley.edu>
+ *  @author Jorn W. Janneck <janneck@eecs.berkeley.edu>
  */
 
 public class NullOutputStream extends OutputStream {

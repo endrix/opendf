@@ -34,37 +34,33 @@ BEGINCOPYRIGHT X
 	SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	
 ENDCOPYRIGHT
- */
+*/
 
 package net.sf.opendf.eclipse.plugin.editors;
 
 import org.eclipse.jface.text.*;
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IResource;
-import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.ui.texteditor.ITextEditor;
 
 import net.sf.opendf.eclipse.plugin.editors.outline.*;
 import net.sf.opendf.eclipse.plugin.editors.checkers.*;
 
-public class CALEditor extends OpendfEditor {
-	public CALEditor() {
+public class CALEditor extends OpendfEditor
+{    	
+	public CALEditor()
+	{
 		super();
-		setSourceViewerConfiguration(new CALConfiguration(getPreferenceStore(),
-				colorManager));
+		setSourceViewerConfiguration( new CALConfiguration( getPreferenceStore(), colorManager ) );
 	}
 
-	public OpendfDocumentListener createDocumentListener(IFile file,
-			IDocument document) {
-		return new OpendfDocumentListener(new CALDocumentChecker(file, document));
-	}
+	public OpendfDocumentListener createDocumentListener( IFile file, IDocument document )
+  {
+    return new OpendfDocumentListener( new CALDocumentChecker( file, document ) );
+  }
 
-	public OpendfContentOutlinePage createOutlinePage(ITextEditor editor) {
-		return new CALContentOutlinePage(editor);
-	}
-
-	public IResource getResource() {
-		return (IResource) ((IAdaptable) getEditorInput().getAdapter(IResource.class));
-	}
+  public OpendfContentOutlinePage createOutlinePage( ITextEditor editor )
+  {
+    return new CALContentOutlinePage( editor );
+  }
 
 }

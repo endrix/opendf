@@ -3,20 +3,24 @@
    <description url="http://opendf.sourceforge.net/eclipse">
       The Open Dataflow Project Update Site
    </description>
-   <feature url="features/net.sf.opendf.eclipse.feature_1.2.13.jar" id="net.sf.opendf.eclipse.feature" version="1.2.13">
+   <feature url="features/net.sf.opendf.eclipse.feature_1.2.6.jar" id="net.sf.opendf.eclipse.feature" version="1.2.6" patch="true">
       <category name="Open Dataflow Project Plugin"/>
    </feature>
-   <feature url="features/net.sf.opendf.eclipse.hwcompiler_1.0.17.jar" id="net.sf.opendf.eclipse.hwcompiler" version="1.0.17">
-      <category name="Cal2HDL compiler"/>
+   <feature url="features/net.sf.opendf.eclipse.feature_1.2.7.jar" id="net.sf.opendf.eclipse.feature" version="1.2.7" patch="true">
+      <category name="Open Dataflow Project Plugin"/>
    </feature>
-   <category-def name="Open Dataflow Project Plugin" label="Open Dataflow Project Editing">
+   <feature url="features/net.sf.opendf.eclipse.feature_1.2.8.jar" id="net.sf.opendf.eclipse.feature" version="1.2.8" patch="true">
+      <category name="Open Dataflow Project Plugin"/>
+   </feature>
+   <feature url="features/net.sf.opendf.eclipse.feature_1.2.9.jar" id="net.sf.opendf.eclipse.feature" version="1.2.9" patch="true">
+      <category name="Open Dataflow Project Plugin"/>
+   </feature>
+   <feature url="features/net.sf.opendf.eclipse.feature_1.2.10.jar" id="net.sf.opendf.eclipse.feature" version="1.2.10" patch="true">
+      <category name="Open Dataflow Project Plugin"/>
+   </feature>
+   <category-def name="Open Dataflow Project Plugin" label="net.sf.opendf.eclipse.basic">
       <description>
          Provides CAL/NL editing capablity and documentation.
-      </description>
-   </category-def>
-   <category-def name="Cal2HDL compiler" label="Hardware Compiler">
-      <description>
-         Provides the Hardware compiler from Cal implementation
       </description>
    </category-def>
 </site>

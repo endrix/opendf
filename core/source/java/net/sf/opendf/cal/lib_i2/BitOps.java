@@ -38,15 +38,12 @@ ENDCOPYRIGHT
 
 package net.sf.opendf.cal.lib_i2;
 
-import java.math.BigInteger;
-
 import net.sf.opendf.cal.i2.Configuration;
 import net.sf.opendf.cal.i2.Environment;
 import net.sf.opendf.cal.i2.environment.DynamicEnvironmentFrame;
 import net.sf.opendf.cal.i2.environment.EnvironmentFactory;
 import net.sf.opendf.cal.i2.util.FunctionOf1;
 import net.sf.opendf.cal.i2.util.FunctionOf2;
-import net.sf.opendf.cal.i2.util.FunctionOf3;
 
 /**
  * 
@@ -120,25 +117,6 @@ public class BitOps implements EnvironmentFactory {
                 int aa = conf.intValue(a);
                 int bb = conf.intValue(b);
                 return conf.createInteger(aa << bb);
-            }
-        }, null);
-
-		env.bind("bitselect", new FunctionOf2() {
-        	@Override
-        	public Object f(Object a, Object b) {
-                int aa = conf.intValue(a);
-                int bb = conf.intValue(b);
-                return BigInteger.valueOf(aa).mod(new BigInteger("2").pow(bb));
-            }
-        }, null);
-		
-		env.bind("bitconcat", new FunctionOf3() {
-        	@Override
-        	public Object f(Object a, Object b, Object c) {
-                int aa = conf.intValue(a);
-                int bb = conf.intValue(b);
-                int cc = conf.intValue(b);
-                return BigInteger.valueOf((aa<<cc)|bb);
             }
         }, null);
 

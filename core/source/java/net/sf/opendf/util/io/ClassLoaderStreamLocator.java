@@ -6,10 +6,11 @@ import net.sf.opendf.util.logging.Logging;
 
 public class ClassLoaderStreamLocator implements StreamLocator {
 
-	public InputStream getAsStream(String name) {
-		InputStream s = loader.getResourceAsStream(name);
-		Logging.dbg().info("ClassLoaderStreamLocator: Locating '" + name + "' " + (s == null ? "failed" : "succeeded") + ".");
-		return s;
+	public SourceStream getAsStream(String name) {
+		InputStream is = loader.getResourceAsStream(name);
+		SourceStream ss = (is == null) ? null : new SourceStream(is, "using classloader:" + loader.toString() ); //FIXME
+		Logging.dbg().info("ClassLoaderStreamLocator: Locating '" + name + "' " + (is == null ? "failed" : "succeeded") + ".");
+		return ss;
 	}
 	
 	public ClassLoaderStreamLocator(ClassLoader loader) {

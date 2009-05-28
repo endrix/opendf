@@ -51,7 +51,7 @@ import net.sf.opendf.cal.i2.ObjectSink;
  * corresponding class object. The class object is constructed by the context.
  *
  *
- *  @author Jörn W. Janneck <janneck@eecs.berkeley.edu>
+ *  @author Jorn W. Janneck <janneck@eecs.berkeley.edu>
  */
 
 public class SingleClassEnvironment extends SingleEntryEnvironment {

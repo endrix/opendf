@@ -46,7 +46,66 @@
 
 #define max(a,b)		(a>b)?a:b
 
-CIRC_BUFFER				circularBuf[256];
+#ifdef CB_MUTEXTED
+#define LOCK(_ic)			EnterCriticalSection(&(_ic->lock))
+#define UNLOCK(_ic)			LeaveCriticalSection(&(_ic->lock))
+#define RELEASE(_ic)		DeleteCriticalSection(&(_ic->lock))
+#define INIT(_ic)			InitializeCriticalSection(&(_ic->lock))
+#else
+#define LOCK(_ic)
+#define UNLOCK(_ic)
+#define RELEASE(_ic)
+#define INIT(_ic)
+#endif
+
+
+CIRC_BUFFER				circularBuf[MAX_CIRCBUF_LEN];
+
+int InitializeCriticalSection(sem_t *semaphore)
+{
+	int ret;
+	ret = sem_init(semaphore, 0, 1);
+	if(ret != 0){
+		perror("Unable to initialize the semaphore");
+	}
+	return ret;
+}
+
+int EnterCriticalSection(sem_t *semaphore)
+{
+	int ret;
+	do {
+		ret = sem_wait(semaphore);
+		if (ret != 0){
+		/* the lock wasn't acquired */
+		if (errno != EINVAL) {
+			perror("Error in sem_wait.");
+			return -1;
+		} else {
+			/* sem_wait() has been interrupted by a signal: looping again */
+			printf("sem_wait interrupted. Trying again for the lock...\n");
+		}
+		}
+	} while (ret != 0);
+
+	return ret;
+}
+
+int LeaveCriticalSection(sem_t *semaphore)
+{
+	int ret;
+	ret = sem_post(semaphore);
+	if (ret != 0)
+		perror("Error in sem_post");
+	return ret;
+}
+
+int DeleteCriticalSection(sem_t *semaphore)
+{
+	int ret;
+	ret = sem_destroy(semaphore);
+	return ret; 
+}
 
 void init_block(BLOCK *b)
 {
@@ -54,13 +113,15 @@ void init_block(BLOCK *b)
 	b->num = 0;
 }
 
-void init_circbuf(CIRC_BUFFER *cb,int numReaders)
+void init_circbuf(CIRC_BUFFER *cb,int numReaders, int length)
 {
 	int i;
 
 	memset(cb,0,sizeof(CIRC_BUFFER));
+	cb->length = length;
+	cb->buf = (char*)malloc(cb->length);
 	init_block(&cb->block);
-
+	INIT(cb);
 	cb->numReaders = numReaders;
 	cb->reader = (READER*)malloc(sizeof(READER)*numReaders);
 	memset(cb->reader,0,sizeof(READER)*numReaders);
@@ -73,40 +134,50 @@ int get_circbuf_space(CIRC_BUFFER *cb)
 	int space = 0;
 	int	i,area = 0;
 
+	LOCK(cb);
+
 	for(i=0; i<cb->numReaders;i++)
 	{
 		area = max(area,(cb->numWrites - cb->reader[i].numReads));
 	}	
 	
-	space = MAX_CIRCBUF_LEN - area;
+	space = cb->length - area;
 
 	if(space < TOKEN_SIZE)
 		cb->stats.nospace++;
 
+	UNLOCK(cb);
+
 	return space;
 }	
 
-int get_circbuf_area(CIRC_BUFFER *cb,int index)
+int get_circbuf_area(CIRC_BUFFER *cb,int which)
 {
 	int area = 0;
 
-	area = cb->numWrites - cb->reader[index].numReads;
+	LOCK(cb);
+
+	area = cb->numWrites - cb->reader[which].numReads;
 	
 	if(area < TOKEN_SIZE)
 		cb->stats.nodata++;
+
+	UNLOCK(cb);
 
 	return area;
 
 }
 
-int peek_circbuf_area(CIRC_BUFFER *cb,char *buf, int size, int index, int offset)
+int peek_circbuf_area(CIRC_BUFFER *cb,char *buf, int size, int which, int offset)
 {
 	int dist;
-	int readptr = cb->reader[index].readptr + offset;
+	int readptr = cb->reader[which].readptr + offset;
 
-	if( ( readptr + size) > MAX_CIRCBUF_LEN )  
+	LOCK(cb);
+
+	if( ( readptr + size) > cb->length )  
 	{
-		dist = MAX_CIRCBUF_LEN - readptr;
+		dist = cb->length - readptr;
 		memcpy(buf, (cb->buf + readptr), dist);
 		memcpy(buf + dist, cb->buf, size - dist);
 	}
@@ -116,40 +187,48 @@ int peek_circbuf_area(CIRC_BUFFER *cb,char *buf, int size, int index, int offset
 
 	}
 
+	UNLOCK(cb);
+
 	return 0;	
 }
 
-int read_circbuf(CIRC_BUFFER *cb,char *buf, int size, int index)
+int read_circbuf(CIRC_BUFFER *cb,char *buf, int size, int which)
 {
 	int dist;
 
-	if( ( cb->reader[index].readptr + size) > MAX_CIRCBUF_LEN )  
+	LOCK(cb);
+
+	if( ( cb->reader[which].readptr + size) > cb->length )  
 	{
-		dist = MAX_CIRCBUF_LEN - cb->reader[index].readptr;
-		memcpy(buf, (cb->buf + cb->reader[index].readptr), dist);
+		dist = cb->length - cb->reader[which].readptr;
+		memcpy(buf, (cb->buf + cb->reader[which].readptr), dist);
 		memcpy(buf + dist, cb->buf, size - dist);
-		cb->reader[index].readptr = size - dist;
+		cb->reader[which].readptr = size - dist;
 	}
 	else
 	{
-		memcpy(buf, (cb->buf + cb->reader[index].readptr), size);
-		cb->reader[index].readptr += size;
+		memcpy(buf, (cb->buf + cb->reader[which].readptr), size);
+		cb->reader[which].readptr += size;
 
 	}
-	cb->reader[index].numReads += size; 
+	cb->reader[which].numReads += size; 
+
+	UNLOCK(cb);
 
 	return 0;
 }
 
-int write_circbuf(CIRC_BUFFER *cb,char *buf, int size)
+int write_circbuf(CIRC_BUFFER *cb,const char *buf, int size)
 {
 	int dist;
 
-	if( ( cb->writeptr + size) > MAX_CIRCBUF_LEN)
+	LOCK(cb);
+
+	if( ( cb->writeptr + size) > cb->length)
 	{
 
-		dist = MAX_CIRCBUF_LEN - cb->writeptr;
-		memcpy( (buf + cb->writeptr), buf,dist);
+		dist = cb->length - cb->writeptr;
+		memcpy( (cb->buf + cb->writeptr), buf,dist);
 		
 		memcpy(cb->buf, (buf + dist), size - dist);
 		cb->writeptr = size - dist;
@@ -162,5 +241,14 @@ int write_circbuf(CIRC_BUFFER *cb,char *buf, int size)
 
 	cb->numWrites += size;
 
+	UNLOCK(cb);
+
 	return 0;
+}
+
+void release_circbuf(CIRC_BUFFER *cb)
+{
+	RELEASE(cb);
+
+	return;
 }

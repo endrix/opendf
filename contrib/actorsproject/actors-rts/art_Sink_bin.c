@@ -39,6 +39,7 @@
  * Actor Sink
  */
 
+#include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/stat.h>
@@ -56,8 +57,17 @@ typedef struct {
 static void a_action_scheduler(AbstractActorInstance*);
 static void constructor(AbstractActorInstance*);
 static void destructor(AbstractActorInstance*);
-static void set_param(AbstractActorInstance*,ActorParameter*);
+static void set_param(AbstractActorInstance*,int,ActorParameter*);
 
+static const PortDescription inputPortDescriptions[]={
+  {"In", sizeof(int32_t)}
+};
+
+static const int consumption[] = { 1 };
+
+static const ActionDescription actionDescriptions[] = {
+  {0, consumption, 0}
+};
 
 ActorClass ActorClass_art_Sink_bin ={
   "art_Sink_bin",
@@ -67,7 +77,12 @@ ActorClass ActorClass_art_Sink_bin ={
   a_action_scheduler,
   constructor,
   destructor,
-  set_param
+  set_param,
+  inputPortDescriptions,
+  0, /* outputPortDescriptions */
+  0, /* actorExecMode */
+  1, /* numActions */
+  actionDescriptions
 };
 
 static void Read0(ActorInstance *thisActor) {
@@ -85,18 +100,16 @@ static void Read0(ActorInstance *thisActor) {
 
 static void a_action_scheduler(AbstractActorInstance *pBase) {
   ActorInstance *thisActor=(ActorInstance*) pBase;
-	int available;
 
 	while(1)
 	{
-		available=pinStatus2(&thisActor->IN0_A);
-		if(available>=thisActor->IN0_TOKENSIZE)
+		if(pinAvailIn_int32_t(&thisActor->IN0_A)>=1)
 		{
 			Read0(thisActor);	
 		}
 		else
 		{
-			pinWait(&thisActor->IN0_A,thisActor->IN0_TOKENSIZE);
+			pinWaitIn(&thisActor->IN0_A,thisActor->IN0_TOKENSIZE);
 			return;
 		}
 	}
@@ -113,10 +126,16 @@ static void destructor(AbstractActorInstance *pBase)
 		close(thisActor->fd);
 }
 
-static void set_param(AbstractActorInstance *pBase,ActorParameter *param){
+static void set_param(AbstractActorInstance *pBase,int numParams,ActorParameter *param){
 	ActorInstance *thisActor=(ActorInstance*) pBase;
-	if(strcmp(param->key,"fileName") == 0)
+	ActorParameter *p;
+	int	i;
+	thisActor->fd = 0;
+	for(i=0,p=param; i<numParams; i++,p++)
 	{
-		thisActor->fd = (int)open(param->value,O_CREAT|O_TRUNC|O_RDWR,S_IREAD|S_IWRITE);
+		if(strcmp(p->key,"fileName") == 0)
+		{
+			thisActor->fd = (int)open(p->value,O_CREAT|O_TRUNC|O_RDWR,S_IREAD|S_IWRITE);
+		}
 	}
 }

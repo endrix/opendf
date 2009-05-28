@@ -45,7 +45,7 @@ import eu.actorsproject.xlim.dependence.FixupContext;
 
 abstract class AbstractModule extends Linkage<AbstractBlockElement> implements XlimModule {
 
-	private int mLevel;
+	protected int mLevel;
 	protected int mUniqueId;
 	private static int mNextId;
 	
@@ -58,6 +58,15 @@ abstract class AbstractModule extends Linkage<AbstractBlockElement> implements X
 	@Override
 	public abstract AbstractModule getParentModule();
 
+	protected boolean updateModuleLevel(AbstractModule parent) {
+		int level=parent.mLevel+1;
+		if (level!=mLevel) {
+			mLevel=level;
+			return true;
+		}
+		return false;
+	}
+	
 	@Override
 	public XlimModule leastCommonAncestor(XlimModule module) {
 		if (module instanceof AbstractModule) {

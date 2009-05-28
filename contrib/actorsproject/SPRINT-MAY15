@@ -1,0 +1,82 @@
+Sprint ending May 15
+====================
+Targets of the sprint ending May, 15, 2009. 
+See description below for indices denoting work items (see also: TODO).
+
+Topic                   Item Who? (estimated effort)
+----------------------------------------------------
+Bugs/known issues        106 Johan (1 day)       
+Reduce runtime overhead  104 Charles (3 days)
+                             Patrik (3 days)
+                             Carl (3 days)
+                         105 Carl (3 days)
+Tracing                  212 Patrik (5 days)
+                         218 Carl (5 days)
+Support RVC MPEG         219 Johan (5 days)
+Floating-point support   220 Carl (5 days)
+                         221 Charles (2 days)
+FIFOs                    211 Johan (2 days)
+                             Charles (2 days)
+                         214 (a) Charles (2 days)
+GTK                      318 Charles (5 days)
+ 
+Total estimated effort
+Johan    8 days
+Charles 14 days
+Patrik   8 days
+Carl    16 days
+
+Bugs/known issues
+-----------------
+106. Elaboration of non-existant actors should be an error.
+     Currently, some weird $classname_0.calml is generated [actors-make]
+     Johan (1d)
+
+Reduce runtime overhead
+-----------------------
+104. Actors seem not to block as they should [Xlim2c+runtime?]
+     - Come to a final conclusion/identify what needs to be done
+       Charles, Patrik, Carl (start by a 3-day effort)
+     - Analyse profiles, detect sources of overhead, propose solution
+105. Generate code for both "wait on any" and "wait on all" [Xlim2c]
+     Currently we always do wait on any, by which some actors are
+     unblocked too early. (Now this only concerns non-deterministic
+     actors and some actors with complex scheduling conditions).
+     - Analyse, propose solution if possible... Carl (3-day start)
+
+Tracing
+-------
+212. Use TRACE macros to record/dump traces [runtime]
+     - Convert output to (XML?) format that we share with EFPL
+       Patrik (1w)
+218. Generate actor info, needed to produce action traces [Xlim2c]
+     Carl (1w)
+
+Support RVC MPEG
+----------------
+219. Support for repeat input/output patterns [SSAGenerator]
+     - Prestudy Johan (1w)
+     - Then we know what else is needed...
+
+Floating-point support
+----------------------
+220. Floating-point support [Xlim2c]
+     Carl (1w)
+221. 64-bit tokens, optimization for all token-sizes [Xlim2c, runtime]
+     Charles (2 days)
+
+
+FIFOs
+-----
+211. Control of buffer size for individual fifos [actors-make, runtime]
+     - Charles (2 days)
+     - Johan (2 days)
+214. Sources/sinks should write/read in chunks -not bytewise [runtime]
+     a) Sources (simpler?), Charles (2 day) 
+     b) Sinks, prestidy/design, (1w)
+
+GTK
+---
+318. Add support for GTK in display system actor.
+     Charles (5 days)
+
