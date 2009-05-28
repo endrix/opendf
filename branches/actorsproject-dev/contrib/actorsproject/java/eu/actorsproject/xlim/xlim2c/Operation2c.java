@@ -40,6 +40,7 @@ package eu.actorsproject.xlim.xlim2c;
 import eu.actorsproject.xlim.XlimInputPort;
 import eu.actorsproject.xlim.XlimOperation;
 import eu.actorsproject.xlim.XlimStateVar;
+import eu.actorsproject.xlim.XlimTopLevelPort;
 import eu.actorsproject.xlim.XlimType;
 
 import eu.actorsproject.xlim.codegenerator.ExpressionTreeGenerator;
@@ -57,7 +58,7 @@ public class Operation2c implements OperationGenerator {
 		new TypedPortOperationGenerator("pinRead","pinRead",true),
 		new TypedPortOperationGenerator("pinWrite","pinWrite",false),
 		new TypedPortOperationGenerator("pinPeek","pinPeek",true),
-		new PortOperationGenerator("pinStatus","pinStatus",true),
+		new PinStatusGenerator("pinStatus","pinStatus",true),
 		new VarRefGenerator("var_ref"),
 		new AssignGenerator("assign"),
 		new TaskCallGenerator("taskCall"),
@@ -86,7 +87,7 @@ public class Operation2c implements OperationGenerator {
 		new NoopGenerator("noop"),
 		new NoopGenerator("cast"),
 		new SelectorGenerator("$selector"),
-		new TypedPortOperationGenerator("pinAvail","pinAvail",true),
+		new PinAvailGenerator("pinAvail","pinAvail",true),
 		new PinWaitGenerator("pinWait","pinWait"),
 		new SignExtendGenerator("signExtend")
 	};
@@ -204,7 +205,7 @@ abstract class BasicGenerator implements OperationHandler {
  */
 class ApiCallGenerator extends BasicGenerator {
 	
-	private String mFunctionName;
+	protected String mFunctionName;
 	private boolean mHasGenerateExpression;
 	
 	public ApiCallGenerator(String opKind, 
@@ -261,7 +262,17 @@ class PortOperationGenerator extends ApiCallGenerator {
 			                      boolean hasGenerateExpression) {
 		super(opKind, functionName, hasGenerateExpression);
 	}
-				
+	
+	protected String getTypeSuffix(XlimOperation op, ExpressionTreeGenerator gen) {
+		XlimType t=op.getPortAttribute().getType();
+		return gen.getTargetTypeName(t);
+	}
+
+	protected String getDirectionSuffix(XlimOperation op) {
+		XlimTopLevelPort port=op.getPortAttribute();
+		return (port.getDirection()==XlimTopLevelPort.Direction.in)? "In" : "Out";
+	}
+
 	@Override
 	protected void generateArguments(XlimOperation op, ExpressionTreeGenerator gen) {
 		// Add the port attribute as first argument
@@ -286,16 +297,43 @@ class TypedPortOperationGenerator extends PortOperationGenerator {
 	
 	@Override
 	protected String getFunctionName(XlimOperation op, ExpressionTreeGenerator gen) {
-		XlimType t=op.getPortAttribute().getType();
-		String suffix=gen.getTargetTypeName(t);
-		return super.getFunctionName(op, gen) + "_" + suffix;
+		return mFunctionName + "_" + getTypeSuffix(op,gen);
 	}	
+}
+
+class PinStatusGenerator extends PortOperationGenerator {
+
+	public PinStatusGenerator(String opKind, String functionName, boolean hasGenerateExpression) {
+		super(opKind, functionName, hasGenerateExpression);
+	}
+
+	@Override
+	protected String getFunctionName(XlimOperation op, ExpressionTreeGenerator gen) {
+		return mFunctionName+getDirectionSuffix(op);
+	}
+}
+
+class PinAvailGenerator extends TypedPortOperationGenerator {
+
+	public PinAvailGenerator(String opKind, String functionName, boolean hasGenerateExpression) {
+		super(opKind, functionName, hasGenerateExpression);
+	}
+
+	@Override
+	protected String getFunctionName(XlimOperation op, ExpressionTreeGenerator gen) {
+		return mFunctionName+getDirectionSuffix(op)+"_"+getTypeSuffix(op,gen);
+	}
 }
 
 class PinWaitGenerator extends PortOperationGenerator {
 
 	public PinWaitGenerator(String opKind, String functionName) {
 		super(opKind, functionName, /* hasGenerateExpression */ false);
+	}
+	
+	@Override
+	protected String getFunctionName(XlimOperation op, ExpressionTreeGenerator gen) {
+		return mFunctionName + getDirectionSuffix(op);
 	}
 	
 	@Override
