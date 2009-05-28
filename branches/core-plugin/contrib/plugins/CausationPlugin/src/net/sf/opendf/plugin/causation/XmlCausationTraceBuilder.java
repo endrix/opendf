@@ -423,7 +423,8 @@ public class XmlCausationTraceBuilder implements CausationTraceBuilder {
 		if (number == 1)
 			return "00FF00";
 		double tint;
-		double alpha = (ncolor%3)*0.25-0.25;
+		double alpha = (ncolor%3)*0.25-1.0/12;
+		
 		if (ncolor*3<number)
 		{
 			tint = 3*(double)ncolor/(double)number;
