@@ -11,6 +11,7 @@ actor Idct2dSeq() bool SignIn,  int(size=10) DataIn
   int count:=0;
 
   action SignIn:[s] ==> SignOut:[s]
+  guard count=0
   do
     count:=count+64;
   end
