@@ -43,7 +43,7 @@ ENDCOPYRIGHT
 
 // Byte source for testbed. Rads from file until EOF.
 
-actor fread( string fname ) ==> int O :
+actor fread( String fname ) ==> int O :
 
   fd = openFile(fname);
   int nextc := readByte( fd );

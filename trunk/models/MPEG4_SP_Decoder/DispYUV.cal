@@ -40,8 +40,8 @@ import ptolemy.media.Picture;
 import javax.swing.JFrame;
 import java.lang.System;
 
-actor DispYUV [int] (string title,string file, int width,
-        int height, int doCompare ) list[int] B ==>  : 
+actor DispYUV (String title,String file, int width,
+        int height, int doCompare ) int B ==>  : 
 
   lastTime := 0;
 

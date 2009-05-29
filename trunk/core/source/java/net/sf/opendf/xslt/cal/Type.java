@@ -75,12 +75,12 @@ public class Type {
     public final static String nameClass = "_class";
     public final static String nameFunction = "function";
     public final static String nameInt = "int";
-    public final static String nameList = "list";
+    public final static String nameList = "List";
     public final static String nameMethod = "_method";
     public final static String nameNull = "null";
     public final static String nameProcedure = "procedure";
     public final static String nameReal = "real";
-    public final static String nameString = "string";
+    public final static String nameString = "String";
 
     public final static String tparType = "type";
     public final static String vparSize = "size";

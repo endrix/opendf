@@ -39,7 +39,7 @@ ENDCOPYRIGHT
 import ptolemy.media.Picture;
 import javax.swing.JFrame;
 
-actor Display (string title, int width, int height, int autoUpdate) 
+actor Display (String title, int width, int height, int autoUpdate) 
 			  X, Y, R, G, B, Repaint 
 			  ==>  : 
 
