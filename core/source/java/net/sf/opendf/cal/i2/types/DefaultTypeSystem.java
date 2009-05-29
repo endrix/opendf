@@ -75,7 +75,7 @@ public class DefaultTypeSystem implements TypeSystem {
 		addTypeClass(new TheRealType.TheClass("real", this));
 		addTypeClass(new TheComplexType.TheClass("complex", this));
 		
-		addTypeClass(new ListType.TheClass("list", this));
+		addTypeClass(new ListType.TheClass("List", this));
 	}
 	
 	private void addTypeClass(TypeClass tc) {

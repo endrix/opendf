@@ -41,7 +41,7 @@ ENDCOPYRIGHT
 // Author: David B. Parlour (dave.parlour@xilinx.com)
 //
 
-actor ReadFile( string fname ) ==> int D, Done :
+actor ReadFile( String fname ) ==> int D, Done :
 	
 	fd = openFile(fname);
 	int nextc := readByte( fd );

@@ -39,7 +39,7 @@ public class Types {
 	
 	public final static String  typeBoolean = "boolean";
 	public final static String  typeInt = "int";
-	public final static String  typeList = "list";
+	public final static String  typeList = "List";
 		
 	public final static String  attrSize = "size";
 }
