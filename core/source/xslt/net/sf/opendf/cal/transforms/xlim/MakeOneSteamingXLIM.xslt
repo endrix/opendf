@@ -39,7 +39,7 @@ ENDCOPYRIGHT
 -->
 
 <xsl:stylesheet
-  xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.1"
+  xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="2.0"
   xmlns:math="http://exslt.org/math"
   xmlns:xd="http://www.pnp-software.com/XSLTdoc"
   extension-element-prefixes="xsl math xd"  >
@@ -199,19 +199,42 @@ ENDCOPYRIGHT
   <!-- Any number of reads supported --> 
   <xsl:template match="Input">
     <xsl:variable name="port" select="@port"/>
-    <note kind="consumptionRates" name="{$port}" value="{count(Decl)}"/>          
+    <note kind="consumptionRate" name="{$port}" value="{count(Decl)}"/>          
     <xsl:for-each select="Decl">
       <xsl:variable name="type-attrs">
         <xsl:apply-templates select="Type"/>
       </xsl:variable>
       
-      <operation kind="pinRead" portName="{../@port}" removable="no" style="simple">
-        <port source="{@id}" dir="out">
-          <xsl:for-each select="$type-attrs/attr">
-            <xsl:attribute name="{@name}"><xsl:value-of select="@value"/></xsl:attribute>
+      <xsl:choose>      
+        <xsl:when test="./Type/@name = 'list'">
+          <stateVar name="{@id}">
+            <initValue typeName="List"/>
+          </stateVar> 
+          
+          <xsl:variable name="n" select="Type/Entry[@name='size']/Expr/@value"/>       
+          <xsl:variable name="here" select="."/>
+          <xsl:for-each select="1 to $n">          
+             <operation kind="pinRead" portName="{$here/../@port}" removable="no" style="simple">
+               <port source="{concat($here/@id, '$', $n)}" dir="out">
+                <xsl:for-each select="$type-attrs/attr">
+                  <xsl:attribute name="{$here/@name}"><xsl:value-of select="$here/@value"/></xsl:attribute>
+                </xsl:for-each>
+              </port>
+            </operation>
           </xsl:for-each>
-        </port>
-      </operation>
+        </xsl:when>  
+        
+        <xsl:otherwise>
+          <operation kind="pinRead" portName="{../@port}" removable="no" style="simple">
+            <port source="{@id}" dir="out">
+              <xsl:for-each select="$type-attrs/attr">
+                <xsl:attribute name="{@name}"><xsl:value-of select="@value"/></xsl:attribute>
+              </xsl:for-each>
+            </port>
+          </operation>
+        </xsl:otherwise>
+      </xsl:choose>
+      
     </xsl:for-each>
       
   </xsl:template>
@@ -363,7 +386,8 @@ ENDCOPYRIGHT
   <xsl:template match="*" mode="flatten-expr">
     <xsl:message>
       Unhandled Expr kind="<xsl:value-of select="@kind"/>", id="<xsl:value-of select="@id"/>
-    </xsl:message> </xsl:template>
+    </xsl:message> 
+  </xsl:template>
   
   <xsl:template match="Output">
     <xsl:apply-templates select="Expr"/>
@@ -372,6 +396,7 @@ ENDCOPYRIGHT
         <port dir="in" source="{@id}"/>
       </operation>
     </xsl:for-each>
+    <note kind="productionRate" name="{@port}" value="{count(Expr)}"/>    
   </xsl:template>
 
   <xsl:template match="Stmt[ @kind='Assign' ]">
@@ -955,10 +980,17 @@ ENDCOPYRIGHT
       <xsl:variable name="mul-name" select="concat(@id,'$MUL')"/>
       <xsl:variable name="this" select="concat(@id,'$ADDR')"/>
       <xsl:comment>Address multiplier for index <xsl:value-of select="$pos"/></xsl:comment>
-      <operation kind="$literal_Integer" value="{$const}">
+        <operation kind="$literal_Integer" value="{$const[1]}">
         <port source="{$const-name}" dir="out" typeName="int"
-          size="{ceiling( math:log($const + 1) div math:log(2)) + 1}"/>
+          size="{ceiling( math:log($const[1]+ 1) div math:log(2)) + 1}"/>
       </operation>
+      <!-- 
+      	TODO: In the above code I added access indexes for the const. For some reason
+      	there were several identical dimension notes for the same dimension. I believe this
+      	to be an error in the dimension transformation. The error was triggered when changing
+      	the stylesheet version from 1.1 to 2.0
+       -->
+      
       <operation kind="$mul">
         <port source="{$const-name}" dir="in"/>
         <port source="{@id}" dir="in"/>
