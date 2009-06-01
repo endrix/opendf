@@ -199,7 +199,7 @@ ENDCOPYRIGHT
   <!-- Any number of reads supported --> 
   <xsl:template match="Input">
     <xsl:variable name="port" select="@port"/>
-    <note kind="consumptionRate" name="{$port}" value="{count(Decl)}"/>          
+    <note kind="consumptionRates" name="{$port}" value="{count(Decl)}"/>          
     <xsl:for-each select="Decl">
       <xsl:variable name="type-attrs">
         <xsl:apply-templates select="Type"/>
@@ -396,7 +396,7 @@ ENDCOPYRIGHT
         <port dir="in" source="{@id}"/>
       </operation>
     </xsl:for-each>
-    <note kind="productionRate" name="{@port}" value="{count(Expr)}"/>    
+    <note kind="productionRates" name="{@port}" value="{count(Expr)}"/>    
   </xsl:template>
 
   <xsl:template match="Stmt[ @kind='Assign' ]">
