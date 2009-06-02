@@ -289,6 +289,13 @@ extern double pinPeek_double(ActorPort *actorPort, int offset);
  * read position (in tokens) and returns it. The current read position is not modified. */
 extern bool_t pinPeek_bool_t(ActorPort *actorPort, int offset);
 
+// Specialized pinPeeks that access first token
+// TODO: implement simpler/faster peeks for this common case
+// (no need to consider wrap-around in circular buffer) 
+#define pinPeekFront_int32_t(port) pinPeek_int32_t(port,0)
+#define pinPeekFront_double(port) pinPeek_double(port,0)
+#define pinPeekFront_bool_t(port) pinPeek_bool_t(port,0)
+
 /** Writes nonblocking the int-sized token with the given \a value into the given \a port .
  * Potentially blocked readers waiting that data becomes available in \a port are signalled. */
 extern int pinWrite(ActorPort * port, int value);
