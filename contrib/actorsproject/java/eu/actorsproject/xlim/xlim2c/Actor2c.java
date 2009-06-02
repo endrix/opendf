@@ -39,8 +39,11 @@ package eu.actorsproject.xlim.xlim2c;
 
 import java.io.File;
 import java.io.PrintStream;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import eu.actorsproject.util.OutputGenerator;
 import eu.actorsproject.xlim.XlimInitValue;
@@ -105,7 +108,7 @@ public class Actor2c extends OutputGenerator {
 	
 
 	/**
-	 * This header goes first in the output file
+	 * Generate header that goes first in the output file
 	 */
 	protected void createHeader() {
 		println("/*");
@@ -117,6 +120,9 @@ public class Actor2c extends OutputGenerator {
 		println("#include \""+sIncludedHeaderFile+"\"");
 	}
 
+	/**
+	 * Generate port macros
+	 */
 	protected void defineMacros() {
 		println();
 		definePortMacros(mDesign.getInputPorts(), sActorInputPortArray);
@@ -134,6 +140,12 @@ public class Actor2c extends OutputGenerator {
 		}
 	}
 
+	/**
+	 * Generate description of 'ports'
+	 * @param ports
+	 * @param name  Name of array holding port descriptions
+	 * @return number of ports
+	 */
 	protected int describePorts(List<? extends XlimTopLevelPort> ports,
 			                    String name) {
 		println();
@@ -145,7 +157,7 @@ public class Actor2c extends OutputGenerator {
 		else {	
 			int i=0;
 		
-			println("static PortDescription "+name+"[]={");
+			println("static const PortDescription "+name+"[]={");
 			increaseIndentation();
 			for (XlimTopLevelPort p: ports) {
 				if (i!=0)
@@ -161,48 +173,75 @@ public class Actor2c extends OutputGenerator {
 		}
 	}
 	
-	private void actionOnPorts(XlimTaskModule action, 
-				              List<? extends XlimTopLevelPort> ports,
-				              String arrayName) {
+	
+	/**
+	 * Generate array holding per-actor consumption (or production) rates
+	 * @param action
+	 * @param ports      All input (or output) ports
+	 * @param generated  Set of already generated arrays
+	 * @return           Name of generated array
+	 */
+	private String actionOnPorts(XlimTaskModule action, 
+				              List<? extends XlimTopLevelPort> ports, 
+	                          Set<String> generated) {
 		if (ports.isEmpty()==false) {
-			int i=0;
-			println();
-			println("static const int " + arrayName + "[] = {");
-			increaseIndentation();
-			for (XlimTopLevelPort port: ports) {
-				if (i!=0)
-					print(", ");
-				lineWrap(60);
-				print("0");
-				++i;
+			// encode the port rate in 'arrayName'
+			String arrayName="portRate";
+			for (XlimTopLevelPort port: ports)
+				arrayName += "_" + String.valueOf(action.getPortRate(port));
+
+			if (generated.add(arrayName)) {
+				// Create a new array
+				boolean comma=false;
+				println();
+				println("static const int " + arrayName + "[] = {");
+				increaseIndentation();
+				for (XlimTopLevelPort port: ports) {
+					if (comma)
+						print(", ");
+					lineWrap(60);
+					print(String.valueOf(action.getPortRate(port)));
+					comma=true;
+				}
+				decreaseIndentation();
+				println();
+				println("};");
 			}
-			decreaseIndentation();
-			println();
-			println("};");
+			return arrayName;
 		}
+		else
+			return "0"; // Null (empty)
 	}
 	
-	protected void describeAction(XlimTaskModule action, int index) {
-		print("{\""+action.getName()+"\", ");
-		if (mDesign.getInputPorts().isEmpty())
-			print("0, ");
-		else
-			print("consumption" + index + ", ");
-			
-		if (mDesign.getOutputPorts().isEmpty())
-			print("0}");
-		else
-			print("production" + index + "}");
+	/**
+	 * Generate action description
+	 * @param action
+	 * @param consumption  The action's array of consumption rates
+	 * @param production   The action's array of production rates
+	 */
+	protected void describeAction(XlimTaskModule action, String consumption, String production) {
+		print("{\"" + action.getName() + "\", " 
+				+ consumption + ", " + production + "}");
 	}
 
+	/**
+	 * Generate array holding action descriptions
+	 * @param descriptionArray
+	 * @return Number of actions
+	 */
 	protected int describeActions(String descriptionArray) {
 		int numActions=0;
 		XlimTaskModule actionScheduler = mDesign.getActionScheduler();
+		HashSet<String> rateArrays=new HashSet<String>();
+		ArrayList<String> consumption=new ArrayList<String>();
+		ArrayList<String> production=new ArrayList<String>();
 		
 		for (XlimTaskModule action: mDesign.getTasks())
 		    if (action!=actionScheduler) {
-		    	actionOnPorts(action, mDesign.getInputPorts(), "consumption"+numActions);
-				actionOnPorts(action, mDesign.getOutputPorts(), "production"+numActions);
+		    	String cRate=actionOnPorts(action, mDesign.getInputPorts(), rateArrays);
+				String pRate=actionOnPorts(action, mDesign.getOutputPorts(), rateArrays);
+				consumption.add(cRate);
+				production.add(pRate);
 		    	++numActions;
 		    }
 		
@@ -218,7 +257,7 @@ public class Actor2c extends OutputGenerator {
 			    if (action!=actionScheduler) {
 			    	if (index!=0)
 			    		println(",");
-			    	describeAction(action, index);
+			    	describeAction(action, consumption.get(index), production.get(index));
 			    	++index;
 			    }
 			println();

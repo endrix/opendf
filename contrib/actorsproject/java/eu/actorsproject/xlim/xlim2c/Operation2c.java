@@ -46,6 +46,7 @@ import eu.actorsproject.xlim.XlimType;
 import eu.actorsproject.xlim.codegenerator.ExpressionTreeGenerator;
 import eu.actorsproject.xlim.codegenerator.OperationGenerator;
 import eu.actorsproject.xlim.type.TypeFactory;
+import eu.actorsproject.xlim.util.LiteralPattern;
 import eu.actorsproject.xlim.util.OperationHandler;
 import eu.actorsproject.xlim.util.OperationPlugIn;
 import eu.actorsproject.xlim.util.Session;
@@ -57,6 +58,7 @@ public class Operation2c implements OperationGenerator {
 	private static BasicGenerator sGenerators[] = {
 		new TypedPortOperationGenerator("pinRead","pinRead",true),
 		new TypedPortOperationGenerator("pinWrite","pinWrite",false),
+		new PinPeekFrontGenerator("pinPeek", "pinPeekFront", true),
 		new TypedPortOperationGenerator("pinPeek","pinPeek",true),
 		new PinStatusGenerator("pinStatus","pinStatus",true),
 		new VarRefGenerator("var_ref"),
@@ -325,6 +327,29 @@ class PinAvailGenerator extends TypedPortOperationGenerator {
 	}
 }
 
+class PinPeekFrontGenerator extends TypedPortOperationGenerator {
+
+	private LiteralPattern zero=new LiteralPattern(0);
+	
+	public PinPeekFrontGenerator(String opKind, String functionName, boolean hasGenerateExpression) {
+		super(opKind, functionName, hasGenerateExpression);
+	}
+
+	/**
+	 * @param op XLIM operation
+	 * @return true for the special case pinPeek(port; 0) =peeking at the front of the fifo 
+	 */
+	public boolean supports(XlimOperation op) {
+		return zero.matches(op.getInputPort(0).getSource());
+	}
+	
+	@Override
+	protected void generateArguments(XlimOperation op, ExpressionTreeGenerator gen) {
+		// The port attribute is the only argument (zero input is implicit)
+		gen.print("&");
+		gen.print(op.getPortAttribute());
+	}
+}
 class PinWaitGenerator extends PortOperationGenerator {
 
 	public PinWaitGenerator(String opKind, String functionName) {

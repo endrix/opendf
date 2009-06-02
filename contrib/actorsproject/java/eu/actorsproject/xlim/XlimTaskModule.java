@@ -51,4 +51,18 @@ public interface XlimTaskModule extends XlimContainerModule {
 	String getName();
 	
 	CallNode getCallNode();
+	
+	/**
+	 * Sets the rate of port (the number of tokens consumed by the action from an 
+	 * input port or produced to an output port).
+	 * @param port
+	 * @param rate 
+	 */
+	void setPortRate(XlimTopLevelPort port, int rate);
+
+	/**
+	 * @param port
+	 * @return Rate of 'port' (0 if no consumption/production)
+	 */
+	int getPortRate(XlimTopLevelPort port);	
 }
