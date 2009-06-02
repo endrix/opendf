@@ -92,13 +92,15 @@ static const PortDescription outputPortDescriptions[]={
 static const int consumption_RA[] = {1, 0, 0};
 static const int consumption_WA[] = {0, 1, 0};
 static const int consumption_WD[] = {0, 0, 1};
+static const int consumption_0[] = {0, 0, 0};
 static const int production_RD[] = { 1 };
+static const int production_0[] = { 0 };
 
 static const ActionDescription actionDescriptions[] = {
-  {"select.read",  consumption_RA, 0},
-  {"select.write", consumption_WA, 0},
-  {"data.read",    0,              production_RD},
-  {"data.write",   consumption_WD, 0}
+  {"select.read",  consumption_RA, production_0},
+  {"select.write", consumption_WA, production_0},
+  {"data.read",    consumption_0,  production_RD},
+  {"data.write",   consumption_WD, production_0}
 };
 
 ActorClass ActorClass_art_DDRModel ={
