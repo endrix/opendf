@@ -90,6 +90,8 @@ static void Read0(ActorInstance *thisActor) {
 	int			val;
 	char		ch;
 
+	TRACE_ACTION(&thisActor->base, 0, "Read");
+
 	ret = pinRead2(&thisActor->IN0_A,(char*)&val,thisActor->IN0_TOKENSIZE);
 	if(thisActor->fd)
 	{

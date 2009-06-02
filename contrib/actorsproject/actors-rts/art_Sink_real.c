@@ -90,6 +90,8 @@ static void Read0(ActorInstance *thisActor) {
 	double		val;
 	static int	count;
 
+	TRACE_ACTION(&thisActor->base, 0, "Read");
+
 	if (thisActor->IN0_TOKENSIZE == sizeof(val));
 		ret = pinRead2(&thisActor->IN0_A,(char*)&val,thisActor->IN0_TOKENSIZE);
 	if(ret == 0)
