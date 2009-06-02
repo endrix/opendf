@@ -101,7 +101,7 @@ public class XlimReader {
 	protected static final int OPERATION_TAG=6;
 	protected static final int PHI_TAG=7;
 	protected static final int PORT_TAG=8;
-	
+	protected static final int NOTE_TAG=9;
 	
 	public XlimReader() {
 		mPlugIn=Session.getReaderPlugIn();
@@ -116,6 +116,7 @@ public class XlimReader {
 		mTags.put("operation", OPERATION_TAG);
 		mTags.put("PHI", PHI_TAG);
 		mTags.put("port", PORT_TAG);
+		mTags.put("note", NOTE_TAG);
 	}
 	
 	public XlimDesign read(File f) 
@@ -401,7 +402,7 @@ public class XlimReader {
 	protected class DesignPass2 extends PassPlugin<Object,Object> {
 		
 		protected void processTask(Element child, ReaderContext context, XlimTaskModule task) {
-			context.enterTask();
+			context.enterTask(task);
 			mDeclarationPass.declarePorts(child,context);
 			mBlockContainerPass.createContents(child,context,task);
 			context.leaveTask();
@@ -469,8 +470,23 @@ public class XlimReader {
 				createOperation(child,parent,context);
 			else if (tag==MODULE_TAG)
 				createModule(child,parent,context);
+			else if (tag==NOTE_TAG)
+				processNote(child, context);
 			else
 				unhandledTag(child);
+		}
+		
+		protected void processNote(Element note, ReaderContext context) {
+			String kind=getRequiredAttribute("kind",note);
+			
+			if (kind.equals("consumptionRates") || kind.equals("productionRates")) {
+				String name=getRequiredAttribute("name",note);
+				String rate=getRequiredAttribute("value", note);
+				XlimTopLevelPort port=context.getTopLevelPort(name);
+				if (port==null)
+				    throw new IllegalArgumentException("No such port (in <note>): "+name);
+				context.setPortRate(port, Integer.valueOf(rate));
+			}
 		}
 		
 		public void createContents(Element domModule, ReaderContext context, XlimContainerModule xlimModule) {

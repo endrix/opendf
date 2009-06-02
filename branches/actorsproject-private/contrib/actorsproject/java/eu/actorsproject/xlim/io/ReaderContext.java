@@ -51,6 +51,7 @@ public class ReaderContext {
 	private HashMap<String,XlimStateVar> mStateVars=new HashMap<String,XlimStateVar>();
 	private HashMap<String,XlimOutputPort> mOutputPorts;
 	private HashMap<String,String> mStrings=new HashMap<String,String>();
+	private XlimTaskModule mCurrentTask;
 	
 	public XlimTopLevelPort getTopLevelPort(String name) {
 		return mTopLevelPorts.get(name);
@@ -94,17 +95,26 @@ public class ReaderContext {
 			throw new IllegalArgumentException("Multiple definitions of source "+identifier);
 	}
 	
-	public void enterTask() {
+	public void enterTask(XlimTaskModule task) {
+		mCurrentTask=task;
 		mOutputPorts=new HashMap<String,XlimOutputPort>();
 	}
 	
 	public void leaveTask() {
+		mCurrentTask=null;
 		mOutputPorts=null;
 	}
 	
 	public void addOutputPort(String identifier, XlimOutputPort port) {
 		if (mOutputPorts.put(identifier,port)!=null)
 			throw new IllegalArgumentException("Multiple definitions of source "+identifier);
+	}
+	
+	public void setPortRate(XlimTopLevelPort port, int rate) {
+		if (mCurrentTask.getPortRate(port)==0)
+			mCurrentTask.setPortRate(port, rate);
+		else
+			throw new IllegalArgumentException("Multiple definitions of port rate: "+port.getSourceName());
 	}
 	
 	public String getString(String s) {
