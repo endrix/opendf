@@ -69,7 +69,7 @@ static const PortDescription outputPortDescriptions[]={
   {"Out", TOKENSIZE_IN_DOUBLE*sizeof(double)}
 };
 
-static const int production[] = { TOKENSIZE_IN_DOUBLE };
+static const int production[] = { 1 };
 
 static const ActionDescription actionDescriptions[] = {
   {0, 0, production}
@@ -133,7 +133,7 @@ static int Write0(ActorInstance *thisActor) {
 		else
 			thisActor->base.execState = 0;
 	} else {
-	  for (i = 0; i < TOKENSIZE_IN_DOUBLE; i++) {
+	  for (i = 0; i < ret; i++) {
 	    TRACE_ACTION(&thisActor->base, 0, "Write");
 	  }
 
