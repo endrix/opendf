@@ -116,9 +116,11 @@ static int read_file(FILE *fd, char *buf,int size)
 static int Write0(ActorInstance *thisActor) {
 	char		buf[MAX_DATA_LENGTH];
 	int			ret;
+	int             i;
 
 // 	ret = read_file(thisActor->fd,buf,thisActor->OUT0_TOKENSIZE);
 	ret = read_file(thisActor->fd,buf,TOKENSIZE_IN_DOUBLE);
+
 	if(ret<=0){
 		if(rts_mode == THREAD_PER_ACTOR)
 		{
@@ -130,9 +132,13 @@ static int Write0(ActorInstance *thisActor) {
 		}
 		else
 			thisActor->base.execState = 0;
-	}else
-		pinWrite2(&thisActor->OUT0_Result,buf,ret);
+	} else {
+	  for (i = 0; i < TOKENSIZE_IN_DOUBLE; i++) {
+	    TRACE_ACTION(&thisActor->base, 0, "Write");
+	  }
 
+	  pinWrite2(&thisActor->OUT0_Result,buf,ret);
+	}
 	return ret;
 }
 
