@@ -3,12 +3,12 @@ import java.util.Scanner;
 
 // Reads real tokens from a text file
 
-actor art_Source_txt(string fileName) ==> int Out:
+actor art_Source_real(string fileName) ==> real Out:
 
         File input:=File(fileName);
         Scanner scanner:=Scanner(input);
         
-	action ==> [scanner.nextInt()]
-        guard scanner.hasNextInt()
+	action ==> [scanner.nextDouble()]
+        guard scanner.hasNextDouble()
 	end
 end
