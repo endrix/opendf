@@ -43,8 +43,6 @@
 #include <stdio.h>
 #include <pthread.h>
 #include <assert.h>
-#include "circbuf.h"
-#include "dll.h"
 
 /* make the header usable from C++ */
 #ifdef __cplusplus
