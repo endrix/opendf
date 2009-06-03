@@ -61,7 +61,7 @@ typedef struct {
 static void a_action_scheduler(AbstractActorInstance*);
 static void constructor(AbstractActorInstance*);
 static void destructor(AbstractActorInstance*);
-static void set_param(AbstractActorInstance*,int,ActorParameter*);
+static void set_param(AbstractActorInstance*,const char*,const char*);
 
 // TODO: TOKENSIZE_IN_INT32 prevents us from type checking inputs/outputs
 // The token size is not really 8*sizeof(int32_t), we are writing 8 tokens
@@ -92,49 +92,39 @@ ActorClass ActorClass_art_Source_bin ={
   actionDescriptions
 };
 
-static int read_file(int fd, char *buf,int size)
+static int read_file(int fd, int32_t *buf,int size)
 {
 	int num = 0;
 	char tbuf[1024];
 	int i;
-	int32_t *pbuf = (int32_t*)buf;
+	int32_t *pbuf = buf;
 
 	if(fd){
 		num = read(fd,tbuf,size);
 		if(num>0)
 		{
-			for(i=0;i<num*sizeof(int32_t);i++)
+			for(i=0;i<num;i++,pbuf++)
 			{
-				*pbuf = tbuf[i];
-				pbuf++;
+				*pbuf = (int32_t)tbuf[i];
 			}
-			num *= sizeof(int32_t);
 		}
 	}
 	return num;
 }
 
 static int Write0(ActorInstance *thisActor) {
-	char		buf[MAX_DATA_LENGTH];
-	int			ret;
+	int32_t		buf[TOKENSIZE_IN_INT32];
+	int			i,ret;
 
-// 	ret = read_file(thisActor->fd,buf,thisActor->OUT0_TOKENSIZE>>2);
 	ret = read_file(thisActor->fd,buf,TOKENSIZE_IN_INT32);
 	
 	if(ret<=0){
-		if(rts_mode == THREAD_PER_ACTOR)
-		{
- 			close(thisActor->fd);
- 			thisActor->fd = 0;
- 			printf("Source %s exit!\n",thisActor->base.actor->name);
- 			actorStatus[thisActor->base.aid]=0;
- 			pthread_exit(NULL);
+		stop_run();
+	}else{
+		for(i=0; i<ret; i++){
+			pinWrite_int32_t(&thisActor->OUT0_Result,buf[i]);
 		}
-		else
-			thisActor->base.execState = 0;
 	}
-	pinWrite2(&thisActor->OUT0_Result,buf,ret);
-	
 	return ret;
 }
 
@@ -145,7 +135,7 @@ static void a_action_scheduler(AbstractActorInstance *pBase) {
 
 	while(1)
 	{
-		if(pinAvailOut_int32_t(&thisActor->OUT0_Result)>=1)
+		if(pinAvailOut(&thisActor->OUT0_Result)>=TOKENSIZE_IN_INT32)
 		{
 			ret = Write0(thisActor);	
 			if(ret <= 0)
@@ -170,16 +160,11 @@ static void destructor(AbstractActorInstance *pBase)
 		close(thisActor->fd);
 }
 
-static void set_param(AbstractActorInstance *pBase,int numParams,ActorParameter *param){
+static void set_param(AbstractActorInstance *pBase,const char *key, const char *value){
 	ActorInstance *thisActor=(ActorInstance*) pBase;
-	ActorParameter *p;
-	int	i;
 	thisActor->fd = 0;
-	for(i=0,p=param; i<numParams; i++,p++)
+	if(strcmp(key,"fileName") == 0)
 	{
-		if(strcmp(p->key,"fileName") == 0)
-		{
-			thisActor->fd = (int)open(p->value,O_RDONLY);
-		}
+		thisActor->fd = (int)open(value,O_RDONLY);
 	}
 }

@@ -121,7 +121,7 @@ ActorClass ActorClass_art_DDRModel ={
 static void a0_select_read(ActorInstance *thisActor) {
   TRACE_ACTION(&thisActor->base, 0, "select.read");
   int32_t t0;
-  t0=pinRead(&thisActor->IN0_RA);
+  t0=pinRead_int32_t(&thisActor->IN0_RA);
   thisActor->s0_address=t0;
   thisActor->s1_burstSize=(96);
   /* printf("Read ra=%6x f=%d x=%d y=%d\n",
@@ -135,7 +135,7 @@ static void a0_select_read(ActorInstance *thisActor) {
 static void a1_select_write(ActorInstance *thisActor) {
   TRACE_ACTION(&thisActor->base, 1, "select.write");
   int32_t t7;
-  t7=pinRead(&thisActor->IN1_WA);
+  t7=pinRead_int32_t(&thisActor->IN1_WA);
   thisActor->s0_address=t7;
   thisActor->s1_burstSize=(96);
   thisActor->s6_lastWA=t7;
@@ -154,7 +154,7 @@ static void a2_data_read(ActorInstance *thisActor) {
   t19=thisActor->s2_buf[RANGECHK((((1)*t15)),MEMSIZE)]; /*** MEMSIZE ***/
   t23=thisActor->s0_address;
   t29=thisActor->s1_burstSize;
-  pinWrite(&thisActor->OUT0_RD,t19);
+  pinWrite_int32_t(&thisActor->OUT0_RD,t19);
   thisActor->s0_address=(((int32_t) (((int64_t) t23)+((int64_t) (1)))));
   thisActor->s1_burstSize=(((int32_t) (((int64_t) t29)-((int64_t) (1)))));
 }
@@ -162,7 +162,7 @@ static void a2_data_read(ActorInstance *thisActor) {
 static void a3_data_write(ActorInstance *thisActor) {
   TRACE_ACTION(&thisActor->base, 3, "data.write");
   int32_t t38,t39,t43,t49;
-  t38=pinRead(&thisActor->IN2_WD);
+  t38=pinRead_int32_t(&thisActor->IN2_WD);
   t39=thisActor->s0_address;
   t43=thisActor->s1_burstSize;
   t49=thisActor->s0_address;

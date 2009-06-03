@@ -86,22 +86,17 @@ ActorClass ActorClass_art_Sink_real ={
 };
 
 static void Read0(ActorInstance *thisActor) {
-	int			ret = -1;
 	double		val;
 	static int	count;
 
-	if (thisActor->IN0_TOKENSIZE == sizeof(val));
-		ret = pinRead2(&thisActor->IN0_A,(char*)&val,thisActor->IN0_TOKENSIZE);
-	if(ret == 0)
+	val = pinRead_double(&thisActor->IN0_A);
+	if(thisActor->fd)
 	{
-		if(thisActor->fd)
-		{
-			fprintf(thisActor->fd,"%lf\n",val);
-		}
-		else
-		{
-			printf("%d %lf\n",count++,val);
-		}
+		fprintf(thisActor->fd,"%lf\n",val);
+	}
+	else
+	{
+		printf("%d %lf\n",count++,val);
 	}
 }
 
