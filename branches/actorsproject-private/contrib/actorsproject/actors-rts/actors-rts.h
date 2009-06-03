@@ -49,13 +49,8 @@
 extern "C" {
 #endif /* __cplusplus */
 
-#define INPUT				0
-#define OUTPUT				1
-#define INTERNAL			0
-#define EXTERNAL			1
 #define COPY(a)				a
 #define DEFAULT_FIFO_LENGTH	256
-#define MAX_ACTOR_NUM		128
 
 #define TRACE_ACTION(INSTANCE,INDEX,NAME) /* empty */
 
@@ -73,6 +68,14 @@ extern "C" {
 #define pinAvail_int32_t(port) pinAvail(port)
 #define pinAvail_bool_t(port) pinAvail(port)
 #define pinAvail_double(port) pinAvail(port)
+#define pinAvailIn_int32_t(port) pinAvailIn(port)
+#define pinAvailOut_int32_t(port) pinAvailOut(port)
+#define pinAvailIn_double(port) pinAvailIn(port)
+#define pinAvailOut_double(port) pinAvailOut(port)
+#define pinAvailIn_bool_t(port) pinAvailIn(port)
+#define pinAvailOut_bool_t(port) pinAvailOut(port)
+#define pinWaitIn(port, length) pinWait(port,length)
+#define pinWaitOut(port, length) pinWait(port, length)
 
 typedef int32_t				bool_t;
 
@@ -313,15 +316,6 @@ static inline void pinWrite_double(OutputPort *p, double token) {
 
 extern AbstractActorInstance	*actorInstance[];
 extern int						log_level;
-
-#define pinAvailIn_int32_t(port) pinAvailIn(port)
-#define pinAvailOut_int32_t(port) pinAvailOut(port)
-#define pinAvailIn_double(port) pinAvailIn(port)
-#define pinAvailOut_double(port) pinAvailOut(port)
-#define pinAvailIn_bool_t(port) pinAvailIn(port)
-#define pinAvailOut_bool_t(port) pinAvailOut(port)
-#define pinWaitIn(port, length) pinWait(port,length)
-#define pinWaitOut(port, length) pinWait(port, length)
 
 extern void trace(int level, const char*,...);
 extern int rangeError(int x, int y, const char *filename, int line);
