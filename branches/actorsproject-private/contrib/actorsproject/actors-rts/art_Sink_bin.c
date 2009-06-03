@@ -57,7 +57,7 @@ typedef struct {
 static void a_action_scheduler(AbstractActorInstance*);
 static void constructor(AbstractActorInstance*);
 static void destructor(AbstractActorInstance*);
-static void set_param(AbstractActorInstance*,int,ActorParameter*);
+static void set_param(AbstractActorInstance*,const char*,const char*);
 
 static const PortDescription inputPortDescriptions[]={
   {"In", sizeof(int32_t)}
@@ -86,14 +86,11 @@ ActorClass ActorClass_art_Sink_bin ={
 };
 
 static void Read0(ActorInstance *thisActor) {
-	int			ret;
-	int			val;
 	char		ch;
 
-	ret = pinRead2(&thisActor->IN0_A,(char*)&val,thisActor->IN0_TOKENSIZE);
+	ch = (char)pinRead_int32_t(&thisActor->IN0_A);
 	if(thisActor->fd)
 	{
-		ch = (char)val;
 		write(thisActor->fd,&ch,1);
 	}
 }
@@ -103,7 +100,7 @@ static void a_action_scheduler(AbstractActorInstance *pBase) {
 
 	while(1)
 	{
-		if(pinAvailIn_int32_t(&thisActor->IN0_A)>=1)
+		if(pinAvailIn(&thisActor->IN0_A)>=1)
 		{
 			Read0(thisActor);	
 		}
@@ -126,16 +123,11 @@ static void destructor(AbstractActorInstance *pBase)
 		close(thisActor->fd);
 }
 
-static void set_param(AbstractActorInstance *pBase,int numParams,ActorParameter *param){
+static void set_param(AbstractActorInstance *pBase,const char *key,const char *value){
 	ActorInstance *thisActor=(ActorInstance*) pBase;
-	ActorParameter *p;
-	int	i;
 	thisActor->fd = 0;
-	for(i=0,p=param; i<numParams; i++,p++)
+	if(strcmp(key,"fileName") == 0)
 	{
-		if(strcmp(p->key,"fileName") == 0)
-		{
-			thisActor->fd = (int)open(p->value,O_CREAT|O_TRUNC|O_RDWR,S_IREAD|S_IWRITE);
-		}
+		thisActor->fd = (int)open(value,O_CREAT|O_TRUNC|O_RDWR,S_IREAD|S_IWRITE);
 	}
 }

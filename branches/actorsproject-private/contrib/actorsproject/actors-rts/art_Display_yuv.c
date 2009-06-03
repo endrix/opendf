@@ -87,13 +87,14 @@ typedef struct {
   int						ppf;	
   guchar					rgbbuf[IMAGE_WIDTH*IMAGE_HEIGHT*3];
 #endif
-  char						*title;	
+  const char				*title;
   int 						START_U;
   int 						START_V;
   int 						MB_SIZE;
   unsigned char 			macroBlock[MICRO_YUV_SIZE];	
   int						mbx;
   int					 	mby;
+  int						frames;
   int 						count;
   int 						comp;
   int 						start;
@@ -103,7 +104,7 @@ typedef struct {
 static void a_action_scheduler(ActorInstance *);
 static void constructor(AbstractActorInstance*);
 static void destructor(AbstractActorInstance*);
-static void set_param(AbstractActorInstance*,int,ActorParameter*);
+static void set_param(AbstractActorInstance*,const char*,const char*);
 
 static const PortDescription inputPortDescriptions[]={
   {"In", sizeof(int32_t)}
@@ -209,7 +210,10 @@ static void display_mb(ActorInstance *thisActor){
 
 static void done_mb(ActorInstance *thisActor)
 {
+	static int old=0;
+#if (defined FB ||defined GTK)
 	display_mb(thisActor);
+#endif
 	thisActor->count = 0;
 	thisActor->comp = 0;
 	thisActor->start = 0;
@@ -219,6 +223,20 @@ static void done_mb(ActorInstance *thisActor)
 		thisActor->mby += 16;
 		if(thisActor->mby >= 16*HIGHT_IN_MB){
 			thisActor->mby = 0;
+			thisActor->frames++;
+		}
+	}
+	if(thisActor->frames>=5)
+	{
+		if(old==0)
+			old = time(0);
+		else{
+			int now = time(0);
+			if(now - old ==1){
+				printf("%d frames/sec\n",thisActor->frames);
+				thisActor->frames=0;
+				old = now;
+			}
 		}
 	}
 }
@@ -234,9 +252,9 @@ static void done_comp(ActorInstance *thisActor)
 }
 
 static void Read0(ActorInstance *thisActor) {
-	int			ret,val;
+	int			val;
 
-	ret = pinRead2(&thisActor->IN0_A,(char*)&val,thisActor->IN0_TOKENSIZE);
+	val = pinRead_int32_t(&thisActor->IN0_A);
 	thisActor->macroBlock[thisActor->start+thisActor->count] = (unsigned char)val;
 	thisActor->count++;
 
@@ -254,7 +272,7 @@ static void a_action_scheduler(ActorInstance *thisActor)
 			done_mb(thisActor);
 		else if(thisActor->count == 64)
 			done_comp(thisActor);
-		else if(pinAvailIn_int32_t(&thisActor->IN0_A)>=1)
+		else if(pinAvailIn(&thisActor->IN0_A)>=1)
 			Read0(thisActor);	
 		else
 		{
@@ -323,6 +341,7 @@ static void constructor(AbstractActorInstance *pBase)
 	thisActor->count=0;
 	thisActor->comp=0;
 	thisActor->start=0;
+	thisActor->frames=0;
 }
 
 static void destructor(AbstractActorInstance *pBase)
@@ -337,18 +356,13 @@ static void destructor(AbstractActorInstance *pBase)
     	close(thisActor->fbfd);
 }
 
-static void set_param(AbstractActorInstance *pBase,int numParams,ActorParameter *param)
+static void set_param(AbstractActorInstance *pBase,const char *key, const char *value)
 {
 	ActorInstance *thisActor=(ActorInstance*) pBase;
-	ActorParameter *p;
-	int	i;
-	for(i=0,p=param; i<numParams; i++,p++)
-	{
-		if(strcmp(p->key,"title") == 0)
-			thisActor->title = p->value;
-		else if(strcmp(p->key,"height") == 0)
-			thisActor->height = atoi(p->value);
-		else if(strcmp(p->key,"width") == 0)	
-			thisActor->width = atoi(p->value);
-	}
+	if(strcmp(key,"title") == 0)
+		thisActor->title = value;
+	else if(strcmp(key,"height") == 0)
+		thisActor->height = atoi(value);
+	else if(strcmp(key,"width") == 0)
+		thisActor->width = atoi(value);
 }

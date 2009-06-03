@@ -57,7 +57,7 @@ typedef struct {
 static void a_action_scheduler(AbstractActorInstance*);
 static void constructor(AbstractActorInstance*);
 static void destructor(AbstractActorInstance*);
-static void set_param(AbstractActorInstance*,int,ActorParameter*);
+static void set_param(AbstractActorInstance*,const char*,const char*);
 
 static const PortDescription inputPortDescriptions[]={
   {"In", sizeof(int32_t)}
@@ -86,22 +86,18 @@ ActorClass ActorClass_art_Sink_txt ={
 };
 
 static void Read0(ActorInstance *thisActor) {
-	int			ret = -1;
-	int			val;
+	int32_t		val;
 	static int	count;
 
-	if (thisActor->IN0_TOKENSIZE == sizeof(val));
-		ret = pinRead2(&thisActor->IN0_A,(char*)&val,thisActor->IN0_TOKENSIZE);
-	if(ret == 0)
+	val = pinRead_int32_t(&thisActor->IN0_A);
+
+	if(thisActor->fd)
 	{
-		if(thisActor->fd)
-		{
-			fprintf(thisActor->fd,"%d\n",val);
-		}
-		else
-		{
-			printf("%d %d\n",count++,val);
-		}
+		fprintf(thisActor->fd,"%d\n",val);
+	}
+	else
+	{
+		printf("%d %d\n",count++,val);
 	}
 }
 
@@ -110,7 +106,7 @@ static void a_action_scheduler(AbstractActorInstance *pBase) {
 
 	while(1)
 	{
-		if(pinAvailIn_int32_t(&thisActor->IN0_A)>=1)
+		if(pinAvailIn(&thisActor->IN0_A)>=1)
 		{
 			Read0(thisActor);	
 		}
@@ -133,16 +129,11 @@ static void destructor(AbstractActorInstance *pBase)
 		fclose(thisActor->fd);
 }
 
-static void set_param(AbstractActorInstance *pBase,int numParams,ActorParameter *param){
+static void set_param(AbstractActorInstance *pBase,const char *key, const char *value){
 	ActorInstance *thisActor=(ActorInstance*) pBase;
-	ActorParameter *p;
-	int	i;
 	thisActor->fd = NULL;
-	for(i=0,p=param; i<numParams; i++,p++)
+	if(strcmp(key,"fileName") == 0)
 	{
-		if(strcmp(param->key,"fileName") == 0)
-		{
-			thisActor->fd = fopen(p->value,"w");
-		}
+		thisActor->fd = fopen(value,"w");
 	}
 }
