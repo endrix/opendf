@@ -41,5 +41,5 @@ export STRIP    =$(STRIPTOOL) --remove-section=.note --remove-section=.comment
 # default tool options
 #
 
-export CFLAGS=-g -Wall
+export CFLAGS=-O3 -Wall
 export LDFLAGS=-L$(ACTORS_LIB) -lactors-rts -Wl,-rpath=$(ACTORS_LIB)
