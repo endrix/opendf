@@ -48,7 +48,7 @@ actor Retranspose ( int isz, int osz )
    int(size=isz) X0, int(size=isz) X1, int(size=isz) X2, int(size=isz) X3 ==> int(size=osz) Y :
 
   //List[ List[ List[ int(size=osz) ] ] ] mem :=
-  list ( type:list( type:list( type:int(size=osz), size=8), size=8), size=2) mem := 
+  List ( type:List( type:List( type:int(size=osz), size=8), size=8), size=2) mem := 
           [  [  [0 : for k in Integers(1, 8)]  : for j in Integers(1, 8)]   : for i in Integers(1, 2) ];
 
   int rcount := 0;

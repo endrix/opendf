@@ -65,9 +65,9 @@ actor DispYUV (String title,String file, int width,
     [ v : for i in Integers( 1, size ) ]
   end
 
-  list[ int ] yframe := initList( 0, ysize  );
-  list[ int ] uframe := initList( 0, uvsize );
-  list[ int ] vframe := initList( 0, uvsize );
+  List[ int ] yframe := initList( 0, ysize  );
+  List[ int ] uframe := initList( 0, uvsize );
+  List[ int ] vframe := initList( 0, uvsize );
 
   procedure readFrame()
   var

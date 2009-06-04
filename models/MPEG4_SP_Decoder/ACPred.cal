@@ -63,7 +63,7 @@ actor ACPred (
 
   // Initialize to the dummy values needed for uncoded blocks (always mapped to index 0)
   // Add 4 address lines  so that we can store the left edge and top edge AC values (14 in all).
-  list( type:int(size=SAMPLE_SZ), size=BUF_SIZE*16 ) buf := [ 0 : for k in Integers(1, BUF_SIZE*16)  ];
+  List( type:int(size=SAMPLE_SZ), size=BUF_SIZE*16 ) buf := [ 0 : for k in Integers(1, BUF_SIZE*16)  ];
 
   int(size=4) comp;
 
