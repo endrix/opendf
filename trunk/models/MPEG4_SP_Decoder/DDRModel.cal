@@ -78,7 +78,7 @@ actor DDRModel( MAXW_IN_MB, MAXH_IN_MB ) int(size=32)RA, int(size=32)WA, int(siz
   BURSTSIZE       = COMPONENTS * BLOCKSIZE / PIXELS_PER_WORD;
   // BURSTSIZE       = 96;
 
-  list( type:int(size=32), size=MEMSIZE ) buf := [ 0 : for i in Integers(1, MEMSIZE) ];
+  List( type:int(size=32), size=MEMSIZE ) buf := [ 0 : for i in Integers(1, MEMSIZE) ];
 
   /*
   action RA:[ a ] ==> RD:[ [ buf[a + i]  : for i in Integers(0, BURSTSIZE-1) ] ] repeat BURSTSIZE
