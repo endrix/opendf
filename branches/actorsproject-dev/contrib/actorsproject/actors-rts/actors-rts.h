@@ -150,7 +150,9 @@ struct ActorClass {
 #define INIT_ActorClass(aClassName,              \
                         instance_t,              \
                         ctor,                    \
+			setParam,                \
                         sched,	                 \
+                        dtor,                    \
                         nInputs, inputDescr,	 \
                         nOutputs, outputDescr,	 \
                         nActions, actionDescr) { \
@@ -160,8 +162,8 @@ struct ActorClass {
     .sizeActorInstance=sizeof(instance_t),       \
     .action_scheduler=sched,                     \
     .constructor=ctor,                           \
-    .destructor=0,                               \
-    .set_param=0,                                \
+    .destructor=dtor,                            \
+    .set_param=setParam,                         \
     .inputPortDescriptions=inputDescr,           \
     .outputPortDescriptions=outputDescr,         \
     .actorExecMode=0,                            \
@@ -354,6 +356,8 @@ extern void trace(int level, const char*,...);
 
 /** Prints a range error message to stdout. */
 int rangeError(int x, int y, const char *filename, int line);
+
+void runtimeError(AbstractActorInstance*, const char *format,...);
 
 #ifdef __cplusplus
 }
