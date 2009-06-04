@@ -35,68 +35,68 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package eu.actorsproject.xlim.codegenerator;
+package eu.actorsproject.xlim.decision;
 
-import eu.actorsproject.xlim.XlimInputPort;
-import eu.actorsproject.xlim.XlimOutputPort;
-import eu.actorsproject.xlim.XlimStateVar;
-import eu.actorsproject.xlim.XlimTaskModule;
+import java.util.Collections;
+
+import eu.actorsproject.util.Pair;
+import eu.actorsproject.util.XmlElement;
 import eu.actorsproject.xlim.XlimTopLevelPort;
-import eu.actorsproject.xlim.XlimType;
 
-public interface ExpressionTreeGenerator {
+/**
+ * Represents a blocking condition: pinAvail(port) >= N
+ */
+public class BlockingCondition extends Pair<XlimTopLevelPort,Integer> 
+                               implements XmlElement, Comparable<BlockingCondition> {
 
-	/**
-	 * @param root Root of expression tree
-	 * Generates an expression that represents an input port of an operation 
-	 */
-	void translateSubTree(XlimInputPort root);
+	public BlockingCondition(XlimTopLevelPort port, int tokenCount) {
+		super(port,tokenCount);
+	}
+	
+	public BlockingCondition(AvailabilityTest failedTest) {
+		super(failedTest.getPort(), failedTest.getTokenCount());
+	}
+			
+	public XlimTopLevelPort getPort() {
+		return mFirst;
+	}
+	
+	public int getTokenCount() {
+		return mSecond;
+	}
+	
+	@Override
+	public String getTagName() {
+		return "pinWait";
+	}
+
+	@Override
+	public int compareTo(BlockingCondition otherCond) {
+		// First compare port directions (inputs < outputs)
+		XlimTopLevelPort.Direction thisDir=getPort().getDirection();
+		XlimTopLevelPort.Direction otherDir=otherCond.getPort().getDirection();
+		int result=thisDir.compareTo(otherDir);
 		
-	/**
-	 * @param t
-	 * @return Name of type 't' that is used in the target language
-	 */
-	String getTargetTypeName(XlimType t);
-
-	/**
-	 * @param o 
-	 * @return Textual representation of a code-generator-specific attribute
-	 */
-	String getGenericAttribute(Object o);
+		if (result==0) {
+			// Second, compare port names
+			String thisPortName=getPort().getSourceName();
+			String otherPortName=otherCond.getPort().getSourceName();
+			result=thisPortName.compareTo(otherPortName);
+			
+			// Third, compare token counts
+			if (result==0)
+				result=getTokenCount()-otherCond.getTokenCount();
+		}
+		return result;
+	}
 	
-	/**
-	 * @param s
-	 * prints a string to the resulting output stream
-	 */
-	void print(String s);
+	@Override
+	public Iterable<? extends XmlElement> getChildren() {
+		return Collections.emptyList();
+	}
 	
-	/**
-	 * @param temp
-	 * prints a reference to a "temporary variable" that is allocated for an output port
-	 */
-	void print(XlimOutputPort port);
-
-	/**
-	 * @param port
-	 * prints a reference to an actor port or internal port
-	 */
-	void print(XlimTopLevelPort port);
-	
-	/**
-	 * @param stateVar
-	 * prints a reference to a state variable
-	 */
-	void print(XlimStateVar stateVar);
-	
-	/**
-	 * @param task
-	 * prints a reference to a "task" (top-level module)
-	 */
-	void print(XlimTaskModule task);
-	
-	
-	/**
-	 * prints a 'new line'
-	 */
-	void println();
+	@Override
+	public String getAttributeDefinitions() {
+		return "portName=\""+getPort().getSourceName()+"\" size=\""+getTokenCount()+"\"";
+	}
 }

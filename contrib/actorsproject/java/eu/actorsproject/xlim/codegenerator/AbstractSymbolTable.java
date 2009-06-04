@@ -164,7 +164,7 @@ public abstract class AbstractSymbolTable implements SymbolTable {
 	 * @return string containing only alpha-numericals and '_' (not guaranteed to be unique 
 	 *         nor non-empty, but useful as suffix).
 	 */
-	protected static String createCName(String xlimName) {
+	public static String createCName(String xlimName) {
 		if (xlimName==null)
 			return "";
 		else {
@@ -175,7 +175,7 @@ public abstract class AbstractSymbolTable implements SymbolTable {
 					buf.setCharAt(i, '_');
 				}
 			}
-			return "_"+buf.toString();
+			return buf.toString();
 		}
 	}
 }

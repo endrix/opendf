@@ -37,9 +37,11 @@
 
 package eu.actorsproject.xlim.implementation;
 
+import java.util.Collection;
 import java.util.List;
 
 import eu.actorsproject.xlim.XlimOperation;
+import eu.actorsproject.xlim.XlimOutputPort;
 import eu.actorsproject.xlim.XlimSource;
 import eu.actorsproject.xlim.XlimType;
 import eu.actorsproject.xlim.type.FixIntegerTypeRule;
@@ -47,6 +49,7 @@ import eu.actorsproject.xlim.type.IntegerTypeRule;
 import eu.actorsproject.xlim.type.Signature;
 import eu.actorsproject.xlim.type.TypeFactory;
 import eu.actorsproject.xlim.type.TypeKind;
+import eu.actorsproject.xlim.type.TypeRule;
 import eu.actorsproject.xlim.type.VoidTypeRule;
 import eu.actorsproject.xlim.util.Session;
 import eu.actorsproject.xlim.util.XlimFeature;
@@ -56,34 +59,7 @@ import eu.actorsproject.xlim.util.XlimFeature;
  */
 public class SoftwareExtensions extends XlimFeature {
 	@Override
-	public void initialize(InstructionSet instructionSet) {
-		addPortOperations(instructionSet);
-		addIntegerOperations(instructionSet);
-	}
-	
-	/**
-	 * Adds pinAvail and pinWait to 's'
-	 */
-
-	private void addPortOperations(InstructionSet s) {
-		// pinAvail: void -> integer(32)
-		OperationKind pinAvail=new PortOperationKind("pinAvail",
-				new FixIntegerTypeRule(null,32),
-				"portName", 
-				false /* doesn't modify port */, 
-				null /* no size */);
-		s.registerOperation(pinAvail);
-
-		// pinWait void -> void
-		OperationKind pinWait=new PortOperationKind("pinWait",
-				new VoidTypeRule(null),
-				"portName", 
-				false /* doesn't modify port */, 
-				"size");
-		s.registerOperation(pinWait);
-	}
-	
-	private void addIntegerOperations(InstructionSet s) {
+	public void initialize(InstructionSet s) {
 		TypeFactory fact=Session.getTypeFactory();
 		TypeKind intKind=fact.getTypeKind("int");
 		Signature unary=new Signature(intKind);
@@ -93,6 +69,18 @@ public class SoftwareExtensions extends XlimFeature {
 				new SignExtendTypeRule(unary),
 				"size");
 		s.registerOperation(signExtend);
+
+		// pinAvail: void -> integer(32)
+		OperationKind pinAvail=new PortOperationKind("pinAvail",
+				new FixIntegerTypeRule(null,32),
+				"portName", 
+				false /* doesn't modify port */, 
+				null /* no size */);
+		s.registerOperation(pinAvail);
+
+		// yield: void -> void
+		OperationKind yield=new YieldOperationKind("yield", new VoidTypeRule(null));
+		s.registerOperation(yield);
 	}
 }
 
@@ -119,5 +107,61 @@ class SignExtendTypeRule extends IntegerTypeRule {
 			return t.getSize();
 		else
 			throw new IllegalArgumentException("signExtend: not possible to deduce width");
+	}
+}
+
+class YieldOperationKind extends OperationKind {
+	
+	YieldOperationKind(String kind, TypeRule typeRule) {
+		super(kind,typeRule);
+	}
+	
+	
+	@Override
+	public Operation create(List<? extends XlimSource> inputs,
+			                    List<? extends XlimOutputPort> outputs,
+			                    ContainerModule parent) {
+		return new YieldOperation(this,inputs,outputs,parent);
+	}
+	
+	@Override
+	public String getAttributeDefinitions(XlimOperation op) {
+		return super.getAttributeDefinitions(op) + " removable=\"no\"";
+	}	
+}
+
+class YieldOperation extends Operation {
+	
+	public Object mValue;
+	
+	public YieldOperation(OperationKind kind,
+                            Collection<? extends XlimSource> inputs,
+                            Collection<? extends XlimOutputPort> outputs,
+                            ContainerModule parent) {
+		super(kind,inputs,outputs,parent);
+	}
+	
+	@Override
+	public Object getGenericAttribute() {
+		return mValue;
+	}
+
+	@Override
+	public boolean setGenericAttribute(Object value) {
+		mValue=value;
+		return true;
+	}
+	
+	@Override
+	public boolean isRemovable() {
+		return false;
+	}
+
+	/**
+	 * @return additional attributes to show up in debug printouts
+	 */
+	@Override
+	public String attributesToString() {
+		return mValue.toString();
 	}
 }
