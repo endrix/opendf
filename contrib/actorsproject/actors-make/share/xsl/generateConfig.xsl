@@ -60,204 +60,123 @@
   
   <xsl:template match="/">  
     <xsl:text>#include "actors-rts.h"&#xa;&#xa;</xsl:text>
+    <xsl:text>static void initNetwork(AbstractActorInstance ***pInstances, int *pNumberOfInstances) {&#xa;&#xa;</xsl:text>
+    <xsl:text>  int numberOfInstances = </xsl:text>
+    <xsl:value-of select="count(//Instance)"></xsl:value-of>
+    <xsl:text>;&#xa;</xsl:text>
+    <xsl:text>  AbstractActorInstance **actorInstances = (AbstractActorInstance **) malloc(numberOfInstances * sizeof(AbstractActorInstance *));&#xa;&#xa;</xsl:text>
+    <xsl:text>  *pInstances=actorInstances;&#xa;&#xa;</xsl:text>
+    <xsl:text>  *pNumberOfInstances=numberOfInstances;&#xa;&#xa;</xsl:text>
+    <xsl:for-each select="//Instance"> 
+      <xsl:variable name='className' select="art:getActorType(.)"/> 
+      <xsl:variable name='instance' select="concat('p', Note[@kind='UID']/@value)"/> 
 
-    <!--    
-            1. create a enum of Fifos
-            enum Fifos{
-            Actor_port_0,
-            Actor_port_1,
-            ..........
-            numberOfFifos
-            };
-      -->     
-    
-    <xsl:text>enum Fifos{</xsl:text>
-    <xsl:text>&#xa;</xsl:text>
-    <xsl:for-each select="//Port[@kind='Output']">
-      <xsl:text>  </xsl:text>         
-      <xsl:value-of select="./../../Note[@kind='UID']/@value"/>        
-      <xsl:text>_</xsl:text>
-      <xsl:value-of select="./@name"/>
-      <xsl:text>,&#xa;</xsl:text>                    
-    </xsl:for-each>
-    <xsl:text>  numberOfFifos&#xa;</xsl:text>                          
-    <xsl:text>};</xsl:text>
-    <xsl:text>&#xa;&#xa;</xsl:text>
-    
-    <!--
-      create an array containing the fifo sizes   
-    -->
-        
-    <xsl:text>int FifoSizes[] = {</xsl:text>
-    <xsl:text>&#xa;</xsl:text>
-    <xsl:for-each select="//Port[@kind='Output']">
-      <xsl:variable name="src_id" select="../../@id"/>
-      <xsl:variable name="port_name" select="@name"/>
-      <xsl:variable name="sz" select="//Connection[@src=$src_id]/Attribute[@name='bufferSize']"/>  
-      <xsl:text>  </xsl:text> 
-      <xsl:choose>
-        <xsl:when test="$sz">
-           <xsl:value-of select="$sz[1]/Expr/@value"/> 
-        </xsl:when>
-        <xsl:otherwise>0</xsl:otherwise>
-      </xsl:choose>
-      <xsl:text>,&#xa;</xsl:text> 
-    </xsl:for-each>
-    <xsl:text>};</xsl:text>
-    <xsl:text>&#xa;&#xa;</xsl:text>    
-    
-    <!--
-        2. define a new network structure:
-        typedef struct {
-        ActorClass actorClass;
-        enum Fifos *inputPorts;
-        enum Fifos *outputPorts;
-        }NetworkActor
-	
-        3. generate input ports and output ports for each actor:
-        static int  ActorClass_Add_In[]={Actor_port_0,.........};
-        static int  ActorClass_Add_Out[]={Actor_port_1,........};
-      -->
-    
-    <xsl:for-each select="//Instance">
-      <xsl:variable name='id' select="@id"/> 
-      <xsl:variable name='UID' select="./Note[@kind='UID']/@value"/>   
-      
-      <xsl:text>static int ActorClass_</xsl:text>
-      <xsl:value-of select="$UID"/>
-      <xsl:text>_Out[]={</xsl:text>  
-      <xsl:for-each select="Actor/Port[@kind='Output']">
-        <xsl:value-of select="$UID"/>
-        <xsl:text>_</xsl:text> 
-        <xsl:value-of select="@name"/>  
-        <xsl:if test="not(position() = last())">
-          <xsl:text>, </xsl:text>             
-        </xsl:if>          
-      </xsl:for-each>
-      <xsl:text>};&#xa;</xsl:text>
-      
-      <xsl:text>static int ActorClass_</xsl:text>
-      <xsl:value-of select="$UID"/>
-      <xsl:text>_In[]={</xsl:text>  
-      <xsl:for-each select="Actor/Port[@kind='Input']">
-        <xsl:variable name="portName" select="@name"/>  
-        <xsl:variable name="connection" select="//Connection[@dst = $id][@dst-port = $portName]"/> 
-        <xsl:variable name="src-instance" select="//Instance[@id=$connection/@src]"/>
-        <xsl:value-of select="$src-instance/Note[@kind='UID']/@value"/> 
-        <xsl:text>_</xsl:text> 
-        <xsl:value-of select="$connection/@src-port"/>  
-        <xsl:if test="not(position() = last())">
-          <xsl:text>, </xsl:text>             
-        </xsl:if>
-      </xsl:for-each>
-      <xsl:text>};&#xa;</xsl:text>
-      
-      <xsl:if test="contains($UID, 'art_')">          
-        <xsl:text>static ActorParameter params_</xsl:text>
-        <xsl:value-of select="$UID"/>
-        <xsl:text>[]={</xsl:text>
-        <xsl:for-each select="Parameter">
-          <xsl:text>{"</xsl:text>
-          <xsl:value-of select="@name" />
-          <xsl:text>", "</xsl:text>  
-          <xsl:value-of select=".//@value" />
-          <xsl:text>"}</xsl:text>  
-          <xsl:if test="not(position() = last())">
-            <xsl:text>, </xsl:text>             
-          </xsl:if>
-        </xsl:for-each>
-        <xsl:text>};&#xa;&#xa;</xsl:text>
-      </xsl:if>          
-      
-    </xsl:for-each>            
-    <xsl:text>&#xa;&#xa;</xsl:text>
-    
-    <!--
-        generate extern declarations for each actor class 
-      -->            
-    
-    <xsl:for-each select="//Instance">                  
-      <xsl:text>extern ActorClass ActorClass_</xsl:text>
-      <xsl:value-of select="art:getActorType(.)"/>
+      <xsl:text>  extern ActorClass ActorClass_</xsl:text>
+      <xsl:value-of select="$className"/>
       <xsl:text>;&#xa;</xsl:text>
-    </xsl:for-each>     
+      <xsl:text>  AbstractActorInstance *</xsl:text>
+      <xsl:value-of select="$instance"/>
+      <xsl:text>;&#xa;</xsl:text>
+      <xsl:for-each select=".//Port[@kind='Input']">  
+        <xsl:text>  InputPort *</xsl:text>
+        <xsl:value-of select="concat($instance, '_', @name)"/>
+        <xsl:text>;&#xa;</xsl:text>
+      </xsl:for-each>
+      <xsl:for-each select=".//Port[@kind='Output']">  
+        <xsl:text>  OutputPort *</xsl:text>
+        <xsl:value-of select="concat($instance, '_', @name)"/>
+        <xsl:text>;&#xa;</xsl:text>
+      </xsl:for-each>
+      <xsl:text>&#xa;</xsl:text>
+    </xsl:for-each>
     <xsl:text>&#xa;</xsl:text>
-    
-    <!--
-        4 generate network structure data for each actor:
-        ActorConfig actorConfig_Add_0= {
-        ActorClass_Add_0,
-        ActorClass_Add_In,
-        ActorClass_Add_Out
-        }
-      -->      
 
-    <xsl:for-each select="//Instance">       
-      <xsl:variable name='TypeName' select="art:getActorType(.)"/>   
+    <xsl:for-each select="//Instance"> 
+      <xsl:variable name='className' select="art:getActorType(.)"/> 
+      <xsl:variable name='instance' select="concat('p', Note[@kind='UID']/@value)"/> 
+ 
+      <xsl:text>  </xsl:text>
+      <xsl:value-of select="$instance"/>
+      <xsl:text> = createActorInstance(&amp;ActorClass_</xsl:text>
+      <xsl:value-of select="$className"/>
+      <xsl:text>);&#xa;</xsl:text>
       
-      <xsl:text>static ActorConfig actorConfig_</xsl:text>
-      <xsl:value-of select="./Note[@kind='UID']/@value"/>
-      <xsl:text>={&#xa;</xsl:text>
-      <xsl:text>   &amp;ActorClass_</xsl:text>
-      <xsl:value-of select="$TypeName"/>
-      <xsl:text>,&#xa;</xsl:text> 
-      <xsl:text>   ActorClass_</xsl:text>
-      <xsl:value-of select="./Note[@kind='UID']/@value"/>
-      <xsl:text>_In,&#xa;</xsl:text> 
-      <xsl:text>   ActorClass_</xsl:text>
-      <xsl:value-of select="./Note[@kind='UID']/@value"/>
-      <xsl:text>_Out,&#xa;</xsl:text>
-      
-      <xsl:choose>
-        <xsl:when test="contains(./Note[@kind='UID']/@value, 'art_')">
-          <xsl:text>   </xsl:text>
-          <xsl:value-of select="count(./Parameter)"/>
-          <xsl:text>,&#xa;</xsl:text>  
-          <xsl:text>   params_</xsl:text>
-          <xsl:value-of select="./Note[@kind='UID']/@value"/>
-          <xsl:text>&#xa;</xsl:text>                          
-        </xsl:when>
-        <xsl:otherwise>
-          <xsl:text>   0,&#xa;</xsl:text>  
-          <xsl:text>   0&#xa;</xsl:text>                          
-        </xsl:otherwise>            
+      <xsl:for-each select=".//Port[@kind='Input']">  
+        <xsl:variable name="dstId" select="../../@id"/>
+        <xsl:variable name="dstPort" select="@name"/> 
+        <xsl:variable name="connection" select="//Connection[@dst=$dstId and @dst-port=$dstPort]"/>
+
+        <xsl:text>  </xsl:text>
+        <xsl:value-of select="concat($instance, '_', @name)"/>
+        <xsl:text> = createInputPort(</xsl:text>  
+        <xsl:value-of select="$instance"/>
+        <xsl:text>, "</xsl:text>
+        <xsl:value-of select="@name"/>
+        <xsl:text>", </xsl:text>
         
-      </xsl:choose> 
+        <xsl:choose>
+          <xsl:when test="$connection/Attribute[@name = 'bufferSize']">
+            <xsl:value-of select="$connection/Attribute[@name = 'bufferSize']/Expr/@value"/>
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:text>0</xsl:text>
+          </xsl:otherwise>
+        </xsl:choose>
+        <xsl:text>);&#xa;</xsl:text>
+      </xsl:for-each>
       
-      <xsl:text>};&#xa;&#xa;</xsl:text>
-    </xsl:for-each>     
-    <xsl:text>&#xa;</xsl:text>
-    
-    <!--    
-            5. generate a array of networks actors:
-            NetworkConfig *networkConfig []={
-            &networkActor_Add_0,
-            ..........
-            };
-      -->
-    
-    <xsl:text>static ActorConfig *actors []={&#xa;</xsl:text>      
-    <xsl:for-each select="//Instance">
-      <xsl:text>   &amp;actorConfig_</xsl:text>
-      <xsl:value-of select="./Note[@kind='UID']/@value"/>
-      <xsl:if test="not(position() = last())">
-        <xsl:text>,</xsl:text>             
-      </xsl:if>  
-      <xsl:text> &#xa;</xsl:text>
-    </xsl:for-each>     
-    <xsl:text>};&#xa;&#xa;</xsl:text>
-    
-    <xsl:text>static NetworkConfig networkConfig = {&#xa;</xsl:text>
-    <xsl:text>  actors,&#xa;</xsl:text>        
-    <xsl:text>   sizeof(actors)/sizeof(ActorConfig*),&#xa;</xsl:text>
-    <xsl:text>  numberOfFifos&#xa;</xsl:text>        
-    <xsl:text></xsl:text>
-    <xsl:text>};&#xa;&#xa;</xsl:text>
-    
+      <xsl:for-each select=".//Port[@kind='Output']">
+        <xsl:variable name="srcId" select="../../@id"/>
+        <xsl:variable name="srcPort" select="@name"/> 
+        <xsl:variable name="fanOut" select="count(//Connection[@src=$srcId and @src-port=$srcPort])"/>
+       
+        <xsl:text>  </xsl:text>
+        <xsl:value-of select="concat($instance, '_', @name)"/>
+        <xsl:text> = createOutputPort(</xsl:text>  
+        <xsl:value-of select="$instance"/>
+        <xsl:text>, "</xsl:text>
+        <xsl:value-of select="@name"/>
+        <xsl:text>", </xsl:text>
+        <xsl:value-of select="$fanOut"/>
+        <xsl:text>);&#xa;</xsl:text>
+      </xsl:for-each>
+      
+      <xsl:for-each select="Parameter">
+        <xsl:text>  setParameter(</xsl:text>
+        <xsl:value-of select="$instance"/><xsl:text>, "</xsl:text>
+        <xsl:value-of select="@name" /> 
+        <xsl:text>", "</xsl:text> 
+        <xsl:value-of select=".//@value"/>
+        <xsl:text>");&#xa;</xsl:text>
+      </xsl:for-each>
+      <xsl:text>  actorInstances[</xsl:text>
+      <xsl:value-of select="position() - 1"/>
+      <xsl:text>] = </xsl:text>
+      <xsl:value-of select="$instance"/>
+      <xsl:text>;&#xa;&#xa;</xsl:text>
+    </xsl:for-each>
+
+    <xsl:for-each select="//Connection">
+      <xsl:variable name="srcId" select="@src"/> 
+      <xsl:variable name="srcPort" select="@src-port"/>     
+      <xsl:variable name="dstId" select="@dst"/> 
+      <xsl:variable name="dstPort" select="@dst-port"/>
+      <xsl:variable name="srcInstance" select="//Instance[@id=$srcId]/Note[@kind='UID']/@value"/>
+      <xsl:variable name="dstInstance" select="//Instance[@id=$dstId]/Note[@kind='UID']/@value"/>
+      <xsl:text>  connectPorts(p</xsl:text>
+      <xsl:value-of select="concat($srcInstance, '_', $srcPort)"/>
+      <xsl:text>, p</xsl:text>
+      <xsl:value-of select="concat($dstInstance, '_', $dstPort)"/>
+      <xsl:text>);&#xa;</xsl:text>     
+    </xsl:for-each>
+    <xsl:text>}&#xa;&#xa;</xsl:text>
+        
     <xsl:text>int main(int argc, char *argv[]) {&#xa;</xsl:text>
-    <xsl:text>  return execute_network(argc, argv, &amp;networkConfig);&#xa;</xsl:text>        
-    <xsl:text>};&#xa;&#xa;</xsl:text>
-    
+    <xsl:text>  int numberOfInstances;&#xa;</xsl:text>  
+    <xsl:text>  AbstractActorInstance **instances;&#xa;</xsl:text>
+    <xsl:text>  initNetwork(&amp;instances, &amp;numberOfInstances);&#xa;</xsl:text>        
+    <xsl:text>  executeNetwork(argc, argv, instances, numberOfInstances);&#xa;</xsl:text>        
+    <xsl:text>}&#xa;&#xa;</xsl:text>
   </xsl:template> 
   
 </xsl:stylesheet>
