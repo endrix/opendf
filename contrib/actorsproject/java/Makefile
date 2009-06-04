@@ -32,7 +32,7 @@ actorsproject.jar: $(JAVA_FILES)
 	@$(JAR) -cf $@ -C classes eu -C $(srcdir) COPYING
 
 clean:
-	@rm -fr classes
+	@rm -fr classes actorsproject.jar
 
 install: actorsproject.jar
 	@mkdir -p $(javadir)
