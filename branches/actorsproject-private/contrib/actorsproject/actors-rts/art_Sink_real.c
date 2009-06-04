@@ -89,6 +89,7 @@ static void Read0(ActorInstance *thisActor) {
 	double		val;
 	static int	count;
 
+	TRACE_ACTION(&thisActor->base, 0, "actionAtLine7");
 	val = pinRead_double(&thisActor->IN0_A);
 	if(thisActor->fd)
 	{

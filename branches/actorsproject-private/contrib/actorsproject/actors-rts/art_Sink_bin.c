@@ -88,6 +88,7 @@ ActorClass ActorClass_art_Sink_bin ={
 static void Read0(ActorInstance *thisActor) {
 	char		ch;
 
+	TRACE_ACTION(&thisActor->base, 0, "actionAtLine7");
 	ch = (char)pinRead_int32_t(&thisActor->IN0_A);
 	if(thisActor->fd)
 	{

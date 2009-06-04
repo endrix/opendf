@@ -53,11 +53,8 @@
 #include <stdarg.h>
 #include "actors-rts.h"
 
-static int				Running = 1;
 int						log_level = LOG_ERROR;
 
-
-void stop_run() {Running = 0;}
 
 int rangeError(int x, int y, const char *filename, int line) {
 	printf("Range check error: %d %d %s(%d)\n",x,y,filename,line);
@@ -192,24 +189,36 @@ int runActorBarebone(AbstractActorInstance **actorInstance,int numInstances)
 {
 	int i;
 	AbstractActorInstance *pInstance;
+	int networkAliveHack;
 
-	while(Running)
-	{
+	do {
+		networkAliveHack=0;
 		for (i=0; i<numInstances; i++) {
 			pInstance=actorInstance[i];
+			pInstance->hasFiredHack=0;
 			pInstance->actor->action_scheduler(pInstance);
+			if (pInstance->hasFiredHack)
+			  networkAliveHack=1;
 		}
-	}
-	trace(LOG_MUST,"Exit\n");
+	} while (networkAliveHack);
+	
 	return 0;
 }
 
-int executeNetwork(int argc, char *argv[],AbstractActorInstance **instances, int numInstances)
+int executeNetwork(int argc, char *argv[],AbstractActorInstance **actorInstance, int numInstances)
 {
+	int i;
 	trace(LOG_MUST,"ModuleName            : %s\n",argv[0]);
 	trace(LOG_MUST,"numInstances          : %d\n",numInstances);
 
-	runActorBarebone(instances,numInstances);
+	runActorBarebone(actorInstance,numInstances);
+
+    for (i=0; i<numInstances; i++) {
+        if(actorInstance[i]->actor->destructor){
+            actorInstance[i]->actor->destructor(actorInstance[i]);
+        }
+    }
+	trace(LOG_MUST,"Exit\n");
 
 	return 0;
 }
