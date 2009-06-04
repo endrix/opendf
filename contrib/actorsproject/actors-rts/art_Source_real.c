@@ -118,12 +118,10 @@ static int Write0(ActorInstance *thisActor) {
 	int			i,ret;
 
 	ret = read_file(thisActor->fd,buf,TOKENSIZE_IN_DOUBLE);
-	if(ret<=0){
-		stop_run();
-	}else{
+	if(ret>0){
+		TRACE_ACTION(&thisActor->base, 0, "actionAtLine7");
 		for(i=0;i<ret;i++)
 			pinWrite_double(&thisActor->OUT0_Result,buf[i]);
-//		pinWrite2(&thisActor->OUT0_Result,buf,ret*sizeof(double));
 	}
 	return ret;
 }

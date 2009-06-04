@@ -95,6 +95,8 @@ typedef struct {
   int						mbx;
   int					 	mby;
   int						frames;
+  int						totframes;
+  int						starttime;
   int 						count;
   int 						comp;
   int 						start;
@@ -224,6 +226,7 @@ static void done_mb(ActorInstance *thisActor)
 		if(thisActor->mby >= 16*HIGHT_IN_MB){
 			thisActor->mby = 0;
 			thisActor->frames++;
+			thisActor->totframes++;
 		}
 	}
 	if(thisActor->frames>=5)
@@ -254,6 +257,7 @@ static void done_comp(ActorInstance *thisActor)
 static void Read0(ActorInstance *thisActor) {
 	int			val;
 
+	TRACE_ACTION(&thisActor->base, 0, "actionAtLine7");
 	val = pinRead_int32_t(&thisActor->IN0_A);
 	thisActor->macroBlock[thisActor->start+thisActor->count] = (unsigned char)val;
 	thisActor->count++;
@@ -342,6 +346,9 @@ static void constructor(AbstractActorInstance *pBase)
 	thisActor->comp=0;
 	thisActor->start=0;
 	thisActor->frames=0;
+	thisActor->totframes=0;
+	thisActor->starttime=time(0);
+	
 }
 
 static void destructor(AbstractActorInstance *pBase)
@@ -354,6 +361,8 @@ static void destructor(AbstractActorInstance *pBase)
 	}
 	if(thisActor->fbfd)
     	close(thisActor->fbfd);
+
+	printf("%d total frames in %d seconds\n",thisActor->totframes,time(0)-thisActor->starttime);
 }
 
 static void set_param(AbstractActorInstance *pBase,const char *key, const char *value)
