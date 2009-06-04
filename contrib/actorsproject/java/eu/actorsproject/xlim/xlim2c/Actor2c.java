@@ -157,7 +157,6 @@ public class Actor2c extends OutputGenerator {
 		println();
 
 		if (ports.isEmpty()) {
-			println("#define "+name+" 0 /* empty */");
 			return 0;
 		}
 		else {	
@@ -252,9 +251,7 @@ public class Actor2c extends OutputGenerator {
 		    }
 		
 		println();
-		if (numActions==0) 
-			println("#define actionDescriptions 0 /* empty */");
-		else {
+		if (numActions!=0) {
 			int index=0;
 			println("static const " + sActionDescriptionType + " " 
 					+ descriptionArray + "[] = {");
@@ -279,11 +276,22 @@ public class Actor2c extends OutputGenerator {
 	 */
 	protected void defineActorClass() {
 		// Describe ports
-		int numInputPorts=describePorts(mDesign.getInputPorts(), "inputPortDescriptions");
-		int numOutputPorts=describePorts(mDesign.getOutputPorts(), "outputPortDescriptions");
+		String inputPortDescriptions="inputPortDescriptions";
+		int numInputPorts=describePorts(mDesign.getInputPorts(), inputPortDescriptions);
+		String outputPortDescriptions="outputPortDescriptions";
+		int numOutputPorts=describePorts(mDesign.getOutputPorts(), outputPortDescriptions);
+		
+		if (numInputPorts==0)
+			inputPortDescriptions="0"; // null descriptor array
+		if (numOutputPorts==0)
+			outputPortDescriptions="0"; // null descriptor array
 		
 		// Describe actions
-		int numActions=describeActions("actionDescriptions");
+		String actionDescriptions = "actionDescriptions";
+		int numActions=describeActions(actionDescriptions);
+		
+		if (numActions==0)
+			actionDescriptions="0"; // null descriptor array -admittedly a weird case...
 		
 		// ActorClass
 		println();
@@ -292,10 +300,12 @@ public class Actor2c extends OutputGenerator {
 		println("\"" + mDesign.getName() + "\",");
 		println(mSymbols.getActorInstanceType() + ",");
 		println(mSymbols.getConstructorName() + ",");
+		println("0, /* no setParam */");
 		println(mSymbols.getTargetName(mDesign.getActionScheduler()) + ",");
-		println(numInputPorts +", inputPortDescriptions,");
-		println(numOutputPorts+", outputPortDescriptions,");
-		println(numActions + ", actionDescriptions");		
+		println("0, /* no destructor */");
+		println(numInputPorts + ", " + inputPortDescriptions + ",");
+		println(numOutputPorts+ ", " +outputPortDescriptions + ",");
+		println(numActions + ", " + actionDescriptions);		
 		decreaseIndentation();
 		println(");");
 		println();
