@@ -21,7 +21,7 @@
       
       <!-- Check types -->
       <sch:assert role="Error" id="unsupported"
-        test="contains(' list int bool ', concat( ' ', @name, ' ' ) )" >
+        test="contains(' List int bool ', concat( ' ', @name, ' ' ) )" >
         <xsl:attribute name="subject">
           <xsl:apply-templates select="." mode="report-offender"/>
         </xsl:attribute>
@@ -29,9 +29,9 @@
         Type unsupported for hardware synthesis
       </sch:assert>
 
-      <!-- ints and lists must have a size attribute -->
+      <!-- ints and Lists must have a size attribute -->
       <sch:assert role="Error" id="missingSize"
-        test="not( @name = 'int' or @name = 'list' ) or Entry[@kind='Expr'][@name='size']" >
+        test="not( @name = 'int' or @name = 'List' ) or Entry[@kind='Expr'][@name='size']" >
         <xsl:attribute name="subject">
           <xsl:apply-templates select="." mode="report-offender"/>
         </xsl:attribute>
@@ -39,9 +39,9 @@
         Type '<xsl:value-of select="@name"/>' must have a 'size' attribute for hardware synthesis
       </sch:assert>
 
-      <!-- lists must have a type attribute -->
+      <!-- Lists must have a type attribute -->
       <sch:assert role="Error" id="missingType"
-        test="not( @name = 'list' ) or Entry[@kind='Type'][@name='type']" >
+        test="not( @name = 'List' ) or Entry[@kind='Type'][@name='type']" >
         <xsl:attribute name="subject">
           <xsl:apply-templates select="." mode="report-offender"/>
         </xsl:attribute>
@@ -77,24 +77,24 @@
         variable must have a type for hardware synthesis
       </sch:assert>
 
-      <!-- only state variables can be lists -->
-      <sch:assert role="Error" id="localList" test="parent::Actor or parent::Network or Type/@name != 'list'" >
+      <!-- only state variables can be Lists -->
+      <sch:assert role="Error" id="localList" test="parent::Actor or parent::Network or Type/@name != 'List'" >
         <xsl:attribute name="subject">
           <xsl:apply-templates select="." mode="report-offender"/>
         </xsl:attribute>
         <xsl:apply-templates select="." mode="annotate-location"/>
-        local variables of type 'list' not supported for hardware synthesis
+        local variables of type 'List' not supported for hardware synthesis
       </sch:assert>
       
     </sch:rule>
     
     <sch:rule context="Expr[ parent::Decl[ parent::Actor or parent::Network ] ]" id="initializer">
       
-      <!-- initializers for non-lists must be resolved -->
+      <!-- initializers for non-Lists must be resolved -->
       <!-- note: all procedures and functions would fail here,
            but they are eliminated by in-lining and unused
            variable pruning -->
-      <sch:assert role="Error" id="unresolved" test="../Type[ @name = 'list' ] or @kind = 'Literal'" >
+      <sch:assert role="Error" id="unresolved" test="../Type[ @name = 'List' ] or @kind = 'Literal'" >
         <xsl:attribute name="subject">
           <xsl:apply-templates select="parent::*" mode="report-offender"/>
         </xsl:attribute>
@@ -102,16 +102,16 @@
         initializer could not be resolved at compile time
       </sch:assert>
 
-      <!-- temporary check to catch list initializer whose type differs from
-           the list itself. will be fixed in contant evaluator, eventually -->
+      <!-- temporary check to catch List initializer whose type differs from
+           the List itself. will be fixed in contant evaluator, eventually -->
       <xsl:variable name="checkResults" select="cal:checkTypes( ../Type, Note[@kind='exprType']/Type )"/>
-      <sch:assert role="Error" id="incompatible" test="../Type[ @name != 'list' ] or
+      <sch:assert role="Error" id="incompatible" test="../Type[ @name != 'List' ] or
          $checkResults/Okay/@identical = 'true'" >
         <xsl:attribute name="subject">
           <xsl:apply-templates select="parent::*" mode="report-offender"/>
         </xsl:attribute>
         <xsl:apply-templates select="." mode="annotate-location"/>
-        list initializer is incompatible with its type declaration
+        List initializer is incompatible with its type declaration
         <xsl:value-of select="$checkResults/@msg"/>
       </sch:assert>
       

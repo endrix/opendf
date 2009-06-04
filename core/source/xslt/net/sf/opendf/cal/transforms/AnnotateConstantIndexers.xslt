@@ -47,7 +47,7 @@
   <xsl:key name="read-access"  match="Expr[@kind='Var']" use="@name"/>
   <xsl:key name="write-access" match="Stmt[@kind='Assign']" use="@name"/>
   
-  <xsl:template match="Decl[parent::Input[Repeat] or (not(parent::Input) and Type/@name='list')]">
+  <xsl:template match="Decl[parent::Input[Repeat] or (not(parent::Input) and Type/@name='List')]">
     
     <xsl:copy>
       <xsl:for-each select="@*">
