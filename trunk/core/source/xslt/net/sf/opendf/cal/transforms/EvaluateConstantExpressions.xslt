@@ -338,7 +338,7 @@
                 <xsl:for-each select="@*">
                   <xsl:attribute name="{name()}"><xsl:value-of select="."/></xsl:attribute>
                 </xsl:for-each>
-                <Type name="list">
+                <Type name="List">
                   <Entry kind="Expr" name="size">
                     <xsl:copy-of select="../Repeat/Expr"/>
                   </Entry>

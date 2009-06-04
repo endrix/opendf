@@ -39,7 +39,7 @@
       
       
       <xsl:choose>
-         <xsl:when test="contains(' list int bool ', concat( ' ', @name, ' ' ) )"/>
+         <xsl:when test="contains(' List int bool ', concat( ' ', @name, ' ' ) )"/>
          <xsl:otherwise>
             <Note kind="Report" severity="Error" id="synthesis.types.unsupported" subject="">
                <xsl:attribute name="subject">
@@ -51,7 +51,7 @@
 
       
       <xsl:choose>
-         <xsl:when test="not( @name = 'int' or @name = 'list' ) or Entry[@kind='Expr'][@name='size']"/>
+         <xsl:when test="not( @name = 'int' or @name = 'List' ) or Entry[@kind='Expr'][@name='size']"/>
          <xsl:otherwise>
             <Note kind="Report" severity="Error" id="synthesis.types.missingSize" subject="">
                <xsl:attribute name="subject">
@@ -63,7 +63,7 @@
 
       
       <xsl:choose>
-         <xsl:when test="not( @name = 'list' ) or Entry[@kind='Type'][@name='type']"/>
+         <xsl:when test="not( @name = 'List' ) or Entry[@kind='Type'][@name='type']"/>
          <xsl:otherwise>
             <Note kind="Report" severity="Error" id="synthesis.types.missingType" subject="">
                <xsl:attribute name="subject">
@@ -113,13 +113,13 @@
 
       
       <xsl:choose>
-         <xsl:when test="parent::Actor or parent::Network or Type/@name != 'list'"/>
+         <xsl:when test="parent::Actor or parent::Network or Type/@name != 'List'"/>
          <xsl:otherwise>
             <Note kind="Report" severity="Error" id="synthesis.variable.localList" subject="">
                <xsl:attribute name="subject">
                   <xsl:apply-templates select="." mode="report-offender"/>
                </xsl:attribute>
-               <xsl:apply-templates select="." mode="annotate-location"/>local variables of type 'list' not supported for hardware synthesis</Note>
+               <xsl:apply-templates select="." mode="annotate-location"/>local variables of type 'List' not supported for hardware synthesis</Note>
          </xsl:otherwise>
       </xsl:choose>
       
@@ -133,7 +133,7 @@
       
       
       <xsl:choose>
-         <xsl:when test="../Type[ @name = 'list' ] or @kind = 'Literal'"/>
+         <xsl:when test="../Type[ @name = 'List' ] or @kind = 'Literal'"/>
          <xsl:otherwise>
             <Note kind="Report" severity="Error" id="synthesis.initializer.unresolved" subject="">
                <xsl:attribute name="subject">
@@ -147,14 +147,14 @@
       <xsl:variable name="checkResults"
                     select="cal:checkTypes( ../Type, Note[@kind='exprType']/Type )"/>
       <xsl:choose>
-         <xsl:when test="../Type[ @name != 'list' ] or          $checkResults/Okay/@identical = 'true'"/>
+         <xsl:when test="../Type[ @name != 'List' ] or          $checkResults/Okay/@identical = 'true'"/>
          <xsl:otherwise>
             <Note kind="Report" severity="Error" id="synthesis.initializer.incompatible"
                   subject="">
                <xsl:attribute name="subject">
                   <xsl:apply-templates select="parent::*" mode="report-offender"/>
                </xsl:attribute>
-               <xsl:apply-templates select="." mode="annotate-location"/>list initializer is incompatible with its type declaration<xsl:value-of select="$checkResults/@msg"/>
+               <xsl:apply-templates select="." mode="annotate-location"/>List initializer is incompatible with its type declaration<xsl:value-of select="$checkResults/@msg"/>
             </Note>
          </xsl:otherwise>
       </xsl:choose>

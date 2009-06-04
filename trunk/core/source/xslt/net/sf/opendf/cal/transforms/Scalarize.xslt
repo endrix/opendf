@@ -52,7 +52,7 @@
   <xsl:template match="Decl[ Note[@kind='Scalarizable'] ]">
     
     <xsl:variable name="types-in-doc-order">
-      <xsl:copy-of select="Type/descendant-or-self::Type[@name='list']"/>
+      <xsl:copy-of select="Type/descendant-or-self::Type[@name='List']"/>
     </xsl:variable> 
     
     <xsl:call-template name="scalarize">
