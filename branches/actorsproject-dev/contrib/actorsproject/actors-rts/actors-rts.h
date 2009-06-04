@@ -114,6 +114,10 @@ typedef struct {
 	DLLIST			*lnode;
 }AbstractActorInstance;
 
+// Get port-pointers from abstract instance
+#define INPUT_PORT(instance,n)  (instance.inputPort+(n))
+#define OUTPUT_PORT(instance,n) (instance.outputPort+(n))
+
 typedef struct {
 	const char	*name;
 	const int 	*consumption;
@@ -130,7 +134,7 @@ struct ActorClass {
 	int				numInputPorts;
 	int				numOutputPorts;
 	int				sizeActorInstance;
-	void			(*action_scheduler)(AbstractActorInstance*);
+	const int*		(*action_scheduler)(AbstractActorInstance*);
 	void			(*constructor)(AbstractActorInstance*);
 	void			(*destructor)(AbstractActorInstance*);
 	void			(*set_param)(AbstractActorInstance*,int,ActorParameter*);
@@ -140,6 +144,8 @@ struct ActorClass {
 	int				numActions;
 	const ActionDescription *actionDescriptions;
 };
+
+// Creates an ActorClass initializer
 
 #define INIT_ActorClass(aClassName,              \
                         instance_t,              \
@@ -162,6 +168,15 @@ struct ActorClass {
     .numActions=nActions,                        \
     .actionDescriptions=actionDescr              \
   }
+
+// Action-scheduler exit code (first element of array)
+// EXITCODE_TERMINATE = actor is dead
+// EXITCODE_BLOCK(n)  = actor blocks on either of n ports
+// EXITCODE_YIELD     = actor yielded, but may be fireable
+
+#define EXITCODE_TERMINATE 0
+#define EXITCODE_BLOCK(n)  (n)
+#define EXITCODE_YIELD     -1
 
 typedef struct {
 	ActorClass		*actorClass;

@@ -45,6 +45,8 @@ import eu.actorsproject.xlim.XlimType;
 
 import eu.actorsproject.xlim.codegenerator.ExpressionTreeGenerator;
 import eu.actorsproject.xlim.codegenerator.OperationGenerator;
+import eu.actorsproject.xlim.decision.BlockingCondition;
+import eu.actorsproject.xlim.decision.YieldAttribute;
 import eu.actorsproject.xlim.type.TypeFactory;
 import eu.actorsproject.xlim.util.LiteralPattern;
 import eu.actorsproject.xlim.util.OperationHandler;
@@ -90,7 +92,7 @@ public class Operation2c implements OperationGenerator {
 		new NoopGenerator("cast"),
 		new SelectorGenerator("$selector"),
 		new PinAvailGenerator("pinAvail","pinAvail",true),
-		new PinWaitGenerator("pinWait","pinWait"),
+		new YieldGenerator("yield"),
 		new SignExtendGenerator("signExtend")
 	};
 	
@@ -278,7 +280,6 @@ class PortOperationGenerator extends ApiCallGenerator {
 	@Override
 	protected void generateArguments(XlimOperation op, ExpressionTreeGenerator gen) {
 		// Add the port attribute as first argument
-		gen.print("&");
 		gen.print(op.getPortAttribute());
 		if (op.getNumInputPorts()!=0)
 			gen.print(", ");
@@ -346,44 +347,7 @@ class PinPeekFrontGenerator extends TypedPortOperationGenerator {
 	@Override
 	protected void generateArguments(XlimOperation op, ExpressionTreeGenerator gen) {
 		// The port attribute is the only argument (zero input is implicit)
-		gen.print("&");
 		gen.print(op.getPortAttribute());
-	}
-}
-class PinWaitGenerator extends PortOperationGenerator {
-
-	public PinWaitGenerator(String opKind, String functionName) {
-		super(opKind, functionName, /* hasGenerateExpression */ false);
-	}
-	
-	@Override
-	protected String getFunctionName(XlimOperation op, ExpressionTreeGenerator gen) {
-		return mFunctionName + getDirectionSuffix(op);
-	}
-	
-	@Override
-	public void generateStatement(XlimOperation op, ExpressionTreeGenerator gen) {
-		assert(op.getNumOutputPorts()==0 && op.getNumOutputPorts()==0);
-		super.generateStatement(op, gen);
-		
-		// Add return to the last pinWait
-		if (op.hasBlockingStyle()) {
-			gen.print("; return");
-		}
-	}
-	
-	@Override
-	protected void generateArguments(XlimOperation op, ExpressionTreeGenerator gen) {
-		super.generateArguments(op, gen);
-		
-		// Add a final argument: numTokens*sizeof(portType)
-		XlimType portType=op.getPortAttribute().getType();
-		
-		gen.print(", ");
-		Long numTokens=op.getIntegerValueAttribute();
-		if (numTokens!=1)
-			gen.print(numTokens.toString()+"*");
-		gen.print("sizeof(" + gen.getTargetTypeName(portType) + ")");
 	}
 }
 
@@ -750,3 +714,29 @@ class SelectorGenerator extends ExpressionGenerator {
 		return op.getOutputPort(0).getType();
 	}
 }
+
+class YieldGenerator extends BasicGenerator {
+	
+	public YieldGenerator(String opKind) {
+		super(opKind);
+	}
+
+	@Override
+	public void generateStatement(XlimOperation op, ExpressionTreeGenerator gen) {
+		YieldAttribute attribute=(YieldAttribute) op.getGenericAttribute();
+		String exitCode=gen.getGenericAttribute(attribute);
+		// For the time being, support both old-style (pinWait) and new style (exit code) 
+		// of communicatig the blocking condition.
+		for (BlockingCondition bc: attribute) {
+			XlimTopLevelPort port=bc.getPort();
+			String pinWait=(port.getDirection()==XlimTopLevelPort.Direction.in)?
+					"pinWaitIn(" : "pinWaitOut(";
+			gen.print(pinWait);
+			gen.print(port);
+			gen.print(", "+bc.getTokenCount()+");");
+			gen.println();
+		}
+		gen.print("return "+exitCode);
+	}
+}
+
