@@ -314,7 +314,6 @@ static inline void pinWrite_double(OutputPort *p, double token) {
   }
 }
 
-extern AbstractActorInstance	*actorInstance[];
 extern int						log_level;
 
 extern void trace(int level, const char*,...);
@@ -328,7 +327,8 @@ extern InputPort *createInputPort(AbstractActorInstance *pInstance,
                            const char *portName,
 						   int capacity);
 extern void connectPorts(OutputPort *outputPort, InputPort *inputPort);
-extern int executeNetwork(int argc, char *argv[],AbstractActorInstance **instances, int numInstances);
+extern int executeNetwork(int argc, char *argv[],AbstractActorInstance **instances,
+                          int numInstances);
 extern void setParameter(AbstractActorInstance *pInstance,
                   const char *key,
                   const char *value);
