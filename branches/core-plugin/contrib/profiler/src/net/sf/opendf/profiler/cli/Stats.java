@@ -69,7 +69,7 @@ public class Stats {
 		this.actionClassFreq = actionClassFreq;
 	}
 	
-	private Map<Action, Integer>  actionFreq;
-	private Map<ActionClass, Integer> actionClassFreq;
+	public Map<Action, Integer>  actionFreq;
+	public Map<ActionClass, Integer> actionClassFreq;
 	
 }

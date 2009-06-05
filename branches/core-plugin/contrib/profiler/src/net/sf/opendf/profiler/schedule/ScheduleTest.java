@@ -40,7 +40,7 @@ public class ScheduleTest {
 	public static void main (String [] args) throws Exception {
 		for (int i = 0; i < args.length; i++) {
 			System.out.print("Basic-1 trace: " + args[i] + "---parsing..."); System.out.flush();
-			InputStream s = new FileInputStream(args[i] + ".ct");
+			InputStream s = new FileInputStream(args[i]);
 			TraceParser tp = new TraceParser(s, TraceParser.DEPS_ALL);
 			Trace t = tp.parse();
 			System.out.println(" done.");
@@ -57,7 +57,7 @@ public class ScheduleTest {
 			pw.close();		
 		
 			System.out.print("Basic-0 trace: " + args[i] + "---parsing..."); System.out.flush();
-			s = new FileInputStream(args[i] + ".ct");
+			s = new FileInputStream(args[i]);
 			tp = new TraceParser(s, TraceParser.DEPS_ALL);
 			t = tp.parse();
 			System.out.println(" done.");
