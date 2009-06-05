@@ -37,17 +37,10 @@
 
 package eu.actorsproject.xlim.decision;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 import eu.actorsproject.util.XmlElement;
 import eu.actorsproject.xlim.XlimContainerModule;
 import eu.actorsproject.xlim.XlimIfModule;
 import eu.actorsproject.xlim.XlimOperation;
-import eu.actorsproject.xlim.XlimOutputPort;
-import eu.actorsproject.xlim.XlimSource;
-import eu.actorsproject.xlim.XlimTopLevelPort;
 
 /**
  * A NullNode represents an empty leaf in the decision tree.
@@ -56,11 +49,11 @@ import eu.actorsproject.xlim.XlimTopLevelPort;
 public class NullNode extends DecisionTree {
 
 	private XlimContainerModule mProgramPoint;
-	private List<BlockOnPort> mPorts;
+	private YieldAttribute mYieldAttribute;
 	
 	public NullNode(XlimContainerModule programPoint) {
 		mProgramPoint=programPoint;
-		mPorts=Collections.emptyList();
+		mYieldAttribute=new YieldAttribute();
 	}
 
 	@Override
@@ -96,12 +89,10 @@ public class NullNode extends DecisionTree {
      */
 	@Override
 	protected DecisionTree topDownPass(PortMap assertedTests, PortMap failedTests) {
-		mPorts=new ArrayList<BlockOnPort>();
-		
 		for (AvailabilityTest test: failedTests) {
 			AvailabilityTest asserted=assertedTests.get(test.getPort());
 			if (asserted==null || asserted.getTokenCount()<test.getTokenCount())
-				mPorts.add(new BlockOnPort(test));
+				mYieldAttribute.add(new BlockingCondition(test));
 		}
 		
 		return this;
@@ -112,27 +103,11 @@ public class NullNode extends DecisionTree {
      */
  	@Override
     public void generateBlockingWait() {
- 		if (mPorts.isEmpty()==false) {
- 			BlockOnPort last=mPorts.get(mPorts.size()-1);
- 			mProgramPoint.startPatchAtEnd();
- 			for (BlockOnPort block: mPorts)
- 				block.generatePinWait(mProgramPoint, block==last);
-			mProgramPoint.completePatchAndFixup();
-			
-			/* // identify wait-on-multiple pinWaits
-			 * if (mPorts.size()>1) {
-			 *	 System.out.print("Multiple pinWaits:");
-			 *	 for (BlockOnPort bp: mPorts) {
-			 *	 	System.out.print(" "+bp.mPort.getSourceName());
-			 *	 }
-			 *	 System.out.println();
-			 * }
-			 */
- 		}
- 		// TODO: else we have a "dead" actor that will never be able to fire again
- 		// (same scheduling decision will be taken again and again indefinitely...)
+ 		mProgramPoint.startPatchAtEnd();
+ 		XlimOperation yield=mProgramPoint.addOperation("yield");
+ 		yield.setGenericAttribute(mYieldAttribute);
+ 		mProgramPoint.completePatchAndFixup();
  	}
- 	
 	
 	/* XmlElement interface */
 
@@ -143,42 +118,6 @@ public class NullNode extends DecisionTree {
 
 	@Override
 	public Iterable<? extends XmlElement> getChildren() {
-		return mPorts;
-	}
-	
-	private class BlockOnPort implements XmlElement {
-		XlimTopLevelPort mPort;
-		int mSize;
-		
-		BlockOnPort(AvailabilityTest failedTest) {
-			mPort=failedTest.getPort();
-			mSize=failedTest.getTokenCount();
-		}
-		
-		public void generatePinWait(XlimContainerModule module, boolean last) {
-			List<XlimSource> inputs=Collections.emptyList();
-			List<XlimOutputPort> outputs=Collections.emptyList();
-			
-			XlimOperation pinWait=mProgramPoint.addOperation("pinWait",inputs,outputs); 
-			pinWait.setPortAttribute(mPort);
-			pinWait.setIntegerValueAttribute(mSize);
-			if (last)
-				pinWait.setBlockingStyle();
-		}
-				
-		@Override
-		public String getTagName() {
-			return "blockOnPort";
-		}
-
-		@Override
-		public Iterable<? extends XmlElement> getChildren() {
-			return Collections.emptyList();
-		}
-		
-		@Override
-		public String getAttributeDefinitions() {
-			return "portName=\""+mPort.getSourceName()+"\" size=\""+mSize+"\"";
-		}
+		return mYieldAttribute;
 	}
 }

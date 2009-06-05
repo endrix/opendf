@@ -222,6 +222,11 @@ class Operation extends Linkage<AbstractBlockElement>
 	}
 	
 	@Override
+	public Object getGenericAttribute() {
+		return null;
+	}
+	
+	@Override
 	public boolean setIntegerValueAttribute(long value) {
 		return false;
 	}
@@ -248,6 +253,11 @@ class Operation extends Linkage<AbstractBlockElement>
 
 	@Override
 	public boolean setBlockingStyle() {
+		return false;
+	}
+	
+	@Override
+	public boolean setGenericAttribute(Object value) {
 		return false;
 	}
 	

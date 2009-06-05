@@ -54,6 +54,7 @@ public interface XlimOperation extends XlimBlockElement, XlimInstruction {
 	Long getIntegerValueAttribute();     // value of $literal_Integer (interpreted as integer)
 	String getValueAttribute();          // value of $literal_Integer
 	boolean hasBlockingStyle();          // "style" attribute is "blocking"
+	Object getGenericAttribute();        // Common/generic getter of "other" attributes
 	
 	/**
 	 * @return DdgCallSite that corresponds to a taskCall 
@@ -70,4 +71,5 @@ public interface XlimOperation extends XlimBlockElement, XlimInstruction {
 	boolean setIntegerValueAttribute(long value);
 	boolean setValueAttribute(String value);
 	boolean setBlockingStyle();
+	boolean setGenericAttribute(Object value);
 }

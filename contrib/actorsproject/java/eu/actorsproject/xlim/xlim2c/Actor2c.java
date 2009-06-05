@@ -41,18 +41,26 @@ import java.io.File;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import eu.actorsproject.util.OutputGenerator;
 import eu.actorsproject.xlim.XlimInitValue;
+import eu.actorsproject.xlim.XlimOperation;
+import eu.actorsproject.xlim.XlimPhiNode;
 import eu.actorsproject.xlim.XlimStateVar;
 import eu.actorsproject.xlim.XlimDesign;
 import eu.actorsproject.xlim.XlimTaskModule;
 import eu.actorsproject.xlim.XlimTopLevelPort;
 import eu.actorsproject.xlim.XlimType;
+import eu.actorsproject.xlim.codegenerator.AbstractSymbolTable;
 import eu.actorsproject.xlim.codegenerator.OperationGenerator;
+import eu.actorsproject.xlim.decision.BlockingCondition;
+import eu.actorsproject.xlim.decision.YieldAttribute;
+import eu.actorsproject.xlim.util.XlimTraversal;
 
 
 /**
@@ -65,16 +73,14 @@ public class Actor2c extends OutputGenerator {
     private CSymbolTable mSymbols;
     private OperationGenerator mTaskGeneratorPlugIn;
      
-	protected static final String sTranslatorVersion="0.5 (Jan 29, 2009)";
+	protected static final String sTranslatorVersion="0.6 (June 3, 2009)";
 	protected static final String sIncludedHeaderFile="actors-rts.h";
 	protected static final String sActorClassType="ActorClass";
 	protected static final String sActorInstanceBaseType="AbstractActorInstance";
 	protected static final String sActorInstanceBaseName="base";
-	protected static final String sActorInputPortArray="base.inputPort";
-	protected static final String sActorOutputPortArray="base.outputPort";
-	protected static final String sActorInstanceType="ActorInstance";
+	protected static final String sActorInputPortMacro="INPUT_PORT";
+	protected static final String sActorOutputPortMacro="OUTPUT_PORT";
 	protected static final String sPortType="ActorPort";
-	protected static final String sConstructorName="constructor";
 	protected static final String sCreatePortAPI="createPort";
 	protected static final String sActionDescriptionType="ActionDescription";
 	
@@ -125,17 +131,17 @@ public class Actor2c extends OutputGenerator {
 	 */
 	protected void defineMacros() {
 		println();
-		definePortMacros(mDesign.getInputPorts(), sActorInputPortArray);
-		definePortMacros(mDesign.getOutputPorts(), sActorOutputPortArray);
+		definePortMacros(mDesign.getInputPorts(), sActorInputPortMacro);
+		definePortMacros(mDesign.getOutputPorts(), sActorOutputPortMacro);
 	}
 	
 	protected void definePortMacros(Iterable<? extends XlimTopLevelPort> ports,
-			                        String portArray) {
+			                        String portMacro) {
 		int index=0;
 		for (XlimTopLevelPort port: ports) {
 			String cName=mSymbols.getTargetName(port);
-			String portReference=portArray+"["+index+"]";
-			println("#define "+cName+" "+portReference);
+			println("#define " + cName + "(thisActor) " + portMacro 
+					+ "(thisActor->" + sActorInstanceBaseName + "," + index+")");
 			index++;
 		}
 	}
@@ -151,7 +157,6 @@ public class Actor2c extends OutputGenerator {
 		println();
 
 		if (ports.isEmpty()) {
-			println("#define "+name+" 0 /* empty */");
 			return 0;
 		}
 		else {	
@@ -246,9 +251,7 @@ public class Actor2c extends OutputGenerator {
 		    }
 		
 		println();
-		if (numActions==0) 
-			println("#define actionDescriptions 0 /* empty */");
-		else {
+		if (numActions!=0) {
 			int index=0;
 			println("static const " + sActionDescriptionType + " " 
 					+ descriptionArray + "[] = {");
@@ -273,23 +276,36 @@ public class Actor2c extends OutputGenerator {
 	 */
 	protected void defineActorClass() {
 		// Describe ports
-		int numInputPorts=describePorts(mDesign.getInputPorts(), "inputPortDescriptions");
-		int numOutputPorts=describePorts(mDesign.getOutputPorts(), "outputPortDescriptions");
+		String inputPortDescriptions="inputPortDescriptions";
+		int numInputPorts=describePorts(mDesign.getInputPorts(), inputPortDescriptions);
+		String outputPortDescriptions="outputPortDescriptions";
+		int numOutputPorts=describePorts(mDesign.getOutputPorts(), outputPortDescriptions);
+		
+		if (numInputPorts==0)
+			inputPortDescriptions="0"; // null descriptor array
+		if (numOutputPorts==0)
+			outputPortDescriptions="0"; // null descriptor array
 		
 		// Describe actions
-		int numActions=describeActions("actionDescriptions");
+		String actionDescriptions = "actionDescriptions";
+		int numActions=describeActions(actionDescriptions);
+		
+		if (numActions==0)
+			actionDescriptions="0"; // null descriptor array -admittedly a weird case...
 		
 		// ActorClass
 		println();
 		println(sActorClassType+" "+mSymbols.getActorClassName()+" = INIT_ActorClass(");
 		increaseIndentation();
 		println("\"" + mDesign.getName() + "\",");
-		println(sActorInstanceType + ",");
-		println(sConstructorName + ",");
+		println(mSymbols.getActorInstanceType() + ",");
+		println(mSymbols.getConstructorName() + ",");
+		println("0, /* no setParam */");
 		println(mSymbols.getTargetName(mDesign.getActionScheduler()) + ",");
-		println(numInputPorts +", inputPortDescriptions,");
-		println(numOutputPorts+", outputPortDescriptions,");
-		println(numActions + ", actionDescriptions");		
+		println("0, /* no destructor */");
+		println(numInputPorts + ", " + inputPortDescriptions + ",");
+		println(numOutputPorts+ ", " +outputPortDescriptions + ",");
+		println(numActions + ", " + actionDescriptions);		
 		decreaseIndentation();
 		println(");");
 		println();
@@ -307,7 +323,7 @@ public class Actor2c extends OutputGenerator {
 		declareInternalPorts();
 		declareStateVariables();
 		decreaseIndentation();
-		println("} "+sActorInstanceType+";");
+		println("} "+mSymbols.getActorInstanceType()+";");
 		println();
 	}
 
@@ -315,16 +331,17 @@ public class Actor2c extends OutputGenerator {
 	 * Generates the definition/body of the actor constructor, which creates the actor instance
 	 */
 	protected void defineConstructor() {
+		String constructorName=mSymbols.getConstructorName();
 		println();
-		println("static void "+sConstructorName+"("+sActorInstanceBaseType+" *pBase) {");
+		println("static void "+constructorName+"("+sActorInstanceBaseType+" *pBase) {");
 		increaseIndentation();
 		
 		boolean emptyConstructor=mDesign.getStateVars().isEmpty()
 		                         && mDesign.getInternalPorts().isEmpty();
 		if (emptyConstructor==false) {
 			// Avoid declaring an unused actor-instance pointer (C-compiler warning)
-			println(sActorInstanceType+" *"+mSymbols.getActorInstanceReference()+
-				"=("+sActorInstanceType+"*) pBase;");
+			println(mSymbols.getActorInstanceType()+" *"+mSymbols.getActorInstanceReference()+
+				"=("+mSymbols.getActorInstanceType()+"*) pBase;");
 			createInternalPorts();
 			initializeStateVariables();
 		}
@@ -346,7 +363,7 @@ public class Actor2c extends OutputGenerator {
 	 */
 	protected void createInternalPorts() {
 		for (XlimTopLevelPort port: mDesign.getInternalPorts()) {
-			println(sCreatePortAPI+"(&" + mSymbols.getReference(port) + ");");
+			println(sCreatePortAPI+"(" + mSymbols.getReference(port) + ");");
 		}
 	}
 	
@@ -440,15 +457,15 @@ public class Actor2c extends OutputGenerator {
 				if (actionSchedulerFound)
 					throw new RuntimeException("multiple action schedulers");
 				actionSchedulerFound=true;
-				println("static void "+mSymbols.getTargetName(task)+"("+sActorInstanceBaseType+"*);");
+				println("static const int *"+mSymbols.getTargetName(task)+"("+sActorInstanceBaseType+"*);");
 			}
 			else {
-				println("static void "+mSymbols.getTargetName(task)+"("+sActorInstanceType+"*);");
+				println("static void "+mSymbols.getTargetName(task)+"("+mSymbols.getActorInstanceType()+"*);");
 			}
 		}
 		if (!actionSchedulerFound)
 			throw new RuntimeException("no action scheduler");
-		println("static void "+sConstructorName+"("+sActorInstanceBaseType+"*);");
+		println("static void "+mSymbols.getConstructorName()+"("+sActorInstanceBaseType+"*);");
 	}
 	
 	/**
@@ -458,30 +475,96 @@ public class Actor2c extends OutputGenerator {
 		int actionIndex=0;
 		XlimTaskModule actionScheduler = mDesign.getActionScheduler();
 		for (XlimTaskModule task: mDesign.getTasks()) {
-			println();
 			if (task!=actionScheduler) {
+				println();
 				println("static void "+mSymbols.getTargetName(task)+"("+
-						sActorInstanceType+" *"+mSymbols.getActorInstanceReference()+") {");
+						mSymbols.getActorInstanceType()+" *"+mSymbols.getActorInstanceReference()+") {");
 				increaseIndentation();
 				println("TRACE_ACTION(&" + mSymbols.getActorInstanceReference() + "->base, "
 						+ actionIndex + ", \"" + task.getName() + "\");");
 				++actionIndex;
 			}
 			else {
-				println("static void "+mSymbols.getTargetName(task)+"("+sActorInstanceBaseType
+				ExitCodeGenerator ecg=new ExitCodeGenerator();
+				ecg.traverse(task, null);
+				println();
+				println("static const int *"+mSymbols.getTargetName(task)+"("+sActorInstanceBaseType
 						+" *pBase) {");
 				increaseIndentation();
-				println(sActorInstanceType+" *"+mSymbols.getActorInstanceReference()+
-						"=("+sActorInstanceType+"*) pBase;");
+				println(mSymbols.getActorInstanceType()+" *"+mSymbols.getActorInstanceReference()+
+						"=("+mSymbols.getActorInstanceType()+"*) pBase;");
 			}
 		    generateBody(task);
 		    decreaseIndentation();
 		    println("}");
 		}
 	}
-	
+		
 	protected void generateBody(XlimTaskModule task) {
 		Task2c gen = new Task2c(mSymbols,mTaskGeneratorPlugIn,this);
 		gen.translateTask(task);
+	}
+	
+	
+	/**
+	 * Generates the arrays used for exit codes (blocking conditions)
+	 */
+	class ExitCodeGenerator extends XlimTraversal<Object,Object> {
+
+		Map<XlimTopLevelPort,Integer> mPortNumbers;
+		
+		ExitCodeGenerator() {
+			int n=0;
+			mPortNumbers=new HashMap<XlimTopLevelPort,Integer>();
+			for (XlimTopLevelPort in: mDesign.getInputPorts())
+				mPortNumbers.put(in, n++);
+			for (XlimTopLevelPort out: mDesign.getOutputPorts())
+				mPortNumbers.put(out, n++);
+		}
+		
+		@Override
+		protected Object handleOperation(XlimOperation op, Object dummy) {
+			if (op.getKind().equals("yield")) {
+				YieldAttribute yieldAttrib=(YieldAttribute) op.getGenericAttribute();
+				String arrayName=mSymbols.getGenericAttribute(yieldAttrib);
+				if (arrayName==null) {
+					int size=yieldAttrib.size();
+
+					if (size==0) {
+						arrayName= "EXITCODE_TERMINATE";
+					}
+					else {
+						arrayName="exitcode_block";
+						for (BlockingCondition bc: yieldAttrib) {
+							String portName=AbstractSymbolTable.createCName(bc.getPort().getSourceName());
+							arrayName += "_" + portName + "_" + bc.getTokenCount();
+						}
+					
+						println();
+						println("static const int " + arrayName + "[] = {");
+						increaseIndentation();
+						print("EXITCODE_BLOCK(" + String.valueOf(size) +")");
+						for (BlockingCondition bc: yieldAttrib) {
+							int port=mPortNumbers.get(bc.getPort());
+							print(", ");
+							lineWrap(60);
+							print(port + ", " + bc.getTokenCount());
+						}
+						decreaseIndentation();
+						println();
+						println("};");
+					}
+					
+					mSymbols.setGenericAttribute(yieldAttrib,arrayName);
+				}
+			}
+			return null;
+		}
+
+		@Override
+		protected Object handlePhiNode(XlimPhiNode phi, Object dummy) {
+			return null;
+		}
+		
 	}
 }

@@ -109,6 +109,12 @@ public abstract class LocalCodeGenerator implements ExpressionTreeGenerator {
 		return mActorScope.getTargetTypeName(t);
 	}
 
+	
+	@Override
+	public String getGenericAttribute(Object o) {
+		return mActorScope.getGenericAttribute(o);
+	}
+
 	/**
 	 * @param temp
 	 * prints a reference to a "temporary variable" 
@@ -142,6 +148,11 @@ public abstract class LocalCodeGenerator implements ExpressionTreeGenerator {
 	@Override
 	public abstract void print(XlimTaskModule task);	
 
+	@Override
+	public void println() {
+		mOutput.println();
+	}
+	
 	/**
 	 * @param root Root of expression tree
 	 * Generates an expression that represents an input port of an operation.

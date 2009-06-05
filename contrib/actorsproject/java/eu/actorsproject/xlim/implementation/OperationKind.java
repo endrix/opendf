@@ -153,7 +153,7 @@ public class OperationKind {
 			XlimType t=mTypeRule.defaultOutputType(inputs, i);
 			outputs.add(new OutputPort(t));
 		}
-		return new Operation(this,inputs,outputs,parent);
+		return create(inputs,outputs,parent);
 	}
 	
 	private void typecheck(Operation op) {
