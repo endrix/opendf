@@ -717,6 +717,8 @@ public class XmlCausationTraceBuilder implements CausationTraceBuilder {
 			
 		}
 		pw.println(">");
+		if(aname.equals(""))
+			aname= "action"+aid;
 		actionTag.put(sname+"/"+aid, aname);
 		
 		String name = sname + "/" + aname + "*" + Long.toString(stepID);
