@@ -15,6 +15,8 @@
 #include "actors-rts.h"
 
 #define MB_SIZE (6*64)
+#define IMAGE_WIDTH				176
+#define IMAGE_HEIGHT			144
 
 typedef struct {
   AbstractActorInstance		base;

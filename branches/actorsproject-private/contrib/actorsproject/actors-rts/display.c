@@ -60,7 +60,7 @@
 #define	MICRO_YUV_SIZE			(6*64)
 #define MICRO_RGB_SIZE			4*64
 #define WIDTH_IN_MB				11
-#define HIGHT_IN_MB				9
+#define HEIGHT_IN_MB				9
 #define IMAGE_WIDTH				176
 #define IMAGE_HEIGHT			144
 
@@ -219,13 +219,14 @@ const int *art_Display_yuv_action_scheduler(AbstractActorInstance *pBase) {
       comp=0;
       start=0;
       thisActor->mbx+=16;
-      thisActor->totFrames++;
     } while (thisActor->mbx<16*WIDTH_IN_MB);
     
     thisActor->mbx=0;
     thisActor->mby+=16;
-    if (thisActor->mby>16*HIGHT_IN_MB)
+    if (thisActor->mby>=16*HEIGHT_IN_MB){
+	  thisActor->totFrames++;	
       thisActor->mby=0;
+	  }
   }
 } 
 
