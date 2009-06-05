@@ -43,8 +43,12 @@ static const int exitcode_block_Out_1[] = {
   EXITCODE_BLOCK(1), 0, 1
 };
 
+#define NUM_TOKENS_TO_READ 512
+
 const int *art_Source_bin_action_scheduler(AbstractActorInstance *pBase) {
   ActorInstance_art_Source *thisActor=(ActorInstance_art_Source*) pBase;
+  char buf[NUM_TOKENS_TO_READ];
+
   int space;
 
   if (thisActor->file==0) {
@@ -55,13 +59,18 @@ const int *art_Source_bin_action_scheduler(AbstractActorInstance *pBase) {
   space=pinAvailOut_int32_t(OUT0_Out(thisActor));
   while (space>=1) {
     do {
-      int token=fgetc(thisActor->file);
-      if (token<0)
+      int i;
+      int n=(space>NUM_TOKENS_TO_READ)? NUM_TOKENS_TO_READ : space;
+      n=fread(buf,sizeof(char),n,thisActor->file);
+      if (n==0)
 	return EXITCODE_TERMINATE;
 
-      TRACE_ACTION(&thisActor->base, 0, "actionAtLine_7");
-      pinWrite_int32_t(OUT0_Out(thisActor), token);
-    } while (--space>0);
+      for (i=0; i<n; ++i) {
+	TRACE_ACTION(&thisActor->base, 0, "actionAtLine_7");
+	pinWrite_int32_t(OUT0_Out(thisActor), buf[i]);
+      }
+      space-=n;
+    } while (space>0);
     space=pinAvailOut_int32_t(OUT0_Out(thisActor));
   }
 
