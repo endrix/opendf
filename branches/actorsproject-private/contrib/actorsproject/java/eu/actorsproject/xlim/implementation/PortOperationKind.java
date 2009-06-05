@@ -91,8 +91,6 @@ class PortOperationKind extends OperationKind {
 			                    ContainerModule parent) {
 		if (mModifiesPort)
 			return new PortModificationOperation(this,inputs,outputs,parent);
-		else if (mIntAttributeName!=null)
-			return new PinWaitOperation(this,inputs,outputs,parent);
 		else
 			return new PortAccessOperation(this,inputs,outputs,parent);
 	}
@@ -345,62 +343,3 @@ class PortModificationOperation extends PortAccessOperation {
 }
 
 
-class PinWaitOperation extends PortAccessOperation {
-	private Long mValue;
-	private boolean mBlockingStyle;
-	
-	public PinWaitOperation(OperationKind kind,
-                                       Collection<? extends XlimSource> inputs,
-                                       Collection<? extends XlimOutputPort> outputs,
-                                       ContainerModule parent) {
-		super(kind,inputs,outputs,parent);
-	}
-	
-	@Override
-	public Long getIntegerValueAttribute() {
-		return mValue;
-	}
-	
-	@Override
-	public String getValueAttribute() {
-		if (mValue!=null)
-			return mValue.toString();
-		else
-			return null;
-	}
-	
-	@Override
-	public boolean isRemovable() {
-		return false;
-	}
-	
-	@Override
-	public boolean hasBlockingStyle() {
-		return mBlockingStyle;
-	}
-	
-	@Override
-	public boolean setBlockingStyle() {
-		mBlockingStyle=true;
-		return true;
-	}
-	
-	@Override
-	public boolean setIntegerValueAttribute(long value) {
-		mValue=value;
-		return true;
-	}
-	
-	@Override
-	public boolean setValueAttribute(String value) {
-		return setIntegerValueAttribute(Long.valueOf(value));
-	}
-	
-	/**
-	 * @return additional attributes to show up in debug printouts
-	 */
-	@Override
-	public String attributesToString() {
-		return Long.toString(mValue);
-	}
-}

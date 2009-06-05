@@ -60,6 +60,7 @@ public class CSymbolTable extends AbstractSymbolTable {
 	
 	protected static final String sActorClassPrefix="ActorClass";
 	protected static final String sActorNamePrefix="Actor";
+	protected static final String sActorInstancePrefix="ActorInstance";
 	protected static final String sActorInstanceReference="thisActor";
 	protected static final String sInputPortPrefix="IN";
 	protected static final String sOutputPortPrefix="OUT";
@@ -67,12 +68,14 @@ public class CSymbolTable extends AbstractSymbolTable {
 	protected static final String sActionPrefix="a";
 	protected static final String sInitializerPrefix="init_";
 	
-	protected String mActorClassName;
+	protected String mActorName;
 	protected Map<XlimType, String> mTargetTypeNames;
+	private Map<Object,String> mGenericAttributes;
 	
 	public CSymbolTable() {
 		mTargetTypeNames=new HashMap<XlimType,String>();
-
+		mGenericAttributes=new HashMap<Object,String>();
+		
 		TypeFactory fact=Session.getTypeFactory();
 		mTargetTypeNames.put(fact.createInteger(8),  "int8_t");
 		mTargetTypeNames.put(fact.createInteger(16), "int16_t");
@@ -90,26 +93,35 @@ public class CSymbolTable extends AbstractSymbolTable {
 		return result;
     }
 	
-	public String createActorClassName(String fileName) {
+	public void createActorClassName(String fileName) {
 		int end=fileName.lastIndexOf('.');
 		if (end>0) 
 			fileName=fileName.substring(0, end);
-		mActorClassName=sActorClassPrefix+createCName(fileName);
-		return mActorClassName;
+		mActorName=createCName(fileName);
 	}
 	
 	public String getActorClassName() {
-		return mActorClassName;
+		return sActorClassPrefix + "_" + mActorName;
+	}
+	
+	public String getActorInstanceType() {
+		return sActorInstancePrefix + "_" + mActorName;
 	}
 	
 	public String getActorInstanceReference() {
 		return sActorInstanceReference;
 	}
 	
-	public String getReference(XlimTopLevelPort port) {
-		return getActorInstanceReference()+"->"+getTargetName(port);
+	public String getConstructorName() {
+		return mActorName+"_constructor";
 	}
 	
+	@Override
+	public String getReference(XlimTopLevelPort port) {
+		return getTargetName(port)+"("+getActorInstanceReference()+")";
+	}
+	
+	@Override
 	public String getReference(XlimStateVar stateVar) {
 		return getActorInstanceReference()+"->"+getTargetName(stateVar);
 	}
@@ -118,18 +130,29 @@ public class CSymbolTable extends AbstractSymbolTable {
 		return sInitializerPrefix+getTargetName(stateVar);
 	}
 
+	@Override
 	public String getReference(XlimTaskModule task) {
 		return getTargetName(task);
 	}
 	
+	@Override
 	public String getTargetName(TemporaryVariable temp) {
 		XlimOutputPort classLeader=temp.getClassLeader().getOutputPort();
 		return classLeader.getUniqueId();
 	}
 	
 	@Override
+	public String getGenericAttribute(Object key) {
+		return mGenericAttributes.get(key);
+	}
+
+	public void setGenericAttribute(Object key, String value) {
+		mGenericAttributes.put(key,value);
+	}
+	
+	@Override
     protected String createTargetName(XlimDesign design) {
-		return sActorNamePrefix+createCName(design.getName());
+		return sActorNamePrefix + "_" + createCName(design.getName());
 	}
 	
 	@Override
@@ -140,16 +163,24 @@ public class CSymbolTable extends AbstractSymbolTable {
 		case out:  prefix=sOutputPortPrefix; break;
 		default:   prefix=sInternalPortPrefix;
 		}
-    	return prefix+index+createCName(port.getSourceName());
+    	return prefix + index + "_" + createCName(port.getSourceName());
     }
     
 	@Override
     protected String createTargetName(XlimStateVar stateVar, int index) {
-    	return stateVar.getUniqueId()+createCName(stateVar.getSourceName());
+		String id=stateVar.getUniqueId();
+		String cName=createCName(stateVar.getSourceName());
+		if (cName.isEmpty())
+			return id;
+		else
+			return id+"_"+cName;
     }
     
     @Override
     protected String createTargetName(XlimTaskModule task, int index) {
-    	return sActionPrefix+index+createCName(task.getName());
+    	if (task.isAutostart())
+    		return mActorName+"_action_scheduler";
+    	else
+    		return mActorName+"_"+sActionPrefix+index+"_"+createCName(task.getName());
     }    
 }

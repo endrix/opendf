@@ -117,4 +117,10 @@ public interface SymbolTable {
 	 * @return the type name, which is used in the target language
 	 */
 	String getTargetTypeName(XlimType type);
+	
+	/**
+	 * @param o 
+	 * @return Textual representation of a code-generator-specific attribute
+	 */
+	String getGenericAttribute(Object o);
 }
