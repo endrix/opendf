@@ -62,6 +62,17 @@ int rangeError(int x, int y, const char *filename, int line) {
 	return 0;
 }
 
+void runtimeError(AbstractActorInstance *pInst, const char *format,...) {
+  va_list ap;
+  va_start(ap,format);
+  vfprintf(stderr,format,ap);
+  fprintf(stderr,"\n");
+  va_end(ap);
+  // TODO: (1) here we should terminate, somehow
+  //       (2) range errors should be reported the same way
+  //           file/line number is nice (pInst not used)
+}
+
 static void timestamp(char* buf)
 {
 	struct timeb	tb;

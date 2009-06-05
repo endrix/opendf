@@ -33,7 +33,7 @@ endif
 
 CFLAGS += -O3
 
-INSTALL_H=actors-rts.h 
+INSTALL_H=actors-rts.h
 INSTALL_SYSACTORS=art_DDRModel.cal art_Display_yuv.cal \
                   art_Sink_bin.cal art_Sink_yuv.cal art_Sink_txt.cal \
                   art_Source_bin.cal art_Source_txt.cal art_Source_real.cal \
@@ -42,7 +42,7 @@ INSTALL_SYSACTORS=art_DDRModel.cal art_Display_yuv.cal \
 OBJECTS=exec_network.o \
         art_Sink_bin.o art_Sink_txt.o art_Source_bin.o art_Source_txt.o \
         art_DDRModel.o art_Display_yuv.o art_Source_real.o \
-        art_Sink_real.o
+        art_Sink_real.o art_Sink.o art_Source.o ddrmodel.o display.o
 
 # delete the built-in suffixes to avoid surprises
 .SUFFIXES:   
