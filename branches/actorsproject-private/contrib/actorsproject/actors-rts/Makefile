@@ -20,7 +20,7 @@ REAL_NAME=$(BASENAME).a
 endif
 
 ifneq "$(PROFILE)" ""
-CFLAGS += -pg
+CFLAGS += -pg -fno-omit-frame-pointer
 endif
 
 ifeq ($(FB), y)
@@ -33,7 +33,7 @@ endif
 
 CFLAGS += -O3
 
-INSTALL_H=actors-rts.h circbuf.h dll.h
+INSTALL_H=actors-rts.h 
 INSTALL_SYSACTORS=art_DDRModel.cal art_Display_yuv.cal \
                   art_Sink_bin.cal art_Sink_yuv.cal art_Sink_txt.cal \
                   art_Source_bin.cal art_Source_txt.cal art_Source_real.cal \

@@ -31,7 +31,7 @@ LDFLAGS = -static -L$(ACTORS_LIB) -lactors-rts -lpthread
 endif
 
 ifdef PROFILE
-CFLAGS += -pg
+CFLAGS += -pg -fno-omit-frame-pointer
 LDFLAGS += -pg
 endif
 
