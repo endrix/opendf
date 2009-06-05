@@ -92,6 +92,7 @@ public class ShowResourceGanttChart {
     		
 			public void startElement(String uri, String localName, String qName, Attributes attributes) {				
 				try {
+					System.out.println(qName);
 					if ("step".equals(qName)) {			
 						Map a = createAttributeMap(attributes);
 						if (step) 

@@ -4,6 +4,7 @@
 	<comment></comment>
 	<projects>
 		<project>OpendfCore</project>
+		<project>OpendfProfiler</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

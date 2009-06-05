@@ -104,6 +104,7 @@ public class TraceAnalyzer {
 	
 	
     public static void main(String args[]) throws Exception {
+    	createGUI();
     	gui.getResourceList().setListData(new String [] {"aaa1", "aaa2", "aaa3", "aaa4", "aaa5", "aaa6", "aaa7", "aaa8", "aaa9"});
     	gui.getScheduleViewList().setListData(scheduleViewNames);	
     	
