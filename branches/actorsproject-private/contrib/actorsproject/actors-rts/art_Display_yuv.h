@@ -11,7 +11,9 @@
 #ifdef GTK
 #include <gtk/gtk.h>
 #endif
-
+#ifdef SDL
+#include "SDL/SDL.h"
+#endif
 #include "actors-rts.h"
 
 #define MB_SIZE (6*64)
@@ -26,7 +28,7 @@ typedef struct {
   int 						fbfd;
   int						height;
   int						width;
-  const char					*title;	
+  const char				*title;
   unsigned char 			macroBlock[MB_SIZE];	
   int						mbx;
   int					 	mby;
@@ -35,11 +37,15 @@ typedef struct {
   int 						start;
   int 						startTime;
   int 						totFrames;
+  int						fp;	
+  int						ppf;	
 #ifdef GTK
   GtkWidget					*window;
   GtkWidget					*darea;
-  int						ppf;	
   guchar					rgbbuf[IMAGE_WIDTH*IMAGE_HEIGHT*3];
+#elif defined SDL
+  SDL_Surface 				*screen;
+  SDL_Surface 				*image;
 #endif
 } ActorInstance_art_Display_yuv;
 
