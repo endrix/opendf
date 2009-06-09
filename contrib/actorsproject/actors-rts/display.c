@@ -101,6 +101,9 @@ static void display_mb(ActorInstance_art_Display_yuv *thisActor){
 	unsigned short rgb565;
 #elif defined GTK
 	int xy;
+#elif defined SDL
+	int xy;
+	int pixel;
 #endif
 
 	for(j=0; j<8; j++){
@@ -132,16 +135,33 @@ static void display_mb(ActorInstance_art_Display_yuv *thisActor){
 					thisActor->rgbbuf[xy++]=SATURATE8(g);
 					thisActor->rgbbuf[xy++]=SATURATE8(b);
 					thisActor->ppf += 3;
+#elif defined SDL
+					xy = (thisActor->mby+jj) * thisActor->width;
+					xy += thisActor->mbx+kk;
+					xy *= 3;
+					pixel = ((SATURATE8(r) << thisActor->image->format->Rshift) &
+                            thisActor->image->format->Rmask) |
+                            ((SATURATE8(g) << thisActor->image->format->Gshift) &
+                            thisActor->image->format->Gmask) |
+                            ((SATURATE8(b) << thisActor->image->format->Bshift) &
+                            thisActor->image->format->Bmask);
+					*(int*)&((char*)thisActor->image->pixels)[xy] = pixel;
+					thisActor->ppf += 3;
 #endif	
 				}
 			}
 		}
 	}
 #ifdef GTK
-	if(thisActor->ppf == thisActor->width*thisActor->height*3)
-	{
+	if(thisActor->ppf == thisActor->width*thisActor->height*3){
 		thisActor->ppf = 0;
 		display_gdk(thisActor);
+	}
+#elif defined SDL
+	if(thisActor->ppf == thisActor->width*thisActor->height*3){
+		thisActor->ppf = 0;
+		SDL_BlitSurface(thisActor->image, NULL, thisActor->screen, NULL);
+		SDL_Flip(thisActor->screen);
 	}
 #endif
 }
@@ -286,7 +306,20 @@ void art_Display_yuv_constructor(AbstractActorInstance *pBase) {
  	gtk_container_add(GTK_CONTAINER(thisActor->window),thisActor->darea);
 	gtk_window_set_title(GTK_WINDOW(thisActor->window),thisActor->title);
 	thisActor->ppf=0;
+#elif defined SDL
+	//Start SDL
+	SDL_Init(SDL_INIT_VIDEO);
+	atexit(SDL_Quit);
+    thisActor->screen = SDL_SetVideoMode(IMAGE_WIDTH, IMAGE_HEIGHT, 24, SDL_HWSURFACE|SDL_DOUBLEBUF);
+	thisActor->image = SDL_CreateRGBSurface(SDL_SWSURFACE,
+	                             IMAGE_WIDTH, IMAGE_HEIGHT,
+	                             thisActor->screen->format->BitsPerPixel,
+                                 thisActor->screen->format->Rmask,
+                                 thisActor->screen->format->Gmask,
+                                 thisActor->screen->format->Bmask,
+                                 thisActor->screen->format->Amask);
 #endif
+
 }
 
 void art_Display_yuv_destructor(AbstractActorInstance *pBase)
