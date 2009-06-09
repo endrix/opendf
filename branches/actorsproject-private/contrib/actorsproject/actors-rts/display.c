@@ -333,10 +333,15 @@ void art_Display_yuv_destructor(AbstractActorInstance *pBase)
 	}
 	if(thisActor->fbfd)
     	close(thisActor->fbfd);
+#ifdef SDL
+	if(thisActor->image)
+		SDL_FreeSurface(thisActor->image);
+#endif
 	printf("%d total frames in %d seconds (%f fps)\n",
 	       thisActor->totFrames,
 	       totTime, 
 	       (double) thisActor->totFrames/totTime);
+
 }
 
 void art_Display_yuv_setParam(AbstractActorInstance *pBase,
