@@ -13,7 +13,7 @@ DEST_DIR=$(datadir)/actors-test/MPEG4_SP_Decoder
 TESTS=acdcTest ddrTest decoderTest idct1dTest idct2dTest motionTest parserTest
 
 # Files that need to be modified when installed (excluding .in suffix)
-IN_FILES=Makefile $(TESTS:%=%.nl)
+IN_FILES=Makefile $(TESTS:%=%.nl) decoderDemo.nl
 
 # Generate sed scripts that substitutes @datadir@
 SEDIFY=$(srcdir)/../../install-scripts/sedify.sh
@@ -25,6 +25,7 @@ SEDCMD:=$(shell $(SEDIFY) @datadir@ $(datadir))
  
 CAL_FILES=ACPred.cal Add.cal art_DDRModel.cal art_Sink_bin.cal \
          art_Sink_txt.cal art_Source_bin.cal art_Source_txt.cal \
+         art_Display_yuv.cal \
          BlockExpand.cal byte2bit.cal Clip.cal Combine.cal Compare.cal \
          DCPred.cal DCSplit.cal DDRSeq.cal Dequant.cal Downsample.cal \
          FairMerge.cal Final.cal Interpolate.cal MBPacker.cal \
@@ -57,9 +58,9 @@ GOLDEN_DATA=gold/acdcTest/out.txt gold/acdcTest/signed.txt \
 
 COPY_FILES=$(CAL_FILES) $(NL_FILES) $(INPUT_DATA) $(GOLDEN_DATA)
 
-.PHONY: install install_dir copy_files in_files
+.PHONY: install install_dir copy_files in_files bitstreams
 
-install: install_dirs copy_files in_files
+install: install_dirs copy_files in_files bitstreams
 
 # Create directory
 install_dirs:
@@ -77,3 +78,7 @@ in_files:
             $(SEDCMD) $(srcdir)/$${f}.in > $(DEST_DIR)/$$f; \
          done
 
+bitstreams:
+	@mkdir -p $(DEST_DIR)/input/decoderDemo
+	@cp $(srcdir)/input/decoderDemo/foreman_qcif_30.bit \
+            $(DEST_DIR)/input/decoderDemo
