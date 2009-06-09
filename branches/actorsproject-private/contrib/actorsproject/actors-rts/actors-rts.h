@@ -231,9 +231,11 @@ static inline double pinPeek_double(const InputPort *p, int offset) {
 }
 
 static inline int32_t pinRead_int32_t(InputPort *p) {
+#ifdef DEBUG
+  assert(pinAvailIn(p)>0);
+#endif
   int32_t *ptr=(int32_t*) p->readPtr;
   int32_t result=*ptr++;
-  assert(pinAvailIn(p)>0);
 
   if (ptr==(int32_t*) p->bufferEnd)
     p->readPtr=p->bufferStart;
@@ -248,8 +250,12 @@ static inline int32_t pinRead_int32_t(InputPort *p) {
 }
 
 static inline bool_t pinRead_bool_t(InputPort *p) {
+#ifdef DEBUG
+  assert(pinAvailIn(p)>0);
+#endif
   bool_t *ptr=(bool_t*) p->readPtr;
   bool_t result=*ptr++;
+
   if (ptr==(bool_t*) p->bufferEnd)
     p->readPtr=p->bufferStart;
   else
@@ -263,8 +269,12 @@ static inline bool_t pinRead_bool_t(InputPort *p) {
 }
 
 static inline double pinRead_double(InputPort *p) {
+#ifdef DEBUG
+  assert(pinAvailIn(p)>0);
+#endif
   double *ptr=(double*) p->readPtr;
   double result=*ptr++;
+
   if (ptr==(double*) p->bufferEnd)
     p->readPtr=p->bufferStart;
   else
@@ -283,9 +293,14 @@ static inline void pinWrite_int32_t(OutputPort *p, int32_t token) {
   InputPort *inputPort=*readers;
   unsigned numWritten=inputPort->numWritten+1; // Should be same for all fifos
 
-  assert(pinAvailOut(p)>0);
   for (; readers<end; ++readers) {
-	inputPort=*readers;
+    inputPort=*readers;
+#ifdef DEBUG
+    // space *after* writing this token (mustn't be negative)
+    int space=inputPort->capacity-numWritten+inputPort->numRead);
+    assert(space>=0);
+#endif
+
     int32_t *ptr=(int32_t*) inputPort->writePtr;
     *ptr++ = token;
     if (ptr==(int32_t*) inputPort->bufferEnd)
@@ -303,7 +318,13 @@ static inline void pinWrite_bool_t(OutputPort *p, bool_t token) {
   unsigned numWritten=inputPort->numWritten+1; // Should be same for all fifos
 
   for (; readers<end; ++readers) {
-	inputPort=*readers;
+    inputPort=*readers;
+#ifdef DEBUG
+    // space *after* writing this token (mustn't be negative)
+    int space=inputPort->capacity-numWritten+inputPort->numRead);
+    assert(space>=0);
+#endif
+
     bool_t *ptr=(bool_t*) inputPort->writePtr;
     *ptr++ = token;
     if (ptr==(bool_t*) inputPort->bufferEnd)
@@ -321,7 +342,13 @@ static inline void pinWrite_double(OutputPort *p, double token) {
   unsigned numWritten=inputPort->numWritten+1; // Should be same for all fifos
 
   for (; readers<end; ++readers) {
-	inputPort=*readers;
+    inputPort=*readers;
+#ifdef DEBUG
+    // space *after* writing this token (mustn't be negative)
+    int space=inputPort->capacity-numWritten+inputPort->numRead);
+    assert(space>=0);
+#endif
+
     double *ptr=(double*) inputPort->writePtr;
     *ptr++ = token;
     if (ptr==(double*) inputPort->bufferEnd)
