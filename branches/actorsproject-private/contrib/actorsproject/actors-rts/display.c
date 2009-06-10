@@ -40,6 +40,8 @@
 #include <string.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <time.h>
+#include <sys/timeb.h>
 #include <sys/mman.h>
 #include <sys/ioctl.h>
 
@@ -252,14 +254,17 @@ const int *art_Display_yuv_action_scheduler(AbstractActorInstance *pBase) {
 
 void art_Display_yuv_constructor(AbstractActorInstance *pBase) {
 	ActorInstance_art_Display_yuv	*thisActor=(ActorInstance_art_Display_yuv*) pBase;
+	struct timeb tb;
 
+	ftime(&tb);
 	memset(thisActor->macroBlock,0,MB_SIZE);	
 	thisActor->mbx=0;
 	thisActor->mby=0;
 	thisActor->count=0;
 	thisActor->comp=0;
 	thisActor->start=0;
-	thisActor->startTime=time(0);
+	
+	thisActor->startTime=tb.time*1000+tb.millitm;
 	thisActor->totFrames=0;
 #ifdef FB
 	/* size of video memory in bytes */
@@ -325,8 +330,11 @@ void art_Display_yuv_constructor(AbstractActorInstance *pBase) {
 void art_Display_yuv_destructor(AbstractActorInstance *pBase)
 {
 	ActorInstance_art_Display_yuv *thisActor=(ActorInstance_art_Display_yuv*) pBase;
-	int totTime = time(0)-thisActor->startTime;
+	struct timeb tb;
+	int totTime;
 	int screensize;
+	ftime(&tb);
+	totTime = tb.time*1000 + tb.millitm - thisActor->startTime;
 	if(thisActor->fbp){
 		screensize = thisActor->vinfo.xres * thisActor->vinfo.yres * thisActor->vinfo.bits_per_pixel / 8;
     	munmap(thisActor->fbp, screensize);
@@ -337,10 +345,10 @@ void art_Display_yuv_destructor(AbstractActorInstance *pBase)
 	if(thisActor->image)
 		SDL_FreeSurface(thisActor->image);
 #endif
-	printf("%d total frames in %d seconds (%f fps)\n",
+	printf("%d total frames in %f seconds (%f fps)\n",
 	       thisActor->totFrames,
-	       totTime, 
-	       (double) thisActor->totFrames/totTime);
+	       (double) totTime/1000, 
+	       (double) (thisActor->totFrames)*1000/totTime);
 
 }
 
