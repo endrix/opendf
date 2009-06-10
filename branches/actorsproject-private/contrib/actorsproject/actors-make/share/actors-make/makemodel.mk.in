@@ -36,11 +36,11 @@ LDFLAGS += -pg
 endif
 
 ifeq ($(GTK), y)
-LDFLAGS += -lgtk-x11-2.0 -lgdk-x11-2.0 -latk-1.0 -lpangoft2-1.0 -lgdk_pixbuf-2.0 -lm -lpangocairo-1.0 -lgio-2.0 -lcairo -lpango-1.0 -lfreetype -lz -lfontconfig -lgobject-2.0 -lgmodule-2.0 -lglib-2.0
+LDFLAGS += `gtk-config --libs`
 endif
 
 ifeq ($(SDL), y)
-LDFLAGS += -L/usr/lib -lSDL
+LDFLAGS += `sdl-config --libs`
 endif
 
 #
