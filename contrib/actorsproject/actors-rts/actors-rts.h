@@ -85,21 +85,30 @@ typedef struct {
 }ActorParameter;
 
 typedef struct ActorClass ActorClass;
+typedef struct OutputPort OutputPort;
 
 typedef struct {
-  char *bufferStart; // properly aligned, given type T
-  char *bufferEnd;   // = bufferStart + sizeof(T)*capacity;
-  char *readPtr;
-  char *writePtr;
-  unsigned numWritten; // in tokens
-  unsigned numRead;    // in tokens
-  unsigned capacity;   // in tokens
+  char    *bufferStart; // properly aligned, given type T
+  char    *bufferEnd;   // = bufferStart + sizeof(T)*capacity;
+  char    *readPtr;
+  unsigned numRead;     // in tokens
+  unsigned availTokens; // in tokens
+  unsigned capacity;    // in tokens
+
+  const OutputPort *writer;
 } InputPort;
 
-typedef struct {
+struct OutputPort {
+  char *bufferStart;    // properly aligned, given type T
+  char *bufferEnd;      // = bufferStart + sizeof(T)*capacity;
+  char *writePtr;
+  unsigned numWritten;  // in tokens
+  unsigned availSpace;  // in tokens
+  unsigned capacity;    // in tokens
+
   int numReaders;
   InputPort **readers;
-} OutputPort;
+};
 
 typedef struct {
 	ActorClass		*actor;					//actor
@@ -177,24 +186,12 @@ struct ActorClass {
 // Same pinAvail can be used for all token sizes (since we count tokens)
 
 static inline unsigned pinAvailIn(const InputPort *p) {
-  return p->numWritten - p->numRead;
+  return p->availTokens;
 }
 
 static inline unsigned pinAvailOut(const OutputPort *p) {
-  InputPort **readers=p->readers;
-  InputPort **end=readers + p->numReaders;
-  InputPort *inputPort=*readers;
-  unsigned numWritten=inputPort->numWritten; // Should be same for all fifos
-  unsigned minSpace=inputPort->capacity - numWritten + inputPort->numRead;
 
-  while (++readers<end) {
-	inputPort=*readers;
-    unsigned space=inputPort->capacity - numWritten + inputPort->numRead;
-    if (space<minSpace)
-      minSpace=space;
-  }
-
-  return minSpace;
+  return p->availSpace;
 }
 
 static inline int32_t pinPeekFront_int32_t(const InputPort *p) {
@@ -242,10 +239,8 @@ static inline int32_t pinRead_int32_t(InputPort *p) {
   else
     p->readPtr=(char*) ptr;
   p->numRead++;
+  p->availTokens--;
 
-  // Unblocking stuff goes here...
-  // Function call? Try to limit number of calls...
- 
   return result;
 }
 
@@ -261,9 +256,7 @@ static inline bool_t pinRead_bool_t(InputPort *p) {
   else
     p->readPtr=(char*) ptr;
   p->numRead++;
-
-  // Unblocking stuff goes here...
-  // Function call? Try to limit number of calls...
+  p->availTokens--;
  
   return result;
 }
@@ -280,83 +273,54 @@ static inline double pinRead_double(InputPort *p) {
   else
     p->readPtr=(char*) ptr;
   p->numRead++;
-
-  // Unblocking stuff goes here...
-  // Function call? Try to limit number of calls...
+  p->availTokens--;
  
   return result;
 }
 
 static inline void pinWrite_int32_t(OutputPort *p, int32_t token) {
-  InputPort **readers=p->readers;
-  InputPort **end=readers + p->numReaders;
-  InputPort *inputPort=*readers;
-  unsigned numWritten=inputPort->numWritten+1; // Should be same for all fifos
-
-  for (; readers<end; ++readers) {
-    inputPort=*readers;
 #ifdef DEBUG
-    // space *after* writing this token (mustn't be negative)
-    int space=inputPort->capacity-numWritten+inputPort->numRead);
-    assert(space>=0);
+  assert(pinAvailOut(p)>0);
 #endif
+  int32_t *ptr=(int32_t*) p->writePtr;
 
-    int32_t *ptr=(int32_t*) inputPort->writePtr;
-    *ptr++ = token;
-    if (ptr==(int32_t*) inputPort->bufferEnd)
-      inputPort->writePtr=inputPort->bufferStart;
-    else
-      inputPort->writePtr=(char*) ptr;
-    inputPort->numWritten=numWritten;
-  }
+  *ptr++=token;
+  if (ptr==(int32_t*) p->bufferEnd)
+    p->writePtr=p->bufferStart;
+  else
+    p->writePtr=(char*) ptr;
+  p->numWritten++;
+  p->availSpace--;
 }
 
 static inline void pinWrite_bool_t(OutputPort *p, bool_t token) {
-  InputPort **readers=p->readers;
-  InputPort **end=readers + p->numReaders;
-  InputPort *inputPort=*readers;
-  unsigned numWritten=inputPort->numWritten+1; // Should be same for all fifos
-
-  for (; readers<end; ++readers) {
-    inputPort=*readers;
 #ifdef DEBUG
-    // space *after* writing this token (mustn't be negative)
-    int space=inputPort->capacity-numWritten+inputPort->numRead);
-    assert(space>=0);
+  assert(pinAvailOut(p)>0);
 #endif
+  bool_t *ptr=(bool_t*) p->writePtr;
 
-    bool_t *ptr=(bool_t*) inputPort->writePtr;
-    *ptr++ = token;
-    if (ptr==(bool_t*) inputPort->bufferEnd)
-      inputPort->writePtr=inputPort->bufferStart;
-    else
-      inputPort->writePtr=(char*) ptr;
-    inputPort->numWritten=numWritten;
-  }
+  *ptr++=token;
+  if (ptr==(bool_t*) p->bufferEnd)
+    p->writePtr=p->bufferStart;
+  else
+    p->writePtr=(char*) ptr;
+  p->numWritten++;
+  p->availSpace--;
 }
 
 static inline void pinWrite_double(OutputPort *p, double token) {
-  InputPort **readers=p->readers;
-  InputPort **end=readers + p->numReaders;
-  InputPort *inputPort=*readers;
-  unsigned numWritten=inputPort->numWritten+1; // Should be same for all fifos
-
-  for (; readers<end; ++readers) {
-    inputPort=*readers;
 #ifdef DEBUG
-    // space *after* writing this token (mustn't be negative)
-    int space=inputPort->capacity-numWritten+inputPort->numRead);
-    assert(space>=0);
+  assert(pinAvailOut(p)>0);
 #endif
+  double *ptr=(double*) p->writePtr;
 
-    double *ptr=(double*) inputPort->writePtr;
-    *ptr++ = token;
-    if (ptr==(double*) inputPort->bufferEnd)
-      inputPort->writePtr=inputPort->bufferStart;
-    else
-      inputPort->writePtr=(char*) ptr;
-    inputPort->numWritten=numWritten;
-  }
+  *ptr++=token;
+  if (ptr==(double*) p->bufferEnd)
+    p->writePtr=p->bufferStart;
+  else
+    p->writePtr=(char*) ptr;
+  p->numWritten++;
+  p->availSpace--;
 }
 
 extern AbstractActorInstance	*actorInstance[];

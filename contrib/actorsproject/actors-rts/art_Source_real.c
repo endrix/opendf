@@ -23,7 +23,7 @@ ActorClass ActorClass_art_Source_real = INIT_ActorClass(
   "art_Source_txt",
   ActorInstance_art_Source_real,
   art_Source_real_constructor,
-  art_Source_real_destructor,
+  art_Source_real_setParam,
   art_Source_real_action_scheduler,
   art_Source_real_destructor,
   0, 0,
