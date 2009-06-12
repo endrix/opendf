@@ -14,33 +14,42 @@ srcdir?=.
 .PHONY: all
 all: $(EXE)
 
+# Dependences of MODEL (re-generated if necessary)
 include $(MODEL).depend
 
-CFLAGS += "-I$(ACTORS_INCLUDE)"
+# Default definitions of tools and directories
+include @datadir@/actors-make/definitions.mk
+
+#
+# Set CFLAGS, CPPFLAGS, LDFLAGS and LDLIBS
+#
+
+# Include path goes into CPPFLAGS (C pre-processor)
+override CPPFLAGS += "-I$(ACTORS_INCLUDE)"
+
 ifdef DEBUG
-CFLAGS += -DDEBUG
+override CPPFLAGS += -DDEBUG
 endif
 
-ifdef PRESERVE_ALL
-PRESERVE_C=Y
-endif
+override LDLIBS  += -lactors-rts -lpthread
 
 ifdef STATIC
-# override inherited LDFLAGS, -Wl--rpath stuff confuses static linking
-LDFLAGS = -static -L$(ACTORS_LIB) -lactors-rts -lpthread
+override LDFLAGS += -static -L$(ACTORS_LIB)
+else
+override LDFLAGS += -L$(ACTORS_LIB) -Wl,-rpath=$(ACTORS_LIB)
 endif
 
 ifdef PROFILE
-CFLAGS += -pg -fno-omit-frame-pointer
-LDFLAGS += -pg
+override CFLAGS += -pg -fno-omit-frame-pointer
+override LDFLAGS += -pg
 endif
 
-ifeq ($(GTK), y)
-LDFLAGS += `gtk-config --libs`
+ifdef GTK
+override LDLIBS += `gtk-config --libs`
 endif
 
-ifeq ($(SDL), y)
-LDFLAGS += `sdl-config --libs`
+ifdef SDL
+override LDLIBS  += `sdl-config --libs`
 endif
 
 #
@@ -53,18 +62,17 @@ PAR_FILES=$(XLIM_FILES:.xlim=.par)
 OBJECTS=$(ACTOR_C_FILES:.c=.o) $(MODEL).o
 
 $(EXE): $(OBJECTS)
-	$(CC) $^ $(LDFLAGS) -o $@
+	$(CC) -g $^ $(LDFLAGS) $(LDLIBS) -o $@
 
 #
 # Implicit rules .xlim -> .c -> .o
 #
 
 %.o : %.c
-	$(CC) -c $(CPPFLAGS) $(CFLAGS) -o $@ $<
+	$(CC) -c -g -Wall $(CPPFLAGS) $(CFLAGS) -o $@ $<
 
-ifdef PRESERVE_C
+# Preserve geberated C files (make otherwise considers them temporary files)
 .SECONDARY: $(ACTOR_C_FILES)
-endif
 
 %.c : %.xlim
 	$(XLIM2C) $< $@

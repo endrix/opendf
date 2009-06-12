@@ -1,4 +1,5 @@
 # definitions.mk - Common definitions of actors-make makefiles
+# Overridden by any variable set on the command line
 
 export SHELL=/bin/sh
 
@@ -36,10 +37,3 @@ export AR       =$(target)ar
 export LD       =$(target)ld
 export STRIPTOOL=$(target)strip
 export STRIP    =$(STRIPTOOL) --remove-section=.note --remove-section=.comment
-
-#
-# default tool options
-#
-
-export CFLAGS=-O3 -Wall
-export LDFLAGS=-L$(ACTORS_LIB) -lactors-rts -Wl,-rpath=$(ACTORS_LIB)
