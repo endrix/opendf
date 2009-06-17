@@ -52,9 +52,9 @@
 #include <sys/timeb.h>
 #include <stdarg.h>
 #include "actors-rts.h"
+#include "internal.h"
 
-int           log_level = LOG_ERROR;
-
+int log_level = LOG_ERROR;
 
 int rangeError(int x, int y, const char *filename, int line) {
   printf("Range check error: %d %d %s(%d)\n",x,y,filename,line);
