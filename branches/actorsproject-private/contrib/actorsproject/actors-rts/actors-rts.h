@@ -41,7 +41,6 @@
 #include <string.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <pthread.h>
 #include <assert.h>
 
 /* make the header usable from C++ */
@@ -50,39 +49,25 @@ extern "C" {
 #endif /* __cplusplus */
 
 #define COPY(a)				a
-#define DEFAULT_FIFO_LENGTH	256
 
 #define TRACE_ACTION(INSTANCE,INDEX,NAME) (INSTANCE)->hasFiredHack=1
-
 #define RANGECHK(X,B) ((unsigned)(X)<(unsigned)(B)?(X):RANGEERR(X,B))
 #define RANGEERR(X,B) (rangeError((X),(B),__FILE__,__LINE__))
 
-#define	LOG_MUST			0			//must log this
-#define	LOG_ERROR			1			//only log errors
-#define	LOG_WARN			2			//also log warnings
-#define	LOG_INFO			3			//also log info
-#define	LOG_EXEC			4			//also log func exec
-#define	LOG_STOP			(-99)		//disable log file
-
 #define pinWait(port,length)
-#define pinAvail_int32_t(port) pinAvail(port)
-#define pinAvail_bool_t(port) pinAvail(port)
-#define pinAvail_double(port) pinAvail(port)
-#define pinAvailIn_int32_t(port) pinAvailIn(port)
+#define pinAvail_int32_t(port)    pinAvail(port)
+#define pinAvail_bool_t(port)     pinAvail(port)
+#define pinAvail_double(port)     pinAvail(port)
+#define pinAvailIn_int32_t(port)  pinAvailIn(port)
 #define pinAvailOut_int32_t(port) pinAvailOut(port)
-#define pinAvailIn_double(port) pinAvailIn(port)
-#define pinAvailOut_double(port) pinAvailOut(port)
-#define pinAvailIn_bool_t(port) pinAvailIn(port)
-#define pinAvailOut_bool_t(port) pinAvailOut(port)
-#define pinWaitIn(port, length) pinWait(port,length)
-#define pinWaitOut(port, length) pinWait(port, length)
+#define pinAvailIn_double(port)   pinAvailIn(port)
+#define pinAvailOut_double(port)  pinAvailOut(port)
+#define pinAvailIn_bool_t(port)   pinAvailIn(port)
+#define pinAvailOut_bool_t(port)  pinAvailOut(port)
+#define pinWaitIn(port, length)   pinWait(port,length)
+#define pinWaitOut(port, length)  pinWait(port, length)
 
-typedef int32_t				bool_t;
-
-typedef struct {
-	char			*key;
-	char			*value;
-}ActorParameter;
+typedef int32_t           bool_t;
 
 typedef struct ActorClass ActorClass;
 typedef struct OutputPort OutputPort;
@@ -323,24 +308,8 @@ static inline void pinWrite_double(OutputPort *p, double token) {
   p->availSpace--;
 }
 
-extern AbstractActorInstance	*actorInstance[];
-extern int						log_level;
-
-extern void trace(int level, const char*,...);
 extern int rangeError(int x, int y, const char *filename, int line);
 extern void runtimeError(AbstractActorInstance*, const char *format,...);
-extern AbstractActorInstance *createActorInstance(ActorClass *actorClass);
-extern OutputPort *createOutputPort(AbstractActorInstance *pInstance,
-                             const char *portName,
-							 int numberOfReaders);
-extern InputPort *createInputPort(AbstractActorInstance *pInstance,
-                           const char *portName,
-						   int capacity);
-extern void connectPorts(OutputPort *outputPort, InputPort *inputPort);
-extern int executeNetwork(int argc, char *argv[],AbstractActorInstance **instances, int numInstances);
-extern void setParameter(AbstractActorInstance *pInstance,
-                  const char *key,
-                  const char *value);
 
 #ifdef __cplusplus
 }

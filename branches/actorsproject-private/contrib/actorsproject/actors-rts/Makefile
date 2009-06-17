@@ -37,7 +37,7 @@ endif
 
 CFLAGS += -O3
 
-INSTALL_H=actors-rts.h
+INSTALL_H=actors-rts.h actors-config.h
 INSTALL_SYSACTORS=art_DDRModel.cal art_Display_yuv.cal \
                   art_Sink_bin.cal art_Sink_yuv.cal art_Sink_txt.cal \
                   art_Source_bin.cal art_Source_txt.cal art_Source_real.cal \
