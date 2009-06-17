@@ -54,24 +54,15 @@
 #define RGB565(r, g, b) ((r >> 3) << 11)| ((g >> 2) << 5)| ((b >> 3) << 0)
 #define RGB555(r, g, b) ((r >> 3) << 10)| ((g >> 3) << 5)| ((b >> 3) << 0)
 
-// #define WIDTH	176
-// #define HIGHT	144
-#define DEPTH	12
-#define FRAME_YUV_SIZE			thisActor->width*thisActor->height*DEPTH/8
-
-#define	MICRO_YUV_SIZE			(6*64)
-#define MICRO_RGB_SIZE			4*64
-#define WIDTH_IN_MB				11
-#define HEIGHT_IN_MB				9
-#define IMAGE_WIDTH				176
-#define IMAGE_HEIGHT			144
+#define WIDTH_IN_MB         11
+#define HEIGHT_IN_MB        9
 
 #define START_Y 0
 #define START_U (4*64)
 #define START_V (5*64)
 
-#define IN0_A					base.inputPort[0]
-#define IN0_TOKENSIZE			base.inputPort[0].tokenSize
+#define IN0_A               base.inputPort[0]
+#define IN0_TOKENSIZE       base.inputPort[0].tokenSize
 
 #ifdef GTK
 static void on_darea_expose(GtkWidget *widget,GdkEventExpose *event,gpointer user_data)
@@ -332,16 +323,16 @@ void art_Display_yuv_destructor(AbstractActorInstance *pBase)
 	ActorInstance_art_Display_yuv *thisActor=(ActorInstance_art_Display_yuv*) pBase;
 	struct timeb tb;
 	int totTime;
-	int screensize;
 	ftime(&tb);
 	totTime = tb.time*1000 + tb.millitm - thisActor->startTime;
+#ifdef FB
 	if(thisActor->fbp){
-		screensize = thisActor->vinfo.xres * thisActor->vinfo.yres * thisActor->vinfo.bits_per_pixel / 8;
+		int screensize = thisActor->vinfo.xres * thisActor->vinfo.yres * thisActor->vinfo.bits_per_pixel / 8;
     	munmap(thisActor->fbp, screensize);
 	}
 	if(thisActor->fbfd)
     	close(thisActor->fbfd);
-#ifdef SDL
+#elif defined SDL
 	if(thisActor->image)
 		SDL_FreeSurface(thisActor->image);
 #endif

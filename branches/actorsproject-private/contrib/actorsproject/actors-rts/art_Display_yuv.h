@@ -7,13 +7,14 @@
 #ifndef ART_DISPLAY_H
 #define ART_DISPLAY_H
 
+#ifdef FB
 #include <linux/fb.h>
-#ifdef GTK
+#elif defined GTK
 #include <gtk/gtk.h>
-#endif
-#ifdef SDL
+#elif defined SDL
 #include "SDL/SDL.h"
 #endif
+
 #include "actors-rts.h"
 
 #define MB_SIZE (6*64)
@@ -21,31 +22,31 @@
 #define IMAGE_HEIGHT			144
 
 typedef struct {
-  AbstractActorInstance		base;
-  struct fb_var_screeninfo	vinfo;
-  struct fb_fix_screeninfo	finfo;
-  char						*fbp;
-  int 						fbfd;
-  int						height;
-  int						width;
-  const char				*title;
-  unsigned char 			macroBlock[MB_SIZE];	
-  int						mbx;
-  int					 	mby;
-  int 						count;
-  int 						comp;
-  int 						start;
-  int 						startTime;
-  int 						totFrames;
-  int						fp;	
-  int						ppf;	
-#ifdef GTK
-  GtkWidget					*window;
-  GtkWidget					*darea;
-  guchar					rgbbuf[IMAGE_WIDTH*IMAGE_HEIGHT*3];
+  AbstractActorInstance base;
+  int                   height;
+  int                   width;
+  const char            *title;
+  unsigned char         macroBlock[MB_SIZE];
+  int                   mbx,mby;
+  int                   count;
+  int                   comp;
+  int                   start;
+  int                   startTime;
+  int                   totFrames;
+  int                   fp;
+  int                   ppf;
+#ifdef FB
+  struct fb_var_screeninfo  vinfo;
+  struct fb_fix_screeninfo  finfo;
+  char                  *fbp;
+  int                   fbfd;
+#elif defined GTK
+  GtkWidget             *window;
+  GtkWidget             *darea;
+  guchar                rgbbuf[IMAGE_WIDTH*IMAGE_HEIGHT*3];
 #elif defined SDL
-  SDL_Surface 				*screen;
-  SDL_Surface 				*image;
+  SDL_Surface           *screen;
+  SDL_Surface           *image;
 #endif
 } ActorInstance_art_Display_yuv;
 
