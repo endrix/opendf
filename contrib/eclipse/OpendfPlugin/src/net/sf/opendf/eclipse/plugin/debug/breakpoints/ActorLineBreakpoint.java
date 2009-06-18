@@ -220,22 +220,18 @@ public class ActorLineBreakpoint extends LineBreakpoint implements IOpendfEventL
 		}
 	}
       
-	@Override
 	public void handleResumedEvent(String compName, String event) {
 		System.out.println("ActorLineBreakpoint.handleResumedEvent");
 	}
 
-	@Override
 	public void handleStartedEvent() {
 		System.out.println("ActorLineBreakpoint.handleStartedEvent");
 	}
 
-	@Override
 	public void handleSuspendedEvent(String compName, String event) {
 		System.out.println("ActorLineBreakpoint.handleSuspendedEvent");
 	}
 
-	@Override
 	public void handleTerminatedEvent() {
 		System.out.println("ActorLineBreakpoint.handleTerminatedEvent");
 	}		
