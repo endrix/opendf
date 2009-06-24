@@ -46,7 +46,7 @@ import java.util.Map;
 
 import net.sf.opendf.cal.interpreter.environment.Environment;
 import net.sf.opendf.cal.interpreter.environment.SingleEntryEnvironment;
-import net.sf.opendf.cal.shell.Shell;
+import net.sf.opendf.cal.interpreter.shell.Shell;
 
 
 /**
@@ -106,7 +106,8 @@ public class CalScriptImportHandler extends AbstractImportHandler {
 			in = classLoader.getResourceAsStream(scriptName);
 			if (in == null)
 				return null;
-			Shell shell = null ; //new Shell(platform, new HashMap(), in, NullOutputStream.devNull, NullOutputStream.devNull, false);
+			//Shell shell = null ; //new Shell(platform, new HashMap(), in, NullOutputStream.devNull, NullOutputStream.devNull, false);
+			Shell shell = new Shell (platform, new HashMap(), in, NullOutputStream.devNull, NullOutputStream.devNull, false);
 			return shell.executeAll();	
 		} catch (Exception ex) {
 			return null;

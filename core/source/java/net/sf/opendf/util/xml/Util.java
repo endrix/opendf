@@ -508,7 +508,7 @@ public class Util {
     	return defaultImpl;
     }
     
-    private static StreamLocator getDefaultLocator () 
+    public static StreamLocator getDefaultLocator () 
     {
         return new ClassLoaderStreamLocator(Util.class.getClassLoader());
     }
