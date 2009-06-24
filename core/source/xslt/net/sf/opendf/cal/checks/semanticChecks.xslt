@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-    xmlns:cal="java:net.sf.opendf.xslt.cal.CalmlEvaluator"
                 xmlns:sch="http://www.ascc.net/xml/schematron"
+                xmlns:cal="java:net.sf.opendf.xslt.cal.CalmlEvaluator"
                 version="2.0">
     <xsl:output indent="yes" method="xml"/>
     <xsl:include href="net/sf/opendf/cal/checks/reportOffenders.xslt"/>
@@ -70,49 +70,16 @@
     
     
     
-    
 
     
 
-    <xsl:template match="Stmt[@kind='Assign']" mode="M1" priority="3996">
+    <xsl:template match="Stmt[@kind='Assign']" mode="M1" priority="3997">
       
-        <variable xmlns="http://www.w3.org/1999/XSL/Transform" name="env">
-            <Env xmlns="">
-                <copy-of xmlns="http://www.w3.org/1999/XSL/Transform" select="ancestor::Actor[1]/Import"/>
-            </Env>
-        </variable>
-        <xsl:choose>
-            <xsl:when test="(some $decl in ancestor::*/(Decl | Input/Decl | Generator/Decl)         satisfies $decl/@name = current()/@name )         or cal:isDefined(@name, $env/Env) "/>
-            <xsl:otherwise>
-                <Note id="variableChecks.name.undefined" kind="Report" severity="Error" subject="">
-                    <attribute xmlns="http://www.w3.org/1999/XSL/Transform" name="subject">
-                        <apply-templates mode="report-offender" select="."/>
-                    </attribute>
-                    <apply-templates xmlns="http://www.w3.org/1999/XSL/Transform" mode="annotate-location" select="."/>Undefined variable reference</Note>
-            </xsl:otherwise>
-        </xsl:choose>
-    
         <xsl:apply-templates mode="M1"/>
     </xsl:template>
     
-    <xsl:template match="Expr[@kind='Var']" mode="M1" priority="3995">
+    <xsl:template match="Expr[@kind='Var']" mode="M1" priority="3996">
       
-        <variable xmlns="http://www.w3.org/1999/XSL/Transform" name="env">
-            <Env xmlns="">
-                <copy-of xmlns="http://www.w3.org/1999/XSL/Transform" select="ancestor::Actor[1]/Import"/>
-            </Env>
-        </variable>
-        <xsl:choose>
-            <xsl:when test="(some $decl in ancestor::*/(Decl | Input/Decl | Generator/Decl)         satisfies $decl/@name = current()/@name )         or cal:isDefined(@name, $env/Env) "/>
-            <xsl:otherwise>
-                <Note id="variableChecks.name.undefined" kind="Report" severity="Error" subject="">
-                    <attribute xmlns="http://www.w3.org/1999/XSL/Transform" name="subject">
-                        <apply-templates mode="report-offender" select="."/>
-                    </attribute>
-                    <apply-templates xmlns="http://www.w3.org/1999/XSL/Transform" mode="annotate-location" select="."/>Undefined variable reference</Note>
-            </xsl:otherwise>
-        </xsl:choose>
-    
       
         <xsl:if test="some $decl in ancestor::Decl satisfies ( $decl/@name = current/@name         and ($decl/Type/@kind='Procedure' or $decl/Type/@kind='Function') )">
             <Note id="variableChecks.recursion" kind="Report" severity="Warning" subject="">
@@ -137,7 +104,7 @@
         <xsl:apply-templates mode="M1"/>
     </xsl:template>
     
-    <xsl:template match="Op[ parent::Expr[@kind='BinOpSeq'] ]" mode="M1" priority="3994">
+    <xsl:template match="Op[ parent::Expr[@kind='BinOpSeq'] ]" mode="M1" priority="3995">
         <xsl:choose>
             <xsl:when test="contains( ' and or = != &lt; &lt;= &gt; &gt;= in + - div mod * / ^ .. &gt;&gt; &lt;&lt; | &amp; ^ ',                 concat(' ',@name,' ') )"/>
             <xsl:otherwise>
@@ -152,7 +119,7 @@
         <xsl:apply-templates mode="M1"/>
     </xsl:template>
     
-    <xsl:template match="Op[ parent::Expr[@kind='UnaryOp'] ]" mode="M1" priority="3993">
+    <xsl:template match="Op[ parent::Expr[@kind='UnaryOp'] ]" mode="M1" priority="3994">
         <xsl:choose>
             <xsl:when test="contains( ' not # dom rng - ~ ', concat(' ',@name,' ') )"/>
             <xsl:otherwise>

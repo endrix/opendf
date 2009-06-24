@@ -14,9 +14,9 @@ CLASSPATH = $(CORE)/classes$(CPS)$(CORE)/lib/saxon8.jar$(CPS)$(CORE)/lib/saxon8-
 
 # Processing commands
 JAVA = java
-XSLT = $(JAVA) -classpath "$(CLASSPATH)" net.sf.caltrop.cal.main.ReadXMLWriteXML -r 
-PARSECAL = $(JAVA) -classpath "$(CLASSPATH)" net.sf.caltrop.cal.main.Cal2CalML
-PARSENL  = $(JAVA) -classpath "$(CLASSPATH)" net.sf.caltrop.nl.NL2XNL
+XSLT = $(JAVA) -classpath "$(CLASSPATH)" net.sf.opendf.cal.main.ReadXMLWriteXML -r 
+PARSECAL = $(JAVA) -classpath "$(CLASSPATH)" net.sf.opendf.cal.main.Cal2CalML
+PARSENL  = $(JAVA) -classpath "$(CLASSPATH)" net.sf.opendf.nl.NL2XNL
 
 CHECKS = semanticChecks.xslt
 
@@ -37,7 +37,7 @@ caltests: rules $(CALTESTS:.cal=.calml)
 			echo "**"; \
 			echo "** Applying check $$check to test file $$test"; \
 			echo "**"; \
-			$(XSLT) $$test $$test.out.calml net/sf/caltrop/cal/checks/$$check net/sf/caltrop/cal/checks/problemSummary.xslt; \
+			$(XSLT) $$test $$test.out.calml net/sf/opendf/cal/checks/$$check net/sf/opendf/cal/checks/problemSummary.xslt; \
 		done; \
 	done ;
 
@@ -52,7 +52,7 @@ nltests: rules $(NLTESTS:.nl=.xnl)
 	done ;
 
 %.xslt: %.xml schematron-xml.xsl reportOffenders.xslt
-	$(XSLT) $*.xml $*.xslt net/sf/caltrop/cal/checks/schematron-xml.xsl
+	$(XSLT) $*.xml $*.xslt net/sf/opendf/cal/checks/schematron-xml.xsl
 
 %.calml: %.cal
 	$(PARSECAL) $<
