@@ -57,7 +57,7 @@
       
     </sch:rule>
     
-    <sch:rule abstract="true" id="name">
+<!--    <sch:rule abstract="true" id="name">
       <xsl:variable name="env">
         <Env>
           <xsl:copy-of select="ancestor::Actor[1]/Import"/>
@@ -74,7 +74,7 @@
           Undefined variable reference
       </sch:assert>
     </sch:rule>
-    
+-->    
     <sch:rule abstract="true" id="recursion">
       <sch:report role="Warning"
         test="some $decl in ancestor::Decl satisfies ( $decl/@name = current/@name
