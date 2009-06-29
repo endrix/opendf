@@ -41,77 +41,65 @@
 #include <string.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <pthread.h>
-#include "circbuf.h"
-#include "dll.h"
+#include <assert.h>
 
 /* make the header usable from C++ */
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
-#define INPUT				0
-#define OUTPUT				1
-#define INTERNAL			0
-#define EXTERNAL			1
 #define COPY(a)				a
-#define MAX_DATA_LENGTH		1024
-#define MAX_ACTOR_NUM		128
 
-#define TRACE_ACTION(INSTANCE,INDEX,NAME) \
-  if(trace_action) actionTrace(INSTANCE,INDEX,NAME)
-
+#define TRACE_ACTION(INSTANCE,INDEX,NAME) (INSTANCE)->hasFiredHack=1
 #define RANGECHK(X,B) ((unsigned)(X)<(unsigned)(B)?(X):RANGEERR(X,B))
 #define RANGEERR(X,B) (rangeError((X),(B),__FILE__,__LINE__))
 
-#define	LOG_MUST			0			//must log this
-#define	LOG_ERROR			1			//only log errors
-#define	LOG_WARN			2			//also log warnings
-#define	LOG_INFO			3			//also log info
-#define	LOG_EXEC			4			//also log func exec
-#define	LOG_STOP			(-99)		//disable log file
+#define pinWait(port,length)
+#define pinAvail_int32_t(port)    pinAvail(port)
+#define pinAvail_bool_t(port)     pinAvail(port)
+#define pinAvail_double(port)     pinAvail(port)
+#define pinAvailIn_int32_t(port)  pinAvailIn(port)
+#define pinAvailOut_int32_t(port) pinAvailOut(port)
+#define pinAvailIn_double(port)   pinAvailIn(port)
+#define pinAvailOut_double(port)  pinAvailOut(port)
+#define pinAvailIn_bool_t(port)   pinAvailIn(port)
+#define pinAvailOut_bool_t(port)  pinAvailOut(port)
+#define pinWaitIn(port, length)   pinWait(port,length)
+#define pinWaitOut(port, length)  pinWait(port, length)
 
-#define	RTS_VERSION			"1.1.0"
-
-#define THREAD_PER_ACTOR	1
-#define THREAD_PER_LIST		2
-#define SINGLE_LIST			3
-#define QUEUE_BASED			4
-
-#define ACTOR_NORMAL		0
-#define ACTOR_STANDALONE	1
-
-typedef int32_t				bool_t;
-
-typedef struct {
-	char			*key;
-	char			*value;
-}ActorParameter;
-
-typedef struct {
-	int				aid;					//back link to actor ID
-	int				cid;					//circular buffer ID
-	int				tokenSize;				//token size	
-	int				portDir;				//0-input 1-output
-	int				readIndex;				//the reader index 
-}ActorPort;
+typedef int32_t           bool_t;
 
 typedef struct ActorClass ActorClass;
+typedef struct OutputPort OutputPort;
 
 typedef struct {
-	pthread_t 		tid;					//thread ID
-	int				aid;					//actor ID
+  char    *bufferStart; // properly aligned, given type T
+  char    *bufferEnd;   // = bufferStart + sizeof(T)*capacity;
+  char    *readPtr;
+  unsigned numRead;     // in tokens
+  unsigned availTokens; // in tokens
+  unsigned capacity;    // in tokens
+
+  const OutputPort *writer;
+} InputPort;
+
+struct OutputPort {
+  char *bufferStart;    // properly aligned, given type T
+  char *bufferEnd;      // = bufferStart + sizeof(T)*capacity;
+  char *writePtr;
+  unsigned numWritten;  // in tokens
+  unsigned availSpace;  // in tokens
+  unsigned capacity;    // in tokens
+
+  int numReaders;
+  InputPort **readers;
+};
+
+typedef struct {
 	ActorClass		*actor;					//actor
-	ActorPort		*inputPort;	
-	ActorPort		*outputPort;
-	int				execState;
-
-	FILE			*fd;
-
-	pthread_mutex_t	mt;
-	pthread_cond_t	cv; 
-	int				firstActionIndex;
-	DLLIST			*lnode;
+	InputPort		*inputPort;
+	OutputPort		*outputPort;
+	int			hasFiredHack;
 }AbstractActorInstance;
 
 // Get port-pointers from abstract instance
@@ -126,7 +114,7 @@ typedef struct {
 
 typedef struct {
 	const char	*name;
-	int 				tokenSize;
+	int 		tokenSize;
 } PortDescription;
 
 struct ActorClass {
@@ -137,7 +125,7 @@ struct ActorClass {
 	const int*		(*action_scheduler)(AbstractActorInstance*);
 	void			(*constructor)(AbstractActorInstance*);
 	void			(*destructor)(AbstractActorInstance*);
-	void			(*set_param)(AbstractActorInstance*,int,ActorParameter*);
+	void			(*set_param)(AbstractActorInstance*,const char*, const char*);
 	const PortDescription		*inputPortDescriptions;
 	const PortDescription		*outputPortDescriptions;
 	int				actorExecMode;
@@ -180,184 +168,148 @@ struct ActorClass {
 #define EXITCODE_BLOCK(n)  (n)
 #define EXITCODE_YIELD     -1
 
-typedef struct {
-	ActorClass		*actorClass;
-	int				*inputPorts;
-	int				*outputPorts;
-	int				numParams;
-	ActorParameter	*params;
-}ActorConfig;
+// Same pinAvail can be used for all token sizes (since we count tokens)
 
-typedef struct {
-	ActorConfig		**networkActors;
-	int				numNetworkActors;
-	int				numFifos;
-	int				*fifoSizes;
-}NetworkConfig;
+static inline unsigned pinAvailIn(const InputPort *p) {
+  return p->availTokens;
+}
 
-extern AbstractActorInstance	*actorInstance[];
-extern ActorClass				*actorClass[];
-extern LIST						actorLists[];
-extern int						actorStatus[];
-extern int						log_level;
-extern int						trace_action;
-extern int						num_lists;
-extern int						rts_mode;
-extern LIST						*readyQueue;
-extern LIST						*waitingQueue;
+static inline unsigned pinAvailOut(const OutputPort *p) {
 
+  return p->availSpace;
+}
 
-/** Runs the actors network, including evaluating command line arguments, error message output,
- * network setup and finally execution.
- * This includes calling evaluate_args(), init_actor_network() and run_actor_network() . */
-extern int execute_network(int argc, char *argv[], const NetworkConfig *network);
+static inline int32_t pinPeekFront_int32_t(const InputPort *p) {
+	return *((int32_t*) p->readPtr);
+}
 
-/** Evaluates the command line arguments in argc/argv and sets the execution parameters for the actors
-  * scheduler accordingly. */
-int evaluate_args(int argc, char *argv[]);
+static inline bool_t pinPeekFront_bool_t(const InputPort *p) {
+	return *((bool_t*) p->readPtr);
+}
 
-/** Sets up the actors network according to the information provided in \a network . */
-extern void init_actor_network(const NetworkConfig * network);
+static inline double pinPeekFront_double(const InputPort *p) {
+	return *((double*) p->readPtr);
+}
 
-/** Runs the completely set up network of actors until completion. */
-extern int run_actor_network(void);
+static inline int32_t pinPeek_int32_t(const InputPort *p, int offset) {
+  int32_t *ptr=(int32_t*) p->readPtr + offset;
+  if (ptr >= (int32_t*) p->bufferEnd)
+    ptr -= p->capacity;
+  return *ptr;
+}
 
-/** This function has to be called once by every thread executed within the runtime.
- * It registers the thread id of that thread, so it can be queried later. */
-extern void register_thread_id(void);
+static inline bool_t pinPeek_bool_t(const InputPort *p, int offset) {
+  bool_t *ptr=(bool_t*) p->readPtr + offset;
+  if (ptr >= (bool_t*) p->bufferEnd)
+    ptr -= p->capacity;
+  return *ptr;
+}
 
-/** Returns an array containing all thread ids of the currently existing threads.
- * The array has been allocated via malloc() and must be freed by the caller via free(). */
-extern void get_thread_ids(int* count, pid_t** threadIds);
+static inline double pinPeek_double(const InputPort *p, int offset) {
+  double *ptr=(double*) p->readPtr + offset;
+  if (ptr >= (double*) p->bufferEnd)
+    ptr -= p->capacity;
+  return *ptr;
+}
 
-/** Marks the given actor \a instance as ready to execute. If it was blocked due to a
- * CIRC_BUFFER, this buffer must be given in \a cb. Otherwise it should be NULL (this should
- * usually only be the case for input system actors).
- * If \a cb is not NULL, \a readerIndex is the readers index if \a instance was blocked waiting for
- * data to become available for reading, if the actor was blocked because the buffer was full
- * and it couldn't write more data into the buffer, \a readerIndex has to be set to -1. */
-void make_actor_executable(AbstractActorInstance *instance, CIRC_BUFFER* cb, int readerIndex);
+static inline int32_t pinRead_int32_t(InputPort *p) {
+#ifdef DEBUG
+  assert(pinAvailIn(p)>0);
+#endif
+  int32_t *ptr=(int32_t*) p->readPtr;
+  int32_t result=*ptr++;
 
-/** Returns 1 if there is at least one token available for reading if \a port is an input port,
- * or if at least one token can be written if it is an output port.
- * Returns 0 otherwise. */
-extern int pinStatus(ActorPort * port);
+  if (ptr==(int32_t*) p->bufferEnd)
+    p->readPtr=p->bufferStart;
+  else
+    p->readPtr=(char*) ptr;
+  p->numRead++;
+  p->availTokens--;
 
-#define pinStatusIn(port) pinStatus(port)
-#define pinStatusOut(port) pinStatus(port)
+  return result;
+}
 
-/** For an input port, pinStatus2 returns the number of readable bytes available in the ActorPort \a port.
- *  For an output port, pinStatus2 returns the number of bytes which can be written into the ActorPort \a port. */
-extern int pinStatus2(ActorPort * port);
+static inline bool_t pinRead_bool_t(InputPort *p) {
+#ifdef DEBUG
+  assert(pinAvailIn(p)>0);
+#endif
+  bool_t *ptr=(bool_t*) p->readPtr;
+  bool_t result=*ptr++;
 
-/** This function is similar to pinStatus(). Instead of 0 and 1 it returns 0 or the actual
- * number of tokens which can be read from \a port / written to \a port . */
-extern int pinAvail(ActorPort * port);
+  if (ptr==(bool_t*) p->bufferEnd)
+    p->readPtr=p->bufferStart;
+  else
+    p->readPtr=(char*) ptr;
+  p->numRead++;
+  p->availTokens--;
+ 
+  return result;
+}
 
-/** Return number of tokens in int32 size which can be read from \a port / written to \a port . */
-extern int pinAvail_int32_t(ActorPort *actorPort);
+static inline double pinRead_double(InputPort *p) {
+#ifdef DEBUG
+  assert(pinAvailIn(p)>0);
+#endif
+  double *ptr=(double*) p->readPtr;
+  double result=*ptr++;
 
-#define pinAvailIn_int32_t(port) pinAvail_int32_t(port)
-#define pinAvailOut_int32_t(port) pinAvail_int32_t(port)
+  if (ptr==(double*) p->bufferEnd)
+    p->readPtr=p->bufferStart;
+  else
+    p->readPtr=(char*) ptr;
+  p->numRead++;
+  p->availTokens--;
+ 
+  return result;
+}
 
-/** Return number of tokens in double size which can be read from \a port / written to \a port . */
-extern int pinAvail_double(ActorPort *actorPort);
+static inline void pinWrite_int32_t(OutputPort *p, int32_t token) {
+#ifdef DEBUG
+  assert(pinAvailOut(p)>0);
+#endif
+  int32_t *ptr=(int32_t*) p->writePtr;
 
-#define pinAvailIn_double(port) pinAvail_double(port)
-#define pinAvailOut_double(port) pinAvail_double(port)
+  *ptr++=token;
+  if (ptr==(int32_t*) p->bufferEnd)
+    p->writePtr=p->bufferStart;
+  else
+    p->writePtr=(char*) ptr;
+  p->numWritten++;
+  p->availSpace--;
+}
 
-/** Return number of tokens in bool_t size which can be read from \a port / written to \a port . */
-extern int pinAvail_bool_t(ActorPort *actorPort);
+static inline void pinWrite_bool_t(OutputPort *p, bool_t token) {
+#ifdef DEBUG
+  assert(pinAvailOut(p)>0);
+#endif
+  bool_t *ptr=(bool_t*) p->writePtr;
 
-#define pinAvailIn_bool_t(port) pinAvail_bool_t(port)
-#define pinAvailOut_bool_t(port) pinAvail_bool_t(port)
+  *ptr++=token;
+  if (ptr==(bool_t*) p->bufferEnd)
+    p->writePtr=p->bufferStart;
+  else
+    p->writePtr=(char*) ptr;
+  p->numWritten++;
+  p->availSpace--;
+}
 
-/** Reads one integer-sized token from \a port and returns it. Breaks if tokenSize > sizeof(int) . */
-extern int pinRead(ActorPort * port);
+static inline void pinWrite_double(OutputPort *p, double token) {
+#ifdef DEBUG
+  assert(pinAvailOut(p)>0);
+#endif
+  double *ptr=(double*) p->writePtr;
 
-/** Reads nonblocking \a length bytes from \a port into the buffer \a buf .
- * Potentially blocked writers waiting that enough space in \a port becomes free
- * are signalled. */
-extern int pinRead2(ActorPort * port, char * buf, int length);
+  *ptr++=token;
+  if (ptr==(double*) p->bufferEnd)
+    p->writePtr=p->bufferStart;
+  else
+    p->writePtr=(char*) ptr;
+  p->numWritten++;
+  p->availSpace--;
+}
 
-/** Reads one double-sized token from \a port and returns it. */
-extern double pinRead_double(ActorPort *actorPort);
-
-/** Reads one int32_t-sized token from \a port and returns it. */
-extern int32_t pinRead_int32_t(ActorPort *actorPort);
-
-/** Reads one bool_t-sized token from \a port and returns it. */
-extern bool_t pinRead_bool_t(ActorPort *actorPort);
-
-/** Reads one integer-sized token from \a port at the given \a offset relative to the current
- * read position (in tokens) and returns it. The current read position is not modified.
- * Breaks if tokenSize > sizeof(int) . */
-extern int pinPeek(ActorPort * port, int offset);
-
-/** Reads one int32_t-sized token from \a port at the given \a offset relative to the current
- * read position (in tokens) and returns it. The current read position is not modified. */
-extern int32_t pinPeek_int32_t(ActorPort *actorPort, int offset);
-
-/** Reads one double-sized token from \a port at the given \a offset relative to the current
- * read position (in tokens) and returns it. The current read position is not modified. */
-extern double pinPeek_double(ActorPort *actorPort, int offset);
-
-/** Reads one bool_t-sized token from \a port at the given \a offset relative to the current
- * read position (in tokens) and returns it. The current read position is not modified. */
-extern bool_t pinPeek_bool_t(ActorPort *actorPort, int offset);
-
-// Specialized pinPeeks that access first token
-// TODO: implement simpler/faster peeks for this common case
-// (no need to consider wrap-around in circular buffer) 
-#define pinPeekFront_int32_t(port) pinPeek_int32_t(port,0)
-#define pinPeekFront_double(port) pinPeek_double(port,0)
-#define pinPeekFront_bool_t(port) pinPeek_bool_t(port,0)
-
-/** Writes nonblocking the int-sized token with the given \a value into the given \a port .
- * Potentially blocked readers waiting that data becomes available in \a port are signalled. */
-extern int pinWrite(ActorPort * port, int value);
-
-/** Writes nonblocking the int-sized token with the given \a value into the given \a port .
- * Potentially blocked readers waiting that data becomes available in \a port are signalled. */
-extern int pinWrite2(ActorPort * port, const char * buf, int length);
-
-/** Writes nonblocking the double-sized token with the given \a value into the given \a port .
- * Potentially blocked readers waiting that data becomes available in \a port are signalled. */
-extern int pinWrite_double(ActorPort *actorPort,double val);
-
-/** Writes nonblocking the int32_t-sized token with the given \a value into the given \a port .
- * Potentially blocked readers waiting that data becomes available in \a port are signalled. */
-extern int pinWrite_int32_t(ActorPort *actorPort,int32_t val);
-
-/** Writes nonblocking the bool_t-sized token with the given \a value into the given \a port .
- * Potentially blocked readers waiting that data becomes available in \a port are signalled. */
-extern int pinWrite_bool_t(ActorPort *actorPort,bool_t val);
-
-/** Marks the actor as waiting for \a port , i.e. waiting that \a length bytes
- * become available for reading or writing.
- * Does not block itself ! */
-extern void pinWait(ActorPort * port, int length);
-
-#define pinWaitIn(port, length) pinWait(port,length)
-#define pinWaitOut(port, length) pinWait(port, length)
-
-/** Printf-like tracing function to stderr. Prints only if \a level >= the current log_level. */
-extern void actorTrace(AbstractActorInstance * base, int level, const char * message, ...);
-
-/** Produces a trace of action firings to stderr (if -t option is used)
- *  and/or to an xml trace file (if -x option is used)
- */
-extern void actionTrace(AbstractActorInstance *instance,
-			int localActionIndex,
-			char *actionName);
-
-/** Printf-like tracing function to stderr. Prints only if \a level >= the current log_level. */
-extern void trace(int level, const char*,...);
-
-/** Prints a range error message to stdout. */
-int rangeError(int x, int y, const char *filename, int line);
-
-void runtimeError(AbstractActorInstance*, const char *format,...);
+extern int rangeError(int x, int y, const char *filename, int line);
+extern void runtimeError(AbstractActorInstance*, const char *format,...);
 
 #ifdef __cplusplus
 }
