@@ -55,8 +55,13 @@ $(LOCAL_SKIP:=.result): %.result :
 	@echo $(TITLE)/$*: SKIPPED > $@
 	@cat $@
 
-$(RUN_TEST_MODELS):
+$(RUN_TEST_MODELS) decoderDemo:
 	$(MAKE) -f $(ACTORS_MAKE)/makemodel.mk MODEL=$@ PRESERVE_C=Y
+
+# decoderDemo is not actually a test (but we need a .result target)
+.PHONY: decoderDemo.result
+
+decoderDemo.result: decoderDemo
 
 init:
 	@rm -f report *.result *.diff
