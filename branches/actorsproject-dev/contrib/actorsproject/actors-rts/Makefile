@@ -20,7 +20,7 @@ REAL_NAME=$(BASENAME).a
 endif
 
 ifneq "$(PROFILE)" ""
-CFLAGS += -pg
+CFLAGS += -pg -fno-omit-frame-pointer
 endif
 
 ifeq ($(FB), y)
@@ -28,19 +28,25 @@ CFLAGS += -DFB
 endif
 
 ifeq ($(GTK), y)
-CFLAGS += -I/usr/include/gtk-2.0 -I/usr/lib/gtk-2.0/include -I/usr/include/atk-1.0 -I/usr/include/cairo -I/usr/include/pango-1.0 -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I/usr/include/pixman-1 -I/usr/include/freetype2 -I/usr/include/libpng12 -DGTK
+CFLAGS += `gtk-config --cflags` -DGTK
 endif
 
-INSTALL_H=actors-rts.h circbuf.h dll.h
+ifeq ($(SDL), y)
+CFLAGS += `sdl-config --cflags` -DSDL
+endif
+
+CFLAGS += -O3
+
+INSTALL_H=actors-rts.h actors-config.h
 INSTALL_SYSACTORS=art_DDRModel.cal art_Display_yuv.cal \
                   art_Sink_bin.cal art_Sink_yuv.cal art_Sink_txt.cal \
                   art_Source_bin.cal art_Source_txt.cal art_Source_real.cal \
                   art_Sink_real.cal
 
-OBJECTS=actors-rts.o exec_network.o circbuf.o \
+OBJECTS=exec_network.o \
         art_Sink_bin.o art_Sink_txt.o art_Source_bin.o art_Source_txt.o \
-        art_DDRModel.o art_Display_yuv.o dll.o xmlTrace.o art_Source_real.o \
-        art_Sink_real.o
+        art_DDRModel.o art_Display_yuv.o art_Source_real.o \
+        art_Sink_real.o art_Sink.o art_Source.o ddrmodel.o display.o
 
 # delete the built-in suffixes to avoid surprises
 .SUFFIXES:   
@@ -70,7 +76,7 @@ else
 endif
 
 $(OBJECTS): %.o : $(srcdir)/%.c
-	$(CC) -fPIC -c -g -Wall $(CFLAGS) -o $@ $<
+	$(CC) -fPIC -c -Wall $(CFLAGS) -o $@ $<
 
 install: install-lib install-include install-sysactors
 
