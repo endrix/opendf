@@ -19,11 +19,10 @@ include @datadir@/actors-make/definitions.mk
 # target=arm-none-linux-gnueabi
 
 # Generate debug code
-DEBUG=Y
+# DEBUG=Y
 
-# Preserve intermediate files
-# export PRESERVE_ALL=Y
-# export PRESERVE_C=Y
+# Link statically
+# STATIC=Y
 
 
 # ------------------------------------------------------
