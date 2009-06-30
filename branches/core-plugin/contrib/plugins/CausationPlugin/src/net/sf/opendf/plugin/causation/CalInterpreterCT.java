@@ -89,7 +89,7 @@ public class CalInterpreterCT extends CalInterpreter {
 			// 1. create one
 			try {
 				// FIXME: have some mechanism for specifying the location of the trace file.
-				ctb = new XmlCausationTraceBuilder(new PrintWriter(new FileOutputStream("ct.xml")), true);
+				ctb = new XmlCausationTraceBuilder(new PrintWriter(new FileOutputStream(path + "/causation_trace.xml")), true);
 			}
 			catch (Exception e) {
 				throw new RuntimeException(e);
@@ -233,18 +233,22 @@ public class CalInterpreterCT extends CalInterpreter {
 		
 	private static Map causationTraceBuilders = new HashMap();
 	
-	
-	
 	private static long  counter = 0;
+	private static String path;
 	
-
-	
+	/**
+	 * Set the output
+	 * @param newpath New ouput path
+	 */
+	public static void setPath(String newpath){
+		path = newpath;
+	}
 	
 	class MosesInputChannelCT extends MosesInputChannel {
 		
 		//
 		//  override: InputChannel
-		
+		//
 		public void commit() {
 			if (tokensRead > 0) {
 				if (lastReader != null) {
@@ -282,15 +286,7 @@ public class CalInterpreterCT extends CalInterpreter {
 			super.commit();
 		}
 								
-		//
-		//  AbstractMessageListener
-		//
-		/*
-	   public void	message(MessageEvent evt) {
-	    	super.message(evt);
-	    	Object step = ctb.currentStep();
-			tokenSteps.add(step);
-	    }*/
+
 		
 		public void	message(Object msg, double time, Object source){
 			super.message(msg,time,source);
@@ -301,7 +297,6 @@ public class CalInterpreterCT extends CalInterpreter {
 		//
 		//  Ctor
 		//
-
 		MosesInputChannelCT(String name) {
 			super(name);
 			tokenSteps = new MyArrayList();
@@ -317,7 +312,6 @@ public class CalInterpreterCT extends CalInterpreter {
 		//
 		//  override: MosesOutputChannel
 		//
-		
 		public boolean  flush() {
 			Object step = ctb.currentStep();
 			if (lastWriter != null && step != null) {
@@ -334,7 +328,6 @@ public class CalInterpreterCT extends CalInterpreter {
 		//
 		//  Ctor
 		//
-		
 		MosesOutputChannelCT(String name) {
 			super(name);
 		}
@@ -342,7 +335,6 @@ public class CalInterpreterCT extends CalInterpreter {
 		//
 		//  data
 		//
-		
 		private Object lastWriter = null;
 	}
 

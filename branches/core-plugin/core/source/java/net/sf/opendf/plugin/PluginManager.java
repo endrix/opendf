@@ -86,6 +86,11 @@ public class PluginManager {
 	protected Map<String,Boolean> enableList;
 	
 	/**
+	 * loaderList Contains the PluginClassLoaders
+	 */
+	protected static TreeMap<String,PluginClassLoader> loaderList;
+	
+	/**
 	 * Default constructor
 	 **/
 	public PluginManager(){
@@ -132,6 +137,7 @@ public class PluginManager {
 	 */
 	public void setEnable(String plugin, Boolean enable) {
 		enableList.put(plugin,enable);
+		loaderList.get(plugin).activate(enable);
 	}
 
 	/**
@@ -190,6 +196,7 @@ public class PluginManager {
 		descriptions = new Vector<String>();
 		priorityList = new TreeMap<String,Map<Integer,String>>();
 		classList = new TreeMap<String,Map<String,Class<?>>>();
+		loaderList = new TreeMap<String,PluginClassLoader>();
 		// Get the plug-in list
 		IConfigurationElement[] contributions = 
 			Platform.getExtensionRegistry().getConfigurationElementsFor("net.sf.opendf.eclipse.plugin.OpendfPlugin.odfcoreplugin");
@@ -201,6 +208,7 @@ public class PluginManager {
 				PluginClassLoader classloader = 
 	               (PluginClassLoader)contributions[i].createExecutableExtension("classloader");
 				addPlugin(name, contributions[i].getAttribute("description"));
+				loaderList.put(name,classloader);
 				
 				// Get all the kinds related
 				IConfigurationElement[] children = contributions[i].getChildren();

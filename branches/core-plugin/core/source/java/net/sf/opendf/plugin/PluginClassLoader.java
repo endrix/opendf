@@ -37,6 +37,8 @@ ENDCOPYRIGHT
  */
 package net.sf.opendf.plugin;
 
+import java.awt.Component;
+
 /**
  * PluginClassLoader is the eclipse extension point to implement 
  * @author Samuel Keller EPFL
@@ -48,4 +50,10 @@ public interface PluginClassLoader {
 	 * @return Class requested
 	 */
 	public Class<?> getPluginClass(String kind);
+	
+	/**
+	 * Activate allows custom activation
+	 * @param active New status of activation
+	 */
+	public void activate(boolean active);
 }
