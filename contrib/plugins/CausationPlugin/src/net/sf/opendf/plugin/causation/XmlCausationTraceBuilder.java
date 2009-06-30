@@ -38,24 +38,9 @@ ENDCOPYRIGHT
 
 package net.sf.opendf.plugin.causation;
 
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.GridLayout;
-import java.awt.Point;
-import java.awt.geom.Rectangle2D;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStream;
 import java.io.PrintWriter;
-import java.net.URL;
-import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -63,50 +48,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
-import javax.swing.BoxLayout;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JList;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JSplitPane;
-import javax.swing.JTabbedPane;
-import javax.swing.JTable;
-import javax.swing.JViewport;
-import javax.swing.table.TableCellRenderer;
-import javax.swing.tree.DefaultTreeCellRenderer;
-
-import net.sf.opendf.profiler.cli.Stats;
-import net.sf.opendf.profiler.data.Action;
-import net.sf.opendf.profiler.data.ActionClass;
-import net.sf.opendf.profiler.data.Trace;
-import net.sf.opendf.profiler.io.TraceParser;
-
-import org.jdesktop.swingx.JXTable;
-import org.jdesktop.swingx.JXTreeTable;
-import org.jdesktop.swingx.decorator.ColorHighlighter;
-import org.jdesktop.swingx.decorator.HighlightPredicate;
-import org.jdesktop.swingx.decorator.Highlighter;
-import org.jdesktop.swingx.decorator.HighlighterFactory;
-import org.jdesktop.swingx.decorator.HighlighterFactory.UIColorHighlighter;
-import org.jdesktop.swingx.renderer.DefaultTableRenderer;
-import org.jdesktop.swingx.renderer.StringValue;
-import org.jgraph.JGraph;
-import org.jgraph.graph.AttributeMap;
-import org.jgraph.graph.DefaultGraphCell;
-import org.jgraph.graph.GraphConstants;
-
 import org.jgrapht.ListenableGraph;
 import org.jgrapht.ext.DOTExporter;
 import org.jgrapht.ext.EdgeNameProvider;
-import org.jgrapht.ext.JGraphModelAdapter;
 import org.jgrapht.ext.VertexNameProvider;
 import org.jgrapht.graph.DefaultDirectedGraph;
 import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.graph.ListenableDirectedGraph;
-
-import att.grappa.Grappa;
-import att.grappa.GrappaSupport;
 
 /**
  * This class represents causation traces as XML files and prints them to the 
@@ -177,471 +125,11 @@ public class XmlCausationTraceBuilder implements CausationTraceBuilder {
 		
 		// Export the two DOT files
 		try {
-			exporter.export(new PrintWriter(new FileOutputStream("ct.dot")),lg);
-			exporter.export(new PrintWriter(new FileOutputStream("ct3.dot")),lgnr);
-			exporter2.export(new PrintWriter(new FileOutputStream("ct2.dot")),sg);
+			exporter.export(new PrintWriter(new FileOutputStream(path + "/causation_trace.dot")),lg);
+			exporter2.export(new PrintWriter(new FileOutputStream(path + "/dependency_graph.dot")),sg);
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
-
-		/*		
-		// Display of JGrapht
-		JGraphModelAdapter<String, DefaultEdge> adapter = new JGraphModelAdapter<String, DefaultEdge>( lg );
-        JGraph jgraph = new JGraph( adapter );
-
-        // Maps used to order JGraph
-		Map<String, Integer> level = new HashMap<String, Integer>();
-		Map<Integer, Integer> count = new HashMap<Integer, Integer>();
-		
-		// Draw the Graph, note : it's a Node^2 algorithm
-		Iterator<String> it = nodesn.iterator();
-		while (it.hasNext()) { // Draw each node
-			String vertex = it.next();
-			Iterator<String> it2 = nodesn.iterator();
-			String vertex2 = it2.next();
-
-			int clevel = 0;
-			while (vertex!=vertex2){ // Get the level => is the Y location
-				if(lg.getEdge(vertex2, vertex) != null){
-					int temp = level.get(vertex2)+1;
-					clevel = (clevel<temp)?temp:clevel;
-				}
-				vertex2 = it2.next();
-			}
-			// Get the count => is the X location
-			int ccount = 0;
-			if(count.get(clevel)!=null){
-				ccount = count.get(clevel)+1;
-			}
-			count.put(clevel,ccount);
-			level.put(vertex, clevel);
-			// Put the node to the calculated position
-			this.positionVertexAt(vertex, ccount*100, clevel*50, adapter);
-		}
-
-        JFrame f = new JFrame();
-        f.setTitle("Causation Trace Graph");
-        f.setPreferredSize(new Dimension(640, 480));
-        f.setLocationByPlatform(true);
-        
-        JScrollPane sp = new JScrollPane(jgraph);
-        f.add(sp);
-        f.pack();
-        f.setVisible(true);*/
-        
-        /*GmlExporter<String, DefaultEdge> expg = new GmlExporter<String, DefaultEdge>();
-        expg.setPrintLabels(GmlExporter.PRINT_VERTEX_LABELS);
-        try{
-        expg.export(new PrintWriter(new FileOutputStream("test.gml")), lg);
-        }
-        catch(Exception e){
-        	
-        }*/
-        
-		//////////////
-		
-			//Stats.main(new String[]{"ct.xml"});
-			
-        displayResult();
-	}
-	
-	private void displayResult(){
-		try {
-			Dimension maxi = new Dimension(999999,999999);
-			File fil = new File("ct.xml");
-			FileInputStream fis = new FileInputStream(fil);
-			TraceParser tp = new TraceParser(fis, TraceParser.DEPS_DF);
-			Trace t = tp.parse();
-			
-			Stats s = Stats.createStats(t, "ct.xml");
-			
-			/*Vector<String> leftv = new Vector<String>();
-			for (Action a : s.actionFreq.keySet()) {
-				leftv.add(new String(a + " -- " + s.actionFreq.get(a)));
-			}
-			JList leftl = new JList(leftv);
-			leftl.setMaximumSize(maxi);
-			
-			Vector<String> rightv = new Vector<String>();
-			for (ActionClass ac : s.actionClassFreq.keySet()) {
-				rightv.add(new String(ac + " -- " + s.actionClassFreq.get(ac)));
-			}
-			JList rightl = new JList(rightv);
-			rightl.setMaximumSize(maxi);
-			
-			JPanel left = new JPanel();
-			left.setLayout(new BoxLayout(left, BoxLayout.Y_AXIS));
-			JLabel action = new JLabel("Action");
-			action.setAlignmentX((float)0.5);
-			left.add(action);
-			left.add(leftl);
-			left.setMaximumSize(maxi);
-			
-			JPanel right = new JPanel();
-			right.setLayout(new BoxLayout(right, BoxLayout.Y_AXIS));
-			JLabel actionclass = new JLabel("ActionClass");
-			actionclass.setAlignmentX((float)0.5);
-			right.add(actionclass);
-			right.add(rightl);
-			right.setMaximumSize(maxi);
-			
-			JScrollPane leftsp = new JScrollPane(left);
-			JScrollPane rightsp = new JScrollPane(right);
-			leftsp.setPreferredSize(maxi);
-			leftsp.setMaximumSize(maxi);
-			rightsp.setPreferredSize(maxi);
-			rightsp.setMaximumSize(maxi);
-			
-			JSplitPane split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
-					leftsp, rightsp);
-
-			JPanel lists = new JPanel();
-			lists.setLayout(new BoxLayout(lists, BoxLayout.Y_AXIS));
-			JLabel stepsNumber = new JLabel(" # Step : "+t.length());
-			lists.add(stepsNumber);
-			lists.add(split);
-			lists.setPreferredSize(maxi);
-			lists.setMaximumSize(maxi);*/
-			
-			Vector<Vector<String>> all = new Vector<Vector<String>>();
-			for (Action a : s.actionFreq.keySet()) {
-				Vector<String> temp = new Vector<String>();
-				temp.add(a.actionClass.actorClassName+ " ("+Integer.toString(a.actorID)+")");
-				temp.add(actionTag.get(a.actionClass.actorClassName+"/"+Integer.toString(a.actionClass.action)));
-				temp.add(s.actionFreq.get(a).toString());
-				all.add(temp);
-			}
-			
-			JXTreeTable table = new JXTreeTable(new StatsResultTreeTableModel(all));
-
-			Highlighter highligher = HighlighterFactory.createSimpleStriping(new Color(255,255,200));
-			Highlighter actorhighligher = new ColorHighlighter(
-					new HighlightPredicate.AndHighlightPredicate(HighlightPredicate.IS_FOLDER,HighlightPredicate.ODD), new Color(255,180,180), Color.BLACK);
-			Highlighter actorhighligher2 = new ColorHighlighter(
-					HighlightPredicate.IS_FOLDER, new Color(255,200,200), Color.BLACK);
-			
-	    	table.setHighlighters(highligher, actorhighligher2, actorhighligher);
-	    	table.setShowGrid(false);
-	    	table.setShowsRootHandles(true);
-	        configureCommonTableProperties(table);
-	        table.setTreeCellRenderer(new StatsResultTreeTableRenderer());
-	        
-			JTabbedPane tabbedPane = new JTabbedPane();
-			
-			//JTable table = new JTable(new StatsResultTableModel(all));
-			JScrollPane lists = new JScrollPane(table);
-	        tabbedPane.addTab("Stats Lists", lists);
-			
-			//////////////////
-			// Display of JGrapht
-			JGraphModelAdapter<String, DefaultEdge> adapter = new JGraphModelAdapter<String, DefaultEdge>( lg );
-	        JGraph jgraph = new JGraph( adapter );
-
-	        // Maps used to order JGraph
-	        Map<String, Integer> ap  = new HashMap<String, Integer>();
-	        Map<String, Integer> at  = new HashMap<String, Integer>();
-	        Vector<String> color = new Vector<String>();
-	        int proc = 0;
-			Map<Integer, Integer> plevel = new HashMap<Integer, Integer>();
-	        Map<String, Integer> alevel = new HashMap<String, Integer>();
-	        int number=0;
-
-	        try{
-		        // read files for ap/at
-		        BufferedReader br=new BufferedReader(new FileReader("ap.txt"));
-		        // Reads the file
-		        while (br.ready()){
-		        	String[] line = br.readLine().split(":");
-		        	int cproc = Integer.parseInt(line[1]);
-		        	ap.put(line[0], cproc);
-		        	plevel.put(cproc, 0);
-		        	color.add(line[0]);
-		        	proc = (proc<cproc)?cproc:proc;
-		        }
-		        number = color.size();
-		        br.close();
-		        br=new BufferedReader(new FileReader("at.txt"));
-		        // Reads the file
-		        while (br.ready()){
-		        	String[] line = br.readLine().split(":");
-		        	at.put(line[0], Integer.parseInt(line[ap.get(line[0])]));
-		        }
-		        br.close();
-	        
-	        
-		        String svg = new String();
-		        int width = 0;
-		        
-				// Draw the Graph, note : it's a Node^2 algorithm
-				Iterator<String> it = nodesn.iterator();
-				while (it.hasNext()) { // Draw each node
-					String vertex = it.next();
-					Iterator<String> it2 = nodesn.iterator();
-					String vertex2 = it2.next();
-	
-					String saction=vertex.substring(0, vertex.indexOf('*'));
-					Integer cp = ap.get(saction);
-					int clevel = plevel.get(cp);
-					while (vertex!=vertex2){ // Get the level => is the X location
-						if(lg.getEdge(vertex2, vertex) != null){
-							int temp = alevel.get(vertex2);
-							clevel = (clevel<temp)?temp:clevel;
-						}
-						vertex2 = it2.next();
-					}
-					
-					int nlevel = clevel+ at.get(saction);
-					plevel.put(cp, nlevel);
-					alevel.put(vertex, nlevel);
-					width = (width<nlevel)?nlevel:width;
-					
-					int ylevel = (cp-1)*50+5;
-					
-					// Put the node to the calculated position
-					this.positionVertexAt(vertex, clevel, ylevel, adapter);
-					this.sizeVertexAt(vertex, at.get(saction), 40, adapter);
-					
-					svg += "<rect x=\""+ clevel + "\" y=\""+ ylevel + 
-						"\" width=\"" + at.get(saction) + 
-						"\" height=\"40\" fill=\"#" +
-						getColor(color.indexOf(saction), number)+
-						"\" stroke=\"black\" stroke-width=\"1\" />\n";
-				}
-				
-				for(int i=0;i<proc;i++){
-					int ylevel = i*50+49;;
-					svg += "<rect x=\"0\" y=\""+ylevel+"\" width=\"" + 
-					width + "\" height=\"2\" fill=\"black\"/>\n";
-				}
-				
-				it = color.iterator();
-				int count = 0;
-				int defs = (width/150);
-				int height = proc * 50 + 10 + ((color.size()+defs-1)/defs)*30;
-				
-				while (it.hasNext()){
-					
-					int xpos = (count%defs)*150 + 10;
-					int ypos = (count/defs)* 30 + proc * 50 + 15;
-					svg += "<rect x=\""+ xpos +"\" y=\""+ ypos + 
-					"\" width=\"10\" height=\"10\" fill=\"#" +
-					getColor(count, number)+
-					"\" stroke=\"black\" stroke-width=\"1\" />\n";
-					
-					svg += "<text x=\""+(xpos+15)+"\" y=\"" + (ypos+10) + "\">\n";
-					svg += it.next() + "\n";
-					svg += "</text>\n";
-					count++;
-				}
-				
-				svg = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" + 
-					  "<svg xmlns=\"http://www.w3.org/2000/svg\" " + 
-					  "version=\"1.1\" width=\""+ width +"\" height=\""+ height +"\">\n" + 
-					  svg + "</svg>\n";
-				
-		        try {
-		        	BufferedWriter out = new BufferedWriter(new FileWriter("ct.svg"));
-					out.write(svg);
-					out.close();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-		        
-		        JScrollPane sp = new JScrollPane(jgraph);
-		        tabbedPane.addTab("Processor allocation", sp);
-	        }
-	        catch(Exception e){
-	        	System.out.println("ERROR in file reading");
-	        }
-	        
-			tabbedPane.addTab("Full Depedency Graph",displayDOT("ct.dot"));
-			tabbedPane.addTab("Resumed Depedency Graph",displayDOT("ct2.dot"));
-			tabbedPane.addTab("Cut Depedency Graph",displayDOT("ct3.dot"));
-			
-			JFrame fs = new JFrame();
-	        fs.setTitle("Trace Results");
-	        fs.setPreferredSize(new Dimension(640, 480));
-	        fs.setLocationByPlatform(true);
-	
-	        fs.add(tabbedPane);
-	        fs.pack();
-	        //split.setDividerLocation(0.5);
-	        fs.setVisible(true);
-		}
-		catch(Exception e){
-		}
-	}
-	
-	private void  configureCommonTableProperties(JXTable table) {
-        table.setColumnControlVisible(true);
-        StringValue toString = new StringValue() {
-
-            public String getString(Object value) {
-                if (value instanceof Point) {
-                    Point p = (Point) value;
-                    return createString(p.x, p.y);
-                } else if (value instanceof Dimension) {
-                    Dimension dim = (Dimension) value;
-                    return createString(dim.width, dim.height);
-                }
-               return "";
-            }
-
-            private String createString(int width, int height) {
-                return "(" + width + ", " + height + ")";
-            }
-            
-        };
-        TableCellRenderer renderer = new DefaultTableRenderer(toString);
-        table.setDefaultRenderer(Point.class, renderer);
-        table.setDefaultRenderer(Dimension.class, renderer);
-    }
-	
-	private JScrollPane displayDOT(String file){
-		InputStream input = null;
-		try {
-			input = new FileInputStream(file);
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		}
-		att.grappa.Parser program = new att.grappa.Parser(input,System.err);
-		try {
-			program.parse();
-		} 
-		catch(Exception ex) {
-			System.err.println("Exception: " + ex.getMessage());
-			ex.printStackTrace(System.err);
-			System.exit(1);
-		}
-
-		att.grappa.Graph graph = program.getGraph();
-		graph.setEditable(false);
-		graph.setMenuable(false);
-		
-		att.grappa.GrappaPanel gp = new att.grappa.GrappaPanel(graph,null);
-        
-        JScrollPane sp2 = new JScrollPane(gp);
-        sp2.getViewport().setScrollMode(JViewport.BACKINGSTORE_SCROLL_MODE);
-        
-        
-        //////////////////////////////
-        
-        Object connector = null;
- 	   
-		/*try {
-		connector = Runtime.getRuntime().exec(Demo12.SCRIPT);
-	    } catch(Exception ex) {
-		System.err.println("Exception while setting up Process: " + ex.getMessage() + "\nTrying URLConnection...");
-		connector = null;
-	    }*/
-	    if(connector == null) {
-		try {
-		    connector = (new URL("http://www.research.att.com/~john/cgi-bin/format-graph")).openConnection();
-		    URLConnection urlConn = (URLConnection)connector;
-		    urlConn.setDoInput(true);
-		    urlConn.setDoOutput(true);
-		    urlConn.setUseCaches(false);
-		    urlConn.setRequestProperty("Content-Type","application/x-www-form-urlencoded");
-		} catch(Exception ex) {
-		    System.err.println("Exception while setting up URLConnection: " + ex.getMessage() + "\nLayout not performed.");
-		    connector = null;
-		}
-	    }
-	    if(connector != null) {
-		if(!GrappaSupport.filterGraph(graph,connector)) {
-		    System.err.println("ERROR: somewhere in filterGraph");
-		}
-		if(connector instanceof Process) {
-		    try {
-			int code = ((Process)connector).waitFor();
-			if(code != 0) {
-			    System.err.println("WARNING: proc exit code is: " + code);
-			}
-		    } catch(InterruptedException ex) {
-			System.err.println("Exception while closing down proc: " + ex.getMessage());
-			ex.printStackTrace(System.err);
-		    }
-		}
-		connector = null;
-	    }
-	    graph.repaint();
-		
-	    return sp2;
-	}
-	
-	private String getColor(int ncolor, int number){
-		if (number == 1)
-			return "00FF00";
-		double tint;
-		double alpha = (ncolor%3)*0.25-1.0/12;
-		
-		if (ncolor*3<number)
-		{
-			tint = 3*(double)ncolor/(double)number;
-			return alphaToHexa(1-tint,tint,0,alpha);
-		}
-		else if (ncolor*3>=2*number)
-		{
-			tint = 3*(double)ncolor/(double)number-2;
-			return alphaToHexa(tint,0,1-tint,alpha);
-		}
-		else
-		{
-			tint = 3*(double)ncolor/(double)number-1;
-			return alphaToHexa(0,1-tint,tint,alpha);
-		}
-	}
-	
-	private static String alphaToHexa(double r, double g, double b, double alpha){
-		return doubleToHexa(setAlpha(r,alpha))+
-		doubleToHexa(setAlpha(g,alpha))+
-		doubleToHexa(setAlpha(b,alpha));
-	}
-	
-	private static double setAlpha(double color, double alpha){
-		double result = color+alpha;
-		return (result<0)?0:(result>1)?1:result;
-	}
-	
-	private static String doubleToHexa(double number){
-		String temp = "00" + Integer.toHexString((int)(number*255)).toUpperCase();
-		return temp.substring(temp.length()-2);
-	}
-	
-	protected void positionVertexAt(Object vertex, int x, int y, JGraphModelAdapter<String, DefaultEdge> adapter) {
-		DefaultGraphCell cell = adapter.getVertexCell(vertex);
-		
-		AttributeMap attr = cell.getAttributes();
-		Rectangle2D bounds = GraphConstants.getBounds(attr);
-
-
-		Rectangle2D newBounds = new Rectangle2D.Double(x, y, bounds.getWidth(),
-				bounds.getHeight());
-
-		GraphConstants.setBounds(attr, newBounds);
-
-		// TODO: Clean up generics once JGraph goes generic
-		AttributeMap cellAttr = new AttributeMap();
-		cellAttr.put(cell, attr);
-		adapter.edit(cellAttr, null, null, null);
-	}
-
-	protected void sizeVertexAt(Object vertex, int x, int y, JGraphModelAdapter<String, DefaultEdge> adapter) {
-		DefaultGraphCell cell = adapter.getVertexCell(vertex);
-		
-		AttributeMap attr = cell.getAttributes();
-		Rectangle2D bounds = GraphConstants.getBounds(attr);
-
-
-		Rectangle2D newBounds = new Rectangle2D.Double(bounds.getX(), bounds.getY(), x, y);
-
-		GraphConstants.setBounds(attr, newBounds);
-
-		// TODO: Clean up generics once JGraph goes generic
-		AttributeMap cellAttr = new AttributeMap();
-		cellAttr.put(cell, attr);
-		adapter.edit(cellAttr, null, null, null);
 	}
 
 	public Object beginStep() {
@@ -723,7 +211,6 @@ public class XmlCausationTraceBuilder implements CausationTraceBuilder {
 		
 		String name = sname + "/" + aname + "*" + Long.toString(stepID);
 		lg.addVertex(name);
-		lgnr.addVertex(name);
 		
 		// Get the resumed graph Vertex
 		sname = sname + "/" + aname;
@@ -757,10 +244,6 @@ public class XmlCausationTraceBuilder implements CausationTraceBuilder {
 					CountVertex cv2 = msg.get(d.step.toString());
 					// Check it is no itself
 					if(cv!=cv2){
-						
-						//////////////
-						lgnr.addEdge( nodes.get(d.step.toString()), name );
-						//////////////
 						
 						// Get the edge
 						CountEdge e = sg.getEdge(cv2, cv);
@@ -854,7 +337,6 @@ public class XmlCausationTraceBuilder implements CausationTraceBuilder {
 		this.pw = pw;
 		this.closeFlag = closeFlag;
 		lg = new ListenableDirectedGraph<String, DefaultEdge>( DefaultEdge.class );
-		lgnr = new ListenableDirectedGraph<String, DefaultEdge>( DefaultEdge.class ); 
 		sg = new DefaultDirectedGraph<CountVertex,CountEdge>(CountEdge.class);
 		msg = new HashMap<String,CountVertex>();
 		msgi = new HashMap<String,CountVertex>();
@@ -882,7 +364,6 @@ public class XmlCausationTraceBuilder implements CausationTraceBuilder {
 	private boolean     closeFlag;
 	
 	private ListenableGraph<String, DefaultEdge> lg;
-	private ListenableGraph<String, DefaultEdge> lgnr;
 	private DefaultDirectedGraph<CountVertex,CountEdge> sg;
 	private Map<String,CountVertex> msg;
 	private Map<String,CountVertex> msgi;
@@ -934,8 +415,13 @@ public class XmlCausationTraceBuilder implements CausationTraceBuilder {
 		}
 	}
 	
-	{
-		Grappa.antiAliasText = true;
-		Grappa.useAntiAliasing = true;
+	private static String path;
+	
+	/**
+	 * Set the output
+	 * @param newpath New ouput path
+	 */
+	public static void setPath(String newpath){
+		path = newpath;
 	}
 }
