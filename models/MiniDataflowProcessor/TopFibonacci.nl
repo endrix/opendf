@@ -82,15 +82,18 @@ entities
 
 	cpu = CPU(program = program, memorySize = 1000, initialMemory = []);
 
-	p = Plotter(autoredraw = 1, 
-	            time = false,
-	            connected = false,
-	            marks = "dots", 
-	            title = "MDP generates Fibonacci", 
-	            legend = false);
+//	p = Plotter(autoredraw = 1, 
+//	            time = false,
+//	            connected = false,
+//	            marks = "dots", 
+//	            title = "MDP generates Fibonacci", 
+//	            legend = false);
+
+	p = Print(msg = "Out 0: ");
 	
 structure 
 
-	cpu.O0 --> p.Data;
+//	cpu.O0 --> p.Data;
+	cpu.O0 --> p.In;
 
 end

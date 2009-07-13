@@ -43,7 +43,7 @@ ENDCOPYRIGHT
 	@author JWJ
 */
 
-actor ROM (list[int] contents) int Addr ==> int Data :
+actor ROM (List(element: int) contents) int Addr ==> int Data :
 
     okay: action [addr] ==> [contents[addr]] 
           guard 0<= addr, addr < #contents 

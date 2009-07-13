@@ -42,7 +42,8 @@ ENDCOPYRIGHT
 	@author JWJ
 */
 
-network CPU (program, memorySize, initialMemory) I0, I1, I2, I3 ==> O0, O1, O2, O3:
+network CPU (List(element : int) program, int memorySize, List(element: int) initialMemory)
+int I0, int I1, int I2, int I3 ==> int O0, int O1, int O2, int O3:
 
 entities
 

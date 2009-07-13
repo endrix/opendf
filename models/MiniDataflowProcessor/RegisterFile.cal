@@ -43,11 +43,13 @@ ENDCOPYRIGHT
 */
 
 
-actor RegisterFile () rfCmd Op, reg R1, reg R2, data D1, data D2, data D3, data D4, data D5
-                  ==> data MemBase, data MemData, data PcAddr, data A, data B, boolean Test,
-                  	  data SendVal :
+actor RegisterFile () int Op, int R1, int R2, int D1, int D2, int D3, int D4, int D5
+                  ==> int MemBase, int MemData, int PcAddr, int A, int B, bool Test,
+                  	  int SendVal :
 
-	list(type: data, size=32) R := [0 : for i in Integers(1, 32)];
+	
+	List(element: int, size=32) R := [0 : for i in Integers(1, 32)];
+	//R := [0 : for i in Integers(1, 32)];
 		  	
 	Op.RESET: 		action Op: [op] ==> 
 					guard

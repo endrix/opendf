@@ -42,9 +42,10 @@ ENDCOPYRIGHT
 	@author JWJ
 */
 
-actor PC () pcCmd Op, data Val, data Reg, boolean Test0, boolean Test1 ==> data Addr, data Link :
+actor PC () int Op, int Val, int Reg, bool Test0, bool Test1 ==> int Addr, int Link :
 
-  data pc := 0;
+  int pc := 0;
+  
 
   action Op: [op] ==> Addr: [pc]
   guard

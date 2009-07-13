@@ -43,15 +43,15 @@ ENDCOPYRIGHT
 */
 
 actor SerialInput () 
-				sinCmd Op, channel C0, channel C1, 
-				data I0, data I1, data I2, data I3 
+				int Op, int C0, int C1, 
+				int I0, int I1, int I2, int I3 
 			==>
-				data D, boolean Test :
+				int D, bool Test :
 				
 	
-	list(type: boolean, size = 4)  avail = [false : for i in Integers(1, 4)];
+	List(element: bool, size = 4)  avail = [false : for i in Integers(1, 4)];
 
-	list(type: boolean, size = 4)  d = [false : for i in Integers(1, 4)];
+	List(element: bool, size = 4)  d = [false : for i in Integers(1, 4)];
 
 
 
