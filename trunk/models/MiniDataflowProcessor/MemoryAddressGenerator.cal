@@ -43,8 +43,8 @@ ENDCOPYRIGHT
 */
 
 actor MemoryAddressGenerator () 
-  data Offset, data Base ==> data Addr:
-
+  int Offset, int Base ==> int Addr:
+  
   action Offset: [offset], Base: [base] ==> Addr: [offset + base] end
 end
 

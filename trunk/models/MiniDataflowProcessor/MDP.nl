@@ -45,10 +45,12 @@ ENDCOPYRIGHT
 */
 
 
-network MDP () I, Din, Reset, I0, I1, I2, I3 
-           ==> IAddr, DAddr, Dout, MemW, O0, O1, O2, O3 :
+network MDP () 
+    int I, int Din, bool Reset, int I0, int I1, int I2, int I3 
+==> int IAddr, int DAddr, int Dout, int MemW, int O0, int O1, int O2, int O3 :
 
 entities
+
 	decoder = InstructionDecoder();
 	rf = RegisterFile();
 	alu = ALU();
@@ -59,6 +61,7 @@ entities
 	sout = SerialOutput();
 	
 structure
+
 	I --> decoder.I;
 	Reset --> decoder.Reset;
 	Din --> cache.MemDataOut;
@@ -66,7 +69,7 @@ structure
 	decoder.AluOp --> alu.Op;
 	decoder.RfOp --> rf.Op;
 	decoder.R1 --> rf.R1;
-	decoder.R2--> rf.R2;
+	decoder.R2 --> rf.R2;
 	decoder.RfVal --> rf.D1;
 	decoder.PcOp --> pc.Op;
 	decoder.PcVal --> pc.Val;
@@ -89,9 +92,9 @@ structure
 	
 	pc.Link --> rf.D4;
 	pc.Addr --> IAddr;
-	
+
 	addrGen.Addr --> cache.Addr;
-	
+		
 	cache.MemDataIn --> Dout;
 	cache.MemAddr --> DAddr;
 	cache.MemW --> MemW;
@@ -109,7 +112,7 @@ structure
 	sout.O1 --> O1;
 	sout.O2 --> O2;
 	sout.O3 --> O3;
-	
+
 end
 	
 	

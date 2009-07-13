@@ -43,10 +43,10 @@ ENDCOPYRIGHT
 */
 
 actor SerialOutput () 
-					soutCmd Op, channel C0, channel C1, data D
+					int Op, int C0, int C1, int D
 				==>
-					data O0, data O1, data O2, data O3:
-	
+					int O0, int O1, int O2, int O3:
+					
 	action Op: [op], C0: [c], D: [d] ==> O0: [d]
 	guard 
 		op = 0x00,	// SEND0

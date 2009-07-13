@@ -45,13 +45,13 @@ ENDCOPYRIGHT
 import all caltrop.lib.BitOps;
 
 actor InstructionDecoder () 
-  data I, void Reset ==> 
-  boolean W, data Offset, 
-  pcCmd PcOp, data PcVal,
-  aluCmd AluOp,
-  rfCmd RfOp, reg R1, reg R2, data RfVal,
-  sinCmd SinOp, channel SinChn,
-  soutCmd SoutOp, channel SoutChn:
+  int I,  bool Reset ==> 
+  bool W, int Offset, 
+  int PcOp, int PcVal,
+  int AluOp,
+  int RfOp, int R1, int R2, int RfVal,
+  int SinOp, int SinChn,
+  int SoutOp, int SoutChn:
 
 
   Init: action ==> RfOp: [0], PcOp: [0] end
@@ -171,7 +171,7 @@ actor InstructionDecoder ()
 
   // BNEZ -- I
   Op.BNEZ:  action I:[op] ==> PcOp: [7],  // B0-FALSE
-                              RfOp: [3], // TEST
+                              RfOp: [3],  // TEST
                               R1: [r1(op)],
                               PcVal: [n]
       guard oc1 = 0x05   // BNEZ

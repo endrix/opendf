@@ -45,24 +45,25 @@ ENDCOPYRIGHT
 
 
 
-actor Memory [T] (int size, list[T] initialValues, T defaultValue )
-    int Addr, T DataIn, boolean W ==> T DataOut:
+actor Memory  (int size, List(element: int) initialValues, int defaultValue )
+    int Addr, int DataIn, bool W ==> int DataOut:
 
-    list[T] mem := 
+    List(element: int) mem := 
     [
       if i < #initialValues then initialValues[i] else defaultValue end 
     : 
       for int i in Integers(0, size-1)
     ];
+    
 
-  action Addr: [a], W: [w] ==> DataOut: [mem[a]] 
-  guard not w 
-  end
+  Read: 	action Addr: [a], W: [w] ==> DataOut: [mem[a]] 
+  			guard not w 
+  			end
 
-  action Addr: [a], DataIn: [d], W: [w] ==>
-  guard w
-  do
-    mem[a] := d;
-  end
+  Write:	action Addr: [a], DataIn: [d], W: [w] ==>
+	  		guard w
+  			do
+    			mem[a] := d;
+  			end
 
 end
