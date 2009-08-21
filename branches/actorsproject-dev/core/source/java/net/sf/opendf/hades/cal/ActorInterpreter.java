@@ -50,13 +50,17 @@ import net.sf.opendf.cal.ast.Expression;
 import net.sf.opendf.cal.ast.InputPattern;
 import net.sf.opendf.cal.ast.OutputExpression;
 import net.sf.opendf.cal.ast.Statement;
+import net.sf.opendf.cal.ast.TypeExpr;
 import net.sf.opendf.cal.i2.Configuration;
 import net.sf.opendf.cal.i2.Environment;
 import net.sf.opendf.cal.i2.Executor;
 import net.sf.opendf.cal.i2.InterpreterException;
 import net.sf.opendf.cal.i2.environment.DynamicEnvironmentFrame;
 import net.sf.opendf.cal.i2.environment.Thunk;
+import net.sf.opendf.cal.i2.platform.DefaultTypedPlatform;
 import net.sf.opendf.cal.i2.types.Type;
+import net.sf.opendf.cal.i2.types.TypeSystem;
+import net.sf.opendf.cal.i2.util.Platform;
 import net.sf.opendf.cal.interpreter.InputChannel;
 import net.sf.opendf.cal.interpreter.InputPort;
 import net.sf.opendf.cal.interpreter.OutputChannel;
@@ -64,7 +68,10 @@ import net.sf.opendf.cal.interpreter.OutputPort;
 
 
 public class ActorInterpreter {
-	
+		
+	protected final static Platform thePlatform = DefaultTypedPlatform.thePlatform;
+	protected final static Configuration  theConfiguration  = thePlatform.configuration();
+
 	/**
 	 * Set up the local environment of the specified action. This
 	 * method is the only way a new action may be set up for
@@ -113,12 +120,18 @@ public class ActorInterpreter {
 		}
 		final Decl[] decls = action.getDecls();
 		for (int i = 0; i < decls.length; i++) {
-			final Expression v = decls[i].getInitialValue();
+			final Expression v = decls[i].getInitialValue();			
+			
+			Executor myInterpreter = new Executor(theConfiguration, this.actorEnv);
+			TypeExpr te = decls[i].getType(); 
+			TypeSystem ts = theConfiguration.getTypeSystem();
+			Type type =  (ts != null) ? ts.evaluate(te, myInterpreter) : null;		
+			
 			if (v == null) {
-				local.bind(decls[i].getName(), null, null);		// TYPEFIXME
+				local.bind(decls[i].getName(), null, type);		
 			} else {
 				local.bind(decls[i].getName(),
-						new Thunk(v, interpreter, local), null);  // TYPEFIXME
+						new Thunk(v, interpreter, local), type); 
 			}
 		}
 		
