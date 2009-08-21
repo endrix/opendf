@@ -4,7 +4,7 @@
 .SUFFIXES:   
 
 # Contents of actors-tools
-BIN_FILES=actors-trace-diff actors-trace-split
+BIN_FILES=actors-trace-diff actors-trace-split actors-fifo-dump actors-fifo-view
 
 # Directories
 
