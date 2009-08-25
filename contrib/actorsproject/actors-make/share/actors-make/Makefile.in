@@ -24,6 +24,8 @@ include @datadir@/actors-make/definitions.mk
 # Link statically
 # STATIC=Y
 
+# Enable actor merging (experimental and potentially dangerous)
+# MERGE=Y
 
 # ------------------------------------------------------
 # Make-rules start here
