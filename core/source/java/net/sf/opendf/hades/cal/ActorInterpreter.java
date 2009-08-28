@@ -51,6 +51,7 @@ import net.sf.opendf.cal.ast.InputPattern;
 import net.sf.opendf.cal.ast.OutputExpression;
 import net.sf.opendf.cal.ast.Statement;
 import net.sf.opendf.cal.ast.TypeExpr;
+import net.sf.opendf.cal.ast.PortDecl;
 import net.sf.opendf.cal.i2.Configuration;
 import net.sf.opendf.cal.i2.Environment;
 import net.sf.opendf.cal.i2.Executor;
@@ -89,20 +90,26 @@ public class ActorInterpreter {
 		envAction = null;
 		
 		final DynamicEnvironmentFrame local = new DynamicEnvironmentFrame(actorEnv);
+		Executor myInterpreter = new Executor(theConfiguration, this.actorEnv);
+		TypeSystem ts = theConfiguration.getTypeSystem();
 		
 		final InputPattern[] inputPatterns = action.getInputPatterns();
+		final PortDecl[] inputPorts = actor.getInputPorts();
 		for (int i = 0; i < inputPatterns.length; i++) {
 			final InputPattern inputPattern = inputPatterns[i];
 			final String[] vars = inputPattern.getVariables();
 			final Expression repExpr = inputPattern.getRepeatExpr();
+			TypeExpr te = inputPorts[i].getType(); 
+			Type type =  (ts != null) ? ts.evaluate(te, myInterpreter) : null;		
 			
 			if (repExpr == null) {
 				for (int j = 0; j < vars.length; j++) {
 					final InputChannel channel =
 						((InputPort) (inputPortMap.get(inputPattern
 								.getPortname()))).getChannel(0); // FIXME
-					local.bind(vars[j],
-							new SingleTokenReaderThunk(channel, j), null); // TYPEFIXME
+
+//					local.bind(vars[j],	new SingleTokenReaderThunk(channel, j, type), type);
+					local.bind(vars[j],	new SingleTokenReaderThunk(channel, j, null), null); 									
 				}
 			} else {
 				Thunk repExprThunk =
@@ -114,7 +121,7 @@ public class ActorInterpreter {
 						((InputPort) (inputPortMap.get(inputPattern
 								.getPortname()))).getChannel(0); // FIXME
 					local.bind(vars[j], new MultipleTokenReaderThunk(channel,
-							j, vars.length, repExprThunk, configuration), null);  // TYPEFIXME
+							j, vars.length, repExprThunk, configuration, type), type); 
 				}
 			}
 		}
@@ -122,17 +129,15 @@ public class ActorInterpreter {
 		for (int i = 0; i < decls.length; i++) {
 			final Expression v = decls[i].getInitialValue();			
 			
-			Executor myInterpreter = new Executor(theConfiguration, this.actorEnv);
 			TypeExpr te = decls[i].getType(); 
-			TypeSystem ts = theConfiguration.getTypeSystem();
 			Type type =  (ts != null) ? ts.evaluate(te, myInterpreter) : null;		
 			
 			if (v == null) {
 				local.bind(decls[i].getName(), null, type);		
 			} else {
 				local.bind(decls[i].getName(),
-						new Thunk(v, interpreter, local), type); 
-			}
+						new Thunk(v, interpreter, local, type), type);																
+			}			
 		}
 		
 		env = local;
@@ -333,16 +338,17 @@ public class ActorInterpreter {
 		final Action action = envAction;
 		final OutputExpression[] outputExpressions =
 			action.getOutputExpressions();
+		
 		for (int i = 0; i < outputExpressions.length; i++) {
 			final OutputExpression outputExpression = outputExpressions[i];
 			final Expression[] expressions =
 				outputExpression.getExpressions();
 			final Expression repeatExpr = outputExpression.getRepeatExpr();
-			
+			final OutputPort port = (OutputPort) outputPortMap.get(outputExpression.getPortname());
 			final OutputChannel channel =
 				((OutputPort) (outputPortMap.get(outputExpression
 						.getPortname()))).getChannel(0);
-			
+						
 			// FIXME: handle multiports
 			if (repeatExpr != null) {
 				int repeatValue = configuration.intValue(interpreter.valueOf(repeatExpr, env));
@@ -360,7 +366,11 @@ public class ActorInterpreter {
 				}
 			} else {
 				for (int j = 0; j < expressions.length; j++) {
-					channel.put(interpreter.valueOf(expressions[j], env));
+					if (port.getType() != null) {
+						channel.put(port.getType().convert(interpreter.valueOf(expressions[j], env)));
+					} else {
+						channel.put(interpreter.valueOf(expressions[j], env));												
+					}
 				}
 			}
 		}
@@ -498,10 +508,7 @@ public class ActorInterpreter {
 	 */
 	private static class SingleTokenReaderThunk implements Environment.VariableContainer {
 		public Object value() {
-			if (val == this) {
-				val = channel.get(index);
-				channel = null; // release ref to channel
-			}
+			freeze();			
 			return val;
 		}
 		
@@ -511,21 +518,26 @@ public class ActorInterpreter {
 		}
 		
 		public void freeze() {
-			if (val == this) {
-				val = channel.get(index);
-				channel = null;
+			if (val == this) {								
+				if (type != null) {
+					val = type.convert(channel.get(index));
+				} else {
+					val = channel.get(index);
+				}
+				channel = null;  // release ref to channel
 			}
 		}
 		
-		public SingleTokenReaderThunk(final InputChannel channel,
-				final int index) {
+		public SingleTokenReaderThunk(final InputChannel channel, final int index, Type type) {
 			this.channel = channel;
 			this.index = index;
+			this.type = type;
 			// this is definitely not a legal value for a token
 			val = this;
 		}
 		
 		private InputChannel channel;
+		private Type type; 
 		private int index;
 		private Object val;
 	}
@@ -547,7 +559,11 @@ public class ActorInterpreter {
 				int length = configuration.intValue(repeatVal);
 				List tokens = new ArrayList();
 				for (int i = 0; i < length; i++) {
-					tokens.add(channel.get(offset + i * period));
+					if (type != null) {
+					   tokens.add(type.convert(channel.get(offset + i * period)));	
+					} else {
+					   tokens.add(channel.get(offset + i * period));
+					}
 				}
 				val = configuration.createList(tokens);
 				channel = null;
@@ -555,12 +571,13 @@ public class ActorInterpreter {
 		}
 		
 		public MultipleTokenReaderThunk(InputChannel channel, int offset,
-				int period, Thunk repeatExpr, Configuration configuration) {
+				int period, Thunk repeatExpr, Configuration configuration, Type type) {
 			this.channel = channel;
 			this.offset = offset;
 			this.period = period;
 			this.repeatExpr = repeatExpr;
 			this.configuration = configuration;
+			this.type = type;
 			this.val = this;
 		}
 		
@@ -570,6 +587,7 @@ public class ActorInterpreter {
 		private Thunk repeatExpr;
 		private Object val;
 		private Configuration configuration;
+		private Type type;
 		
 	}
 	
