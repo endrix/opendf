@@ -78,7 +78,7 @@ public class CalModelInterface implements ModelInterface {
 	}
 
 	public DiscreteEventComponent instantiate(Object modelSource, Map env, Map locMap, ClassLoader loader) {
-		CalInterpreter interpreter = new CalInterpreter((Actor) modelSource, env);
+		CalInterpreter interpreter = new CalInterpreter((Actor) modelSource, env, loader);
 		return interpreter ;
 	}
 
