@@ -1,0 +1,174 @@
+
+\chapter{Keywords}\label{app:Keywords}
+
+The following table lists the currently active reserved words in \Cal.
+The comment either names the context of its use or provides an example
+schema of its use. Note that these are {\em not} complete syntax
+rules. The references point to further information on the keyword.
+
+\begin{longtable}{|r|p{6cm}|l|}
+  {\bf Keyword}  &    {\bf Comment} & {\bf Reference} \\\hline\hline \endfirsthead
+  \multicolumn{3}{r}{\em (continued)}\\
+  {\bf Keyword}  &    {\bf Comment} & {\bf Reference} \\\hline\hline \endhead
+  \multicolumn{3}{r}{\em continued on next page} \endfoot
+  \hline\endlastfoot
+
+  {\tt action}      &    {\tt action} {\em actionhead} {\tt do}
+  {\em statements} {\tt end}   & \ref{chap:Actions} \\\hline     
+  {\tt actor}      & {\tt actor} {\em actorhead} {\tt :} \newline {\em decls,
+    actions, etc.} {\tt end}  & \ref{chap:Actor}   \\\hline     
+  {\tt  all}       &   input patterns & \ref{sect:InputPatterns} \\
+  \cline{2-3}
+                  &    output expressions &  \ref{sect:OutputExpressions}      \\ \hline     
+  {\tt  and}      &   Boolean operator & \ref{app:PredefOps}, \ref{sect:Booleans}    \\ \hline     
+  {\tt  any}      &   input patterns & \ref{sect:InputPatterns} \\
+  \cline{2-3}
+                  &    output expressions &  \ref{sect:OutputExpressions}      \\ \hline     
+  {\tt at}       &   input patterns & \ref{sect:InputPatterns} \\
+  \cline{2-3}
+                  &    output expressions &  \ref{sect:OutputExpressions}      \\ \hline     
+  {\tt at*}      &   input patterns & \ref{sect:InputPatterns} \\
+  \cline{2-3}
+                 &     output expressions &  \ref{sect:OutputExpressions}      \\ \hline     
+  {\tt begin}   &   {\tt procedure} {\em head} {\tt begin} {\em
+    statements} {\tt end} & \ref{sect:FunProcDecl} \\ \cline{2-3}
+                &   {\tt proc} {\em head} {\tt begin} {\em statements}
+                {\tt end} & \ref{sect:ProcClosures} \\ \cline{2-3}
+                & {\tt begin} {\em statements} {\tt end}  & \ref{sect:Blocks}     \\ \hline
+  {\tt  choose}      &  {\tt choose} {\em generators} {\tt do} {\em
+    statements} {\tt end} & \ref{sect:NDChoice}      \\ \hline     
+  {\tt  const}      &  {\tt const lambda} {\em head} {\tt :}
+  {\em expression} {\tt end} & \ref{sect:LambdaClosures}      \\ \hline     
+  {\tt  delay}      &  action head & \ref{sect:Delays}     \\ \hline     
+  {\tt div}      &   arithmetic operator & \ref{app:PredefOps}, \ref{sect:Numbers}    \\\hline     
+  {\tt  do}      &  actions  & \ref{chap:Actions} \\ \cline{2-3}
+              &  structured statements  & \ref{sect:WhileStmt}, \ref{sect:ForeachStmt}, \ref{sect:NDChoice}     \\ \hline     
+  {\tt dom}      &  domain operator on maps  & \ref{app:PredefOps}, \ref{sect:Maps}     \\\hline     
+  {\tt else}      &  {\tt if} {\em expression} {\tt then} {\em
+    expression} \newline {\tt else} {\em expression} {\tt end} &
+  \ref{sect:ConditionalExpression}      \\ \cline{2-3}     
+        &  {\tt if} {\em expression} {\tt then} {\em
+    statements} \newline {\tt else} {\em statements} {\tt end}  &
+  \ref{sect:IfStmt}     \\ \cline{2-3}     
+        &  {\tt choose} {\em generators} {\tt do} \newline {\em
+    statements} {\tt else} {\em statements} {\tt end}  & \ref{sect:NDChoice}     \\\hline     
+  {\tt end}      &   generic end marker  &  \\\hline     
+  {\tt  endaction}      &   alternative end marker, see {\tt action} &    \\ \hline     
+  {\tt endactor}      &     alternative end marker, see {\tt actor}  & \\\hline     
+  {\tt  endchoose}      &    alternative end marker, see {\tt choose} &   \\ \hline     
+  {\tt  endforeach}      &    alternative end marker, see {\tt foreach} &   \\ \hline     
+  {\tt  endfunction}      &   alternative end marker, see {\tt function} &    \\ \hline     
+  {\tt endif}      &     alternative end marker, see {\tt if} &  \\\hline     
+  {\tt  endinitialize}      &    alternative end marker, see {\tt initialize}   & \\ \hline     
+  {\tt  endlambda}      &    alternative end marker, see {\tt lambda} &   \\ \hline     
+  {\tt  endlet}      &       alternative end marker, see {\tt let} & \\ \hline     
+  {\tt  endpriority}      &      alternative end marker, see {\tt priority} & \\ \hline     
+  {\tt  endproc}      &      alternative end marker, see {\tt proc} & \\ \hline     
+  {\tt  endprocedure}      &  alternative end marker, see {\tt procedure}   &   \\ \hline     
+  {\tt  endschedule}      &   alternative end marker, see {\tt schedule}   &  \\ \hline     
+  {\tt  endwhile}      &      alternative end marker, see {\tt while} & \\ \hline     
+  {\tt  false}      &   Boolean constant literal  & \ref{sect:Booleans}  \\ \hline     
+  {\tt for}      &     {\tt for} {\em vars} {\tt in} {\em
+    expression}  & \ref{sect:ComprehensionsWithGenerators}  \\\hline     
+  {\tt foreach}      &   {\tt foreach} {\em generators} {\tt do}
+  {\em statements} {\tt end} & \ref{sect:ForeachStmt}    \\\hline     
+  {\tt  fsm}      &  {\tt schedule fsm} {\em tag} {\tt :} {\em
+    transitions} {\tt end} &\ref{sect:FSMSchedules}     \\ \hline     
+  {\tt  function}      &  {\tt function} {\em head} {\tt :} {\em
+    expression} {\tt end} & \ref{sect:FunProcDecl}     \\ \hline     
+  {\tt  guard}      &   action header & \ref{chap:Actions}    \\ \hline     
+  {\tt if}      &  {\tt if} {\em expression} {\tt then} {\em
+    expression} \newline {\tt else} {\em expression} {\tt end} &
+  \ref{sect:ConditionalExpression}     \\ \cline{2-3}     
+        &  {\tt if} {\em expression} {\tt then} {\em
+    statements} \newline {\tt else} {\em statements} {\tt end} & \ref{sect:IfStmt}     \\\hline     
+  {\tt  import}      &  {\tt import} {\em qualid} [{\tt =} {\em var}]
+  & \ref{sect:Imports}     \\ \hline     
+  {\tt  in}      &   membership operator, collections
+  & \ref{app:PredefOps}, \ref{sect:Collections}    \\ \cline{2-3}     
+       &   generators & \ref{sect:ComprehensionsWithGenerators},
+       \ref{sect:ForeachStmt}, \ref{sect:NDChoice}    \\ \hline     
+  {\tt  initialize}      &   {\tt initialize} {\em head}
+  {\tt do} {\em statements} {\tt end}  & \ref{sect:InitActions}    \\ \hline     
+  {\tt  lambda}      &  {\tt lambda} {\em head} {\tt :} {\em
+    expression} {\tt end} & \ref{sect:LambdaClosures}      \\ \hline     
+  {\tt  let}      &  {\tt let} {\em vardecls} {\tt :} {\em expression}
+  {\tt end} & \ref{sect:LetExpr} \\ \hline     
+  {\tt  map}      &  {\tt map \{} {\em expressions} [{\tt :} {\em
+    generators}] {\tt \}} & \ref{sect:Comprehensions}     \\ \hline     
+  {\tt mod}      &   modulo operator  & \ref{app:PredefOps}, \ref{sect:Numbers}    \\\hline     
+  {\tt  multi}      &   multi-port declaration & \ref{chap:Actor}    \\ \hline     
+  {\tt  mutable}      &   {\tt mutable} {\em vardecl} & \ref{sect:ExplicitVarDecl}    \\ \hline     
+  {\tt  not}      &  Boolean operator  & \ref{app:PredefOps}, \ref{sect:Booleans}     \\ \hline     
+  {\tt  null}      &  literal & \ref{sect:LexicalMatters}     \\ \hline     
+  {\tt  old}      &  {\tt old} {\em var} & \ref{sect:OldVarRefs}     \\ \hline     
+  {\tt  or}      &  Boolean operator  & \ref{app:PredefOps}, \ref{sect:Booleans}      \\ \hline     
+  {\tt priority} & {\tt priority} {\em inequalities} {\tt end} &
+  \ref{sect:ActionPriorities} \\ \hline
+  {\tt  proc}      &   {\tt proc} {\em head} {\tt do} {\em statements}
+  {\tt end} & \ref{sect:ProcClosures} \\ \hline     
+  {\tt  procedure}      &  {\tt procedure} {\em head} {\tt do} {\em statements}
+  {\tt end} & \ref{sect:FunProcDecl}     \\ \hline     
+  {\tt  regexp}      &  {\tt schedule regexp} {\em regexp} {\tt end} &
+  \ref{sect:RegexpSchedules} \\ \hline     
+  {\tt  repeat}      &   input patterns & \ref{sect:InputPatterns} \\
+  \cline{2-3}
+                   &   output expressions &  \ref{sect:OutputExpressions}      \\ \hline     
+  {\tt rng}      &  range operator on maps  & \ref{app:PredefOps}, \ref{sect:Maps}      \\\hline     
+  {\tt  schedule}      &   {\tt schedule} {\em schedule} {\tt end} &~\ref{sect:ActionSchedules}    \\ \hline     
+  {\tt then}      &  {\tt if} {\em expression} {\tt then} {\em
+    expression} \newline {\tt else} {\em expression} {\tt end} &
+  \ref{sect:ConditionalExpression}     \\ \cline{2-3}     
+        &  {\tt if} {\em expression} {\tt then} {\em
+    statements} \newline {\tt else} {\em statements} {\tt end} & \ref{sect:IfStmt}     \\\hline     
+  {\tt  time}      &   actor head  & \ref{chap:Actor}    \\ \hline     
+  {\tt  true}      &    Boolean constant literal  & \ref{sect:Booleans}    \\ \hline     
+  {\tt  var}      &  variable declarations marker &      \\ \hline     
+  {\tt while}      &  {\tt while} {\em expression} {\tt do}
+   {\em statements} {\tt end} & \ref{sect:WhileStmt}           
+\end{longtable}
+
+The following keywords are reserved for future use.
+
+\begin{tabular}[h]{ccccc}
+  {\tt  assign} &
+  {\tt  case}  &
+  {\tt  default}   &
+  {\tt  endinvariant}  &
+  {\tt  endtask} \\
+  {\tt  endtype}  &
+  {\tt  ensure}    &        
+  {\tt  invariant}  &
+  {\tt  now}  &
+  {\tt  out}  \\
+  {\tt  protocol} &
+  {\tt  require}  &
+  {\tt  task} &
+  {\tt  type}
+\end{tabular}
+
+
+
+%\begin{tabular}[h]{c|l}
+%{\bf Symbol}    & {\bf Comment} \\ \hline\hline
+
+%  {\tt : }      &       \\ \hline     
+%  {\tt := }      &       \\ \hline     
+%  {\tt , }      &       \\ \hline     
+%  {\tt --> }      &       \\ \hline     
+%  {\tt -> }      &       \\ \hline     
+%  {\tt . }      &       \\ \hline     
+%  {\tt = }      &       \\ \hline     
+%  {\tt ==> }      &       \\ \hline     
+%  {\tt \# }      &       \\ \hline     
+%  {\tt \{ ... \} }      &       \\ \hline     
+%  {\tt [ ... ] }      &       \\ \hline     
+%  {\tt ( ... ) }      &       \\ \hline     
+%  {\tt ; }      &       \\ \hline     
+%  {\tt * }      &       \\ \hline     
+%\end{tabular}
+
+
+% Local Variables:
+% TeX-master: "reference.tex"
+% End:

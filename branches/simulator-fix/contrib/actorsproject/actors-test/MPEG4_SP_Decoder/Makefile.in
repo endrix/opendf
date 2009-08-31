@@ -1,0 +1,109 @@
+# MPEG4_SP_Decoder module tests
+
+# The path to the installed ACTOR-specific tools
+export srcdir=@datadir@/actors-test/MPEG4_SP_Decoder
+
+# Default definitions of tools and directories
+include @datadir@/actors-make/definitions.mk
+
+TITLE=MPEG4_SP_Decoder
+
+ALL_TEST_MODELS=acdcTest idct1dTest idct2dTest motionTest ddrTest \
+                parserTest decoderTest
+
+LOCAL_SKIP=$(filter $(SKIPPED_TEST_MODELS:$(TITLE)/%=%), $(ALL_TEST_MODELS))
+RUN_TEST_MODELS=$(filter-out $(LOCAL_SKIP), $(ALL_TEST_MODELS))
+
+# delete the built-in suffixes to avoid surprises
+.SUFFIXES:   
+
+.PHONY: all init elaborate-all clean
+
+all: init elaborate-all report
+
+# .calml prerequisites tell us how to build each test case
+# ($^ used in make -f makemodel.mk, see below). In this way,
+# we can utilize a single (time consuming) elaboration for
+#  all test cases
+
+acdcTest: ACPred_0.calml DCPred_0.calml DCSplit_0.calml Dequant_0.calml \
+        Sequence_0.calml ZigzagAddr_0.calml Zigzag_0.calml
+
+idct1dTest: Scale_0.calml Combine_0.calml ShuffleFly_0.calml \
+        Shuffle_0.calml Final_0.calml
+
+idct2dTest: Clip_0.calml Combine_0.calml Downsample_0.calml \
+        FairMerge_0.calml Final_0.calml Retranspose_0.calml \
+        RowSort_0.calml Scale_0.calml Separate_0.calml \
+        Shuffle_0.calml ShuffleFly_0.calml Transpose_0.calml
+
+motionTest: Add_0.calml Interpolate_0.calml MBPacker_0.calml \
+        MemoryManager_0.calml SearchWindow_0.calml Unpack_0.calml
+
+ddrTest: DDRSeq_0.calml
+
+parserTest: byte2bit_0.calml ParseHeaders_0.calml BlockExpand_0.calml \
+        MVReconstruct_0.calml MVSequence_0.calml
+
+decoderTest: ACPred_0.calml Add_0.calml \
+        BlockExpand_0.calml byte2bit_0.calml Clip_0.calml \
+        Combine_0.calml DCPred_0.calml DCSplit_0.calml Dequant_0.calml \
+        Downsample_0.calml FairMerge_0.calml Final_0.calml \
+        Interpolate_0.calml MBPacker_0.calml MemoryManager_0.calml \
+        MVReconstruct_0.calml MVSequence_0.calml ParseHeaders_0.calml \
+        Retranspose_0.calml RowSort_0.calml Scale_0.calml \
+        SearchWindow_0.calml Separate_0.calml Sequence_0.calml \
+        Shuffle_0.calml ShuffleFly_0.calml Transpose_0.calml \
+        Unpack_0.calml Zigzag_0.calml ZigzagAddr_0.calml
+
+report: $(ALL_TEST_MODELS:%=%.result)
+	@if cat $^ | grep -q FAILED;                                 \
+            then echo '***' $(TITLE) FAILED '***' > $@;              \
+            else if [ -n "$(LOCAL_SKIP)" ];\
+              then echo '***' $(TITLE) has SKIPPED tests '***' > $@; \
+              else echo '***' $(TITLE) PASSED '***' > $@;            \
+            fi; \
+         fi
+	@echo `cat $^ | grep -c PASSED` \
+              'successful test(s) in' $(TITLE) >> $@
+	@echo `cat $^ | grep -c FAILED`   \
+              'failed test(s) in' $(TITLE) >> $@
+	@echo $(words $(LOCAL_SKIP)) 'skipped test(s) in' $(TITLE) >> $@
+	@echo >> $@
+	@for model in $(RUN_TEST_MODELS); \
+            do cat $${model}.result $${model}.diff >> $@; done
+	@for model in $(LOCAL_SKIP); \
+            do cat $${model}.result >> $@; done
+	@echo
+	@cat $@
+
+
+$(RUN_TEST_MODELS:=.result): %.result : %
+	@mkdir -p output/$*
+	@./$*
+	@if diff -q output/$* $(srcdir)/gold/$* > $*.diff; \
+            then echo $(TITLE)/$*: PASSED > $@;  \
+            else echo $(TITLE)/$*: FAILED > $@; fi
+	@cat $*.result $*.diff
+
+$(LOCAL_SKIP:=.result): %.result :
+	@echo $(TITLE)/$*: SKIPPED > $@
+	@cat $@
+
+$(RUN_TEST_MODELS):
+	$(MAKE) -f $(ACTORS_MAKE)/makemodel.mk MODEL=$@ \
+          PRESERVE_C=Y "CALML_FILES=$^" CONFIG_FILE=$(srcdir)/config-$@.c
+
+elaborate-all:
+	@$(MAKE) -f $(ACTORS_MAKE)/elaborate.mk MODEL=decoderTest
+	@$(MAKE) -f $(ACTORS_MAKE)/elaborate.mk MODEL=ddrTest
+
+init:
+	@rm -f report *.result *.diff
+
+clean: init
+	@rm -f $(ALL_TEST_MODELS) *.o *.c *.xlim
+	@rm -f output
+
+cleaner: clean
+	@rm -f *.timestamp *.calml *.xdf

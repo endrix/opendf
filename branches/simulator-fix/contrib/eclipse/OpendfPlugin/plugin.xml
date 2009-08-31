@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin
+>
+   <extension
+         point="org.eclipse.debug.core.launchConfigurationTypes">
+         <launchConfigurationType
+               delegate="net.sf.opendf.eclipse.plugin.launcher.OpendfLaunchDelegate"
+               delegateDescription="The Opendf System Launcher supports the running and debugging of dataflow applications."
+               delegateName="Dataflow System"
+               id="opendf.launchType"
+               modes="run, debug"
+               name="Dataflow Application"
+               public="true"
+               sourceLocatorId="opendf.CALSourceLocator"
+               sourcePathComputerId="opendf.CALSourcePathComputer"/>
+   </extension>
+   <extension
+         point="org.eclipse.debug.ui.launchConfigurationTabGroups">
+      <launchConfigurationTabGroup
+            class="net.sf.opendf.eclipse.plugin.launcher.tabs.LauncherTabGroup"
+            id="opendf.launcher.tabgroup"
+            type="opendf.launchType"/>
+   </extension>
+   <extension
+         point="org.eclipse.debug.ui.launchConfigurationTypeImages">
+      <launchConfigurationTypeImage
+            configTypeID="opendf.launchType"
+            icon="icons/entity.gif"
+            id="opendf.launcher.image"/>
+   </extension>
+   <extension
+         point="org.eclipse.ui.contexts">
+      <context
+            description="Debugging Opendf Programs"
+            id="opendf.debugging"
+            name="Debugging Opendf Programs"
+            parentId="org.eclipse.debug.ui.debugging">
+      </context>
+   </extension>
+   <extension
+         point="org.eclipse.ui.editors">
+      <editor
+            class="net.sf.opendf.eclipse.plugin.editors.CALEditor"
+            contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
+            default="true"
+            extensions="cal"
+            filenames="*.cal"
+            icon="icons/actor.gif"
+            id="opendf.editors.CAL"
+            name="CAL Editor">
+      </editor>
+      <editor
+            class="net.sf.opendf.eclipse.plugin.editors.NLEditor"
+            contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
+            default="true"
+            extensions="nl"
+            filenames="*.nl"
+            icon="icons/network.gif"
+            id="opendf.editors.NL"
+            name="NL Editor"/>
+   </extension>
+   <extension
+         point="org.eclipse.ui.editorActions">
+      <editorContribution
+            targetID="opendf.editors.CAL"
+            id="opendf.rulerActions">
+         <action
+               actionID="RulerDoubleClick"
+               class="org.eclipse.debug.ui.actions.RulerToggleBreakpointActionDelegate"
+               id="opendf.doubleClickBreakpointAction"
+               label="Toggle Breakpoint"
+               style="radio"/>
+      </editorContribution>
+   </extension>
+   <extension
+         point="org.eclipse.debug.ui.debugModelPresentations">
+      <debugModelPresentation
+            class="net.sf.opendf.eclipse.plugin.debug.presentation.OpendfModelPresentation"
+            id="opendf.debugModel">
+      </debugModelPresentation>
+   </extension>
+   <extension
+         point="org.eclipse.debug.core.sourceLocators">
+      <sourceLocator
+            class="net.sf.opendf.eclipse.plugin.debug.sourceLookup.CALSourceLookupDirector"
+            id="opendf.CALSourceLocator"
+            name="CAL Source Locator">
+      </sourceLocator>
+   </extension>
+   <extension
+         point="org.eclipse.debug.core.sourcePathComputers">
+      <sourcePathComputer
+            class="net.sf.opendf.eclipse.plugin.debug.sourceLookup.CALSourcePathComputerDelegate"
+            id="opendf.CALSourcePathComputer">
+      </sourcePathComputer>
+   </extension>
+   <extension
+         id="markerType.lineBreakpoint"
+         name="Actor Line Breakpoint Marker"
+         point="org.eclipse.core.resources.markers">
+      <super type="org.eclipse.debug.core.lineBreakpointMarker"/>
+      <persistent value="true"/>
+   </extension>
+   <extension
+         id="markerType.watchBreakpoint"
+         name="Actor Watchpoint Marker"
+         point="org.eclipse.core.resources.markers">
+      <super type="net.sf.opendf.eclipse.plugin.markerType.lineBreakpoint"/>
+      <persistent value="true"/>
+   </extension>
+   <extension
+         point="org.eclipse.debug.core.breakpoints">
+      <breakpoint
+            class="net.sf.opendf.eclipse.plugin.debug.breakpoints.ActorLineBreakpoint"
+            name="Actor Line Breakpoints"
+            markerType="net.sf.opendf.eclipse.plugin.markerType.lineBreakpoint"
+            id="opendf.lineBreakpoint"/>
+      <breakpoint
+            class="net.sf.opendf.eclipse.plugin.debug.breakpoints.ActorWatchpoint"
+            name="Actor Watchpoints"
+            markerType="net.sf.opendf.eclipse.plugin.markerType.watchBreakpoint"
+            id="opendf.watchpoint"/>
+   </extension>
+   <extension
+         point="org.eclipse.core.runtime.adapters">
+      <factory
+            adaptableType="net.sf.opendf.eclipse.plugin.editors.CALEditor"
+            class="net.sf.opendf.eclipse.plugin.debug.breakpoints.ActorEditorAdapterFactory">
+         <adapter
+               type="org.eclipse.debug.ui.actions.IToggleBreakpointsTarget">
+         </adapter>
+         <adapter
+               type="org.eclipse.debug.ui.actions.IRunToLineTarget">
+         </adapter>
+      </factory>
+   </extension>
+	  <extension
+	        point="org.eclipse.debug.ui.debugModelContextBindings">
+	     <modelContextBinding
+	           contextId="opendf.debugging"
+	           debugModelId="opendf.debugModel"/>
+	  </extension>
+
+</plugin>

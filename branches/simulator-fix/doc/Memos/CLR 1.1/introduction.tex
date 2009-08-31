@@ -1,0 +1,337 @@
+%\part{Introduction}\label{part:Introduction}
+
+\chapter{Introduction}\label{chap:Introduction}
+
+This report describes \Cal, an actor language created as a part of the
+\index{Ptolemy} Ptolemy II project \cite{ProjectPtolemy} at the UC
+Berkeley. It is intended primarily as a repository for technical
+information on the language and its implementation and contains very
+little introductory material. After a short motivation, we will
+outline the goals and the guiding principles of the language design.
+We will also give a short outline of the actor model, and the context
+that the actors written in \Cal are embedded into, describing the
+kinds of assumptions an actor may and may not, in general, make about
+it.
+
+\section{Actors and actor composition}
+
+% ports, tokens, communication, separating control and data flow,
+% actor programming
+
+
+\paragraph{Actors.} The concept of {\em actor} as an entity
+that is composed with other actors to form a concurrent system has a
+rich an varied history---some important milestones include
+\cite{hewitt77}, \cite{KahnG74}, \cite{AghaGA86}, \cite{AghaGA+93},
+\cite{DennisJB75}. The notion of {\em actor}
+underlying this work is based on the one in \cite{LeeEA97}.
+Intuitively, an {\em actor} is a description of a computation on
+sequences of\index{token} {\em tokens} (atomic pieces of data) that produces other
+sequences of tokens as a result. It has \index{port!input} {\em input ports} for
+receiving its input tokens, and it produces its output tokens on its
+\index{port!output} {\em output ports}.
+
+The computation performed by an actor proceeds as a sequence of atomic
+steps called \index{actor!firing}{\em firings}.\sidenote{firing} Each
+firing happens in some \index{actor!state} actor {\em state}, consumes
+a (possibly empty) \index{prefix!of input} prefix of each input token
+sequence, yields a new actor state, and produces a finite token
+sequence on each output port.\footnote{The notion of actor and firing
+  is based on the one presented in \cite{LeeEA97}, extended by a notion
+  of state in \cite{JDiss}.}
+
+Several actors are usually composed into a {\em
+  network},\sidenote{composition of actors}\index{actors!composition
+  of} a graph-like structure (often referred to as a {\em
+  model}\index{model}) in which output ports of actors are connected
+to input ports of the same or other actors, indicating that tokens
+produced at those output ports are to be sent to the corresponding
+input ports. Such actor networks are of course essential to the construction
+of complex systems, but we will not discuss this subject here, except
+for the following observations:
+
+\begin{itemize}
+\item \sidenote{decoupling from communication model}
+  \index{model!communication} A connection between an output port and
+  an input port can mean different things. It usually indicates that
+  tokens produced by the former are sent to the latter, but there are
+  a variety of ways in which this can happen: token sent to an input
+  port may be queued in FIFO fashion, or new tokens may 'overwrite'
+  older ones, or any other conceivable policy.  It is important to
+  stress that actors themselves are oblivious to these policies: from
+  an actor's point of view, its input ports serve as abstractions of
+  (prefixes of) input sequences of tokens, while its output ports are
+  the destinations of output sequences.
+\item \sidenote{decoupling from actor scheduling}
+\index{actors!scheduling of}
+Furthermore, the connection structure between the ports of
+  actors does not explicitly specify the order in which actors are
+  fired. This order (which may be partial, i.e. actors may fire
+  simultaneously), whether it is constructed at runtime or whether it
+  can be computed from the actor network, and if and how it relates to
+  the exchange of tokens among the actors---all these issues are part
+  of the interpretation of the actor network.
+\end{itemize}
+
+\index{model of computation} \index{Ptolemy} The interpretation of a
+network of actors determines its \sidenote{communication + scheduling
+  = model of computation} {\em semantics}---it determines the result
+of the execution, as well as how this result is computed, by
+regulating the flow of data as well as the flow of control among the
+actors in the network. There are many possible ways to interpret a
+network of actors, and we call any specific interpretation a {\em
+  model of computation}---the Ptolemy project focuses on exploring the
+issues of models of computation and their composition, cf.
+\cite{LeeEA+98}. Actor composition inside the
+actor model that \Cal is based on has been studied in
+\cite{JanneckJW03}.
+
+\index{language design!goals}
+As far as the design of a language for writing actors is concerned,the
+above definition of an actor and its use in the context of a network
+of actors suggest that the language should allow to make some key
+aspects of an actor definition explicit. These are, among others:
+\begin{itemize}
+\item The port signature of an actor (its input ports and output
+  ports, as well as the kind of tokens the actor expects to receive from or
+  be able to send to them.
+\item The code executed during a firing, including possibly
+  alternatives whose choice depends on the presence of tokens (and
+  possibly their values) and/or
+  the current state of the actor.
+\item The production and consumption of tokens during a firing, which again
+  may be different for the alternative kinds of firings.
+\item The modification of state depending on the previous state and
+  any input tokens during a firing.
+\end{itemize}
+
+\index{dataflow}
+\paragraph{Actor-like systems.} It is often useful to
+abstract a system as a structure of cooperating actors. Many such
+systems are {\em dataflow}-oriented, i.e. they consist of components
+that communicate by sending each other packets of information, and
+whose ability to perform computation depends on the availability of
+sufficient input data. Typical signal processing systems, and also many
+control system fall into this category.
+
+
+\paragraph{Writing actors is hard.} Writing an actor in a general-purpose programming language is
+of course possible, but most or all of the information that may be
+used to reason about its behavior is implicit in the program and can
+only be extracted using sophisticated analysis, if this is at all
+feasible.
+
+Furthermore, actors often need to be run on different platforms. For
+instance, if actors are used in the design of an embedded system, they
+need to run in a modeling and simulation environment (such as Matlab
+or Ptolemy) as well as in the final product. Being able to use the
+same description of the actor functionality in both cases improves
+productivity and reduces the probability of errors.
+
+
+\section{Language design: goals and principles}
+
+\index{language design!goals|(}
+Designing a programming language is an
+exercise in balancing a number of sometimes contradicting goals and
+requirements. The following were the ones that guided the design of
+\Cal.
+
+\index{language!usability}
+\paragraph{Ease of use.} \Cal is intended to be a programming
+language, not an intermediate format or a representation for
+automatically generated code. Since we want people to actually write
+code in it, the notation must be reasonably convenient to write, with
+consistent syntax rules, keywords, and structures. Because people make
+mistakes, it needs to be sufficiently redundant to allow effective error
+detection and localization, but simple and concise enough for frequent
+use, especially in frequently used areas.
+
+\index{language!core}
+\paragraph{Minimal semantic core.} In spite of being a full-fledged
+programming language, we wanted to build \Cal on a very small set of
+semantic concepts, for a number of reasons. First of all, being able
+to describe a large part of the full language through reductions to a
+smaller language makes the definition of language semantics much
+easier. From a practical perspective, this simplifies compiler
+construction---if there is a generic procedure that transforms any
+program into an equivalent program in the core language, then all it
+takes in order to compile the full language to any given platform is a
+code generator for the core language. This led to the design of a
+number of core languages of \Cal (reflecting several levels of
+reduction) that much of the implementation of the language is based
+on, and which will be described in another place.
+
+\index{language!domain-specific}
+\paragraph{Focus and specificity.} \Cal is a domain-specific
+language that is aimed at providing a medium for defining actors. It
+was very important to draw a clear line between those pieces of
+functionality that were deemed to be part of an actor definition and
+those that were not. For example, in addition to clearly
+actor-specific structures such as actions and input/output
+patterns/expressions, expressions and statements were considered to be
+essential to defining an actor. On the other hand, there are many
+things that \Cal explicitly does {\em not} contain, such as facilities
+for defining new types, concepts for connecting actors, or mechanisms
+to aggregate actors into composites. The fact that \Cal is explicitly
+agnostic about these issues makes it possible to use the language in a
+wide variety of contexts, which may provide very different designs in
+those areas.
+
+\paragraph{Implementation independence and retargetability.} Even
+though our first target for \Cal actors is the Ptolemy II
+platform, we want the language to be retargetable, in the following
+two senses: First, we would like to be able to take an actor written,
+say, for Ptolemy II and be able to compile it to some other platform,
+say to some C code that runs against a different API. Secondly, we
+would like to enable other people to embed \Cal into entirely
+different, but still actor-like, contexts, which have different kinds
+of objects (and types), different libraries, different primitive data
+objects and operators. Here, we would not necessarily try to reuse the
+actor libraries written for other platforms (although some interesting
+subset might still be sufficiently generic to be reusable)---instead,
+we would reuse the \Cal framework, i.e. its infrastructure such as
+parsers, transformers and annotators, verification and type checking,
+code generation infrastructure etc. This is why \Cal does not have
+a type system of its own, but relies on the environment to provide one
+(cf. section \ref{sect:Types} for more information). We hope that this
+will allow the use of \Cal in a very wide range of contexts, from
+full-fledged component models (such as JavaBeans) to very
+resource-constraint embedded platforms.
+
+\paragraph{Making relevant design knowledge explicit and manifest.}
+The key goal of \Cal is to enable the author of an actor to
+express some of the information about the actor and its behavioral
+properties that are relevant to using the actor (e.g. the verify its
+appropriate use inside a model, or to generate efficient code from
+it), but that would be only implicit in a description of the actor in
+a 'traditional' programming language such as C or Java.
+\index{language design!goals|)}
+
+\section{Platform independence and compatibility}
+
+\index{platform independence|(}
+
+\Cal is intended to be adaptable \sidenote{notions of {\em platform
+    independence}} to a variety of different platforms. There are a
+number of ways to interpret the term 'platform independence', and
+since this is a very important aspect of the design of \Cal, we
+will discuss our approach to this issue in this section.
+
+For example, it could mean that {\em code} written in a
+language\sidenote{code portability} can be run on a variety of
+platforms (which is the interpretation chosen, e.g., in the
+implementation of the Java programming language). One common approach
+to achieve code independence would be to define a virtual platform
+that promises to be implementable in various environments. If this
+platform is a runtime platform (rather than a source-code level API),
+this makes not only the source code,\index{portability!source code}
+\index{portability!target code}\sidenote{source vs target code
+  portability} but also of the compiled target portable across
+platforms. This has the obvious advantage of (at least potentially)
+making every piece of code that is ever written against the virtual
+platform portable to any implementation, increasing reuse and avoiding
+fragmentation of the user base. There are, however, downsides to this
+approach. First, it requires a delicate balance between including all
+possibly desirable features and selecting those that can be
+implemented on a wide variety of platforms. If the target platforms
+are reasonably similar, this may not be a problem, but to the extent
+that the targets vary, some of them may prevent the inclusion of
+features that would be very useful on others, resulting in a greatest
+common denominator design. Second, requiring code and APIs to be
+independent of any specific platform also makes it harder or
+impossible to take advantage of platform-specific features.
+
+Another interpretation of the term focuses on the {\em language} and
+its concepts,\index{portability!language}\sidenote{language
+  portability} rather than the code written in the language. The C
+language is an example of this: it provides a set of basic concepts,
+but it leaves many details open to specific implementations, such the
+sizes and representations of basic data types, and of course the set
+of library functions used to create programs. As a result, C code
+itself is not portable, but relies on the presence of a specific set
+of libraries, and may rely on a specific representation of the data
+objects. Of course, techniques exist to improve code portability, such
+as standardization of library sets, and abstraction mechanisms that
+deal with different data representations. But the general problem with
+this approach is, of course, that code written in a language is not
+automatically portable. The advantage, however, is that the language
+as well as code written in it may be tuned to exploit the specific
+features of a platform.
+
+The design of \Cal tries to realize this latter form
+of\sidenote{portability in \Cal} portability. The reason is
+that we intend the language to be used on wide variety of different
+platforms, and that we do not believe that there is a single
+abstraction that does justice to all of them---particularly because
+for some of them, performance of the generated code is a very high
+priority.
+
+Nonetheless, portability of source code as well as target code remains
+a concern. We intend to improve source code
+portability\index{platform!profile}\sidenote{platform profiles} by
+defining {\em profiles} for certain classes of platforms, which define
+things like type systems, basic function and procedure libraries and
+the like. But these will be based on our experiences with the language
+in various scenarios, and thus are a second step in the development of
+the language and its environment.\sidenote{targeting existing virtual
+  platforms} As for target code portability, it seems more reasonable
+to use existing infrastructure (such as the Java VM, or the Common
+Language Runtime) wherever possible, rather than developing one from
+scratch.  \index{platform independence|)}
+
+\index{portability|see{platform independence}}
+\index{profile|see{platform, profile}}
+
+\section{Changes since CLR 1.0}
+
+
+\paragraph{Add type system.}
+
+\paragraph{Add multiple schedules.}
+
+\paragraph{Add assertions.}
+
+\paragraph{Remove regexp schedules.}
+
+\paragraph{Remove nondeterministic choice construct.}
+
+
+\newpage
+
+\begin{rationale}
+  Throughout this report, selected aspects of the language design will
+  be discussed in these boxes, presenting the rationale for the
+  decisions made in the specific cases.
+  
+  These discussions are mainly of interest to language implementors
+  and people interested in the language design. Users only interested
+  in the mechanics of the language may safely ignore them.
+\end{rationale}
+
+\begin{implementation}
+  Similarly, discussions of implementation techniques, or aspects of
+  the language that require particular consideration when implementing
+  the language on some platform are set in these boxes.
+\end{implementation}
+
+
+% Local Variables:
+% TeX-master: "CLR"
+% End:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

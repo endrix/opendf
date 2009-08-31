@@ -1,0 +1,1109 @@
+
+\chapter{Expressions}\label{sect:Expressions}
+\index{expression|(}
+
+\index{expression!side-effect-free}
+\sidenote{no side effects}Expressions evaluate to a value and are
+side-effect-free, i.e. they do not change the state of the actor or
+assign or modify any other variable. Thus, the meaning of an expression
+can be described by the value it is evaluating to.
+
+\index{expression!type of} \sidenote{expressions and types} If the
+computation of an expression terminates, it results in a value, and
+that value has an object type. The precise value depends on the
+environment surrounding the expression when it is evaluated. In
+general, the objects computed by an expression in different
+environments may belong to different object types. However, Using the
+properties of the type system outlined in section
+\ref{sect:TypeFramework}, we can compute a set of least upper variable
+type bounds for each expression, knowing the declared types of each of
+its free identifiers and the types of the literals occurring in it.
+The object types of all objects ever computed by the expression must
+be assignable to {\em all} of the variable types in that set.
+
+
+\sidenote{expression syntax} The following is an overview of the kinds
+of expressions and expression syntaxes provided in \Cal.
+
+\index{expression!primary} \index{primary expression}
+\index{expression!syntax}
+\index{(...)@{\tt (...)}!in expression}
+\index{[...]@{\tt [...]}!in expression}
+\index{.@{\tt .}!in expression}
+\index{old@\kwOld}
+
+\bgr
+
+Expression : PrimaryExpression~\mul{Operator~PrimaryExpression} .
+
+PrimaryExpression : [Operator]~SingleExpression~ ;
+     \mul{'('~[Expressions]~')'~|~'['~Expressions~']'~|~'\charDot'~ID } .
+
+SingleExpression : [\kwOld]~ID ;
+     | ExpressionLiteral ;
+     | '('~Expressions~')';
+     | IfExpression;
+     | LambdaExpression;
+     | ProcExpression;
+     | LetExpression;
+     | ListComprehension | SetComprehension | MapComprehension ;
+     | TypeAssertionExpr.
+
+\egr
+
+We will now discuss the individual kinds of expressions in more detail.
+
+\section{Literals}\label{sect:Literals}
+\index{expression!literal|(}
+\index{literal} \index{expression!constant}
+
+\sidenote{literals describe constants} Expression literals are
+constants of various types in the language. They look as follows:
+
+\index{expression!literal!syntax}
+\index{true@\kwTrue}
+\index{false@\kwFalse}
+\index{null@\kwNull}
+\index{expression!literal!integer}
+\index{expression!literal!decimal fraction}
+\index{expression!literal!string}
+\index{literal!integer}
+\index{literal!decimal fraction}
+\index{literal!string}
+
+\bgr
+ExpressionLiteral : IntegerLiteral | DecimalFractionLiteral ;
+       | StringLiteral ;
+       | \kwTrue | \kwFalse | \kwNull.
+\egr
+
+\index{Boolean@{\tt Boolean} (type)}
+\index{Null@{\tt Null} (type)}
+The type of \kwTrue and \kwFalse is {\tt Boolean}, the type of \kwNull
+is {\tt Null}. 
+
+
+\sidenote{literal types determined by context}The exact types of the
+other literals are determined by the environment, but the intuition
+behind them is that they represent the integers, the real numbers, and
+character strings, respectively.
+
+\index{rationale!literals}
+\begin{rationale}
+  We are not committing to particular types for the numeric
+  literals because we want to keep the requirements on the type system
+  as weak as possible, to allow for a wide range of implementations. For
+  example, some implementations may have only integer numbers up to a
+  specific word size (say, 32 or 64 bits), while others have
+  variable-sized integers. Such an implementation may want to assign a
+  specific type to an integer literal depending on its numeric
+  size---e.g., it may make it an object of type {\tt Integer32} if it
+  fits into 32 bits, and of type {\tt Integer} if it is larger than that.
+\end{rationale}
+
+\index{expression!literal|)}
+
+\section{Variable references}\label{sect:VariableRefs}
+\index{expression!variable|(}
+\index{variable!reference|(}
+
+The expression used to refer to the value bound to a variable at any
+given point during the execution is simply the name of the variable
+itself, i.e. an identifier. 
+
+\subsection{Old variable references}\label{sect:OldVarRefs}
+
+\index{variable!old@\kwOld|(}
+\index{old@\kwOld|(}
+
+\index{variable!old@\kwOld!use in action}
+\index{old@\kwOld!use in action}
+
+The \sidenote{assignable \& mutable bindings}code inside an action may
+refer to the value of a variable at the beginning of the action by
+prefixing the variable name with the keyword \kwOld, as in the
+following example:
+
+\index{example!\kwOld~reference}
+\begin{example}
+\begin{alltt}
+  ...
+
+  sum := 0;
+
+  action [a] ==> [old sum / sum] 
+  do
+    sum := sum + a;
+  end
+
+  ...
+\end{alltt}
+\end{example}
+
+
+\index{variable!old@\kwOld!meaning}
+\index{old@\kwOld!meaning}
+\sidenote{\kwOld-references: state {\em before} a firing}
+The output expression refers to both the value of {\tt sum} at the
+beginning of the firing as well as its value at the end of the
+firing. This code is equivalent to the following:
+
+\begin{alltt}
+  ...
+
+  sum := 0;
+
+  action [a] ==> [oldSum / sum] 
+  var 
+    oldSum = sum 
+  do
+    sum := sum + a;
+  end
+  
+  ...
+\end{alltt}
+
+\index{variable!old@\kwOld!translation}
+\index{old@\kwOld!translation}
+\sidenote{implicit variable}
+In other words, using \kwOld~values of variables in an action
+introduces an implicit non-assignable, non-mutable variable
+(cf. section \ref{sect:MutableVarAssignments} for the implications of
+the original variable being mutable).
+
+\index{variable!old@\kwOld!and closures}
+\index{old@\kwOld!and closures}
+\index{closure!and \kwOld~ variables}
+\sidenote{\kwOld-references and closures}
+Closures created inside an action may also refer to \kwOld~variables,
+and the meaning of this follows from the transformation above: They
+will always refer to the value of the variable at the beginning of
+the firing that created them. 
+
+\index{variable!old@\kwOld!restrictions}
+\index{old@\kwOld!restrictions}
+The \kwOld~keyword may not be used outside of an action, or in front
+of a variable that is not an assignable or mutable actor state variable.
+
+\index{old@\kwOld|)}
+\index{variable!old@\kwOld|)}
+
+
+
+\index{expression!variable|)}
+\index{variable!reference|)}
+
+
+
+
+\section{Function application}\label{sect:Application}
+\index{expression!function!application|(}
+\index{function!application|(}
+\index{application expression|(}
+
+Function applications have the following syntactic format:
+\bgr
+  FunctionApplication : Expression ~'(' ~Expressions ~')'.
+\egr
+
+The first expression must evaluate to a function of the appropriate
+type and arity. The expression inside the parentheses are the function
+{\em arguments}. The value of the function application expression is
+the value computed by the function when applied to the values of the
+argument expressions.
+
+\index{implementation note!lazy evaluation}
+\index{lazy evaluation}
+\index{eager evaluation}
+\index{art of cheating}
+\sidenote{{\em language implementation}: the {\bf art of cheating} without getting
+  caught}\begin{implementation}
+  Functions may, in principle, be non-strict, i.e.  evaluation of
+  argument expessions may be deferred until their values are actually
+  needed. The bounds for implementations are defined only by an
+  expression's proper behavior with respect to the modification of
+  state. For example, consider the following statements:
+  \begin{alltt} g := lambda (x) : lambda (y) : x + y end end;
+ a := 11;
+ f := g (a * a);
+ a := 7;
+ b := f(1);\end{alltt}
+  Any correct implementation must ensure that {\tt b} has the value
+  122 at the end of this statement sequence. If it naively defers the
+  evaluation of the argument expression {\tt a * a} until {\tt f} is
+  {\em called}, {\tt b} will erroneously be assigned the value 50. This, of
+  course, does not mean that the argument expression must be evaluated
+  when {\tt g} is called, but it must behave {\em as if} it were
+  evaluated in the state valid at the time of the call whenever 
+  its value is needed. In this example, it could move
+  the old value of {\tt a} into the lambda-closure and use it, rather
+  than the current value of {\tt a}, when it finally evaluates the
+  argument expression.
+  
+  In other words, if an implementation chooses to employ some form of
+  lazy evaluation, the effect is only to give meaning to programs that
+  would otherwise not be valid, while not affecting the meaning of
+  programs that do evaluate under an eager implementation. Consider
+  this example:
+  \begin{alltt}let 
+  f = lambda (x, y) : x end,
+  g = lambda () : g() end
+:
+  f(1, g())
+end\end{alltt}
+  In lazy implementations, this expression will yield 1, while in
+  eager implementations it will be an error.
+\end{implementation}
+
+\index{closure!function}
+\index{expression!lambda}\index{lambda expression}
+
+\index{expression!function!application|)}
+\index{function!application|)}
+\index{application expression|)}
+
+\section{Field selection}\label{sect:SelectorExpr}
+\index{expression!selector|(}
+\index{expression!field selector|(}
+\index{selector!expression|(}
+\index{field!selector expression|(}
+
+A field selector expression extracts a sobobject from a composite
+object (see \ref{sect:StructuredTypes} for details on composite
+objects). The syntax is as follows:
+
+\index{.@{\tt .}!in field selection expression}
+
+\bgr
+  FieldSelectorExpr : Expression~'\charDot'~ID .
+\egr
+
+The result of this expression is the subobject of the value of the
+expression that is contained in the field specified by the identifier.
+
+\index{expression!selector|)}
+\index{expression!field selector|)}
+\index{selector!expression|)}
+\index{field!selector expression|)}
+
+
+\section{Indexing}\label{sect:Indexing}
+\index{expression!indexing|(}
+\index{indexing expression|(}
+
+\index{composite object}
+\index{location}
+\index{types!structured}
+\sidenote{indices define {\em location}}
+An indexing expression selects a subobject from a composite object
+(cf. section \ref{sect:StructuredTypes} for more details).
+Syntactically, indexing expressions are similar to function
+applications, although they use square brackets for enclosing the
+arguments. The general format is
+
+\index{[...]@{\tt [...]}!in indexing expression}
+
+\bgr
+   IndexerExpr : Expression ~'['~Expressions~']' .
+\egr
+
+where the first expression must be of a type that supports an indexer,
+and the expressions between the brackets must be indices specifying a
+valid location for the given object. The type of an indexing
+expression is determined by the indexer, which is different for each
+structured data type, and may differ according to the number of
+indices and their types.
+
+\index{expression!indexing|)}
+\index{indexing expression|)}
+
+
+\section{Operators}\label{sect:Operators}
+\index{operator|(}
+\index{expression!operator|(}
+
+\index{operator!prefix} \index{operator!unary} \index{operator!infix}
+\index{operator!binary} \index{operator!precedence}
+\index{operator!associativity} \index{associativity!of operators}
+\sidenote{unary \& binary operators} 
+\index{precedence!of operators}
+
+There are two kinds of operators in \Cal: unary prefix operators and
+binary infix operators. A binary operator is characterized by its
+associativity and its precedence. In \Cal, all binary operators
+associate to the left, while their precedence is defined by the
+platform. Unary operators always take precedence over
+binary operators.
+
+
+\index{example!operator associativity and precedence}
+\begin{example}\ 
+
+  {\tt a + b + c} is always {\tt (a + b) + c}.
+
+  {\tt \#a + b} is always {\tt (\#a) + b}.
+
+  {\tt a + b * c} is {\tt a + (b * c)} if {\tt *} has a higher
+  precedence than {\tt +}, which is usually the case (see also the
+  appendix \ref{app:PredefOps}).
+\end{example}
+
+\index{operators!represented by functions}
+\sidenote{syntactical sugar}
+Operators are just syntactical elements---they represent ordinary
+unary or binary functions, so the only special rules for operators are
+syntactical. In general, the set of operators is defined by the
+implementation context, although a small number of operators are
+predefined. These operators are represented by keywords, as opposed to
+strings of symbols, which represent all the other operators
+(cf. section \ref{sect:LexicalMatters}).
+
+\index{operator|)}
+\index{expression!operator|)}
+
+
+
+\section{Conditional expressions}\label{sect:ConditionalExpression}
+
+\index{expression!conditional|(}
+\index{conditional expression|(}
+
+The simple conditional expression has the following form:
+
+\index{if@\kwIf}
+\index{then@\kwThen}
+\index{else@\kwElse}
+\index{end@\kwEnd}
+\index{endif@\kwEndIf}
+
+\bgr
+  IfExpression : \kwIf~Expression~\kwThen~Expression~\kwElse~Expression~\kwEnd.
+\egr
+
+\index{Boolean@{\tt Boolean} (type)}
+\index{true@\kwTrue}
+The first subexpression must be of type {\tt Boolean}, and the value
+of the entire expression is the value of the second subterm if the
+first evaluated to {\tt true}, and the value of the third subterm
+otherwise.
+
+The type of the conditional expression is the most specific supertype
+(least upper bound) of both, the second and the third
+subexpression. It is undefined (i.e. an error) if this does not exist.
+
+\index{expression!conditional|)}
+\index{conditional expression|)}
+
+
+
+\section{Introducing a local scope}\label{sect:LetExpr}
+\index{expression!local scope|(}
+
+\index{let@\kwLet}
+
+In expressions, local variables are introduced using a
+\kwLet-construct. This is often useful to factor out large subexpressions
+that occur several times.
+
+\index{let@\kwLet}
+\index{end@\kwEnd}
+\index{endlet@\kwEndLet}
+
+\bgr
+  LetExpression : \kwLet~VarDecls~'\charColon'~Expression~(\kwEnd|\kwEndLet).
+\egr
+
+The list of local definitions defines new identifiers and binds them
+to values. The variables (which are non-mutable and non-assignable)
+are visible inside the body expression. Its type is the type of the
+entire construct.
+
+\index{expression!local scope|)}
+
+
+\section{Closures}\label{sect:Closures}
+
+\index{closure|(}
+\index{expression!closure|(}
+
+\index{environment}
+\sidenote{closure = code + environment}
+Closures are objects that encapsulate some program code along with the
+variable context (its {\em environment}) that was valid when it was
+created. \Cal distinguishes two kinds of closures, which differ in the
+{\em kind} of code they encapsulate:
+\index{closure!function}
+\index{function}
+\index{expression!closure!function}
+\index{closure!procedure}
+\index{procedure}
+\index{expression!closure!procedure}
+\begin{itemize}
+\item {\em function closures} (or simply {\em functions}) contain a
+  parametric expression, \sidenote{functions \& procedures}
+\item {\em procedure closures} (or just {\em procedures}) contain a
+  parametric list of statements.
+\end{itemize}
+
+\index{expression!application}
+\index{function!application}
+\index{closure!function!application of}
+\index{statement!call}
+\index{procedure!call}
+\index{closure!procedure!call of}
+The two kinds of closures are used in different contexts, and in
+different ways---the {\em application} of a functional closure to (a
+tuple of) arguments is an expression (cf. section
+\ref{sect:Application}), whereas the {\em call} of a procedural
+closure on (a tuple of) arguments is a statement (cf. section
+\ref{sect:Call}).
+
+
+\subsection{Lambda-expressions and function
+  closures}\label{sect:LambdaClosures}
+\index{expression!lambda@\kwLambda|(}
+\index{lambda expression|(}
+\index{expression!closure!function|(}
+\index{closure!function|(}
+\index{function|(}
+
+\sidenote{function = expression + environment}
+
+Function closures are the result of evaluating a \kwLambda-expression. They
+represent functions that are defined by some expression which is
+parameterized and may also refer to variables defined in the
+surrounding context.
+
+\index{lambda@\kwLambda}
+\index{const@\kwConst}
+\index{var@\kwVar}
+\index{end@\kwEnd}
+\index{endlambda@\kwEndLambda}
+\index{variable!declaration!in function}
+\index{-->@{\tt -->}!in lambda-expression}
+\index{:@{\tt :}!in lambda-expression}
+
+\bgr
+LambdaExpression : [\kwConst]~\kwLambda~'('~[FormalPars]~') ~['$-$$-$\charMore'~Type~] ;
+        [\kwVar ~VarDecls] '\charColon'
+        Expression~(\kwEnd|\kwEndLambda).
+
+FormalPar : [Type]~ID.
+\egr
+
+\index{side-effect free}
+\index{expression!side-effect-free}
+\index{variable!stateful}
+\sidenote{function application side-effect-free}
+Applying function closures is side-effect free, i.e. their application
+(to arguments) does not change the state. However, in general they may
+{\em refer} to stateful variables, and thus may themselves depend on
+the assignment of variables in their context, and thus be
+affected by side effects of other constructs.
+
+\index{const@\kwConst}
+\index{expression!lambda@\kwLambda!const@\kwConst}
+\index{lambda expression!const@\kwConst}
+\index{expression!closure!const function@\kwConst~function}
+\index{closure!function!const@\kwConst}
+\index{function!const@\kwConst}
+\index{function!invariant}
+\index{closure!function!invariant}
+\index{expression!closure!invariant function}
+\sidenote{invariant function closures}
+
+The \kwConst~keyword identifies those function closures for which this
+is not the case, i.e. which do not refer to variables whose values may
+change---such a function is also called an {\em invariant function (closure)}.
+It does not change the behavior of the closure, i.e.  removing it will
+not affect the value computed by the closure. It is intended to serve
+as a declaration that expresses the programmers intention, and that
+may be checked by a compiler. It is an error for a
+\kwConst~\kwLambda-closure to refer to assignable or mutable
+variables.
+
+\index{types!function}
+\index{types!closure!function}
+\index{function!type}
+\index{closure!function!type}
+
+If the types of the formal parameters are {\tt T1} to {\tt Tn},
+respectively, and the return type is {\tt T}, then the type of the
+lambda expression is \\
+\exindent{\tt [T1, ..., Tn --> T]}
+
+The type of an invariant function closure is a subtype of the
+corresponding function closure type, and is written as\\
+\exindent{\tt const [T1, ..., Tn --> T]}
+
+\index{expression!application}
+\index{function!application}
+\index{expression!function!application}
+\index{application expression}
+\index{closure!function!application}
+\sidenote{applying functions $\To$ \ref{sect:Application}}
+
+The only built-in operation defined on a function closure is its {\em
+  application} to a tuple of arguments, cf. section \ref{sect:Application}. 
+
+\index{expression!lambda@\kwLambda|)}
+\index{lambda expression|)}
+\index{expression!closure!function|)}
+\index{closure!function|)}
+\index{function|)}
+
+
+\subsection{Proc-expressions and procedure
+  closures}\label{sect:ProcClosures}
+
+
+\index{expression!proc@\kwProc|(}
+\index{proc expression|(}
+\index{expression!closure!procedure|(}
+\index{closure!procedure|(}
+\index{procedure|(}
+
+\index{statement!list of}
+
+Procedure \sidenote{procedure = statements +
+  environment}closures are somewhat similar to function closures, in that
+they encapsulate a piece of code together with the context in which it
+was defined.  However, in the case of procedure closures, this piece
+of code is a list of statements, i.e. executing a procedure closure is likely to have
+side effects (as opposed to the application of a function closure).
+
+Syntactically, a procedure closure looks as follows:
+
+\index{proc@\kwProc}
+\index{var@\kwVar}
+\index{end@\kwEnd}
+\index{endproc@\kwEndProc}
+\index{variable!declaration!in procedure}
+\index{do@\kwDo}
+\index{begin@\kwBegin}
+
+\bgr
+ProcExpression : \kwProc~'('~[FormalPars]~')'~[\kwVar~VarDecls]~;
+      (\kwDo | \kwBegin)~\mul{Statement}~(\kwEnd|\kwEndProc) .
+\egr
+
+If the types of the formal parameters are {\tt T1} to {\tt Tn},
+respectively, then the type of the
+proc  expression is \\
+\exindent{\tt [T1, ..., Tn -->]}
+
+% FIXME: Should there be invariant procedures as well?
+
+
+Since \sidenote{calling procedures $\To$ \ref{sect:Call}}block
+closures can produce side effects, their execution cannot be part of
+the evaluation of an expression. Executing a block closure is a
+fundamental kind of statement, which is discussed in section
+\ref{sect:Call}.
+
+\index{expression!proc@\kwProc|)}
+\index{proc expression|)}
+\index{expression!closure!procedure|)}
+\index{closure!procedure|)}
+\index{procedure|)}
+
+
+\subsection{Function and procedure declarations}\label{sect:FunProcDecl}
+
+\index{declaration!of procedure|(}
+\index{declaration!of function|(}
+\index{function!declaration|(}
+\index{procedure!declaration|(}
+
+One very common use for closures is the definition of functions or
+procedures with a particular fixed name inside some scope, often the
+actor itself. This can be done using the standard variable declaration
+syntax, as follows:
+\begin{alltt}
+  timestwo = lambda(x) : 2 * x end
+\end{alltt}
+
+However, since this use is so frequent, \Cal provides special syntax
+that looks a little more familiar and makes the definition of
+functions and procedures a little easier. The above could also be
+written like this:
+\begin{alltt}
+  function timestwo (x) : 2 * x end
+\end{alltt}
+
+The general format for these constructs is as follows:
+
+\index{function@\kwFunction}
+\index{procedure@\kwProcedure}
+\index{var@\kwVar}
+\index{end@\kwEnd}
+\index{endfunction@\kwEndFunction}
+\index{endprocedure@\kwEndProcedure}
+
+\bgr
+FuncDecl : \kwFunction~ID~'('~[FormalPars]~')'~[\kwVar~VarDecls~'\charColon'] ;
+    Expression~\kwEnd .
+
+ProcDecl : \kwProcedure~ID~'('~[FormalPars]~')'~[\kwVar~VarDecls~(\kwBegin | \kwDo)] ;
+    \mul{Statement}~\kwEnd .
+\egr
+
+The variable introduced by these declarations is non-assignable and non-mutable.
+
+\index{declaration!of procedure|)}
+\index{declaration!of function|)}
+\index{function!declaration|)}
+\index{procedure!declaration|)}
+
+
+\index{closure|)}
+\index{expression!closure|)}
+
+
+\section{Comprehensions}\label{sect:Comprehensions}
+
+\index{expression!comprehension|(}
+\index{comprehension|(}
+
+\index{set!construction}
+\index{set!comprehension} 
+\index{list!construction} 
+\index{list!comprehension} 
+\index{map!construction}
+\index{map!comprehension} 
+\index{comprehension!generator}
+\index{generator}
+\sidenote{constructing composite objects}
+
+Comprehensions are expressions which construct one of the built-in
+composite objects: sets, lists, or maps. There are two variants of
+comprehensions, those with and those without {\em generators}. We will
+first focus on the simpler ones without generators, and then turn to
+the more general comprehensions with generators. The reason for this
+order of presentation is that the meaning of comprehensions with
+generators will be defined by reducing them to simple collection
+expressions.
+
+\index{Collection@{\tt Collection} (type)!vs collection}
+\index{collection!proper}
+\index{collection!vs Collection@vs {\tt Collection}}
+
+\paragraph{Note.} The {\tt Collection} type is a supertype of both
+{\tt Set} and {\tt List}, but {\em not} {\tt Map}. In spite of this,
+we will use the term {\em collection} for maps as well in this
+section, because the way they are constructed is very much the same as
+for sets and lists. To avoid confusion, we will refer to sets and
+lists as {\em proper collections} or {\tt Collection}s if we want to
+distinguish them from maps.
+
+\subsection{Simple collection expressions}
+
+\index{expression!comprehension!simple|(}
+\index{comprehension!simple|(}
+\index{set!comprehension!simple}
+
+\index{map!comprehension!simple}
+\index{list!comprehension!simple}
+\index{collection!expression}
+\sidenote{simple comprehension: enumerate elements}
+
+Simple collection expressions just enumerate the elements of the set
+or list and the mappings of the map, respectively. They are written as
+follows:
+
+\index{expression!comprehension!set}
+\index{comprehension!set}
+\index{set!comprehension}
+\index{expression!comprehension!list}
+\index{comprehension!list}
+\index{list!comprehension}
+\index{expression!comprehension!map}
+\index{comprehension!map}
+\index{map!comprehension}
+
+\index{for@\kwFor}
+\index{in@\kwIn}
+
+\index{map@\kwMap}
+\index{[...]@{\tt [...]}}
+\index{\{...\}@{\tt \{...\}}}
+\index{-\charMore@{\tt ->}}
+
+\bgr
+SimpleSetComprehension : '\{'~[Expressions]~'\}'.
+
+SimpleListComprehension : '['~[Expressions~['$\mid$'~Expression~]]~']'.
+
+SimpleMapComprehension : \kwMap~'\{'~[Mappings]~'\}'.
+\egr
+
+\sidenote{unordered set vs ordered list}
+The elements of a set are not ordered, and each element occurs inside
+the set at most once. If two or more element expressions evaluate to
+the same value, they result in only one element inside the
+set.\footnote{For this reason, it is in general only possible to infer
+  an upper bound on the number of elements from a simple set
+  expression, not the precise number of elements.} In contrast, the
+elements in a list are ordered, and the same element may occur in it
+more than once. Also, the list syntax allows a {\em tail} to be
+specified, which must be a list of the same type that is appended to
+the list of the explicitly specified elements.
+
+\index{example!simple set and list expressions}
+\begin{example}
+  If {\tt n} is the number {\tt 10}, then the simple set expression\\
+  \exindent{\tt \{n, n*n, n-5, n/2\}}\\ 
+  evaluates to the set {\tt \{10, 100, 5\}}.
+
+  If {\tt s} represents the list {\tt [1, 2, 3]}, then
+  the simple list expression\\
+ \exindent{\tt [4, 5, 6 | s]}\\
+ is the list {\tt [4,
+    5, 6, 1, 2, 3]}.
+\end{example}
+
+\index{map!key}
+\index{map!value}
+\index{map!construction!nondeterminism}
+
+\sidenote{nondeterminism in map construction}
+
+Simple map expressions explicitly specify the mappings from {\em keys}
+to {\em values}. Similar to the case of sets, if two key expressions
+result in the same value, only one key/value mapping will be generated
+from them. If the corresponding value expressions are not the same,
+one of the values will be chosen.
+
+\index{example!simple map expressions}
+
+\begin{example}
+  Let again {\tt n} be {\tt 10}. The map\\
+  \exindent{\tt map \{n -> 1, n*n -> 2, n-5 -> 3, n/2 -> 4\}}\\
+  evaluates to either {\tt map \{10 -> 1, 100 -> 2, 5 -> 3\}}\\
+  or to {\tt map \{10 -> 1, 100 -> 2, 5 -> 4\}}.
+\end{example}
+
+\index{expression!comprehension!simple|)}
+\index{comprehension!simple|)}
+
+\subsection{Comprehensions with generators}\label{sect:ComprehensionsWithGenerators}
+
+\index{expression!comprehension!with generators|(}
+\index{comprehension!with generators|(}
+\index{generator|(}
+
+\sidenote{constructing large collections}
+
+Simple comprehension expressions only allow the construction of sets,
+lists, or maps of a size that is directly correlated with the size of
+the expression. In order to facilitate the construction of large or
+variable-sized collections, \Cal provides {\em generators} to be used
+inside an expression constructing a collection. The syntax of the
+resulting general form of comprehensions looks as
+follows:
+
+\index{expression!comprehension!set}
+\index{comprehension!set}
+\index{set!comprehension}
+\index{expression!comprehension!list}
+\index{comprehension!list}
+\index{list!comprehension}
+\index{expression!comprehension!map}
+\index{comprehension!map}
+\index{map!comprehension}
+
+\index{for@\kwFor}
+\index{in@\kwIn}
+
+\index{map@\kwMap}
+\index{[...]@{\tt [...]}}
+\index{\{...\}@{\tt \{...\}}}
+\index{-\charMore@{\tt ->}}
+
+\index{comprehension!generator!syntax}
+\index{generator!syntax}
+
+\bgr
+SetComprehension : '\{'~[Expressions~['\charColon'~Generators]]~'\}'.
+
+ListComprehension : '['~[Expressions~['\charColon'~Generators]~['$\mid$'~Expression~]]~']'.
+
+MapComprehension : \kwMap~'\{'~[Mappings~['\charColon'~Generators]]~'\}'.
+
+Mapping : Expression~'-\charMore'~Expression.
+
+Generator : \kwFor~[Type]~ID~['\charComma'~IDs]~\kwIn~Expression~\mul{'\charComma'~Expression}
+\egr
+
+\index{generator}
+\index{comprehension!generator}
+\index{expression!comprehension!generator}
+\index{in@\kwIn}
+\index{for@\kwFor}
+\index{Collection@{\tt Collection} (type)}
+\index{variable!generator}
+\index{generator!variable}
+\index{generator!variable!scoping}
+\index{Collection@{\tt Collection} (type)}
+\sidenote{generators \& filters}
+
+The generators, which begin with the {\tt for} keyword, introduce new
+variables, and successively instantiate them with the elements of the
+proper collection after the {\tt in} keyword. The expression computing that
+collection may refer to the generator variables defined to the left of
+the generator it belongs to. If that expression is of type
+$Collection[T]$, the corresponding generator variable is of type $T$
+unless declared otherwise.
+
+\index{expression!comprehension!filter}
+\index{comprehension!filter}
+\index{filter}
+\index{generator!filter}
+\index{Boolean@{\tt Boolean} (type)}
+\index{true@\kwTrue}
+
+The optional expressions following the collection expression in a
+generator are called {\em filters}---they must be of type {\tt
+  Boolean}, and only variable bindings for which these expressions
+evaluate to \kwTrue are used to construct the collection.
+
+\index{example!collections with generators}
+\begin{example}
+The expression {\tt \{\}} denotes the empty set, while \\
+\exindent{\tt \{1, 2, 3\}}\\
+is the set of the first three natural numbers. The set \\
+\exindent{\tt \{2 * a : for a in \{1, 2, 3\}\}}\\
+contains the values 2, 4, and 6, while the set \\
+\exindent{\tt \{a : for a in \{1, 2, 3\}, a $>$ 1\}} \\
+describes (somewhat redundantly) the set containing 2 and 3. Finally,
+the set \\
+\exindent{\tt \{a * b : for a in \{1, 2, 3\},}\\
+\exindent\exindent{\tt for b in \{4, 5, 6\}, b > 2 * a\}} \\
+contains the elements 4, 5, 6, 10, and 12.
+
+\index{generator!variable!scoping}
+\sidenote{generator variable scoping}
+Writing the above as \\
+\exindent{\tt \{a * b : for a in \{1, 2, 3\},}\\
+\exindent\exindent{\tt b > 2 * a, for b in \{4, 5, 6\}\}} \\
+is {\bf illegal} (unless b is a defined variable in the context of this
+expression, in which case it is merely very confusing!), because the
+filter expression \\
+\exindent {\tt b > 2 * a} \\
+occurs before the generator that introduces {\tt b}.
+\end{example}
+
+\index{generator!collection!order}
+\index{comprehension!generator!element order}
+
+If the generator collection is a set rather than a list, the order in
+which elements are \sidenote{element order in generators}extracted
+from it will be unspecified. This may affect the result in case of a
+list comprehension.
+
+\index{example!order in generator collections}
+\begin{example}
+Because lists are order-sensitive, the list \\
+\exindent{\tt [ a : for a in [1, 2, 3] ]} \\
+is different from the list\\ 
+\exindent{\tt [ a : for a in [3, 2, 1] ]} \\
+If the collection computed in a generator is {\em not} itself a list
+but a set, as in \\
+\exindent{\tt [ a : for a in \{1, 2, 3\} ]} \\
+then the order of the elements in the resulting list will be
+indeterminate.
+\end{example}
+
+\index{comprehension!generator!semantics}
+\index{generator!semantics}
+\index{expression!comprehension!generator semantics}
+\index{list!comprehension!tail-free}
+\index{comprehension!list!tail-free}
+\index{expression!list comprehension!tail-free}
+
+\paragraph{Generator semantics.}
+\sidenote{for $v_{i, 1},...,v_{i, M_i}$ in $C_i$, $F_{i, 1}, ...,
+  F_{i, K_i}$}
+In order to precisely describe the evaluation of a comprehension that
+contains generators and filters, we need to introduce a few symbols
+first. We call the original expression $E$. Removing all
+generators from $E$ results in the simple collection expression
+$E'$. Now $E$ has $N \geq 0$ generators. The $i$-th generator has
+$M_i \geq 1$ variables, with names $v_{i,1}, ..., v_{i, {M_i}}$. The
+collection expression of the $i$-th generator will be called $C_i$.
+Following the $i$-th generator are $K_i \geq 0$ filter expressions,
+which we call $F_{i, 1}, ..., F_{i, {K_i}}$. Let $Z$ denote the
+corresponding empty collection expression, i.e. {\tt \{\}} for sets,
+{\tt []} for lists, and {\tt map \{\}} for maps. The tail expression
+of lists will be treated separately: we replace $[S | T]$ with $[S] +
+T$ first, and then apply the following algorithm to the {\em tail-free} list
+comprehension $[S]$.
+
+In the following, we define the meaning of generators in
+comprehensions by replacing them with a number of previously described
+constructs, such as function closures, function application, and
+conditional expressions. The key to this replacement is a function
+{\tt \$mapadd}, which we will describe below.
+
+\newcommand{\lit}[1]{\text{\underline{#1}}}
+
+\sidenote{syntactical transformation of generators}
+\begin{align*}
+  E & \equiv G(1) \\
+  G(i) & \equiv 
+  \begin{cases}
+    E' &\quad i > N\\
+    \lit{let}~a_i ~\lit{=} ~C_i ~\lit{:}~
+    G_V(i, 1) ~\lit{end} &\quad \text{otherwise} 
+  \end{cases}\\
+  G_V(i, j) &\equiv
+  \begin{cases}
+    G_F(i, 1) &\quad j > M_i \\
+    \lit{\$mapadd(}a_i\lit{, lambda (}v_{i, j}\lit{) :}~G_V(i, j +
+    1)~\lit{end)} &\quad \text{otherwise}
+  \end{cases}\\
+  G_F(i, k) &\equiv
+  \begin{cases}
+    G(i+1) &\quad k > K_i\\
+    \lit{if}~F_{i, k}~\lit{then}~G_F(i, k+1)~\lit{else}~Z~\lit{end} &\quad\text{otherwise}
+  \end{cases}
+\end{align*}
+
+The $a_i$ are distinct and fresh variable symbols, i.e. they are
+mutually different, and they also differ from any variable symbol
+occurring in the comprehension.
+
+\index{\$mapadd@{\tt \$mapadd}!use in generators} 
+
+\sidenote{{\tt \$mapadd}:\\\hspace*{1mm}{\tt Collection[T]}\\\hspace*{1mm}{\tt
+    [T-->Set/List/Map[T]]}}The {\tt \$mapadd} function takes two arguments, a
+collection and a unary function. It iterates over the elements of its
+first argument, and applies the function to each element. The
+resulting values are {\em added}---for sets, this means it produces
+the union of all results, for lists the concatenation, and for maps
+the map-union.
+
+\index{rationale!mapadd@{\tt \$mapadd} function}
+\begin{rationale}\label{lbl:RationaleIteratorName}
+  Of course, whether there exists a function {\tt \$mapadd} at all,
+  and whether it has this name will be implementation-dependent. The
+  reason for choosing a name with a \$-sign is because users are
+  discouraged from using the \$-sign for their identifiers, so that
+  generated identifiers and internal names can be formed without
+  creating conflicts with names chosen by the user.
+\end{rationale}
+
+\index{example!mapadd@{\tt \$mapadd} function}
+\begin{example}
+  The expression\\
+\exindent{\tt \$mapadd([1, 2, 3], lambda(x) : \{x, x + 2\} end)}\\
+results in {\tt \{1, 3\} + \{2, 4\} + \{3, 5\}}, which is\\
+\exindent{\tt \{1, 2, 3, 4, 5\}}
+
+  The expression\\
+\exindent{\tt \$mapadd([1, 2, 3], lambda(x) : [x, x + 2] end)}\\
+results in {\tt [1, 3] + [2, 4] + [3, 5]}, which is\\
+\exindent{\tt [1, 3, 2, 4, 3, 5]}
+
+  The expression\\
+\exindent{\tt \$mapadd([1, 2, 3],}\\
+\exindent\exindent{\tt lambda(x): map\{x->x*x, x+2->x\} end)}\\
+results in {\tt map\{1->1, 3->1\} + map\{2->4, 4->2\} + \{3->9,
+  5->3\}}, which is either\\
+\exindent{\tt map\{1->1, 2->4, 3->1, 4->2, 5->3\}}\\
+or\\
+\exindent{\tt map\{1->1, 2->4, 3->9, 4->2, 5->3\}}
+\end{example}
+
+\index{implementation note!generator implementations}
+\index{comprehension!implementation}
+\index{comprehension!efficiency}
+
+\sidenote{efficiency of comprehension implementations}
+\begin{implementation}\label{lbl:GeneratorEfficiency}
+  The fact that we define the meaning of generators inside
+  comprehensions by replacing them with other constructs is not to
+  suggest that this is a good implementation strategy. Even though it
+  simplifies the language implementation, it is most likely very
+  inefficient, introducing a lot of overhead in the form of closure
+  creation, function application, and many intermediate collection
+  objects that get added up to compute the final result.
+\end{implementation}
+
+\index{expression!comprehension!with generators|)}
+\index{comprehension!with generators|)}
+\index{generator|)}
+
+
+\index{expression!comprehension|)}
+\index{comprehension|)}
+
+\section{Type assertion}\label{sect:TypeAssertion}
+
+\index{type assertion|(}
+\index{expression!type assertion|(}
+\index{cast|see{type assertion}}
+\index{type cast|see{type assertion}}
+
+\index{type inference}
+
+\sidenote{attaching type information to any expression}A type
+assertion expression is a way to attach type information to an
+arbitrary expression inside the program code. Other than type
+assertions, the only expressions that the user explicitly provides
+type information for are variables, viz. when they are declared. The
+types of all other expressions are inferred from those. Depending on
+the type system, this inference may be more or less precise, and it
+may or may not be sufficient to guarantee a safe execution of the
+program code. In such cases, it might be useful to explicitly add a
+type assertion into the code, either to detect that it will not hold
+at compile time, or to be able to check it at runtime. The syntax
+looks as follows:
+
+\index{::@{\tt ::}}
+
+\bgr
+
+TypeAssertionExpr : '('~Expression~'\charColon\charColon'~Type~')'.
+
+\egr
+
+\sidenote{compile-time type checking}At compile time, if types are
+checked and inferred, there are three possible consequences of this
+construction depending on the type that the inference yielded for the
+embedded expression.
+\begin{enumerate}
+\item The type can be shown to be a subtype of the asserted type. In
+  this case, the assertion is always true.
+\item The type can be shown to not intersect with the asserted
+  type. In this case, objects computed by the expression will always
+  fail to be of the asserted type, and thus this expression is will
+  always result in an error, which can be reported at compile time.
+\item If neither can be shown, the expression may or may not produce
+  objects of the asserted type. This results in three subcases:
+  \begin{enumerate}
+  \item In a conservative system, an error will be signaled at compile
+    time.
+  \item \sidenote{runtime type checks}The translator inserts a check that tests for compliance with
+    the asserted type and causes an error if an object computed by the
+    expression fails this check.
+  \item The translator does nothing based on the assumption that the
+    assertion implies that the expression will always produce the
+    proper values.
+  \end{enumerate}
+\end{enumerate}
+
+\index{type assertion|)}
+\index{expression!type assertion|)}
+
+%\section{Type case expression}\label{sect:TypeCaseExpression}
+
+%% FIXME
+
+\index{expression|)}
+
+
+
+% Local Variables:
+% TeX-master: "../reference"
+% End:

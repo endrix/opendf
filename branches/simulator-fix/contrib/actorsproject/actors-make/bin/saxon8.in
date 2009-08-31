@@ -1,0 +1,5 @@
+#! /bin/sh
+: ${ACTORS_JAVADIR:=@javadir@}
+: ${SAXON8_JAR:=${ACTORS_JAVADIR}/saxon8.jar}
+
+${JAVA:-java} ${JFLAGS:--Xmx1G} -jar $SAXON8_JAR "$@"
