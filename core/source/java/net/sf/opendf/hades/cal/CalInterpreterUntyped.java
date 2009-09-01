@@ -1450,6 +1450,10 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 			return 1;
 		}
 		
+		public Type getType() {
+		    return null;
+		}
+		
 		public Collection<Object>  getBlockingSources() {
 			return blockingSources;
 		}

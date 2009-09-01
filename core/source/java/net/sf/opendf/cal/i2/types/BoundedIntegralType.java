@@ -51,7 +51,9 @@ public class BoundedIntegralType extends AbstractIntegralType implements Integra
 			b = BigInteger.valueOf(((Short)v).intValue());
 		else if (v instanceof Byte) 
 			b = BigInteger.valueOf(((Byte)v).intValue());
-		else
+		else if (v instanceof Boolean)
+			b = BigInteger.valueOf((((Boolean) v).booleanValue() ? 1 : 0)); //FIXME Remove when type assertions are implemented 		
+		else			
 			throw new TypeConversionException(this, v);
 
 		b = b.and(this.getMask());

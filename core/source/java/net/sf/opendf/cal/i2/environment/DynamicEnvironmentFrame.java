@@ -80,7 +80,7 @@ public class DynamicEnvironmentFrame extends AbstractEnvironment {
 			throw new InterpreterException("Variable defined multiple times: '" + var + "'.");
 		}
 		Object v = value;
-		if (type != null && !(value instanceof VariableContainer)) {
+		if (type != null && value != null && !(value instanceof VariableContainer)) {
 			v = type.convert(v);
 		}
 		vars.add(var);

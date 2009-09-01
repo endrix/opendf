@@ -16,7 +16,11 @@ abstract public class AbstractEnvironment implements Environment {
 	public Object getByPosition(long pos) {
 		return getByPosition(posFrame(pos), posVar(pos));
 	}
-	
+
+	public Object getTypeByPosition(long pos) { 
+		return getVariableType(posFrame(pos), posVar(pos));
+	}
+		
 	public Object getByPosition(int frame, int varPos) {
 		assert frame >= 0;
 		assert varPos >= 0;

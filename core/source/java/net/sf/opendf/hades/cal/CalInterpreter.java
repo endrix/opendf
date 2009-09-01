@@ -526,7 +526,7 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 	//  CalInterpreter
 	//
 	
-	public CalInterpreter(Actor a, Map outsideEnv) {
+	public CalInterpreter(Actor a, Map outsideEnv, ClassLoader loader) {
 		
 		Set<String> undefinedParameters = new HashSet<String>();
 		for (Decl parDecl : a.getParameters()) {
@@ -549,7 +549,25 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 		//
 		actor = (Actor)deepCopy(a);
 		
-		this.instantiationEnv = outsideEnv;
+		this.instantiationEnv = outsideEnv;		
+		
+		// FIXME -- Start of hack (Johan Eker)
+		// Here I create an en environment for the sole purpose 
+		// of instantiating an Executor, which is used for calculating 
+		// the types of the output ports. I somehow expect there is
+		// a more elegant way. 
+	
+		setupConstantEnvironment(loader);		
+		EnvironmentWrapper ew = new EnvironmentWrapper(this.instantiationEnv, constantEnv);
+		
+		Decl[] decls = actor.getStateVars();
+		DynamicEnvironmentFrame constantEnv = new DynamicEnvironmentFrame(ew);
+		constantEnv.bind("this", this, null); 
+		// disallow writing to cached environment
+		this.actorEnv = createActorStateEnvironment(constantEnv);
+		this.myInterpreter = new Executor(theConfiguration, this.actorEnv);
+		// --- End of hack
+		
 		
 		PortDecl[] pd = actor.getInputPorts();
 		inputPortMap = new HashMap();
@@ -562,7 +580,10 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 		pd = actor.getOutputPorts();
 		outputPortMap = new HashMap();
 		for (int i = 0; i < pd.length; i++) {
-			MosesOutputChannel moc = createOutputChannel(pd[i].getName());
+			TypeExpr te = pd[i].getType();
+			TypeSystem ts = theConfiguration.getTypeSystem();
+			Type type =  (ts != null) ? ts.evaluate(te, myInterpreter) : null;
+			MosesOutputChannel moc = createOutputChannel(pd[i].getName(), type);
 			outputPortMap.put(pd[i].getName(), moc);
 			outputs.addConnector(pd[i].getName(), moc);
 		}
@@ -584,8 +605,8 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 		return new MosesInputChannel(name);
 	}
 	
-	protected  MosesOutputChannel createOutputChannel(String name) {
-		return new MosesOutputChannel(name);
+	protected  MosesOutputChannel createOutputChannel(String name, Type type) {
+		return new MosesOutputChannel(name, type);
 	}
 	
 	
@@ -1517,6 +1538,10 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 			return 1;
 		}
 		
+		public Type getType() {
+		    return type;
+		}
+		
 		public Collection<Object>  getBlockingSources() {
 			return blockingSources;
 		}
@@ -1557,14 +1582,16 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 			listener = tl;
 		}
 				
-		public MosesOutputChannel(String name) {
+		public MosesOutputChannel(String name, Type type) {
 			this.name = name;
+			this.type = type;
 			this.blocked = false;
 			listener = null;
 		}
 		
 		protected TokenListener  listener;
 		protected String name;
+		protected Type type;
 		protected MyArrayList tokens = new MyArrayList();
 		
 		protected boolean  blocked;
