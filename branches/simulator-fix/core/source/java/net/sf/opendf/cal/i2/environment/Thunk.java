@@ -53,16 +53,16 @@ import net.sf.opendf.cal.i2.types.Type;
 public class Thunk implements Environment.VariableContainer, ObjectSink {
 	
 	public Object value() {
-        if (value == this) {
-            evaluator.evaluate(expr, env, this);
-            expr = null;            // release ref to expr
-        }
+		freeze();
         return value;
     }
 
     public void freeze() {
         if (value == this) {
             evaluator.evaluate(expr, env, this);
+			if (type != null) {
+				value = type.convert(value);
+			} 
             expr = null;            // release ref to expr
         }
     }
@@ -73,13 +73,17 @@ public class Thunk implements Environment.VariableContainer, ObjectSink {
     }
     
     public Thunk(final Expression expr, final Evaluator evaluator, final Environment env) {
+    	this(expr, evaluator, env, null);
+    }
+    
+    public Thunk(final Expression expr, final Evaluator evaluator, final Environment env, final Type type) {
         this.expr = expr;
         this.evaluator = evaluator;
         this.env = env;
         value = this;
-        type = null;
+        this.type = type;
     }
-
+    
     private Expression 		expr;
     private Environment 	env;
     private Evaluator 		evaluator;

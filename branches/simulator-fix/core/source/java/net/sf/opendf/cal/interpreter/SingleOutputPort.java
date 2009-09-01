@@ -39,10 +39,11 @@ ENDCOPYRIGHT
 
 package net.sf.opendf.cal.interpreter;
 
+import net.sf.opendf.cal.i2.types.Type;
 /**
  * This implementation of the OutputPort interface represents ports that are not multiports.
  *
- * @author Jörn W. Janneck <janneck@eecs.berkeley.edu>
+ * @author Jorn W. Janneck <janneck@eecs.berkeley.edu>
  * @see OutputPort
  */
 
@@ -68,15 +69,21 @@ public class SingleOutputPort implements OutputPort {
         return 1;
     }
 
+    public Type getType() {
+        return type;
+    }
 
-    public SingleOutputPort(String name, OutputChannel channel) {
+    
+    public SingleOutputPort(String name, OutputChannel channel, Type type) {
         this.name = name;
         this.channel = channel;
+        this.type = type;
     }
 
     private String name;
     private OutputChannel channel;
-
+    private Type type;
+    
     public String toString() {
         return "(SingleOutputPort '" + name + "', " + channel.toString() + ")";
     }

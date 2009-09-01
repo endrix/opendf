@@ -110,7 +110,10 @@ public class DefaultUntypedConfiguration implements Configuration {
 	}
 
 	public boolean booleanValue(Object v) {
-		return ((Boolean)v).booleanValue();
+		if (v instanceof Boolean)
+		  return ((Boolean)v).booleanValue();
+		else 
+		  return ((BigInteger) v).longValue() == 0 ? false : true;
 	}
 	
 	public int intValue(Object v) {
@@ -394,12 +397,12 @@ public class DefaultUntypedConfiguration implements Configuration {
         return c;
     }
     
-    private ObjectSink  tmpSink = new ObjectSink () {
+    protected ObjectSink  tmpSink = new ObjectSink () {
     	public void putObject(Object value) {
     		tmp = value;
     	}
     };
     
-    private Object tmp;
+    protected Object tmp;
 
 }
