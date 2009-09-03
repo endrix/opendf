@@ -51,7 +51,7 @@ import net.sf.opendf.cal.i2.UndefinedInterpreterException;
  * on its parent environment. If it does not have a parent environment, it creates a local binding for
  * every newly assigned variable.
  *
- *  @author Jörn W. Janneck <janneck@eecs.berkeley.edu>
+ *  @author Jorn W. Janneck <janneck@eecs.berkeley.edu>
  */
 
 public class AutoBindEnvironment extends DynamicEnvironmentFrame {

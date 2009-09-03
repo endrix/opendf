@@ -56,7 +56,7 @@ import net.sf.opendf.cal.interpreter.environment.Environment;
  * this interface are injected into the interpreters at instantiation
  * time.
  *
- * @author Jörn W. Janneck <janneck@eecs.berkeley.edu>
+ * @author Jorn W. Janneck <janneck@eecs.berkeley.edu>
  * @see ExprEvaluator
  * @see StmtEvaluator
  * @see ptolemy.opendf.ddi.util.DataflowActorInterpreter

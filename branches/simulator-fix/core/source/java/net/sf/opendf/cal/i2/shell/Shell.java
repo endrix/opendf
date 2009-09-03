@@ -126,7 +126,7 @@ import net.sf.opendf.cal.util.SourceReader;
  * shell state through assignments to global variables is registered and reported after the statements
  * have been executed.
  *
- *  @author Jörn W. Janneck <janneck@eecs.berkeley.edu>
+ *  @author Jorn W. Janneck <janneck@eecs.berkeley.edu>
  *
  * $Id: Shell.java 52 2007-01-22 15:56:51Z imiller $
  */

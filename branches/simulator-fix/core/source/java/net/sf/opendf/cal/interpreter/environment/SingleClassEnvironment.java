@@ -52,7 +52,7 @@ import net.sf.opendf.cal.interpreter.InterpreterException;
  *
  *  @see Context
  *
- *  @author Jörn W. Janneck <janneck@eecs.berkeley.edu>
+ *  @author Jorn W. Janneck <janneck@eecs.berkeley.edu>
  */
 
 public class SingleClassEnvironment extends AbstractEnvironment implements Environment {

@@ -51,7 +51,7 @@ import net.sf.opendf.cal.i2.ObjectSink;
  *
  *
  *
- *  @author Jörn W. Janneck <janneck@eecs.berkeley.edu>
+ *  @author Jorn W. Janneck <janneck@eecs.berkeley.edu>
  */
 
 public class PackageEnvironment extends DynamicEnvironmentFrame {

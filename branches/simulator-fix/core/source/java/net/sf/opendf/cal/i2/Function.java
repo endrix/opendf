@@ -43,7 +43,7 @@ package net.sf.opendf.cal.i2;
  * This interface describes a function, which is an object that can be applied to a number of arguments to yield
  * a value.
  *
- * @author Jörn W. Janneck <jorn.janneck@xilinx.com>
+ * @author Jorn W. Janneck <jorn.janneck@xilinx.com>
  */
 
 public interface Function {

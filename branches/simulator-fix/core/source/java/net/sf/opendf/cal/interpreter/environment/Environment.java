@@ -50,7 +50,7 @@ import java.util.Set;
  * In addition, the environment provides support for special computational treatment of variables, such as
  * lazy evaluation, where variable values will not be determined until their first use.
  *
- * @author Jörn W. Janneck <janneck@eecs.berkeley.edu>
+ * @author Jorn W. Janneck <janneck@eecs.berkeley.edu>
  */
 
 public interface Environment {
@@ -159,7 +159,7 @@ public interface Environment {
      * lookup, it must yield the same value on each invocation of the {@link #value value(...)} (for the same parameters),
      * during the period where such consistency is desired.
      *
-     * @author Jörn W. Janneck <janneck@eecs.berkeley.edu>
+     * @author Jorn W. Janneck <janneck@eecs.berkeley.edu>
      * @see Environment.StateVariableContainer
      */
     interface VariableContainer {
@@ -200,7 +200,7 @@ public interface Environment {
      * method changes that value. Of course, a key application of this interface is to allow external software to
      * manipulate the state, e.g. by rolling back to a previous state.
      *
-     * @author Jörn W. Janneck <janneck@eecs.berkeley.edu>
+     * @author Jorn W. Janneck <janneck@eecs.berkeley.edu>
      */
 
     interface StateVariableContainer extends VariableContainer {
