@@ -58,7 +58,7 @@ import net.sf.opendf.cal.interpreter.environment.Environment;
  *
  * @deprecated Replacing this class with new interpreter.
  *
- * @author Jörn W. Janneck <janneck@eecs.berkeley.edu>
+ * @author Jorn W. Janneck <janneck@eecs.berkeley.edu>
  * @see Statement
  * @see ExprEvaluator
  * @see Context

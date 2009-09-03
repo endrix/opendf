@@ -40,7 +40,7 @@ ENDCOPYRIGHT
 package net.sf.opendf.cal.ast;
 
 /**
- * @author Jörn W. Janneck <janneck@eecs.berkeley.edu>
+ * @author Jorn W. Janneck <janneck@eecs.berkeley.edu>
  */
 public interface ExpressionVisitor {
     void visitExprApplication(ExprApplication e);

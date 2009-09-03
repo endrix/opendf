@@ -47,7 +47,7 @@ import net.sf.opendf.cal.interpreter.environment.Environment;
 /**
  * A ProcProcedure is a procedure object resulting from the evaluation of a proc expression.
  *
- * @author Jörn W. Janneck <janneck@eecs.berkeley.edu>
+ * @author Jorn W. Janneck <janneck@eecs.berkeley.edu>
  */
 
 public class ProcProcedure extends StmtEvaluator

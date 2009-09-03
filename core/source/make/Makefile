@@ -1,7 +1,7 @@
 # This makefile is generally called by the one in the parent directory. 
 # These vars will be set by the parent makefile.
 
-JAVAC = javac -g
+JAVAC = javac
 JAR = jar
 
 # OS-dependent classpath separator
@@ -52,7 +52,7 @@ cproot = $(OPENDF_CLASSDIR)/net/sf/opendf
 
 .PHONY = create_dir
 
-$(OPENDF_CLASSDIR): create_dir util hades cli ptolemy xslt contrib
+$(OPENDF_CLASSDIR): create_dir util hades cli ptolemy xslt contrib 
 
 
 create_dir:
@@ -64,8 +64,7 @@ java_cup:
 ptolemy:
 	$(JAVAC) -classpath "$(OPENDF_CLASSPATH)" -d $(OPENDF_CLASSDIR) $(PTOLEMY_SOURCES)
 
-
-util: create_dir java_cup 
+util: create_dir java_cup
 	$(JAVAC) -classpath "$(OPENDF_CLASSPATH)" -d $(OPENDF_CLASSDIR) $(OPENDF_LIB_SOURCES) $(OPENDF_UTIL_SOURCES) $(OPENDF_MATH_SOURCES) $(OPENDF_CAL_SOURCES) $(OPENDF_NL_SOURCES) $(OPENDF_ACTORC_SOURCES)
 #	$(JAVAC) -classpath "$(OPENDF_CLASSPATH)" -d $(OPENDF_CLASSDIR) $(OPENDF_UTIL_SOURCES)
 

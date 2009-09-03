@@ -61,7 +61,7 @@ import net.sf.opendf.cal.interpreter.util.SequentialMap;
  * @see PackageEnvironment
  * @see SingleClassEnvironment
  *
- *  @author Jörn W. Janneck <janneck@eecs.berkeley.edu>
+ *  @author Jorn W. Janneck <janneck@eecs.berkeley.edu>
  */
 
 public class ImportEnvironment implements Environment {
