@@ -18,7 +18,6 @@ JFREECHART_CP = $(OPENDF_HOME)/../../jfreechart-1.0.6/jfreechart-1.0.6.jar$(CPS)
 OPENDF_CLASSDIR = $(OPENDF_HOME)/classes
 OPENDF_CLASSPATH = $(OPENDF_CLASSDIR)$(CPS)$(OPENDF_HOME)/lib/saxon8.jar$(CPS)$(OPENDF_HOME)/lib/saxon8-dom.jar$(CPS)$(CONTRIB_DIR)/lib/PtPlot.jar
 JAVA_CUP_SOURCES = $(shell find $(OPENDF_HOME)/lib/source/java_cup -name "*.java")
-JSON_SOURCES = $(shell find $(OPENDF_HOME)/lib/source/org/json -name "*.java")
 PTOLEMY_SOURCES = $(shell find $(OPENDF_HOME)/lib/source/ptolemy -name "*.java")
 OPENDF_LIB_SOURCES =  $(shell find $(OPENDF_HOME)/source/java/net/sf/opendf/lib -name "*.java")
 OPENDF_ACTORC_SOURCES = $(shell find $(OPENDF_HOME)/source/java/net/sf/opendf/actorc -name "*.java")
@@ -53,7 +52,7 @@ cproot = $(OPENDF_CLASSDIR)/net/sf/opendf
 
 .PHONY = create_dir
 
-$(OPENDF_CLASSDIR): create_dir util hades cli ptolemy xslt contrib json
+$(OPENDF_CLASSDIR): create_dir util hades cli ptolemy xslt contrib 
 
 
 create_dir:
@@ -65,10 +64,7 @@ java_cup:
 ptolemy:
 	$(JAVAC) -classpath "$(OPENDF_CLASSPATH)" -d $(OPENDF_CLASSDIR) $(PTOLEMY_SOURCES)
 
-json:
-	$(JAVAC) -classpath "$(OPENDF_CLASSPATH)" -d $(OPENDF_CLASSDIR) $(JSON_SOURCES)
-
-util: create_dir java_cup json
+util: create_dir java_cup
 	$(JAVAC) -classpath "$(OPENDF_CLASSPATH)" -d $(OPENDF_CLASSDIR) $(OPENDF_LIB_SOURCES) $(OPENDF_UTIL_SOURCES) $(OPENDF_MATH_SOURCES) $(OPENDF_CAL_SOURCES) $(OPENDF_NL_SOURCES) $(OPENDF_ACTORC_SOURCES)
 #	$(JAVAC) -classpath "$(OPENDF_CLASSPATH)" -d $(OPENDF_CLASSDIR) $(OPENDF_UTIL_SOURCES)
 

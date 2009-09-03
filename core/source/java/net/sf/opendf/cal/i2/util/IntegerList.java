@@ -45,7 +45,7 @@ import java.util.AbstractList;
 
 
 /**
-@author Jörn W. Janneck <janneck@eecs.berkeley.edu>
+@author Jorn W. Janneck <janneck@eecs.berkeley.edu>
 @version $Id: IntegerList.java 52 2007-01-22 15:56:51Z imiller $
 @since Ptolemy II 3.1
 */

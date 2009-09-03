@@ -41,7 +41,7 @@ package net.sf.opendf.cal.interpreter;
 
 /**
  *
- * @author Jörn W. Janneck <janneck@eecs.berkeley.edu>
+ * @author Jorn W. Janneck <janneck@eecs.berkeley.edu>
  */
 
 public class InterpreterException extends RuntimeException {

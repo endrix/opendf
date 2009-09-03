@@ -60,7 +60,7 @@ import net.sf.opendf.cal.i2.types.Type;
  * @see AccessLog
  * @see AccessRecord
  *
- *  @author Jörn W. Janneck <janneck@eecs.berkeley.edu>
+ *  @author Jorn W. Janneck <janneck@eecs.berkeley.edu>
  */
 
 public class AccessLoggingEnvironment implements Environment {

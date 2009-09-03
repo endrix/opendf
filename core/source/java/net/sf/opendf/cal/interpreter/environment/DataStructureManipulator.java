@@ -46,7 +46,7 @@ package net.sf.opendf.cal.interpreter.environment;
  *
  * @see net.sf.opendf.cal.interpreter.Context
  *
- * @author Jörn W. Janneck <jwj@acm.org>
+ * @author Jorn W. Janneck <jwj@acm.org>
  */
 
 public interface DataStructureManipulator {

@@ -42,7 +42,7 @@ package net.sf.opendf.cal.interpreter;
 /**
  * The output port interface represents output ports to the actor interpreter.
  *
- * @author Jörn W. Janneck <janneck@eecs.berkeley.edu>
+ * @author Jorn W. Janneck <janneck@eecs.berkeley.edu>
  * @see ptolemy.caltrop.ddi.util.DataflowActorInterpreter
  */
 
