@@ -40,7 +40,7 @@ ENDCOPYRIGHT
 package net.sf.opendf.cal.i2;
 
 /**
- *  @author Jörn W. Janneck <janneck@eecs.berkeley.edu>
+ *  @author Jorn W. Janneck <janneck@eecs.berkeley.edu>
  */
 
 public class UndefinedVariableException extends InterpreterException {

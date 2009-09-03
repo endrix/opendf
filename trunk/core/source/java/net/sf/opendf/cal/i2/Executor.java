@@ -62,7 +62,7 @@ import net.sf.opendf.cal.i2.generator.VariableGenerator;
  * in the environment. It extends the expression evaluator, which it uses to interpret expressions occurring
  * inside the statements.
  *
- * @author Jörn W. Janneck <janneck@eecs.berkeley.edu>
+ * @author Jorn W. Janneck <janneck@eecs.berkeley.edu>
  * @see Statement
  * @see Evaluator
  * @see Environment
