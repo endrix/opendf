@@ -1,7 +1,7 @@
 # This makefile is generally called by the one in the parent directory. 
 # These vars will be set by the parent makefile.
 
-JAVAC = javac
+JAVAC = javac -g
 JAR = jar
 
 # OS-dependent classpath separator

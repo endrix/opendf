@@ -39,6 +39,7 @@ ENDCOPYRIGHT
 
 package net.sf.opendf.cal.interpreter;
 
+import net.sf.opendf.cal.i2.types.Type;
 /**
  * The output port interface represents output ports to the actor interpreter.
  *
@@ -48,6 +49,7 @@ package net.sf.opendf.cal.interpreter;
 
 public interface OutputPort {
     String          getName();
+    Type 						getType();
     boolean         isMultiport();
     int             width();
     OutputChannel   getChannel(int n);
