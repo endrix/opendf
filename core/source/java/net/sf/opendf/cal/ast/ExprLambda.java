@@ -48,10 +48,12 @@ public class ExprLambda extends Expression {
         v.visitExprLambda(this);
     }
 
-    public ExprLambda(String[] params, Decl [] decls, Expression body) {
+    public ExprLambda(String[] params, TypeExpr[] parTypeExpr, Decl [] decls, Expression body, TypeExpr returnTypeExpr) {
         this.body = body;
         this.decls = decls;
         this.parameters = params;
+        this.returnTypeExpr = returnTypeExpr;
+        this.parTypeExpr = parTypeExpr;
     }
 
     public String[] getParameters() {
@@ -66,7 +68,17 @@ public class ExprLambda extends Expression {
         return body;
     }
 
+    public TypeExpr getReturnTypeExpr() {
+    	return returnTypeExpr;
+    }
+    
+    public TypeExpr[] getParTypeExpr() {
+    	return parTypeExpr;
+    }
+
     private String []       parameters;
     private Decl []         decls;
     private Expression      body;
+    private TypeExpr		returnTypeExpr;
+    private TypeExpr[]      parTypeExpr;
 }

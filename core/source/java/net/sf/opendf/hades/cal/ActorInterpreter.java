@@ -92,24 +92,25 @@ public class ActorInterpreter {
 		final DynamicEnvironmentFrame local = new DynamicEnvironmentFrame(actorEnv);
 		Executor myInterpreter = new Executor(theConfiguration, this.actorEnv);
 		TypeSystem ts = theConfiguration.getTypeSystem();
-		
+			
 		final InputPattern[] inputPatterns = action.getInputPatterns();
 		final PortDecl[] inputPorts = actor.getInputPorts();
 		for (int i = 0; i < inputPatterns.length; i++) {
 			final InputPattern inputPattern = inputPatterns[i];
 			final String[] vars = inputPattern.getVariables();
 			final Expression repExpr = inputPattern.getRepeatExpr();
-			TypeExpr te = inputPorts[i].getType(); 
-			Type type =  (ts != null) ? ts.evaluate(te, myInterpreter) : null;		
-			
+//			TypeExpr te = inputPorts[i].getType(); 
+//			Type type =  (ts != null) ? ts.evaluate(te, myInterpreter) : null;		
+//			This is wrong! mixing inputport with inputpatterns!!!!
+//			
 			if (repExpr == null) {
 				for (int j = 0; j < vars.length; j++) {
 					final InputChannel channel =
 						((InputPort) (inputPortMap.get(inputPattern
 								.getPortname()))).getChannel(0); // FIXME
 
-//					local.bind(vars[j],	new SingleTokenReaderThunk(channel, j, type), type);
-					local.bind(vars[j],	new SingleTokenReaderThunk(channel, j, null), null); 									
+//            		local.bind(vars[j],	new SingleTokenReaderThunk(channel, j, type), type); 									
+               		local.bind(vars[j],	new SingleTokenReaderThunk(channel, j, null), null); //FIXMETYPE
 				}
 			} else {
 				Thunk repExprThunk =
@@ -121,7 +122,7 @@ public class ActorInterpreter {
 						((InputPort) (inputPortMap.get(inputPattern
 								.getPortname()))).getChannel(0); // FIXME
 					local.bind(vars[j], new MultipleTokenReaderThunk(channel,
-							j, vars.length, repExprThunk, configuration, type), type); 
+							j, vars.length, repExprThunk, configuration, null), null); //FIXMETYPE
 				}
 			}
 		}
@@ -531,13 +532,13 @@ public class ActorInterpreter {
 		public SingleTokenReaderThunk(final InputChannel channel, final int index, Type type) {
 			this.channel = channel;
 			this.index = index;
-			this.type = type;
+			this.type = type;			
 			// this is definitely not a legal value for a token
-			val = this;
+			val = this;			
 		}
 		
 		private InputChannel channel;
-		private Type type; 
+		private Type type; 		
 		private int index;
 		private Object val;
 	}
