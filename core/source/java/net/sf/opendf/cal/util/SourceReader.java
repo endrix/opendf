@@ -91,7 +91,7 @@ public class SourceReader
                 "net/sf/opendf/cal/transforms/CanonicalizePortTags.xslt",
 
                 // Copies Input Port Type to Input Decl
-                "net/sf/opendf/cal/transforms/AddInputTypes.xslt",
+                //"net/sf/opendf/cal/transforms/AddInputTypes.xslt", !This is now done in SSAGenerator
 
                 // Convert the old keyword to appropriate local var declaration
                 "net/sf/opendf/cal/transforms/ReplaceOld.xslt",
