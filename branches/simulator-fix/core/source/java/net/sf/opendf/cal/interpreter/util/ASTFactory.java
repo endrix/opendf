@@ -773,17 +773,26 @@ public class ASTFactory {
 
         List lParams = net.sf.opendf.util.xml.Util.listElements(e, predDeclPar);
         String [] pars = new String [lParams.size()];
+        TypeExpr [] parsTypeExpr = new TypeExpr [lParams.size()];
         for (int i = 0; i < pars.length; i ++) {
             pars[i] = ((Element)lParams.get(i)).getAttribute(attrName);
+            
+        	Element e1 = ((Element)lParams.get(i));
+        	Element type = net.sf.opendf.util.xml.Util.uniqueElement(e1, predType);
+        	parsTypeExpr[i] = (type != null) ? createTypeExpr(type) : null; 
         }
 
         List lDecls = net.sf.opendf.util.xml.Util.listElements(e, predDeclVar);
         Decl [] decls = new Decl [lDecls.size()];
         for (int i = 0; i < decls.length; i ++) {
             decls[i] = createDecl((Element)lDecls.get(i));
-        }
-        Expression body = createExpression(net.sf.opendf.util.xml.Util.uniqueElement(e, predExpr));
-        return new ExprLambda(pars, decls, body);
+        }        
+        
+        Element type = net.sf.opendf.util.xml.Util.uniqueElement(e, predType);
+        TypeExpr returnTypeExpr = (type != null) ? createTypeExpr(type) : null; 
+               
+        Expression body = createExpression(net.sf.opendf.util.xml.Util.uniqueElement(e, predExpr)); 
+        return new ExprLambda(pars, parsTypeExpr, decls, body, returnTypeExpr);
     }
 
     private static ExprLet createExprLet(Element e) {
