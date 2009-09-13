@@ -52,6 +52,12 @@ ifdef SDL
 override LDLIBS  += `sdl-config --libs`
 endif
 
+ifdef MERGE
+override MODEL_DEPEND = $(MODEL)_new.xdf 
+else
+override MODEL_DEPEND = $(MODEL).xdf $(XLIM_FILES)
+endif
+
 #
 # We get the actor instances from the CALML-files 
 # (we have to do elaboration first, to get *.calml).
@@ -71,17 +77,25 @@ $(EXE): $(OBJECTS)
 %.o : %.c
 	$(CC) -c -g -Wall $(CPPFLAGS) $(CFLAGS) -o $@ $<
 
-# Preserve geberated C files (make otherwise considers them temporary files)
+# Preserve generated C files (make otherwise considers them temporary files)
 .SECONDARY: $(ACTOR_C_FILES)
 
-%.c : %.xlim
+%.c : %.xlim $(MODEL).c
 	$(XLIM2C) $< $@
 
 #
 # Generate network configuration from .xdf
 #
-$(MODEL).c: $(MODEL).xdf
+$(MODEL).c: $(MODEL_DEPEND)
 	$(SAXON8) -o $@ $< $(GENERATECONFIG_XSL)
+
+#
+# If enabled, run model compiler
+#
+$(MODEL)_new.xdf: $(MODEL).xdf $(XLIM_FILES)
+	$(MODELCOMPILER) $(MODEL).xdf
+	@cp $(MODEL)_new.xdf $(MODEL).xdf
+	@touch $(MODEL).timestamp
 
 #
 # Generate .xlim from .cal and .par
@@ -90,6 +104,7 @@ $(MODEL).c: $(MODEL).xdf
 $(XLIM_FILES): %.xlim :
 	$(SSAGENERATOR) -mp "$(srcdir)" `cat $(basename $(@F)).par` $(<F)
 	mv $(basename $(<F)).xlim $@
+
 
 #
 # Generate parameter (.par) files from $(MODEL).xdf
