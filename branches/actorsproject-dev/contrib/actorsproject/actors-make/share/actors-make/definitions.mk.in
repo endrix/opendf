@@ -23,6 +23,7 @@ export SAXON8=$(ACTORS_BIN)/saxon8
 export SSAGENERATOR=$(ACTORS_BIN)/ssagenerator
 export XLIM2C=$(ACTORS_BIN)/xlim2c
 export XDF2PAR=$(ACTORS_BIN)/xdf2par
+export MODELCOMPILER=$(ACTORS_BIN)/modelcompiler
 
 export XDF2DEPEND_XSL=$(ACTORS_XSL)/generateDepend.xsl
 export GENERATECONFIG_XSL=$(ACTORS_XSL)/generateConfig.xsl

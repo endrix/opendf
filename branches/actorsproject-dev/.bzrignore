@@ -1,0 +1,9 @@
+contrib/actorsproject/actors-make/classes
+contrib/actorsproject/actors-make/opendf.jar
+contrib/actorsproject/actors-rts/libactors-rts.so.1.0
+contrib/actorsproject/java/actorsproject.jar
+contrib/actorsproject/java/classes
+contrib/actorsproject/java/modelcompiler/xdfAST
+contrib/actorsproject/java/modelcompiler/xlimAST
+contrib/actorsproject/java/modelcompiler/*.class
+contrib/actorsproject/java/modelcompiler/xlim/*.class
