@@ -38,15 +38,33 @@ ENDCOPYRIGHT
 package net.sf.opendf.eclipse.plugin.config;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.StringTokenizer;
 
-import net.sf.opendf.config.*;
+import net.sf.opendf.config.AbstractConfig;
+import net.sf.opendf.config.ConfigBoolean;
+import net.sf.opendf.config.ConfigFile;
+import net.sf.opendf.config.ConfigInt;
+import net.sf.opendf.config.ConfigList;
+import net.sf.opendf.config.ConfigMap;
+import net.sf.opendf.config.ConfigString;
+import net.sf.opendf.config.ConfigStringPickOne;
 
 import org.eclipse.jface.layout.TableColumnLayout;
 import org.eclipse.jface.viewers.ColumnWeightData;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.TableEditor;
-import org.eclipse.swt.events.*;
+import org.eclipse.swt.events.FocusEvent;
+import org.eclipse.swt.events.FocusListener;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -56,15 +74,10 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Group;
-import org.eclipse.swt.widgets.Menu;
-import org.eclipse.swt.widgets.MenuItem;
-import org.eclipse.swt.widgets.Spinner;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
-import org.eclipse.swt.widgets.ToolBar;
-import org.eclipse.swt.widgets.ToolItem;
 
 /**
  * A utility class for rendering AbstractConfig objects into appropriate UI widgets on a 
@@ -73,6 +86,7 @@ import org.eclipse.swt.widgets.ToolItem;
  * @author imiller
  *
  */
+@SuppressWarnings("unchecked")
 public class ControlRenderingFactory
 {
 

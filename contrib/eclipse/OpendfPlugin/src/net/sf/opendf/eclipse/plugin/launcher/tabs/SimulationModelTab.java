@@ -37,19 +37,30 @@ ENDCOPYRIGHT
  */
 package net.sf.opendf.eclipse.plugin.launcher.tabs;
 
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Composite;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import net.sf.opendf.config.ConfigFile;
+import net.sf.opendf.config.ConfigGroup;
+import net.sf.opendf.config.ConfigList;
+import net.sf.opendf.config.ConfigMap;
+import net.sf.opendf.config.ConfigString;
+import net.sf.opendf.config.SimulationConfigGroup;
+import net.sf.opendf.eclipse.plugin.config.ConfigModificationListener;
+import net.sf.opendf.eclipse.plugin.config.ControlRenderingFactory;
+import net.sf.opendf.eclipse.plugin.config.OpendfConfigTab;
+import net.sf.opendf.eclipse.plugin.config.TopModelParamParse;
+import net.sf.opendf.eclipse.plugin.config.UpdatableControlIF;
+import net.sf.opendf.eclipse.plugin.config.TopModelParamParse.ModelParameter;
+import net.sf.opendf.util.logging.Logging;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-
-import net.sf.opendf.eclipse.plugin.config.*;
-import net.sf.opendf.eclipse.plugin.config.TopModelParamParse.ModelParameter;
-import net.sf.opendf.util.logging.Logging;
-import java.util.*;
-
-import net.sf.opendf.config.*;
+import org.eclipse.swt.widgets.Composite;
 
 public class SimulationModelTab extends OpendfConfigTab
 {
@@ -63,6 +74,7 @@ public class SimulationModelTab extends OpendfConfigTab
         return "Model";
     }
 
+    @SuppressWarnings("unchecked")
     public void createControl( Composite parent )
     {        
         // Create a scrolling composite in which to put all the controls.  You can organize it however you would like.
@@ -84,7 +96,7 @@ public class SimulationModelTab extends OpendfConfigTab
 
         // Add the relevant controls for selecting parameters
         final UpdatableControlIF topFile = ControlRenderingFactory.fileSelectButton(buttons, "Set top model from file selection", false, (ConfigFile)getConfigs().get(ConfigGroup.TOP_MODEL_FILE));
-        final Button defaults = this.getDefaultButton(buttons);
+        /*final Button defaults =*/ this.getDefaultButton(buttons);
 
         final Composite group2 = new Composite(tab, SWT.SHADOW_IN);
         group2.setLayoutData( new GridData(SWT.FILL, SWT.BEGINNING, true,true) );
@@ -142,13 +154,13 @@ public class SimulationModelTab extends OpendfConfigTab
 
                 // Update the run directory whenever the top file is updated
                 ConfigFile runDirConfig = (ConfigFile)getConfigs().get(ConfigGroup.RUN_DIR);
-                if (forceUpdate || !runDirConfig.isUserSpecified())
+                if (forceUpdate/* || !runDirConfig.isUserSpecified()*/)
                     runDirConfig.setValue(topFileConfig.getValueFile().getParent(), true);
                 runDir.updateValue();
 
                 // Update the top level model name
                 ConfigString topNameConfig = (ConfigString)getConfigs().get(ConfigGroup.TOP_MODEL_NAME);
-                if (forceUpdate || !topNameConfig.isUserSpecified())
+                if (forceUpdate/* || !topNameConfig.isUserSpecified()*/)
                 {
                     String name = topFileConfig.getValueFile().getName();
                     name = name.indexOf('.') > 0 ? name.substring(0, name.lastIndexOf('.')):name;
@@ -167,7 +179,7 @@ public class SimulationModelTab extends OpendfConfigTab
 
                 // Update the model parameters
                 ConfigMap paramsConfig = (ConfigMap)getConfigs().get(ConfigGroup.TOP_MODEL_PARAMS);
-                if (forceUpdate || !paramsConfig.isUserSpecified())
+                if (forceUpdate/* || !paramsConfig.isUserSpecified()*/)
                 {
                     String[] modelPathArr = (String[])modelPathConfig.getValue().toArray(new String[0]);
                     try {

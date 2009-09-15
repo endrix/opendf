@@ -52,7 +52,7 @@ public class OpendfColorManager
 
 	public void dispose()
 	{
-		Iterator e = fColorTable.values().iterator();
+		Iterator<?> e = fColorTable.values().iterator();
 		while (e.hasNext())
 			 ((Color) e.next()).dispose();
 	}

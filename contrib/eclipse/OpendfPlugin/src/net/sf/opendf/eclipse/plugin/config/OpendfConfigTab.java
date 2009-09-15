@@ -37,6 +37,11 @@ ENDCOPYRIGHT
 */
 package net.sf.opendf.eclipse.plugin.config;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
 import net.sf.opendf.config.AbstractConfig;
 import net.sf.opendf.config.ConfigGroup;
 import net.sf.opendf.config.AbstractConfig.ConfigError;
@@ -50,9 +55,6 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
-
-import java.util.*;
 
 public abstract class OpendfConfigTab extends AbstractLaunchConfigurationTab
 {
@@ -164,6 +166,7 @@ public abstract class OpendfConfigTab extends AbstractLaunchConfigurationTab
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public boolean isValid (ILaunchConfiguration config)
     {
         // Test the specified configuration for errors

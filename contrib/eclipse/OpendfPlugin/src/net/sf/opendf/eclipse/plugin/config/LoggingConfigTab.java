@@ -38,14 +38,13 @@ ENDCOPYRIGHT
 package net.sf.opendf.eclipse.plugin.config;
 
 
-import net.sf.opendf.config.*;
-
+import net.sf.opendf.config.AbstractConfig;
+import net.sf.opendf.config.ConfigGroup;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
 
@@ -93,7 +92,7 @@ public class LoggingConfigTab extends OpendfConfigTab
         setControl( tabScroller );
         tabScroller.setContent(tab);
 
-        final Button defaults = this.getDefaultButton(buttons);
+        /*final Button defaults =*/ this.getDefaultButton(buttons);
         
         final Group leftColLog = new Group(buttons, SWT.SHADOW_IN);
         leftColLog.setText("Console Logging");
