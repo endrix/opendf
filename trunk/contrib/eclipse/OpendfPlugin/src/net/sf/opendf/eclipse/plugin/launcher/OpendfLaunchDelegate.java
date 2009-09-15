@@ -45,10 +45,10 @@ import java.util.List;
 import net.sf.opendf.cli.PhasedSimulator;
 import net.sf.opendf.config.ConfigGroup;
 import net.sf.opendf.config.SimulationConfigGroup;
+import net.sf.opendf.eclipse.debug.model.OpendfDebugTarget;
 import net.sf.opendf.eclipse.plugin.OpendfConstants;
 import net.sf.opendf.eclipse.plugin.config.ConfigUpdateWrapper;
 import net.sf.opendf.eclipse.plugin.config.OpendfConfigLaunchDelegate;
-import net.sf.opendf.eclipse.plugin.debug.model.OpendfDebugTarget;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -60,7 +60,6 @@ import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.debug.core.model.IDebugTarget;
 import org.eclipse.debug.core.model.IProcess;
-import org.w3c.dom.Node;
 
 /**
  * The Launch delegate for opendf implementing simulation and debugging functionality
@@ -164,33 +163,6 @@ public class OpendfLaunchDelegate extends OpendfConfigLaunchDelegate {
 
 		IDebugTarget target = new OpendfDebugTarget(launch, p, commandPort, eventPort);
 		launch.addDebugTarget(target);
-	}
-
-
-	private void printDom(Node dom, int indent) {
-		for (int i = 0; i < indent; i++) {
-			System.out.print(" ");
-		}
-		System.out.println("<" + dom.getNodeName() + ">");
-		
-		if (dom.hasAttributes()) {
-			for (int i = 0; i < dom.getAttributes().getLength(); i++) {
-				for (int j = 0; j < indent + 2; j++) {
-					System.out.print(" ");
-				}
-				System.out.println(dom.getAttributes().item(i));
-			}
-		}
-		
-		for (int i = 0; i < dom.getChildNodes().getLength(); i++) {
-			printDom(dom.getChildNodes().item(i), indent + 4);
-		}
-		
-		for (int i = 0; i < indent; i++) {
-			System.out.print(" ");
-		}
-		System.out.println("</" + dom.getNodeName() + ">");
-
 	}
 
 	/**

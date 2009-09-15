@@ -39,13 +39,6 @@ package net.sf.opendf.eclipse.plugin.config;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.debug.core.ILaunchConfiguration;
-import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 
 import net.sf.opendf.config.ConfigBoolean;
 import net.sf.opendf.config.ConfigInt;
@@ -56,6 +49,10 @@ import net.sf.opendf.config.ConfigString;
 import net.sf.opendf.config.ConfigUpdateIF;
 import net.sf.opendf.util.logging.Logging;
 
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.debug.core.ILaunchConfiguration;
+import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
+
 /**
  *  A utility class to ensure one-way dependencies between projects.  This wrapper turns
  *  an ILaunchConfiguration into a class for updating the config.
@@ -63,6 +60,7 @@ import net.sf.opendf.util.logging.Logging;
  * @author imiller
  *
  */
+@SuppressWarnings("unchecked")
 public class ConfigUpdateWrapper implements ConfigUpdateIF
 {
     private ILaunchConfigurationWorkingCopy launchConfigWorkingCopy=null;

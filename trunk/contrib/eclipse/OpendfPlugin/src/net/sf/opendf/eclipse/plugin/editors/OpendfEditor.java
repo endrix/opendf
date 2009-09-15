@@ -112,6 +112,7 @@ public abstract class OpendfEditor extends TextEditor implements IAdaptable
 		document.addDocumentListener( documentListener );
 	}
 
+	@SuppressWarnings("unchecked")
 	public Object getAdapter( Class required )
 	{
 		if( IContentOutlinePage.class.equals( required ) )

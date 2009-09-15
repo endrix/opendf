@@ -1,21 +1,21 @@
 Bundle-Name: Open Dataflow Editor Plugin
-Bundle-SymbolicName: net.sf.opendf.eclipse.plugin;singleton:=true
+Bundle-SymbolicName: net.sf.opendf.eclipse.plugin;singleton=true
 Bundle-Version: 1.2.15
 Bundle-Activator: net.sf.opendf.eclipse.plugin.OpendfPlugin
 Bundle-Vendor: The Open Dataflow Project
 Bundle-Localization: 
 Require-Bundle: org.eclipse.core.runtime,
- org.eclipse.debug.core,
- org.eclipse.debug.ui,
- org.eclipse.jface.text,
  org.eclipse.ui,
  org.eclipse.ui.console,
  org.eclipse.ui.editors,
  org.eclipse.ui.ide,
  org.eclipse.ui.views,
- org.eclipse.ui.workbench.texteditor,
- net.sf.opendf.eclipse.core
-Eclipse-LazyStart: true
+ net.sf.opendf.eclipse.core,
+ net.sf.opendf.eclipse.debug,
+ org.eclipse.debug.core,
+ org.eclipse.debug.ui,
+ org.eclipse.jface.text
+Bundle-ActivationPolicy: lazy
 Provide-Package: net.sf.opendf.eclipse.plugin,
  net.sf.opendf.eclipse.plugin.config,
  net.sf.opendf.eclipse.plugin.editors,
@@ -25,3 +25,4 @@ Provide-Package: net.sf.opendf.eclipse.plugin,
  net.sf.opendf.eclipse.plugin.editors.scanners,
  net.sf.opendf.eclipse.plugin.launcher,
  net.sf.opendf.eclipse.plugin.launcher.tabs
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
