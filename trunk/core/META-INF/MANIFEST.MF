@@ -6,7 +6,7 @@ Bundle-Version: 1.2.15
 Bundle-Activator: net.sf.opendf.eclipse.coreplugin.Activator
 Bundle-Vendor: The Open Dataflow Project
 Require-Bundle: org.eclipse.core.runtime
-Eclipse-LazyStart: true
+Bundle-ActivationPolicy: lazy
 Export-Package: java_cup,
  java_cup.runtime,
  net.sf.opendf.actorc.parser,
@@ -76,3 +76,4 @@ Bundle-ClassPath: .,
  lib/saxon8.jar,
  lib/saxon8-dom.jar,
  lib/PtPlot.jar
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6

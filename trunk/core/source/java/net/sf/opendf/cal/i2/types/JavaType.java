@@ -1,7 +1,5 @@
 package net.sf.opendf.cal.i2.types;
 
-import com.sun.corba.se.spi.legacy.connection.GetEndPointInfoAgainException;
-
 import net.sf.opendf.cal.ast.TypeExpr;
 import net.sf.opendf.cal.i2.Evaluator;
 import net.sf.opendf.cal.i2.java.ClassObject;
