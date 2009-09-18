@@ -147,9 +147,9 @@ public class OpendfDebugTarget extends OpendfDebugElement implements
 			eventReader = new BufferedReader(new InputStreamReader(eventSocket
 					.getInputStream()));
 		} catch (UnknownHostException e) {
-			requestFailed("Unable to connect to Opendf Execution Engine", e);
+			requestFailed("Unable to connect to Execution Engine", e);
 		} catch (IOException e) {
-			requestFailed("Unable to connect to Opendf Execution Engine", e);
+			requestFailed("Unable to connect to Execution Engine", e);
 		}
 		threads = new OpendfThread[] {};
 
@@ -327,7 +327,8 @@ public class OpendfDebugTarget extends OpendfDebugElement implements
 	 * @see org.eclipse.debug.core.model.ITerminate#canTerminate()
 	 */
 	public boolean canTerminate() {
-		return getProcess().canTerminate();
+		// no process, so no "getProcess().canTerminate();"
+		return true;
 	}
 
 	/**
@@ -336,7 +337,8 @@ public class OpendfDebugTarget extends OpendfDebugElement implements
 	 * @see org.eclipse.debug.core.model.ITerminate#isTerminated()
 	 */
 	public boolean isTerminated() {
-		return isTerminated || getProcess().isTerminated();
+		// no process, so no " || getProcess().isTerminated()"
+		return isTerminated;
 	}
 
 	/**
@@ -511,6 +513,7 @@ public class OpendfDebugTarget extends OpendfDebugElement implements
 		fireCreationEvent();
 		installDeferredBreakpoints();
 		try {
+			getThreads();
 			resume();
 		} catch (DebugException e) {
 		}
