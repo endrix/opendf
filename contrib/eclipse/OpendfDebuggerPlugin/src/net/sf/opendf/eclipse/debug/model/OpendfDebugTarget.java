@@ -328,7 +328,7 @@ public class OpendfDebugTarget extends OpendfDebugElement implements
 	 */
 	public boolean canTerminate() {
 		// no process, so no "getProcess().canTerminate();"
-		return true;
+		return !isTerminated;
 	}
 
 	/**
