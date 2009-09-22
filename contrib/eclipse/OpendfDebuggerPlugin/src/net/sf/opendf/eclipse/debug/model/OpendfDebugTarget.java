@@ -514,7 +514,7 @@ public class OpendfDebugTarget extends OpendfDebugElement implements
 		installDeferredBreakpoints();
 		try {
 			getThreads();
-			resume();
+			//resume();
 		} catch (DebugException e) {
 		}
 	}

@@ -34,7 +34,7 @@ BEGINCOPYRIGHT X
 	SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	
 ENDCOPYRIGHT
-*/
+ */
 package net.sf.opendf.eclipse.debug.sourceLookup;
 
 import org.eclipse.debug.core.sourcelookup.AbstractSourceLookupDirector;
@@ -43,11 +43,11 @@ import org.eclipse.debug.core.sourcelookup.ISourceLookupParticipant;
 /**
  * @author Rob Esser
  * @version 3rd April 2009
- *
+ * 
  */
 public class CALSourceLookupDirector extends AbstractSourceLookupDirector {
 
 	public void initializeParticipants() {
-		addParticipants(new ISourceLookupParticipant[]{new CALSourceLookupParticipant()});
+		addParticipants(new ISourceLookupParticipant[] { new CALSourceLookupParticipant() });
 	}
 }

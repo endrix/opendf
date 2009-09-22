@@ -14,7 +14,7 @@
          point="org.eclipse.debug.ui.debugModelPresentations">
       <debugModelPresentation
             class="net.sf.opendf.eclipse.debug.presentation.OpendfModelPresentation"
-            id="opendf.debugModel">
+            id="net.sf.opendf.eclipse.debug.model">
       </debugModelPresentation>
    </extension>
    <extension

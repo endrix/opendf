@@ -51,17 +51,12 @@ public class CALSourceLookupParticipant extends AbstractSourceLookupParticipant 
 
 	public String getSourceName(Object object) throws CoreException {
 		if (object instanceof ActorStackFrame) {
-			// TODO: what here?
-			//ActorStackFrame f = (ActorStackFrame) object;
-			System.out.println("CALSourceLookupParticipant.getSourceName");
-//			if (f == null || f.isInternalAction()) {
-//				IDebugTarget t = f.getThread().getDebugTarget();
-//				if (t != null && t instanceof OpendfDebugTarget) {
-//					return ((OpendfDebugTarget) t).getFileName();
-//			  }
-//			}
-//			return f.getSourceName();
+			ActorStackFrame f = (ActorStackFrame) object;
+			if (f != null) {
+				return f.getSourceFileName();
+			}
 		}
+
 		return null;
 	}
 }
