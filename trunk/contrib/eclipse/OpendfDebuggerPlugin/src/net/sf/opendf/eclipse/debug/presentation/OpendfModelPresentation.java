@@ -37,7 +37,6 @@ ENDCOPYRIGHT
  */
 package net.sf.opendf.eclipse.debug.presentation;
 
-import net.sf.opendf.eclipse.debug.OpendfDebugConstants;
 import net.sf.opendf.eclipse.debug.breakpoints.ActorLineBreakpoint;
 import net.sf.opendf.eclipse.debug.breakpoints.ActorWatchpoint;
 import net.sf.opendf.eclipse.debug.model.ActorStackFrame;
@@ -45,6 +44,8 @@ import net.sf.opendf.eclipse.debug.model.ActorThread;
 import net.sf.opendf.eclipse.debug.model.OpendfDebugTarget;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.model.IBreakpoint;
@@ -53,7 +54,10 @@ import org.eclipse.debug.core.model.IValue;
 import org.eclipse.debug.ui.IDebugModelPresentation;
 import org.eclipse.debug.ui.IValueDetailListener;
 import org.eclipse.jface.viewers.LabelProvider;
+import org.eclipse.ui.IEditorDescriptor;
 import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.part.FileEditorInput;
 
 /**
@@ -67,49 +71,72 @@ public class OpendfModelPresentation extends LabelProvider implements
 
 	/**
 	 * 
-	 * @see org.eclipse.debug.ui.IDebugModelPresentation#setAttribute(java.lang.String,
-	 *      java.lang.Object)
+	 * @see org.eclipse.debug.ui.IDebugModelPresentation#computeDetail(org.eclipse.debug.core.model.IValue,
+	 *      org.eclipse.debug.ui.IValueDetailListener)
 	 */
-	public void setAttribute(String attribute, Object value) {
+	public void computeDetail(IValue value, IValueDetailListener listener) {
+		String detail = "";
+		try {
+			detail = value.getValueString();
+		} catch (DebugException e) {
+		}
+		listener.detailComputed(value, detail);
+	}
+
+	@Override
+	public String getEditorId(IEditorInput input, Object element) {
+		// returns the editor id from the editor descriptor that could be
+		// associated with the given element if it can be translated to an IFile
+
+		IFile file = null;
+		if (element instanceof IFile) {
+			file = (IFile) element;
+		} else if (element instanceof ILineBreakpoint) {
+			IMarker marker = ((ILineBreakpoint) element).getMarker();
+			if (marker.getResource().getType() == IResource.FILE) {
+				file = (IFile) marker.getResource();
+			}
+		}
+
+		try {
+			IEditorDescriptor editor = IDE.getEditorDescriptor(file);
+			return editor.getId();
+		} catch (PartInitException e) {
+			e.printStackTrace();
+		}
+
+		return null;
 	}
 
 	/**
 	 * 
-	 * @see org.eclipse.jface.viewers.ILabelProvider#getText(java.lang.Object)
+	 * @see org.eclipse.debug.ui.ISourcePresentation#getEditorInput(java.lang.Object)
 	 */
-	public String getText(Object element) {
-		if (element instanceof OpendfDebugTarget) {
-			return getTargetText((OpendfDebugTarget) element);
-		} else if (element instanceof ActorThread) {
-			return getThreadText((ActorThread) element);
-		} else if (element instanceof ActorStackFrame) {
-			return getStackFrameText((ActorStackFrame) element);
-		} else if (element instanceof ActorWatchpoint) {
-			return getWatchpointText((ActorWatchpoint) element);
+	public IEditorInput getEditorInput(Object element) {
+		if (element instanceof IFile) {
+			return new FileEditorInput((IFile) element);
+		}
+		if (element instanceof ILineBreakpoint) {
+			return new FileEditorInput((IFile) ((ILineBreakpoint) element)
+					.getMarker().getResource());
 		}
 		return null;
 	}
 
 	/**
-	 * Returns a label for the given watchpoint.
+	 * Returns a label for the given stack frame
 	 * 
-	 * @param watchpoint
-	 * @return a label for the given watchpoint
+	 * @param frame
+	 *            a stack frame
+	 * @return a label for the given stack frame
 	 */
-	private String getWatchpointText(ActorWatchpoint watchpoint) {
+	private String getStackFrameText(ActorStackFrame frame) {
 		try {
-			String label = watchpoint.getVariableName() + " ("
-					+ watchpoint.getActorName() + ")";
-			if (watchpoint.isAccess()) {
-				label += " [read]";
-			}
-			if (watchpoint.isModification()) {
-				label += " [write]";
-			}
-			return label;
-		} catch (CoreException e) {
-			return null;
+			return frame.getName() + " (line: " + frame.getLineNumber() + ")";
+		} catch (DebugException e) {
 		}
+		return null;
+
 	}
 
 	/**
@@ -128,19 +155,20 @@ public class OpendfModelPresentation extends LabelProvider implements
 	}
 
 	/**
-	 * Returns a label for the given stack frame
 	 * 
-	 * @param frame
-	 *            a stack frame
-	 * @return a label for the given stack frame
+	 * @see org.eclipse.jface.viewers.ILabelProvider#getText(java.lang.Object)
 	 */
-	private String getStackFrameText(ActorStackFrame frame) {
-		try {
-			return frame.getName() + " (line: " + frame.getLineNumber() + ")";
-		} catch (DebugException e) {
+	public String getText(Object element) {
+		if (element instanceof OpendfDebugTarget) {
+			return getTargetText((OpendfDebugTarget) element);
+		} else if (element instanceof ActorThread) {
+			return getThreadText((ActorThread) element);
+		} else if (element instanceof ActorStackFrame) {
+			return getStackFrameText((ActorStackFrame) element);
+		} else if (element instanceof ActorWatchpoint) {
+			return getWatchpointText((ActorWatchpoint) element);
 		}
 		return null;
-
 	}
 
 	/**
@@ -185,43 +213,32 @@ public class OpendfModelPresentation extends LabelProvider implements
 	}
 
 	/**
+	 * Returns a label for the given watchpoint.
 	 * 
-	 * @see org.eclipse.debug.ui.IDebugModelPresentation#computeDetail(org.eclipse.debug.core.model.IValue,
-	 *      org.eclipse.debug.ui.IValueDetailListener)
+	 * @param watchpoint
+	 * @return a label for the given watchpoint
 	 */
-	public void computeDetail(IValue value, IValueDetailListener listener) {
-		String detail = "";
+	private String getWatchpointText(ActorWatchpoint watchpoint) {
 		try {
-			detail = value.getValueString();
-		} catch (DebugException e) {
+			String label = watchpoint.getVariableName() + " ("
+					+ watchpoint.getActorName() + ")";
+			if (watchpoint.isAccess()) {
+				label += " [read]";
+			}
+			if (watchpoint.isModification()) {
+				label += " [write]";
+			}
+			return label;
+		} catch (CoreException e) {
+			return null;
 		}
-		listener.detailComputed(value, detail);
 	}
 
 	/**
 	 * 
-	 * @see org.eclipse.debug.ui.ISourcePresentation#getEditorInput(java.lang.Object)
-	 */
-	public IEditorInput getEditorInput(Object element) {
-		if (element instanceof IFile) {
-			return new FileEditorInput((IFile) element);
-		}
-		if (element instanceof ILineBreakpoint) {
-			return new FileEditorInput((IFile) ((ILineBreakpoint) element)
-					.getMarker().getResource());
-		}
-		return null;
-	}
-
-	/**
-	 * 
-	 * @see org.eclipse.debug.ui.ISourcePresentation#getEditorId(org.eclipse.ui.IEditorInput,
+	 * @see org.eclipse.debug.ui.IDebugModelPresentation#setAttribute(java.lang.String,
 	 *      java.lang.Object)
 	 */
-	public String getEditorId(IEditorInput input, Object element) {
-		if (element instanceof IFile || element instanceof ILineBreakpoint) {
-			return OpendfDebugConstants.ID_CAL_EDITOR;
-		}
-		return null;
+	public void setAttribute(String attribute, Object value) {
 	}
 }
