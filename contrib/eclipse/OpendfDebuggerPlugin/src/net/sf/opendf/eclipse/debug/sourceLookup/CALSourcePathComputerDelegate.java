@@ -54,6 +54,7 @@ public class CALSourcePathComputerDelegate implements
 	public ISourceContainer[] computeSourceContainers(
 			ILaunchConfiguration configuration, IProgressMonitor monitor)
 			throws CoreException {
+		// no specific source container
 		ISourceContainer[] ret = new ISourceContainer[0];
 		return ret;
 	}

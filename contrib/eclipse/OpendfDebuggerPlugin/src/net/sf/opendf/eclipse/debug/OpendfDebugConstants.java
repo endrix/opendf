@@ -50,9 +50,6 @@ public interface OpendfDebugConstants {
 
 	public static final String ID_PLUGIN = "net.sf.opendf.eclipse.debug";
 
-	public static final String ID_CAL_EDITOR = "opendf.editors.CAL";
-
-	// DEBUG
 	public static final String ID_OPENDF_DEBUG_MODEL = ID_PLUGIN + ".model";
 
 	public static final String ID_ACTOR_BREAKPOINT_MARKER = ID_PLUGIN
