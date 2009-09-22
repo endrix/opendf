@@ -51,16 +51,10 @@ import org.eclipse.debug.core.sourcelookup.ISourcePathComputerDelegate;
 public class CALSourcePathComputerDelegate implements
 		ISourcePathComputerDelegate {
 
-	public ISourceContainer[] computeSourceContainers(ILaunchConfiguration configuration, IProgressMonitor monitor) throws CoreException {
-		System.out.println("CALSourcePathComputerDelegate.computeSourceContainers");
-
-		// TODO source compute delegate
-
-//		ISourceContainer[] ret = new DirectorySourceContainer[modelPath.length];//
-//		for (int i = 0; i < modelPath.length; i++) {//
-//			ret[i] = new DirectorySourceContainer(new File(modelPath[i]), true);//
-//		}
-
-		return new ISourceContainer[0];
+	public ISourceContainer[] computeSourceContainers(
+			ILaunchConfiguration configuration, IProgressMonitor monitor)
+			throws CoreException {
+		ISourceContainer[] ret = new ISourceContainer[0];
+		return ret;
 	}
 }
