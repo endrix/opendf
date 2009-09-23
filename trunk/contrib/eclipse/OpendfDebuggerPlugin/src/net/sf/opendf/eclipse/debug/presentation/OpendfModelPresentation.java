@@ -47,6 +47,7 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.model.IBreakpoint;
 import org.eclipse.debug.core.model.ILineBreakpoint;
@@ -88,39 +89,54 @@ public class OpendfModelPresentation extends LabelProvider implements
 		// returns the editor id from the editor descriptor that could be
 		// associated with the given element if it can be translated to an IFile
 
-		IFile file = null;
-		if (element instanceof IFile) {
-			file = (IFile) element;
-		} else if (element instanceof ILineBreakpoint) {
-			IMarker marker = ((ILineBreakpoint) element).getMarker();
-			if (marker.getResource().getType() == IResource.FILE) {
-				file = (IFile) marker.getResource();
+		IFile file = getIFile(element);
+		if (file != null) {
+			try {
+				IEditorDescriptor editor = IDE.getEditorDescriptor(file);
+				return editor.getId();
+			} catch (PartInitException e) {
+				e.printStackTrace();
 			}
 		}
 
-		try {
-			IEditorDescriptor editor = IDE.getEditorDescriptor(file);
-			return editor.getId();
-		} catch (PartInitException e) {
-			e.printStackTrace();
+		return null;
+	}
+
+	@Override
+	public IEditorInput getEditorInput(Object element) {
+		IFile file = getIFile(element);
+		if (file != null) {
+			return new FileEditorInput(file);
 		}
 
 		return null;
 	}
 
 	/**
+	 * Tries to adapt element to an IFile.
 	 * 
-	 * @see org.eclipse.debug.ui.ISourcePresentation#getEditorInput(java.lang.Object)
+	 * @param element
+	 *            An element.
+	 * @return an IFile if successful, or <code>null</code> otherwise.
 	 */
-	public IEditorInput getEditorInput(Object element) {
-		if (element instanceof IFile) {
-			return new FileEditorInput((IFile) element);
+	private IFile getIFile(Object element) {
+		IFile file = null;
+		if (element instanceof IAdaptable) {
+			file = (IFile) ((IAdaptable) element).getAdapter(IFile.class);
 		}
-		if (element instanceof ILineBreakpoint) {
-			return new FileEditorInput((IFile) ((ILineBreakpoint) element)
-					.getMarker().getResource());
+
+		if (file == null) {
+			if (element instanceof IFile) {
+				file = (IFile) element;
+			} else if (element instanceof ILineBreakpoint) {
+				IMarker marker = ((ILineBreakpoint) element).getMarker();
+				if (marker.getResource().getType() == IResource.FILE) {
+					file = (IFile) marker.getResource();
+				}
+			}
 		}
-		return null;
+
+		return file;
 	}
 
 	/**
