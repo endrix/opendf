@@ -41,11 +41,16 @@ package net.sf.opendf.eclipse.debug.model;
 import java.util.HashMap;
 import java.util.Map;
 
+import net.sf.orcc.debug.DDPConstants;
+
 import org.eclipse.debug.core.DebugEvent;
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.model.IBreakpoint;
 import org.eclipse.debug.core.model.IStackFrame;
 import org.eclipse.debug.core.model.IVariable;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
  * A debugger thread representing the execution of an individual actor.
@@ -77,49 +82,16 @@ public class ActorThread extends OpendfThread {
 		super(target, componentName);
 	}
 
-	/**
-	 * Here we create a stack frame to represent each active element. e.g. actor
-	 * 
-	 * @see org.eclipse.debug.core.model.IThread#getStackFrames()
-	 */
-	public IStackFrame[] getStackFrames() throws DebugException {
-		if (isSuspended()) {
-			String framesData = sendCommand("stack " + getComponentName());
-			if (framesData != null) {
-				String[] frames = framesData.split("#");
-				IStackFrame[] theFrames = new IStackFrame[frames.length];
-				for (int i = 0; i < frames.length; i++) {
-					String data = frames[i];
-					theFrames[frames.length - i - 1] = new ActorStackFrame(
-							this, data, i);
-				}
-				return theFrames;
-			}
-		}
-		return NOFRAMES;
+	@Override
+	public boolean canStepInto() {
+		// TODO can step into
+		return false;
 	}
 
-	/**
-	 * Only if the actor is suspended does it have stack frames
-	 * 
-	 * @see org.eclipse.debug.core.model.IThread#hasStackFrames()
-	 */
-	public boolean hasStackFrames() throws DebugException {
-		return isSuspended();
-	}
-
-	/**
-	 * Return the top of the current stack frame
-	 * 
-	 * @see org.eclipse.debug.core.model.IThread#getTopStackFrame()
-	 */
-	public IStackFrame getTopStackFrame() throws DebugException {
-		assert hasStackFrames();
-		IStackFrame[] frames = getStackFrames();
-		if (frames.length > 0) {
-			return frames[0];
-		}
-		return null;
+	@Override
+	public boolean canStepReturn() {
+		// TODO can step return
+		return false;
 	}
 
 	/**
@@ -134,136 +106,44 @@ public class ActorThread extends OpendfThread {
 		return new IBreakpoint[] { currentBreakpoint };
 	}
 
-	/**
-	 * Notifies this thread it has been suspended by the given breakpoint.
-	 * 
-	 * @param breakpoint
-	 *            breakpoint
-	 */
-	public void suspendedBy(IBreakpoint breakpoint) {
-		currentBreakpoint = breakpoint;
-		suspended(DebugEvent.BREAKPOINT);
-	}
+	@Override
+	public IStackFrame[] getStackFrames() throws DebugException {
+		// Here we create a stack frame to represent each active element. e.g.
+		// actor
+		if (isSuspended()) {
+			try {
+				JSONObject request = new JSONObject();
+				request.put(DDPConstants.REQUEST, DDPConstants.REQ_STACK);
+				request.put(DDPConstants.ATTR_NAME, getComponentName());
+				JSONObject reply = sendRequest(request);
+				JSONArray frames = reply.getJSONArray(DDPConstants.ATTR_FRAMES);
 
-	/**
-	 * Step the actor
-	 * 
-	 * @see org.eclipse.debug.core.model.ISuspendResume#resume()
-	 */
-	public void resume() throws DebugException {
-		sendCommand("resume " + getComponentName());
-	}
-
-	/**
-	 * Suspend the execution of the component
-	 * 
-	 * @see org.eclipse.debug.core.model.ISuspendResume#suspend()
-	 */
-	public void suspend() throws DebugException {
-		sendCommand("suspend " + getComponentName());
-	}
-
-	/**
-	 * Is the current location at a function call?
-	 * 
-	 * @see org.eclipse.debug.core.model.IStep#canStepInto()
-	 */
-	public boolean canStepInto() {
-		System.out.println("Am I at a function call?");
-		return false;
-	}
-
-	/**
-	 * Is the current location at the end of a function?
-	 * 
-	 * @see org.eclipse.debug.core.model.IStep#canStepReturn()
-	 */
-	public boolean canStepReturn() {
-		System.out.println("Am I at a function end?");
-		return false;
-	}
-
-	/**
-	 * Step into a function
-	 * 
-	 * @see org.eclipse.debug.core.model.IStep#stepInto()
-	 */
-	public void stepInto() throws DebugException {
-		System.out.println("Attempting to step into a function");
-	}
-
-	/**
-	 * step out of a function
-	 * 
-	 * @see org.eclipse.debug.core.model.IStep#stepReturn()
-	 */
-	public void stepReturn() throws DebugException {
-		System.out.println("Attempting to step out of a function");
-	}
-
-	/**
-	 * Step the actor
-	 * 
-	 * @see org.eclipse.debug.core.model.IStep#stepOver()
-	 */
-	public void stepOver() throws DebugException {
-		sendCommand("step " + getComponentName());
-	}
-
-	/**
-	 * Sets whether this thread is stepping
-	 * 
-	 * @param stepping
-	 *            whether stepping
-	 */
-	private void setStepping(boolean stepping) {
-		isStepping = stepping;
-	}
-
-	/**
-	 * Notification the target has resumed for the given reason. Clears any
-	 * error condition that was last encountered and fires a resume event, and
-	 * clears all cached variables for stack frames.
-	 * 
-	 * @param detail
-	 *            reason for the resume
-	 */
-	private void resumed(int detail) {
-		synchronized (stackVariables) {
-			stackVariables.clear();
+				IStackFrame[] theFrames = new IStackFrame[frames.length()];
+				for (int i = 0; i < theFrames.length; i++) {
+					theFrames[i] = new ActorStackFrame(this, frames
+							.getJSONObject(i), i);
+				}
+				return theFrames;
+			} catch (JSONException e) {
+				throw newDebugExceptionJSON(DebugException.REQUEST_FAILED, e);
+			}
 		}
-		fireResumeEvent(detail);
+
+		return NOFRAMES;
 	}
 
 	/**
-	 * Notification the target has suspended for the given reason
+	 * Return the top of the current stack frame
 	 * 
-	 * @param detail
-	 *            reason for the suspend
+	 * @see org.eclipse.debug.core.model.IThread#getTopStackFrame()
 	 */
-	private void suspended(int detail) {
-		fireSuspendEvent(detail);
-	}
-
-	// /**
-	// * Notification an error was encountered. Fires a breakpoint
-	// * suspend event.
-	// */
-	// private void exceptionHit() {
-	// suspended(DebugEvent.BREAKPOINT);
-	// }
-
-	/**
-	 * Sets the current variables for the given stack frame. Called by Opendf
-	 * stack frame when it is created.
-	 * 
-	 * @param frame
-	 * @param variables
-	 */
-	protected void setVariables(IStackFrame frame, IVariable[] variables) {
-		synchronized (stackVariables) {
-			stackVariables.put(frame, variables);
+	public IStackFrame getTopStackFrame() throws DebugException {
+		assert hasStackFrames();
+		IStackFrame[] frames = getStackFrames();
+		if (frames.length > 0) {
+			return frames[0];
 		}
+		return null;
 	}
 
 	/**
@@ -282,28 +162,6 @@ public class ActorThread extends OpendfThread {
 			}
 			return variables;
 		}
-	}
-
-	/**
-	 * Pops the top frame off the call stack.
-	 * 
-	 * @throws DebugException
-	 */
-	public void pop() throws DebugException {
-		sendCommand("drop " + getComponentName());
-	}
-
-	/**
-	 * Returns whether this thread can pop the top stack frame.
-	 * 
-	 * @return whether this thread can pop the top stack frame
-	 */
-	public boolean canPop() {
-		try {
-			return getStackFrames().length > 1;
-		} catch (DebugException e) {
-		}
-		return false;
 	}
 
 	/**
@@ -334,6 +192,10 @@ public class ActorThread extends OpendfThread {
 		}
 	}
 
+	public void handleStartedEvent() {
+		fireEvent(new DebugEvent(this, DebugEvent.CREATE));
+	}
+
 	public void handleSuspendedEvent(String compName, String event) {
 		if (getComponentName().equals(compName)) {
 			// System.out.println("Suspended " + compName);
@@ -359,22 +221,127 @@ public class ActorThread extends OpendfThread {
 		}
 	}
 
-	/*
-  		client - a client request to suspend has completed
-  		drop - a client request to drop a frame has completed
-  		step - a step request has completed
-  		
-  		event E - an error was encountered, where E describes the error
-  		breakpoint L - a breakpoint at line L was hit
-  		watch V A - a watchpoint for variable V was hit for reason A
-  			(read or write), on variable V
-	 */
-
-	public void handleStartedEvent() {
-		fireEvent(new DebugEvent(this, DebugEvent.CREATE));
+	public void handleTerminatedEvent() {
 	}
 
-	public void handleTerminatedEvent() {
+	/**
+	 * Only if the actor is suspended does it have stack frames
+	 * 
+	 * @see org.eclipse.debug.core.model.IThread#hasStackFrames()
+	 */
+	public boolean hasStackFrames() throws DebugException {
+		return isSuspended();
+	}
+
+	/**
+	 * Step the actor
+	 * 
+	 * @see org.eclipse.debug.core.model.ISuspendResume#resume()
+	 */
+	public void resume() throws DebugException {
+		try {
+			JSONObject request = new JSONObject();
+			request.put(DDPConstants.REQUEST, DDPConstants.REQ_RESUME);
+			request.put(DDPConstants.ATTR_NAME, getComponentName());
+			sendRequest(request);
+		} catch (JSONException e) {
+			throw newDebugExceptionJSON(DebugException.REQUEST_FAILED, e);
+		}
+	}
+
+	/**
+	 * Notification the target has resumed for the given reason. Clears any
+	 * error condition that was last encountered and fires a resume event, and
+	 * clears all cached variables for stack frames.
+	 * 
+	 * @param detail
+	 *            reason for the resume
+	 */
+	private void resumed(int detail) {
+		synchronized (stackVariables) {
+			stackVariables.clear();
+		}
+		fireResumeEvent(detail);
+	}
+
+	/**
+	 * Sets whether this thread is stepping
+	 * 
+	 * @param stepping
+	 *            whether stepping
+	 */
+	private void setStepping(boolean stepping) {
+		isStepping = stepping;
+	}
+
+	// /**
+	// * Notification an error was encountered. Fires a breakpoint
+	// * suspend event.
+	// */
+	// private void exceptionHit() {
+	// suspended(DebugEvent.BREAKPOINT);
+	// }
+
+	/**
+	 * Sets the current variables for the given stack frame. Called by Opendf
+	 * stack frame when it is created.
+	 * 
+	 * @param frame
+	 * @param variables
+	 */
+	protected void setVariables(IStackFrame frame, IVariable[] variables) {
+		synchronized (stackVariables) {
+			stackVariables.put(frame, variables);
+		}
+	}
+
+	@Override
+	public void stepInto() throws DebugException {
+		// TODO step into
+	}
+
+	@Override
+	public void stepOver() throws DebugException {
+		// TODO step over
+		System.out.println("step over");
+	}
+
+	@Override
+	public void stepReturn() throws DebugException {
+		// TODO step return
+	}
+
+	@Override
+	public void suspend() throws DebugException {
+		try {
+			JSONObject request = new JSONObject();
+			request.put(DDPConstants.REQUEST, DDPConstants.REQ_SUSPEND);
+			request.put(DDPConstants.ATTR_NAME, getComponentName());
+			sendRequest(request);
+		} catch (JSONException e) {
+			throw newDebugExceptionJSON(DebugException.REQUEST_FAILED, e);
+		}
+	}
+
+	/**
+	 * Notification the target has suspended for the given reason
+	 * 
+	 * @param detail
+	 *            reason for the suspend
+	 */
+	private void suspended(int detail) {
+		fireSuspendEvent(detail);
+	}
+
+	/**
+	 * Notifies this thread it has been suspended by the given breakpoint.
+	 * 
+	 * @param breakpoint
+	 *            breakpoint
+	 */
+	public void suspendedBy(IBreakpoint breakpoint) {
+		currentBreakpoint = breakpoint;
+		suspended(DebugEvent.BREAKPOINT);
 	}
 
 }

@@ -50,6 +50,7 @@ import java.util.List;
 import net.sf.opendf.eclipse.debug.OpendfDebugConstants;
 import net.sf.opendf.eclipse.debug.breakpoints.ActorLineBreakpoint;
 import net.sf.opendf.eclipse.debug.breakpoints.ActorRunToLineBreakpoint;
+import net.sf.orcc.debug.DDPConstants;
 
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IMarkerDelta;
@@ -61,6 +62,7 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.debug.core.DebugEvent;
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.IBreakpointManager;
 import org.eclipse.debug.core.IBreakpointManagerListener;
@@ -71,6 +73,9 @@ import org.eclipse.debug.core.model.IMemoryBlock;
 import org.eclipse.debug.core.model.IProcess;
 import org.eclipse.debug.core.model.IThread;
 import org.eclipse.debug.core.model.IValue;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
  * Opendf debugger target.
@@ -81,609 +86,6 @@ import org.eclipse.debug.core.model.IValue;
 public class OpendfDebugTarget extends OpendfDebugElement implements
 		IDebugTarget, IBreakpointManagerListener, IOpendfEventListener {
 
-	// associated system process of the execution engine
-	private IProcess systemProcess;
-
-	// containing launch object
-	private ILaunch debugLauncher;
-
-	// sockets to communicate with execution engine
-	private Socket commandSocket;
-	private PrintWriter commandWriter;
-	private BufferedReader commandReader;
-	private Socket eventSocket;
-	private BufferedReader eventReader;
-
-	// terminated state
-	private boolean isTerminated = false;
-
-	private boolean isSuspended = false;
-
-	// threads
-	private OpendfThread[] threads;
-
-	// event dispatch job
-	private EventDispatchJob eventDispatch;
-	// event listeners
-	private List<IOpendfEventListener> eventListeners = new ArrayList<IOpendfEventListener>();
-
-	/**
-	 * Constructs a new debug target in the given launch for the associated
-	 * Opendf VM process.
-	 * 
-	 * @param launch
-	 *            containing launch
-	 * @param process
-	 *            Opendf execution engine
-	 * @param commandPort
-	 *            port to send requests to the execution engine
-	 * @param eventPort
-	 *            port to read events from
-	 * @exception CoreException
-	 *                if unable to connect to host
-	 */
-	public OpendfDebugTarget(ILaunch launch, IProcess process, int commandPort,
-			int eventPort) throws CoreException {
-		super(null);
-		debugLauncher = launch;
-		systemProcess = process;
-		addEventListener(this);
-		try {
-			// give execution engine a chance to start
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {
-			}
-			commandSocket = new Socket("localhost", commandPort);
-			commandWriter = new PrintWriter(commandSocket.getOutputStream());
-			commandReader = new BufferedReader(new InputStreamReader(
-					commandSocket.getInputStream()));
-			// give interpreter a chance to open next socket
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {
-			}
-			eventSocket = new Socket("localhost", eventPort);
-			eventReader = new BufferedReader(new InputStreamReader(eventSocket
-					.getInputStream()));
-		} catch (UnknownHostException e) {
-			requestFailed("Unable to connect to Execution Engine", e);
-		} catch (IOException e) {
-			requestFailed("Unable to connect to Execution Engine", e);
-		}
-		threads = new OpendfThread[] {};
-
-		eventDispatch = new EventDispatchJob();
-		eventDispatch.schedule();
-		IBreakpointManager breakpointManager = getBreakpointManager();
-		breakpointManager.addBreakpointListener(this);
-		breakpointManager.addBreakpointManagerListener(this);
-	}
-
-	/**
-	 * Registers the given event listener. The listener will be notified of
-	 * events in the program being interpreted. Has no effect if the listener is
-	 * already registered.
-	 * 
-	 * @param listener
-	 *            event listener
-	 */
-	public void addEventListener(IOpendfEventListener listener) {
-		if (!eventListeners.contains(listener)) {
-			// System.out.println("Added listener: " + listener);
-			eventListeners.add(listener);
-		}
-	}
-
-	/**
-	 * Removes registration of the given event listener. Has no effect if the
-	 * listener is not currently registered.
-	 * 
-	 * @param listener
-	 *            event listener
-	 */
-	public void removeEventListener(IOpendfEventListener listener) {
-		// System.out.println("Removed listener: " + listener);
-		eventListeners.remove(listener);
-	}
-
-	/**
-	 * Return the main debugger thread
-	 * 
-	 * @see org.eclipse.debug.core.model.IDebugTarget#getProcess()
-	 */
-	public IProcess getProcess() {
-		return systemProcess;
-	}
-
-	/**
-	 * Return the set of debugger threads representing each actor and perhaps
-	 * more This would have to be modified for dynamic systems
-	 * 
-	 * @see org.eclipse.debug.core.model.IDebugTarget#getThreads()
-	 */
-	public IThread[] getThreads() throws DebugException {
-		// System.out.println("OpendfDebugTarget.getThreads()");
-		if (!isTerminated) {
-			// ask the execution engine for the active actors and other stuff
-			String data = sendCommand("getComponents");
-			String[] strings = data.split("\\|");
-			// let's see if the threads have changed
-			List<OpendfThread> threadList = new ArrayList<OpendfThread>();
-			// copy over existing threads
-			for (int i = 0; i < threads.length; i++) {
-				String existingName = threads[i].getComponentName();
-				boolean found = false;
-				for (int j = 0; j < strings.length; j++) {
-					String newName = strings[i];
-					if (newName.equals(existingName)) {
-						// want to keep this thread
-						found = true;
-						threadList.add(threads[i]);
-						break;
-					}
-				}
-				if (!found) {
-					// thread no longer used so remove it
-					removeEventListener(threads[i]);
-				}
-			}
-			// add in new threads
-			for (int i = 0; i < strings.length; i++) {
-				String newName = strings[i];
-				boolean found = false;
-				for (int j = 0; j < threads.length; j++) {
-					String existingName = threads[j].getComponentName();
-					if (newName.equals(existingName)) {
-						// want to keep this thread
-						found = true;
-						break;
-					}
-				}
-				if (!found) {
-					// existing thread not present so add a new one
-					threadList.add(new ActorThread(this, newName));
-				}
-			}
-			threads = (OpendfThread[]) threadList
-					.toArray(new OpendfThread[threadList.size()]);
-		}
-		return threads;
-	}
-
-	/**
-	 * Does it have any threads
-	 * 
-	 * @see org.eclipse.debug.core.model.IDebugTarget#hasThreads()
-	 */
-	public boolean hasThreads() throws DebugException {
-		return true;
-	}
-
-	/**
-	 * Return the name of the debugger
-	 * 
-	 * @see org.eclipse.debug.core.model.IDebugTarget#getName()
-	 */
-	public String getName() throws DebugException {
-		return "Opendf";
-	}
-
-	/**
-	 * Are breakpoints supported - depends on debugger state
-	 * 
-	 * @see org.eclipse.debug.core.model.IDebugTarget#supportsBreakpoint(org.eclipse.debug.core.model.IBreakpoint)
-	 */
-	public boolean supportsBreakpoint(IBreakpoint breakpoint) {
-		if (!isTerminated()
-				&& breakpoint.getModelIdentifier().equals(getModelIdentifier())) {
-			try {
-				String program = getLaunch().getLaunchConfiguration()
-						.getAttribute(OpendfDebugConstants.ID_PLUGIN,
-								(String) null);
-				if (program != null) {
-					IResource resource = null;
-					if (breakpoint instanceof ActorRunToLineBreakpoint) {
-						ActorRunToLineBreakpoint rtl = (ActorRunToLineBreakpoint) breakpoint;
-						resource = rtl.getSourceFile();
-					} else {
-						IMarker marker = breakpoint.getMarker();
-						if (marker != null) {
-							resource = marker.getResource();
-						}
-					}
-					if (resource != null) {
-						IPath p = new Path(program);
-						return resource.getFullPath().equals(p);
-					}
-				}
-			} catch (CoreException e) {
-			}
-		}
-		return false;
-	}
-
-	/**
-	 * return the target of this debugging session
-	 * 
-	 * @see org.eclipse.debug.core.model.IDebugElement#getDebugTarget()
-	 */
-	public IDebugTarget getDebugTarget() {
-		return this;
-	}
-
-	/**
-	 * Return the launcher that invoked this session
-	 * 
-	 * @see org.eclipse.debug.core.model.IDebugElement#getLaunch()
-	 */
-	public ILaunch getLaunch() {
-		return debugLauncher;
-	}
-
-	/**
-	 * Return true if the session can be terminated
-	 * 
-	 * @see org.eclipse.debug.core.model.ITerminate#canTerminate()
-	 */
-	public boolean canTerminate() {
-		// no process, so no "getProcess().canTerminate();"
-		return !isTerminated;
-	}
-
-	/**
-	 * Return true if the session has terminated
-	 * 
-	 * @see org.eclipse.debug.core.model.ITerminate#isTerminated()
-	 */
-	public boolean isTerminated() {
-		// no process, so no " || getProcess().isTerminated()"
-		return isTerminated;
-	}
-
-	/**
-	 * Terminate debugging session
-	 * 
-	 * @see org.eclipse.debug.core.model.ITerminate#terminate()
-	 */
-	public void terminate() throws DebugException {
-		sendCommand("exit");
-	}
-
-	/**
-	 * Can the session be resumed?
-	 * 
-	 * @see org.eclipse.debug.core.model.ISuspendResume#canResume()
-	 */
-	public boolean canResume() {
-		return !isTerminated() && isSuspended();
-	}
-
-	/**
-	 * Can the session be suspended?
-	 * 
-	 * @see org.eclipse.debug.core.model.ISuspendResume#canSuspend()
-	 */
-	public boolean canSuspend() {
-		return !isTerminated() && !isSuspended();
-	}
-
-	/**
-	 * is it suspended
-	 * 
-	 * @see org.eclipse.debug.core.model.ISuspendResume#isSuspended()
-	 */
-	public boolean isSuspended() {
-		if (isTerminated()) {
-			return true;
-		}
-		return isSuspended;
-	}
-
-	/*
-	 * Resume execution
-	 * 
-	 * @see org.eclipse.debug.core.model.ISuspendResume#resume()
-	 */
-	public void resume() throws DebugException {
-		for (int i = 0; i < threads.length; i++) {
-			sendCommand("resume " + threads[i].getComponentName());
-		}
-	}
-
-	/**
-	 * Suspend execution
-	 * 
-	 * @see org.eclipse.debug.core.model.ISuspendResume#suspend()
-	 */
-	public void suspend() throws DebugException {
-		for (int i = 0; i < threads.length; i++) {
-			sendCommand("suspend " + threads[i].getComponentName());
-		}
-	}
-
-	/**
-	 * Add the breakpoint
-	 * 
-	 * @see org.eclipse.debug.core.IBreakpointListener#breakpointAdded(org.eclipse.debug.core.model.IBreakpoint)
-	 */
-	public void breakpointAdded(IBreakpoint breakpoint) {
-		if (supportsBreakpoint(breakpoint)) {
-			try {
-				if ((breakpoint.isEnabled() && getBreakpointManager()
-						.isEnabled())
-						|| !breakpoint.isRegistered()) {
-					ActorLineBreakpoint actorBreakpoint = (ActorLineBreakpoint) breakpoint;
-					actorBreakpoint.install(this);
-				}
-			} catch (CoreException e) {
-			}
-		}
-	}
-
-	/**
-	 * Remove the breakpoint
-	 * 
-	 * @see org.eclipse.debug.core.IBreakpointListener#breakpointRemoved(org.eclipse
-	 *      .debug.core.model.IBreakpoint,
-	 *      org.eclipse.core.resources.IMarkerDelta)
-	 */
-	public void breakpointRemoved(IBreakpoint breakpoint, IMarkerDelta delta) {
-		if (supportsBreakpoint(breakpoint)) {
-			try {
-				ActorLineBreakpoint actorBreakpoint = (ActorLineBreakpoint) breakpoint;
-				actorBreakpoint.remove(this);
-			} catch (CoreException e) {
-			}
-		}
-	}
-
-	/**
-	 * Toggle the breakpoint
-	 * 
-	 * @see org.eclipse.debug.core.IBreakpointListener#breakpointChanged(org.eclipse
-	 *      .debug.core.model.IBreakpoint,
-	 *      org.eclipse.core.resources.IMarkerDelta)
-	 */
-	public void breakpointChanged(IBreakpoint breakpoint, IMarkerDelta delta) {
-		if (supportsBreakpoint(breakpoint)) {
-			try {
-				if (breakpoint.isEnabled()
-						&& getBreakpointManager().isEnabled()) {
-					breakpointAdded(breakpoint);
-				} else {
-					breakpointRemoved(breakpoint, null);
-				}
-			} catch (CoreException e) {
-			}
-		}
-	}
-
-	/**
-	 * No we can't disconnect (temporarily) from the execution engine
-	 * 
-	 * @see org.eclipse.debug.core.model.IDisconnect#canDisconnect()
-	 */
-	public boolean canDisconnect() {
-		return false;
-	}
-
-	/**
-	 * We should never ever do this
-	 * 
-	 * @see org.eclipse.debug.core.model.IDisconnect#disconnect()
-	 */
-	public void disconnect() throws DebugException {
-	}
-
-	/**
-	 * Well is we can't disconnect then we should never be disconnected
-	 * 
-	 * @see org.eclipse.debug.core.model.IDisconnect#isDisconnected()
-	 */
-	public boolean isDisconnected() {
-		return false;
-	}
-
-	/**
-	 * Don't believe in it
-	 * 
-	 * @see org.eclipse.debug.core.model.IMemoryBlockRetrieval#supportsStorageRetrieval()
-	 */
-	public boolean supportsStorageRetrieval() {
-		return false;
-	}
-
-	/**
-	 * Nothing to return (for now)
-	 * 
-	 * @see org.eclipse.debug.core.model.IMemoryBlockRetrieval#getMemoryBlock(long,
-	 *      long)
-	 */
-	public IMemoryBlock getMemoryBlock(long startAddress, long length)
-			throws DebugException {
-		return null;
-	}
-
-	/**
-	 * Notification we have connected to the VM and it has started. Resume the
-	 * VM.
-	 */
-	private void started() {
-		fireCreationEvent();
-		installDeferredBreakpoints();
-		try {
-			getThreads();
-			//resume();
-		} catch (DebugException e) {
-		}
-	}
-
-	/**
-	 * Install breakpoints that are already registered with the breakpoint
-	 * manager.
-	 */
-	private void installDeferredBreakpoints() {
-		IBreakpoint[] breakpoints = getBreakpointManager().getBreakpoints(
-				getModelIdentifier());
-		for (int i = 0; i < breakpoints.length; i++) {
-			breakpointAdded(breakpoints[i]);
-		}
-	}
-
-	/**
-	 * Called when this debug target terminates.
-	 */
-	private synchronized void terminated() {
-		try {
-			isTerminated = true;
-			// remove threads from the listeners
-			for (int i = 0; i < threads.length; i++) {
-				removeEventListener(threads[i]);
-			}
-			threads = new OpendfThread[0];
-			IBreakpointManager breakpointManager = getBreakpointManager();
-			breakpointManager.removeBreakpointListener(this);
-			breakpointManager.removeBreakpointManagerListener(this);
-			fireTerminateEvent();
-			removeEventListener(this);
-		} catch (Exception e) {
-			System.err.println(e);
-		}
-	}
-
-	/**
-	 * Returns the values on the data stack (top down)
-	 * 
-	 * @return the values on the data stack (top down)
-	 */
-	public IValue[] getDataStack() throws DebugException {
-		// String dataStack = sendRequest("data");
-		// if (dataStack != null && dataStack.length() > 0) {
-		// String[] values = dataStack.split("\\|");
-		// IValue[] theValues = new IValue[values.length];
-		// for (int i = 0; i < values.length; i++) {
-		// String value = values[values.length - i - 1];
-		// theValues[i] = new OpendfStackValue(this, value, i);
-		// }
-		// return theValues;
-		// }
-		return new IValue[0];
-	}
-
-	/**
-	 * Send a command to the execution engine
-	 * 
-	 * @see example.debug.core.model.OpendfDebugElement#sendCommand(java.lang.String)
-	 */
-	public String sendCommand(String command) throws DebugException {
-		// System.out.println(command);
-		synchronized (commandSocket) {
-			commandWriter.println(command);
-			commandWriter.flush();
-			try {
-				// wait for reply
-				return commandReader.readLine();
-			} catch (IOException e) {
-				requestFailed("Request failed: " + command, e);
-			}
-		}
-		return null;
-	}
-
-	/**
-	 * When the breakpoint manager disables, remove all registered breakpoints
-	 * requests from the VM. When it enables, reinstall them.
-	 */
-	public void breakpointManagerEnablementChanged(boolean enabled) {
-		IBreakpoint[] breakpoints = getBreakpointManager().getBreakpoints(
-				getModelIdentifier());
-		for (int i = 0; i < breakpoints.length; i++) {
-			if (enabled) {
-				breakpointAdded(breakpoints[i]);
-			} else {
-				breakpointRemoved(breakpoints[i], null);
-			}
-		}
-	}
-
-	/**
-	 * Returns whether popping the data stack is currently permitted
-	 * 
-	 * @return whether popping the data stack is currently permitted
-	 */
-	public boolean canPop() {
-		// try {
-		// return !isTerminated() && isSuspended() && getDataStack().length > 0;
-		// } catch (DebugException e) {
-		// }
-		return false;
-	}
-
-	/**
-	 * Pops and returns the top of the data stack
-	 * 
-	 * @return the top value on the stack
-	 * @throws DebugException
-	 *             if the stack is empty or the request fails
-	 */
-	public IValue pop() throws DebugException {
-		// IValue[] dataStack = getDataStack();
-		// if (dataStack.length > 0) {
-		// sendCommand("poOpendfta");
-		// return dataStack[0];
-		// }
-		// requestFailed("Empty stack", null);
-		return null;
-	}
-
-	/**
-	 * Returns whether pushing a value is currently supported.
-	 * 
-	 * @return whether pushing a value is currently supported
-	 */
-	public boolean canPush() {
-		return !isTerminated() && isSuspended();
-	}
-
-	/**
-	 * Pushes a value onto the stack.
-	 * 
-	 * @param value
-	 *            value to push
-	 * @throws DebugException
-	 *             on failure
-	 */
-	public void push(String value) throws DebugException {
-		sendCommand("pushdata " + value);
-	}
-
-	/**
-	 * Handle all other events
-	 * 
-	 * @param event
-	 */
-	public void handleEvent(String event) {
-		System.out.println(this.getClass().getSimpleName() + ".handleEvent: "
-				+ event);
-	}
-
-	public void handleResumedEvent(String compName, String event) {
-		isSuspended = false;
-	}
-
-	public void handleStartedEvent() {
-		started();
-	}
-
-	public void handleSuspendedEvent(String compName, String event) {
-		isSuspended = true;
-	}
-
-	public void handleTerminatedEvent() {
-		terminated();
-	}
-
 	/**
 	 * Listens to events from the Opendf execution engine and notifies all the
 	 * listeners.
@@ -693,6 +95,64 @@ public class OpendfDebugTarget extends OpendfDebugElement implements
 		public EventDispatchJob() {
 			super("Opendf Debugger Event Dispatch");
 			setSystem(true);
+		}
+
+		/**
+		 * Notify listeners in a thread safe manner
+		 */
+		private void notifyOtherEvents(String event) {
+			Object[] listeners = eventListeners.toArray();
+			for (Object listener : listeners) {
+				((IOpendfEventListener) listener).handleEvent(event);
+			}
+		}
+
+		/**
+		 * Notify listeners in a thread safe manner
+		 * 
+		 * @param compName
+		 * @param event
+		 */
+		private void notifyResumedListeners(String compName, String event) {
+			Object[] listeners = eventListeners.toArray();
+			for (Object listener : listeners) {
+				((IOpendfEventListener) listener).handleResumedEvent(compName,
+						event);
+			}
+		}
+
+		/**
+		 * Notify listeners in a thread safe manner
+		 */
+		private void notifyStartedListeners() {
+			Object[] listeners = eventListeners.toArray();
+			for (Object listener : listeners) {
+				((IOpendfEventListener) listener).handleStartedEvent();
+			}
+		}
+
+		/**
+		 * Notify listeners in a thread safe manner
+		 * 
+		 * @param compName
+		 * @param event
+		 */
+		private void notifySuspendedListeners(String compName, String event) {
+			Object[] listeners = eventListeners.toArray();
+			for (Object listener : listeners) {
+				((IOpendfEventListener) listener).handleSuspendedEvent(
+						compName, event);
+			}
+		}
+
+		/**
+		 * Notify listeners in a thread safe manner
+		 */
+		private void notifyTerminatedListeners() {
+			Object[] listeners = eventListeners.toArray();
+			for (Object listener : listeners) {
+				((IOpendfEventListener) listener).handleTerminatedEvent();
+			}
 		}
 
 		/**
@@ -731,7 +191,8 @@ public class OpendfDebugTarget extends OpendfDebugElement implements
 			while (!isTerminated() && event != null) {
 				try {
 					event = eventReader.readLine();
-					// System.out.println("Event received:  " + event);
+					System.out.println("Event received:  " + event);
+
 					// parse events
 					if (event.startsWith("resumed")) {
 						int index = event.indexOf(":");
@@ -769,87 +230,537 @@ public class OpendfDebugTarget extends OpendfDebugElement implements
 			return Status.OK_STATUS;
 		}
 
-		/**
-		 * Notify listeners in a thread safe manner
-		 * 
-		 * @param compName
-		 * @param event
-		 */
-		private void notifySuspendedListeners(String compName, String event) {
-			int eventListenersSize = eventListeners.size();
-			if ((eventListeners != null) && (eventListenersSize > 0)) {
-				final IOpendfEventListener[] listeners = (IOpendfEventListener[]) eventListeners
-						.toArray(new IOpendfEventListener[eventListenersSize]);
-				for (int i = 0; i < eventListenersSize; i++) {
-					final IOpendfEventListener listener = listeners[i];
-					listener.handleSuspendedEvent(compName, event);
+	}
+
+	private BufferedReader commandReader;
+
+	// sockets to communicate with execution engine
+	private Socket commandSocket;
+	private PrintWriter commandWriter;
+	// containing launch object
+	private ILaunch debugLauncher;
+	// event dispatch job
+	private EventDispatchJob eventDispatch;
+
+	/**
+	 * event listeners
+	 */
+	private List<IOpendfEventListener> eventListeners;
+
+	private BufferedReader eventReader;
+
+	private Socket eventSocket;
+
+	private boolean isSuspended = false;
+
+	// terminated state
+	private boolean isTerminated = false;
+	// associated system process of the execution engine
+	private IProcess systemProcess;
+
+	// threads
+	private OpendfThread[] threads;
+
+	/**
+	 * Constructs a new debug target in the given launch for the associated
+	 * Opendf VM process.
+	 * 
+	 * @param launch
+	 *            containing launch
+	 * @param process
+	 *            Opendf execution engine
+	 * @param commandPort
+	 *            port to send requests to the execution engine
+	 * @param eventPort
+	 *            port to read events from
+	 * @exception CoreException
+	 *                if unable to connect to host
+	 */
+	public OpendfDebugTarget(ILaunch launch, IProcess process, int commandPort,
+			int eventPort) throws CoreException {
+		super(null);
+
+		debugLauncher = launch;
+		systemProcess = process;
+
+		eventListeners = new ArrayList<IOpendfEventListener>();
+		addEventListener(this);
+
+		try {
+			// give execution engine a chance to start
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+			}
+			commandSocket = new Socket("localhost", commandPort);
+			commandWriter = new PrintWriter(commandSocket.getOutputStream());
+			commandReader = new BufferedReader(new InputStreamReader(
+					commandSocket.getInputStream()));
+			// give interpreter a chance to open next socket
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+			}
+			eventSocket = new Socket("localhost", eventPort);
+			eventReader = new BufferedReader(new InputStreamReader(eventSocket
+					.getInputStream()));
+		} catch (UnknownHostException e) {
+			requestFailed("Unable to connect to Execution Engine", e);
+		} catch (IOException e) {
+			requestFailed("Unable to connect to Execution Engine", e);
+		}
+
+		eventDispatch = new EventDispatchJob();
+		eventDispatch.schedule();
+
+		IBreakpointManager breakpointManager = getBreakpointManager();
+		breakpointManager.addBreakpointListener(this);
+		breakpointManager.addBreakpointManagerListener(this);
+	}
+
+	/**
+	 * Registers the given event listener. The listener will be notified of
+	 * events in the program being interpreted. Has no effect if the listener is
+	 * already registered.
+	 * 
+	 * @param listener
+	 *            event listener
+	 */
+	public void addEventListener(IOpendfEventListener listener) {
+		if (!eventListeners.contains(listener)) {
+			// System.out.println("Added listener: " + listener);
+			eventListeners.add(listener);
+		}
+	}
+
+	@Override
+	public void breakpointAdded(IBreakpoint breakpoint) {
+		if (supportsBreakpoint(breakpoint)) {
+			try {
+				if ((breakpoint.isEnabled() && getBreakpointManager()
+						.isEnabled())
+						|| !breakpoint.isRegistered()) {
+					ActorLineBreakpoint actorBreakpoint = (ActorLineBreakpoint) breakpoint;
+					actorBreakpoint.install(this);
 				}
+			} catch (CoreException e) {
+			}
+		}
+	}
+
+	/**
+	 * Toggle the breakpoint
+	 * 
+	 * @see org.eclipse.debug.core.IBreakpointListener#breakpointChanged(org.eclipse
+	 *      .debug.core.model.IBreakpoint,
+	 *      org.eclipse.core.resources.IMarkerDelta)
+	 */
+	public void breakpointChanged(IBreakpoint breakpoint, IMarkerDelta delta) {
+		if (supportsBreakpoint(breakpoint)) {
+			try {
+				if (breakpoint.isEnabled()
+						&& getBreakpointManager().isEnabled()) {
+					breakpointAdded(breakpoint);
+				} else {
+					breakpointRemoved(breakpoint, null);
+				}
+			} catch (CoreException e) {
+			}
+		}
+	}
+
+	/**
+	 * When the breakpoint manager disables, remove all registered breakpoints
+	 * requests from the VM. When it enables, reinstall them.
+	 */
+	public void breakpointManagerEnablementChanged(boolean enabled) {
+		IBreakpoint[] breakpoints = getBreakpointManager().getBreakpoints(
+				getModelIdentifier());
+		for (int i = 0; i < breakpoints.length; i++) {
+			if (enabled) {
+				breakpointAdded(breakpoints[i]);
+			} else {
+				breakpointRemoved(breakpoints[i], null);
+			}
+		}
+	}
+
+	@Override
+	public void breakpointRemoved(IBreakpoint breakpoint, IMarkerDelta delta) {
+		if (supportsBreakpoint(breakpoint)) {
+			try {
+				ActorLineBreakpoint actorBreakpoint = (ActorLineBreakpoint) breakpoint;
+				actorBreakpoint.remove(this);
+			} catch (CoreException e) {
+			}
+		}
+	}
+
+	/**
+	 * No we can't disconnect (temporarily) from the execution engine
+	 * 
+	 * @see org.eclipse.debug.core.model.IDisconnect#canDisconnect()
+	 */
+	public boolean canDisconnect() {
+		return false;
+	}
+
+	/**
+	 * Returns whether popping the data stack is currently permitted
+	 * 
+	 * @return whether popping the data stack is currently permitted
+	 */
+	public boolean canPop() {
+		// try {
+		// return !isTerminated() && isSuspended() && getDataStack().length > 0;
+		// } catch (DebugException e) {
+		// }
+		return false;
+	}
+
+	/**
+	 * Returns whether pushing a value is currently supported.
+	 * 
+	 * @return whether pushing a value is currently supported
+	 */
+	public boolean canPush() {
+		return !isTerminated() && isSuspended();
+	}
+
+	@Override
+	public boolean canResume() {
+		return !isTerminated() && isSuspended();
+	}
+
+	@Override
+	public boolean canSuspend() {
+		return !isTerminated() && !isSuspended();
+	}
+
+	@Override
+	public boolean canTerminate() {
+		// no process, so no "getProcess().canTerminate();"
+		return !isTerminated;
+	}
+
+	@Override
+	public void disconnect() throws DebugException {
+		// we should never do this
+	}
+
+	private String[] getActorNames() throws DebugException {
+		try {
+			JSONObject request = new JSONObject();
+			request.put(DDPConstants.REQUEST, DDPConstants.REQ_GET_COMPONENTS);
+			JSONObject reply = sendRequest(request);
+			JSONArray array = reply.getJSONArray(DDPConstants.ATTR_COMPONENTS);
+			String[] names = new String[array.length()];
+			for (int i = 0; i < names.length; i++) {
+				names[i] = array.getString(i);
+			}
+
+			return names;
+		} catch (JSONException e) {
+			throw newDebugExceptionJSON(DebugException.REQUEST_FAILED, e);
+		}
+	}
+
+	/**
+	 * Returns the values on the data stack (top down)
+	 * 
+	 * @return the values on the data stack (top down)
+	 */
+	public IValue[] getDataStack() throws DebugException {
+		// String dataStack = sendRequest("data");
+		// if (dataStack != null && dataStack.length() > 0) {
+		// String[] values = dataStack.split("\\|");
+		// IValue[] theValues = new IValue[values.length];
+		// for (int i = 0; i < values.length; i++) {
+		// String value = values[values.length - i - 1];
+		// theValues[i] = new OpendfStackValue(this, value, i);
+		// }
+		// return theValues;
+		// }
+		return new IValue[0];
+	}
+
+	@Override
+	public IDebugTarget getDebugTarget() {
+		return this;
+	}
+
+	@Override
+	public ILaunch getLaunch() {
+		return debugLauncher;
+	}
+
+	@Override
+	public IMemoryBlock getMemoryBlock(long startAddress, long length)
+			throws DebugException {
+		// nothing to return for now
+		return null;
+	}
+
+	@Override
+	public String getName() throws DebugException {
+		return "Opendf";
+	}
+
+	@Override
+	public IProcess getProcess() {
+		return systemProcess;
+	}
+
+	@Override
+	public IThread[] getThreads() throws DebugException {
+		if (!isTerminated) {
+			if (threads == null) {
+				// ask the execution engine for the active actors and other
+				// stuff
+				String[] actorNames = getActorNames();
+
+				// add in new threads
+				List<OpendfThread> threadList = new ArrayList<OpendfThread>();
+				for (int i = 0; i < actorNames.length; i++) {
+					String newName = actorNames[i];
+					threadList.add(new ActorThread(this, newName));
+				}
+
+				threads = (OpendfThread[]) threadList
+						.toArray(new OpendfThread[0]);
 			}
 		}
 
-		/**
-		 * Notify listeners in a thread safe manner
-		 * 
-		 * @param compName
-		 * @param event
-		 */
-		private void notifyResumedListeners(String compName, String event) {
-			int eventListenersSize = eventListeners.size();
-			if ((eventListeners != null) && (eventListenersSize > 0)) {
-				final IOpendfEventListener[] listeners = (IOpendfEventListener[]) eventListeners
-						.toArray(new IOpendfEventListener[eventListenersSize]);
-				for (int i = 0; i < eventListenersSize; i++) {
-					final IOpendfEventListener listener = listeners[i];
-					listener.handleResumedEvent(compName, event);
-				}
+		return threads;
+	}
+
+	/**
+	 * Handle all other events
+	 * 
+	 * @param event
+	 */
+	public void handleEvent(String event) {
+		System.out.println(this.getClass().getSimpleName() + ".handleEvent: "
+				+ event);
+	}
+
+	public void handleResumedEvent(String compName, String event) {
+		// isSuspended = false;
+	}
+
+	public void handleStartedEvent() {
+		started();
+	}
+
+	public void handleSuspendedEvent(String compName, String event) {
+		isSuspended = true;
+	}
+
+	public void handleTerminatedEvent() {
+		terminated();
+	}
+
+	@Override
+	public boolean hasThreads() throws DebugException {
+		return true;
+	}
+
+	/**
+	 * Install breakpoints that are already registered with the breakpoint
+	 * manager.
+	 */
+	private void installDeferredBreakpoints() {
+		IBreakpoint[] breakpoints = getBreakpointManager().getBreakpoints(
+				getModelIdentifier());
+		for (int i = 0; i < breakpoints.length; i++) {
+			breakpointAdded(breakpoints[i]);
+		}
+	}
+
+	@Override
+	public boolean isDisconnected() {
+		// we cannot disconnect so we should never be disconnected
+		return false;
+	}
+
+	@Override
+	public boolean isSuspended() {
+		return isTerminated() || isSuspended;
+	}
+
+	@Override
+	public boolean isTerminated() {
+		// no process, so no " || getProcess().isTerminated()"
+		return isTerminated;
+	}
+
+	/**
+	 * Pops and returns the top of the data stack
+	 * 
+	 * @return the top value on the stack
+	 * @throws DebugException
+	 *             if the stack is empty or the request fails
+	 */
+	public IValue pop() throws DebugException {
+		// IValue[] dataStack = getDataStack();
+		// if (dataStack.length > 0) {
+		// sendCommand("poOpendfta");
+		// return dataStack[0];
+		// }
+		// requestFailed("Empty stack", null);
+		return null;
+	}
+
+	/**
+	 * Pushes a value onto the stack.
+	 * 
+	 * @param value
+	 *            value to push
+	 * @throws DebugException
+	 *             on failure
+	 */
+	public void push(String value) throws DebugException {
+		// TODO push value
+		System.out.println("TODO: push value");
+	}
+
+	/**
+	 * Removes registration of the given event listener. Has no effect if the
+	 * listener is not currently registered.
+	 * 
+	 * @param listener
+	 *            event listener
+	 */
+	public void removeEventListener(IOpendfEventListener listener) {
+		// System.out.println("Removed listener: " + listener);
+		synchronized (eventListeners) {
+			eventListeners.remove(listener);
+		}
+	}
+
+	@Override
+	public void resume() throws DebugException {
+		// resuming the target means resuming the threads
+		for (int i = 0; i < threads.length; i++) {
+			threads[i].resume();
+		}
+		fireResumeEvent(DebugEvent.CLIENT_REQUEST);
+	}
+
+	/**
+	 * Send a command to the execution engine
+	 * 
+	 * @see example.debug.core.model.OpendfDebugElement#sendRequest(java.lang.String)
+	 */
+	public JSONObject sendRequest(JSONObject request) throws DebugException {
+		synchronized (commandSocket) {
+			commandWriter.println(request);
+			commandWriter.flush();
+			try {
+				// wait for reply
+				return new JSONObject(commandReader.readLine());
+			} catch (IOException e) {
+				throw newDebugException("I/O error when sending request: "
+						+ request, DebugException.REQUEST_FAILED, e);
+			} catch (JSONException e) {
+				throw newDebugExceptionJSON(DebugException.REQUEST_FAILED, e);
 			}
 		}
+	}
 
-		/**
-		 * Notify listeners in a thread safe manner
-		 */
-		public void notifyStartedListeners() {
-			int eventListenersSize = eventListeners.size();
-			if ((eventListeners != null) && (eventListenersSize > 0)) {
-				final IOpendfEventListener[] listeners = (IOpendfEventListener[]) eventListeners
-						.toArray(new IOpendfEventListener[eventListenersSize]);
-				for (int i = 0; i < eventListenersSize; i++) {
-					final IOpendfEventListener listener = listeners[i];
-					listener.handleStartedEvent();
+	/**
+	 * Notification we have connected to the VM and it has started. Resume the
+	 * VM.
+	 */
+	private void started() {
+		fireCreationEvent();
+		installDeferredBreakpoints();
+		// try {
+		// getThreads();
+		// suspend();
+		// } catch (DebugException e) {
+		// }//
+	}
+
+	/**
+	 * Are breakpoints supported - depends on debugger state
+	 * 
+	 * @see org.eclipse.debug.core.model.IDebugTarget#supportsBreakpoint(org.eclipse.debug.core.model.IBreakpoint)
+	 */
+	public boolean supportsBreakpoint(IBreakpoint breakpoint) {
+		if (!isTerminated()
+				&& breakpoint.getModelIdentifier().equals(getModelIdentifier())) {
+			try {
+				String program = getLaunch().getLaunchConfiguration()
+						.getAttribute(OpendfDebugConstants.ID_PLUGIN,
+								(String) null);
+				if (program != null) {
+					IResource resource = null;
+					if (breakpoint instanceof ActorRunToLineBreakpoint) {
+						ActorRunToLineBreakpoint rtl = (ActorRunToLineBreakpoint) breakpoint;
+						resource = rtl.getSourceFile();
+					} else {
+						IMarker marker = breakpoint.getMarker();
+						if (marker != null) {
+							resource = marker.getResource();
+						}
+					}
+					if (resource != null) {
+						IPath p = new Path(program);
+						return resource.getFullPath().equals(p);
+					}
 				}
+			} catch (CoreException e) {
 			}
 		}
+		return false;
+	}
 
-		/**
-		 * Notify listeners in a thread safe manner
-		 */
-		public void notifyTerminatedListeners() {
-			int eventListenersSize = eventListeners.size();
-			if ((eventListeners != null) && (eventListenersSize > 0)) {
-				final IOpendfEventListener[] listeners = (IOpendfEventListener[]) eventListeners
-						.toArray(new IOpendfEventListener[eventListenersSize]);
-				for (int i = 0; i < eventListenersSize; i++) {
-					final IOpendfEventListener listener = listeners[i];
-					listener.handleTerminatedEvent();
-				}
-			}
+	@Override
+	public boolean supportsStorageRetrieval() {
+		// not supported
+		return false;
+	}
+
+	@Override
+	public void suspend() throws DebugException {
+		// suspending the target means resuming the threads
+		for (int i = 0; i < threads.length; i++) {
+			threads[i].suspend();
 		}
+		fireSuspendEvent(DebugEvent.CLIENT_REQUEST);
+	}
 
-		/**
-		 * Notify listeners in a thread safe manner
-		 */
-		public void notifyOtherEvents(String event) {
-			int eventListenersSize = eventListeners.size();
-			if ((eventListeners != null) && (eventListenersSize > 0)) {
-				final IOpendfEventListener[] listeners = (IOpendfEventListener[]) eventListeners
-						.toArray(new IOpendfEventListener[eventListenersSize]);
-				for (int i = 0; i < eventListenersSize; i++) {
-					final IOpendfEventListener listener = listeners[i];
-					listener.handleEvent(event);
-				}
-			}
+	@Override
+	public void terminate() throws DebugException {
+		try {
+			JSONObject request = new JSONObject();
+			request.put(DDPConstants.REQUEST, DDPConstants.REQ_EXIT);
+			sendRequest(request);
+		} catch (JSONException e) {
+			throw newDebugExceptionJSON(DebugException.REQUEST_FAILED, e);
 		}
+	}
 
+	/**
+	 * Called when this debug target terminates.
+	 */
+	private void terminated() {
+		try {
+			isTerminated = true;
+			// remove threads from the listeners
+			for (int i = 0; i < threads.length; i++) {
+				removeEventListener(threads[i]);
+			}
+			threads = new OpendfThread[0];
+			IBreakpointManager breakpointManager = getBreakpointManager();
+			breakpointManager.removeBreakpointListener(this);
+			breakpointManager.removeBreakpointManagerListener(this);
+			removeEventListener(this);
+			fireTerminateEvent();
+		} catch (Exception e) {
+			System.err.println(e);
+		}
 	}
 
 }

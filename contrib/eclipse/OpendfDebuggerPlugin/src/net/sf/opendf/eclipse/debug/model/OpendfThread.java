@@ -91,47 +91,28 @@ public abstract class OpendfThread extends OpendfDebugElement implements
 		isSuspended = true;
 	}
 
-	/**
-	 * Here we create a stack frame to represent the execution stack
-	 * 
-	 * @see org.eclipse.debug.core.model.IThread#getStackFrames()
-	 */
+	@Override
 	public IStackFrame[] getStackFrames() throws DebugException {
 		return NOFRAMES;
 	}
 
-	/**
-	 * Default no stack frames
-	 * 
-	 * @see org.eclipse.debug.core.model.IThread#hasStackFrames()
-	 */
+	@Override
 	public boolean hasStackFrames() throws DebugException {
+		// by default, thread has no stack frames
 		return false;
 	}
 
-	/**
-	 * Default priority 0
-	 * 
-	 * @see org.eclipse.debug.core.model.IThread#getPriority()
-	 */
+	@Override
 	public int getPriority() throws DebugException {
 		return 0;
 	}
 
-	/**
-	 * Return the top of the current stack frame
-	 * 
-	 * @see org.eclipse.debug.core.model.IThread#getTopStackFrame()
-	 */
+	@Override
 	public IStackFrame getTopStackFrame() throws DebugException {
 		return null;
 	}
 
-	/**
-	 * Return the name of this thread
-	 * 
-	 * @see org.eclipse.debug.core.model.IThread#getName()
-	 */
+	@Override
 	public String getName() {
 		return getComponentName()
 				+ " "
@@ -146,11 +127,7 @@ public abstract class OpendfThread extends OpendfDebugElement implements
 		return componentName;
 	}
 
-	/**
-	 * Return all the breakpoints associated with this thread
-	 * 
-	 * @see org.eclipse.debug.core.model.IThread#getBreakpoints()
-	 */
+	@Override
 	public IBreakpoint[] getBreakpoints() {
 		return NOBREAKPOINTS;
 	}
@@ -163,28 +140,17 @@ public abstract class OpendfThread extends OpendfDebugElement implements
 	 */
 	public abstract void suspendedBy(IBreakpoint breakpoint);
 
-	/**
-	 * Can we resume the execution of this thread
-	 * 
-	 * @see org.eclipse.debug.core.model.ISuspendResume#canResume()
-	 */
+	@Override
 	public boolean canResume() {
 		return isSuspended();
 	}
 
-	/**
-	 * Can this thread be suspended?
-	 * 
-	 * @see org.eclipse.debug.core.model.ISuspendResume#canSuspend()
-	 */
+	@Override
 	public boolean canSuspend() {
 		return !isSuspended();
 	}
 
-	/**
-	 * 
-	 * @see org.eclipse.debug.core.model.ISuspendResume#isSuspended()
-	 */
+	@Override
 	public boolean isSuspended() {
 		return isSuspended && !isTerminated();
 	}
@@ -199,88 +165,54 @@ public abstract class OpendfThread extends OpendfDebugElement implements
 		isSuspended = suspended;
 	}
 
-	/**
-	 * Resume the execution of this component
-	 * 
-	 * @see org.eclipse.debug.core.model.ISuspendResume#resume()
-	 */
+	@Override
 	public abstract void resume() throws DebugException;
 
-	/**
-	 * Suspend the execution of this component
-	 * 
-	 * @see org.eclipse.debug.core.model.ISuspendResume#suspend()
-	 */
+	@Override
 	public abstract void suspend() throws DebugException;
 
-	/**
-	 * @see org.eclipse.debug.core.model.IStep#canStepInto()
-	 */
+	@Override
 	public boolean canStepInto() {
 		return false;
 	}
 
-	/**
-	 * @see org.eclipse.debug.core.model.IStep#canStepOver()
-	 */
+	@Override
 	public boolean canStepOver() {
 		return isSuspended();
 	}
 
-	/**
-	 * @see org.eclipse.debug.core.model.IStep#canStepReturn()
-	 */
+	@Override
 	public boolean canStepReturn() {
 		return false;
 	}
 
-	/**
-	 * @see org.eclipse.debug.core.model.IStep#isStepping()
-	 */
+	@Override
 	public boolean isStepping() {
 		return isStepping;
 	}
 
-	/**
-	 * @see org.eclipse.debug.core.model.IStep#stepInto()
-	 */
+	@Override
 	public void stepInto() throws DebugException {
 	}
 
-	/**
-	 * A simple step
-	 * 
-	 * @see org.eclipse.debug.core.model.IStep#stepOver()
-	 */
+	@Override
 	public abstract void stepOver() throws DebugException;
 
-	/**
-	 * @see org.eclipse.debug.core.model.IStep#stepReturn()
-	 */
+	@Override
 	public void stepReturn() throws DebugException {
 	}
 
-	/**
-	 * @see org.eclipse.debug.core.model.ITerminate#canTerminate()
-	 */
+	@Override
 	public boolean canTerminate() {
 		return !isTerminated();
 	}
 
-	/**
-	 * Has the session terminated?
-	 * 
-	 * @see org.eclipse.debug.core.model.ITerminate#isTerminated()
-	 */
+	@Override
 	public boolean isTerminated() {
 		return getDebugTarget().isTerminated();
 	}
 
-	/**
-	 * Terminate debugging session
-	 * 
-	 * @see org.eclipse.debug.core.model.ITerminate#terminate()
-	 */
+	@Override
 	public void terminate() throws DebugException {
 		getDebugTarget().terminate();
 	}

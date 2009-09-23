@@ -40,11 +40,15 @@ package net.sf.opendf.eclipse.debug.model;
 
 import net.sf.opendf.eclipse.debug.OpendfDebugConstants;
 
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.IBreakpointManager;
 import org.eclipse.debug.core.model.DebugElement;
 import org.eclipse.debug.core.model.IDebugTarget;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
  * Common functions for all debug elements.
@@ -65,23 +69,20 @@ public abstract class OpendfDebugElement extends DebugElement {
 	}
 
 	/**
+	 * Returns the breakpoint manager
+	 * 
+	 * @return the breakpoint manager
+	 */
+	protected IBreakpointManager getBreakpointManager() {
+		return DebugPlugin.getDefault().getBreakpointManager();
+	}
+
+	/**
 	 * 
 	 * @see org.eclipse.debug.core.model.IDebugElement#getModelIdentifier()
 	 */
 	public String getModelIdentifier() {
 		return OpendfDebugConstants.ID_OPENDF_DEBUG_MODEL;
-	}
-
-	/**
-	 * Sends a command to the execution engine, waits for and returns the reply.
-	 * 
-	 * @param command
-	 * @return reply
-	 * @throws DebugException
-	 *             if the request fails
-	 */
-	public String sendCommand(String command) throws DebugException {
-		return getOpendfDebugTarget().sendCommand(command);
 	}
 
 	/**
@@ -94,11 +95,35 @@ public abstract class OpendfDebugElement extends DebugElement {
 	}
 
 	/**
-	 * Returns the breakpoint manager
-	 * 
-	 * @return the breakpoint manager
+	 * Throws a debug exception with the given message, error code, and
+	 * underlying exception.
 	 */
-	protected IBreakpointManager getBreakpointManager() {
-		return DebugPlugin.getDefault().getBreakpointManager();
+	protected DebugException newDebugException(String message, int code,
+			Throwable exception) {
+		return new DebugException(new Status(IStatus.ERROR,
+				OpendfDebugConstants.ID_PLUGIN, code, message, exception));
 	}
+
+	/**
+	 * Throws a debug exception with the given message, error code, and
+	 * underlying exception.
+	 */
+	protected DebugException newDebugExceptionJSON(int code,
+			JSONException exception) {
+		return newDebugException("JSON exception", code, exception);
+	}
+
+	/**
+	 * Sends a request to the execution engine, waits for and returns the reply.
+	 * 
+	 * @param request
+	 *            the request as a JSON object
+	 * @return reply the reply as a JSON object
+	 * @throws DebugException
+	 *             if the request fails
+	 */
+	public JSONObject sendRequest(JSONObject request) throws DebugException {
+		return getOpendfDebugTarget().sendRequest(request);
+	}
+
 }
