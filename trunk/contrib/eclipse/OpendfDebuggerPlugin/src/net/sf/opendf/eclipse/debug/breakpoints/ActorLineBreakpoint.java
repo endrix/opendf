@@ -37,20 +37,26 @@ ENDCOPYRIGHT
  */
 package net.sf.opendf.eclipse.debug.breakpoints;
 
+import static net.sf.opendf.eclipse.debug.OpendfDebugConstants.ID_PLUGIN;
 import net.sf.opendf.eclipse.debug.OpendfDebugConstants;
 import net.sf.opendf.eclipse.debug.model.ActorThread;
 import net.sf.opendf.eclipse.debug.model.IOpendfEventListener;
 import net.sf.opendf.eclipse.debug.model.OpendfDebugTarget;
+import net.sf.orcc.debug.DDPConstants;
 
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.model.IBreakpoint;
 import org.eclipse.debug.core.model.IThread;
 import org.eclipse.debug.core.model.LineBreakpoint;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
  * Actor line breakpoint
@@ -58,51 +64,58 @@ import org.eclipse.debug.core.model.LineBreakpoint;
  * @author Rob Esser
  * @version 3rd April 2009
  */
-public class ActorLineBreakpoint extends LineBreakpoint implements IOpendfEventListener {
-	
+public class ActorLineBreakpoint extends LineBreakpoint implements
+		IOpendfEventListener {
+
 	// target currently installed in
 	private OpendfDebugTarget debugTarget;
-	
+
 	/**
-	 * Default constructor is required for the breakpoint manager
-	 * to re-create persisted breakpoints. After instantiating a breakpoint,
-	 * the <code>setMarker(...)</code> method is called to restore
-	 * this breakpoint's attributes.
+	 * Default constructor is required for the breakpoint manager to re-create
+	 * persisted breakpoints. After instantiating a breakpoint, the
+	 * <code>setMarker(...)</code> method is called to restore this breakpoint's
+	 * attributes.
 	 */
 	public ActorLineBreakpoint() {
 	}
-	
+
 	/**
-	 * Constructs a line breakpoint on the given resource at the given
-	 * line number. The line number is 1-based (i.e. the first line of a
-	 * file is line number 1). The Actor VM uses 0-based line numbers,
-	 * so this line number translation is done at breakpoint install time.
+	 * Constructs a line breakpoint on the given resource at the given line
+	 * number. The line number is 1-based (i.e. the first line of a file is line
+	 * number 1). The Actor VM uses 0-based line numbers, so this line number
+	 * translation is done at breakpoint install time.
 	 * 
-	 * @param resource file on which to set the breakpoint
-	 * @param lineNumber 1-based line number of the breakpoint
-	 * @throws CoreException if unable to create the breakpoint
+	 * @param resource
+	 *            file on which to set the breakpoint
+	 * @param lineNumber
+	 *            1-based line number of the breakpoint
+	 * @throws CoreException
+	 *             if unable to create the breakpoint
 	 */
-	public ActorLineBreakpoint(final IResource resource, final int lineNumber) throws CoreException {
+	public ActorLineBreakpoint(final IResource resource, final int lineNumber)
+			throws CoreException {
 		IWorkspaceRunnable runnable = new IWorkspaceRunnable() {
 			public void run(IProgressMonitor monitor) throws CoreException {
-				IMarker marker = resource.createMarker(OpendfDebugConstants.ID_ACTOR_BREAKPOINT_MARKER);
+				IMarker marker = resource
+						.createMarker(OpendfDebugConstants.ID_ACTOR_BREAKPOINT_MARKER);
 				setMarker(marker);
 				marker.setAttribute(IBreakpoint.ENABLED, Boolean.TRUE);
 				marker.setAttribute(IMarker.LINE_NUMBER, lineNumber);
 				marker.setAttribute(IBreakpoint.ID, getModelIdentifier());
-				marker.setAttribute(IMarker.MESSAGE, "Line Breakpoint: " + resource.getName() + " [line: " + lineNumber + "]");
+				marker.setAttribute(IMarker.MESSAGE, "Line Breakpoint: "
+						+ resource.getName() + " [line: " + lineNumber + "]");
 			}
 		};
 		run(getMarkerRule(resource), runnable);
 	}
-	
+
 	/**
 	 * @see org.eclipse.debug.core.model.IBreakpoint#getModelIdentifier()
 	 */
 	public String getModelIdentifier() {
 		return OpendfDebugConstants.ID_OPENDF_DEBUG_MODEL;
 	}
-	
+
 	/**
 	 * Returns whether this breakpoint is a run-to-line breakpoint
 	 * 
@@ -111,104 +124,132 @@ public class ActorLineBreakpoint extends LineBreakpoint implements IOpendfEventL
 	public boolean isRunToLineBreakpoint() {
 		return false;
 	}
-    
-    /**
-     * Installs this breakpoint in the given interpreter.
-     * Registers this breakpoint as an event listener in the
-     * given target and creates the breakpoint specific request.
-     * 
-     * @param target Actor interpreter
-     * @throws CoreException if installation fails
-     */
-    public void install(OpendfDebugTarget target) throws CoreException {
-    	debugTarget = target;
-    	target.addEventListener(this);
-    	createRequest(target);
-    }
-    
-    /**
-     * Create the breakpoint specific request in the target. Subclasses
-     * should override.
-     * 
-     * @param target Actor interpreter
-     * @throws CoreException if request creation fails
-     */
-    protected void createRequest(OpendfDebugTarget target) throws CoreException {
-    	target.sendCommand("set " + (getLineNumber() - 1));
-    }
-    
-    /**
-     * Removes this breakpoint's event request from the target. Subclasses
-     * should override.
-     * 
-     * @param target Actor interpreter
-     * @throws CoreException if clearing the request fails
-     */
-    protected void clearRequest(OpendfDebugTarget target) throws CoreException {
-    	target.sendCommand("clear " + (getLineNumber() - 1));
-    }
-    
-    /**
-     * Removes this breakpoint from the given interpreter.
-     * Removes this breakpoint as an event listener and clears
-     * the request for the interpreter.
-     * 
-     * @param target Actor interpreter
-     * @throws CoreException if removal fails
-     */
-    public void remove(OpendfDebugTarget target) throws CoreException {
-    	target.removeEventListener(this);
-    	clearRequest(target);
-    	debugTarget = null;
-    }
-    
-    /**
-     * Returns the target this breakpoint is installed in or <code>null</code>.
-     * 
-     * @return the target this breakpoint is installed in or <code>null</code>
-     */
-    protected OpendfDebugTarget getDebugTarget() {
-    	return debugTarget;
-    }
-    
-    /**
-     * Notify's the Actor interpreter that this breakpoint has been hit.
-     */
-    protected void notifyThread() {
-    	if (debugTarget != null) {
+
+	/**
+	 * Installs this breakpoint in the given interpreter. Registers this
+	 * breakpoint as an event listener in the given target and creates the
+	 * breakpoint specific request.
+	 * 
+	 * @param target
+	 *            Actor interpreter
+	 * @throws CoreException
+	 *             if installation fails
+	 */
+	public void install(OpendfDebugTarget target) throws CoreException {
+		debugTarget = target;
+		target.addEventListener(this);
+		createRequest(target);
+	}
+
+	/**
+	 * Create the breakpoint specific request in the target. Subclasses should
+	 * override.
+	 * 
+	 * @param target
+	 *            Actor interpreter
+	 * @throws CoreException
+	 *             if request creation fails
+	 */
+	protected void createRequest(OpendfDebugTarget target) throws CoreException {
+		try {
+			JSONObject request = new JSONObject();
+			request.put(DDPConstants.REQUEST, DDPConstants.REQ_SET);
+			request.put(DDPConstants.ATTR_LINE, getLineNumber() - 1);
+			target.sendRequest(request);
+		} catch (JSONException e) {
+			IStatus status = new Status(IStatus.ERROR, ID_PLUGIN, "json error",
+					e);
+			throw new CoreException(status);
+		}
+	}
+
+	/**
+	 * Removes this breakpoint's event request from the target. Subclasses
+	 * should override.
+	 * 
+	 * @param target
+	 *            Actor interpreter
+	 * @throws CoreException
+	 *             if clearing the request fails
+	 */
+	protected void clearRequest(OpendfDebugTarget target) throws CoreException {
+		try {
+			JSONObject request = new JSONObject();
+			request.put(DDPConstants.REQUEST, DDPConstants.REQ_CLEAR);
+			request.put(DDPConstants.ATTR_LINE, getLineNumber() - 1);
+			target.sendRequest(request);
+		} catch (JSONException e) {
+			IStatus status = new Status(IStatus.ERROR, ID_PLUGIN, "json error",
+					e);
+			throw new CoreException(status);
+		}
+	}
+
+	/**
+	 * Removes this breakpoint from the given interpreter. Removes this
+	 * breakpoint as an event listener and clears the request for the
+	 * interpreter.
+	 * 
+	 * @param target
+	 *            Actor interpreter
+	 * @throws CoreException
+	 *             if removal fails
+	 */
+	public void remove(OpendfDebugTarget target) throws CoreException {
+		target.removeEventListener(this);
+		clearRequest(target);
+		debugTarget = null;
+	}
+
+	/**
+	 * Returns the target this breakpoint is installed in or <code>null</code>.
+	 * 
+	 * @return the target this breakpoint is installed in or <code>null</code>
+	 */
+	protected OpendfDebugTarget getDebugTarget() {
+		return debugTarget;
+	}
+
+	/**
+	 * Notify's the Actor interpreter that this breakpoint has been hit.
+	 */
+	protected void notifyThread() {
+		if (debugTarget != null) {
 			try {
 				IThread[] threads = debugTarget.getThreads();
 				if (threads.length == 1) {
-	    			ActorThread thread = (ActorThread)threads[0];
-	    			thread.suspendedBy(this);
-	    		}
+					ActorThread thread = (ActorThread) threads[0];
+					thread.suspendedBy(this);
+				}
 			} catch (DebugException e) {
-			}    		
-    	}
-    }
+			}
+		}
+	}
 
 	/**
-     * Determines if this breakpoint was hit and notifies the thread.
-     * 
-     * @param event breakpoint event
-     */
-    private void handleHit(String event) {
-    	int lastSpace = event.lastIndexOf(' ');
-    	if (lastSpace > 0) {
-    		String line = event.substring(lastSpace + 1);
-    		int lineNumber = Integer.parseInt(line);
-    		// breakpoints event line numbers are 0 based, model objects are 1 based
-    		lineNumber++;
-    		try {
+	 * Determines if this breakpoint was hit and notifies the thread.
+	 * 
+	 * @param event
+	 *            breakpoint event
+	 */
+	private void handleHit(String event) {
+		int lastSpace = event.lastIndexOf(' ');
+		if (lastSpace > 0) {
+			String line = event.substring(lastSpace + 1);
+			int lineNumber = Integer.parseInt(line);
+			// breakpoints event line numbers are 0 based, model objects are 1
+			// based
+			lineNumber++;
+			try {
 				if (getLineNumber() == lineNumber) {
 					notifyThread();
 				}
-    		} catch (CoreException e) {
-    		}
-    	}
-    }
+			} catch (CoreException e) {
+			}
+		}
+	}
 
-  	/**
+	/**
 	 * 
 	 * Subclasses should override to handle their breakpoint specific event.
 	 * 
@@ -219,7 +260,7 @@ public class ActorLineBreakpoint extends LineBreakpoint implements IOpendfEventL
 			handleHit(event);
 		}
 	}
-      
+
 	public void handleResumedEvent(String compName, String event) {
 		System.out.println("ActorLineBreakpoint.handleResumedEvent");
 	}
@@ -234,5 +275,5 @@ public class ActorLineBreakpoint extends LineBreakpoint implements IOpendfEventL
 
 	public void handleTerminatedEvent() {
 		System.out.println("ActorLineBreakpoint.handleTerminatedEvent");
-	}		
+	}
 }

@@ -56,7 +56,8 @@ import org.eclipse.debug.core.model.IWatchpoint;
  */
 public class ActorWatchpoint extends ActorLineBreakpoint implements IWatchpoint {
 
-	// 'read' or 'write' depending on what caused the last suspend for this watchpoint
+	// 'read' or 'write' depending on what caused the last suspend for this
+	// watchpoint
 	private String lastSuspendType;
 
 	// marker attributes
@@ -81,32 +82,37 @@ public class ActorWatchpoint extends ActorLineBreakpoint implements IWatchpoint 
 	 * translation is done at breakpoint install time.
 	 * 
 	 * @param resource
-	 *          file on which to set the breakpoint
+	 *            file on which to set the breakpoint
 	 * @param lineNumber
-	 *          1-based line number of the breakpoint
+	 *            1-based line number of the breakpoint
 	 * @param actorName
-	 *          actor name the variable is defined in
+	 *            actor name the variable is defined in
 	 * @param varName
-	 *          variable name that watchpoint is set on
+	 *            variable name that watchpoint is set on
 	 * @param access
-	 *          whether this is an access watchpoint
+	 *            whether this is an access watchpoint
 	 * @param modification
-	 *          whether this in a modification watchpoint
+	 *            whether this in a modification watchpoint
 	 * @throws CoreException
-	 *           if unable to create the watchpoint
+	 *             if unable to create the watchpoint
 	 */
-	public ActorWatchpoint(final IResource resource, final int lineNumber, final String actorName, final String varName, final boolean access, final boolean modification) throws CoreException {
+	public ActorWatchpoint(final IResource resource, final int lineNumber,
+			final String actorName, final String varName, final boolean access,
+			final boolean modification) throws CoreException {
 		IWorkspaceRunnable runnable = new IWorkspaceRunnable() {
 			public void run(IProgressMonitor monitor) throws CoreException {
-				IMarker marker = resource.createMarker(OpendfDebugConstants.ID_ACTOR_WATCHPOINT_MARKER);
+				IMarker marker = resource
+						.createMarker(OpendfDebugConstants.ID_ACTOR_WATCHPOINT_MARKER);
 				setMarker(marker);
 				setEnabled(true);
 				ensureMarker().setAttribute(IMarker.LINE_NUMBER, lineNumber);
-				ensureMarker().setAttribute(IBreakpoint.ID, getModelIdentifier());
+				ensureMarker().setAttribute(IBreakpoint.ID,
+						getModelIdentifier());
 				setAccess(access);
 				setModification(modification);
 				setVariable(actorName, varName);
-				marker.setAttribute(IMarker.MESSAGE, "Watchpoint: " + resource.getName() + " [line: " + lineNumber + "]");
+				marker.setAttribute(IMarker.MESSAGE, "Watchpoint: "
+						+ resource.getName() + " [line: " + lineNumber + "]");
 			}
 		};
 		run(getMarkerRule(resource), runnable);
@@ -158,13 +164,14 @@ public class ActorWatchpoint extends ActorLineBreakpoint implements IWatchpoint 
 	 * Sets the variable and actor names the watchpoint is set on.
 	 * 
 	 * @param actorName
-	 *          actor name
+	 *            actor name
 	 * @param variableName
-	 *          variable name
+	 *            variable name
 	 * @throws CoreException
-	 *           if an exception occurs setting marker attributes
+	 *             if an exception occurs setting marker attributes
 	 */
-	protected void setVariable(String actorName, String variableName) throws CoreException {
+	protected void setVariable(String actorName, String variableName)
+			throws CoreException {
 		setAttribute(VAR_NAME, variableName);
 		setAttribute(ACTOR_NAME, actorName);
 	}
@@ -174,7 +181,7 @@ public class ActorWatchpoint extends ActorLineBreakpoint implements IWatchpoint 
 	 * 
 	 * @return the name of the variable this watchpoint is set on
 	 * @throws CoreException
-	 *           if unable to access the attribute
+	 *             if unable to access the attribute
 	 */
 	public String getVariableName() throws CoreException {
 		return getMarker().getAttribute(VAR_NAME, (String) null);
@@ -187,7 +194,7 @@ public class ActorWatchpoint extends ActorLineBreakpoint implements IWatchpoint 
 	 * @return the name of the actor the variable associated with this
 	 *         watchpoint is defined in
 	 * @throws CoreException
-	 *           if unable to access the attribute
+	 *             if unable to access the attribute
 	 */
 	public String getActorName() throws CoreException {
 		return getMarker().getAttribute(ACTOR_NAME, (String) null);
@@ -197,7 +204,7 @@ public class ActorWatchpoint extends ActorLineBreakpoint implements IWatchpoint 
 	 * Sets the type of event that causes the last suspend event.
 	 * 
 	 * @param description
-	 *          one of 'read' or 'write'
+	 *            one of 'read' or 'write'
 	 */
 	public void setSuspendType(String description) {
 		lastSuspendType = description;
@@ -214,6 +221,7 @@ public class ActorWatchpoint extends ActorLineBreakpoint implements IWatchpoint 
 
 	/**
 	 * read | write | readwrite | clear;
+	 * 
 	 * @see example.debug.core.breakpoints.ActorLineBreakpoint#createRequest(example.debug.core.model.ActorDebugTarget)
 	 */
 	protected void createRequest(OpendfDebugTarget target) throws CoreException {
@@ -231,14 +239,20 @@ public class ActorWatchpoint extends ActorLineBreakpoint implements IWatchpoint 
 				kind = "clear";
 			}
 		}
-		target.sendCommand("watch " + getActorName() + " " + getVariableName() + " " + kind);
+
+		kind.toString();
+		// TODO send request
+		// target.sendRequest("watch " + getActorName() + " " +
+		// getVariableName() + " " + kind);
 	}
 
 	/**
 	 * @see example.debug.core.breakpoints.ActorLineBreakpoint#clearRequest(example.debug.core.model.ActorDebugTarget)
 	 */
 	protected void clearRequest(OpendfDebugTarget target) throws CoreException {
-		target.sendCommand("watch " + getActorName() + " " + getVariableName() + " clear");
+		// TODO clear request
+		// target.sendRequest("watch " + getActorName() + " " +
+		// getVariableName() + " clear");
 	}
 
 	/**
@@ -251,10 +265,11 @@ public class ActorWatchpoint extends ActorLineBreakpoint implements IWatchpoint 
 	}
 
 	/**
-	 * Determines if this breakpoint was hit and notifies the thread.
-	 * suspended N:watch V A
+	 * Determines if this breakpoint was hit and notifies the thread. suspended
+	 * N:watch V A
+	 * 
 	 * @param event
-	 *          breakpoint event
+	 *            breakpoint event
 	 */
 	private void handleHit(String event) {
 		String[] strings = event.split(" ");
@@ -265,7 +280,8 @@ public class ActorWatchpoint extends ActorLineBreakpoint implements IWatchpoint 
 				String actor = fv.substring(0, j);
 				String var = strings[2];
 				try {
-					if (getVariableName().equals(var) && getActorName().equals(actor)) {
+					if (getVariableName().equals(var)
+							&& getActorName().equals(actor)) {
 						setSuspendType(strings[3]);
 						notifyThread();
 					}

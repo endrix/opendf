@@ -50,12 +50,12 @@ public interface OpendfDebugConstants {
 
 	public static final String ID_PLUGIN = "net.sf.opendf.eclipse.debug";
 
-	public static final String ID_OPENDF_DEBUG_MODEL = ID_PLUGIN + ".model";
-
 	public static final String ID_ACTOR_BREAKPOINT_MARKER = ID_PLUGIN
 			+ ".markerType.lineBreakpoint";
 
 	public static final String ID_ACTOR_WATCHPOINT_MARKER = ID_PLUGIN
 			+ ".markerType.watchBreakpoint";
+
+	public static final String ID_OPENDF_DEBUG_MODEL = ID_PLUGIN + ".model";
 
 }

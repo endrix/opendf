@@ -34,13 +34,26 @@ BEGINCOPYRIGHT X
 	SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	
 ENDCOPYRIGHT
-*/
+ */
 package net.sf.opendf.eclipse.debug.model;
 
+import static net.sf.opendf.eclipse.debug.OpendfDebugConstants.ID_PLUGIN;
+import static net.sf.orcc.debug.DDPConstants.ATTR_EXPRESSION;
+import static net.sf.orcc.debug.DDPConstants.ATTR_FRAME_NAME;
+import static net.sf.orcc.debug.DDPConstants.ATTR_NAME;
+import static net.sf.orcc.debug.DDPConstants.ATTR_VAR_NAME;
+import static net.sf.orcc.debug.DDPConstants.REQUEST;
+import static net.sf.orcc.debug.DDPConstants.REQ_GET_VARIABLE;
+import static net.sf.orcc.debug.DDPConstants.REQ_SET_VARIABLE;
+
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.DebugEvent;
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.model.IValue;
 import org.eclipse.debug.core.model.IVariable;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
  * A variable in an Actor stack frame
@@ -49,88 +62,42 @@ import org.eclipse.debug.core.model.IVariable;
  * @version 23 March 2009
  */
 public class ActorVariable extends OpendfDebugElement implements IVariable {
-	
-	// name & stack frame
-	private String variableName;
-	private ActorStackFrame actorStackFrame;
-	
+
 	/**
-	 * Constructs a variable contained in the given stack frame
-	 * with the given name.
+	 * Stack frame this variable belongs to.
+	 */
+	private ActorStackFrame actorStackFrame;
+
+	/**
+	 * Variable name.
+	 */
+	private String variableName;
+
+	/**
+	 * Constructs a variable contained in the given stack frame with the given
+	 * name.
 	 * 
-	 * @param frame owning stack frame
-	 * @param name variable name
+	 * @param frame
+	 *            owning stack frame
+	 * @param name
+	 *            variable name
 	 */
 	public ActorVariable(ActorStackFrame frame, String name) {
 		super(frame.getDebugTarget());
 		actorStackFrame = frame;
 		variableName = name;
 	}
-	
-	/**
-	 * @see org.eclipse.debug.core.model.IVariable#getValue()
-	 */
-	public IValue getValue() throws DebugException {
-		String value = sendCommand("getvar " + getStackFrame().getComponentName() + " " + getStackFrame().getName() + " " + getName());
-		return new ActorValue(this.getOpendfDebugTarget(), value);
-	}
-	
-	/**
-	 * @see org.eclipse.debug.core.model.IVariable#getName()
-	 */
+
+	@Override
 	public String getName() throws DebugException {
 		return variableName;
 	}
-	
-	/**
-	 * @see org.eclipse.debug.core.model.IVariable#getReferenceTypeName()
-	 */
+
+	@Override
 	public String getReferenceTypeName() throws DebugException {
 		return "Thing";
 	}
-	
-	/**
-	 * @see org.eclipse.debug.core.model.IVariable#hasValueChanged()
-	 */
-	public boolean hasValueChanged() throws DebugException {
-		return false;
-	}
-	
-	/**
-	 * @see org.eclipse.debug.core.model.IValueModification#setValue(java.lang.String)
-	 */
-	public void setValue(String expression) throws DebugException {
-		sendCommand("setvar " + getStackFrame().getComponentName() + " " + getStackFrame().getName() + " " + getName() + " " + expression);
-		fireChangeEvent(DebugEvent.CONTENT);
-	}
-	
-	/**
-	 * @see org.eclipse.debug.core.model.IValueModification#setValue(org.eclipse.debug.core.model.IValue)
-	 */
-	public void setValue(IValue value) throws DebugException {
-	}
-	
-	/**
-	 * @see org.eclipse.debug.core.model.IValueModification#supportsValueModification()
-	 */
-	public boolean supportsValueModification() {
-		return true;
-	}
-	
-	/**
-	 * @see org.eclipse.debug.core.model.IValueModification#verifyValue(java.lang.String)
-	 */
-	public boolean verifyValue(String expression) throws DebugException {
-		return true;
-	}
-	
-	/**
-	 * @see org.eclipse.debug.core.model.IValueModification#verifyValue(org.eclipse.debug.core.model.IValue)
-	 */
-	public boolean verifyValue(IValue value) throws DebugException {
-		return false;
-	}
-	
+
 	/**
 	 * Returns the stack frame owning this variable.
 	 * 
@@ -138,6 +105,68 @@ public class ActorVariable extends OpendfDebugElement implements IVariable {
 	 */
 	protected ActorStackFrame getStackFrame() {
 		return actorStackFrame;
+	}
+
+	@Override
+	public IValue getValue() throws DebugException {
+		try {
+			JSONObject request = new JSONObject();
+			request.put(REQUEST, REQ_GET_VARIABLE);
+			request.put(ATTR_NAME, getStackFrame().getComponentName());
+			request.put(ATTR_FRAME_NAME, getStackFrame().getName());
+			request.put(ATTR_VAR_NAME, getName());
+
+			JSONObject reply = sendRequest(request);
+			return new ActorValue(this.getOpendfDebugTarget(), reply);
+		} catch (JSONException e) {
+			IStatus status = new Status(IStatus.ERROR, ID_PLUGIN, "json error",
+					e);
+			throw new DebugException(status);
+		}
+	}
+
+	@Override
+	public boolean hasValueChanged() throws DebugException {
+		return false;
+	}
+
+	@Override
+	public void setValue(IValue value) throws DebugException {
+	}
+
+	@Override
+	public void setValue(String expression) throws DebugException {
+		try {
+			JSONObject request = new JSONObject();
+			request.put(REQUEST, REQ_SET_VARIABLE);
+			request.put(ATTR_NAME, getStackFrame().getComponentName());
+			request.put(ATTR_FRAME_NAME, getStackFrame().getName());
+			request.put(ATTR_VAR_NAME, getName());
+			request.put(ATTR_EXPRESSION, expression);
+
+			sendRequest(request);
+		} catch (JSONException e) {
+			IStatus status = new Status(IStatus.ERROR, ID_PLUGIN, "json error",
+					e);
+			throw new DebugException(status);
+		}
+
+		fireChangeEvent(DebugEvent.CONTENT);
+	}
+
+	@Override
+	public boolean supportsValueModification() {
+		return true;
+	}
+
+	@Override
+	public boolean verifyValue(IValue value) throws DebugException {
+		return false;
+	}
+
+	@Override
+	public boolean verifyValue(String expression) throws DebugException {
+		return true;
 	}
 
 }

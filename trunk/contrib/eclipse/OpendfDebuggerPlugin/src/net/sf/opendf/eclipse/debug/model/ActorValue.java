@@ -40,6 +40,8 @@ package net.sf.opendf.eclipse.debug.model;
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.model.IValue;
 import org.eclipse.debug.core.model.IVariable;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
  * Value of an Actor variable.
@@ -51,9 +53,14 @@ public class ActorValue extends OpendfDebugElement implements IValue {
 
 	private String actualValue;
 
-	public ActorValue(OpendfDebugTarget target, String value) {
+	public ActorValue(OpendfDebugTarget target, JSONObject value) {
 		super(target);
-		actualValue = value;
+		// TODO parse json here
+		try {
+			actualValue = value.getString("toto");
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
 	}
 
 	/**
