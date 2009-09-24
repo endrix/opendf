@@ -37,9 +37,12 @@ ENDCOPYRIGHT
  */
 package net.sf.opendf.eclipse.debug.model;
 
+import net.sf.orcc.debug.DDPConstants;
+
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.model.IValue;
 import org.eclipse.debug.core.model.IVariable;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -47,25 +50,29 @@ import org.json.JSONObject;
  * Value of an Actor variable.
  * 
  * @author Rob Esser
- * @version 23 March 2009
+ * @author Matthieu Wipliez
  */
 public class ActorValue extends OpendfDebugElement implements IValue {
 
 	private String actualValue;
 
-	public ActorValue(OpendfDebugTarget target, JSONObject value) {
-		super(target);
-		// TODO parse json here
-		try {
-			actualValue = value.getString("toto");
-		} catch (JSONException e) {
-			e.printStackTrace();
-		}
+	private ActorStackFrame frame;
+
+	private IVariable[] variables;
+
+	public ActorValue(ActorStackFrame frame, JSONObject value) {
+		super(frame.getOpendfDebugTarget());
+		this.frame = frame;
+		parseJSON(value);
 	}
 
-	/**
-	 * @see org.eclipse.debug.core.model.IValue#getReferenceTypeName()
-	 */
+	@Override
+	public boolean equals(Object obj) {
+		return obj instanceof ActorValue
+				&& ((ActorValue) obj).actualValue.equals(actualValue);
+	}
+
+	@Override
 	public String getReferenceTypeName() throws DebugException {
 		try {
 			Integer.parseInt(actualValue);
@@ -75,48 +82,49 @@ public class ActorValue extends OpendfDebugElement implements IValue {
 		return "integer";
 	}
 
-	/**
-	 * @see org.eclipse.debug.core.model.IValue#getValueString()
-	 */
+	@Override
 	public String getValueString() throws DebugException {
 		return actualValue;
 	}
 
-	/**
-	 * @see org.eclipse.debug.core.model.IValue#isAllocated()
-	 */
+	@Override
+	public IVariable[] getVariables() throws DebugException {
+		return variables;
+	}
+
+	@Override
+	public int hashCode() {
+		return actualValue.hashCode();
+	}
+
+	@Override
+	public boolean hasVariables() throws DebugException {
+		return (variables.length > 0);
+	}
+
+	@Override
 	public boolean isAllocated() throws DebugException {
 		return true;
 	}
 
 	/**
-	 * @see org.eclipse.debug.core.model.IValue#getVariables()
-	 */
-	public IVariable[] getVariables() throws DebugException {
-		return new IVariable[0];
-	}
-
-	/**
-	 * @see org.eclipse.debug.core.model.IValue#hasVariables()
-	 */
-	public boolean hasVariables() throws DebugException {
-		return actualValue.split("\\W+").length > 1;
-	}
-
-	/**
+	 * Parses the JSON object and initializes this value from it.
 	 * 
-	 * @see java.lang.Object#equals(java.lang.Object)
+	 * @param value
+	 *            a JSON object
 	 */
-	public boolean equals(Object obj) {
-		return obj instanceof ActorValue
-				&& ((ActorValue) obj).actualValue.equals(actualValue);
+	private void parseJSON(JSONObject value) {
+		try {
+			actualValue = value.getString(DDPConstants.ATTR_VALUE);
+			JSONArray array = value.getJSONArray(DDPConstants.ATTR_VARIABLES);
+			int length = array.length();
+			variables = new IVariable[length];
+			for (int i = 0; i < length; i++) {
+				variables[i] = new ActorVariable(frame, array.getJSONObject(i));
+			}
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
 	}
 
-	/**
-	 * 
-	 * @see java.lang.Object#hashCode()
-	 */
-	public int hashCode() {
-		return actualValue.hashCode();
-	}
 }

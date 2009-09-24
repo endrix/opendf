@@ -56,7 +56,7 @@ import org.json.JSONObject;
  * A debugger thread representing the execution of an individual actor.
  * 
  * @author Rob Esser
- * @version 20 March 2009
+ * @author Matthieu Wipliez
  */
 public class ActorThread extends OpendfThread {
 
@@ -114,7 +114,7 @@ public class ActorThread extends OpendfThread {
 			try {
 				JSONObject request = new JSONObject();
 				request.put(DDPConstants.REQUEST, DDPConstants.REQ_STACK);
-				request.put(DDPConstants.ATTR_NAME, getComponentName());
+				request.put(DDPConstants.ATTR_ACTOR_NAME, getComponentName());
 				JSONObject reply = sendRequest(request);
 				JSONArray frames = reply.getJSONArray(DDPConstants.ATTR_FRAMES);
 
@@ -242,7 +242,7 @@ public class ActorThread extends OpendfThread {
 		try {
 			JSONObject request = new JSONObject();
 			request.put(DDPConstants.REQUEST, DDPConstants.REQ_RESUME);
-			request.put(DDPConstants.ATTR_NAME, getComponentName());
+			request.put(DDPConstants.ATTR_ACTOR_NAME, getComponentName());
 			sendRequest(request);
 		} catch (JSONException e) {
 			throw newDebugExceptionJSON(DebugException.REQUEST_FAILED, e);
@@ -316,7 +316,7 @@ public class ActorThread extends OpendfThread {
 		try {
 			JSONObject request = new JSONObject();
 			request.put(DDPConstants.REQUEST, DDPConstants.REQ_SUSPEND);
-			request.put(DDPConstants.ATTR_NAME, getComponentName());
+			request.put(DDPConstants.ATTR_ACTOR_NAME, getComponentName());
 			sendRequest(request);
 		} catch (JSONException e) {
 			throw newDebugExceptionJSON(DebugException.REQUEST_FAILED, e);

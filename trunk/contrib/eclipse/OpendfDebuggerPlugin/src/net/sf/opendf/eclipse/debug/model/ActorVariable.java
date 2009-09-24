@@ -38,13 +38,16 @@ ENDCOPYRIGHT
 package net.sf.opendf.eclipse.debug.model;
 
 import static net.sf.opendf.eclipse.debug.OpendfDebugConstants.ID_PLUGIN;
+import static net.sf.orcc.debug.DDPConstants.ATTR_ACTOR_NAME;
 import static net.sf.orcc.debug.DDPConstants.ATTR_EXPRESSION;
 import static net.sf.orcc.debug.DDPConstants.ATTR_FRAME_NAME;
-import static net.sf.orcc.debug.DDPConstants.ATTR_NAME;
 import static net.sf.orcc.debug.DDPConstants.ATTR_VAR_NAME;
 import static net.sf.orcc.debug.DDPConstants.REQUEST;
-import static net.sf.orcc.debug.DDPConstants.REQ_GET_VARIABLE;
+import static net.sf.orcc.debug.DDPConstants.REQ_GET_VALUE;
 import static net.sf.orcc.debug.DDPConstants.REQ_SET_VARIABLE;
+import net.sf.orcc.debug.DDPClient;
+import net.sf.orcc.debug.DDPConstants;
+import net.sf.orcc.debug.type.AbstractType;
 
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -66,12 +69,26 @@ public class ActorVariable extends OpendfDebugElement implements IVariable {
 	/**
 	 * Stack frame this variable belongs to.
 	 */
-	private ActorStackFrame actorStackFrame;
+	private ActorStackFrame frame;
 
 	/**
 	 * Variable name.
 	 */
-	private String variableName;
+	protected String name;
+
+	protected AbstractType type;
+
+	/**
+	 * Constructs a variable contained in the given stack frame with the given
+	 * name.
+	 * 
+	 * @param frame
+	 *            owning stack frame
+	 */
+	protected ActorVariable(ActorStackFrame frame) {
+		super(frame.getDebugTarget());
+		this.frame = frame;
+	}
 
 	/**
 	 * Constructs a variable contained in the given stack frame with the given
@@ -82,42 +99,35 @@ public class ActorVariable extends OpendfDebugElement implements IVariable {
 	 * @param name
 	 *            variable name
 	 */
-	public ActorVariable(ActorStackFrame frame, String name) {
+	public ActorVariable(ActorStackFrame frame, JSONObject variable)
+			throws JSONException {
 		super(frame.getDebugTarget());
-		actorStackFrame = frame;
-		variableName = name;
+		this.frame = frame;
+		name = variable.getString(DDPConstants.ATTR_VAR_NAME);
+		type = DDPClient.getType(variable.get(DDPConstants.ATTR_VAR_TYPE));
 	}
 
 	@Override
 	public String getName() throws DebugException {
-		return variableName;
+		return name;
 	}
 
 	@Override
 	public String getReferenceTypeName() throws DebugException {
-		return "Thing";
-	}
-
-	/**
-	 * Returns the stack frame owning this variable.
-	 * 
-	 * @return the stack frame owning this variable
-	 */
-	protected ActorStackFrame getStackFrame() {
-		return actorStackFrame;
+		return type.toString();
 	}
 
 	@Override
 	public IValue getValue() throws DebugException {
 		try {
 			JSONObject request = new JSONObject();
-			request.put(REQUEST, REQ_GET_VARIABLE);
-			request.put(ATTR_NAME, getStackFrame().getComponentName());
-			request.put(ATTR_FRAME_NAME, getStackFrame().getName());
+			request.put(REQUEST, REQ_GET_VALUE);
+			request.put(ATTR_ACTOR_NAME, frame.getComponentName());
+			request.put(ATTR_FRAME_NAME, frame.getName());
 			request.put(ATTR_VAR_NAME, getName());
 
 			JSONObject reply = sendRequest(request);
-			return new ActorValue(this.getOpendfDebugTarget(), reply);
+			return new ActorValue(frame, reply);
 		} catch (JSONException e) {
 			IStatus status = new Status(IStatus.ERROR, ID_PLUGIN, "json error",
 					e);
@@ -139,8 +149,8 @@ public class ActorVariable extends OpendfDebugElement implements IVariable {
 		try {
 			JSONObject request = new JSONObject();
 			request.put(REQUEST, REQ_SET_VARIABLE);
-			request.put(ATTR_NAME, getStackFrame().getComponentName());
-			request.put(ATTR_FRAME_NAME, getStackFrame().getName());
+			request.put(ATTR_ACTOR_NAME, frame.getComponentName());
+			request.put(ATTR_FRAME_NAME, frame.getName());
 			request.put(ATTR_VAR_NAME, getName());
 			request.put(ATTR_EXPRESSION, expression);
 

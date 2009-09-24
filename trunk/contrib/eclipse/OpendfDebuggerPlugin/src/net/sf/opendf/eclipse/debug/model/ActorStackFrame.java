@@ -38,6 +38,10 @@ ENDCOPYRIGHT
 
 package net.sf.opendf.eclipse.debug.model;
 
+import net.sf.orcc.debug.DDPClient;
+import net.sf.orcc.debug.DDPConstants;
+import net.sf.orcc.debug.Location;
+
 import org.eclipse.core.runtime.Path;
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.model.IRegisterGroup;
@@ -238,16 +242,22 @@ public class ActorStackFrame extends OpendfDebugElement implements IStackFrame {
 	 */
 	private void parseJSON(JSONObject frame) {
 		try {
-			String extractedFileName = frame.getString("file");
+			String extractedFileName = frame.getString(DDPConstants.ATTR_FILE);
 			sourceFileName = (new Path(extractedFileName)).lastSegment();
-			componentName = frame.getString("actor");
-			functionOrActionName = frame.getString("function");
-			location = DDPClient.getLocation(frame.getJSONArray("location"));
+			componentName = frame.getString(DDPConstants.ATTR_ACTOR_NAME);
+			functionOrActionName = frame
+					.getString(DDPConstants.ATTR_ACTION_NAME);
+			location = DDPClient.getLocation(frame
+					.getJSONArray(DDPConstants.ATTR_LOCATION));
 
-			JSONArray variables = frame.getJSONArray("variables");
-			IVariable[] vars = new IVariable[variables.length()];
-			for (int i = 0; i < vars.length; i++) {
-				vars[i] = new ActorVariable(this, null);
+			JSONArray variables = frame
+					.getJSONArray(DDPConstants.ATTR_VARIABLES);
+			IVariable[] vars = new IVariable[variables.length() + 1];
+			vars[0] = new ActorStateContainerVariable(this);
+			int length = variables.length();
+			for (int i = 0; i < length; i++) {
+				vars[i + 1] = new ActorVariable(this, variables
+						.getJSONObject(i));
 			}
 
 			actorThread.setVariables(this, vars);
