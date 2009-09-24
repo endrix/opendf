@@ -44,35 +44,36 @@ package net.sf.opendf.eclipse.debug.model;
  * @author Rob Esser
  * @version 20 March 2009
  */
-public interface IOpendfEventListener { 
+public interface IOpendfEventListener {
 
 	/**
-	 * A started event has been received from the execution engine
-	 * (guaranteed to be the first event sent)
+	 * A started event has been received from the execution engine (guaranteed
+	 * to be the first event sent)
 	 */
 	public void handleStartedEvent();
 
 	/**
-	 * A terminate event has been received from the execution engine
-	 * (guaranteed to be the last event sent) 
+	 * A terminate event has been received from the execution engine (guaranteed
+	 * to be the last event sent)
 	 */
 	public void handleTerminatedEvent();
 
 	/**
 	 * A suspend event has been received from the execution engine
 	 * 
-	 * suspended N:X - the interpreter has suspended component N and entered debug
-	 * mode; X is the cause of the suspension:
+	 * suspended N:X - the interpreter has suspended component N and entered
+	 * debug mode; X is the cause of the suspension:
 	 * 
-	 *   breakpoint L - a breakpoint at line L was hit
-	 *   client - a client request to suspend has completed
-	 *   drop - a client request to drop a frame has completed
-	 *   event E - an error was encountered, where E describes the error
-	 *   step - a step request has completed
-	 *   watch V A - a watchpoint for variable V was hit for reason A (read or write), on variable V
-
-	 * @param compName the name of the component that is suspended
-	 * @param event the type of the event
+	 * breakpoint L - a breakpoint at line L was hit client - a client request
+	 * to suspend has completed drop - a client request to drop a frame has
+	 * completed event E - an error was encountered, where E describes the error
+	 * step - a step request has completed watch V A - a watchpoint for variable
+	 * V was hit for reason A (read or write), on variable V
+	 * 
+	 * @param compName
+	 *            the name of the component that is suspended
+	 * @param event
+	 *            the type of the event
 	 */
 	public void handleSuspendedEvent(String compName, String event);
 
@@ -82,19 +83,21 @@ public interface IOpendfEventListener {
 	 * resumed N:X - the interpreter has resumed execution of component N in run
 	 * mode; X is the cause of the resume:
 	 * 
-	 *   step - a step request has been initiated client - a client request to
-	 *   resume has been initiated
+	 * step - a step request has been initiated client - a client request to
+	 * resume has been initiated
 	 * 
-	 * @param compName the name of the component that is suspended
-	 * @param event the type of the event
+	 * @param compName
+	 *            the name of the component that is suspended
+	 * @param event
+	 *            the type of the event
 	 */
 	public void handleResumedEvent(String compName, String event);
-	
+
 	/**
 	 * Handle all other events
+	 * 
 	 * @param event
 	 */
 	public void handleEvent(String event);
-
 
 }

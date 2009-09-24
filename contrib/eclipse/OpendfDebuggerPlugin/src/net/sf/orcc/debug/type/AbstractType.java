@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009, IETR/INSA Rennes
+ * Copyright (c) 2009, IETR/INSA of Rennes
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -26,61 +26,25 @@
  * WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-package net.sf.opendf.eclipse.debug.model;
+package net.sf.orcc.debug.type;
 
 /**
  * @author Matthieu Wipliez
  * 
  */
-public class Location {
+public abstract class AbstractType {
 
-	private int charEnd;
+	private String name;
 
-	private int charStart;
-
-	private int lineNumber;
-
-	/**
-	 * Constructs a dummy location.
-	 */
-	public Location() {
+	protected AbstractType(String name) {
+		this.name = name;
 	}
 
-	/**
-	 * Creates a new location.
-	 * 
-	 * @param lineNumber
-	 * @param charStart
-	 * @param charEnd
-	 */
-	public Location(int lineNumber, int charStart, int charEnd) {
-		this.charEnd = charEnd;
-		this.charStart = charStart;
-		this.lineNumber = lineNumber;
-	}
+	public abstract void accept(TypeVisitor visitor);
 
-	/**
-	 * 
-	 * @return end char
-	 */
-	public int getCharEnd() {
-		return charEnd;
-	}
-
-	/**
-	 * 
-	 * @return start char
-	 */
-	public int getCharStart() {
-		return charStart;
-	}
-
-	/**
-	 * 
-	 * @return line number
-	 */
-	public int getLineNumber() {
-		return lineNumber;
+	@Override
+	public String toString() {
+		return name;
 	}
 
 }

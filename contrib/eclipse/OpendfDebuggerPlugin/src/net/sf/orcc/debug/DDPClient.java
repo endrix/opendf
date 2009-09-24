@@ -26,7 +26,15 @@
  * WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-package net.sf.opendf.eclipse.debug.model;
+package net.sf.orcc.debug;
+
+import net.sf.orcc.debug.type.AbstractType;
+import net.sf.orcc.debug.type.BoolType;
+import net.sf.orcc.debug.type.IntType;
+import net.sf.orcc.debug.type.ListType;
+import net.sf.orcc.debug.type.StringType;
+import net.sf.orcc.debug.type.UintType;
+import net.sf.orcc.debug.type.VoidType;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -39,11 +47,65 @@ import org.json.JSONException;
  */
 public class DDPClient {
 
+	/**
+	 * Returns a Location from the given JSON array.
+	 * 
+	 * @param array
+	 *            a JSON array
+	 * @return a Location from the given JSON array
+	 * @throws JSONException
+	 */
 	public static Location getLocation(JSONArray array) throws JSONException {
 		int lineNumber = array.getInt(0);
 		int charStart = array.getInt(1);
 		int charEnd = array.getInt(2);
 		return new Location(lineNumber, charStart, charEnd);
+	}
+
+	/**
+	 * Returns an AbstractType from the given object.
+	 * 
+	 * @param obj
+	 *            an object.
+	 * @return an abstract type
+	 * @throws JSONException
+	 */
+	public static AbstractType getType(Object obj) throws JSONException {
+		AbstractType type = null;
+
+		if (obj instanceof String) {
+			String name = (String) obj;
+			if (name.equals(BoolType.NAME)) {
+				type = new BoolType();
+			} else if (name.equals(StringType.NAME)) {
+				type = new StringType();
+			} else if (name.equals(VoidType.NAME)) {
+				type = new VoidType();
+			} else {
+				throw new JSONException("Unknown type: " + name);
+			}
+		} else if (obj instanceof JSONArray) {
+			JSONArray array = (JSONArray) obj;
+			String name = array.getString(0);
+			if (name.equals(IntType.NAME)) {
+				int size = array.getInt(1);
+				type = new IntType(size);
+			} else if (name.equals(UintType.NAME)) {
+				int size = array.getInt(1);
+				type = new UintType(size);
+			} else if (name.equals(ListType.NAME)) {
+				int size = array.getInt(1);
+				AbstractType subType = getType(array.get(2));
+				type = new ListType(size, subType);
+			} else {
+				throw new JSONException("Unknown type: " + name);
+			}
+		} else {
+			throw new JSONException("Invalid type definition: "
+					+ obj.toString());
+		}
+
+		return type;
 	}
 
 }

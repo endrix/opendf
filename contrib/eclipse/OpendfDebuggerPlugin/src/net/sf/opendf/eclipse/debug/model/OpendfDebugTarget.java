@@ -658,7 +658,13 @@ public class OpendfDebugTarget extends OpendfDebugElement implements
 			commandWriter.flush();
 			try {
 				// wait for reply
-				return new JSONObject(commandReader.readLine());
+				String reply = commandReader.readLine();
+				if (reply == null) {
+					throw newDebugException("could not get reply",
+							DebugException.REQUEST_FAILED, null);
+				} else {
+					return new JSONObject(reply);
+				}
 			} catch (IOException e) {
 				throw newDebugException("I/O error when sending request: "
 						+ request, DebugException.REQUEST_FAILED, e);
