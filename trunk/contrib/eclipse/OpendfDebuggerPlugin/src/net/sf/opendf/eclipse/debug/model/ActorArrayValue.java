@@ -37,12 +37,20 @@ ENDCOPYRIGHT
  */
 package net.sf.opendf.eclipse.debug.model;
 
-import net.sf.orcc.debug.DDPConstants;
+import static net.sf.opendf.eclipse.debug.OpendfDebugConstants.ID_PLUGIN;
+import static net.sf.orcc.debug.DDPConstants.ATTR_ACTOR_NAME;
+import static net.sf.orcc.debug.DDPConstants.ATTR_FRAME_NAME;
+import static net.sf.orcc.debug.DDPConstants.ATTR_INDEXES;
+import static net.sf.orcc.debug.DDPConstants.ATTR_VAR_NAME;
+import static net.sf.orcc.debug.DDPConstants.REQUEST;
+import static net.sf.orcc.debug.DDPConstants.REQ_GET_VALUE;
 import net.sf.orcc.debug.type.AbstractType;
 import net.sf.orcc.debug.type.ListType;
 
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.DebugException;
-import org.eclipse.debug.core.model.IValue;
+import org.eclipse.debug.core.model.IIndexedValue;
 import org.eclipse.debug.core.model.IVariable;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -54,89 +62,60 @@ import org.json.JSONObject;
  * @author Rob Esser
  * @author Matthieu Wipliez
  */
-public class ActorValue extends OpendfDebugElement implements IValue {
+public class ActorArrayValue extends ActorValue implements IIndexedValue {
 
-	public static ActorValue createValue(ActorVariable variable,
-			JSONObject value) {
-		AbstractType type = variable.getType();
+	public ActorArrayValue(ActorVariable variable, JSONObject value) {
+		super(variable, value);
+	}
+
+	@Override
+	public int getInitialOffset() {
+		return 0;
+	}
+
+	@Override
+	public int getSize() throws DebugException {
+		AbstractType type = getVariable().getType();
 		if (type instanceof ListType) {
-			return new ActorArrayValue(variable, value);
-		} else {
-			return new ActorValue(variable, value);
+			return ((ListType) type).getSize();
 		}
-	}
-
-	private String value;
-
-	private ActorVariable variable;
-
-	private IVariable[] variables;
-
-	protected ActorValue(ActorVariable variable, JSONObject value) {
-		super(variable.getOpendfDebugTarget());
-		this.variable = variable;
-		parseJSON(value);
+		throw newDebugException("variable does not have list type",
+				DebugException.INTERNAL_ERROR, null);
 	}
 
 	@Override
-	public boolean equals(Object obj) {
-		return obj instanceof ActorValue
-				&& ((ActorValue) obj).value.equals(value);
-	}
-
-	@Override
-	public String getReferenceTypeName() throws DebugException {
+	public IVariable getVariable(int offset) throws DebugException {
 		return null;
 	}
 
 	@Override
-	public String getValueString() throws DebugException {
-		return value;
-	}
+	public IVariable[] getVariables(int offset, int length)
+			throws DebugException {
+		ActorStackFrame frame = getVariable().getFrame();
+		try {
+			JSONObject request = new JSONObject();
+			request.put(REQUEST, REQ_GET_VALUE);
+			request.put(ATTR_ACTOR_NAME, frame.getComponentName());
+			request.put(ATTR_FRAME_NAME, frame.getName());
+			request.put(ATTR_VAR_NAME, getVariable().getName());
 
-	protected ActorVariable getVariable() {
-		return variable;
-	}
+			JSONArray array = new JSONArray();
+			array.put(offset);
+			array.put(length);
+			request.put(ATTR_INDEXES, array);
 
-	@Override
-	public IVariable[] getVariables() throws DebugException {
-		return variables;
-	}
-
-	@Override
-	public int hashCode() {
-		return value.hashCode();
+			JSONObject reply = sendRequest(request);
+			return ActorValue.createValue(getVariable(), reply).getVariables();
+		} catch (JSONException e) {
+			IStatus status = new Status(IStatus.ERROR, ID_PLUGIN, "json error",
+					e);
+			throw new DebugException(status);
+		}
 	}
 
 	@Override
 	public boolean hasVariables() throws DebugException {
-		return (variables.length > 0);
-	}
-
-	@Override
-	public boolean isAllocated() throws DebugException {
-		return true;
-	}
-
-	/**
-	 * Parses the JSON object and initializes this value from it.
-	 * 
-	 * @param value
-	 *            a JSON object
-	 */
-	private void parseJSON(JSONObject value) {
-		try {
-			this.value = value.getString(DDPConstants.ATTR_VALUE);
-			JSONArray array = value.getJSONArray(DDPConstants.ATTR_VARIABLES);
-			int length = array.length();
-			variables = new IVariable[length];
-			for (int i = 0; i < length; i++) {
-				variables[i] = new ActorVariable(variable.getFrame(), array
-						.getJSONObject(i));
-			}
-		} catch (JSONException e) {
-			e.printStackTrace();
-		}
+		return (getSize() > 0);
 	}
 
 }
