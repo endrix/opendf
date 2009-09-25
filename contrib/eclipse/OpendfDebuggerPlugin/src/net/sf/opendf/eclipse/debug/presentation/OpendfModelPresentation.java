@@ -87,16 +87,13 @@ public class OpendfModelPresentation extends LabelProvider implements
 	@Override
 	public String getEditorId(IEditorInput input, Object element) {
 		// returns the editor id from the editor descriptor that could be
-		// associated with the given element if it can be translated to an IFile
+		// associated with the given input
 
-		IFile file = getIFile(element);
-		if (file != null) {
-			try {
-				IEditorDescriptor editor = IDE.getEditorDescriptor(file);
-				return editor.getId();
-			} catch (PartInitException e) {
-				e.printStackTrace();
-			}
+		try {
+			IEditorDescriptor editor = IDE.getEditorDescriptor(input.getName());
+			return editor.getId();
+		} catch (PartInitException e) {
+			e.printStackTrace();
 		}
 
 		return null;

@@ -76,7 +76,7 @@ public class ActorVariable extends OpendfDebugElement implements IVariable {
 	 */
 	protected String name;
 
-	protected AbstractType type;
+	private AbstractType type;
 
 	/**
 	 * Constructs a variable contained in the given stack frame with the given
@@ -107,6 +107,10 @@ public class ActorVariable extends OpendfDebugElement implements IVariable {
 		type = DDPClient.getType(variable.get(DDPConstants.ATTR_VAR_TYPE));
 	}
 
+	public ActorStackFrame getFrame() {
+		return frame;
+	}
+
 	@Override
 	public String getName() throws DebugException {
 		return name;
@@ -115,6 +119,15 @@ public class ActorVariable extends OpendfDebugElement implements IVariable {
 	@Override
 	public String getReferenceTypeName() throws DebugException {
 		return type.toString();
+	}
+
+	/**
+	 * Returns the type of this variable.
+	 * 
+	 * @return the type of this variable.
+	 */
+	public AbstractType getType() {
+		return type;
 	}
 
 	@Override
@@ -127,7 +140,7 @@ public class ActorVariable extends OpendfDebugElement implements IVariable {
 			request.put(ATTR_VAR_NAME, getName());
 
 			JSONObject reply = sendRequest(request);
-			return new ActorValue(frame, reply);
+			return ActorValue.createValue(this, reply);
 		} catch (JSONException e) {
 			IStatus status = new Status(IStatus.ERROR, ID_PLUGIN, "json error",
 					e);
