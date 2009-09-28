@@ -1,0 +1,87 @@
+# actors-make Makefile installs actors build system
+
+# delete the built-in suffixes to avoid surprises
+.SUFFIXES:   
+
+# Contents of actors-make
+BIN_FILES=elaborator saxon8 ssagenerator xlim2c
+MK_FILES=Makefile definitions.mk elaborate.mk makemodel.mk
+EXAMPLE_FILES=fib.nl AddUntilOverflow.cal art_Sink_txt.cal SingleDelay.cal
+
+XSL_FILES=SaveInstantiatedActors.xsl generateConfig.xsl MakeGV.xsl
+JAR_FILES=opendf.jar saxon8.jar saxon8-dom.jar
+
+# Directories
+
+# Source directory (also: location of this Makefile)
+srcdir?=.
+
+# Installation prefix and sub-directories
+prefix?=.
+exec_prefix?=$(prefix)
+bindir?=$(exec_prefix)/bin
+libdir?=$(exec_prefix)/lib
+includedir?=$(prefix)/include
+datarootdir?=$(prefix)/share
+datadir?=$(datarootdir)
+javadir?=$(datarootdir)/java
+xsldir?=$(datarootdir)/xsl
+
+BIN_FILES_DEST=$(BIN_FILES:%=$(bindir)/%)
+MK_FILES_DEST=$(MK_FILES:%=$(datadir)/actors-make/%)
+EXAMPLE_FILES_DEST=$(EXAMPLE_FILES:%=$(datadir)/actors-make/example/%)
+
+# Generate sed scripts that substitutes @directory@ strings
+SEDIFY=$(srcdir)/../install-scripts/sedify.sh
+SEDCMD:=$(shell $(SEDIFY) \
+          @bindir@     $(bindir)     @libdir@ $(libdir) \
+          @includedir@ $(includedir) @datadir@ $(datadir) \
+          @javadir@    $(javadir)    @xsldir@  $(xsldir))
+
+.PHONY: all uninstall clean
+.PHONY: install install-dirs install-bin install-mk install-xsl install-java
+.PHONY: $(BIN_FILES_DEST) $(MK_FILES_DEST) $(EXAMPLE_FILES_DEST)
+
+# Nothing to build
+all:
+
+install: install-dirs install-bin install-mk install-xsl install-java
+
+install-dirs:
+	@mkdir -p $(bindir)
+	@mkdir -p $(datadir)/actors-make/example
+	@mkdir -p $(javadir)
+	@mkdir -p $(xsldir)
+
+install-bin: $(BIN_FILES_DEST)
+
+$(BIN_FILES_DEST): $(bindir)/%: $(srcdir)/bin/%.in
+	@$(SEDCMD) $< > $@
+	@chmod ugo+x $@
+
+install-mk: $(MK_FILES_DEST) $(EXAMPLE_FILES_DEST)
+
+$(MK_FILES_DEST): $(datadir)/actors-make/% : $(srcdir)/share/actors-make/%.in
+	@$(SEDCMD) $< > $@
+
+$(EXAMPLE_FILES_DEST): $(datadir)/% : $(srcdir)/share/%
+	@cp $< $@
+
+install-xsl: 
+	@cp $(XSL_FILES:%=$(srcdir)/share/xsl/%) $(xsldir)/.
+
+# TODO: How will we build/where will we find the jars?
+install-java:
+	@cp $(JAR_FILES:%=$(srcdir)/share/java/%) $(javadir)/.
+
+
+INSTALLED_FILES=$(BIN_FILES:%=$(bindir)/%) \
+                $(MK_FILES:%=$(datadir)/actors-make/%) \
+                $(XSL_FILES:%=$(xsldir)/%) \
+                $(JAR_FILES:%=$(javadir)/jar/%)
+
+uninstall:
+	@rm -f $(INSTALLED_FILES)
+
+clean:
+

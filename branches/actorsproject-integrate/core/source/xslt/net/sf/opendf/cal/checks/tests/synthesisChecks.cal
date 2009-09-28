@@ -1,0 +1,18 @@
+
+actor synthesisChecks ( int foo ) ==> :
+
+  int(size=10) goodScalarUninititalized;
+  List( type:int(size=10), size=10) goodListUninitialized;
+   
+  int defaultSize;
+  bogus badType;
+  
+  List( type:int(size=10) ) missingListSize;
+  List( size=10 ) missingListElementType;
+  
+  int(size=foo) scalarSizeUnresolved;
+  List( type:int(size=10), size=foo ) listSizeUnresolved;
+  
+  untypedVariable;
+    
+end

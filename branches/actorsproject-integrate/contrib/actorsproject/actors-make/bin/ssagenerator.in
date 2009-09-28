@@ -1,0 +1,10 @@
+#! /bin/sh
+: ${ACTORS_JAVADIR:=@javadir@}
+: ${OPENDF_JAR:=${ACTORS_JAVADIR}/opendf.jar}
+: ${SAXON8_JAR:=${ACTORS_JAVADIR}/saxon8.jar}
+: ${SAXON8DOM_JAR:=${ACTORS_JAVADIR}/saxon8-dom.jar}
+: ${ACTORS_CLASSPATH:=${OPENDF_JAR}:${SAXON8_JAR}:${SAXON8DOM_JAR}}
+
+${JAVA:-java} ${JFLAGS:--Xmx1G} -classpath $ACTORS_CLASSPATH \
+              net.sf.opendf.cli.SSAGenerator2 "$@"
+

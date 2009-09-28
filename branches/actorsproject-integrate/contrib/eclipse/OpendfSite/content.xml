@@ -1,0 +1,888 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<?metadataRepository class='org.eclipse.equinox.internal.p2.metadata.repository.LocalMetadataRepository' version='1.0.0'?>
+<repository name='OpenDF Update Site' type='org.eclipse.equinox.internal.p2.metadata.repository.LocalMetadataRepository' version='1.0.0'>
+  <properties size='2'>
+    <property name='p2.compressed' value='false'/>
+    <property name='p2.timestamp' value='1245326445875'/>
+  </properties>
+  <references size='2'>
+    <repository url='http://opendf.sourceforge.net/eclipse' type='0' options='0'/>
+    <repository url='http://opendf.sourceforge.net/eclipse' type='1' options='0'/>
+  </references>
+  <units size='21'>
+    <unit id='tooling.source.default' version='1.0.0' singleton='false'>
+      <hostRequirements size='1'>
+        <required namespace='org.eclipse.equinox.p2.eclipse.type' name='source' range='0.0.0' optional='true' multiple='true' greedy='false'/>
+      </hostRequirements>
+      <properties size='1'>
+        <property name='org.eclipse.equinox.p2.type.fragment' value='true'/>
+      </properties>
+      <provides size='2'>
+        <provided namespace='org.eclipse.equinox.p2.iu' name='tooling.source.default' version='1.0.0'/>
+        <provided namespace='org.eclipse.equinox.p2.flavor' name='tooling' version='1.0.0'/>
+      </provides>
+      <requires size='1'>
+        <required namespace='org.eclipse.equinox.p2.eclipse.type' name='source' range='0.0.0' optional='true' multiple='true' greedy='false'/>
+      </requires>
+      <touchpoint id='null' version='0.0.0'/>
+      <touchpointData size='1'>
+        <instructions size='2'>
+          <instruction key='install'>
+            addSourceBundle(bundle:${artifact})
+          </instruction>
+          <instruction key='uninstall'>
+            removeSourceBundle(bundle:${artifact})
+          </instruction>
+        </instructions>
+      </touchpointData>
+    </unit>
+    <unit id='net.sf.opendf.eclipse.feature.feature.group' version='1.2.14' singleton='false'>
+      <update id='net.sf.opendf.eclipse.feature.feature.group' range='[0.0.0,1.2.14)' severity='0'/>
+      <properties size='4'>
+        <property name='org.eclipse.equinox.p2.name' value='Open Dataflow Plugin'/>
+        <property name='org.eclipse.equinox.p2.description' value='Open Dataflow Project plugin&#xA;V1.2.5&#xA;* improved simulation speed&#xA;* Action priority analysis bug fixed&#xA;* NL parsing bug fixed (type parameters)&#xA;V1.2.4&#xA;* Reverted to Java 1.5&#xA;V1.2.3&#xA;===============================================&#xA;* Improved console I/O behavior&#xA;* Minor bug fixes&#xA;V1.2.0&#xA;===============================================&#xA;* Improved simulator interface&#xA;* Run config dialog tab for console I/O control&#xA;* Improved error reporting from editor&#xA;V1.1.0&#xA;===============================================&#xA;* make dataflow simulator available from the std Eclipse run&#xA;dialog.&#xA;* fix problems opening files outside project&#xA;V1.0.1&#xA;===============================================&#xA;* Improved outlining including icons and preservation of expanded&#xA;state.&#xA;* Changed .CAL and .NL images.&#xA;* Added to PDF documentation.'/>
+        <property name='org.eclipse.equinox.p2.provider' value='The Open Dataflow Project'/>
+        <property name='org.eclipse.equinox.p2.type.group' value='true'/>
+      </properties>
+      <provides size='1'>
+        <provided namespace='org.eclipse.equinox.p2.iu' name='net.sf.opendf.eclipse.feature.feature.group' version='1.2.14'/>
+      </provides>
+      <requires size='13'>
+        <required namespace='org.eclipse.equinox.p2.iu' name='org.eclipse.core.runtime' range='0.0.0'/>
+        <required namespace='org.eclipse.equinox.p2.iu' name='org.eclipse.debug.ui' range='0.0.0'/>
+        <required namespace='org.eclipse.equinox.p2.iu' name='org.eclipse.jface.text' range='0.0.0'/>
+        <required namespace='org.eclipse.equinox.p2.iu' name='org.eclipse.ui' range='0.0.0'/>
+        <required namespace='org.eclipse.equinox.p2.iu' name='org.eclipse.ui.console' range='0.0.0'/>
+        <required namespace='org.eclipse.equinox.p2.iu' name='org.eclipse.ui.editors' range='0.0.0'/>
+        <required namespace='org.eclipse.equinox.p2.iu' name='org.eclipse.ui.ide' range='0.0.0'/>
+        <required namespace='org.eclipse.equinox.p2.iu' name='org.eclipse.ui.views' range='0.0.0'/>
+        <required namespace='org.eclipse.equinox.p2.iu' name='org.eclipse.ui.workbench.texteditor' range='0.0.0'/>
+        <required namespace='org.eclipse.equinox.p2.iu' name='net.sf.opendf.eclipse.core' range='[1.2.14,1.2.14]'/>
+        <required namespace='org.eclipse.equinox.p2.iu' name='net.sf.opendf.eclipse.doc' range='[1.2.14,1.2.14]'/>
+        <required namespace='org.eclipse.equinox.p2.iu' name='net.sf.opendf.eclipse.plugin' range='[1.2.14,1.2.14]'/>
+        <required namespace='org.eclipse.equinox.p2.iu' name='net.sf.opendf.eclipse.feature.feature.jar' range='[1.2.14,1.2.14]'>
+          <filter>
+            (org.eclipse.update.install.features=true)
+          </filter>
+        </required>
+      </requires>
+      <touchpoint id='null' version='0.0.0'/>
+      <licenses size='1'>
+        <license>
+          Copyright (c) 2008, Xilinx Inc.&#xA;All rights reserved.&#xA;Redistribution and use in source and binary forms, with or without&#xA;modification, are permitted provided that the following conditions&#xA;are met:&#xA;- Redistributions of source code must retain the above copyright&#xA;notice, this list of conditions and the following disclaimer.&#xA;- Redistributions in binary form must reproduce the above copyright&#xA;notice, this list of conditions and the following disclaimer&#xA;in the documentation and/or other materials provided with the&#xA;distribution.&#xA;- Neither the name of Xilinx Inc. nor the names of its contributors&#xA;may be used to endorse or promote products derived from this&#xA;software without specific prior written permission.&#xA;THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS&#xA;&quot;AS IS&quot; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT&#xA;NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND&#xA;FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT&#xA;SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,&#xA;INDIRECT, INCIDENTAL,SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES&#xA;(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS&#xA;OR SERVICES;LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)&#xA;HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,&#xA;STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)&#xA;ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED&#xA;OF THE POSSIBILITY OF SUCH DAMAGE.
+        </license>
+      </licenses>
+      <copyright>
+        Copyright (c) 2008, Xilinx Inc.&#xA;All rights reserved.
+      </copyright>
+    </unit>
+    <unit id='net.sf.opendf.eclipse.doc' version='1.2.14'>
+      <update id='net.sf.opendf.eclipse.doc' range='[0.0.0,1.2.14)' severity='0'/>
+      <properties size='2'>
+        <property name='org.eclipse.equinox.p2.name' value='Open Dataflow Documentation'/>
+        <property name='org.eclipse.equinox.p2.provider' value='The Open Dataflow Project'/>
+      </properties>
+      <provides size='3'>
+        <provided namespace='org.eclipse.equinox.p2.iu' name='net.sf.opendf.eclipse.doc' version='1.2.14'/>
+        <provided namespace='osgi.bundle' name='net.sf.opendf.eclipse.doc' version='1.2.14'/>
+        <provided namespace='org.eclipse.equinox.p2.eclipse.type' name='bundle' version='1.0.0'/>
+      </provides>
+      <artifacts size='1'>
+        <artifact classifier='osgi.bundle' id='net.sf.opendf.eclipse.doc' version='1.2.14'/>
+      </artifacts>
+      <touchpoint id='org.eclipse.equinox.p2.osgi' version='1.0.0'/>
+      <touchpointData size='1'>
+        <instructions size='2'>
+          <instruction key='manifest'>
+            Bundle-Name: Open Dataflow Documentation&#xA;Bundle-Version: 1.2.14&#xA;Bundle-SymbolicName: net.sf.opendf.eclipse.doc;singleton:=true&#xA;Manifest-Version: 1.0&#xA;Bundle-ManifestVersion: 2&#xA;Bundle-Vendor: The Open Dataflow Project&#xA;Bundle-Localization: plugin
+          </instruction>
+          <instruction key='zipped'>
+            true
+          </instruction>
+        </instructions>
+      </touchpointData>
+    </unit>
+    <unit id='tooling.osgi.bundle.default' version='1.0.0' singleton='false'>
+      <hostRequirements size='1'>
+        <required namespace='org.eclipse.equinox.p2.eclipse.type' name='bundle' range='0.0.0' multiple='true' greedy='false'/>
+      </hostRequirements>
+      <properties size='1'>
+        <property name='org.eclipse.equinox.p2.type.fragment' value='true'/>
+      </properties>
+      <provides size='2'>
+        <provided namespace='org.eclipse.equinox.p2.iu' name='tooling.osgi.bundle.default' version='1.0.0'/>
+        <provided namespace='org.eclipse.equinox.p2.flavor' name='tooling' version='1.0.0'/>
+      </provides>
+      <requires size='1'>
+        <required namespace='org.eclipse.equinox.p2.eclipse.type' name='bundle' range='0.0.0' multiple='true' greedy='false'/>
+      </requires>
+      <touchpoint id='null' version='0.0.0'/>
+      <touchpointData size='1'>
+        <instructions size='4'>
+          <instruction key='install'>
+            installBundle(bundle:${artifact})
+          </instruction>
+          <instruction key='uninstall'>
+            uninstallBundle(bundle:${artifact})
+          </instruction>
+          <instruction key='unconfigure'>
+
+          </instruction>
+          <instruction key='configure'>
+            setStartLevel(startLevel:4);
+          </instruction>
+        </instructions>
+      </touchpointData>
+    </unit>
+    <unit id='tooling.org.eclipse.update.feature.default' version='1.0.0' singleton='false'>
+      <hostRequirements size='1'>
+        <required namespace='org.eclipse.equinox.p2.eclipse.type' name='feature' range='0.0.0' optional='true' multiple='true' greedy='false'/>
+      </hostRequirements>
+      <properties size='1'>
+        <property name='org.eclipse.equinox.p2.type.fragment' value='true'/>
+      </properties>
+      <provides size='2'>
+        <provided namespace='org.eclipse.equinox.p2.iu' name='tooling.org.eclipse.update.feature.default' version='1.0.0'/>
+        <provided namespace='org.eclipse.equinox.p2.flavor' name='tooling' version='1.0.0'/>
+      </provides>
+      <requires size='1'>
+        <required namespace='org.eclipse.equinox.p2.eclipse.type' name='feature' range='0.0.0' optional='true' multiple='true' greedy='false'/>
+      </requires>
+      <filter>
+        (org.eclipse.update.install.features=true)
+      </filter>
+      <touchpoint id='null' version='0.0.0'/>
+      <touchpointData size='1'>
+        <instructions size='2'>
+          <instruction key='install'>
+            installFeature(feature:${artifact},featureId:default,featureVersion:default)
+          </instruction>
+          <instruction key='uninstall'>
+            uninstallFeature(feature:${artifact},featureId:default,featureVersion:default)
+          </instruction>
+        </instructions>
+      </touchpointData>
+    </unit>
+    <unit id='a.jre' version='1.6.0' singleton='false'>
+      <provides size='117'>
+        <provided namespace='org.eclipse.equinox.p2.iu' name='a.jre' version='1.6.0'/>
+        <provided namespace='java.package' name='javax.accessibility' version='0.0.0'/>
+        <provided namespace='java.package' name='javax.activity' version='0.0.0'/>
+        <provided namespace='java.package' name='javax.crypto' version='0.0.0'/>
+        <provided namespace='java.package' name='javax.crypto.interfaces' version='0.0.0'/>
+        <provided namespace='java.package' name='javax.crypto.spec' version='0.0.0'/>
+        <provided namespace='java.package' name='javax.imageio' version='0.0.0'/>
+        <provided namespace='java.package' name='javax.imageio.event' version='0.0.0'/>
+        <provided namespace='java.package' name='javax.imageio.metadata' version='0.0.0'/>
+        <provided namespace='java.package' name='javax.imageio.plugins.bmp' version='0.0.0'/>
+        <provided namespace='java.package' name='javax.imageio.plugins.jpeg' version='0.0.0'/>
+        <provided namespace='java.package' name='javax.imageio.spi' version='0.0.0'/>
+        <provided namespace='java.package' name='javax.imageio.stream' version='0.0.0'/>
+        <provided namespace='java.package' name='javax.management' version='0.0.0'/>
+        <provided namespace='java.package' name='javax.management.loading' version='0.0.0'/>
+        <provided namespace='java.package' name='javax.management.modelmbean' version='0.0.0'/>
+        <provided namespace='java.package' name='javax.management.monitor' version='0.0.0'/>
+        <provided namespace='java.package' name='javax.management.openmbean' version='0.0.0'/>
+        <provided namespace='java.package' name='javax.management.relation' version='0.0.0'/>
+        <provided namespace='java.package' name='javax.management.remote' version='0.0.0'/>
+        <provided namespace='java.package' name='javax.management.remote.rmi' version='0.0.0'/>
+        <provided namespace='java.package' name='javax.management.timer' version='0.0.0'/>
+        <provided namespace='java.package' name='javax.naming' version='0.0.0'/>
+        <provided namespace='java.package' name='javax.naming.directory' version='0.0.0'/>
+        <provided namespace='java.package' name='javax.naming.event' version='0.0.0'/>
+        <provided namespace='java.package' name='javax.naming.ldap' version='0.0.0'/>
+        <provided namespace='java.package' name='javax.naming.spi' version='0.0.0'/>
+        <provided namespace='java.package' name='javax.net' version='0.0.0'/>
+        <provided namespace='java.package' name='javax.net.ssl' version='0.0.0'/>
+        <provided namespace='java.package' name='javax.print' version='0.0.0'/>
+        <provided namespace='java.package' name='javax.print.attribute' version='0.0.0'/>
+        <provided namespace='java.package' name='javax.print.attribute.standard' version='0.0.0'/>
+        <provided namespace='java.package' name='javax.print.event' version='0.0.0'/>
+        <provided namespace='java.package' name='javax.rmi' version='0.0.0'/>
+        <provided namespace='java.package' name='javax.rmi.CORBA' version='0.0.0'/>
+        <provided namespace='java.package' name='javax.rmi.ssl' version='0.0.0'/>
+        <provided namespace='java.package' name='javax.security.auth' version='0.0.0'/>
+        <provided namespace='java.package' name='javax.security.auth.callback' version='0.0.0'/>
+        <provided namespace='java.package' name='javax.security.auth.kerberos' version='0.0.0'/>
+        <provided namespace='java.package' name='javax.security.auth.login' version='0.0.0'/>
+        <provided namespace='java.package' name='javax.security.auth.spi' version='0.0.0'/>
+        <provided namespace='java.package' name='javax.security.auth.x500' version='0.0.0'/>
+        <provided namespace='java.package' name='javax.security.cert' version='0.0.0'/>
+        <provided namespace='java.package' name='javax.security.sasl' version='0.0.0'/>
+        <provided namespace='java.package' name='javax.sound.midi' version='0.0.0'/>
+        <provided namespace='java.package' name='javax.sound.midi.spi' version='0.0.0'/>
+        <provided namespace='java.package' name='javax.sound.sampled' version='0.0.0'/>
+        <provided namespace='java.package' name='javax.sound.sampled.spi' version='0.0.0'/>
+        <provided namespace='java.package' name='javax.sql' version='0.0.0'/>
+        <provided namespace='java.package' name='javax.sql.rowset' version='0.0.0'/>
+        <provided namespace='java.package' name='javax.sql.rowset.serial' version='0.0.0'/>
+        <provided namespace='java.package' name='javax.sql.rowset.spi' version='0.0.0'/>
+        <provided namespace='java.package' name='javax.swing' version='0.0.0'/>
+        <provided namespace='java.package' name='javax.swing.border' version='0.0.0'/>
+        <provided namespace='java.package' name='javax.swing.colorchooser' version='0.0.0'/>
+        <provided namespace='java.package' name='javax.swing.event' version='0.0.0'/>
+        <provided namespace='java.package' name='javax.swing.filechooser' version='0.0.0'/>
+        <provided namespace='java.package' name='javax.swing.plaf' version='0.0.0'/>
+        <provided namespace='java.package' name='javax.swing.plaf.basic' version='0.0.0'/>
+        <provided namespace='java.package' name='javax.swing.plaf.metal' version='0.0.0'/>
+        <provided namespace='java.package' name='javax.swing.plaf.multi' version='0.0.0'/>
+        <provided namespace='java.package' name='javax.swing.plaf.synth' version='0.0.0'/>
+        <provided namespace='java.package' name='javax.swing.table' version='0.0.0'/>
+        <provided namespace='java.package' name='javax.swing.text' version='0.0.0'/>
+        <provided namespace='java.package' name='javax.swing.text.html' version='0.0.0'/>
+        <provided namespace='java.package' name='javax.swing.text.html.parser' version='0.0.0'/>
+        <provided namespace='java.package' name='javax.swing.text.rtf' version='0.0.0'/>
+        <provided namespace='java.package' name='javax.swing.tree' version='0.0.0'/>
+        <provided namespace='java.package' name='javax.swing.undo' version='0.0.0'/>
+        <provided namespace='java.package' name='javax.transaction' version='0.0.0'/>
+        <provided namespace='java.package' name='javax.transaction.xa' version='0.0.0'/>
+        <provided namespace='java.package' name='javax.xml' version='0.0.0'/>
+        <provided namespace='java.package' name='javax.xml.datatype' version='0.0.0'/>
+        <provided namespace='java.package' name='javax.xml.namespace' version='0.0.0'/>
+        <provided namespace='java.package' name='javax.xml.parsers' version='0.0.0'/>
+        <provided namespace='java.package' name='javax.xml.transform' version='0.0.0'/>
+        <provided namespace='java.package' name='javax.xml.transform.dom' version='0.0.0'/>
+        <provided namespace='java.package' name='javax.xml.transform.sax' version='0.0.0'/>
+        <provided namespace='java.package' name='javax.xml.transform.stream' version='0.0.0'/>
+        <provided namespace='java.package' name='javax.xml.validation' version='0.0.0'/>
+        <provided namespace='java.package' name='javax.xml.xpath' version='0.0.0'/>
+        <provided namespace='java.package' name='org.ietf.jgss' version='0.0.0'/>
+        <provided namespace='java.package' name='org.omg.CORBA' version='0.0.0'/>
+        <provided namespace='java.package' name='org.omg.CORBA_2_3' version='0.0.0'/>
+        <provided namespace='java.package' name='org.omg.CORBA_2_3.portable' version='0.0.0'/>
+        <provided namespace='java.package' name='org.omg.CORBA.DynAnyPackage' version='0.0.0'/>
+        <provided namespace='java.package' name='org.omg.CORBA.ORBPackage' version='0.0.0'/>
+        <provided namespace='java.package' name='org.omg.CORBA.portable' version='0.0.0'/>
+        <provided namespace='java.package' name='org.omg.CORBA.TypeCodePackage' version='0.0.0'/>
+        <provided namespace='java.package' name='org.omg.CosNaming' version='0.0.0'/>
+        <provided namespace='java.package' name='org.omg.CosNaming.NamingContextExtPackage' version='0.0.0'/>
+        <provided namespace='java.package' name='org.omg.CosNaming.NamingContextPackage' version='0.0.0'/>
+        <provided namespace='java.package' name='org.omg.Dynamic' version='0.0.0'/>
+        <provided namespace='java.package' name='org.omg.DynamicAny' version='0.0.0'/>
+        <provided namespace='java.package' name='org.omg.DynamicAny.DynAnyFactoryPackage' version='0.0.0'/>
+        <provided namespace='java.package' name='org.omg.DynamicAny.DynAnyPackage' version='0.0.0'/>
+        <provided namespace='java.package' name='org.omg.IOP' version='0.0.0'/>
+        <provided namespace='java.package' name='org.omg.IOP.CodecFactoryPackage' version='0.0.0'/>
+        <provided namespace='java.package' name='org.omg.IOP.CodecPackage' version='0.0.0'/>
+        <provided namespace='java.package' name='org.omg.Messaging' version='0.0.0'/>
+        <provided namespace='java.package' name='org.omg.PortableInterceptor' version='0.0.0'/>
+        <provided namespace='java.package' name='org.omg.PortableInterceptor.ORBInitInfoPackage' version='0.0.0'/>
+        <provided namespace='java.package' name='org.omg.PortableServer' version='0.0.0'/>
+        <provided namespace='java.package' name='org.omg.PortableServer.CurrentPackage' version='0.0.0'/>
+        <provided namespace='java.package' name='org.omg.PortableServer.POAManagerPackage' version='0.0.0'/>
+        <provided namespace='java.package' name='org.omg.PortableServer.POAPackage' version='0.0.0'/>
+        <provided namespace='java.package' name='org.omg.PortableServer.portable' version='0.0.0'/>
+        <provided namespace='java.package' name='org.omg.PortableServer.ServantLocatorPackage' version='0.0.0'/>
+        <provided namespace='java.package' name='org.omg.SendingContext' version='0.0.0'/>
+        <provided namespace='java.package' name='org.omg.stub.java.rmi' version='0.0.0'/>
+        <provided namespace='java.package' name='org.w3c.dom' version='0.0.0'/>
+        <provided namespace='java.package' name='org.w3c.dom.bootstrap' version='0.0.0'/>
+        <provided namespace='java.package' name='org.w3c.dom.events' version='0.0.0'/>
+        <provided namespace='java.package' name='org.w3c.dom.ls' version='0.0.0'/>
+        <provided namespace='java.package' name='org.xml.sax' version='0.0.0'/>
+        <provided namespace='java.package' name='org.xml.sax.ext' version='0.0.0'/>
+        <provided namespace='java.package' name='org.xml.sax.helpers' version='0.0.0'/>
+      </provides>
+      <touchpoint id='org.eclipse.equinox.p2.native' version='1.0.0'/>
+    </unit>
+    <unit id='net.sf.opendf.eclipse.plugin' version='1.2.14'>
+      <update id='net.sf.opendf.eclipse.plugin' range='[0.0.0,1.2.14)' severity='0'/>
+      <properties size='2'>
+        <property name='org.eclipse.equinox.p2.name' value='Open Dataflow Editor Plugin'/>
+        <property name='org.eclipse.equinox.p2.provider' value='The Open Dataflow Project'/>
+      </properties>
+      <provides size='12'>
+        <provided namespace='org.eclipse.equinox.p2.iu' name='net.sf.opendf.eclipse.plugin' version='1.2.14'/>
+        <provided namespace='osgi.bundle' name='net.sf.opendf.eclipse.plugin' version='1.2.14'/>
+        <provided namespace='java.package' name='net.sf.opendf.eclipse.plugin' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.eclipse.plugin.config' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.eclipse.plugin.editors' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.eclipse.plugin.editors.checkers' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.eclipse.plugin.editors.outline' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.eclipse.plugin.editors.rules' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.eclipse.plugin.editors.scanners' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.eclipse.plugin.launcher' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.eclipse.plugin.launcher.tabs' version='0.0.0'/>
+        <provided namespace='org.eclipse.equinox.p2.eclipse.type' name='bundle' version='1.0.0'/>
+      </provides>
+      <requires size='11'>
+        <required namespace='osgi.bundle' name='org.eclipse.core.runtime' range='0.0.0'/>
+        <required namespace='osgi.bundle' name='org.eclipse.debug.core' range='0.0.0'/>
+        <required namespace='osgi.bundle' name='org.eclipse.debug.ui' range='0.0.0'/>
+        <required namespace='osgi.bundle' name='org.eclipse.jface.text' range='0.0.0'/>
+        <required namespace='osgi.bundle' name='org.eclipse.ui' range='0.0.0'/>
+        <required namespace='osgi.bundle' name='org.eclipse.ui.console' range='0.0.0'/>
+        <required namespace='osgi.bundle' name='org.eclipse.ui.editors' range='0.0.0'/>
+        <required namespace='osgi.bundle' name='org.eclipse.ui.ide' range='0.0.0'/>
+        <required namespace='osgi.bundle' name='org.eclipse.ui.views' range='0.0.0'/>
+        <required namespace='osgi.bundle' name='org.eclipse.ui.workbench.texteditor' range='0.0.0'/>
+        <required namespace='osgi.bundle' name='net.sf.opendf.eclipse.core' range='0.0.0'/>
+      </requires>
+      <artifacts size='1'>
+        <artifact classifier='osgi.bundle' id='net.sf.opendf.eclipse.plugin' version='1.2.14'/>
+      </artifacts>
+      <touchpoint id='org.eclipse.equinox.p2.osgi' version='1.0.0'/>
+      <touchpointData size='1'>
+        <instructions size='1'>
+          <instruction key='manifest'>
+            Require-Bundle: org.eclipse.core.runtime,org.eclipse.debug.core,org.eclipse.debug.ui,org.eclipse.jface.text,org.eclipse.ui,org.eclipse.ui.console,org.eclipse.ui.editors,org.eclipse.ui.ide,org.eclipse.ui.views,org.eclipse.ui.workbench.texteditor,net.sf.opendf.eclipse.core&#xA;Bundle-Activator: net.sf.opendf.eclipse.plugin.OpendfPlugin&#xA;Manifest-Version: 1.0&#xA;Bundle-Version: 1.2.14&#xA;Bundle-SymbolicName: net.sf.opendf.eclipse.plugin;singleton:=true&#xA;Bundle-Localization: &#xA;Provide-Package: net.sf.opendf.eclipse.plugin,net.sf.opendf.eclipse.plugin.config,net.sf.opendf.eclipse.plugin.editors,net.sf.opendf.eclipse.plugin.editors.checkers,net.sf.opendf.eclipse.plugin.editors.outline,net.sf.opendf.eclipse.plugin.editors.rules,net.sf.opendf.eclipse.plugin.editors.scanners,net.sf.opendf.eclipse.plugin.launcher,net.sf.opendf.eclipse.plugin.launcher.tabs&#xA;Bundle-Name: Open Dataflow Editor Plugin&#xA;Bundle-Vendor: The Open Dataflow Project&#xA;Eclipse-LazyStart: true
+          </instruction>
+        </instructions>
+      </touchpointData>
+    </unit>
+    <unit id='net.sf.opendf.eclipse.HardwareCompiler' version='1.0.18'>
+      <update id='net.sf.opendf.eclipse.HardwareCompiler' range='[0.0.0,1.0.18)' severity='0'/>
+      <properties size='2'>
+        <property name='org.eclipse.equinox.p2.name' value='Hardware Compiler Plug-in'/>
+        <property name='org.eclipse.equinox.p2.provider' value='The Open Dataflow Project'/>
+      </properties>
+      <provides size='3'>
+        <provided namespace='org.eclipse.equinox.p2.iu' name='net.sf.opendf.eclipse.HardwareCompiler' version='1.0.18'/>
+        <provided namespace='osgi.bundle' name='net.sf.opendf.eclipse.HardwareCompiler' version='1.0.18'/>
+        <provided namespace='org.eclipse.equinox.p2.eclipse.type' name='bundle' version='1.0.0'/>
+      </provides>
+      <requires size='10'>
+        <required namespace='osgi.bundle' name='net.sf.opendf.eclipse.core' range='0.0.0'/>
+        <required namespace='osgi.bundle' name='net.sf.opendf.eclipse.plugin' range='0.0.0'/>
+        <required namespace='osgi.bundle' name='org.eclipse.ui' range='0.0.0'/>
+        <required namespace='osgi.bundle' name='org.eclipse.core.runtime' range='0.0.0'/>
+        <required namespace='osgi.bundle' name='org.eclipse.debug.ui' range='0.0.0'/>
+        <required namespace='osgi.bundle' name='org.eclipse.ui.console' range='0.0.0'/>
+        <required namespace='java.package' name='net.sf.openforge.app' range='0.0.0'/>
+        <required namespace='java.package' name='net.sf.openforge.frontend.xlim.builder' range='0.0.0'/>
+        <required namespace='java.package' name='net.sf.openforge.util.io' range='0.0.0'/>
+        <required namespace='java.package' name='net.sf.openforge.util.xml' range='0.0.0'/>
+      </requires>
+      <artifacts size='1'>
+        <artifact classifier='osgi.bundle' id='net.sf.opendf.eclipse.HardwareCompiler' version='1.0.18'/>
+      </artifacts>
+      <touchpoint id='org.eclipse.equinox.p2.osgi' version='1.0.0'/>
+      <touchpointData size='1'>
+        <instructions size='1'>
+          <instruction key='manifest'>
+            Bundle-Vendor: The Open Dataflow Project&#xA;Bundle-ManifestVersion: 2&#xA;Bundle-Activator: net.sf.opendf.eclipse.plugin.hardwarecompiler.Activator&#xA;Bundle-ClassPath: .,lib/saxon8-dom.jar,lib/saxon8.jar,source/xslt/&#xA;Require-Bundle: net.sf.opendf.eclipse.core,net.sf.opendf.eclipse.plugin,org.eclipse.ui,org.eclipse.core.runtime,org.eclipse.debug.ui,org.eclipse.ui.console&#xA;Import-Package: net.sf.openforge.app,net.sf.openforge.frontend.xlim.builder,net.sf.openforge.util.io,net.sf.openforge.util.xml&#xA;Bundle-Name: Hardware Compiler Plug-in&#xA;Manifest-Version: 1.0&#xA;Bundle-SymbolicName: net.sf.opendf.eclipse.HardwareCompiler;singleton:=true&#xA;Bundle-Version: 1.0.18&#xA;Eclipse-LazyStart: true
+          </instruction>
+        </instructions>
+      </touchpointData>
+    </unit>
+    <unit id='Open Dataflow Project Plugin' version='0.0.0'>
+      <properties size='3'>
+        <property name='org.eclipse.equinox.p2.name' value='Open Dataflow Project Plugin'/>
+        <property name='org.eclipse.equinox.p2.description' value='Provides CAL/NL editing capablity and documentation.'/>
+        <property name='org.eclipse.equinox.p2.type.category' value='true'/>
+      </properties>
+      <provides size='1'>
+        <provided namespace='org.eclipse.equinox.p2.iu' name='Open Dataflow Project Plugin' version='0.0.0'/>
+      </provides>
+      <requires size='1'>
+        <required namespace='org.eclipse.equinox.p2.iu' name='net.sf.opendf.eclipse.feature.feature.group' range='[1.2.14,1.2.14]'/>
+      </requires>
+      <touchpoint id='null' version='0.0.0'/>
+    </unit>
+    <unit id='net.sf.opendf.eclipse.core' version='1.2.14'>
+      <update id='net.sf.opendf.eclipse.core' range='[0.0.0,1.2.14)' severity='0'/>
+      <properties size='2'>
+        <property name='org.eclipse.equinox.p2.name' value='Open Dataflow Core Plug-in'/>
+        <property name='org.eclipse.equinox.p2.provider' value='The Open Dataflow Project'/>
+      </properties>
+      <provides size='67'>
+        <provided namespace='org.eclipse.equinox.p2.iu' name='net.sf.opendf.eclipse.core' version='1.2.14'/>
+        <provided namespace='osgi.bundle' name='net.sf.opendf.eclipse.core' version='1.2.14'/>
+        <provided namespace='java.package' name='java_cup' version='0.0.0'/>
+        <provided namespace='java.package' name='java_cup.runtime' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.actorc.parser' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.actorc.util' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.cal.ast' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.cal.checks' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.cal.i2' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.cal.i2.configuration' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.cal.i2.environment' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.cal.i2.generator' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.cal.i2.java' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.cal.i2.platform' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.cal.i2.shell' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.cal.i2.types' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.cal.i2.util' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.cal.interpreter' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.cal.interpreter.environment' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.cal.interpreter.generator' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.cal.interpreter.java' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.cal.interpreter.util' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.cal.lib' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.cal.lib_i2' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.cal.main' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.cal.parser' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.cal.shell' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.cal.transforms' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.cal.transforms.xlim' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.cal.util' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.cli' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.cli.lib' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.config' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.eclipse.coreplugin' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.hades.cal' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.hades.des' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.hades.des.components' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.hades.des.schedule' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.hades.des.util' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.hades.models' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.hades.models.lib' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.hades.network' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.hades.simulation' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.hades.util' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.hades.util.causation' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.math' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.math.cmatrix' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.math.matrix' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.math.util' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.nl' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.nl.parser' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.nl.util' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.transforms' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.util' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.util.exception' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.util.io' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.util.logging' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.util.source' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.util.xml' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.xslt.cal' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.xslt.cal.lib' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.xslt.nl' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.xslt.util' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.saxon' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.saxon.dom' version='0.0.0'/>
+        <provided namespace='java.package' name='ptolemy.media' version='0.0.0'/>
+        <provided namespace='org.eclipse.equinox.p2.eclipse.type' name='bundle' version='1.0.0'/>
+      </provides>
+      <requires size='1'>
+        <required namespace='osgi.bundle' name='org.eclipse.core.runtime' range='0.0.0'/>
+      </requires>
+      <artifacts size='1'>
+        <artifact classifier='osgi.bundle' id='net.sf.opendf.eclipse.core' version='1.2.14'/>
+      </artifacts>
+      <touchpoint id='org.eclipse.equinox.p2.osgi' version='1.0.0'/>
+      <touchpointData size='1'>
+        <instructions size='1'>
+          <instruction key='manifest'>
+            Bundle-Vendor: The Open Dataflow Project&#xA;Bundle-ManifestVersion: 2&#xA;Bundle-Activator: net.sf.opendf.eclipse.coreplugin.Activator&#xA;Bundle-ClassPath: .,source/xslt/,lib/saxon8.jar,lib/saxon8-dom.jar,lib/PtPlot.jar&#xA;Require-Bundle: org.eclipse.core.runtime&#xA;Bundle-Name: Open Dataflow Core Plug-in&#xA;Manifest-Version: 1.0&#xA;Bundle-SymbolicName: net.sf.opendf.eclipse.core;singleton:=true&#xA;Bundle-Version: 1.2.14&#xA;Eclipse-LazyStart: true&#xA;Export-Package: java_cup,java_cup.runtime,net.sf.opendf.actorc.parser,net.sf.opendf.actorc.util,net.sf.opendf.cal.ast,net.sf.opendf.cal.checks,net.sf.opendf.cal.i2,net.sf.opendf.cal.i2.configuration,net.sf.opendf.cal.i2.environment,net.sf.opendf.cal.i2.generator,net.sf.opendf.cal.i2.java,net.sf.opendf.cal.i2.platform,net.sf.opendf.cal.i2.shell,net.sf.opendf.cal.i2.types,net.sf.opendf.cal.i2.util,net.sf.opendf.cal.interpreter,net.sf.opendf.cal.interpreter.environment,net.sf.opendf.cal.interpreter.generator,net.sf.opendf.cal.interpreter.java,net.sf.opendf.cal.interpreter.util,net.sf.opendf.cal.lib,net.sf.opendf.cal.lib_i2,net.sf.opendf.cal.main,net.sf.opendf.cal.parser,net.sf.opendf.cal.shell,net.sf.opendf.cal.transforms,net.sf.opendf.cal.transforms.xlim,net.sf.opendf.cal.util,net.sf.opendf.cli,net.sf.opendf.cli.lib,net.sf.opendf.config,net.sf.opendf.eclipse.coreplugin,net.sf.opendf.hades.cal,net.sf.opendf.hades.des,net.sf.opendf.hades.des.components,net.sf.opendf.hades.des.schedule,net.sf.opendf.hades.des.util,net.sf.opendf.hades.models,net.sf.opendf.hades.models.lib,net.sf.opendf.hades.network,net.sf.opendf.hades.simulation,net.sf.opendf.hades.util,net.sf.opendf.hades.util.causation,net.sf.opendf.math,net.sf.opendf.math.cmatrix,net.sf.opendf.math.matrix,net.sf.opendf.math.util,net.sf.opendf.nl,net.sf.opendf.nl.parser,net.sf.opendf.nl.util,net.sf.opendf.transforms,net.sf.opendf.util,net.sf.opendf.util.exception,net.sf.opendf.util.io,net.sf.opendf.util.logging,net.sf.opendf.util.source,net.sf.opendf.util.xml,net.sf.opendf.xslt.cal,net.sf.opendf.xslt.cal.lib,net.sf.opendf.xslt.nl,net.sf.opendf.xslt.util,net.sf.saxon,net.sf.saxon.dom,ptolemy.media
+          </instruction>
+        </instructions>
+      </touchpointData>
+    </unit>
+    <unit id='Cal2HDL compiler' version='0.0.0'>
+      <properties size='3'>
+        <property name='org.eclipse.equinox.p2.name' value='Cal2HDL compiler'/>
+        <property name='org.eclipse.equinox.p2.description' value='Provides the Hardware compiler from Cal implementation'/>
+        <property name='org.eclipse.equinox.p2.type.category' value='true'/>
+      </properties>
+      <provides size='1'>
+        <provided namespace='org.eclipse.equinox.p2.iu' name='Cal2HDL compiler' version='0.0.0'/>
+      </provides>
+      <requires size='1'>
+        <required namespace='org.eclipse.equinox.p2.iu' name='net.sf.opendf.eclipse.hwcompiler.feature.group' range='[1.0.18,1.0.18]'/>
+      </requires>
+      <touchpoint id='null' version='0.0.0'/>
+    </unit>
+    <unit id='net.sf.opendf.eclipse.hwcompiler.feature.group' version='1.0.18' singleton='false'>
+      <update id='net.sf.opendf.eclipse.hwcompiler.feature.group' range='[0.0.0,1.0.18)' severity='0'/>
+      <properties size='4'>
+        <property name='org.eclipse.equinox.p2.name' value='OpenDF Hardware Compiler Feature'/>
+        <property name='org.eclipse.equinox.p2.description' value='This feature enables compilation of CAL/NL Dataflow networks&#xA;to Hardware Description Language (HDL) implementations.  This&#xA;feature requires the com.xilinx.df.core plugin to supply the&#xA;compiler core.'/>
+        <property name='org.eclipse.equinox.p2.provider' value='The Open Dataflow Project Team'/>
+        <property name='org.eclipse.equinox.p2.type.group' value='true'/>
+      </properties>
+      <provides size='1'>
+        <provided namespace='org.eclipse.equinox.p2.iu' name='net.sf.opendf.eclipse.hwcompiler.feature.group' version='1.0.18'/>
+      </provides>
+      <requires size='17'>
+        <required namespace='org.eclipse.equinox.p2.iu' name='net.sf.opendf.eclipse.feature.feature.group' range='[1.2.14,1.2.14]'/>
+        <required namespace='org.eclipse.equinox.p2.iu' name='org.eclipse.core.runtime' range='0.0.0'/>
+        <required namespace='org.eclipse.equinox.p2.iu' name='org.eclipse.ui' range='0.0.0'/>
+        <required namespace='org.eclipse.equinox.p2.iu' name='org.eclipse.debug.ui' range='0.0.0'/>
+        <required namespace='org.eclipse.equinox.p2.iu' name='org.eclipse.ui.console' range='0.0.0'/>
+        <required namespace='org.eclipse.equinox.p2.iu' name='org.eclipse.jface.text' range='0.0.0'/>
+        <required namespace='org.eclipse.equinox.p2.iu' name='org.eclipse.ui.editors' range='0.0.0'/>
+        <required namespace='org.eclipse.equinox.p2.iu' name='org.eclipse.ui.ide' range='0.0.0'/>
+        <required namespace='org.eclipse.equinox.p2.iu' name='org.eclipse.ui.views' range='0.0.0'/>
+        <required namespace='org.eclipse.equinox.p2.iu' name='org.eclipse.ui.workbench.texteditor' range='0.0.0'/>
+        <required namespace='org.eclipse.equinox.p2.iu' name='net.sf.opendf.eclipse.core' range='0.0.0'/>
+        <required namespace='org.eclipse.equinox.p2.iu' name='net.sf.opendf.eclipse.plugin' range='0.0.0'/>
+        <required namespace='org.eclipse.equinox.p2.iu' name='org.eclipse.debug.core' range='0.0.0'/>
+        <required namespace='org.eclipse.equinox.p2.iu' name='net.sf.openforge.core' range='0.0.0'/>
+        <required namespace='org.eclipse.equinox.p2.iu' name='net.sf.openforge.core' range='[1.0.18,1.0.18]'/>
+        <required namespace='org.eclipse.equinox.p2.iu' name='net.sf.opendf.eclipse.HardwareCompiler' range='[1.0.18,1.0.18]'/>
+        <required namespace='org.eclipse.equinox.p2.iu' name='net.sf.opendf.eclipse.hwcompiler.feature.jar' range='[1.0.18,1.0.18]'>
+          <filter>
+            (org.eclipse.update.install.features=true)
+          </filter>
+        </required>
+      </requires>
+      <touchpoint id='null' version='0.0.0'/>
+      <licenses size='1'>
+        <license>
+          Copyright (c) 2008, Xilinx Inc.&#xA;All rights reserved.&#xA;Redistribution and use in source and binary forms, &#xA;with or without modification, are permitted provided &#xA;that the following conditions are met:&#xA;- Redistributions of source code must retain the above &#xA;copyright notice, this list of conditions and the &#xA;following disclaimer.&#xA;- Redistributions in binary form must reproduce the &#xA;above copyright notice, this list of conditions and &#xA;the following disclaimer in the documentation and/or &#xA;other materials provided with the distribution.&#xA;- Neither the name of the copyright holder nor the names &#xA;of its contributors may be used to endorse or promote &#xA;products derived from this software without specific &#xA;prior written permission.&#xA;THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND &#xA;CONTRIBUTORS &quot;AS IS&quot; AND ANY EXPRESS OR IMPLIED WARRANTIES, &#xA;INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF &#xA;MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE &#xA;DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR &#xA;CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,&#xA;SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT&#xA;NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;&#xA;LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) &#xA;HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN &#xA;CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR&#xA;OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS &#xA;SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+        </license>
+      </licenses>
+      <copyright>
+        Copyright (c) 2008, Xilinx Inc.&#xA;All rights reserved.
+      </copyright>
+    </unit>
+    <unit id='net.sf.openforge.core' version='1.0.18'>
+      <update id='net.sf.openforge.core' range='[0.0.0,1.0.18)' severity='0'/>
+      <properties size='1'>
+        <property name='org.eclipse.equinox.p2.name' value='OpenForge Plug-in'/>
+      </properties>
+      <provides size='7'>
+        <provided namespace='org.eclipse.equinox.p2.iu' name='net.sf.openforge.core' version='1.0.18'/>
+        <provided namespace='osgi.bundle' name='net.sf.openforge.core' version='1.0.18'/>
+        <provided namespace='java.package' name='net.sf.openforge.app' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.openforge.frontend.xlim.builder' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.openforge.util.io' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.openforge.util.xml' version='0.0.0'/>
+        <provided namespace='org.eclipse.equinox.p2.eclipse.type' name='bundle' version='1.0.0'/>
+      </provides>
+      <requires size='1'>
+        <required namespace='osgi.bundle' name='org.eclipse.core.runtime' range='0.0.0'/>
+      </requires>
+      <artifacts size='1'>
+        <artifact classifier='osgi.bundle' id='net.sf.openforge.core' version='1.0.18'/>
+      </artifacts>
+      <touchpoint id='org.eclipse.equinox.p2.osgi' version='1.0.0'/>
+      <touchpointData size='1'>
+        <instructions size='1'>
+          <instruction key='manifest'>
+            Bundle-ManifestVersion: 2&#xA;Bundle-Activator: openforge.Activator&#xA;Bundle-RequiredExecutionEnvironment: JavaSE-1.6&#xA;Bundle-ClassPath: source/xslt/,.,lib/saxon8-dom.jar,lib/saxon8.jar&#xA;Require-Bundle: org.eclipse.core.runtime&#xA;Bundle-Name: OpenForge Plug-in&#xA;Bundle-ActivationPolicy: lazy&#xA;Manifest-Version: 1.0&#xA;Bundle-SymbolicName: net.sf.openforge.core;singleton:=true&#xA;Bundle-Version: 1.0.18&#xA;Export-Package: net.sf.openforge.app,net.sf.openforge.frontend.xlim.builder,net.sf.openforge.util.io,net.sf.openforge.util.xml
+          </instruction>
+        </instructions>
+      </touchpointData>
+    </unit>
+    <unit id='config.a.jre' version='1.6.0' singleton='false'>
+      <hostRequirements size='1'>
+        <required namespace='org.eclipse.equinox.p2.iu' name='a.jre' range='1.6.0'/>
+      </hostRequirements>
+      <properties size='1'>
+        <property name='org.eclipse.equinox.p2.type.fragment' value='true'/>
+      </properties>
+      <provides size='1'>
+        <provided namespace='org.eclipse.equinox.p2.iu' name='config.a.jre' version='1.6.0'/>
+      </provides>
+      <requires size='1'>
+        <required namespace='org.eclipse.equinox.p2.iu' name='a.jre' range='1.6.0'/>
+      </requires>
+      <touchpoint id='org.eclipse.equinox.p2.native' version='1.0.0'/>
+      <touchpointData size='1'>
+        <instructions size='1'>
+          <instruction key='install'>
+
+          </instruction>
+        </instructions>
+      </touchpointData>
+    </unit>
+    <unit id='net.sf.opendf.eclipse.hwcompiler.feature.jar' version='1.0.18'>
+      <update id='net.sf.opendf.eclipse.hwcompiler.feature.jar' range='[0.0.0,1.0.18)' severity='0'/>
+      <properties size='3'>
+        <property name='org.eclipse.equinox.p2.name' value='OpenDF Hardware Compiler Feature'/>
+        <property name='org.eclipse.equinox.p2.description' value='This feature enables compilation of CAL/NL Dataflow networks&#xA;to Hardware Description Language (HDL) implementations.  This&#xA;feature requires the com.xilinx.df.core plugin to supply the&#xA;compiler core.'/>
+        <property name='org.eclipse.equinox.p2.provider' value='The Open Dataflow Project Team'/>
+      </properties>
+      <provides size='3'>
+        <provided namespace='org.eclipse.equinox.p2.iu' name='net.sf.opendf.eclipse.hwcompiler.feature.jar' version='1.0.18'/>
+        <provided namespace='org.eclipse.equinox.p2.eclipse.type' name='feature' version='1.0.0'/>
+        <provided namespace='org.eclipse.update.feature' name='net.sf.opendf.eclipse.hwcompiler' version='1.0.18'/>
+      </provides>
+      <filter>
+        (org.eclipse.update.install.features=true)
+      </filter>
+      <artifacts size='1'>
+        <artifact classifier='org.eclipse.update.feature' id='net.sf.opendf.eclipse.hwcompiler' version='1.0.18'/>
+      </artifacts>
+      <touchpoint id='org.eclipse.equinox.p2.osgi' version='1.0.0'/>
+      <touchpointData size='1'>
+        <instructions size='1'>
+          <instruction key='zipped'>
+            true
+          </instruction>
+        </instructions>
+      </touchpointData>
+      <licenses size='1'>
+        <license>
+          Copyright (c) 2008, Xilinx Inc.&#xA;All rights reserved.&#xA;Redistribution and use in source and binary forms, &#xA;with or without modification, are permitted provided &#xA;that the following conditions are met:&#xA;- Redistributions of source code must retain the above &#xA;copyright notice, this list of conditions and the &#xA;following disclaimer.&#xA;- Redistributions in binary form must reproduce the &#xA;above copyright notice, this list of conditions and &#xA;the following disclaimer in the documentation and/or &#xA;other materials provided with the distribution.&#xA;- Neither the name of the copyright holder nor the names &#xA;of its contributors may be used to endorse or promote &#xA;products derived from this software without specific &#xA;prior written permission.&#xA;THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND &#xA;CONTRIBUTORS &quot;AS IS&quot; AND ANY EXPRESS OR IMPLIED WARRANTIES, &#xA;INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF &#xA;MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE &#xA;DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR &#xA;CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,&#xA;SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT&#xA;NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;&#xA;LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) &#xA;HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN &#xA;CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR&#xA;OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS &#xA;SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+        </license>
+      </licenses>
+      <copyright>
+        Copyright (c) 2008, Xilinx Inc.&#xA;All rights reserved.
+      </copyright>
+    </unit>
+    <unit id='net.sf.opendf.eclipse.feature.feature.jar' version='1.2.14'>
+      <update id='net.sf.opendf.eclipse.feature.feature.jar' range='[0.0.0,1.2.14)' severity='0'/>
+      <properties size='3'>
+        <property name='org.eclipse.equinox.p2.name' value='Open Dataflow Plugin'/>
+        <property name='org.eclipse.equinox.p2.description' value='Open Dataflow Project plugin&#xA;V1.2.5&#xA;* improved simulation speed&#xA;* Action priority analysis bug fixed&#xA;* NL parsing bug fixed (type parameters)&#xA;V1.2.4&#xA;* Reverted to Java 1.5&#xA;V1.2.3&#xA;===============================================&#xA;* Improved console I/O behavior&#xA;* Minor bug fixes&#xA;V1.2.0&#xA;===============================================&#xA;* Improved simulator interface&#xA;* Run config dialog tab for console I/O control&#xA;* Improved error reporting from editor&#xA;V1.1.0&#xA;===============================================&#xA;* make dataflow simulator available from the std Eclipse run&#xA;dialog.&#xA;* fix problems opening files outside project&#xA;V1.0.1&#xA;===============================================&#xA;* Improved outlining including icons and preservation of expanded&#xA;state.&#xA;* Changed .CAL and .NL images.&#xA;* Added to PDF documentation.'/>
+        <property name='org.eclipse.equinox.p2.provider' value='The Open Dataflow Project'/>
+      </properties>
+      <provides size='3'>
+        <provided namespace='org.eclipse.equinox.p2.iu' name='net.sf.opendf.eclipse.feature.feature.jar' version='1.2.14'/>
+        <provided namespace='org.eclipse.equinox.p2.eclipse.type' name='feature' version='1.0.0'/>
+        <provided namespace='org.eclipse.update.feature' name='net.sf.opendf.eclipse.feature' version='1.2.14'/>
+      </provides>
+      <filter>
+        (org.eclipse.update.install.features=true)
+      </filter>
+      <artifacts size='1'>
+        <artifact classifier='org.eclipse.update.feature' id='net.sf.opendf.eclipse.feature' version='1.2.14'/>
+      </artifacts>
+      <touchpoint id='org.eclipse.equinox.p2.osgi' version='1.0.0'/>
+      <touchpointData size='1'>
+        <instructions size='1'>
+          <instruction key='zipped'>
+            true
+          </instruction>
+        </instructions>
+      </touchpointData>
+      <licenses size='1'>
+        <license>
+          Copyright (c) 2008, Xilinx Inc.&#xA;All rights reserved.&#xA;Redistribution and use in source and binary forms, with or without&#xA;modification, are permitted provided that the following conditions&#xA;are met:&#xA;- Redistributions of source code must retain the above copyright&#xA;notice, this list of conditions and the following disclaimer.&#xA;- Redistributions in binary form must reproduce the above copyright&#xA;notice, this list of conditions and the following disclaimer&#xA;in the documentation and/or other materials provided with the&#xA;distribution.&#xA;- Neither the name of Xilinx Inc. nor the names of its contributors&#xA;may be used to endorse or promote products derived from this&#xA;software without specific prior written permission.&#xA;THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS&#xA;&quot;AS IS&quot; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT&#xA;NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND&#xA;FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT&#xA;SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,&#xA;INDIRECT, INCIDENTAL,SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES&#xA;(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS&#xA;OR SERVICES;LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)&#xA;HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,&#xA;STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)&#xA;ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED&#xA;OF THE POSSIBILITY OF SUCH DAMAGE.
+        </license>
+      </licenses>
+      <copyright>
+        Copyright (c) 2008, Xilinx Inc.&#xA;All rights reserved.
+      </copyright>
+    </unit>
+    <unit id='net.sf.opendf.eclipse.core' version='1.2.15'>
+      <update id='net.sf.opendf.eclipse.core' range='[0.0.0,1.2.15)' severity='0'/>
+      <properties size='2'>
+        <property name='org.eclipse.equinox.p2.name' value='Open Dataflow Core Plug-in'/>
+        <property name='org.eclipse.equinox.p2.provider' value='The Open Dataflow Project'/>
+      </properties>
+      <provides size='67'>
+        <provided namespace='org.eclipse.equinox.p2.iu' name='net.sf.opendf.eclipse.core' version='1.2.15'/>
+        <provided namespace='osgi.bundle' name='net.sf.opendf.eclipse.core' version='1.2.15'/>
+        <provided namespace='java.package' name='java_cup' version='0.0.0'/>
+        <provided namespace='java.package' name='java_cup.runtime' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.actorc.parser' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.actorc.util' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.cal.ast' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.cal.checks' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.cal.i2' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.cal.i2.configuration' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.cal.i2.environment' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.cal.i2.generator' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.cal.i2.java' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.cal.i2.platform' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.cal.i2.shell' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.cal.i2.types' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.cal.i2.util' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.cal.interpreter' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.cal.interpreter.environment' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.cal.interpreter.generator' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.cal.interpreter.java' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.cal.interpreter.util' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.cal.lib' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.cal.lib_i2' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.cal.main' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.cal.parser' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.cal.shell' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.cal.transforms' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.cal.transforms.xlim' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.cal.util' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.cli' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.cli.lib' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.config' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.eclipse.coreplugin' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.hades.cal' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.hades.des' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.hades.des.components' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.hades.des.schedule' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.hades.des.util' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.hades.models' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.hades.models.lib' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.hades.network' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.hades.simulation' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.hades.util' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.hades.util.causation' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.math' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.math.cmatrix' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.math.matrix' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.math.util' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.nl' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.nl.parser' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.nl.util' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.transforms' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.util' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.util.exception' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.util.io' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.util.logging' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.util.source' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.util.xml' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.xslt.cal' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.xslt.cal.lib' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.xslt.nl' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.xslt.util' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.saxon' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.saxon.dom' version='0.0.0'/>
+        <provided namespace='java.package' name='ptolemy.media' version='0.0.0'/>
+        <provided namespace='org.eclipse.equinox.p2.eclipse.type' name='bundle' version='1.0.0'/>
+      </provides>
+      <requires size='1'>
+        <required namespace='osgi.bundle' name='org.eclipse.core.runtime' range='0.0.0'/>
+      </requires>
+      <artifacts size='1'>
+        <artifact classifier='osgi.bundle' id='net.sf.opendf.eclipse.core' version='1.2.15'/>
+      </artifacts>
+      <touchpoint id='org.eclipse.equinox.p2.osgi' version='1.0.0'/>
+      <touchpointData size='1'>
+        <instructions size='1'>
+          <instruction key='manifest'>
+            Bundle-Vendor: The Open Dataflow Project&#xA;Bundle-ManifestVersion: 2&#xA;Bundle-Activator: net.sf.opendf.eclipse.coreplugin.Activator&#xA;Bundle-ClassPath: .,source/xslt/,lib/saxon8.jar,lib/saxon8-dom.jar,lib/PtPlot.jar&#xA;Require-Bundle: org.eclipse.core.runtime&#xA;Bundle-Name: Open Dataflow Core Plug-in&#xA;Manifest-Version: 1.0&#xA;Bundle-SymbolicName: net.sf.opendf.eclipse.core;singleton:=true&#xA;Bundle-Version: 1.2.15&#xA;Eclipse-LazyStart: true&#xA;Export-Package: java_cup,java_cup.runtime,net.sf.opendf.actorc.parser,net.sf.opendf.actorc.util,net.sf.opendf.cal.ast,net.sf.opendf.cal.checks,net.sf.opendf.cal.i2,net.sf.opendf.cal.i2.configuration,net.sf.opendf.cal.i2.environment,net.sf.opendf.cal.i2.generator,net.sf.opendf.cal.i2.java,net.sf.opendf.cal.i2.platform,net.sf.opendf.cal.i2.shell,net.sf.opendf.cal.i2.types,net.sf.opendf.cal.i2.util,net.sf.opendf.cal.interpreter,net.sf.opendf.cal.interpreter.environment,net.sf.opendf.cal.interpreter.generator,net.sf.opendf.cal.interpreter.java,net.sf.opendf.cal.interpreter.util,net.sf.opendf.cal.lib,net.sf.opendf.cal.lib_i2,net.sf.opendf.cal.main,net.sf.opendf.cal.parser,net.sf.opendf.cal.shell,net.sf.opendf.cal.transforms,net.sf.opendf.cal.transforms.xlim,net.sf.opendf.cal.util,net.sf.opendf.cli,net.sf.opendf.cli.lib,net.sf.opendf.config,net.sf.opendf.eclipse.coreplugin,net.sf.opendf.hades.cal,net.sf.opendf.hades.des,net.sf.opendf.hades.des.components,net.sf.opendf.hades.des.schedule,net.sf.opendf.hades.des.util,net.sf.opendf.hades.models,net.sf.opendf.hades.models.lib,net.sf.opendf.hades.network,net.sf.opendf.hades.simulation,net.sf.opendf.hades.util,net.sf.opendf.hades.util.causation,net.sf.opendf.math,net.sf.opendf.math.cmatrix,net.sf.opendf.math.matrix,net.sf.opendf.math.util,net.sf.opendf.nl,net.sf.opendf.nl.parser,net.sf.opendf.nl.util,net.sf.opendf.transforms,net.sf.opendf.util,net.sf.opendf.util.exception,net.sf.opendf.util.io,net.sf.opendf.util.logging,net.sf.opendf.util.source,net.sf.opendf.util.xml,net.sf.opendf.xslt.cal,net.sf.opendf.xslt.cal.lib,net.sf.opendf.xslt.nl,net.sf.opendf.xslt.util,net.sf.saxon,net.sf.saxon.dom,ptolemy.media&#xA;
+          </instruction>
+        </instructions>
+      </touchpointData>
+    </unit>
+    <unit id='net.sf.opendf.eclipse.feature.feature.jar' version='1.2.15'>
+      <update id='net.sf.opendf.eclipse.feature.feature.jar' range='[0.0.0,1.2.15)' severity='0'/>
+      <properties size='3'>
+        <property name='org.eclipse.equinox.p2.name' value='Open Dataflow Plugin'/>
+        <property name='org.eclipse.equinox.p2.description' value='Open Dataflow Project plugin&#xA;V1.2.5&#xA;* improved simulation speed&#xA;* Action priority analysis bug fixed&#xA;* NL parsing bug fixed (type parameters)&#xA;V1.2.4&#xA;* Reverted to Java 1.5&#xA;V1.2.3&#xA;===============================================&#xA;* Improved console I/O behavior&#xA;* Minor bug fixes&#xA;V1.2.0&#xA;===============================================&#xA;* Improved simulator interface&#xA;* Run config dialog tab for console I/O control&#xA;* Improved error reporting from editor&#xA;V1.1.0&#xA;===============================================&#xA;* make dataflow simulator available from the std Eclipse run&#xA;dialog.&#xA;* fix problems opening files outside project&#xA;V1.0.1&#xA;===============================================&#xA;* Improved outlining including icons and preservation of expanded&#xA;state.&#xA;* Changed .CAL and .NL images.&#xA;* Added to PDF documentation.'/>
+        <property name='org.eclipse.equinox.p2.provider' value='The Open Dataflow Project'/>
+      </properties>
+      <provides size='3'>
+        <provided namespace='org.eclipse.equinox.p2.iu' name='net.sf.opendf.eclipse.feature.feature.jar' version='1.2.15'/>
+        <provided namespace='org.eclipse.equinox.p2.eclipse.type' name='feature' version='1.0.0'/>
+        <provided namespace='org.eclipse.update.feature' name='net.sf.opendf.eclipse.feature' version='1.2.15'/>
+      </provides>
+      <filter>
+        (org.eclipse.update.install.features=true)
+      </filter>
+      <artifacts size='1'>
+        <artifact classifier='org.eclipse.update.feature' id='net.sf.opendf.eclipse.feature' version='1.2.15'/>
+      </artifacts>
+      <touchpoint id='org.eclipse.equinox.p2.osgi' version='1.0.0'/>
+      <touchpointData size='1'>
+        <instructions size='1'>
+          <instruction key='zipped'>
+            true
+          </instruction>
+        </instructions>
+      </touchpointData>
+      <licenses size='1'>
+        <license>
+          Copyright (c) 2008, Xilinx Inc.&#xA;All rights reserved.&#xA;Redistribution and use in source and binary forms, with or without&#xA;modification, are permitted provided that the following conditions&#xA;are met:&#xA;- Redistributions of source code must retain the above copyright&#xA;notice, this list of conditions and the following disclaimer.&#xA;- Redistributions in binary form must reproduce the above copyright&#xA;notice, this list of conditions and the following disclaimer&#xA;in the documentation and/or other materials provided with the&#xA;distribution.&#xA;- Neither the name of Xilinx Inc. nor the names of its contributors&#xA;may be used to endorse or promote products derived from this&#xA;software without specific prior written permission.&#xA;THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS&#xA;&quot;AS IS&quot; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT&#xA;NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND&#xA;FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT&#xA;SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,&#xA;INDIRECT, INCIDENTAL,SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES&#xA;(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS&#xA;OR SERVICES;LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)&#xA;HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,&#xA;STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)&#xA;ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED&#xA;OF THE POSSIBILITY OF SUCH DAMAGE.
+        </license>
+      </licenses>
+      <copyright>
+        Copyright (c) 2008, Xilinx Inc.&#xA;All rights reserved.
+      </copyright>
+    </unit>
+    <unit id='net.sf.opendf.eclipse.feature.feature.group' version='1.2.15' singleton='false'>
+      <update id='net.sf.opendf.eclipse.feature.feature.group' range='[0.0.0,1.2.15)' severity='0'/>
+      <properties size='4'>
+        <property name='org.eclipse.equinox.p2.name' value='Open Dataflow Plugin'/>
+        <property name='org.eclipse.equinox.p2.description' value='Open Dataflow Project plugin&#xA;V1.2.5&#xA;* improved simulation speed&#xA;* Action priority analysis bug fixed&#xA;* NL parsing bug fixed (type parameters)&#xA;V1.2.4&#xA;* Reverted to Java 1.5&#xA;V1.2.3&#xA;===============================================&#xA;* Improved console I/O behavior&#xA;* Minor bug fixes&#xA;V1.2.0&#xA;===============================================&#xA;* Improved simulator interface&#xA;* Run config dialog tab for console I/O control&#xA;* Improved error reporting from editor&#xA;V1.1.0&#xA;===============================================&#xA;* make dataflow simulator available from the std Eclipse run&#xA;dialog.&#xA;* fix problems opening files outside project&#xA;V1.0.1&#xA;===============================================&#xA;* Improved outlining including icons and preservation of expanded&#xA;state.&#xA;* Changed .CAL and .NL images.&#xA;* Added to PDF documentation.'/>
+        <property name='org.eclipse.equinox.p2.provider' value='The Open Dataflow Project'/>
+        <property name='org.eclipse.equinox.p2.type.group' value='true'/>
+      </properties>
+      <provides size='1'>
+        <provided namespace='org.eclipse.equinox.p2.iu' name='net.sf.opendf.eclipse.feature.feature.group' version='1.2.15'/>
+      </provides>
+      <requires size='13'>
+        <required namespace='org.eclipse.equinox.p2.iu' name='org.eclipse.core.runtime' range='0.0.0'/>
+        <required namespace='org.eclipse.equinox.p2.iu' name='org.eclipse.debug.ui' range='0.0.0'/>
+        <required namespace='org.eclipse.equinox.p2.iu' name='org.eclipse.jface.text' range='0.0.0'/>
+        <required namespace='org.eclipse.equinox.p2.iu' name='org.eclipse.ui' range='0.0.0'/>
+        <required namespace='org.eclipse.equinox.p2.iu' name='org.eclipse.ui.console' range='0.0.0'/>
+        <required namespace='org.eclipse.equinox.p2.iu' name='org.eclipse.ui.editors' range='0.0.0'/>
+        <required namespace='org.eclipse.equinox.p2.iu' name='org.eclipse.ui.ide' range='0.0.0'/>
+        <required namespace='org.eclipse.equinox.p2.iu' name='org.eclipse.ui.views' range='0.0.0'/>
+        <required namespace='org.eclipse.equinox.p2.iu' name='org.eclipse.ui.workbench.texteditor' range='0.0.0'/>
+        <required namespace='org.eclipse.equinox.p2.iu' name='net.sf.opendf.eclipse.core' range='[1.2.15,1.2.15]'/>
+        <required namespace='org.eclipse.equinox.p2.iu' name='net.sf.opendf.eclipse.doc' range='[1.2.15,1.2.15]'/>
+        <required namespace='org.eclipse.equinox.p2.iu' name='net.sf.opendf.eclipse.plugin' range='[1.2.15,1.2.15]'/>
+        <required namespace='org.eclipse.equinox.p2.iu' name='net.sf.opendf.eclipse.feature.feature.jar' range='[1.2.15,1.2.15]'>
+          <filter>
+            (org.eclipse.update.install.features=true)
+          </filter>
+        </required>
+      </requires>
+      <touchpoint id='null' version='0.0.0'/>
+      <licenses size='1'>
+        <license>
+          Copyright (c) 2008, Xilinx Inc.&#xA;All rights reserved.&#xA;Redistribution and use in source and binary forms, with or without&#xA;modification, are permitted provided that the following conditions&#xA;are met:&#xA;- Redistributions of source code must retain the above copyright&#xA;notice, this list of conditions and the following disclaimer.&#xA;- Redistributions in binary form must reproduce the above copyright&#xA;notice, this list of conditions and the following disclaimer&#xA;in the documentation and/or other materials provided with the&#xA;distribution.&#xA;- Neither the name of Xilinx Inc. nor the names of its contributors&#xA;may be used to endorse or promote products derived from this&#xA;software without specific prior written permission.&#xA;THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS&#xA;&quot;AS IS&quot; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT&#xA;NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND&#xA;FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT&#xA;SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,&#xA;INDIRECT, INCIDENTAL,SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES&#xA;(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS&#xA;OR SERVICES;LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)&#xA;HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,&#xA;STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)&#xA;ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED&#xA;OF THE POSSIBILITY OF SUCH DAMAGE.
+        </license>
+      </licenses>
+      <copyright>
+        Copyright (c) 2008, Xilinx Inc.&#xA;All rights reserved.
+      </copyright>
+    </unit>
+    <unit id='net.sf.opendf.eclipse.doc' version='1.2.15'>
+      <update id='net.sf.opendf.eclipse.doc' range='[0.0.0,1.2.15)' severity='0'/>
+      <properties size='2'>
+        <property name='org.eclipse.equinox.p2.name' value='Open Dataflow Documentation'/>
+        <property name='org.eclipse.equinox.p2.provider' value='The Open Dataflow Project'/>
+      </properties>
+      <provides size='3'>
+        <provided namespace='org.eclipse.equinox.p2.iu' name='net.sf.opendf.eclipse.doc' version='1.2.15'/>
+        <provided namespace='osgi.bundle' name='net.sf.opendf.eclipse.doc' version='1.2.15'/>
+        <provided namespace='org.eclipse.equinox.p2.eclipse.type' name='bundle' version='1.0.0'/>
+      </provides>
+      <artifacts size='1'>
+        <artifact classifier='osgi.bundle' id='net.sf.opendf.eclipse.doc' version='1.2.15'/>
+      </artifacts>
+      <touchpoint id='org.eclipse.equinox.p2.osgi' version='1.0.0'/>
+      <touchpointData size='1'>
+        <instructions size='2'>
+          <instruction key='manifest'>
+            Bundle-Name: Open Dataflow Documentation&#xA;Bundle-Version: 1.2.15&#xA;Bundle-SymbolicName: net.sf.opendf.eclipse.doc;singleton:=true&#xA;Manifest-Version: 1.0&#xA;Bundle-ManifestVersion: 2&#xA;Bundle-Vendor: The Open Dataflow Project&#xA;Bundle-Localization: plugin&#xA;
+          </instruction>
+          <instruction key='zipped'>
+            true
+          </instruction>
+        </instructions>
+      </touchpointData>
+    </unit>
+    <unit id='net.sf.opendf.eclipse.plugin' version='1.2.15'>
+      <update id='net.sf.opendf.eclipse.plugin' range='[0.0.0,1.2.15)' severity='0'/>
+      <properties size='2'>
+        <property name='org.eclipse.equinox.p2.name' value='Open Dataflow Editor Plugin'/>
+        <property name='org.eclipse.equinox.p2.provider' value='The Open Dataflow Project'/>
+      </properties>
+      <provides size='12'>
+        <provided namespace='org.eclipse.equinox.p2.iu' name='net.sf.opendf.eclipse.plugin' version='1.2.15'/>
+        <provided namespace='osgi.bundle' name='net.sf.opendf.eclipse.plugin' version='1.2.15'/>
+        <provided namespace='java.package' name='net.sf.opendf.eclipse.plugin' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.eclipse.plugin.config' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.eclipse.plugin.editors' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.eclipse.plugin.editors.checkers' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.eclipse.plugin.editors.outline' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.eclipse.plugin.editors.rules' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.eclipse.plugin.editors.scanners' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.eclipse.plugin.launcher' version='0.0.0'/>
+        <provided namespace='java.package' name='net.sf.opendf.eclipse.plugin.launcher.tabs' version='0.0.0'/>
+        <provided namespace='org.eclipse.equinox.p2.eclipse.type' name='bundle' version='1.0.0'/>
+      </provides>
+      <requires size='11'>
+        <required namespace='osgi.bundle' name='org.eclipse.core.runtime' range='0.0.0'/>
+        <required namespace='osgi.bundle' name='org.eclipse.debug.core' range='0.0.0'/>
+        <required namespace='osgi.bundle' name='org.eclipse.debug.ui' range='0.0.0'/>
+        <required namespace='osgi.bundle' name='org.eclipse.jface.text' range='0.0.0'/>
+        <required namespace='osgi.bundle' name='org.eclipse.ui' range='0.0.0'/>
+        <required namespace='osgi.bundle' name='org.eclipse.ui.console' range='0.0.0'/>
+        <required namespace='osgi.bundle' name='org.eclipse.ui.editors' range='0.0.0'/>
+        <required namespace='osgi.bundle' name='org.eclipse.ui.ide' range='0.0.0'/>
+        <required namespace='osgi.bundle' name='org.eclipse.ui.views' range='0.0.0'/>
+        <required namespace='osgi.bundle' name='org.eclipse.ui.workbench.texteditor' range='0.0.0'/>
+        <required namespace='osgi.bundle' name='net.sf.opendf.eclipse.core' range='0.0.0'/>
+      </requires>
+      <artifacts size='1'>
+        <artifact classifier='osgi.bundle' id='net.sf.opendf.eclipse.plugin' version='1.2.15'/>
+      </artifacts>
+      <touchpoint id='org.eclipse.equinox.p2.osgi' version='1.0.0'/>
+      <touchpointData size='1'>
+        <instructions size='1'>
+          <instruction key='manifest'>
+            Require-Bundle: org.eclipse.core.runtime,org.eclipse.debug.core,org.eclipse.debug.ui,org.eclipse.jface.text,org.eclipse.ui,org.eclipse.ui.console,org.eclipse.ui.editors,org.eclipse.ui.ide,org.eclipse.ui.views,org.eclipse.ui.workbench.texteditor,net.sf.opendf.eclipse.core&#xA;Bundle-Activator: net.sf.opendf.eclipse.plugin.OpendfPlugin&#xA;Manifest-Version: 1.0&#xA;Bundle-Version: 1.2.15&#xA;Bundle-SymbolicName: net.sf.opendf.eclipse.plugin;singleton:=true&#xA;Bundle-Localization: &#xA;Provide-Package: net.sf.opendf.eclipse.plugin,net.sf.opendf.eclipse.plugin.config,net.sf.opendf.eclipse.plugin.editors,net.sf.opendf.eclipse.plugin.editors.checkers,net.sf.opendf.eclipse.plugin.editors.outline,net.sf.opendf.eclipse.plugin.editors.rules,net.sf.opendf.eclipse.plugin.editors.scanners,net.sf.opendf.eclipse.plugin.launcher,net.sf.opendf.eclipse.plugin.launcher.tabs&#xA;Bundle-Name: Open Dataflow Editor Plugin&#xA;Bundle-Vendor: The Open Dataflow Project&#xA;Eclipse-LazyStart: true&#xA;
+          </instruction>
+        </instructions>
+      </touchpointData>
+    </unit>
+  </units>
+</repository>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site>
+   <description url="http://opendf.sourceforge.net/eclipse">
+      The Open Dataflow Project Update Site
+   </description>
+   <feature url="features/net.sf.opendf.eclipse.feature_1.2.14.jar" id="net.sf.opendf.eclipse.feature" version="1.2.14">
+      <category name="Open Dataflow Project Plugin"/>
+   </feature>
+   <feature url="features/net.sf.opendf.eclipse.hwcompiler_1.0.18.jar" id="net.sf.opendf.eclipse.hwcompiler" version="1.0.18">
+      <category name="Cal2HDL compiler"/>
+   </feature>
+   <feature url="features/net.sf.opendf.eclipse.feature_1.2.15.jar" id="net.sf.opendf.eclipse.feature" version="1.2.15">
+      <category name="Open Dataflow Project Plugin"/>
+   </feature>
+   <category-def name="Open Dataflow Project Plugin" label="Open Dataflow Project Plugin">
+      <description>
+         Provides CAL/NL editing capablity and documentation.
+      </description>
+   </category-def>
+   <category-def name="Cal2HDL compiler" label="Cal2HDL compiler">
+      <description>
+         Provides the Hardware compiler from Cal implementation
+      </description>
+   </category-def>
+</site>

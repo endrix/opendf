@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- 
+    synthesisChecks.xml
+    Synthesizability checks
+-->
+
+<sch:schema
+   xmlns:sch="http://www.ascc.net/xml/schematron"
+   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+   xmlns:cal="java:net.sf.opendf.xslt.cal.CalmlEvaluator"
+   defaultPhase="general" >
+  
+  <sch:phase id="general">
+    <sch:active pattern="synthesis"/>
+  </sch:phase> 
+ 
+  <sch:pattern id="synthesis">
+    
+    <sch:rule context="Type[ not( ancestor::Note ) ]" id="types">
+      
+      <!-- Check types -->
+      <sch:assert role="Error" id="unsupported"
+        test="contains(' List int bool ', concat( ' ', @name, ' ' ) )" >
+        <xsl:attribute name="subject">
+          <xsl:apply-templates select="." mode="report-offender"/>
+        </xsl:attribute>
+        <xsl:apply-templates select="." mode="annotate-location"/>
+        Type unsupported for hardware synthesis
+      </sch:assert>
+
+      <!-- ints and Lists must have a size attribute -->
+      <sch:assert role="Error" id="missingSize"
+        test="not( @name = 'int' or @name = 'List' ) or Entry[@kind='Expr'][@name='size']" >
+        <xsl:attribute name="subject">
+          <xsl:apply-templates select="." mode="report-offender"/>
+        </xsl:attribute>
+        <xsl:apply-templates select="." mode="annotate-location"/>
+        Type '<xsl:value-of select="@name"/>' must have a 'size' attribute for hardware synthesis
+      </sch:assert>
+
+      <!-- Lists must have a type attribute -->
+      <sch:assert role="Error" id="missingType"
+        test="not( @name = 'List' ) or Entry[@kind='Type'][@name='type']" >
+        <xsl:attribute name="subject">
+          <xsl:apply-templates select="." mode="report-offender"/>
+        </xsl:attribute>
+        <xsl:apply-templates select="." mode="annotate-location"/>
+        Type '<xsl:value-of select="@name"/>' must have a Type attribute for hardware synthesis
+      </sch:assert>
+            
+    </sch:rule>
+    
+    <!-- Check type attributes -->
+    <sch:rule context="Entry[ not( ancestor::Note ) ][@kind='Expr'][@name='size']" id="typeAttributes">
+      
+      <sch:assert role="Error" id="unresolved"
+        test="Expr[ @kind='Literal' ][ @literal-kind='Integer' ]" >
+        <xsl:attribute name="subject">
+          <xsl:apply-templates select="." mode="report-offender"/>
+        </xsl:attribute>
+        <xsl:apply-templates select="." mode="annotate-location"/>
+        the value of Type attribute '<xsl:value-of select="@name"/>' could not be resolved at compile time
+      </sch:assert>
+      
+    </sch:rule>
+ 
+    <!-- Check declarations -->   
+    <sch:rule context="Decl" id="variable" >
+      
+      <!-- must have a type -->
+      <sch:assert role="Error" id="missingType" test="Type" >
+        <xsl:attribute name="subject">
+          <xsl:apply-templates select="." mode="report-offender"/>
+        </xsl:attribute>
+        <xsl:apply-templates select="." mode="annotate-location"/>
+        variable must have a type for hardware synthesis
+      </sch:assert>
+
+      <!-- only state variables can be Lists -->
+      <sch:assert role="Error" id="localList" test="parent::Actor or parent::Network or Type/@name != 'List'" >
+        <xsl:attribute name="subject">
+          <xsl:apply-templates select="." mode="report-offender"/>
+        </xsl:attribute>
+        <xsl:apply-templates select="." mode="annotate-location"/>
+        local variables of type 'List' not supported for hardware synthesis
+      </sch:assert>
+      
+    </sch:rule>
+    
+    <sch:rule context="Expr[ parent::Decl[ parent::Actor or parent::Network ] ]" id="initializer">
+      
+      <!-- initializers for non-Lists must be resolved -->
+      <!-- note: all procedures and functions would fail here,
+           but they are eliminated by in-lining and unused
+           variable pruning -->
+      <sch:assert role="Error" id="unresolved" test="../Type[ @name = 'List' ] or @kind = 'Literal'" >
+        <xsl:attribute name="subject">
+          <xsl:apply-templates select="parent::*" mode="report-offender"/>
+        </xsl:attribute>
+        <xsl:apply-templates select="." mode="annotate-location"/>
+        initializer could not be resolved at compile time
+      </sch:assert>
+
+      <!-- temporary check to catch List initializer whose type differs from
+           the List itself. will be fixed in contant evaluator, eventually -->
+      <xsl:variable name="checkResults" select="cal:checkTypes( ../Type, Note[@kind='exprType']/Type )"/>
+      <sch:assert role="Error" id="incompatible" test="../Type[ @name != 'List' ] or
+         $checkResults/Okay/@identical = 'true'" >
+        <xsl:attribute name="subject">
+          <xsl:apply-templates select="parent::*" mode="report-offender"/>
+        </xsl:attribute>
+        <xsl:apply-templates select="." mode="annotate-location"/>
+        List initializer is incompatible with its type declaration
+        <xsl:value-of select="$checkResults/@msg"/>
+      </sch:assert>
+      
+    </sch:rule>
+    
+    <sch:rule context="Expr[ ancestor::Guards ]" id="guardExpressions">
+      
+      <!-- Check to ensure that Indexers are not used in guard statements.  If they
+           are to be allowed 2 things must be fixed:
+           1) The indexer must complete combinatorially
+           2) The hardware code generator must enable resource dependencies between the
+              generated memory access (in the action scheduler) and any access(es) in the 
+              actions.  Currently the action scheduler is designed to be dependency free
+              (uses a mutex block) so these dependencies do not get inserted, causing
+              erronious operation and synthesis combinational feedback paths.
+      -->
+      <sch:assert role="Error" id="indexerInGuard" test="not(@kind='Indexer')">
+        <xsl:attribute name="subject">
+          <xsl:apply-templates select="parent::*" mode="report-offender"/>
+        </xsl:attribute>
+        <xsl:apply-templates select="." mode="annotate-location"/>
+        Indexer is not allowed in a guard statement
+      </sch:assert>
+    </sch:rule>
+    
+  </sch:pattern>
+  
+</sch:schema>

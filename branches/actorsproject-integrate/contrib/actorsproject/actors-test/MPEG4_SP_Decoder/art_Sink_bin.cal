@@ -1,0 +1,12 @@
+import java.io.FileOutputStream;
+
+actor art_Sink_bin (string fileName) int In ==>  : 
+ 
+  FileOutputStream out:=FileOutputStream(fileName);
+
+  action In:[ byte ] ==>
+  do
+    out.write(byte);
+  end
+
+end
