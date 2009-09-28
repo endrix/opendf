@@ -1,0 +1,57 @@
+<!--
+    Targets for working from terminal window:
+    build (default) - generates java files and compiles them
+    clean           - removes all generated files and class files
+    Targets for working from Eclipse:
+    gen             - generates java files
+    genClean        - removes all generated files and their class files
+  -->
+<project name="Actors model compiler" default="build" basedir=".">
+
+  <!-- "tools" is the directory where generators and libraries are located. -->
+  <property name="tools" value="./tools"/>
+
+  <property name="javacc.home" value="${tools}/javacc-4.0"/>
+  
+  <!--   compile sources -->
+    <target name="build" depends="gen">
+  	  <javac  debug="true" nowarn="true" srcdir="." destdir="../classes/" includes="**/*.java" excludes="tools/**" classpath=".:${tools}/beaver-rt.jar:${tools}/junit.jar"/>
+    </target>
+
+<!--   <target name="build" depends="gen"> -->
+<!--   </target> -->
+  
+  <target name="gen" depends="xdf,xlim">
+  </target>
+
+  <target name="xdf">
+	<ant antfile="./xlim/build.xml" target="gen" inheritAll="false"/>
+  </target>
+
+  <target name="xlim">
+	<ant antfile="./xdf/build.xml" target="gen" inheritAll="false"/>
+  </target>
+
+  <!-- remove generated source files and .class files -->
+  <target name="clean" depends="cleanGen">
+    <!-- delete all .class files recursively -->
+    <delete>
+      <fileset dir="." includes="**/*.class" excludes="beaver/*.class"/>
+    </delete>
+  </target>
+
+<!--   <target name="jar" depends="build"> -->
+<!--     <jar destfile="X3DCompiler.jar" basedir="." includes="**/*.class" excludes="test/**"> -->
+<!--       <manifest> -->
+<!-- 	<attribute name="Main-Class" value="GenOntology"/> -->
+<!--       </manifest> -->
+<!--     </jar> -->
+<!--   </target> -->
+
+  <!-- remove generated source files and their .class files -->
+  <target name="cleanGen">
+    <delete dir="xlimAST"/>
+    <delete dir="xdfAST"/>
+  </target>
+</project>
+

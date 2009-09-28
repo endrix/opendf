@@ -1,0 +1,50 @@
+// -*-Java-*- 
+
+// Automatically generated JastAdd abstract grammar file 
+// Predefined types
+Start ::= Specification;
+Specification ::= XmlHeader [DocType] Element*;
+XmlHeader ::= Attribute*;
+DocType ::= <STRING>;
+abstract Thing : ComplexElement ::=;
+abstract Element;
+ComplexElement : Element ::=  Attribute* Element*;
+ValueElement : ComplexElement;
+__DefaultElement__ : ComplexElement ::= <TAG>;
+abstract SimpleElement : Element;
+StringElement : SimpleElement ::= <LITERAL>;
+IntElement : SimpleElement ::= <LITERAL>;
+FloatElement : SimpleElement ::= <LITERAL>;
+Attribute ::= AttrValue;
+__DefaultAttribute__ : Attribute ::= <NAME>;
+AttrValue ::= <LITERAL>;
+Encoding : Attribute ::=;
+Version : Attribute ::=;
+XmlnsXsi : Attribute ::=;
+XsiNoNamespaceSchemaLocation : Attribute ::=;
+
+// Generated types
+portName : Attribute ::= ;
+module : ComplexElement ::= ;
+note : ComplexElement ::= ;
+sourceName : Attribute ::= ;
+PHI : ComplexElement ::= ;
+kind : Attribute ::= ;
+initValue : ComplexElement ::= ;
+typeName : Attribute ::= ;
+port : ComplexElement ::= ;
+decision : Attribute ::= ;
+operation : ComplexElement ::= ;
+design : ComplexElement ::= ;
+stateVar : ComplexElement ::= ;
+size : Attribute ::= ;
+dir : Attribute ::= ;
+source : Attribute ::= ;
+value : Attribute ::= ;
+actor_port : ComplexElement ::= ;
+qualifier : Attribute ::= ;
+style : Attribute ::= ;
+removable : Attribute ::= ;
+autostart : Attribute ::= ;
+target : Attribute ::= ;
+name : Attribute ::= ;
