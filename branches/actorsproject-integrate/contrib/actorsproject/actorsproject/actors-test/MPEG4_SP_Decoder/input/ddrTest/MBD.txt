@@ -1,1 +1,0 @@
-../../gold/motionTest/MBD.txt
