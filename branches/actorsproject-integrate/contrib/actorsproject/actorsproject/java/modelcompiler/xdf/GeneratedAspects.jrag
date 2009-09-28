@@ -1,0 +1,586 @@
+/* -*-Java-*- */
+
+// Automatically generated JastAdd aspects file 
+
+import java.io.PrintStream;
+
+
+aspect PrettyPrinter {
+  public void ASTNode.prettyPrint(String indent, PrintStream pStream) {
+    for (int i=0; i<getNumChild(); i++) {
+      getChild(i).prettyPrint(indent,pStream);
+    }
+  }
+
+  public void XmlHeader.prettyPrint(String indent, PrintStream pStream) {
+    pStream.print("<?xml ");
+    for (int i=0; i<getNumAttribute(); i++) {
+      getAttribute(i).prettyPrint(indent,pStream);
+    }
+    pStream.println("?> ");
+  }
+
+  public void DocType.prettyPrint(String indent, PrintStream pStream) {
+    pStream.print("<!");
+    pStream.print(getSTRING());
+    pStream.println();
+  }
+
+  public void AttrValue.prettyPrint(String indent, PrintStream pStream) {
+    pStream.print(getLITERAL());
+  }
+
+  public void Encoding.prettyPrint(String indent, PrintStream pStream) {
+    pStream.print(" encoding=");
+    getAttrValue().prettyPrint(indent,pStream);
+  }
+
+  public void Version.prettyPrint(String indent, PrintStream pStream) {
+    pStream.print(" version=");
+    getAttrValue().prettyPrint(indent,pStream);
+  }
+
+  public void XmlnsXsi.prettyPrint(String indent, PrintStream pStream) {
+    pStream.print(" xmlns:xsi=");
+    getAttrValue().prettyPrint(indent,pStream);
+  }
+
+  public void XsiNoNamespaceSchemaLocation.prettyPrint(String indent, PrintStream pStream) {
+    pStream.print(" xsi:NoNamespaceSchemaLocation=");
+    getAttrValue().prettyPrint(indent,pStream);
+  }
+
+  public void Output.prettyPrint(String ind, PrintStream pStream) {
+    pStream.print(ind+"<Output ");
+    for (int i=0; i<getNumAttribute(); i++) {
+      getAttribute(i).prettyPrint(ind,pStream);
+    }
+    if (getNumElement() == 0) {
+       pStream.println("/> ");
+    } else {
+       pStream.println("> ");
+       String newInd = ind+"  ";
+       for (int i=0; i<getNumElement(); i++) {
+          getElement(i).prettyPrint(newInd,pStream);
+       }
+       pStream.println(ind+"</Output> ");
+    }
+  }
+
+  public void Class.prettyPrint(String ind, PrintStream pStream) {
+    pStream.print(ind+"<Class ");
+    for (int i=0; i<getNumAttribute(); i++) {
+      getAttribute(i).prettyPrint(ind,pStream);
+    }
+    if (getNumElement() == 0) {
+       pStream.println("/> ");
+    } else {
+       pStream.println("> ");
+       String newInd = ind+"  ";
+       for (int i=0; i<getNumElement(); i++) {
+          getElement(i).prettyPrint(newInd,pStream);
+       }
+       pStream.println(ind+"</Class> ");
+    }
+  }
+
+  public void Op.prettyPrint(String ind, PrintStream pStream) {
+    pStream.print(ind+"<Op ");
+    for (int i=0; i<getNumAttribute(); i++) {
+      getAttribute(i).prettyPrint(ind,pStream);
+    }
+    if (getNumElement() == 0) {
+       pStream.println("/> ");
+    } else {
+       pStream.println("> ");
+       String newInd = ind+"  ";
+       for (int i=0; i<getNumElement(); i++) {
+          getElement(i).prettyPrint(newInd,pStream);
+       }
+       pStream.println(ind+"</Op> ");
+    }
+  }
+
+  public void Parameter.prettyPrint(String ind, PrintStream pStream) {
+    pStream.print(ind+"<Parameter ");
+    for (int i=0; i<getNumAttribute(); i++) {
+      getAttribute(i).prettyPrint(ind,pStream);
+    }
+    if (getNumElement() == 0) {
+       pStream.println("/> ");
+    } else {
+       pStream.println("> ");
+       String newInd = ind+"  ";
+       for (int i=0; i<getNumElement(); i++) {
+          getElement(i).prettyPrint(newInd,pStream);
+       }
+       pStream.println(ind+"</Parameter> ");
+    }
+  }
+
+  public void QID.prettyPrint(String ind, PrintStream pStream) {
+    pStream.print(ind+"<QID ");
+    for (int i=0; i<getNumAttribute(); i++) {
+      getAttribute(i).prettyPrint(ind,pStream);
+    }
+    if (getNumElement() == 0) {
+       pStream.println("/> ");
+    } else {
+       pStream.println("> ");
+       String newInd = ind+"  ";
+       for (int i=0; i<getNumElement(); i++) {
+          getElement(i).prettyPrint(newInd,pStream);
+       }
+       pStream.println(ind+"</QID> ");
+    }
+  }
+
+  public void text_end_line.prettyPrint(String indent, PrintStream pStream) {
+    pStream.print(" text-end-line=");
+       getAttrValue().prettyPrint(indent,pStream);
+  }
+
+  public void Connection.prettyPrint(String ind, PrintStream pStream) {
+    pStream.print(ind+"<Connection ");
+    for (int i=0; i<getNumAttribute(); i++) {
+      getAttribute(i).prettyPrint(ind,pStream);
+    }
+    if (getNumElement() == 0) {
+       pStream.println("/> ");
+    } else {
+       pStream.println("> ");
+       String newInd = ind+"  ";
+       for (int i=0; i<getNumElement(); i++) {
+          getElement(i).prettyPrint(newInd,pStream);
+       }
+       pStream.println(ind+"</Connection> ");
+    }
+  }
+
+  public void Note.prettyPrint(String ind, PrintStream pStream) {
+    pStream.print(ind+"<Note ");
+    for (int i=0; i<getNumAttribute(); i++) {
+      getAttribute(i).prettyPrint(ind,pStream);
+    }
+    if (getNumElement() == 0) {
+       pStream.println("/> ");
+    } else {
+       pStream.println("> ");
+       String newInd = ind+"  ";
+       for (int i=0; i<getNumElement(); i++) {
+          getElement(i).prettyPrint(newInd,pStream);
+       }
+       pStream.println(ind+"</Note> ");
+    }
+  }
+
+  public void text_begin_line.prettyPrint(String indent, PrintStream pStream) {
+    pStream.print(" text-begin-line=");
+       getAttrValue().prettyPrint(indent,pStream);
+  }
+
+  public void name.prettyPrint(String indent, PrintStream pStream) {
+    pStream.print(" name=");
+       getAttrValue().prettyPrint(indent,pStream);
+  }
+
+  public void from.prettyPrint(String indent, PrintStream pStream) {
+    pStream.print(" from=");
+       getAttrValue().prettyPrint(indent,pStream);
+  }
+
+  public void Instance.prettyPrint(String ind, PrintStream pStream) {
+    pStream.print(ind+"<Instance ");
+    for (int i=0; i<getNumAttribute(); i++) {
+      getAttribute(i).prettyPrint(ind,pStream);
+    }
+    if (getNumElement() == 0) {
+       pStream.println("/> ");
+    } else {
+       pStream.println("> ");
+       String newInd = ind+"  ";
+       for (int i=0; i<getNumElement(); i++) {
+          getElement(i).prettyPrint(newInd,pStream);
+       }
+       pStream.println(ind+"</Instance> ");
+    }
+  }
+
+  public void Entry.prettyPrint(String ind, PrintStream pStream) {
+    pStream.print(ind+"<Entry ");
+    for (int i=0; i<getNumAttribute(); i++) {
+      getAttribute(i).prettyPrint(ind,pStream);
+    }
+    if (getNumElement() == 0) {
+       pStream.println("/> ");
+    } else {
+       pStream.println("> ");
+       String newInd = ind+"  ";
+       for (int i=0; i<getNumElement(); i++) {
+          getElement(i).prettyPrint(newInd,pStream);
+       }
+       pStream.println(ind+"</Entry> ");
+    }
+  }
+
+  public void dst_port.prettyPrint(String indent, PrintStream pStream) {
+    pStream.print(" dst-port=");
+       getAttrValue().prettyPrint(indent,pStream);
+  }
+
+  public void Guards.prettyPrint(String ind, PrintStream pStream) {
+    pStream.print(ind+"<Guards ");
+    for (int i=0; i<getNumAttribute(); i++) {
+      getAttribute(i).prettyPrint(ind,pStream);
+    }
+    if (getNumElement() == 0) {
+       pStream.println("/> ");
+    } else {
+       pStream.println("> ");
+       String newInd = ind+"  ";
+       for (int i=0; i<getNumElement(); i++) {
+          getElement(i).prettyPrint(newInd,pStream);
+       }
+       pStream.println(ind+"</Guards> ");
+    }
+  }
+
+  public void src.prettyPrint(String indent, PrintStream pStream) {
+    pStream.print(" src=");
+       getAttrValue().prettyPrint(indent,pStream);
+  }
+
+  public void ID.prettyPrint(String ind, PrintStream pStream) {
+    pStream.print(ind+"<ID ");
+    for (int i=0; i<getNumAttribute(); i++) {
+      getAttribute(i).prettyPrint(ind,pStream);
+    }
+    if (getNumElement() == 0) {
+       pStream.println("/> ");
+    } else {
+       pStream.println("> ");
+       String newInd = ind+"  ";
+       for (int i=0; i<getNumElement(); i++) {
+          getElement(i).prettyPrint(newInd,pStream);
+       }
+       pStream.println(ind+"</ID> ");
+    }
+  }
+
+  public void Action.prettyPrint(String ind, PrintStream pStream) {
+    pStream.print(ind+"<Action ");
+    for (int i=0; i<getNumAttribute(); i++) {
+      getAttribute(i).prettyPrint(ind,pStream);
+    }
+    if (getNumElement() == 0) {
+       pStream.println("/> ");
+    } else {
+       pStream.println("> ");
+       String newInd = ind+"  ";
+       for (int i=0; i<getNumElement(); i++) {
+          getElement(i).prettyPrint(newInd,pStream);
+       }
+       pStream.println(ind+"</Action> ");
+    }
+  }
+
+  public void Import.prettyPrint(String ind, PrintStream pStream) {
+    pStream.print(ind+"<Import ");
+    for (int i=0; i<getNumAttribute(); i++) {
+      getAttribute(i).prettyPrint(ind,pStream);
+    }
+    if (getNumElement() == 0) {
+       pStream.println("/> ");
+    } else {
+       pStream.println("> ");
+       String newInd = ind+"  ";
+       for (int i=0; i<getNumElement(); i++) {
+          getElement(i).prettyPrint(newInd,pStream);
+       }
+       pStream.println(ind+"</Import> ");
+    }
+  }
+
+  public void Port.prettyPrint(String ind, PrintStream pStream) {
+    pStream.print(ind+"<Port ");
+    for (int i=0; i<getNumAttribute(); i++) {
+      getAttribute(i).prettyPrint(ind,pStream);
+    }
+    if (getNumElement() == 0) {
+       pStream.println("/> ");
+    } else {
+       pStream.println("> ");
+       String newInd = ind+"  ";
+       for (int i=0; i<getNumElement(); i++) {
+          getElement(i).prettyPrint(newInd,pStream);
+       }
+       pStream.println(ind+"</Port> ");
+    }
+  }
+
+  public void literal_kind.prettyPrint(String indent, PrintStream pStream) {
+    pStream.print(" literal-kind=");
+       getAttrValue().prettyPrint(indent,pStream);
+  }
+
+  public void Transition.prettyPrint(String ind, PrintStream pStream) {
+    pStream.print(ind+"<Transition ");
+    for (int i=0; i<getNumAttribute(); i++) {
+      getAttribute(i).prettyPrint(ind,pStream);
+    }
+    if (getNumElement() == 0) {
+       pStream.println("/> ");
+    } else {
+       pStream.println("> ");
+       String newInd = ind+"  ";
+       for (int i=0; i<getNumElement(); i++) {
+          getElement(i).prettyPrint(newInd,pStream);
+       }
+       pStream.println(ind+"</Transition> ");
+    }
+  }
+
+  public void assignable.prettyPrint(String indent, PrintStream pStream) {
+    pStream.print(" assignable=");
+       getAttrValue().prettyPrint(indent,pStream);
+  }
+
+  public void initial_state.prettyPrint(String indent, PrintStream pStream) {
+    pStream.print(" initial-state=");
+       getAttrValue().prettyPrint(indent,pStream);
+  }
+
+  public void ActionTags.prettyPrint(String ind, PrintStream pStream) {
+    pStream.print(ind+"<ActionTags ");
+    for (int i=0; i<getNumAttribute(); i++) {
+      getAttribute(i).prettyPrint(ind,pStream);
+    }
+    if (getNumElement() == 0) {
+       pStream.println("/> ");
+    } else {
+       pStream.println("> ");
+       String newInd = ind+"  ";
+       for (int i=0; i<getNumElement(); i++) {
+          getElement(i).prettyPrint(newInd,pStream);
+       }
+       pStream.println(ind+"</ActionTags> ");
+    }
+  }
+
+  public void Args.prettyPrint(String ind, PrintStream pStream) {
+    pStream.print(ind+"<Args ");
+    for (int i=0; i<getNumAttribute(); i++) {
+      getAttribute(i).prettyPrint(ind,pStream);
+    }
+    if (getNumElement() == 0) {
+       pStream.println("/> ");
+    } else {
+       pStream.println("> ");
+       String newInd = ind+"  ";
+       for (int i=0; i<getNumElement(); i++) {
+          getElement(i).prettyPrint(newInd,pStream);
+       }
+       pStream.println(ind+"</Args> ");
+    }
+  }
+
+  public void dst.prettyPrint(String indent, PrintStream pStream) {
+    pStream.print(" dst=");
+       getAttrValue().prettyPrint(indent,pStream);
+  }
+
+  public void id.prettyPrint(String indent, PrintStream pStream) {
+    pStream.print(" id=");
+       getAttrValue().prettyPrint(indent,pStream);
+  }
+
+  public void Expr.prettyPrint(String ind, PrintStream pStream) {
+    pStream.print(ind+"<Expr ");
+    for (int i=0; i<getNumAttribute(); i++) {
+      getAttribute(i).prettyPrint(ind,pStream);
+    }
+    if (getNumElement() == 0) {
+       pStream.println("/> ");
+    } else {
+       pStream.println("> ");
+       String newInd = ind+"  ";
+       for (int i=0; i<getNumElement(); i++) {
+          getElement(i).prettyPrint(newInd,pStream);
+       }
+       pStream.println(ind+"</Expr> ");
+    }
+  }
+
+  public void port.prettyPrint(String indent, PrintStream pStream) {
+    pStream.print(" port=");
+       getAttrValue().prettyPrint(indent,pStream);
+  }
+
+  public void text_begin_col.prettyPrint(String indent, PrintStream pStream) {
+    pStream.print(" text-begin-col=");
+       getAttrValue().prettyPrint(indent,pStream);
+  }
+
+  public void src_port.prettyPrint(String indent, PrintStream pStream) {
+    pStream.print(" src-port=");
+       getAttrValue().prettyPrint(indent,pStream);
+  }
+
+  public void text_end_col.prettyPrint(String indent, PrintStream pStream) {
+    pStream.print(" text-end-col=");
+       getAttrValue().prettyPrint(indent,pStream);
+  }
+
+  public void value.prettyPrint(String indent, PrintStream pStream) {
+    pStream.print(" value=");
+       getAttrValue().prettyPrint(indent,pStream);
+  }
+
+  public void Decl.prettyPrint(String ind, PrintStream pStream) {
+    pStream.print(ind+"<Decl ");
+    for (int i=0; i<getNumAttribute(); i++) {
+      getAttribute(i).prettyPrint(ind,pStream);
+    }
+    if (getNumElement() == 0) {
+       pStream.println("/> ");
+    } else {
+       pStream.println("> ");
+       String newInd = ind+"  ";
+       for (int i=0; i<getNumElement(); i++) {
+          getElement(i).prettyPrint(newInd,pStream);
+       }
+       pStream.println(ind+"</Decl> ");
+    }
+  }
+
+  public void Input.prettyPrint(String ind, PrintStream pStream) {
+    pStream.print(ind+"<Input ");
+    for (int i=0; i<getNumAttribute(); i++) {
+      getAttribute(i).prettyPrint(ind,pStream);
+    }
+    if (getNumElement() == 0) {
+       pStream.println("/> ");
+    } else {
+       pStream.println("> ");
+       String newInd = ind+"  ";
+       for (int i=0; i<getNumElement(); i++) {
+          getElement(i).prettyPrint(newInd,pStream);
+       }
+       pStream.println(ind+"</Input> ");
+    }
+  }
+
+  public void kind.prettyPrint(String indent, PrintStream pStream) {
+    pStream.print(" kind=");
+       getAttrValue().prettyPrint(indent,pStream);
+  }
+
+  public void Stmt.prettyPrint(String ind, PrintStream pStream) {
+    pStream.print(ind+"<Stmt ");
+    for (int i=0; i<getNumAttribute(); i++) {
+      getAttribute(i).prettyPrint(ind,pStream);
+    }
+    if (getNumElement() == 0) {
+       pStream.println("/> ");
+    } else {
+       pStream.println("> ");
+       String newInd = ind+"  ";
+       for (int i=0; i<getNumElement(); i++) {
+          getElement(i).prettyPrint(newInd,pStream);
+       }
+       pStream.println(ind+"</Stmt> ");
+    }
+  }
+
+  public void Type.prettyPrint(String ind, PrintStream pStream) {
+    pStream.print(ind+"<Type ");
+    for (int i=0; i<getNumAttribute(); i++) {
+      getAttribute(i).prettyPrint(ind,pStream);
+    }
+    if (getNumElement() == 0) {
+       pStream.println("/> ");
+    } else {
+       pStream.println("> ");
+       String newInd = ind+"  ";
+       for (int i=0; i<getNumElement(); i++) {
+          getElement(i).prettyPrint(newInd,pStream);
+       }
+       pStream.println(ind+"</Type> ");
+    }
+  }
+
+  public void XDF.prettyPrint(String ind, PrintStream pStream) {
+    pStream.print(ind+"<XDF ");
+    for (int i=0; i<getNumAttribute(); i++) {
+      getAttribute(i).prettyPrint(ind,pStream);
+    }
+    if (getNumElement() == 0) {
+       pStream.println("/> ");
+    } else {
+       pStream.println("> ");
+       String newInd = ind+"  ";
+       for (int i=0; i<getNumElement(); i++) {
+          getElement(i).prettyPrint(newInd,pStream);
+       }
+       pStream.println(ind+"</XDF> ");
+    }
+  }
+
+  public void _Attribute.prettyPrint(String ind, PrintStream pStream) {
+    pStream.print(ind+"<Attribute ");
+    for (int i=0; i<getNumAttribute(); i++) {
+      getAttribute(i).prettyPrint(ind,pStream);
+    }
+    if (getNumElement() == 0) {
+       pStream.println("/> ");
+    } else {
+       pStream.println("> ");
+       String newInd = ind+"  ";
+       for (int i=0; i<getNumElement(); i++) {
+          getElement(i).prettyPrint(newInd,pStream);
+       }
+       pStream.println(ind+"</Attribute> ");
+    }
+  }
+
+  public void Schedule.prettyPrint(String ind, PrintStream pStream) {
+    pStream.print(ind+"<Schedule ");
+    for (int i=0; i<getNumAttribute(); i++) {
+      getAttribute(i).prettyPrint(ind,pStream);
+    }
+    if (getNumElement() == 0) {
+       pStream.println("/> ");
+    } else {
+       pStream.println("> ");
+       String newInd = ind+"  ";
+       for (int i=0; i<getNumElement(); i++) {
+          getElement(i).prettyPrint(newInd,pStream);
+       }
+       pStream.println(ind+"</Schedule> ");
+    }
+  }
+
+  public void _to.prettyPrint(String indent, PrintStream pStream) {
+    pStream.print(" to=");
+       getAttrValue().prettyPrint(indent,pStream);
+  }
+
+  public void Actor.prettyPrint(String ind, PrintStream pStream) {
+    pStream.print(ind+"<Actor ");
+    for (int i=0; i<getNumAttribute(); i++) {
+      getAttribute(i).prettyPrint(ind,pStream);
+    }
+    if (getNumElement() == 0) {
+       pStream.println("/> ");
+    } else {
+       pStream.println("> ");
+       String newInd = ind+"  ";
+       for (int i=0; i<getNumElement(); i++) {
+          getElement(i).prettyPrint(newInd,pStream);
+       }
+       pStream.println(ind+"</Actor> ");
+    }
+  }
+
+}
+
