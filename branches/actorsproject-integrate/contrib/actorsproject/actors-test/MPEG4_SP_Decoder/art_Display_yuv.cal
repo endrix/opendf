@@ -30,7 +30,7 @@ actor art_Sink_yuv (string title,
 
   picture := Picture(xAcross, yOver);
   frame = JFrame(title);
-  list[int(size=9)] macroBlock := [0: for i in 1..MB_SIZE];
+  List[int(size=9)] macroBlock := [0: for i in 1..MB_SIZE];
 
   int mbx:=0;
   int mby:=0;
