@@ -12,6 +12,7 @@ import javax.xml.transform.Transformer;
 
 import net.sf.opendf.cal.util.SourceReader;
 import net.sf.opendf.util.io.ClassLoaderStreamLocator;
+import net.sf.opendf.util.io.SourceStream;
 import net.sf.opendf.util.io.StreamLocator;
 import net.sf.opendf.util.xml.Util;
 
@@ -20,7 +21,7 @@ import org.w3c.dom.Node;
 
 public class DDLLoader extends XMLLoader {
 
-	public Node load(InputStream s) {
+	public Node load(SourceStream s) {
 		try {
 			Node n = super.load(s);
 			Node res = Util.applyTransforms(n, convertDDL);

@@ -111,8 +111,12 @@ public class SSAGenerator extends XSLTTransformRunner
         "net/sf/opendf/cal/transforms/xlim/Dimensions.xslt"
     };
 
-    private static String[] xlimTransforms = {
+    private static String[] xlimHwTransforms = {
         "net/sf/opendf/cal/transforms/xlim/MakeOneHotXLIM.xslt"
+    };
+    
+    private static String[] xlimSwTransforms = {
+         "net/sf/opendf/cal/transforms/xlim/MakeOneSteamingXLIM.xslt"
     };
 
     // Flags which are always passed to the transform runner.
@@ -201,12 +205,16 @@ public class SSAGenerator extends XSLTTransformRunner
     {
         return this.ssaTransforms;
     }
-    
-    protected String[] getXlimTransforms ()
-    {
-        return this.xlimTransforms;
+ 
+    protected String[] getXlimTransforms () {
+      boolean swTarget = ((ConfigBoolean)configs.get(ConfigGroup.XLIM_SOFTWARE_TARGET)).getValue().booleanValue();
+	  if (swTarget) {
+		return this.xlimSwTransforms;
+	  } else {
+		return this.xlimHwTransforms;
+      }
     }
-
+    
     /**
      * Runs the transformations to compile CAL or CALML to pcalml,
      * then to hwcalml, and finally to XLIM.
