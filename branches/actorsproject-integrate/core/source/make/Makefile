@@ -1,7 +1,7 @@
 # This makefile is generally called by the one in the parent directory. 
 # These vars will be set by the parent makefile.
 
-JAVAC = javac
+JAVAC = javac -g
 JAR = jar
 
 # OS-dependent classpath separator
@@ -11,7 +11,7 @@ else
 CPS = :
 endif
 
-OPENDF_HOME = ../..
+OPENDF_HOME = $(abspath ../..)
 JAR_NAME = opendf.jar
 PTPLOT_CP = $(OPENDF_HOME)/lib/PtPlot.jar
 JFREECHART_CP = $(OPENDF_HOME)/../../jfreechart-1.0.6/jfreechart-1.0.6.jar$(CPS)$(OPENDF_HOME)/../../jfreechart-1.0.6/lib/jcommon-1.0.10.jar
@@ -35,7 +35,7 @@ OPENDF_XSLT_SOURCES = $(shell find $(OPENDF_HOME)/source/java/net/sf/opendf/xslt
 CONTRIB_SOURCES = $(shell find $(OPENDF_HOME)/source/java/net/sf/opendf/actors -name "*.java")
 
 jar: $(OPENDF_CLASSDIR)
-	cd $(OPENDF_CLASSDIR) ; $(JAR) -xvf ../../contrib/actorlib/lib/PtPlot.jar
+	cd $(OPENDF_CLASSDIR) ; $(JAR) -xvf $(OPENDF_HOME)/../contrib/actorlib/lib/PtPlot.jar
 	cd $(OPENDF_CLASSDIR) ; $(JAR) -cvf ../$(JAR_NAME) *
 
 clean:
@@ -52,7 +52,7 @@ cproot = $(OPENDF_CLASSDIR)/net/sf/opendf
 
 .PHONY = create_dir
 
-$(OPENDF_CLASSDIR): create_dir util hades cli ptolemy xslt contrib 
+$(OPENDF_CLASSDIR): create_dir util hades cli ptolemy xslt contrib
 
 
 create_dir:
@@ -64,7 +64,7 @@ java_cup:
 ptolemy:
 	$(JAVAC) -classpath "$(OPENDF_CLASSPATH)" -d $(OPENDF_CLASSDIR) $(PTOLEMY_SOURCES)
 
-util: create_dir java_cup
+util: create_dir java_cup 
 	$(JAVAC) -classpath "$(OPENDF_CLASSPATH)" -d $(OPENDF_CLASSDIR) $(OPENDF_LIB_SOURCES) $(OPENDF_UTIL_SOURCES) $(OPENDF_MATH_SOURCES) $(OPENDF_CAL_SOURCES) $(OPENDF_NL_SOURCES) $(OPENDF_ACTORC_SOURCES)
 #	$(JAVAC) -classpath "$(OPENDF_CLASSPATH)" -d $(OPENDF_CLASSDIR) $(OPENDF_UTIL_SOURCES)
 

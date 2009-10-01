@@ -74,7 +74,7 @@ import org.w3c.dom.Node;
  * There are parseXYZ and readXYZ methods. The parseXYZ methods parse a sequence of characters and 
  * return the resulting DOM tree that represents the AST. The readXYZ methods are built on top of  
  * 
- *  @author J�rn W. Janneck <janneck@eecs.berkeley.edu>
+ *  @author Jorn W. Janneck <janneck@eecs.berkeley.edu>
  */
 
 public class SourceReader
@@ -91,7 +91,7 @@ public class SourceReader
                 "net/sf/opendf/cal/transforms/CanonicalizePortTags.xslt",
 
                 // Copies Input Port Type to Input Decl
-                "net/sf/opendf/cal/transforms/AddInputTypes.xslt",
+                //"net/sf/opendf/cal/transforms/AddInputTypes.xslt", //This is done in SSAGenerator
 
                 // Convert the old keyword to appropriate local var declaration
                 "net/sf/opendf/cal/transforms/ReplaceOld.xslt",
