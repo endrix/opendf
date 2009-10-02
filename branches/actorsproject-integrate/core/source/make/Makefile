@@ -11,7 +11,7 @@ else
 CPS = :
 endif
 
-OPENDF_HOME = $(abspath ../..)
+OPENDF_HOME = ../..
 JAR_NAME = opendf.jar
 PTPLOT_CP = $(OPENDF_HOME)/lib/PtPlot.jar
 JFREECHART_CP = $(OPENDF_HOME)/../../jfreechart-1.0.6/jfreechart-1.0.6.jar$(CPS)$(OPENDF_HOME)/../../jfreechart-1.0.6/lib/jcommon-1.0.10.jar
@@ -35,7 +35,7 @@ OPENDF_XSLT_SOURCES = $(shell find $(OPENDF_HOME)/source/java/net/sf/opendf/xslt
 CONTRIB_SOURCES = $(shell find $(OPENDF_HOME)/source/java/net/sf/opendf/actors -name "*.java")
 
 jar: $(OPENDF_CLASSDIR)
-	cd $(OPENDF_CLASSDIR) ; $(JAR) -xvf $(OPENDF_HOME)/../contrib/actorlib/lib/PtPlot.jar
+	(cd $(OPENDF_CLASSDIR) ; $(JAR) -xv) < $(OPENDF_HOME)/../contrib/actorlib/lib/PtPlot.jar
 	cd $(OPENDF_CLASSDIR) ; $(JAR) -cvf ../$(JAR_NAME) *
 
 clean:
