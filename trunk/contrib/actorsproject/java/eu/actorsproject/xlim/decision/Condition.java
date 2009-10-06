@@ -38,41 +38,93 @@
 package eu.actorsproject.xlim.decision;
 
 import java.util.Collections;
-import java.util.Map;
 
 import eu.actorsproject.util.XmlElement;
+import eu.actorsproject.xlim.XlimContainerModule;
+import eu.actorsproject.xlim.XlimOperation;
 import eu.actorsproject.xlim.XlimSource;
 import eu.actorsproject.xlim.XlimTopLevelPort;
+import eu.actorsproject.xlim.util.LiteralPattern;
 
+/**
+ * A Condition, which is associated with a DecisionNode.
+ * Two subclasses represent relevant special cases:
+ * AvailabilityTest  token/space availability on in-/out-port
+ * Conjunction       a conjunction: c1 && c2 && ... && cn of simpler conditions
+ *                   (all of which are asserted on the "true" branch of a decision node)
+ */
 public class Condition implements XmlElement {
 
-	private XlimSource mCondition;
+	private XlimContainerModule mContainer;
+	private XlimSource mXlimSource;
 	
-	public Condition(XlimSource condition) {
-		mCondition=condition;
+	public Condition(XlimContainerModule container, XlimSource xlimSource) {
+		mContainer=container;
+		mXlimSource=xlimSource;
 	}
 	
 	public void addTo(Conjunction conjunction) {
 		conjunction.add(this);
 	}
 	
+	protected XlimSource getXlimSource() {
+		return mXlimSource;
+	}
+	
+	protected XlimContainerModule getXlimContainer() {
+		return mContainer;
+	}
+	
 	/**
-     * Updates the collection of tested (and failed) ports
-     * @param portMap     ports that have been tested (and failed) on a path from
+	 * @param port 
+	 * @return number of available tokens (on port) asserted by this condition
+	 * 	       (0 if this condition contains no token-availability test on port)
+	 */
+	protected int assertedTokenCount(XlimTopLevelPort port) {
+		return 0;
+	}
+	
+	/**
+     * Updates the collection of tested (and possibly failed) token-availability tests
+     * @param failedTests Tests that may have failed on some path from
      *                    the root of the decision tree to this node.
-     * @return            value to be used when restoring the portMap
+	 * @return updated collection of tests
      */
-    protected Object updatePortMap(Map<XlimTopLevelPort,Integer> portMap) {
-    	return null;
+    protected PortMap updateFailedTests(PortMap failedTests) {
+    	return failedTests; // Do nothing
     }
     
+    /**
+    * Updates the collection of asserted (successful) token-availability tests
+    * @param portMap     gives the maximum asserted token availability for port
+    *                    on a path from the root of the decision tree to the
+    *                    "true" branch that is guarded by this condition
+     * @return updated collection of tests
+    */
+    protected PortMap updateSuccessfulTests(PortMap successfulTests) {
+    	return successfulTests; // Do nothing!
+    }
     
     /**
-     * @param map        map of ports that have been tested (and failed)
-     * @param oldValue   object returned from updatePortMap
+     * @param successfulTests tests known to be true
+     * @return true if the condition was updated
      */
-    protected void restorePortMap(Map<XlimTopLevelPort,Integer> map, Object oldValue) {
-    	// Default case is nodes that don't test availability (do nothing)
+    public Condition updateCondition(PortMap successfulTests) {
+    	return this; // Do nothing!
+    }
+    
+    protected Condition makeAlwaysTrue() {
+    	// Make if a constant "true" Condition
+		mContainer.startPatchAtEnd();
+		XlimOperation op=mContainer.addLiteral(true);
+		mContainer.completePatchAndFixup();
+		return new Condition(mContainer, op.getOutputPort(0));
+    }
+    
+    private static LiteralPattern sTruePattern = new LiteralPattern(1);
+    
+    public boolean alwaysTrue() {
+    	return sTruePattern.matches(mXlimSource);
     }
     
 	@Override
@@ -82,7 +134,8 @@ public class Condition implements XmlElement {
 
 	@Override
 	public String getAttributeDefinitions() {
-		return "decision=\""+mCondition.getUniqueId()+"\"";
+		XlimSource xlimCondition=getXlimSource();
+		return "decision=\""+xlimCondition.getUniqueId()+"\"";
 	}
 
 	@Override

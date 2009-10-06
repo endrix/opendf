@@ -54,6 +54,7 @@ import net.sf.opendf.cli.lib.XDFClassFactory;
 import net.sf.opendf.cli.lib.XNLClassFactory;
 import net.sf.opendf.util.io.ClassLoaderStreamLocator;
 import net.sf.opendf.util.io.DirectoryStreamLocator;
+import net.sf.opendf.util.io.SourceStream;
 import net.sf.opendf.util.io.StreamLocator;
 import net.sf.opendf.util.logging.Logging;
 
@@ -136,12 +137,12 @@ public class SimulationClassLoader extends ClassLoader {
 		}
 		locators.add(new ClassLoaderStreamLocator(this));
 	}
-	
+
 	private InputStream  getModelClassAsStream(String name) {
 		for (StreamLocator mcl : locators) {
-			InputStream s = mcl.getAsStream(name);
+			SourceStream s = mcl.getAsStream(name);
 			if (s != null)
-				return s;
+				return s.getInputStream();
 		}
 		return null;
 	}

@@ -47,12 +47,17 @@ import eu.actorsproject.xlim.XlimOperation;
 import eu.actorsproject.xlim.XlimOutputPort;
 import eu.actorsproject.xlim.XlimSource;
 import eu.actorsproject.xlim.XlimTaskModule;
+import eu.actorsproject.xlim.XlimTestModule;
 import eu.actorsproject.xlim.util.InstructionPattern;
 import eu.actorsproject.xlim.util.OperationHandler;
 import eu.actorsproject.xlim.util.OperationPlugIn;
 import eu.actorsproject.xlim.util.WildcardInstructionPattern;
 import eu.actorsproject.xlim.util.XlimTreePattern;
 
+/**
+ * Parses an action scheduler (a specific Xlim "task" module)
+ * an produces its DecisionTree
+ */
 public class ActionSchedulerParser {
 
 	private Classifier mClassifier;
@@ -99,9 +104,11 @@ public class ActionSchedulerParser {
 				ifTrue=new NullNode(ifModule.getThenModule());
 			if (ifFalse==null)
 				ifFalse=new NullNode(ifModule.getElseModule());
-			XlimSource decision=ifModule.getTestModule().getDecision();
-			Condition cond=mConditionParser.parse(decision);
-			return new DecisionNode(cond, ifTrue, ifFalse);
+			
+			XlimTestModule testModule=ifModule.getTestModule();
+			XlimSource decision=testModule.getDecision();
+			Condition cond=mConditionParser.parse(testModule, decision);
+			return new DecisionNode(ifModule, cond, ifTrue, ifFalse);
 		}
 		else
 			return null;
@@ -187,15 +194,19 @@ public class ActionSchedulerParser {
 			return true;
 		}
 
-		Condition parseCondition(XlimSource decision, XlimOperation op) {
-			return new Condition(decision);			
+		Condition parseCondition(XlimContainerModule container,
+				                 XlimSource decision, 
+				                 XlimOperation op) {
+			return new Condition(container, decision);			
 		}
 	}
 
 	private class PinStatusHandler extends ConditionHandler {
 		@Override
-		Condition parseCondition(XlimSource decision, XlimOperation op) {
-			return new AvailabilityTest(decision, op.getPortAttribute(), 1);			
+		Condition parseCondition(XlimContainerModule container,
+                                 XlimSource decision, 
+                                 XlimOperation op) {
+			return new AvailabilityTest(container, decision, op.getPortAttribute(), 1);			
 		}
 	}
 	
@@ -212,23 +223,30 @@ public class ActionSchedulerParser {
 		}	
 		
 		@Override
-		Condition parseCondition(XlimSource decision, XlimOperation op) {
+		Condition parseCondition(XlimContainerModule container,
+                                 XlimSource decision, 
+                                 XlimOperation op) {
 			// Knowing that the pattern matches, we simply get the pinAvail and $literal_Integer
 			XlimOutputPort root=op.getOutputPort(0);
 			XlimOperation pinAvail=mPattern.getOperand(0, root).isOperation();
 			XlimOperation literal=mPattern.getOperand(1, root).isOperation();
 			long numTokens=literal.getIntegerValueAttribute();
-			return new AvailabilityTest(decision, pinAvail.getPortAttribute(), (int) numTokens);			
+			return new AvailabilityTest(container, 
+					                    decision, 
+					                    pinAvail.getPortAttribute(), 
+					                    (int) numTokens);			
 		}
 	}
 	
 	private class ConjunctionHandler extends ConditionHandler {
 		@Override
-		Condition parseCondition(XlimSource decision, XlimOperation op) {
-			Conjunction result=new Conjunction(decision);
+		Condition parseCondition(XlimContainerModule container,
+                                 XlimSource decision, 
+                                 XlimOperation op) {
+			Conjunction result=new Conjunction(container, decision);
 			// Parse the inputs of the $and operator 
 			for (XlimInputPort input: op.getInputPorts()) {
-				Condition cond=mConditionParser.parse(input.getSource());
+				Condition cond=mConditionParser.parse(container, input.getSource());
 			    cond.addTo(result);
 			}
 			return result;			
@@ -246,16 +264,16 @@ public class ActionSchedulerParser {
 			registerHandler("$ge", new PinAvailHandler());
 		}
 		
-		public Condition parse(XlimSource decision) {
-			XlimOutputPort port=decision.isOutputPort();
+		public Condition parse(XlimContainerModule container, XlimSource cond) {
+			XlimOutputPort port=cond.isOutputPort();
 			if (port!=null) {
 				XlimOperation op=port.getParent().isOperation();
 				if (op!=null) {
 					ConditionHandler handler=getOperationHandler(op);
-					return handler.parseCondition(decision, op);
+					return handler.parseCondition(container, cond, op);
 				}
 			}
-			return new Condition(decision);
+			return new Condition(container, cond);
 		}
 	}
 }

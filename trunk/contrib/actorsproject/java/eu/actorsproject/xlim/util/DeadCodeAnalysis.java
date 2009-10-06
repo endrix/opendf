@@ -41,7 +41,6 @@ import java.util.ArrayDeque;
 import java.util.HashSet;
 
 import eu.actorsproject.xlim.XlimDesign;
-import eu.actorsproject.xlim.XlimInstruction;
 import eu.actorsproject.xlim.XlimOperation;
 import eu.actorsproject.xlim.XlimPhiNode;
 import eu.actorsproject.xlim.XlimStateCarrier;

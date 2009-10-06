@@ -71,6 +71,7 @@ import eu.actorsproject.xlim.XlimType;
 import eu.actorsproject.xlim.XlimOperation;
 import eu.actorsproject.xlim.XlimInstruction;
 import eu.actorsproject.xlim.XlimOutputPort;
+import eu.actorsproject.xlim.util.Session;
 
 public class XlimReader {
 	
@@ -100,11 +101,11 @@ public class XlimReader {
 	protected static final int OPERATION_TAG=6;
 	protected static final int PHI_TAG=7;
 	protected static final int PORT_TAG=8;
+	protected static final int NOTE_TAG=9;
 	
-	
-	public XlimReader(ReaderPlugIn plugIn) {
-		mPlugIn=plugIn;
-		mFactory=plugIn.getFactory();
+	public XlimReader() {
+		mPlugIn=Session.getReaderPlugIn();
+		mFactory=Session.getXlimFactory();
 		mTags=new HashMap<String,Integer>();
 		mTags.put("design", DESIGN_TAG);
 		mTags.put("actor-port", ACTOR_PORT_TAG);
@@ -115,6 +116,7 @@ public class XlimReader {
 		mTags.put("operation", OPERATION_TAG);
 		mTags.put("PHI", PHI_TAG);
 		mTags.put("port", PORT_TAG);
+		mTags.put("note", NOTE_TAG);
 	}
 	
 	public XlimDesign read(File f) 
@@ -201,7 +203,7 @@ public class XlimReader {
 
 		mPortPass.findPorts(child,context,inputs,outputs);
 		XlimOperation op=parent.addOperation(kind,inputs,outputs);
-		mPlugIn.setAttributes(op,child.getAttributes(),context);	
+		mPlugIn.setAttributes(op,child.getAttributes(),context);
 	}
 
 	protected void createModule(Element child,
@@ -400,7 +402,7 @@ public class XlimReader {
 	protected class DesignPass2 extends PassPlugin<Object,Object> {
 		
 		protected void processTask(Element child, ReaderContext context, XlimTaskModule task) {
-			context.enterTask();
+			context.enterTask(task);
 			mDeclarationPass.declarePorts(child,context);
 			mBlockContainerPass.createContents(child,context,task);
 			context.leaveTask();
@@ -468,8 +470,23 @@ public class XlimReader {
 				createOperation(child,parent,context);
 			else if (tag==MODULE_TAG)
 				createModule(child,parent,context);
+			else if (tag==NOTE_TAG)
+				processNote(child, context);
 			else
 				unhandledTag(child);
+		}
+		
+		protected void processNote(Element note, ReaderContext context) {
+			String kind=getRequiredAttribute("kind",note);
+			
+			if (kind.equals("consumptionRates") || kind.equals("productionRates")) {
+				String name=getRequiredAttribute("name",note);
+				String rate=getRequiredAttribute("value", note);
+				XlimTopLevelPort port=context.getTopLevelPort(name);
+				if (port==null)
+				    throw new IllegalArgumentException("No such port (in <note>): "+name);
+				context.setPortRate(port, Integer.valueOf(rate));
+			}
 		}
 		
 		public void createContents(Element domModule, ReaderContext context, XlimContainerModule xlimModule) {
@@ -634,12 +651,8 @@ public class XlimReader {
 	protected class InitValuePass extends PassPlugin<Collection<XlimInitValue>,Object> {
 		protected XlimInitValue createScalar(Element domElement) {
 			XlimType type=getType(domElement);
-			String value=getRequiredAttribute("value",domElement); 
-			try {
-				return mFactory.createInitValue(Integer.valueOf(value),type);
-			} catch (NumberFormatException ex) {
-				throw new RuntimeException("Unexpected attribute value=\""+value+"\"");
-			}			
+			String value=getRequiredAttribute("value",domElement);
+			return mFactory.createInitValue(value,type);
 		}
 		
 		protected XlimInitValue createAggregate(Element domElement) {

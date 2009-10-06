@@ -50,6 +50,8 @@ interface AbstractBlockElement extends XlimBlockElement {
 	@Override
 	ContainerModule getParentModule();
 	
+	void setParentModule(ContainerModule parent);
+	
 	Linkage<AbstractBlockElement> getLinkage();
 	
 	/**
@@ -58,11 +60,17 @@ interface AbstractBlockElement extends XlimBlockElement {
 	void removeReferences();
 	
 	/**
-	 * Sets dependence links (of stateful resources) in added code,
-	 * computes the set of exposed uses and new values
-	 * @param context
+	 * Removes references to StateValueNodes (definitions) of this element
+	 * -as if the element was removed (prerequistite of copyAndPaste)
 	 */
-	void fixupAddedCode(FixupContext context);
+	void substituteStateValueNodes();
+	
+	/**
+	 * Sets (or updates) dependence links (of stateful resources)
+	 * computes the set of exposed uses and new values
+	 * @param context (keeps track of exposed uses and new definitions) 
+	 */
+	void fixupAll(FixupContext context);
 	
 	/**
 	 * Resolves exposed uses by looking for definitions

@@ -17,11 +17,11 @@ public class MultiLocatorStreamLocator implements StreamLocator
         this.locators = locators;
     }
 
-    public InputStream getAsStream (String name)
+    public SourceStream getAsStream (String name)
     {
         for (int i=0; i < this.locators.length; i++)
         {
-            InputStream stream = this.locators[i].getAsStream(name);
+            SourceStream stream = this.locators[i].getAsStream(name);
             if (stream != null)
                 return stream;
         }

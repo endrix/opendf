@@ -73,7 +73,7 @@ actor DCPred (
   int ptr := 8;  // Start at 8, since 0-7 are reserved
 
   // Initialize to the dummy values needed for uncoded blocks (always mapped to index 0)
-  list( type:int(size=SAMPLE_SZ), size=BUF_SIZE ) dc_buf := [ DCVAL : for k in Integers(1,BUF_SIZE) ];
+  List( type:int(size=SAMPLE_SZ), size=BUF_SIZE ) dc_buf := [ DCVAL : for k in Integers(1,BUF_SIZE) ];
 
   int(size=4) comp := 0;
 

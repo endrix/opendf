@@ -41,16 +41,22 @@ import org.w3c.dom.NamedNodeMap;
 import java.util.HashMap;
 import eu.actorsproject.xlim.XlimType;
 
-public abstract class ParametricTypeKind<T> extends TypeKindPlugIn {
+public abstract class ParametricTypeKind extends TypeKind {
 	
-	private HashMap<T,XlimType> mTypeMap;
+	private HashMap<Object,XlimType> mTypeMap;
 		
 	public ParametricTypeKind(String name) {
 		super(name);
-		mTypeMap=new HashMap<T,XlimType>();
+		mTypeMap=new HashMap<Object,XlimType>();
 	}
-		
-	public XlimType getType(T parameter) {
+
+	@Override
+	public XlimType createType() {
+		throw new UnsupportedOperationException("Type "+getTypeName()+" requires a parameter");
+	}
+	
+	@Override
+	public XlimType createType(Object parameter) {
 		XlimType type=mTypeMap.get(parameter);
 		if (type==null) {
 			type=create(parameter);
@@ -59,14 +65,15 @@ public abstract class ParametricTypeKind<T> extends TypeKindPlugIn {
 		return type;
 	}
 
-	public XlimType getType(NamedNodeMap attributes) {
-		T parameter=getParameter(attributes);
+	@Override
+	public XlimType createTypeFromAttributes(NamedNodeMap attributes) {
+		Object parameter=getParameter(attributes);
 		if (parameter!=null)
-			return getType(parameter);
+			return createType(parameter);
 		else
 			return null;
 	}
 	
-	protected abstract T getParameter(NamedNodeMap attributes);
-	protected abstract XlimType create(T parameter);
+	protected abstract Object getParameter(NamedNodeMap attributes);
+	protected abstract XlimType create(Object parameter);
 }

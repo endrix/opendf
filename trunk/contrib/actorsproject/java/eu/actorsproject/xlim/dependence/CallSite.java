@@ -235,6 +235,12 @@ public class CallSite  {
 			return getTaskCall().getValueOperator();
 		}
 		
+		
+		@Override
+		public ValueNode getDominatingDefinition() {
+			return getInputValue(mStateCarrier);
+		}
+
 		@Override
 		public <Result,Arg> Result accept(Visitor<Result,Arg> visitor, Arg arg) {
 			return visitor.visitCall(this,CallSite.this,arg);

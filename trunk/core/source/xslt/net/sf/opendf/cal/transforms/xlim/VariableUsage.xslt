@@ -75,7 +75,7 @@ ENDCOPYRIGHT
   </xd:doc>
 	
 <xd:doc>Roll up vars-used from children, add usage info for the current element, uniquify list </xd:doc>
-<xsl:template match="*">
+<xsl:template match="*[not(@kind='var-used')]">
   
   <!-- Preserve the existing element information -->  
   <xsl:copy>

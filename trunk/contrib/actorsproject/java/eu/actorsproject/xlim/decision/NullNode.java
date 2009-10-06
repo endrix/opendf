@@ -37,46 +37,65 @@
 
 package eu.actorsproject.xlim.decision;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import eu.actorsproject.util.XmlElement;
 import eu.actorsproject.xlim.XlimContainerModule;
+import eu.actorsproject.xlim.XlimIfModule;
 import eu.actorsproject.xlim.XlimOperation;
-import eu.actorsproject.xlim.XlimOutputPort;
-import eu.actorsproject.xlim.XlimSource;
-import eu.actorsproject.xlim.XlimTopLevelPort;
 
+/**
+ * A NullNode represents an empty leaf in the decision tree.
+ * This is the place where we must block to avoid busy wait.
+ */
 public class NullNode extends DecisionTree {
 
 	private XlimContainerModule mProgramPoint;
-	private List<BlockOnPort> mPorts;
+	private YieldAttribute mYieldAttribute;
 	
 	public NullNode(XlimContainerModule programPoint) {
 		mProgramPoint=programPoint;
-		mPorts=Collections.emptyList();
+		mYieldAttribute=new YieldAttribute();
 	}
 
+	@Override
+	protected XlimContainerModule getModule() {
+		return mProgramPoint;
+	}
+	
+	@Override
+	protected PortMap 
+	hoistAvailabilityTests(PortMap dominatingTests) {
+		return null; // null indicates that no ActionNode is found in this subtree
+	}
+
+	@Override
+	protected XlimIfModule sinkIntoIfModule() {
+		// Insert the IfModule at current program point
+		mProgramPoint.startPatchAtEnd();
+		XlimIfModule result=mProgramPoint.addIfModule();
+		mProgramPoint.completePatchAndFixup();
+		
+		// update program point
+		mProgramPoint=result.getThenModule();
+		return result;
+	}
+	
 	/**
      * Decorates the NullNodes of a decision tree with the set of ports that may
      * have been tested for availability tokens (input ports) or space (output ports)
      * and the outcome of that test was failure.
-     * @param ports        ports that have been tested (and failed) on *some* path
-     *                     from the root to the decision tree to this node.
-     *                     the associated integer is the minimum number of tokens 
-     *                     (or empty slots) required for a different outcome of the
-     *                     scheduling decision
+     * @param assertedTests tests that succeeded on *all* paths from the root
+	 * @param failedTests   tests that may have failed on *some* path from the
+     *                      root of the decision tree to this node.
      */
- 	@Override
-    protected  void decorateNullNodes(Map<XlimTopLevelPort,Integer> ports) {
-		boolean weakBlocking=ports.size()!=1;
-		mPorts=new ArrayList<BlockOnPort>();
+	@Override
+	protected DecisionTree topDownPass(PortMap assertedTests, PortMap failedTests) {
+		for (AvailabilityTest test: failedTests) {
+			AvailabilityTest asserted=assertedTests.get(test.getPort());
+			if (asserted==null || asserted.getTokenCount()<test.getTokenCount())
+				mYieldAttribute.add(new BlockingCondition(test));
+		}
 		
-		for (Map.Entry<XlimTopLevelPort,Integer> entry: ports.entrySet())
-			mPorts.add(new BlockOnPort(entry.getKey(), entry.getValue(), weakBlocking));
+		return this;
 	}
     	
  	/**
@@ -84,15 +103,11 @@ public class NullNode extends DecisionTree {
      */
  	@Override
     public void generateBlockingWait() {
- 		if (mPorts.isEmpty()==false) {
- 			BlockOnPort last=mPorts.get(mPorts.size()-1);
- 			mProgramPoint.startPatchAtEnd();
- 			for (BlockOnPort block: mPorts)
- 				block.generatePinWait(mProgramPoint, block==last);
-			mProgramPoint.completePatchAndFixup();
- 		}
+ 		mProgramPoint.startPatchAtEnd();
+ 		XlimOperation yield=mProgramPoint.addOperation("yield");
+ 		yield.setGenericAttribute(mYieldAttribute);
+ 		mProgramPoint.completePatchAndFixup();
  	}
- 	
 	
 	/* XmlElement interface */
 
@@ -103,45 +118,6 @@ public class NullNode extends DecisionTree {
 
 	@Override
 	public Iterable<? extends XmlElement> getChildren() {
-		return mPorts;
-	}
-	
-	private class BlockOnPort implements XmlElement {
-		XlimTopLevelPort mPort;
-		int mSize;
-		boolean mIsWeak;
-		
-		BlockOnPort(XlimTopLevelPort port, int size, boolean isWeak) {
-			mPort=port;
-			mSize=size;
-			mIsWeak=isWeak;
-		}
-		
-		public void generatePinWait(XlimContainerModule module, boolean last) {
-			List<XlimSource> inputs=Collections.emptyList();
-			List<XlimOutputPort> outputs=Collections.emptyList();
-			
-			XlimOperation pinWait=mProgramPoint.addOperation("pinWait",inputs,outputs); 
-			pinWait.setPortAttribute(mPort);
-			pinWait.setIntegerValueAttribute(mSize);
-			if (last)
-				pinWait.setBlockingStyle();
-		}
-				
-		@Override
-		public String getTagName() {
-			return "blockOnPort";
-		}
-
-		@Override
-		public Iterable<? extends XmlElement> getChildren() {
-			return Collections.emptyList();
-		}
-
-		@Override
-		public String getAttributeDefinitions() {
-			return "portName=\""+mPort.getSourceName()+"\" size=\""+mSize+"\" style="+
-				(mIsWeak? "\"weak\"" : "\"strong\"");
-		}
+		return mYieldAttribute;
 	}
 }

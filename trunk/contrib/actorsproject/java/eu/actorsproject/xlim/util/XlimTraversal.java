@@ -42,7 +42,6 @@ import eu.actorsproject.xlim.XlimBlockModule;
 import eu.actorsproject.xlim.XlimContainerModule;
 import eu.actorsproject.xlim.XlimDesign;
 import eu.actorsproject.xlim.XlimIfModule;
-import eu.actorsproject.xlim.XlimInstruction;
 import eu.actorsproject.xlim.XlimLoopModule;
 import eu.actorsproject.xlim.XlimOperation;
 import eu.actorsproject.xlim.XlimPhiNode;
@@ -102,15 +101,19 @@ public abstract class XlimTraversal<ResultT,ArgT> {
 	protected abstract ResultT handlePhiNode(XlimPhiNode phi, ArgT arg);
 	
 	protected XlimBlockElement.Visitor<ResultT,ArgT> mVisitor = new XlimBlockElement.Visitor<ResultT,ArgT>() {
+		@Override
 		public ResultT visitBlockModule(XlimBlockModule m, ArgT arg) {
 			return traverseBlockModule(m,arg);
 		}
+		@Override
 		public ResultT visitIfModule(XlimIfModule m, ArgT arg) {
 			return traverseIfModule(m,arg);
 		}
+		@Override
 		public ResultT visitLoopModule(XlimLoopModule m, ArgT arg) {
 			return traverseLoopModule(m,arg);
 		}
+		@Override
 		public ResultT visitOperation(XlimOperation op, ArgT arg) {
 			return handleOperation(op,arg);
 		}
