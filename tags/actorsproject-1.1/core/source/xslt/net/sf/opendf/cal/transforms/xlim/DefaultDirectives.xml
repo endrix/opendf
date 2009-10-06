@@ -1,0 +1,34 @@
+<directives>
+
+  <!-- ******************************
+  	        project settings
+  	   ****************************** -->
+
+  <!-- Notes:
+  	   1) All settings must be specified in a context by enclosing
+  	      them inside an directives element declaring the context.
+  	   2) The context may be named, in which case the settings apply
+  	      only to contexts that have that name as a prefix. If the
+  	      context is not named, it will match any context of that type. 
+  	   3) When more than one setting is applicable in a context, the
+  	      last value in document order whose context matches is used,
+  	      i.e. later directives override earlier directives. -->
+     
+  <!-- default root-level directives -->
+  <directives>
+    
+  	<!-- name of default type for any untyped Decl -->
+  	<parameter name="default-type-name" value="int"/>
+  	    
+    <!-- templates to construct complete types with defaulted parameters -->
+    <parameter name="default-type-templates">
+      <Type name="int">
+        <Entry kind="Expr" name="size">
+          <Expr kind="Literal" literal-kind="Integer" value="32"/>
+        </Entry>
+      </Type>      
+    </parameter>
+    
+  </directives>
+
+</directives>

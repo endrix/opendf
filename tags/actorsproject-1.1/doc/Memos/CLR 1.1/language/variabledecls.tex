@@ -1,0 +1,462 @@
+
+
+\chapter{Variables}\label{chap:Variables}
+
+\index{expression!variable|(}
+\index{variable|(}
+
+\index{binding}
+\index{variable!bound}
+\index{variable!binding}
+\sidenote{bindings}
+
+Variables are placeholders for other values. They are said to be
+{\em bound} to the value that they stand for. The association between
+a variable and its value is called a {\em binding}.
+
+\index{variable!binding!assignable}\index{binding!assignable}
+\index{variable!binding!mutable}\index{binding!mutable}
+\index{types!mutable}
+
+\Cal \sidenote{assignable \& mutable bindings}distinguishes between
+different kinds of bindings, depending on whether they can be assigned
+to ({\em assignable variable binding}), and whether the object they
+refer to may be mutated ({\em mutable variable binding}---cf. sections
+\ref{sect:MutableTypes} and \ref{sect:IndexedAssignment}).
+
+This chapter first explains how variables are {\em declared} inside \Cal
+source code. It then proceeds to discuss the scoping rules of the
+language, which govern the visibility of variables and also constrain
+the kinds of declarations that are legal in \Cal.
+
+
+\section{Variable declarations}\label{sect:VarDecls}
+
+\index{variable!declaration}
+\index{variable!declaration!explicit}
+\index{variable!declaration!actor parameter}
+\index{actor!parameter}
+\index{parameter!actor}
+\index{variable!declaration!input pattern}
+\index{variable!declaration!closure parameter}
+\index{closure!parameter}\index{parameter!closure}
+
+\sidenote{declarations}
+
+Each variable (with the exception of those predefined by the platform)
+needs to be explicitly introduced before it can be used---it needs to
+be {\em declared} or {\em imported} (section \ref{sect:Imports}). A
+declaration determines the kind of binding associated with the
+variable it declares, and potentially also its (variable) type.  There
+are the following kinds of variable declarations:
+\begin{itemize}
+\item explicit variable declarations (section \ref{sect:ExplicitVarDecl},
+\item actor parameters (chapter \ref{chap:Actor}),
+\item input patterns (section \ref{sect:InputPatterns}),
+\item parameters of a procedural or functional closure (section \ref{sect:Closures}).
+\end{itemize}
+
+Variables declared as actor parameters, in input patterns, or as
+parameters of a procedural or functional closure are
+neither assignable nor mutable.
+
+The properties of a variable introduced by an explicit variable
+declaration depend on the form of that declaration.
+
+\subsection{Explicit variable declarations}\label{sect:ExplicitVarDecl}
+\index{variable!declaration!explicit|(}
+
+\index{variable!name}
+\index{initialization expression} 
+\index{variable!initialization expression}
+\index{variable!type}
+
+Syntactically, an explicit variable declaration\footnote{These
+  declarations are called ``explicit'' to distinguish them from more
+  ``implicit'' variable declarations that occur, e.g., in generators
+  or input patterns.} looks as follows:
+
+\index{mutable@\kwMutable}
+\index{=@{\tt =}!in variable declarations}
+\index{:=@{\tt :=}!in variable declarations}
+
+\bgr
+  VarDecl : [\kwMutable]~[Type]~ID ~[('=' | '\charColon=')
+  ~Expression];
+  | FunDecl | ProcDecl.
+\egr
+
+\index{declaration!of procedure}
+\index{declaration!of function}
+\index{function!declaration}
+\index{procedure!declaration}
+
+We will discuss function and procedure declarations ({\em FunDecl} and
+{\em ProcDecl}) in section \ref{sect:FunProcDecl}.
+
+An explicit variable declaration can take one of
+the following forms, where {\tt T} is a type, {\tt v} an identifier
+that is the variable name, and {\tt E} an expression of type {\tt T}:
+\begin{itemize}
+\item {\tt T v}---declares an assignable, non-mutable variable of type
+  {\tt T} with the default value for that type as its initial
+  value. It is an error for the type not to have a default value.
+\item {\tt T v := E}---declares an assignable, non-mutable variable of
+  type {\tt T} with the value of {\tt E} as its initial value.
+\item {\tt mutable T v := E}---declares an assignable and mutable variable of
+  type {\tt T} with the value of {\tt E} as its initial value.
+\item {\tt mutable T v = E}---declares an non-assignable and mutable variable of
+  type {\tt T} with the value of {\tt E} as its initial value.
+\item {\tt T v = E}---declares a non-assignable, non-mutable variable of
+  type {\tt T} with the value of {\tt E} as its initial value.
+\end{itemize}
+
+\index{variable!stateful}
+\index{variable!stateless}
+\sidenote{stateful vs stateless}
+Variables declared in any of the first four ways are called {\em stateful
+  variables}, because they or the object they are containing may be
+changed by the execution of a statement. Variables declared in the
+last way are referred to as {\em stateless variables}.
+
+\index{var@\kwVar}
+\index{let@\kwLet}
+Explicit variable declarations may occur in the following places:
+\begin{itemize}
+\item actor state variables
+\item the \kwVar block of a surrounding lexical context
+\item variables introduced by a \kwLet-block
+\end{itemize}
+
+While actor state variables and variables introduced in a
+\kwVar-block can be state variables as well as non-state variables, a
+ \kwLet-block may only introduce non-state variables.
+
+\index{variable!declaration!explicit|)}
+
+\section{Variable scoping}\label{sect:VariableScoping}
+
+\index{variable!scoping|(} \index{scope!of variable|see{variable, scoping}}
+
+\index{variable!shadowing}
+\index{variable!scoping!lexical}
+\index{scoping!lexical}
+\index{lexical scoping}
+
+The scope of a variable is the lexical
+construct that introduces it---all expressions and assignments using
+its name inside this construct will refer to that variable binding,
+\sidenote{lexical scoping}unless they occur inside some other construct that introduces a
+ variable of the same name, in which case the inner variable shadows
+the outer one.
+
+\index{variable!initialization expression} 
+\index{initialization expression!of a variable} 
+
+
+In particular, this includes the \sidenote{initialization expression} {\em
+  initialization expressions} that are used to compute the initial
+values of the variables themselves. Consider e.g. the following group
+of variable declarations inside the same construct, i.e. with the same
+scope:
+\begin{alltt}
+  n = 1 + k,
+  k = 6,
+  m = k * n
+\end{alltt}
+\sidenote{well-formed declaration}
+This set of declarations (of, in this case, non-mutable,
+non-assignable variables, although this does not have a bearing on the rules for
+initialization expression dependency) would lead to {\tt k} being set
+to 6, {\tt n} to 7, and {\tt m} to 42. Initialization expressions may
+not depend on each other in a circular manner---e.g., the following
+list of variable declarations would not be well-formed:
+\index{variable!declaration!not well-formed}
+\begin{alltt}
+  n = 1 + k,
+  k = m - 36,
+  m = k * n
+\end{alltt}
+
+\index{dependency set|(}\index{variable!dependency set|(}
+\index{variable!dependency} \index{variable!free} 
+\index{free variable}
+\sidenote{dependency set}
+More precisely, a variable may not be in its own {\em dependency set}.
+Intuitively, this set contains all variables that need to be known in
+order to compute the initialization expression. These are usually the
+{\em free} variables of the expression itself, plus any free variables
+used to compute them and so on---e.g., in the last example, {\tt k}
+depended on {\tt m}, because {\tt m} is free in {\tt m - 36}, and
+since {\tt m} in turn depends on {\tt k} and {\tt n}, and {\tt n} on
+{\tt k}, the dependency set of {\tt k} is \{{\tt m}, {\tt k}, {\tt
+  n}\}, which {\em does} contain {\tt k} itself and is therefore an
+error.
+
+This would suggest defining the dependency set as the transitive
+closure of the free variable dependency relation---which would be a
+much too strong criterion. Consider e.g. the following declaration:
+\begin{alltt}
+  f = lambda (n) :
+    if n = 0 then 1 else n * f(n - 1) end
+  end
+\end{alltt}
+
+\index{variable!dependency!circular}
+\index{dependency!circular}
+\index{recursive closure}\index{recursive function}
+\index{function!recursive} \index{recursion|see{recursive closure}}
+\sidenote{recursion}
+Here, {\tt f} occurs free in the initialization expression of {\tt f},
+which is clearly a circular dependency. Nevertheless, the above
+definition simply describes a recursive function, and should thus be
+admissible.
+
+\index{closure!relation to variable dependency}
+The reason why {\tt f} may occur free in its own definition without
+causing a problem is that it occurs inside a closure---the {\em value}
+of {\tt f} need not be known in order to construct the closure, as long
+as it becomes known before we {\em use} it---i.e. before we actually
+apply the closure to some argument.
+
+We will now define the dependency sets $I_v$ and $D_v$ of a variable
+$v$ among a set of variables $V$ that are defined simultaneously in
+the same scope.
+
+\index{variable!dependency set!definition@{\em definition}} 
+\index{dependency set!definition@{\em definition}}
+\index{dependency set!immediate}
+\index{variable!dependency set!immediate}
+\index{definition!dependency set}
+\index{definition!immediate dependency set}
+\begin{defn}[$I_v$, $D_v$---the dependency sets of a variable $v$]\label{def:DependencySets}
+  Consider a set $V$ of variables $v$ which are defined
+  simultaneously, i.e. the intial value of each of these variables
+  defined by an expression $E_v$ which is in the scope of all the
+  variables in $V$. Let $F_v$ be the set of free variables of
+  $E_v$. As we are only interested in the free variables in $V$, we
+  will usually use the intersection $F_v \cap V$. 
+  
+  The {\em dependency set} $D_v$ is defined as the smallest set
+  such that the following holds:
+\begin{eqnarray*}
+\text{(a)}~&F_v \cap V \subseteq D_v \\
+\text{(b)}~&\underset{x \in D_v}\bigcup D_x \subseteq D_v
+\end{eqnarray*}
+
+The\sidenote{immediate dependency set}
+  {\em immediate dependency set} $I_v$ of each variable $v$ is defined
+  as follows
+\[I_v = \begin{cases}
+  \emptyset \quad &\text{for} \quad E_v ~ \text{a closure}\\
+  D_v \quad &\text{otherwise}
+\end{cases}\]
+\end{defn}
+
+Intuitively, $D_v$ contains those variables in $V$ on which the object
+bound to $v$ directly or indirectly depends. $I_v$ is the set of
+variables whose values need to be known when the object computed by
+$E_v$ is created---for most expressions, it is the same as $D_v$, but
+for closures (procedural or functional) this set is empty, because
+there is no need to evaluate the body of the closure in order to
+construct the closure object.\footnote{Here we use the fact that
+  closures can be constructed without the values of their free
+  variables, which is clearly an artifact of the way we envision
+  closures to be realized, but it is a useful one.}
+
+Now we capture the notion of well-formedness of a set of
+simultaneously defined variables $V$ as a condition on the dependency
+sets as follows:
+
+\index{declaration set!well-formed}
+\index{variable!declaration set!well-formed}
+\index{definition!well-formed declaration set}
+\sidenote{well-formed declaration set}
+\begin{defn}[Well-formed declaration set]
+A set of simultaneously declared variables (a {\em declaration set}) $V$ is {\em well-formed} iff
+for all $v\in V$
+$$v \notin I_v$$
+\end{defn}
+
+Note that, as in the example above, a variable may occur free in its
+own initialization expression, but still not be in its own immediate
+dependency set, as this only includes those variables whose {\em
+  value} must be known in order to compute the value of the declared variable.
+
+This notion of well-formedness is useful because of the following property:
+
+\index{corollary!mutual dependencies}
+\begin{corollary}[No mutual dependencies in well-formed variable sets.]
+  Given a well-formed variable set $V$, for any two variables $v_1,
+  v_2 \in V$, we have the following property:
+  $$\neg (v_1 \in I_{v_2} \wedge v_2 \in I_{v_1})$$
+  That is, no two
+  variables ever mutually immediately depend on each other.
+\end{corollary}
+
+The proof of this property is trivial, by contradiction and induction
+over the definition of the dependency set (showing that mutual
+dependency would entail self-dependency, and thus contradict
+well-formedness).
+
+\index{rationale!variable declaration!well-formedness}
+\begin{rationale}
+  Strictly speaking, this definition of well-formedness is a
+  conservative approximation to what might be considered well-formed
+  variable declarations. It is chosen so that (a) it allows commonly
+  occurring circular dependencies to be expressed and (b) it can be
+  implemented without undue efforts. But it is important to realize
+  that it does declare some declaration sets as erroneous which could
+  easily be interpreted. For instance, consider the following case:
+  \begin{alltt}    f = lambda (x) :
+      if x <= 1 then 1 else x * g(x - 1) end
+    end,
+    g = f
+  \end{alltt}
+  According to the definitions above, both {\tt g} ends up in its own
+  immediate dependency set, and thus these declarations are not
+  well-formed.
+\end{rationale}
+
+
+This allows us to construct the following relation over a set of
+variables:
+
+\index{variable!dependency relation}
+\index{dependency relation}
+\index{definition!dependency relation}
+\sidenote{dependency order relation}
+\begin{defn}[Dependency relation]
+Given a set of variables $V$ defined in the same scope, we define a
+relation $\prec$ on $V$ as follows:
+$$v_1 \prec v_2 \Longleftrightarrow v_1 \in I_{v_2}$$
+\end{defn}
+
+\index{partial order!dependency relation is}
+\index{dependency relation!is partial order}
+In other words, a variable is `smaller' than another according to this
+relation iff it occurs in its dependency set, i.e. iff it has to be
+defined before the other can be defined. The well-formedness of the
+declaration set implies that this relation is a non-reflexive partial
+order, since variables may not mutually depend on each other.
+
+This order allows us to execute variable declarations in such a way
+that immediate dependencies are always evaluated before the dependent
+variable is initialized.
+
+\index{example!mutually recursive variable declarations|(}
+\index{dependency set!example}
+\index{variable!dependency set!example}
+\begin{example}
+Consider the following variable definitions:
+\begin{alltt}
+  a = f(x),
+  f = lambda (v) : 
+      if p(v) then v else g(h(v)) end
+  end,
+  g = lambda (w) : b * f(w) end,
+  b = k
+\end{alltt}
+
+Note that {\tt f} and {\tt g} are mutually recursive.
+
+\index{variable!free}
+\index{free variable}
+The following lists the immediate dependencies and the free variable
+dependencies of each variable above,\footnote{We are disregarding here
+  the implicit variable references that will be introduced when the
+  operators are resolved to function calls---strictly speaking, they
+  would become part of $F_v$, but as they are always referring to
+  global variables, and would thus disappear from $F_v\cap V$ anyway,
+  we do not bother with them in the example.} along with their
+intersection with the set $\{a, f, g, b\}$, which is the set $V$ in
+this case:
+
+\begin{center}
+\begin{tabular}[h]{c|c|c|c|c}
+$v$   &    $F_v$   & $F_v \cap V$ & $D_v$  & $I_v$  \\
+\hline\hline
+$a$   &  $\{f, x\}$ & $\{f\}$   &  $\{f, g, b\}$ &  $\{f, g, b\}$  \\\hline
+$f$   &  $\{p, g, h\}$ &  $\{g\}$  &  $\{f, g, b\}$  &  $\emptyset$ \\\hline
+$g$   &  $\{b, f\}$ &  $\{b, f\}$  &  $\{f, g, b\}$ & $\emptyset$ \\\hline
+$b$   &  $\{k\}$ & $\emptyset$   & $\emptyset$  & $\emptyset$ \\\hline
+\end{tabular}
+\end{center}\vspace{4mm}
+
+Now let us compute the dependency set $D_a$ of the variable {\tt
+  a}. We start with the set 
+$$F_a \cap V = \{f\}$$
+Now we compute 
+$$(F_a \cup F_f) = \{f, g\}$$
+Then
+$$(F_a \cup F_f \cup F_g)\cap V = \{f, g, b\}$$
+Finally, we reach a fixpoint at
+$$D_a = (F_a \cup F_f \cup F_g \cup F_b)\cap V = \{f, g, b\}$$
+
+Similarly, we compute $D_f$, $D_g$, and $D_b$. The immediate
+dependency sets of $f$ and $g$ are empty, because their initialization
+expressions are closures. The immediate dependency sets of $a$ and $b$
+are the same as their dependency sets, which in the case of $b$ is
+also empty, because it does not depend on any variable in $V$. As a
+result of this analysis, we see that the variables {\tt f}, {\tt g},
+and {\tt b} may be defined in any order, but all must be defined
+before {\tt a}, as it depends on all of them.
+\end{example}
+\index{example!mutually recursive variable declarations|)}
+
+
+\index{example!non-well-formed variable declarations|(}
+\begin{example}
+Now consider the following slightly changed variable definitions, with
+an additional dependency added to {\tt b}:
+\begin{alltt}
+  a = f(x),
+  f = lambda (v) :
+      if p(v) then v else g(h(v)) end
+  end,
+  g = lambda (w) :
+      b * f(w)
+  end,
+  b = a * k
+\end{alltt}
+
+Again, the following table lists the dependency sets:
+
+\begin{center}
+\begin{tabular}[h]{c|c|c|c|c}
+$v$   &    $F_v$   & $F_v \cap V$ & $D_v$  & $I_v$ \\
+\hline\hline
+$a$   &  $\{f, x\}$ & $\{f\}$   &  $\{f, g, b, a\}$ & $\{f, g, b, a\}$ \\\hline
+$f$   &  $\{p, g, h\}$ &  $\{g\}$   & $\{f, g, b, a\}$ & $\emptyset$ \\\hline
+$g$   &  $\{b, f\}$ &  $\{b, f\}$   & $\{f, g, b, a\}$ & $\emptyset$ \\\hline
+$b$   &  $\{a, k\}$ & $\{a\}$   &  $\{f, g, b, a\}$ & $\{f, g, b, a\}$ \\\hline
+\end{tabular}
+\end{center} \vspace{4mm}
+
+Now, computing $D_a$ proceeds as follows:
+$$F_a \cap V = \{f\}$$
+$$(F_a \cup F_f)\cap V = \{f, g\}$$
+$$(F_a \cup F_f \cup F_g)\cap V = \{f, g, b\}$$
+$$(F_a \cup F_f \cup F_g \cup F_b)\cap V = \{f, g, b, a\}$$
+$$D_a = (F_a \cup F_f \cup F_g \cup F_b \cup F_a)\cap V = \{f, g, b, a\}$$
+
+Obviously, in this case $a \in I_a$, thus the set of variable
+definitions is not well-formed.
+\end{example}
+\index{example!non-well-formed variable declarations|)}
+
+
+\index{dependency set|)}\index{variable!dependency set|)}
+
+\index{variable!scoping|)} 
+
+
+
+\index{expression!variable|)}
+\index{variable|)}
+
+
+
+% Local Variables:
+% TeX-master: "../reference"
+% End:
