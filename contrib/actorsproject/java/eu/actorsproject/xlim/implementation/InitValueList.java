@@ -70,15 +70,18 @@ class InitValueList implements XlimInitValue {
 		}
 	}
 	
+	@Override
 	public List<? extends XlimInitValue> getChildren() {
 		return mChildren;
 	}
 
+	@Override
 	public XlimType getScalarType() {
 		return null;
 	}
 
-	public Integer getScalarValue() {
+	@Override
+	public String getScalarValue() {
 		return null;
 	}
 
@@ -87,6 +90,11 @@ class InitValueList implements XlimInitValue {
 		return mCommonElementType;
 	}
 
+	@Override
+	public void setCommonElementType(XlimType t) {
+		mCommonElementType=t;
+	}
+	
 	@Override
 	public int totalNumberOfElements() {
 		return mNumElements;

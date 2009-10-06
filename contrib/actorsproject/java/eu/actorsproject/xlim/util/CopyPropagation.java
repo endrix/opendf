@@ -38,7 +38,6 @@
 package eu.actorsproject.xlim.util;
 
 import eu.actorsproject.xlim.XlimDesign;
-import eu.actorsproject.xlim.XlimInstruction;
 import eu.actorsproject.xlim.XlimOperation;
 import eu.actorsproject.xlim.XlimOutputPort;
 import eu.actorsproject.xlim.XlimPhiNode;

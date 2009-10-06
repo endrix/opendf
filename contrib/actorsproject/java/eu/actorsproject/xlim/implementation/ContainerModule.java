@@ -54,20 +54,20 @@ import eu.actorsproject.xlim.XlimOutputPort;
 import eu.actorsproject.xlim.XlimSource;
 import eu.actorsproject.xlim.XlimType;
 import eu.actorsproject.xlim.dependence.FixupContext;
+import eu.actorsproject.xlim.type.TypeFactory;
+import eu.actorsproject.xlim.util.Session;
 
 
 abstract class ContainerModule extends AbstractModule implements XlimContainerModule {
 
 	private String mKind;
-	private Factory mFactory;
 	private boolean mMutex;
 	
 	protected ElementList mChildren;
 	
-	public ContainerModule(String kind, AbstractModule parent, Factory factory) {
+	public ContainerModule(String kind, AbstractModule parent) {
 		super(parent);
 		mKind = kind;
-		mFactory = factory;
 		mChildren = new ElementList();
 	}
 
@@ -79,6 +79,11 @@ abstract class ContainerModule extends AbstractModule implements XlimContainerMo
 	@Override
 	public Iterable<AbstractBlockElement> getChildren() {
 		return mChildren;
+	}
+
+	@Override
+	public Iterable<AbstractBlockElement> getChildrenReverse() {
+		return mChildren.getReverseList();
 	}
 
 	@Override
@@ -100,40 +105,53 @@ abstract class ContainerModule extends AbstractModule implements XlimContainerMo
 		
 		return "kind=\"" + mKind + "\"" + mutex;
 	}
+	
+	@Override
+	protected boolean updateModuleLevel(AbstractModule parent) {
+		if (super.updateModuleLevel(parent)) {
+			for (AbstractBlockElement child: mChildren)
+				child.setParentModule(this);
+			return true;
+		}
+		else
+			return false;
+	}	
 
 	@Override
 	public XlimBlockModule addBlockModule(String kind) {
-		BlockModule module = mFactory.createBlockModule(kind,this);
+		BlockModule module = new BlockModule(kind,this);
 		mChildren.add(module);
 		return module;
 	}
 
 	@Override
 	public XlimIfModule addIfModule() {
-		IfModule module = mFactory.createIfModule(this);
+		IfModule module = new IfModule(this);
 		mChildren.add(module);
 		return module;
 	}
 
 	@Override
 	public XlimLoopModule addLoopModule() {
-		LoopModule module = mFactory.createLoopModule(this);
+		LoopModule module = new LoopModule(this);
 		mChildren.add(module);
 		return module;
 	}
 
 	@Override
-	public XlimOperation addOperation(String kind,
+	public XlimOperation addOperation(String name,
 			List<? extends XlimSource> inputs,
 			List<? extends XlimOutputPort> outputs) {
-		Operation op = mFactory.createOperation(kind,inputs,outputs,this);
+		OperationFactory fact=Session.getOperationFactory();
+		Operation op = fact.createOperation(name, inputs, outputs, this);
 		mChildren.add(op);
 		return op;
 	}
 	
 	@Override
 	public XlimOperation addOperation(String kind, List<? extends XlimSource> inputs) {
-		Operation op = mFactory.createOperation(kind, inputs, this);
+		OperationFactory fact=Session.getOperationFactory();
+		Operation op = fact.createOperation(kind, inputs, this);
 		mChildren.add(op);
 		return op;
 	}
@@ -152,12 +170,14 @@ abstract class ContainerModule extends AbstractModule implements XlimContainerMo
 	@Override
 	public XlimOperation addOperation(String kind, XlimSource input1, XlimSource input2) {
 		ArrayList<XlimSource> inputs=new ArrayList<XlimSource>(2);
+		inputs.add(input1);
+		inputs.add(input2);
 		return addOperation(kind, inputs);
 	}
 	
 	@Override
 	public XlimOperation addOperation(String kind, List<? extends XlimSource> inputs,  XlimType outT) {
-		XlimOutputPort output=mFactory.createOutputPort(outT);
+		XlimOutputPort output=new OutputPort(outT);
 		return addOperation(kind, inputs, Collections.singletonList(output));
 	}
 	
@@ -181,16 +201,33 @@ abstract class ContainerModule extends AbstractModule implements XlimContainerMo
 		return addOperation(kind, inputs, outT);
 	}
 	
+	private Operation createLiteral(XlimType type, ContainerModule parent) {
+		List<XlimSource> inputs=Collections.emptyList();
+		XlimOutputPort output=new OutputPort(type);
+		OperationFactory fact=Session.getOperationFactory();
+		return fact.createOperation("$literal_Integer",
+                                    inputs,
+                                    Collections.singletonList(output),
+				                    this);
+	}
+	
 	@Override
 	public XlimOperation addLiteral(long value) {
-		Operation op = mFactory.createLiteral(value, this);
+		int width=LiteralIntegerTypeRule.actualWidth(value);
+		TypeFactory typeFact=Session.getTypeFactory();
+		XlimType intType=typeFact.create("int", width);
+		Operation op = createLiteral(intType, this);
+		op.setIntegerValueAttribute(value);
 		mChildren.add(op);
 		return op;
 	}
 	
 	@Override
 	public XlimOperation addLiteral(boolean value) {
-		Operation op = mFactory.createLiteral(value, this);
+		TypeFactory typeFact=Session.getTypeFactory();
+		XlimType boolType=typeFact.create("bool");
+		Operation op = createLiteral(boolType, this);
+		op.setIntegerValueAttribute(value? 1 : 0);
 		mChildren.add(op);
 		return op;
 	}
@@ -200,6 +237,14 @@ abstract class ContainerModule extends AbstractModule implements XlimContainerMo
 		mChildren.remove(checkChild(child));
 	}
 	
+	@Override
+	public void removeReferences() {
+		// Remove all references this module makes to state variable and output ports
+		// so that no dangling uses are left when this module is removed
+		for(AbstractBlockElement child: mChildren)
+			child.removeReferences();
+	}
+	
 	private AbstractBlockElement checkChild(XlimBlockElement child) {
 		if (child.getParentModule()==this && child instanceof AbstractBlockElement)
 			return (AbstractBlockElement) child;
@@ -207,13 +252,59 @@ abstract class ContainerModule extends AbstractModule implements XlimContainerMo
 			throw new IllegalArgumentException("element not contained in block module");
 	}
 	
-	/**
-	 * Removes all references this module makes to state variables and output ports
-	 */
+	private void cut(AbstractBlockElement child) {
+		// remove link between definitions of stateful resources in 'child' 
+		// (ports and state variables) and the uses of those definitions
+		// (replace with dominating definition).
+		child.substituteStateValueNodes();
+		// Remove from this container module
+		mChildren.cut(child);
+		child.setParentModule(null);
+	}
+	
+	private AbstractBlockElement cutFirst() {
+		AbstractBlockElement first=mChildren.getFirst();
+		if (first!=null)
+			cut(first);
+		return first;
+	}
+	
+	private void paste(AbstractBlockElement element) {
+		mChildren.add(element);
+		element.setParentModule(this);
+	}
+	
 	@Override
-	public void removeReferences() {
-		for(AbstractBlockElement child: mChildren)
-			child.removeReferences();
+	public void cutAndPaste(XlimBlockElement child) {
+		if (child instanceof AbstractBlockElement) {
+			AbstractBlockElement element=(AbstractBlockElement) child;
+			ContainerModule oldParent=element.getParentModule();
+		
+			oldParent.cut(element);
+			paste(element);
+		}
+		else
+			throw new IllegalArgumentException("element not contained in block module");
+	}
+	
+	@Override
+	public void cutAndPasteAll(XlimContainerModule module) {
+		if (module instanceof ContainerModule) {
+			// TODO: optimized implementation possible: 
+			// move entire ElementList of container to the patch point
+			// and update their parent
+			ContainerModule fromContainer=(ContainerModule) module;
+			AbstractBlockElement element=fromContainer.cutFirst();
+			while (element!=null) {
+				paste(element);
+				element=fromContainer.cutFirst();
+			}
+		}
+		else {
+			// If there were other implementations of XlimContainerModule
+			// they could be supported by copyAndPaste of all elements
+			throw new IllegalArgumentException("cutAndPasteAll: not a ContainerModule");
+		}
 	}
 	
 	@Override
@@ -221,6 +312,11 @@ abstract class ContainerModule extends AbstractModule implements XlimContainerMo
 		// We don't want to loose an ongoing patch (has to be fixed-up)!
 		assert(!mChildren.isPatched());
 		// Otherwise, this is simple: the default patch point is at the end.
+	}
+	
+	@Override
+	public void startPatchAtBeginning() {
+		mChildren.startPatchAtBeginning();
 	}
 	
 	@Override
@@ -243,11 +339,16 @@ abstract class ContainerModule extends AbstractModule implements XlimContainerMo
 	public void completePatchAndFixup() {
 		// TODO: optimize the common case of trivial patches (no state carriers/no sub-modules)
 		FixupContext context=new FixupContext();
+		
+		// pResolve is a reverse iterator: (startOfPatch, startOfContainer]
 		Iterator<AbstractBlockElement> pResolve=mChildren.resolveIterator();
+		// pFixup iterates over added elements: [startOfPatch, endOfPatch)
+		Iterator<AbstractBlockElement> pFixup=mChildren.fixupIterator();
+		// pPropagate iterates over remaining elements: [endOfPatch, endOfContainer]
 		Iterator<AbstractBlockElement> pPropagate=mChildren.propagateIterator();
 		
 		// As far as possible fix-up uses in the patch
-		fixupAddedCode(context);
+		fixup(context, pFixup);
 		
 		// Try to resolve exposed uses by code prior to the patch
 		resolveExposedUses(context, pResolve);
@@ -260,15 +361,18 @@ abstract class ContainerModule extends AbstractModule implements XlimContainerMo
 	}	 
 	
 	/**
-	 * Sets dependence links (of stateful resources) in added code,
+	 * Sets (or updates) dependence links (of stateful resources)
 	 * computes the set of exposed uses and new values
-	 * @param context
+	 * @param context (keeps track of exposed uses and new definitions) 
 	 */
-	public void fixupAddedCode(FixupContext context) {
-		Iterator<AbstractBlockElement> p=mChildren.fixupIterator();
+	public void fixupAll(FixupContext context) {
+		fixup(context, mChildren.iterator());
+	}
+	
+	private void fixup(FixupContext context, Iterator<AbstractBlockElement> p) {
 		while (p.hasNext()) {
 			AbstractBlockElement element=p.next();
-			element.fixupAddedCode(context);
+			element.fixupAll(context);
 		}
 		mChildren.closePatch();
 	}
@@ -372,13 +476,18 @@ class ElementList extends IntrusiveList<AbstractBlockElement> {
 		linkage.precede(mEndOfPatch);
 	}
 	
-	void remove(AbstractBlockElement element) {
+	void cut(AbstractBlockElement element) {
 		Linkage<AbstractBlockElement> linkage=element.getLinkage();
 		updateBeforeRemove(linkage);
+		element.getLinkage().out();			
+	}
+	
+	void remove(AbstractBlockElement element) {
 		element.removeReferences();
-		element.getLinkage().out();	
+		cut(element);
 	}
 
+	
 	private void updateBeforeRemove(Linkage<AbstractBlockElement> linkage) {
 		if (linkage==mLastFixup)
 			mLastFixup=mLastFixup.getPrevious();
@@ -386,6 +495,12 @@ class ElementList extends IntrusiveList<AbstractBlockElement> {
 			mEndOfPatch=mEndOfPatch.getNext();
 	}
 
+	void startPatchAtBeginning() {
+		assert(!isPatched());  // We don't want to loose an ongoing patch! 
+		mEndOfPatch=mHead.getNext();
+		mLastFixup=mHead;
+	}
+	
 	void startPatchBefore(Linkage<AbstractBlockElement> endOfPatch) {
 		assert(!isPatched());  // We don't want to loose an ongoing patch! 
 		mEndOfPatch=endOfPatch;

@@ -68,4 +68,23 @@ public interface XlimOutputPort extends XmlElement, XlimSource {
 	 * @return The value that is defined by this output port
 	 */
 	ValueNode getValue();
+	
+	/**
+	 * @return "Actual" type of this output port.
+	 *         
+	 * The actual type depends on the operation/phi-node, to which the output 
+	 * port belongs, the inputs and attributes of the operation (such as state
+	 * variable and actor port). 
+	 * 
+	 * For integer operations, the actual type may differ from the declared type
+	 * of the output (in which case an implicit type conversion is made). 
+	 * Example:
+	 * integer(size=16)*integer(size=16)->integer(size=32) (=actual type),
+	 * but declared type of output is perhaps integer(size=16).
+	 * 
+	 * The "actual" type may also be narrower than the declared type , for instance:
+	 * noop: integer(size=12)->integer(size=12) (=actual type),
+	 * but declared type of output is perhaps integer(size=16)
+	 */
+	XlimType actualOutputType();
 }

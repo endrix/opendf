@@ -97,7 +97,13 @@ public class DeadCodeRemoval {
 	}
 
 	
-	public void bottomUpPass(ArrayList<CallNode> postorder, DeadCodePlugIn plugIn) {		
+	/**
+	 * Removes dead operations by traversing the call graph "bottom-up"
+	 * 
+	 * @param postorder  call nodes sorted in "postorder" (called task before caller)
+	 * @param plugIn     plugIn to query the liveness of operators
+	 */
+	private void bottomUpPass(ArrayList<CallNode> postorder, DeadCodePlugIn plugIn) {		
 		// Traverse called tasks before callers
 		for (CallNode callNode: postorder) {
 			XlimTaskModule task=callNode.getTask();
@@ -109,7 +115,15 @@ public class DeadCodeRemoval {
 			}
 		}
 	}
-	
+
+	/**
+	 * Removes redundant tasks, state variables and (internal) ports. Call graph is
+	 * traversed "top-down".
+	 * 
+	 * @param design     actor/XLIM design
+	 * @param postorder  call nodes sorted in "postorder" (called task before caller)
+	 * @param plugIn     plugIn to query the liveness of operators
+	 */
 	private void topDownPass(XlimDesign design, ArrayList<CallNode> postorder, DeadCodePlugIn plugIn) {
 		// Start by assuming that all state variables and (internal) actor ports are unref:ed
 		HashSet<XlimStateCarrier> unreferenced=new HashSet<XlimStateCarrier>();
@@ -143,8 +157,7 @@ public class DeadCodeRemoval {
 			if (stateVar!=null) {
 				if (mTrace) {
 					String name=stateVar.getSourceName();
-					if (!name.equals(""))
-						name=" ("+name+")";
+					name=(name!=null)? " ("+name+")" : "";
 					System.out.println("// DeadCodeRemoval: removing state variable "+stateVar.getUniqueId()+name);
 				}
 				design.removeStateVar(stateVar);
@@ -227,7 +240,7 @@ public class DeadCodeRemoval {
 				empty=false;
 			if (traversePhiNodes(m.getPhiNodes(),arg)==false)
 				empty=false;
-			if (traverseStatePhiNodes(m.getStatePhiOperators(),arg)==false)
+			if (traverseStatePhiNodes(m.getStatePhiOperators())==false)
 				empty=false;
 
 			return empty;
@@ -235,12 +248,12 @@ public class DeadCodeRemoval {
 
 		@Override
 		protected Boolean traverseLoopModule(XlimLoopModule m, DeadCodePlugIn arg) {
-			boolean empty=traversePhiNodes(m.getPhiNodes(),arg);
-			if (traverseStatePhiNodes(m.getStatePhiOperators(),arg)==false)
-				empty=false;
-			if (traverseTestModule(m.getTestModule(),arg)==false)
-				empty=false;
+			boolean empty=traverseTestModule(m.getTestModule(),arg);			
 			if (traverseContainerModule(m.getBodyModule(),arg)==false)
+				empty=false;
+			if (traversePhiNodes(m.getPhiNodes(),arg)==false)
+				empty=false;
+			if (traverseStatePhiNodes(m.getStatePhiOperators())==false)
 				empty=false;
 
 			return empty;
@@ -263,12 +276,19 @@ public class DeadCodeRemoval {
 			return empty;
 		}
 
-		boolean traverseStatePhiNodes(Iterable<? extends StatePhiOperator> statePhis, DeadCodePlugIn arg) {
+		boolean traverseStatePhiNodes(Iterable<? extends StatePhiOperator> statePhis) {
 			Iterator<? extends StatePhiOperator> pPhi=statePhis.iterator();
 			boolean empty=true;
 			while (pPhi.hasNext()) {
 				StatePhiOperator phi=pPhi.next();
-				if (arg.isDead(phi.getOutput())) {
+				ValueNode in0=phi.getInputValue(0);
+				ValueNode in1=phi.getInputValue(1);
+				// A state-phi is removed when it represents "no modification":
+				// a) both inputs represents the "dominating definition"
+				// b) a loop-phi, which feeds-back itself along the back edge
+				//    (in which case it is actually the "dominating definition"
+				//     coming from the pre-header of the loop)
+				if (in0==in1 || in1==phi.getOutput()) {
 					if (mTrace)
 						System.out.println("// DeadCodeRemoval: removing "+phi.toString());
 					pPhi.remove();

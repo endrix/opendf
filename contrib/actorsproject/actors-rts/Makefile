@@ -10,18 +10,43 @@ else
 MINOR_DOT_BUILD=$(MINOR).$(BUILD)
 endif
 
-LINKER_NAME=libactors-rts.so
+BASENAME=libactors-rts
+ifeq "$(STATIC)" ""
+LINKER_NAME=$(BASENAME).so
 SONAME=$(LINKER_NAME).$(MAJOR)
 REAL_NAME=$(SONAME).$(MINOR_DOT_BUILD)
+else
+REAL_NAME=$(BASENAME).a
+endif
 
-INSTALL_H=actors-rts.h circbuf.h
+ifneq "$(PROFILE)" ""
+CFLAGS += -pg -fno-omit-frame-pointer
+endif
+
+ifeq ($(FB), y)
+CFLAGS += -DFB
+endif
+
+ifeq ($(GTK), y)
+CFLAGS += `gtk-config --cflags` -DGTK
+endif
+
+ifeq ($(SDL), y)
+CFLAGS += `sdl-config --cflags` -DSDL
+endif
+
+CFLAGS += -O3
+
+INSTALL_H=actors-rts.h actors-config.h
 INSTALL_SYSACTORS=art_DDRModel.cal art_Display_yuv.cal \
                   art_Sink_bin.cal art_Sink_yuv.cal art_Sink_txt.cal \
-                  art_Source_bin.cal art_Source_txt.cal
+                  art_Source_bin.cal art_Source_txt.cal art_Source_real.cal \
+                  art_Sink_real.cal
 
-OBJECTS=actors-rts.o exec_network.o circbuf.o \
+OBJECTS=exec_network.o \
         art_Sink_bin.o art_Sink_txt.o art_Source_bin.o art_Source_txt.o \
-        art_DDRModel.o art_Display_yuv.o
+        art_DDRModel.o art_Display_yuv.o art_Source_real.o \
+        art_Sink_real.o art_Sink.o art_Source.o ddrmodel.o display.o
 
 # delete the built-in suffixes to avoid surprises
 .SUFFIXES:   
@@ -44,18 +69,24 @@ LDLIBS=-lpthread -lc
 all: $(REAL_NAME)
 
 $(REAL_NAME): $(OBJECTS)
+ifeq "$(STATIC)" ""
 	$(LD) -shared -soname=$(SONAME) -o $@ $(LDFLAGS) $^ $(LDLIBS)
+else
+	$(AR) rcs $@ $^
+endif
 
 $(OBJECTS): %.o : $(srcdir)/%.c
-	$(CC) -fPIC -c -g -Wall $(CFLAGS) -o $@ $<
+	$(CC) -fPIC -c -Wall $(CFLAGS) -o $@ $<
 
 install: install-lib install-include install-sysactors
 
 install-lib:
 	@mkdir -p $(libdir)
 	@cp $(REAL_NAME) $(libdir)/.
+ifeq "$(STATIC)" ""
 	@cd $(libdir) && ln -sf $(REAL_NAME) $(SONAME)
 	@cd $(libdir) && ln -sf $(SONAME) $(LINKER_NAME)
+endif
 
 install-include:
 	@mkdir -p $(includedir)

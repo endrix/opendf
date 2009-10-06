@@ -21,18 +21,33 @@ javadir?=$(datarootdir)/java
 
 # Source files
 JAVA_FILES=$(shell find $(srcdir)/eu/actorsproject -name *.java)
+JASTADD_FILES=$(shell find $(srcdir)/modelcompiler -name *.jrag -name *.ast -name *.jjt -name *.java)
 
 .PHONY: all clean install uninstall
 
 all: actorsproject.jar
 
-actorsproject.jar: $(JAVA_FILES)
+# model compiler commented out
+#
+# actorsproject.jar: $(JAVA_FILES) $(JASTADD_FILES)
+#	@mkdir -p classes
+#	@cd modelcompiler && ant
+#	@$(JAVAC) -classpath $(srcdir) -d classes $(JAVA_FILES)
+#	@$(JAR) -cf $@ -C classes . -C $(srcdir) COPYING
+
+actorsproject.jar: $(JAVA_FILES) $(JASTADD_FILES)
 	@mkdir -p classes
 	@$(JAVAC) -classpath $(srcdir) -d classes $(JAVA_FILES)
-	@$(JAR) -cf $@ -C classes eu -C $(srcdir) COPYING
+	@$(JAR) -cf $@ -C classes . -C $(srcdir) COPYING
+
+# model compiler commented out
+#
+# clean:
+#	@rm -fr classes actorsproject.jar
+#	@cd modelcompiler && ant clean
 
 clean:
-	@rm -fr classes
+	@rm -fr classes actorsproject.jar
 
 install: actorsproject.jar
 	@mkdir -p $(javadir)

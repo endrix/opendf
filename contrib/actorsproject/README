@@ -28,13 +28,6 @@ build scripts have to be modified to work. We have not succeeded in
 using CygWin and Microsoft Windows. Building the XLIM-to-C translator
 requires Java 6.
 
-A patched version of the opendf.jar is provided with the installation
-and it is used by the actors-make build scripts, when compiling CAL
-models. The difference lies in the XLIM sequences that the
-SSAGenerator produces for the evaluation of guard conditons (parallel
-evaluation in the original version and sequential in the patched
-version, called SSAGenerator2).
-
 Running the compiled CAL models requires POSIX threads (the run-time
 system uses libpthread). We have executed compiled models on a
 quad-core ARM11 MPCore system, running Linux, and Intel uni- and
@@ -47,7 +40,7 @@ The Makefile contained in this directory is used to buid the run-time
 system and the XLIM-to-C translator, and install the tools. In the
 simplest case, just do
 
-    cd ~/opendf/contrib/actorsproject
+    cd ~/opendf/trunk/contrib/actorsproject
     make
     make install
 
@@ -61,9 +54,9 @@ example:
 
     mkdir build
     cd build
-    cp ~/opendf/contrib/actorsproject/Makefile .
-    make srcdir=~/opendf/contrib/actorsproject
-    make srcdir=~/opendf/contrib/actorsproject prefix=~/actors install
+    cp ~/opendf/trunk/contrib/actorsproject/Makefile .
+    make srcdir=~/opendf/trunk/contrib/actorsproject
+    make srcdir=~/opendf/trunk/contrib/actorsproject prefix=~/actors install
 
    
 4. Using actors-make
@@ -151,12 +144,9 @@ Again, there are more ways of using the makefile, try 'make help'.
 6. State of the tools
 
 This is the first release of the tools and there are several known
-problems (and most probably even more -yet unknown- ones),
-particularly in the following two areas:
-* It is very time consuming to compile large CAL models and
-  incremental re-builds are not appropriately supported. 
-* The performance of the generated code is far from being
-  satisfactory.
+problems (and most probably even more -yet unknown- ones). A
+particular problem is that it is quite time consuming to compile large
+CAL models.
 
 More specifically the following issues should be mentioned:
 * A necessary first step of compiling a CAL model is "elaboration"
@@ -172,44 +162,8 @@ More specifically the following issues should be mentioned:
   "system" actor for this purpose (art_DDRModel). This is of course a
   temporary work-around rather than a solution to the general problem. 
 
-* A related issue is that the build scripts do not support minimal
-  rebuilds. Re-elaboration of the entire model is currently the only
-  way of achieving proper instantiation of the actors.
-
-* The dependence on CAL source code (actors and networks) is currently
-  not reflected by the make file. The work-around is to explicitly do a
-  "make cleaner" (which forces a re-elaboration) each time the source
-  is modified.
-
-* The main() function that configures the CAL model and starts the
-  run-time system is found in config.c, which is generated from the
-  elaborated model by the actors-make build scripts. The
-  mechanism that is supposed to provide the actor parameters (such as
-  file names) to the system actors is not working. Currently, config.c
-  instead has to be patched manually to achieve this. Examples of this
-  can be found in the test suite (for instance share/actors-test/ 
-  MPEG4_SP_Decoder/config-acdcTest.c).
-
-* Elaboration and generation of XLIM results in spurious messages like
-
-      Exceptional event: Cannot bitand types
-
-  These messages are in fact expected, although they sound like they
-  indicate fatal errors. Currently, we have found no good way of
-  disabling them while keeping useful diagnostics. 
-
-* When it comes to the poor efficiency of the generated code, one
-  particular issue is that we don't seem to have got the interaction
-  between the compiled actors and the run-time right. Initial tests
-  indicate that the actors are not always blocking as they should and
-  spend a significant amount of the execution time doing useless work.
-
-* Other sources of overhead, we believe, come from the rather direct
-  mapping of XLIM to C. Since we are "piggy backing" on a framework
-  that is used for hardware synthesis, we generate some code sequences
-  that are inappropriate for a realization in software. Our plan is to
-  transform these sequences (at the level of XLIM) to better suit
-  software. 
+A more detailed account for issues and planned enhancements is given
+in the TODO file, which is located in this directory.
 
 Looking forward (towards the end of 2009), an additional deliverable
 of the ACTORS project is planned to be published at this site: the so

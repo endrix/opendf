@@ -37,130 +37,25 @@
 
 package eu.actorsproject.xlim.type;
 
-import java.util.HashMap;
-import java.util.TreeMap;
-
 import org.w3c.dom.NamedNodeMap;
 
 import eu.actorsproject.xlim.XlimType;
 
-public class TypeFactory {
-	
-	private static TypeFactory sSingletonInstance=new TypeFactory();
-	
-	private HashMap<String,TypeKindPlugIn> mTypeMap;
-	private IntegerKind mIntegerKind; 
-	private SingletonTypeKind mBooleanKind;
-	
-	private TypeFactory() {
-		mTypeMap=new HashMap<String,TypeKindPlugIn>();
-		mIntegerKind=new IntegerKind();
-		mBooleanKind=new SingletonTypeKind(new BooleanType());
-		registerTypeKind(mIntegerKind);
-		registerTypeKind(mBooleanKind);
-	}
-	
-	public static TypeFactory getInstance() {
-		return sSingletonInstance;
-	}
-	
-	public TypeKindPlugIn getTypeKindPlugIn(String typeName) {
-		return mTypeMap.get(typeName);
-	}
-	
-	public void registerTypeKind(TypeKindPlugIn plugIn) {
-		mTypeMap.put(plugIn.getTypeName(), plugIn);
-	}
-	
-	public XlimType createInteger(int size) {
-		return mIntegerKind.getType(size);
-	}
-	
-	public XlimType createBoolean() {
-		return mBooleanKind.getType();
-	}
-	
-	private static class IntegerKind extends ParametricTypeKind<Integer> {
-		private TreeMap<Integer,IntegerType> mIntegerTypes;
+public interface TypeFactory {
 		
-		IntegerKind() {
-			super("int");
-			mIntegerTypes=new TreeMap<Integer,IntegerType>();
-		}
-		
-		protected Integer getParameter(NamedNodeMap attributes) {
-			return getIntegerAttribute("size",attributes);
-		}
-		
-		protected XlimType create(Integer size) {
-			IntegerType type=mIntegerTypes.get(size);
-			if (type==null) {
-				type=new IntegerType(size);
-				mIntegerTypes.put(size, type);
-			}
-			return type;
-		}
-	}
+	TypeKind getTypeKind(String typeName);
 	
-	private static class IntegerType implements XlimType {
-		private int mSize;
-		IntegerType(int size) {
-			mSize=size;
-		}
-		public int getSize() { 
-			return mSize; 
-		}
-		public String getTypeName() { 
-			return "int"; 
-		}
-		public String getAttributeDefinitions() {
-			return "typeName=\"int\" size=\"" + mSize + "\"";
-		}
-		public String toString() {
-			return "int(size="+mSize+")";
-		}
-		public long minValue() {
-			return ((long) -1)<<(mSize-1);
-		}
-		public long maxValue() {
-			return ~minValue();
-		}
-		
-		public boolean isBoolean() {
-			return false;
-		}
-		
-		public boolean isInteger() {
-			return true;
-		}
-	}
+	XlimType leastUpperBound(XlimType t1, XlimType t2);
 	
-	private static class BooleanType implements XlimType {
-		public int getSize() { 
-			return 1; 
-		}
-		public String getTypeName() { 
-			return "bool"; 
-		}
-		public String getAttributeDefinitions() {
-			return "typeName=\"bool\"";
-		}
-		public String toString() {
-			return "bool";
-		}
-		public long minValue() {
-			return 0;
-		}
-		public long maxValue() {
-			return 1;
-		}
-		
-		public boolean isBoolean() {
-			return true;
-		}
-		
-		public boolean isInteger() {
-			return false;
-		}
-	}
+	// TODO: replace by create w parameter
+	XlimType createInteger(int size);
+	
+	// TODO: replace by "plain" create
+	XlimType createBoolean();
+	
+	XlimType create(String typeName);
+	
+	XlimType create(String typeName, Object param);
+	
+	XlimType create(String typeName, NamedNodeMap attributes);	
 }

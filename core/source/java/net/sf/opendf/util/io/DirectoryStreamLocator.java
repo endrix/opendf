@@ -8,13 +8,14 @@ import net.sf.opendf.util.logging.Logging;
 
 public class DirectoryStreamLocator implements StreamLocator {
 
-	public InputStream getAsStream(String name) {
+	public SourceStream getAsStream(String name) {
 		File f = new File(dirpath + name);
 		try {
 			InputStream is = new FileInputStream(f);
+			SourceStream ss = (is == null) ? null : new SourceStream(is, dirpath + name);
 			
 			Logging.dbg().info("DirectoryStreamLocator: " + dirpath + "::" + name + " -- " + ((is == null) ? "failed" : "succeeded") + ".");
-			return is;
+			return ss;
 		}
 		catch (Exception e) {
 			Logging.dbg().info("DirectoryStreamLocator: " + dirpath + "::" + name + " -- failed.");

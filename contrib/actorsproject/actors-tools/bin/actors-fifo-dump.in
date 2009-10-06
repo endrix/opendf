@@ -1,0 +1,226 @@
+#!/usr/bin/env python
+
+# -----------------------------------------------------------------------------
+# Tool to dump FIFO state over time from a trace
+# -----------------------------------------------------------------------------
+
+# Copyright (c) Ericsson AB, 2009
+# Author: Patrik Persson <patrik.j.persson@ericsson.com>
+# All rights reserved.
+#
+# License terms:
+#
+# Redistribution and use in source and binary forms,
+# with or without modification, are permitted provided
+# that the following conditions are met:
+#     * Redistributions of source code must retain the above
+#       copyright notice, this list of conditions and the
+#       following disclaimer.
+#     * Redistributions in binary form must reproduce the
+#       above copyright notice, this list of conditions and
+#       the following disclaimer in the documentation and/or
+#       other materials provided with the distribution.
+#     * Neither the name of the copyright holder nor the names
+#       of its contributors may be used to endorse or promote
+#       products derived from this software without specific
+#       prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND
+# CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+# INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+# MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+# CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+# NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+# HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+# CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+# OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+import sys
+import xml.sax
+
+import struct
+
+FIFO_MAX=1024       # this will change to a per-fifo setting?
+
+# -----------------------------------------------------------------------------
+
+# Output file format (all values little endian):
+#
+# 32b  number of fifos = N
+# N * {
+#   32b  length of fifo consumer name = A
+#   A    fifo consumer name
+#   32b  length of fifo producer name = B
+#   B    fifo producer name
+# }
+# M * N * {   /* M = number of firings */
+#   8b   fifo state: 0=empty, 0xff=full
+# }
+# -----------------------------------------------------------------------------
+
+class OutputConnection(object):
+    "A connection from one source to one or more sinks."
+
+    connections = {}
+    max_source_id = 0
+
+    def __init__(self, source_id):
+        self.source_id = source_id
+        self._sinks = []
+        OutputConnection.connections[source_id] = self
+        OutputConnection.max_source_id = max(OutputConnection.max_source_id,
+                                             source_id)
+
+    def set_name(self, name):
+        self._name = name
+
+    def get_name(self):
+        return self._name
+
+    def add_sink(self, sink):
+        self._sinks.append(sink)
+
+    def push(self, n):
+        for sink in self._sinks:
+            sink.push(n)
+
+    @staticmethod
+    def by_id(source_id):
+        conn = OutputConnection.connections.get(source_id, None)
+        if conn:
+            return conn
+        else:
+            return OutputConnection(source_id)
+    
+# -----------------------------------------------------------------------------
+
+class InputFifo(object):
+    fifos = {}
+    max_fifo_id = 0
+
+    def __init__(self, sink_id, name):
+        self.count   = 0
+        self.sink_id = sink_id
+        self.name    = name
+        InputFifo.fifos[sink_id] = self
+        InputFifo.max_fifo_id = max(InputFifo.max_fifo_id, sink_id)
+
+    def push(self, n):
+        self.count += n
+
+    def pop(self, n):
+        assert self.count >= n
+        self.count -= n
+
+    def set_source(self, src):
+        self.source = src
+
+    @staticmethod
+    def by_id(sink_id):
+        fifo = InputFifo.fifos.get(sink_id, None)
+        if fifo:
+            return fifo
+        else:
+            return InputFifo(sink_id)
+
+    @staticmethod
+    def report_header(outfile):
+        n = InputFifo.max_fifo_id + 1
+        outfile.write(struct.pack('<I', n))
+        for i in range(n):
+            name = InputFifo.fifos[i].name
+            outfile.write(struct.pack('<I', len(name)) + name)
+            src_name = InputFifo.fifos[i].source.get_name()
+            outfile.write(struct.pack('<I', len(src_name)) + src_name)
+
+    @staticmethod
+    def report_state(outfile):
+        for i in range(InputFifo.max_fifo_id + 1):
+            level = min(InputFifo.fifos[i].count, FIFO_MAX)    # FIXME
+            state = (255 * level) / FIFO_MAX;
+            outfile.write(struct.pack('<B', state))
+
+# -----------------------------------------------------------------------------
+
+class Action(object):
+    "Firing behavior of an action"
+    actions    = {}                     # action id -> action instance
+    fifo_count = {}                     # fifo id -> token count
+
+    def __init__(self, action_id):
+        self.consumptions = []          # pairs of (fifo id, consumption)
+        self.productions  = []          # pairs of (fifo id, production)
+        self.action_id    = action_id
+        Action.actions[action_id] = self
+
+    def add_consumption(self, fifo, count):
+        self.consumptions += ((fifo, count),)
+
+    def add_production(self, conn, count):
+        self.productions += ((conn, count),)
+
+    def fire(self, outfile, timestamp):
+        for (fifo, count) in self.consumptions:
+            fifo.pop(count)
+        for (conn, count) in self.productions:
+            conn.push(count)
+        InputFifo.report_state(outfile)
+
+    @staticmethod
+    def by_id(action_id):
+        return Action.actions[action_id]
+
+# -----------------------------------------------------------------------------
+
+class PortLogger(xml.sax.handler.ContentHandler):
+    "SAX callbacks for a CAL trace"
+    def __init__(self, outfile):
+        self.outfile = outfile
+        self.action = None
+        self.actor_name = "** NONE **"
+
+    def startElement(self, name, attrs):
+        if name == 'action':
+            self.action = Action(int(attrs.get('id')))
+        elif name == 'actor':
+            self.actor_name = attrs.get('class') + '.' + attrs.get('id')
+        elif name == 'consumes':
+            input = InputFifo.by_id(int(attrs.get('port')))
+            count = int(attrs.get('count'))
+            self.action.add_consumption(input, count)
+        elif name == 'produces':
+            output = OutputConnection.by_id(int(attrs.get('port')))
+            count = int(attrs.get('count'))
+            self.action.add_production(output, count)
+        elif name == 'output':
+            name = self.actor_name + '.' + attrs.get('name')
+            output = int(attrs.get('id'))
+            OutputConnection.by_id(output).set_name(name)
+        elif name == 'input':
+            input = int(attrs.get('id'))
+            conn = int(attrs.get('source'))
+            name = self.actor_name + '.' + attrs.get('name')
+            fifo = InputFifo(input, name)
+            source = OutputConnection.by_id(conn)
+            source.add_sink(fifo)
+            fifo.set_source(source)
+        elif name == 'trace':
+            action_id = int(attrs.get('action'))
+            timestamp = attrs.get('step')
+            Action.by_id(action_id).fire(self.outfile, timestamp)
+
+    def endElement(self, name):
+        if name == 'network':
+            InputFifo.report_header(self.outfile)
+
+# -----------------------------------------------------------------------------
+
+logger = PortLogger(open(sys.argv[2], 'w'))
+parser = xml.sax.make_parser()
+parser.setContentHandler(logger)
+
+parser.parse(open(sys.argv[1], 'r'))

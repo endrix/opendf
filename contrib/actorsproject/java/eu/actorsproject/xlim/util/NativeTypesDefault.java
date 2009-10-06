@@ -38,13 +38,16 @@
 package eu.actorsproject.xlim.util;
 
 import eu.actorsproject.xlim.XlimType;
+import eu.actorsproject.xlim.XlimTypeKind;
 import eu.actorsproject.xlim.type.TypeFactory;
 
 public class NativeTypesDefault implements NativeTypePlugIn {
+	protected XlimTypeKind mIntTypeKind;
 	protected XlimType mInt8, mInt16, mInt32, mInt64;
 	
 	public NativeTypesDefault() {
-		TypeFactory typeFact=TypeFactory.getInstance();
+		TypeFactory typeFact=Session.getTypeFactory();
+		mIntTypeKind=typeFact.getTypeKind("int");
 		mInt8=typeFact.createInteger(8);
 		mInt16=typeFact.createInteger(16);
 		mInt32=typeFact.createInteger(32);
@@ -58,18 +61,20 @@ public class NativeTypesDefault implements NativeTypePlugIn {
 
 	@Override
 	public XlimType nativeElementType(XlimType type) {
-		return nativeType(type, mInt8);
+		// TODO: Support small integer types for aggregates
+		// return nativeType(type, mInt8);
+		return nativeType(type, mInt32);
 	}
 
 	@Override
 	public XlimType nativePortType(XlimType type) {
-		return nativeType(type, mInt8);
+		// TODO: Support small integer types for aggregates
+		// return nativeType(type, mInt8);
+		return nativeType(type, mInt32);
 	}
 
 	protected XlimType nativeType(XlimType type, XlimType smallestInt) {
-		if (type.isBoolean())
-			return type;
-		else {
+		if (type.getTypeKind()==mIntTypeKind) {
 			assert(type.isInteger());
 			int width=type.getSize();
 			assert(width<=64);
@@ -86,5 +91,7 @@ public class NativeTypesDefault implements NativeTypePlugIn {
 			else
 				return mInt64;
 		}
+		else
+			return type;
 	}
 }

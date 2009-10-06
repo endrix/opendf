@@ -81,7 +81,7 @@ int FCODE_SHIFT
   // be identical to the buffer addressing in Reconstruct.cal, since pointer
   // values are passed on ports A, B, C.
   int BUF_SIZE = (MAXW_IN_MB+2);
-  list( type:bool, size=BUF_SIZE*8 ) coded := [ false : for i in Integers(1,BUF_SIZE*8) ];
+  List( type:bool, size=BUF_SIZE*8 ) coded := [ false : for i in Integers(1,BUF_SIZE*8) ];
   int(size=MB_COORD_SZ) ptr;
   int(size=MB_COORD_SZ) ptr_left;
   int(size=MB_COORD_SZ) ptr_above;

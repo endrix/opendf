@@ -48,7 +48,7 @@ actor Zigzag ( int SAMPLE_SZ ) int(size=SAMPLE_SZ) AC, int(size=3) START, int(si
   int BUF_SIZE = 128;
   int(size=8) count := 1;
   bool half := false;
-  list( type:int(size=SAMPLE_SZ), size=BUF_SIZE ) buf := [ 0 : for k in Integers(1,BUF_SIZE) ];
+  List( type:int(size=SAMPLE_SZ), size=BUF_SIZE ) buf := [ 0 : for k in Integers(1,BUF_SIZE) ];
 
   skip: action START:[ s ] ==>
   guard s < 0

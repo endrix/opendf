@@ -240,7 +240,7 @@ public class CalmlEvaluator
         }
         catch (Exception e)
         {
-            (new ReportingExceptionHandler()).process(e);
+            // (new ReportingExceptionHandler()).process(e);
         	result = renderError( e.getMessage());
             
             String lineage = "";

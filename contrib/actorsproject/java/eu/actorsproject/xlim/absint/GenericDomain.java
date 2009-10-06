@@ -210,7 +210,7 @@ public class GenericDomain<T extends AbstractValue<T>>
 	 * Some handy support methods
 	 */
 		
-	protected T getAbstractValue(long constant) {
+	protected T getAbstractValue(String constant) {
 		return mNullValue.getAbstractValue(constant);
 	}
 	
@@ -261,7 +261,7 @@ public class GenericDomain<T extends AbstractValue<T>>
 		public T evaluate(ValueNode output, 
 				          XlimOperation op,
 				          Context<T> context) {
-			return getAbstractValue(op.getIntegerValueAttribute());
+			return getAbstractValue(op.getValueAttribute());
 		}		
 	}
 	
@@ -551,7 +551,7 @@ public class GenericDomain<T extends AbstractValue<T>>
                           Context<T> context) {
 			// Returns a value representing 0..MAX_INT
 			XlimType type=op.getOutputPort(0).getType();
-			T maxValue=getAbstractValue(type.maxValue());
+			T maxValue=getAbstractValue(Long.toString(type.maxValue()));
 			return getUniverse(type).and(maxValue);
 		}
 	}

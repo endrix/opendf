@@ -15,8 +15,10 @@ import net.sf.opendf.util.source.SourceLoader;
 import net.sf.opendf.util.source.XDFLoader;
 import net.sf.opendf.util.source.XNLLoader;
 import net.sf.opendf.util.exception.LocatableException;
+import net.sf.opendf.util.io.SourceStream;
 
 import org.w3c.dom.Node;
+
 
 public class Loading {
 	
@@ -29,7 +31,7 @@ public class Loading {
             String name = baseName + "." + l.extension();
             try
             {
-                InputStream s = getSourceAsStream(name);
+                SourceStream s = getSourceAsStream(name);
                 if (s != null) {
                     Node res = l.load(s);
                     return res;
@@ -56,9 +58,9 @@ public class Loading {
 		return locators;
 	}
 
-	private static InputStream  getSourceAsStream(String name) {
+	private static SourceStream  getSourceAsStream(String name) {
 		for (StreamLocator mcl : getLocators()) {
-			InputStream s = mcl.getAsStream(name);
+			SourceStream s = mcl.getAsStream(name);
 			if (s != null)
 				return s;
 		}

@@ -8,7 +8,7 @@ srcdir=@datadir@/actors-test
 # New categories also needs to be added in second last rule of this file
 CATEGORIES=SystemActors MPEG4_SP_Decoder
 
-.PHONY: all report help clean cleaner cleanest FORCE $(CATEGORIES)
+.PHONY: all report help clean FORCE $(CATEGORIES)
 
 all: $(CATEGORIES) report
 
@@ -35,11 +35,7 @@ report:
 
 $(CATEGORIES): % : %/all
 
-clean: $(CATEGORIES:%=%/clean)
-
-cleaner: $(CATEGORIES:%=%/cleaner)
-
-cleanest:
+clean:
 	@rm -rf report $(CATEGORIES)
 
 GENTARGETS=$(CATEGORIES:%=%/all)   \
@@ -63,13 +59,12 @@ SystemActors/% MPEG4_SP_Decoder/%: FORCE
 help:
 	@echo
 	@echo Usage:
-	@echo "make, make all       Execute all tests"
-	@echo 'make <category>      Execute all tests in <category>'
+	@echo "make, make all        Execute all tests"
+	@echo 'make <category>       Execute all tests in <category>'
 	@echo Available categories: 
 	@echo $(CATEGORIES)
-	@echo 'make <category>/test Execute a specific test only'
-	@echo "make clean           Clean build files, but keep elaboration"
-	@echo "make cleaner         Also clean elaboration"
-	@echo "make cleanest        Remove everything: build directories" \
-                                    and reports
+	@echo 'make <category>/test  Execute a specific test only'
+	@echo 'make <category>/clean Remove build files for <category>'
+	@echo "make clean            Remove everything: build directories" \
+                                     and reports
 	@echo

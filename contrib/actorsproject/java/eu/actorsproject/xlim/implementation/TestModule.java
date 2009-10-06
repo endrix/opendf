@@ -54,8 +54,8 @@ class TestModule extends ContainerModule implements XlimTestModule {
 	private PhiContainerModule mParent;
 	private ValueOperator mTestOp=new TestValueOperator();
 	
-	public TestModule(PhiContainerModule parent, Factory factory) {
-		super("test",parent,factory);
+	public TestModule(PhiContainerModule parent) {
+		super("test",parent);
 		mParent=parent;
 	}
 	
@@ -71,9 +71,8 @@ class TestModule extends ContainerModule implements XlimTestModule {
 
 	@Override
 	public void setDecision(XlimSource decision) {
-		// Do this once
 		if (mDecision!=null)
-			throw new IllegalStateException("decision attribute already set");
+			mDecision.setValue(null);  // remove from current list of accesses
 		mDecision=new SourceValueUsage(decision, mTestOp);
 	}
 	
@@ -94,14 +93,14 @@ class TestModule extends ContainerModule implements XlimTestModule {
 	}
 	
 	/**
-	 * Sets dependence links (of stateful resources) in added code,
+	 * Sets (or updates) dependence links (of stateful resources)
 	 * computes the set of exposed uses and new values
-	 * @param context
+	 * @param context (keeps track of exposed uses and new definitions)
 	 */
 	@Override
-	public void fixupAddedCode(FixupContext context) {
-		super.fixupAddedCode(context);
-		if (mDecision.getValue()==null)
+	public void fixupAll(FixupContext context) {
+		super.fixupAll(context);
+		if (mDecision!=null)
 			context.fixup(mDecision);
 	}
 	
@@ -145,8 +144,7 @@ class TestModule extends ContainerModule implements XlimTestModule {
 		public XlimModule getParentModule() {
 			return TestModule.this;
 		}
-		
-		
+
 		@Override
 		public void removeReferences() {
 			mDecision.setValue(null);
@@ -158,6 +156,11 @@ class TestModule extends ContainerModule implements XlimTestModule {
 				return Collections.singletonList(mDecision);
 			else
 				return Collections.emptyList();
+		}
+
+		@Override
+		public XlimModule usedInModule(ValueUsage usage) {
+			return TestModule.this;
 		}
 		
 		@Override

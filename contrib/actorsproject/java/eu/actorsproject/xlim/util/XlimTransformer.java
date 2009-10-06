@@ -38,6 +38,7 @@
 package eu.actorsproject.xlim.util;
 
 import eu.actorsproject.xlim.XlimDesign;
+import eu.actorsproject.xlim.XlimTaskModule;
 
 public class XlimTransformer {
 
@@ -45,12 +46,16 @@ public class XlimTransformer {
 	private DeadCodeAnalysis mDeadCodeAnalysis=new DeadCodeAnalysis();
 	private DeadCodeRemoval mDeadCodeRemoval=new DeadCodeRemoval();
 	private BlockingWaitGenerator mBlockingWaitGenerator=new BlockingWaitGenerator();
+	private LatestEvaluationAnalysis mLatestEvaluationAnalysis=
+		new LatestEvaluationAnalysis();
+	private CodeMotion mCodeMotion=new CodeMotion();
 	private NativeTypeTransformation mNativeTypeTransformation=
 		new NativeTypeTransformation(new NativeTypesDefault());
 	
 	protected boolean mDoCopyPropagation=true;
 	protected boolean mDoDeadCodeRemoval=true;
 	protected boolean mGenerateBlockingWaits=true;
+	protected boolean mDoCodeMotion=true;
 	protected boolean mTransformToNativeTypes=true;
 	
 	public void transform(XlimDesign design) {
@@ -60,6 +65,10 @@ public class XlimTransformer {
 			deadCodeElimination(design);
 		if (mGenerateBlockingWaits)
 			mBlockingWaitGenerator.generateBlockingWaits(design);
+		if (mDoDeadCodeRemoval)
+			deadCodeElimination(design);
+		if (mDoCodeMotion)
+			codeMotion(design);
 		if (mTransformToNativeTypes)
 			mNativeTypeTransformation.transform(design);
 	}
@@ -71,5 +80,12 @@ public class XlimTransformer {
 	public void deadCodeElimination(XlimDesign design) {
 		DeadCodePlugIn deadCode=mDeadCodeAnalysis.findDeadCode(design);
 		mDeadCodeRemoval.deadCodeRemoval(design, deadCode);
+	}
+	
+	public void codeMotion(XlimDesign design) {
+		for (XlimTaskModule task: design.getTasks()) {
+			CodeMotionPlugIn plugIn=mLatestEvaluationAnalysis.analyze(task);
+			mCodeMotion.codeMotion(task, plugIn);
+		}
 	}
 }

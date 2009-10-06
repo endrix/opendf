@@ -49,6 +49,7 @@ import eu.actorsproject.util.XmlElement;
 public interface XlimTopLevelPort extends XmlElement, XlimStateCarrier {
 	String getSourceName();
 	XlimType getType();
+	void setType(XlimType t);
 	Direction getDirection();
 	
 	enum Direction {

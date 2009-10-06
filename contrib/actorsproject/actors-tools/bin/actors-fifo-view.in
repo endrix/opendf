@@ -1,0 +1,234 @@
+#!/usr/bin/env python
+
+# -----------------------------------------------------------------------------
+# Tool to view a dumped FIFO state (provided by actors-fifo-dump)
+# -----------------------------------------------------------------------------
+
+# Copyright (c) Ericsson AB, 2009
+# Author: Patrik Persson <patrik.j.persson@ericsson.com>
+# All rights reserved.
+#
+# License terms:
+#
+# Redistribution and use in source and binary forms,
+# with or without modification, are permitted provided
+# that the following conditions are met:
+#     * Redistributions of source code must retain the above
+#       copyright notice, this list of conditions and the
+#       following disclaimer.
+#     * Redistributions in binary form must reproduce the
+#       above copyright notice, this list of conditions and
+#       the following disclaimer in the documentation and/or
+#       other materials provided with the distribution.
+#     * Neither the name of the copyright holder nor the names
+#       of its contributors may be used to endorse or promote
+#       products derived from this software without specific
+#       prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND
+# CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+# INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+# MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+# CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+# NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+# HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+# CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+# OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+import pygtk
+pygtk.require('2.0')
+
+import gtk
+
+import struct
+import os
+import optparse
+
+# -----------------------------------------------------------------------------
+
+INITIAL_WINDOW_WIDTH  = 800
+INITIAL_WINDOW_HEIGHT = 600
+
+# -----------------------------------------------------------------------------
+
+class FifoDump(object):
+
+    def __init__(self, infile, by_producers):
+        self._infile = infile
+        self._nbr_fifos = struct.unpack('<I', infile.read(4))[0]
+        self._fifo_names = []
+        self._fifo_src_names = []
+        for i in range(self._nbr_fifos):
+            l = struct.unpack('<I', infile.read(4))[0]
+            self._fifo_names.append(infile.read(l))
+            l = struct.unpack('<I', infile.read(4))[0]
+            self._fifo_src_names.append(infile.read(l))
+        self._data_offset = infile.tell()
+        infile.seek(0, os.SEEK_END)
+        self._total_time = (infile.tell() - self._data_offset) / self._nbr_fifos
+
+        # Set up a mapping from index in file to sorted index
+        l = zip(self._fifo_names,
+                self._fifo_src_names,
+                range(self._nbr_fifos))
+        l2 = sorted(l, key=lambda x:x[1 if by_producers else 0].lower())
+        self.sort_order = map(lambda x:(x[2]), l2)
+
+    def nbr_fifos(self):
+        return self._nbr_fifos
+
+    def fifo_name(self, idx):
+        return self._fifo_names[self.sort_order[idx]]
+
+    def fifo_src_name(self, idx):
+        return self._fifo_src_names[self.sort_order[idx]]
+
+    def max_time(self):
+        return self._total_time - 1
+
+    def data_at(self, time_idx):
+        self._infile.seek(self._data_offset + time_idx * self._nbr_fifos)
+        data = map(ord, self._infile.read(self._nbr_fifos))
+        return [data[self.sort_order[i]] for i in range(self._nbr_fifos)]
+
+# -----------------------------------------------------------------------------
+
+class FifoViewer(object):
+
+    def destroy(self, widget, data=None):
+        gtk.main_quit()
+
+    def expose_event(self, area, event):
+        width  = int(self.hscrolled_window.get_hadjustment().get_property('page-size'))
+        offset = int(self.hscrolled_window.get_hadjustment().get_value())
+
+        timeline_height = self.labels[0].allocation.height
+
+        self.window.set_title("FIFO view: offset %d/%d, scale 1:%d" % (self.scale * offset,
+                                                                       self.fifo_dump.max_time(),
+                                                                       self.scale))
+
+        for ix in range(width):
+            samples = self.fifo_dump.data_at(self.scale * (offset + ix))
+            for i in range(len(samples)):
+                self.gc.set_foreground(self.colors[samples[i]])
+                self.drawing_area.window.draw_line(self.gc,
+                                                   offset + ix,
+                                                   timeline_height * (i + 1),
+                                                   offset + ix,
+                                                   timeline_height * (i + 1) + (timeline_height - 3))
+        return True
+
+    def __init__(self, fifo_dump, scale):
+        self.fifo_dump  = fifo_dump
+        self.scale      = scale
+
+        self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
+        self.window.connect("destroy", self.destroy)
+
+        self.vscrolled_window = gtk.ScrolledWindow()
+        self.vscrolled_window.set_size_request(INITIAL_WINDOW_WIDTH, INITIAL_WINDOW_HEIGHT)
+        self.vscrolled_window.set_policy(gtk.POLICY_NEVER,
+                                         gtk.POLICY_AUTOMATIC)
+        self.vscrolled_window.show()
+
+        self.hbox = gtk.HPaned()
+
+        # Make table have two rows more: one at top for headings,
+        # one at bottom to make space for scroll bar
+
+        self.label_table = gtk.Table(self.fifo_dump.nbr_fifos() + 2, 2, True)
+        self.labels = []
+        for i in range(self.fifo_dump.nbr_fifos()):
+            label_buf = gtk.TextBuffer()
+            label_buf.set_text(self.fifo_dump.fifo_src_name(i))
+            wgt = gtk.TextView(label_buf)
+            wgt.set_editable(False)
+            wgt.set_cursor_visible(False)
+            wgt.set_justification(gtk.JUSTIFY_RIGHT)
+            wgt.show()
+            self.labels.append(wgt)
+            self.label_table.attach(wgt, 0, 1, i + 1, i + 2)
+
+            label_buf = gtk.TextBuffer()
+            label_buf.set_text(self.fifo_dump.fifo_name(i))
+            wgt = gtk.TextView(label_buf)
+            wgt.set_editable(False)
+            wgt.set_cursor_visible(False)
+            wgt.set_justification(gtk.JUSTIFY_RIGHT)
+            wgt.show()
+            self.labels.append(wgt)
+            self.label_table.attach(wgt, 1, 2, i + 1, i + 2)
+
+        self.label_table.show()
+        self.hbox.show()
+        self.hbox.add(self.label_table)
+
+        self.hscrolled_window = gtk.ScrolledWindow()
+        self.hscrolled_window.set_policy(gtk.POLICY_ALWAYS,
+                                         gtk.POLICY_AUTOMATIC)
+
+        self.drawing_area = gtk.DrawingArea()
+        self.drawing_area.set_size_request(self.fifo_dump.max_time() / scale,
+                                           (self.fifo_dump.nbr_fifos() + 2) * self.labels[0].allocation.height)
+        self.drawing_area.connect("expose-event", self.expose_event)
+        self.hscrolled_window.add_with_viewport(self.drawing_area)
+        self.drawing_area.show()
+
+        self.hscrolled_window.show()
+        self.hbox.add(self.hscrolled_window)
+
+        self.vscrolled_window.add_with_viewport(self.hbox)
+        self.window.add(self.vscrolled_window)
+        self.window.show()
+
+        self.colormap = self.drawing_area.get_colormap()
+        self.colors = [self.colormap.alloc_color(gtk.gdk.Color(0, 0, 0x4000))]
+        for i in range(0x0100, 0xff00, 0x0100):
+            self.colors.append(self.colormap.alloc_color(gtk.gdk.Color(i, i, i)))
+        self.colors.append(self.colormap.alloc_color(gtk.gdk.Color(0xffff, 0xa000, 0xa000)))
+
+        label_buf = gtk.TextBuffer()
+        label_buf.set_text("FROM OUTPUT");
+        wgt = gtk.TextView(label_buf)
+        wgt.set_editable(False)
+        wgt.set_cursor_visible(False)
+        wgt.set_justification(gtk.JUSTIFY_RIGHT)
+        wgt.show()
+        self.label_table.attach(wgt, 0, 1, 0, 1);
+
+        label_buf = gtk.TextBuffer()
+        label_buf.set_text("TO INPUT");
+        wgt = gtk.TextView(label_buf)
+        wgt.set_editable(False)
+        wgt.set_cursor_visible(False)
+        wgt.set_justification(gtk.JUSTIFY_RIGHT)
+        wgt.show()
+        self.label_table.attach(wgt, 1, 2, 0, 1);
+
+        self.gc = self.drawing_area.window.new_gc()
+
+    def main(self):
+        gtk.main()
+
+# -----------------------------------------------------------------------------
+
+if __name__ == "__main__":
+    parser = optparse.OptionParser(usage="usage: %prog [options] <trace FIFO dump>")
+    parser.add_option('-s', '--scale', dest='scale',
+                      help='scale view to 1:N', metavar='N')
+    parser.add_option('-c', '--by-consumers', dest='by_producers',
+                      action='store_false', help='sort view by consumers (default)',
+                      default=False)
+    parser.add_option('-p', '--by-producers', dest='by_producers',
+                      action='store_true', help='sort view by producers')
+
+    (options, args) = parser.parse_args()
+
+    viewer = FifoViewer(FifoDump(open(args[0], 'r'), options.by_producers),
+                        int(options.scale))
+    viewer.main()
