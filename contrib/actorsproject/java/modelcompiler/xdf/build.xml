@@ -44,7 +44,7 @@
     </jastadd>
     <jjtree 
        target="xdf.jjt" 
-       outputdirectory="../${package}" 
+       outputdirectory="${builddir}/${package}" 
        javacchome="${javacc.home}"
        buildnodefiles="true"
        static="false"
@@ -55,8 +55,8 @@
        nodepackage="${package}"
        />
     <javacc
-       target="../${package}/xdf.jj"
-       outputdirectory="../${package}"
+       target="${builddir}/${package}/xdf.jj"
+       outputdirectory="${builddir}/${package}"
        javacchome="${javacc.home}"
        buildparser="true"
        buildtokenmanager="true"

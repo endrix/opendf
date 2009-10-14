@@ -27,27 +27,16 @@ JASTADD_FILES=$(shell find $(srcdir)/modelcompiler -name *.jrag -name *.ast -nam
 
 all: actorsproject.jar
 
-# model compiler commented out
-#
-# actorsproject.jar: $(JAVA_FILES) $(JASTADD_FILES)
-#	@mkdir -p classes
-#	@cd modelcompiler && ant
-#	@$(JAVAC) -classpath $(srcdir) -d classes $(JAVA_FILES)
-#	@$(JAR) -cf $@ -C classes . -C $(srcdir) COPYING
-
 actorsproject.jar: $(JAVA_FILES) $(JASTADD_FILES)
 	@mkdir -p classes
+	@ant -f $(srcdir)/modelcompiler/build.xml  -Dbuilddir=$(CURDIR)
 	@$(JAVAC) -classpath $(srcdir) -d classes $(JAVA_FILES)
 	@$(JAR) -cf $@ -C classes . -C $(srcdir) COPYING
 
-# model compiler commented out
-#
-# clean:
-#	@rm -fr classes actorsproject.jar
-#	@cd modelcompiler && ant clean
-
 clean:
 	@rm -fr classes actorsproject.jar
+	@ant -f $(srcdir)/modelcompiler/build.xml -Dbuilddir=$(CURDIR) clean
+
 
 install: actorsproject.jar
 	@mkdir -p $(javadir)

@@ -18,6 +18,8 @@
   
   <property name="parser.name" value="XmlParser"/>
   
+  <property name="builddir" value="."/>
+
   <!-- "jflex" is an ant task class for the scanner generator in JFlex.jar -->
 <!--   <taskdef name="jflex" classname="JFlex.anttask.JFlexTask" classpath="tools/JFlex.jar"/> -->
   <!-- "beaver" is an ant task class for the parser generator in beaver.jar -->
@@ -34,6 +36,7 @@
   <target name="gen" description="Generate compiler source files">
     <!-- create AST node types and weave aspect modules -->
     <echo message = "Running JastAdd"/>
+	<echo message="${builddir}"/>
 <!--     <jastadd package="${package}" rewrite="true" beaver="true" novisitcheck="true"> -->
     <jastadd outdir="." package="${package}" grammar="${parser.name}" rewrite="true" jjtree="true">
       <fileset dir=".">
@@ -44,7 +47,7 @@
     </jastadd>
     <jjtree 
        target="xlim.jjt" 
-       outputdirectory="../${package}" 
+       outputdirectory="${builddir}/${package}" 
        javacchome="${javacc.home}"
        buildnodefiles="true"
        static="false"
@@ -55,8 +58,8 @@
        nodepackage="${package}"
        />
     <javacc
-       target="../${package}/xlim.jj"
-       outputdirectory="../${package}"
+       target="${builddir}/${package}/xlim.jj"
+       outputdirectory="${builddir}/${package}"
        javacchome="${javacc.home}"
        buildparser="true"
        buildtokenmanager="true"

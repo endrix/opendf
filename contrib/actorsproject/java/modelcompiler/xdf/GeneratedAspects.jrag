@@ -135,7 +135,7 @@ aspect PrettyPrinter {
     }
   }
 
-  public void text_end_line.prettyPrint(String indent, PrintStream pStream) {
+  public void _text_end_line.prettyPrint(String indent, PrintStream pStream) {
     pStream.print(" text-end-line=");
        getAttrValue().prettyPrint(indent,pStream);
   }
@@ -174,12 +174,12 @@ aspect PrettyPrinter {
     }
   }
 
-  public void text_begin_line.prettyPrint(String indent, PrintStream pStream) {
+  public void _text_begin_line.prettyPrint(String indent, PrintStream pStream) {
     pStream.print(" text-begin-line=");
        getAttrValue().prettyPrint(indent,pStream);
   }
 
-  public void name.prettyPrint(String indent, PrintStream pStream) {
+  public void _name.prettyPrint(String indent, PrintStream pStream) {
     pStream.print(" name=");
        getAttrValue().prettyPrint(indent,pStream);
   }
@@ -250,7 +250,7 @@ aspect PrettyPrinter {
        getAttrValue().prettyPrint(indent,pStream);
   }
 
-  public void ID.prettyPrint(String ind, PrintStream pStream) {
+  public void _ID.prettyPrint(String ind, PrintStream pStream) {
     pStream.print(ind+"<ID ");
     for (int i=0; i<getNumAttribute(); i++) {
       getAttribute(i).prettyPrint(ind,pStream);
@@ -411,12 +411,12 @@ aspect PrettyPrinter {
     }
   }
 
-  public void port.prettyPrint(String indent, PrintStream pStream) {
+  public void _port.prettyPrint(String indent, PrintStream pStream) {
     pStream.print(" port=");
        getAttrValue().prettyPrint(indent,pStream);
   }
 
-  public void text_begin_col.prettyPrint(String indent, PrintStream pStream) {
+  public void _text_begin_col.prettyPrint(String indent, PrintStream pStream) {
     pStream.print(" text-begin-col=");
        getAttrValue().prettyPrint(indent,pStream);
   }
@@ -426,12 +426,12 @@ aspect PrettyPrinter {
        getAttrValue().prettyPrint(indent,pStream);
   }
 
-  public void text_end_col.prettyPrint(String indent, PrintStream pStream) {
+  public void _text_end_col.prettyPrint(String indent, PrintStream pStream) {
     pStream.print(" text-end-col=");
        getAttrValue().prettyPrint(indent,pStream);
   }
 
-  public void value.prettyPrint(String indent, PrintStream pStream) {
+  public void _value.prettyPrint(String indent, PrintStream pStream) {
     pStream.print(" value=");
        getAttrValue().prettyPrint(indent,pStream);
   }
@@ -470,7 +470,7 @@ aspect PrettyPrinter {
     }
   }
 
-  public void kind.prettyPrint(String indent, PrintStream pStream) {
+  public void _kind.prettyPrint(String indent, PrintStream pStream) {
     pStream.print(" kind=");
        getAttrValue().prettyPrint(indent,pStream);
   }
