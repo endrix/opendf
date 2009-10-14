@@ -51,18 +51,18 @@ PARSER_END(XmlParser)
  | <Op		: "Op" >
  | <Parameter		: "Parameter" >
  | <QID		: "QID" >
- | <text_end_line		: "text-end-line" >
+ | <_text_end_line		: "text-end-line" >
  | <Connection		: "Connection" >
  | <Note		: "Note" >
- | <text_begin_line		: "text-begin-line" >
- | <name		: "name" >
+ | <_text_begin_line		: "text-begin-line" >
+ | <_name		: "name" >
  | <from		: "from" >
  | <Instance		: "Instance" >
  | <Entry		: "Entry" >
  | <dst_port		: "dst-port" >
  | <Guards		: "Guards" >
  | <src		: "src" >
- | <ID		: "ID" >
+ | <_ID		: "ID" >
  | <Action		: "Action" >
  | <Import		: "Import" >
  | <Port		: "Port" >
@@ -75,14 +75,14 @@ PARSER_END(XmlParser)
  | <dst		: "dst" >
  | <id		: "id" >
  | <Expr		: "Expr" >
- | <port		: "port" >
- | <text_begin_col		: "text-begin-col" >
+ | <_port		: "port" >
+ | <_text_begin_col		: "text-begin-col" >
  | <src_port		: "src-port" >
- | <text_end_col		: "text-end-col" >
- | <value		: "value" >
+ | <_text_end_col		: "text-end-col" >
+ | <_value		: "value" >
  | <Decl		: "Decl" >
  | <Input		: "Input" >
- | <kind		: "kind" >
+ | <_kind		: "kind" >
  | <Stmt		: "Stmt" >
  | <Type		: "Type" >
  | <XDF		: "XDF" >
@@ -314,7 +314,7 @@ void Element()  : {}
   | Guards()
   | Actor()
   | Decl()
-  | ID()
+  | _ID()
   | Type()
   | Import()
   | Op()
@@ -380,21 +380,21 @@ void Attribute()  : {}
   | _to()
   | literal_kind()
   | src()
-  | kind()
-  | text_begin_col()
-  | port()
+  | _kind()
+  | _text_begin_col()
+  | _port()
   | dst_port()
   | initial_state()
   | id()
-  | value()
+  | _value()
   | from()
-  | text_end_line()
-  | text_end_col()
+  | _text_end_line()
+  | _text_end_col()
   | src_port()
   | assignable()
-  | text_begin_line()
+  | _text_begin_line()
   | dst()
-  | name()
+  | _name()
   | __DefaultAttribute__() 
   
 }
@@ -429,9 +429,9 @@ void QID() #QID : {}
    <QID> AttributeList()
   ( <GT> ElementList()  "</" <QID>  ">" | ElementList() "/>" )
 }
-void text_end_line() #text_end_line : {}
+void _text_end_line() #_text_end_line : {}
 {
-  <text_end_line> "=" AttrValue()
+  <_text_end_line> "=" AttrValue()
 }
 void Connection() #Connection : {}
 {
@@ -443,13 +443,13 @@ void Note() #Note : {}
    <Note> AttributeList()
   ( <GT> ElementList()  "</" <Note>  ">" | ElementList() "/>" )
 }
-void text_begin_line() #text_begin_line : {}
+void _text_begin_line() #_text_begin_line : {}
 {
-  <text_begin_line> "=" AttrValue()
+  <_text_begin_line> "=" AttrValue()
 }
-void name() #name : {}
+void _name() #_name : {}
 {
-  <name> "=" AttrValue()
+  <_name> "=" AttrValue()
 }
 void from() #from : {}
 {
@@ -478,10 +478,10 @@ void src() #src : {}
 {
   <src> "=" AttrValue()
 }
-void ID() #ID : {}
+void _ID() #_ID : {}
 {
-   <ID> AttributeList()
-  ( <GT> ElementList()  "</" <ID>  ">" | ElementList() "/>" )
+   <_ID> AttributeList()
+  ( <GT> ElementList()  "</" <_ID>  ">" | ElementList() "/>" )
 }
 void Action() #Action : {}
 {
@@ -538,25 +538,25 @@ void Expr() #Expr : {}
    <Expr> AttributeList()
   ( <GT> ElementList()  "</" <Expr>  ">" | ElementList() "/>" )
 }
-void port() #port : {}
+void _port() #_port : {}
 {
-  <port> "=" AttrValue()
+  <_port> "=" AttrValue()
 }
-void text_begin_col() #text_begin_col : {}
+void _text_begin_col() #_text_begin_col : {}
 {
-  <text_begin_col> "=" AttrValue()
+  <_text_begin_col> "=" AttrValue()
 }
 void src_port() #src_port : {}
 {
   <src_port> "=" AttrValue()
 }
-void text_end_col() #text_end_col : {}
+void _text_end_col() #_text_end_col : {}
 {
-  <text_end_col> "=" AttrValue()
+  <_text_end_col> "=" AttrValue()
 }
-void value() #value : {}
+void _value() #_value : {}
 {
-  <value> "=" AttrValue()
+  <_value> "=" AttrValue()
 }
 void Decl() #Decl : {}
 {
@@ -568,9 +568,9 @@ void Input() #Input : {}
    <Input> AttributeList()
   ( <GT> ElementList()  "</" <Input>  ">" | ElementList() "/>" )
 }
-void kind() #kind : {}
+void _kind() #_kind : {}
 {
-  <kind> "=" AttrValue()
+  <_kind> "=" AttrValue()
 }
 void Stmt() #Stmt : {}
 {

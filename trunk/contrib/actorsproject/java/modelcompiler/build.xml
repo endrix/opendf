@@ -12,10 +12,12 @@
   <property name="tools" value="./tools"/>
 
   <property name="javacc.home" value="${tools}/javacc-4.0"/>
-  
+
+  <property name="builddir" value="."/>
+
   <!--   compile sources -->
     <target name="build" depends="gen">
-  	  <javac  debug="true" nowarn="true" srcdir="." destdir="../classes/" includes="**/*.java" excludes="tools/**" classpath=".:${tools}/beaver-rt.jar:${tools}/junit.jar"/>
+  	  <javac  debug="true" nowarn="true" srcdir=".:${builddir}" destdir="${builddir}/classes/" includes="**/*.java" excludes="tools/**" classpath=".:${tools}/beaver-rt.jar:${tools}/junit.jar"/>
     </target>
 
 <!--   <target name="build" depends="gen"> -->
@@ -24,19 +26,24 @@
   <target name="gen" depends="xdf,xlim">
   </target>
 
-  <target name="xdf">
-	<ant antfile="./xlim/build.xml" target="gen" inheritAll="false"/>
+  <target name="xlim">
+	
+	<ant antfile="./xlim/build.xml" target="gen" inheritAll="false">
+	  <property name="builddir" value="${builddir}"/>
+	</ant>
   </target>
 
-  <target name="xlim">
-	<ant antfile="./xdf/build.xml" target="gen" inheritAll="false"/>
+  <target name="xdf">
+	<ant antfile="./xdf/build.xml" target="gen" inheritAll="false">
+	  <property name="builddir" value="${builddir}"/>
+	</ant>
   </target>
 
   <!-- remove generated source files and .class files -->
   <target name="clean" depends="cleanGen">
     <!-- delete all .class files recursively -->
     <delete>
-      <fileset dir="." includes="**/*.class" excludes="beaver/*.class"/>
+      <fileset dir="${builddir}" includes="**/*.class" excludes="beaver/*.class"/>
     </delete>
   </target>
 
@@ -50,8 +57,8 @@
 
   <!-- remove generated source files and their .class files -->
   <target name="cleanGen">
-    <delete dir="xlimAST"/>
-    <delete dir="xdfAST"/>
+    <delete dir="${builddir}/xlimAST"/>
+    <delete dir="${builddir}/xdfAST"/>
   </target>
 </project>
 

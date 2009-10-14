@@ -188,12 +188,12 @@ aspect misc {
 	}
 
 	syn boolean Attribute.isKind() = false;
-	eq kind.isKind() = true;
+	eq _kind.isKind() = true;
 
 	syn String Element.value() = "";
 	eq Note.value() {
 		for (Attribute a : getAttributes()) {
-			if (a instanceof value) {
+			if (a instanceof _value) {
 				return fix(a.getAttrValue().getLITERAL());
 			}
 		}
@@ -202,7 +202,7 @@ aspect misc {
 
 	void Note.setValue(String s) {
 		for (Attribute a : getAttributes()) {
-			if (a instanceof value) {
+			if (a instanceof _value) {
 				a.getAttrValue().setLITERAL(unfix(s));
 			}
 		}		
