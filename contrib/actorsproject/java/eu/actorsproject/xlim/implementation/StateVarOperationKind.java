@@ -3,7 +3,6 @@ package eu.actorsproject.xlim.implementation;
 import java.util.Collection;
 import java.util.List;
 
-import org.w3c.dom.NamedNodeMap;
 
 import eu.actorsproject.xlim.XlimOperation;
 import eu.actorsproject.xlim.XlimOutputPort;
@@ -15,6 +14,7 @@ import eu.actorsproject.xlim.dependence.StateValueNode;
 import eu.actorsproject.xlim.dependence.ValueNode;
 import eu.actorsproject.xlim.dependence.ValueOperator;
 import eu.actorsproject.xlim.dependence.ValueUsage;
+import eu.actorsproject.xlim.io.XlimAttributeList;
 import eu.actorsproject.xlim.io.ReaderContext;
 import eu.actorsproject.xlim.type.Signature;
 import eu.actorsproject.xlim.type.TypeKind;
@@ -68,9 +68,9 @@ class StateVarOperationKind extends OperationKind {
 	
 	@Override
 	public void setAttributes(XlimOperation op,
-			                  NamedNodeMap attributes, 
+			                  XlimAttributeList attributes, 
 			                  ReaderContext context) {
-		String ident=getAttribute(mAttributeName,attributes);
+		String ident=attributes.getAttributeValue(mAttributeName);
 		XlimStateVar stateVar=context.getStateVar(ident);
 		if (stateVar!=null)
 		    op.setStateVarAttribute(stateVar);

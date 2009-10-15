@@ -37,9 +37,9 @@
 
 package eu.actorsproject.xlim.type;
 
-import org.w3c.dom.NamedNodeMap;
 import java.util.HashMap;
 import eu.actorsproject.xlim.XlimType;
+import eu.actorsproject.xlim.io.XlimAttributeList;
 
 public abstract class ParametricTypeKind extends TypeKind {
 	
@@ -66,7 +66,7 @@ public abstract class ParametricTypeKind extends TypeKind {
 	}
 
 	@Override
-	public XlimType createTypeFromAttributes(NamedNodeMap attributes) {
+	public XlimType createTypeFromAttributes(XlimAttributeList attributes) {
 		Object parameter=getParameter(attributes);
 		if (parameter!=null)
 			return createType(parameter);
@@ -74,6 +74,6 @@ public abstract class ParametricTypeKind extends TypeKind {
 			return null;
 	}
 	
-	protected abstract Object getParameter(NamedNodeMap attributes);
+	protected abstract Object getParameter(XlimAttributeList attributes);
 	protected abstract XlimType create(Object parameter);
 }

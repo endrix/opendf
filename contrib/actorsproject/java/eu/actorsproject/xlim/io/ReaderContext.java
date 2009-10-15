@@ -45,13 +45,15 @@ import eu.actorsproject.xlim.XlimStateVar;
 import eu.actorsproject.xlim.XlimTaskModule;
 import eu.actorsproject.xlim.XlimTopLevelPort;
 
+
+/**
+ * Symbol table, which is produced by the XlimReader
+ */
 public class ReaderContext {
-	private HashMap<String,XlimTopLevelPort> mTopLevelPorts=new HashMap<String,XlimTopLevelPort>();
-	private HashMap<String,XlimTaskModule> mTasks=new HashMap<String,XlimTaskModule>();
-	private HashMap<String,XlimStateVar> mStateVars=new HashMap<String,XlimStateVar>();
-	private HashMap<String,XlimOutputPort> mOutputPorts;
-	private HashMap<String,String> mStrings=new HashMap<String,String>();
-	private XlimTaskModule mCurrentTask;
+	protected HashMap<String,XlimTopLevelPort> mTopLevelPorts=new HashMap<String,XlimTopLevelPort>();
+	protected HashMap<String,XlimTaskModule> mTasks=new HashMap<String,XlimTaskModule>();
+	protected HashMap<String,XlimStateVar> mStateVars=new HashMap<String,XlimStateVar>();
+	protected HashMap<String,XlimOutputPort> mOutputPorts;
 	
 	public XlimTopLevelPort getTopLevelPort(String name) {
 		return mTopLevelPorts.get(name);
@@ -77,52 +79,5 @@ public class ReaderContext {
 		}
 		else
 			return null;
-	}
-	
-	public void addTopLevelPort(XlimTopLevelPort port) {
-		if (mTopLevelPorts.put(port.getSourceName(),port)!=null)
-			throw new IllegalArgumentException("Multiple definitions of toplevel port "+port.getSourceName());
-	}
-	
-	public void addTask(XlimTaskModule task) {
-		String name=task.getName();
-		if (name!=null && mTasks.put(name,task)!=null) 
-			throw new IllegalArgumentException("Multiple definitions of task "+name);
-	}
-	
-	public void addStateVar(String identifier, XlimStateVar stateVar) {
-		if (mStateVars.put(identifier,stateVar)!=null)
-			throw new IllegalArgumentException("Multiple definitions of source "+identifier);
-	}
-	
-	public void enterTask(XlimTaskModule task) {
-		mCurrentTask=task;
-		mOutputPorts=new HashMap<String,XlimOutputPort>();
-	}
-	
-	public void leaveTask() {
-		mCurrentTask=null;
-		mOutputPorts=null;
-	}
-	
-	public void addOutputPort(String identifier, XlimOutputPort port) {
-		if (mOutputPorts.put(identifier,port)!=null)
-			throw new IllegalArgumentException("Multiple definitions of source "+identifier);
-	}
-	
-	public void setPortRate(XlimTopLevelPort port, int rate) {
-		if (mCurrentTask.getPortRate(port)==0)
-			mCurrentTask.setPortRate(port, rate);
-		else
-			throw new IllegalArgumentException("Multiple definitions of port rate: "+port.getSourceName());
-	}
-	
-	public String getString(String s) {
-		String oldCopy=mStrings.get(s);
-		if (oldCopy==null) {
-			mStrings.put(s,s);
-			oldCopy=s;
-		}
-		return oldCopy;
-	}
+	}	
 }

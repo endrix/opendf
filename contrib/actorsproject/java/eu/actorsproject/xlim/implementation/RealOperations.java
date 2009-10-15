@@ -40,12 +40,12 @@ package eu.actorsproject.xlim.implementation;
 import java.util.Collection;
 import java.util.List;
 
-import org.w3c.dom.NamedNodeMap;
 
 import eu.actorsproject.xlim.XlimOperation;
 import eu.actorsproject.xlim.XlimOutputPort;
 import eu.actorsproject.xlim.XlimSource;
 import eu.actorsproject.xlim.XlimType;
+import eu.actorsproject.xlim.io.XlimAttributeList;
 import eu.actorsproject.xlim.io.ReaderContext;
 import eu.actorsproject.xlim.type.FixOutputTypeRule;
 import eu.actorsproject.xlim.type.Signature;
@@ -150,9 +150,9 @@ class RealAttributeOperationKind extends OperationKind {
 	
 	@Override
 	public void setAttributes(XlimOperation op,
-			                  NamedNodeMap attributes, 
+			                  XlimAttributeList attributes, 
 			                  ReaderContext context) {
-		String value=getAttribute(mAttributeName,attributes);
+		String value=attributes.getAttributeValue(mAttributeName);
 		if (value!=null)
 			op.setValueAttribute(value);
 	}		

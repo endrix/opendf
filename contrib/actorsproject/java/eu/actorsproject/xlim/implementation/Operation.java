@@ -41,9 +41,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 
-import org.w3c.dom.NamedNodeMap;
-
-
 import eu.actorsproject.util.Linkage;
 import eu.actorsproject.util.XmlElement;
 import eu.actorsproject.xlim.XlimBlockElement;
@@ -60,6 +57,7 @@ import eu.actorsproject.xlim.dependence.InputValueIteration;
 import eu.actorsproject.xlim.dependence.ValueNode;
 import eu.actorsproject.xlim.dependence.ValueOperator;
 import eu.actorsproject.xlim.dependence.ValueUsage;
+import eu.actorsproject.xlim.io.XlimAttributeList;
 import eu.actorsproject.xlim.io.ReaderContext;
 
 class Operation extends Linkage<AbstractBlockElement> 
@@ -261,7 +259,7 @@ class Operation extends Linkage<AbstractBlockElement>
 		return false;
 	}
 	
-	void setAttributes(NamedNodeMap attributes, ReaderContext context) {
+	void setAttributes(XlimAttributeList attributes, ReaderContext context) {
 		mKind.setAttributes(this,attributes,context);
 	}
 	

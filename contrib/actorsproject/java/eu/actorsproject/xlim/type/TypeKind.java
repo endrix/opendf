@@ -40,10 +40,9 @@ package eu.actorsproject.xlim.type;
 import java.util.ArrayList;
 import java.util.BitSet;
 
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Node;
 import eu.actorsproject.xlim.XlimType;
 import eu.actorsproject.xlim.XlimTypeKind;
+import eu.actorsproject.xlim.io.XlimAttributeList;
 
 public abstract class TypeKind implements TypePattern, XlimTypeKind {
 	
@@ -77,7 +76,7 @@ public abstract class TypeKind implements TypePattern, XlimTypeKind {
 	@Override
 	public abstract XlimType createType(Object param);
 	
-	public abstract XlimType createTypeFromAttributes(NamedNodeMap attributes);
+	public abstract XlimType createTypeFromAttributes(XlimAttributeList attributes);
 	
 	public void setDefaultTypePromotion(TypeConversion tp) {
 		if (mDefaultPromotion!=null)
@@ -259,17 +258,9 @@ public abstract class TypeKind implements TypePattern, XlimTypeKind {
 		
 		return mAncestors;
 	}
-	
-	protected String getAttribute(String name, NamedNodeMap attributes) {
-		Node node=attributes.getNamedItem(name);
-		if (node==null)
-			return null;
-		else
-			return node.getNodeValue();
-	}
-	
-	protected Integer getIntegerAttribute(String name, NamedNodeMap attributes) {
-		String value=getAttribute(name,attributes);
+		
+	protected Integer getIntegerAttribute(String name, XlimAttributeList attributes) {
+		String value=attributes.getAttributeValue(name);
 		if (value!=null)
 			return Integer.valueOf(value);
 		else

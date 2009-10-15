@@ -35,42 +35,13 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package eu.actorsproject.xlim.type;
+package eu.actorsproject.xlim.io;
 
+import java.util.Iterator;
 
-import eu.actorsproject.xlim.XlimType;
-import eu.actorsproject.xlim.io.XlimAttributeList;
+public interface XlimAttributeList extends Iterable<XlimAttribute> {
 
-/**
- * Type kind, which is common to all integer types
- */
-class IntegerTypeKind extends ParametricTypeKind {
-	IntegerTypeKind() {
-		super("int");
-	}
+	Iterator<XlimAttribute> iterator();
 	
-	@Override
-	protected Integer getParameter(XlimAttributeList attributes) {
-		return getIntegerAttribute("size",attributes);
-	}
-	
-	@Override
-	protected XlimType create(Object param) {
-		if (param instanceof Integer) {
-			Integer size=(Integer) param;
-			return new IntegerType(this, size);
-		}
-		else
-			throw new IllegalArgumentException("Type \"int\" requires Integer parameter");
-	}
-	
-	@Override
-	XlimType createLub(XlimType t1, XlimType t2) {
-		XlimType intT1=promote(t1);
-		XlimType intT2=promote(t2);
-		if (intT1.getSize()>=intT2.getSize())
-			return intT1;
-		else
-			return intT2;
-	}
+	String getAttributeValue(String attributeName);
 }

@@ -37,9 +37,8 @@
 
 package eu.actorsproject.xlim.type;
 
-import org.w3c.dom.NamedNodeMap;
-
 import eu.actorsproject.xlim.XlimType;
+import eu.actorsproject.xlim.io.XlimAttributeList;
 
 public interface TypeFactory {
 		
@@ -57,5 +56,5 @@ public interface TypeFactory {
 	
 	XlimType create(String typeName, Object param);
 	
-	XlimType create(String typeName, NamedNodeMap attributes);	
+	XlimType create(String typeName, XlimAttributeList attributes);	
 }

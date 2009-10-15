@@ -37,9 +37,9 @@
 
 package eu.actorsproject.xlim.type;
 
-import org.w3c.dom.NamedNodeMap;
 
 import eu.actorsproject.xlim.XlimType;
+import eu.actorsproject.xlim.io.XlimAttributeList;
 
 /**
  * An unparamteric type is both a TypeKind (type constructor etc.) and
@@ -62,7 +62,7 @@ public abstract class UnparametricType extends TypeKind implements XlimType {
 	}
 	
 	@Override
-	public XlimType createTypeFromAttributes(NamedNodeMap attributes) {
+	public XlimType createTypeFromAttributes(XlimAttributeList attributes) {
 		return this;
 	}
 	

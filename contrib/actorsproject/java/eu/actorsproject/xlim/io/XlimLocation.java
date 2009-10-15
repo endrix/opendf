@@ -35,42 +35,13 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package eu.actorsproject.xlim.type;
-
-
-import eu.actorsproject.xlim.XlimType;
-import eu.actorsproject.xlim.io.XlimAttributeList;
+package eu.actorsproject.xlim.io;
 
 /**
- * Type kind, which is common to all integer types
+ * Location of an XlimElement within a XML/XLIM file
  */
-class IntegerTypeKind extends ParametricTypeKind {
-	IntegerTypeKind() {
-		super("int");
-	}
-	
-	@Override
-	protected Integer getParameter(XlimAttributeList attributes) {
-		return getIntegerAttribute("size",attributes);
-	}
-	
-	@Override
-	protected XlimType create(Object param) {
-		if (param instanceof Integer) {
-			Integer size=(Integer) param;
-			return new IntegerType(this, size);
-		}
-		else
-			throw new IllegalArgumentException("Type \"int\" requires Integer parameter");
-	}
-	
-	@Override
-	XlimType createLub(XlimType t1, XlimType t2) {
-		XlimType intT1=promote(t1);
-		XlimType intT2=promote(t2);
-		if (intT1.getSize()>=intT2.getSize())
-			return intT1;
-		else
-			return intT2;
-	}
+
+interface XlimLocation {
+	String getFileName();
+	int getLineNumber();
 }

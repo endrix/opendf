@@ -35,42 +35,57 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package eu.actorsproject.xlim.type;
+package eu.actorsproject.xlim.io;
 
+import java.util.HashMap;
 
-import eu.actorsproject.xlim.XlimType;
-import eu.actorsproject.xlim.io.XlimAttributeList;
+import eu.actorsproject.xlim.XlimOutputPort;
+import eu.actorsproject.xlim.XlimStateVar;
+import eu.actorsproject.xlim.XlimTaskModule;
+import eu.actorsproject.xlim.XlimTopLevelPort;
 
 /**
- * Type kind, which is common to all integer types
+ * ReaderContext with modifyable contents
  */
-class IntegerTypeKind extends ParametricTypeKind {
-	IntegerTypeKind() {
-		super("int");
+class MutableReaderContext extends ReaderContext {
+
+	private XlimTaskModule mCurrentTask;
+	
+	public void addTopLevelPort(XlimTopLevelPort port) {
+		if (mTopLevelPorts.put(port.getSourceName(),port)!=null)
+			throw new IllegalArgumentException("Multiple definitions of toplevel port "+port.getSourceName());
 	}
 	
-	@Override
-	protected Integer getParameter(XlimAttributeList attributes) {
-		return getIntegerAttribute("size",attributes);
+	public void addTask(XlimTaskModule task) {
+		String name=task.getName();
+		if (name!=null && mTasks.put(name,task)!=null) 
+			throw new IllegalArgumentException("Multiple definitions of task "+name);
 	}
 	
-	@Override
-	protected XlimType create(Object param) {
-		if (param instanceof Integer) {
-			Integer size=(Integer) param;
-			return new IntegerType(this, size);
-		}
+	public void addStateVar(String identifier, XlimStateVar stateVar) {
+		if (mStateVars.put(identifier,stateVar)!=null)
+			throw new IllegalArgumentException("Multiple definitions of source "+identifier);
+	}
+	
+	public void enterTask(XlimTaskModule task) {
+		mCurrentTask=task;
+		mOutputPorts=new HashMap<String,XlimOutputPort>();
+	}
+	
+	public void leaveTask() {
+		mCurrentTask=null;
+		mOutputPorts=null;
+	}
+	
+	public void addOutputPort(String identifier, XlimOutputPort port) {
+		if (mOutputPorts.put(identifier,port)!=null)
+			throw new IllegalArgumentException("Multiple definitions of source "+identifier);
+	}
+	
+	public void setPortRate(XlimTopLevelPort port, int rate) {
+		if (mCurrentTask.getPortRate(port)==0)
+			mCurrentTask.setPortRate(port, rate);
 		else
-			throw new IllegalArgumentException("Type \"int\" requires Integer parameter");
-	}
-	
-	@Override
-	XlimType createLub(XlimType t1, XlimType t2) {
-		XlimType intT1=promote(t1);
-		XlimType intT2=promote(t2);
-		if (intT1.getSize()>=intT2.getSize())
-			return intT1;
-		else
-			return intT2;
-	}
+			throw new IllegalArgumentException("Multiple definitions of port rate: "+port.getSourceName());
+	}	
 }

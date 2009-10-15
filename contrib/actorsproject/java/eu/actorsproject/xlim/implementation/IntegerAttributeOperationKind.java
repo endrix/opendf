@@ -40,11 +40,11 @@ package eu.actorsproject.xlim.implementation;
 import java.util.Collection;
 import java.util.List;
 
-import org.w3c.dom.NamedNodeMap;
 
 import eu.actorsproject.xlim.XlimOperation;
 import eu.actorsproject.xlim.XlimOutputPort;
 import eu.actorsproject.xlim.XlimSource;
+import eu.actorsproject.xlim.io.XlimAttributeList;
 import eu.actorsproject.xlim.io.ReaderContext;
 import eu.actorsproject.xlim.type.TypeRule;
 
@@ -79,7 +79,7 @@ public class IntegerAttributeOperationKind extends OperationKind {
 	
 	@Override
 	public void setAttributes(XlimOperation op,
-			                  NamedNodeMap attributes, 
+			                  XlimAttributeList attributes, 
 			                  ReaderContext context) {
 		Long value=getIntegerAttribute(mAttributeName,attributes);
 		if (value!=null)

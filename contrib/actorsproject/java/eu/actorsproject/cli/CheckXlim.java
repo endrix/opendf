@@ -38,27 +38,35 @@
 package eu.actorsproject.cli;
 
 import java.io.File;
-import java.io.PrintStream;
 
 import eu.actorsproject.xlim.XlimDesign;
 import eu.actorsproject.xlim.implementation.BasicXlimOperations;
 import eu.actorsproject.xlim.implementation.RealOperations;
 import eu.actorsproject.xlim.implementation.SoftwareExtensions;
 import eu.actorsproject.xlim.io.IXlimReader;
-import eu.actorsproject.xlim.io.XlimReader;
+import eu.actorsproject.xlim.io.XlimReaderWithDiagnostics;
 import eu.actorsproject.xlim.type.BasicXlimTypes;
 import eu.actorsproject.xlim.type.RealTypeFeature;
 import eu.actorsproject.xlim.util.Session;
-import eu.actorsproject.xlim.util.XlimTransformer;
-import eu.actorsproject.xlim.xlim2c.CCodeGenerator;
 
-public class Xlim2c extends Session {
-	
+/**
+ * Reads an XLIM file and produces diagnostic messages in the event
+ * of an error. If the file is OK, it exits silently with exit code 0,
+ * in the event of errors the exit code is non-zero (1 for errors,
+ * 2 for fatal errors).
+ * 
+ * Usage: CheckXlim input-files...
+ */
+public class CheckXlim extends Session {
+
 	protected IXlimReader mReader; 
-	protected XlimTransformer mTransformer;
-	protected CCodeGenerator mCodeGen; 
+	protected boolean mHasErrors;
+	protected File mInputFile;
+	protected XlimDesign mXlimDesign;
 	
-	public Xlim2c() {
+	private boolean mReadAll;
+	
+	public CheckXlim() {
 		register(new BasicXlimTypes());
 		register(new BasicXlimOperations());
 		register(new SoftwareExtensions());
@@ -70,12 +78,10 @@ public class Xlim2c extends Session {
 	protected void initSession(String args[]) {
 		// Constructions of fields after initialization of session
 		super.initSession(args);
-		mReader = new XlimReader();
-		mTransformer = new XlimTransformer();
-		mCodeGen = new CCodeGenerator();
+		mReader = new XlimReaderWithDiagnostics();
 	}
 	
-	public void compile(File input, PrintStream output) {
+	public XlimDesign read(File input) {
 		XlimDesign design=null;
 		
 		try {
@@ -87,33 +93,54 @@ public class Xlim2c extends Session {
 			reportError(message);
 			fatalError("Error reading "+input.getPath());
 		}
-		design.createCallGraph();
-		mTransformer.transform(design);
-		mCodeGen.generateCode(design, input, output);
+		if (design==null)
+			mHasErrors=true;
+		return design;
 	}
 	
-	private void compile(String args[]) {
-		if (args.length!=2) {
-			fatalError("Usage: Xlim2c input-file.xlim output-file.c");
-		}
-		
-		File input=new File(args[0]);
-		if (!input.canRead()) {
-			fatalError("Unable to open file for reading: "+args[0]);
-		}
 	
-		PrintStream output=null;
-		try {
-			output=new PrintStream(args[1]);
-		} catch (Exception ex) {
-			fatalError("Unable to open file for writing: "+args[1]+"\n"+ex.toString());
+	protected void printHelp() {
+		String myName=getClass().getSimpleName();
+		System.out.println("Usage: "+myName+" input-files...");
+		System.out.println("\nChecks one or several XLIM files and prints diagnostics\n");
+	}
+	
+	
+	protected void setInputFile(String fileName) {
+		mInputFile=null;
+		mInputFile=new File(fileName);
+		if (!mInputFile.canRead()) {
+			fatalError("Unable to open file for reading: "+fileName);
 		}
-		
-		compile(input,output);
+	}
+	
+	protected void parseCommandLine(String args[]) {
+		if (args.length==0) {
+			printHelp();
+			reportError("Missing input file");
+		}
+		else  {
+			mReadAll=true;
+		}
+	}
+
+	protected void runFromCommandLine(String[] args) {
+		initSession(args);
+		parseCommandLine(args);
+		if (mReadAll)
+			for (String fileName: args) {
+				setInputFile(fileName);
+				if (mInputFile!=null)
+					read(mInputFile);
+			}
+		else if (mInputFile!=null) {
+			mXlimDesign=read(mInputFile);
+		}
 	}
 	
 	protected void reportError(String message) {
 		System.err.println(message);
+		mHasErrors=true;
 	}
 	
 	protected void fatalError(String message) {
@@ -123,8 +150,9 @@ public class Xlim2c extends Session {
 	}
 	
 	public static void main(String[] args) {
-		Xlim2c compilerSession=new Xlim2c();
-		compilerSession.initSession(args);
-		compilerSession.compile(args);
+		CheckXlim compilerSession=new CheckXlim();
+		compilerSession.runFromCommandLine(args);
+		if (compilerSession.mHasErrors)
+			System.exit(1);
 	}
 }
