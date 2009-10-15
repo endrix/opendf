@@ -35,18 +35,18 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package eu.actorsproject.xlim.util;
+package eu.actorsproject.xlim.absint;
 
 import java.math.BigInteger;
+import java.util.Collections;
 
+import eu.actorsproject.util.XmlElement;
 
-import eu.actorsproject.xlim.XlimType;
-import eu.actorsproject.xlim.absint.AbstractValue;
 
 /**
  * Interval represents intervals of (long) integers.
  *
- * An Interval is at set of integers -the methods isEmpty(), contains(), overlap() and equals()
+ * An Interval is at set of integers -the methods isEmpty(), mayContain(), overlap() and equals()
  * take the view of an Interval being a set (equals() returns true if its argument equals "this Interval").
  * 
  * An Interval can also be used as the abstract set, in which the values computed by a program can be represented.
@@ -114,20 +114,8 @@ public class Interval implements Cloneable, AbstractValue<Interval> {
 		return this;
 	}
 	
-	@Override
-	public Interval getNullValue() {
+	public static Interval getBottomValue() {
 		return empty;
-	}
-
-	@Override
-	public Interval getUniverse(XlimType type) {
-		return new Interval(type.minValue(), type.maxValue());
-	}
-	
-	@Override
-	public Interval getAbstractValue(String constant) {
-		long k=Long.valueOf(constant);
-		return new Interval(k, k);
 	}
 	
 	@Override
@@ -135,6 +123,11 @@ public class Interval implements Cloneable, AbstractValue<Interval> {
 		return create(Math.min(mLo,i.mLo), Math.max(mHi,i.mHi));
 	}
 
+	@Override
+	public Interval intersect(Interval i) {
+		return create(Math.max(mLo,i.mLo), Math.min(mHi,i.mHi));
+	}
+	
 	public long getLo() {
 		return mLo;
 	}
@@ -155,7 +148,12 @@ public class Interval implements Cloneable, AbstractValue<Interval> {
 		return mHi<mLo;
 	}	
 	
-	public boolean contains(long l) {
+	public boolean isSingleton() {
+		return mHi==mLo;
+	}
+	
+	@Override
+	public boolean mayContain(long l) {
 		return mLo<=l && l<=mHi;  // emptyInterval -> false
 	}
 	
@@ -170,10 +168,6 @@ public class Interval implements Cloneable, AbstractValue<Interval> {
 		return isEmpty()==false && mLo<=i.mHi && i.mLo<=mHi; 
 	}	
 	
-	public Interval intersection(Interval i) {
-		return create(Math.min(mLo,i.mLo), Math.max(mHi,i.mHi));
-	}
-	
 	public Interval create(long lo, long hi) {
 		if (lo>hi)
 			return empty;
@@ -187,6 +181,7 @@ public class Interval implements Cloneable, AbstractValue<Interval> {
 	 * @param i
 	 * @return The Interval that is the image of this + i
 	 */
+	@Override
 	public Interval add(Interval i) {
 		if (isEmpty() || i.isEmpty())
 			return empty;
@@ -218,6 +213,7 @@ public class Interval implements Cloneable, AbstractValue<Interval> {
 	 * @return The Interval that is the image of this - i
 	 */
 	
+	@Override
 	public Interval subtract(Interval i) {
 		if (isEmpty() || i.isEmpty())
 			return empty;
@@ -243,6 +239,7 @@ public class Interval implements Cloneable, AbstractValue<Interval> {
 	 * @return The Interval that is the image of this * i
 	 */
 	
+	@Override
 	public Interval multiply(Interval i) {
 		long lo2=i.getLo();
 		long hi2=i.getHi();
@@ -297,6 +294,7 @@ public class Interval implements Cloneable, AbstractValue<Interval> {
 	 * @param i
 	 * @return The Interval that is the image of this/i
 	 */
+	@Override
 	public Interval divide(Interval i) {
 		// Assuming division by zero is undefined
 		long lo2=i.getLo();
@@ -306,7 +304,7 @@ public class Interval implements Cloneable, AbstractValue<Interval> {
 			// Here, we say that it is "undefined" (empty range)
 			return empty;
 		}
-		if (this.contains(Long.MIN_VALUE) && i.contains(-1)) {
+		if (this.mayContain(Long.MIN_VALUE) && i.mayContain(-1)) {
 			// Only case of overflow
 			return universe;
 		}
@@ -337,6 +335,7 @@ public class Interval implements Cloneable, AbstractValue<Interval> {
 	 *         [0,63]. In particular this means that shift by negative values is treated as shift by zero
 	 *         (identity). Other semantics can be modeled using e.g. shiftRight and mod32. 
 	 */
+	@Override
 	public Interval shiftLeft(Interval i) {
 		if (isEmpty() || i.isEmpty())
 			return Interval.empty;
@@ -375,6 +374,7 @@ public class Interval implements Cloneable, AbstractValue<Interval> {
 	 *         (identity). Other semantics can be modeled using e.g. shiftLeft and mod32. 
 	 */
 
+	@Override
 	public Interval shiftRight(Interval i) {
 		if (isEmpty() || i.isEmpty())
 			return empty;
@@ -406,6 +406,7 @@ public class Interval implements Cloneable, AbstractValue<Interval> {
 	/**
 	 * @return The Interval that is the image of -this
 	 */
+	@Override
 	public Interval negate() {
 		if (isEmpty())
 			return empty;
@@ -418,6 +419,7 @@ public class Interval implements Cloneable, AbstractValue<Interval> {
 	/**
 	 * @return The Interval that is the image of ~this (bitwise complement)
 	 */
+	@Override
 	public Interval not() {
 		if (isEmpty())
 			return empty;
@@ -429,6 +431,7 @@ public class Interval implements Cloneable, AbstractValue<Interval> {
 	 * @param i
 	 * @return The Interval that is the image of this | i (bitwise or)
 	 */
+	@Override
 	public Interval or(Interval i) {
 		// Here, we do the following trick: the bounds of the resulting interval can be determined
 		// as the lower (upper) bound of one of the input intervals plus a value that has been
@@ -553,6 +556,7 @@ public class Interval implements Cloneable, AbstractValue<Interval> {
 	 * @param i
 	 * @return The Interval that is the image of this & i (bitwise and)
 	 */
+	@Override
 	public Interval and(Interval i) {
 		if (isEmpty() || i.isEmpty())
 			return empty;
@@ -570,6 +574,7 @@ public class Interval implements Cloneable, AbstractValue<Interval> {
 	 * @param i
 	 * @return The Interval that is the image of this ^ i (bitwise xor)
 	 */
+	@Override
 	public Interval xor(Interval i) {
 		if (isEmpty() || i.isEmpty())
 			return empty;
@@ -603,6 +608,7 @@ public class Interval implements Cloneable, AbstractValue<Interval> {
 	 * @return true if interval changed
 	 */
 
+	@Override
 	public Interval signExtend(int fromBit) {
 		if (isEmpty() || fromBit>=63)
 			return this;
@@ -638,6 +644,7 @@ public class Interval implements Cloneable, AbstractValue<Interval> {
 	 */
 	
 	
+	@Override
 	public Interval zeroExtend(int fromWidth) {
 		if (isEmpty() || fromWidth>=64)
 			return this;
@@ -659,10 +666,12 @@ public class Interval implements Cloneable, AbstractValue<Interval> {
 	 * @return The Interval that is the image of !this (same as this == {0})
 	 * 	       Returns a "boolean" interval: [0,1], [0,0] or [1,1]
 	 */
+	@Override
 	public Interval logicalComplement() {
 		return equalsOperator(zero);
 	}
 	
+	@Override
 	public Interval equalsOperator(Interval i) {
 		if (isEmpty() || i.isEmpty())
 			return empty;
@@ -678,6 +687,7 @@ public class Interval implements Cloneable, AbstractValue<Interval> {
 			return zero; // false
 	}
 	
+	@Override
 	public Interval lessThanOperator(Interval i) {
 		if (isEmpty() || i.isEmpty())
 			return empty;
@@ -691,5 +701,27 @@ public class Interval implements Cloneable, AbstractValue<Interval> {
 		}
 		else
 			return zero; // false
+	}
+
+	/*
+	 * implementation of XmlElemet
+	 */
+	
+	@Override
+	public String getTagName() {
+		return "interval";
+	}
+	
+	@Override
+	public String getAttributeDefinitions() {
+		if (isEmpty())
+			return "";
+		else
+			return "lo=\"" + mLo + "\" hi=\"" + mHi + "\"";
+	}
+
+	@Override
+	public Iterable<? extends XmlElement> getChildren() {
+		return Collections.emptyList();
 	}
 }

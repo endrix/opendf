@@ -37,522 +37,204 @@
 
 package eu.actorsproject.xlim.absint;
 
+import java.util.List;
+
+import eu.actorsproject.util.XmlPrinter;
 import eu.actorsproject.xlim.XlimInitValue;
-import eu.actorsproject.xlim.XlimInputPort;
 import eu.actorsproject.xlim.XlimOperation;
+import eu.actorsproject.xlim.XlimOutputPort;
+import eu.actorsproject.xlim.XlimPhiNode;
 import eu.actorsproject.xlim.XlimStateCarrier;
 import eu.actorsproject.xlim.XlimStateVar;
+import eu.actorsproject.xlim.XlimTopLevelPort;
 import eu.actorsproject.xlim.XlimType;
 import eu.actorsproject.xlim.dependence.PhiOperator;
+import eu.actorsproject.xlim.dependence.StatePhiOperator;
 import eu.actorsproject.xlim.dependence.ValueNode;
-import eu.actorsproject.xlim.dependence.ValueOperator;
 
-public class GenericDomain<T extends AbstractValue<T>> 
-             extends OperationEvaluator<T>
-             implements AbstractDomain<T> {
+/**
+ * Intended as a base class of abstract domains: factors out reasonable
+ * default behavior:
+ *   1) XlimOperators are evaluated using an evaluator plug-in
+ *   2) PhiOperators are evaluated using the join() method of AbstractValue<T>
+ *   3) Initial state of state variables is created by traversing the initializers,
+ *      using the abstract method getAbstractValue() and, for aggregates, the join() method of
+ *      AbstractValue<T> to summarize all element values in a single abstract value.
+ *   4) Initial state of actor ports is null (not subject to abstract interpretation)
+ *   
+ * Abstract methods getUniverse and getAbstractValue need to be implemented.
+ */
+public abstract class GenericDomain<T extends AbstractValue<T>> implements AbstractDomain<T> {
 
-	private T mNullValue;
-	private WideningOperator<T> mWideningOperator;
-
-	/**
-	 * @param nullValue the abstract value that represents "no information"
-	 *        (used for initialization and to get a first value, from which new ones can be created) 
-	 *        The nullValue must have the property: union(x,nullValue) == x, for all abstract values x.
-	 */
-	public GenericDomain(T nullValue) {
-		super(null /* no default handler */);
-		mNullValue=nullValue;
-		registerDefaultHandlers();
-	}
-
-	/**
-	 * @param nullValue the abstract value that represents "no information"
-	 *        (used for initialization and to get a first value, from which new ones can be created) 
-	 *        The nullValue must have the property: union(x,nullValue) == x, for all abstract values x.
-	 * @param defaultHandler, the handler to use if no other handler matches an operation 
-	 *        (an exception is otherwise thrown if/when this happens)
-	 */
-	public GenericDomain(T nullValue, Handler defaultHandler) {
-		super(defaultHandler);
-		mNullValue=nullValue;
-		registerDefaultHandlers();
-	}
+	private Evaluator mEvaluatorPlugIn;
+	private boolean mTrace=false;
+	private static XmlPrinter sTracePrinter=new XmlPrinter(System.out);
 	
-	protected void registerDefaultHandlers() {
-		Handler pinRead=new PinReadHandler();
-		register("pinRead", pinRead);
-		register("pinPeek", pinRead);
-		register("pinWrite", new PinWriteHandler());
-		register("pinStatus", new PinStatusHandler());
-		register("assign", new AssignHandler());
-		register("var_ref", new VarRefHandler());
-		register("$literal_Integer", new LiteralIntegerHandler());
-		register("$add", new AddHandler());
-		Handler andHandler=new AndHandler();
-		register("$and", andHandler);
-		register("bitand", andHandler);
-		register("$div", new DivHandler());
-		register("$mul", new MulHandler());
-		Handler orHandler=new OrHandler();
-		register("$or", orHandler);
-		register("bitor", orHandler);
-		register("$sub", new SubHandler());
-		register("bitxor", new XorHandler());
-		register("lshift", new LShiftHandler());
-		register("rshift", new RShiftHandler());
-		register("$eq", new EqHandler());
-		register("$ge", new GeHandler());
-		register("$gt", new GtHandler());
-		register("$le", new LeHandler());
-		register("$lt", new LtHandler());
-		register("$ne", new NeHandler());
-		register("$negate", new NegHandler());
-		Handler notHandler=new NotHandler();
-		register("$not", notHandler);
-		register("bitnot", notHandler);
-		register("urshift", new URShiftHandler());
-		Handler copyAndCast=new CopyAndCastHandler();
-		register("noop", copyAndCast);
-		register("cast", copyAndCast);
-		register("$selector", new SelectorHandler());
-		register("pinAvail", new PinAvailHandler());
+	public GenericDomain(Evaluator evaluator) {
+		mEvaluatorPlugIn=evaluator;
 	}
-
-	/**
-	 * Sets the widening operator, which is applied to abstract values
-	 * that are the result of evaulation of phi-operators of loops.
-	 * @param w Widening operator (null signifies no widening)
-	 */
-	public void setWideningOperator(WideningOperator<T> w) {
-		mWideningOperator=w;
-	}
-	
-	/*
-	 * Implementation of AbstractDomain<T>
-	 */
 	
 	@Override
-	public T getNullValue() {
-		return mNullValue;
-	}
-
-
+	public abstract T getUniverse(XlimType type);
+	
 	@Override
-	public T join(T in1, T in2) {
-		return in1.union(in2);
+	public abstract T getAbstractValue(String constant, XlimType type);
+	
+	@Override
+	public T restrict(T aValue, XlimType type) {
+		// TODO: find a nice way of plugging in new types
+		if (aValue==null)
+			return getUniverse(type);
+		else if (type.isInteger())
+			return aValue.signExtend(type.getSize()-1).getAbstractValue();
+		else
+			return aValue;
 	}
 	
+	@Override
+	public boolean evaluate(XlimOperation op, Context<T> context) {
+		boolean changed=mEvaluatorPlugIn.evaluate(op,context,this);
+		
+		if (mTrace) {
+			sTracePrinter.printElement(op);
+			for (XlimOutputPort output: op.getOutputPorts()) {
+				String id=output.getUniqueId();
+				T aValue=context.get(output.getValue());
+				
+				sTracePrinter.println("<!-- Abstract value of "+ id +" -->");
+				printValue(aValue);
+			}
+		}
+		
+		return changed;
+	}
+	
+	private void printValue(T aValue) {
+		if (aValue!=null)
+			sTracePrinter.printElement(aValue);
+		else
+			sTracePrinter.println("<top/>  <!-- null -->");
+	}
+	
+	@Override
+	public boolean evaluate(StatePhiOperator phi, Context<T> context) {
+		T aValue=evaluatePhi(phi,context);
+		
+		if (mTrace) {
+			sTracePrinter.printElement(phi);
+			sTracePrinter.println("<!-- Abstract value of "+phi.getOutput().getUniqueId()+" -->");
+			printValue(aValue);
+		}
+		
+		return context.put(phi.getOutput(), aValue);
+	}
+
+	@Override
+	public boolean evaluate(XlimPhiNode phi, Context<T> context) {
+		PhiOperator phiOperator=phi.getValueOperator();
+		T aValue=evaluatePhi(phiOperator,context);
+		
+		// restrict the result to the output type
+		if (aValue!=null) {
+			XlimType type=phi.getOutputPort(0).getType();
+			aValue=restrict(aValue,type);
+		}
+		
+		if (mTrace) {
+			sTracePrinter.printElement(phi);
+			sTracePrinter.println("<!-- Abstract value of "+phi.getOutputPort(0).getUniqueId()+" -->");
+			printValue(aValue);
+		}
+		
+		return context.put(phiOperator.getOutput(), aValue);
+	}
+
+	protected T evaluatePhi(PhiOperator phi, Context<T> context) {
+		ValueNode node1=phi.getInputValue(0);
+		T aValue1=context.get(node1);
+		ValueNode node2=phi.getInputValue(1);
+		T aValue2=context.get(node2);
+		ValueNode conditionNode=phi.getControlDependence();
+		T condition=context.get(conditionNode);
+		T result;
+
+		// Predecessors should have been evaluated
+		if (aValue1==null)
+			assert(context.hasValue(node1));
+		
+		if (aValue2==null && context.hasValue(node2)==false
+			|| condition==null && context.hasValue(conditionNode)==false) {
+			// Values that propagate back from a loop body
+			// haven't necessarily been evaluated yet
+			assert(phi.inLoop());
+			result=aValue1;
+		}
+		else if (condition==null || condition.mayContain(1)) {
+			if (condition==null || condition.mayContain(0)) {
+				// either true or false
+				if (aValue1!=null && aValue2!=null)
+					result=aValue1.union(aValue2).getAbstractValue();
+				else
+					result=null; // join(x,null)=null "top element"
+			}
+			else {
+				// condition true only
+				result=aValue1;
+			}
+		}
+		else {
+			// Condition false only
+			result=aValue2;
+		}
+		
+		return result;
+	}
+
 	@Override
 	public T initialState(XlimStateCarrier carrier) {
 		XlimStateVar stateVar=carrier.isStateVar();
-		if (stateVar!=null) {
-			return initialValue(stateVar.getInitValue());
-		}
+		if (stateVar!=null)
+			return initialState(stateVar);
 		else {
-			// All possible values of the port type
-			return getUniverse(carrier.isPort().getType());
+			XlimTopLevelPort port=carrier.isPort();
+			assert(port!=null);
+			return initialState(port);
 		}
 	}
 	
-	private T initialValue(XlimInitValue initValue) {
-		if (initValue.getScalarType()!=null)
-			return getAbstractValue(initValue.getScalarValue());
-		else {
-			T result=getNullValue();
-			for (XlimInitValue element: initValue.getChildren()) {
-				result=result.union(initialValue(element));
-			}
-			return result;
-		}
-	}
-	
-	@Override
-	public T evaluate(PhiOperator phi, Context<T> context) {
-		T condition=context.demand(phi.getControlDependence());
-		if (phi.inLoop()) {
-			T result;
-			if (mayBeTrue(condition)==false) {
-				// Use only the initial definition
-				result=context.demand(phi.getInputValue(0));
-			}
-			else {
-				// use both paths
-				result=join(context.demand(phi.getInputValue(0)), 
-						    context.demand(phi.getInputValue(1)));
-			}
-			return widen(result, phi);
-		}
-		else if (mayBeTrue(condition)==false) {
-			// Use only "else" path
-			return context.demand(phi.getInputValue(1));
-		}
-		else if (mayBeFalse(condition)==false) {
-			// Use only "then" path
-			return context.demand(phi.getInputValue(0));
-		}
-		else {
-			return join(context.demand(phi.getInputValue(0)), 
-				        context.demand(phi.getInputValue(1)));
-		}
-	}
-	
-	private T widen(T abstractValue, PhiOperator phi) {
-		if (mWideningOperator!=null) {
-			System.out.println("GenericDomain: widening "+phi+" w("+abstractValue+") = "+
-					           mWideningOperator.widen(abstractValue, phi));
-			return mWideningOperator.widen(abstractValue, phi);
-		}
-		else
-			return abstractValue;
-	}
-	
-	/*
-	 * Some handy support methods
+	/**
+	 * @param stateVar  a state variable
+	 * @return the initial abstract value of 'stateVar'
 	 */
-		
-	protected T getAbstractValue(String constant) {
-		return mNullValue.getAbstractValue(constant);
+	protected T initialState(XlimStateVar stateVar) {
+		return getAbstractValue(stateVar.getInitValue());
 	}
 	
-	protected T getUniverse(XlimType type) {
-		return mNullValue.getUniverse(type);
-	}
-	
-	protected boolean mayBeTrue(T condition) {
-		return condition.contains(1);
-	}
-	
-	protected boolean mayBeFalse(T condition) {
-		return condition.contains(0);
-	}
-		
-	protected T restrict(T value, XlimType type) {
-		// TODO: find a nice way of plugging in new types
-		if (type.isInteger()) {
-			return value.signExtend(type.getSize()-1);
-		}
-		else if (type.isBoolean()) {
-			return value.zeroExtend(1);
-		}
-		else
-			throw new IllegalArgumentException("cannot restrict values of type "+type.getTypeName());
-	}
-	
-	protected T getInput(XlimInputPort input, Context<T> context) {
-		return context.demand(input.getValue());
-	}
-	
-	protected T getInput(XlimStateCarrier carrier, XlimOperation xlimOp, Context<T> context) {
-		ValueOperator valueOp=xlimOp.getValueOperator();
-		for (ValueNode value: valueOp.getInputValues()) {
-			if (value.getStateCarrier()==carrier)
-				return context.demand(value);
-		}
-		throw new IllegalArgumentException("No such state access");
-	}
-	
-	/*
-	 * Here comes all the default handlers
-	 */
-	
-	protected class LiteralIntegerHandler extends Handler {
-
-		@Override
-		public T evaluate(ValueNode output, 
-				          XlimOperation op,
-				          Context<T> context) {
-			return getAbstractValue(op.getValueAttribute());
-		}		
-	}
-	
-	
-	protected abstract class GenericHandler extends Handler {
-		@Override
-		public T evaluate(ValueNode output, 
-				          XlimOperation op,
-				          Context<T> context) {
-			T result=getInput(op.getInputPort(0), context);
-			for (int i=1; i<op.getNumInputPorts(); ++i) {
-				result = operator(result, getInput(op.getInputPort(i), context));
-			}
-			return restrict(result, op.getOutputPort(0).getType());
-		}
-		
-		protected abstract T operator(T x, T y);
-	}
-	
-	protected class AddHandler extends GenericHandler {
-		@Override
-		protected T operator(T x, T y)	{
-			return x.add(y);
-		}
-	}
-	
-	protected class SubHandler extends GenericHandler {
-		@Override
-		protected T operator(T x, T y)	{
-			return x.subtract(y);
-		}	
-	}
-	
-	protected class MulHandler extends GenericHandler {
-		@Override
-		protected T operator(T x, T y)	{
-			return x.multiply(y);
-		}	
-	}
-	
-	protected class DivHandler extends GenericHandler {
-		@Override
-		protected T operator(T x, T y)	{
-			return x.divide(y);
-		}	
-	}
-	
-	protected class AndHandler extends GenericHandler {
-		@Override
-		protected T operator(T x, T y)	{
-			return x.and(y);
-		}	
-	}
-	
-	protected class OrHandler extends GenericHandler {
-		@Override
-		protected T operator(T x, T y)	{
-			return x.or(y);
-		}	
-	}
-	
-	protected class XorHandler extends GenericHandler {
-		@Override
-		protected T operator(T x, T y)	{
-			return x.xor(y);
-		}	
-	}
-	
-	protected abstract class ShiftHandler extends GenericHandler {
-		@Override
-		public T evaluate(ValueNode output, 
-				          XlimOperation op,
-				          Context<T> context) {
-			// shift count modulo 32
-			T shiftCount=getInput(op.getInputPort(1), context).zeroExtend(5);
-			T x=getInput(op.getInputPort(0), context);
-			T result=operator(x,shiftCount);
-			return restrict(result, op.getOutputPort(0).getType());
-		}
-	}
-	
-	protected class LShiftHandler extends ShiftHandler {
-		@Override
-		protected T operator(T x, T y)	{
-			return x.shiftLeft(y);
-		}
-	}
-	
-	protected class RShiftHandler extends ShiftHandler {
-		@Override
-		protected T operator(T x, T y)	{
-			return x.shiftRight(y);
-		}
-	}
-	
-	protected class URShiftHandler extends ShiftHandler {
-		@Override
-		protected T operator(T x, T y)	{
-			return x.zeroExtend(32).shiftLeft(y);
-		}
-	}
-	
-	protected abstract class UnaryHandler extends Handler {
-		@Override
-		public T evaluate(ValueNode output, 
-				          XlimOperation op,
-				          Context<T> context) {
-			T result = operator(getInput(op.getInputPort(0), context));
-			return restrict(result, op.getOutputPort(0).getType());
-		}
-		
-		protected abstract T operator(T x);
-	}
-	
-	protected class NegHandler extends UnaryHandler {
-		@Override
-		protected T operator(T x) {
-			return x.negate();
-		}
-	}
-	
-	protected class NotHandler extends UnaryHandler {
-		@Override
-		protected T operator(T x) {
-			return x.not();
-		}
-	}
-	
-	protected class CopyAndCastHandler extends UnaryHandler {
-		@Override
-		protected T operator(T x) {
-			return x;
-		}
-	}
-	
-	protected class SignExtendHandler extends Handler {
-		@Override
-		public T evaluate(ValueNode output, 
-		          XlimOperation op,
-		          Context<T> context) {
-			int fromBit=(int)((long) op.getIntegerValueAttribute())-1;
-			T x=getInput(op.getInputPort(0), context);
-			return x.signExtend(fromBit);
-		}
-	}
-	
-	protected class EqHandler extends GenericHandler {
-		@Override
-		protected T operator(T x, T y)	{
-			return x.equalsOperator(y);
-		}	
-	}
-	
-	protected class NeHandler extends GenericHandler {
-		@Override
-		protected T operator(T x, T y)	{
-			return x.equalsOperator(y).not();
-		}	
-	}
-
-	protected class LtHandler extends GenericHandler {
-		@Override
-		protected T operator(T x, T y)	{
-			return x.lessThanOperator(y);
-		}	
-	}
-
-	protected class GtHandler extends GenericHandler {
-		@Override
-		protected T operator(T x, T y)	{
-			return y.lessThanOperator(x);
-		}	
-	}
-	
-	protected class GeHandler extends GenericHandler {
-		@Override
-		protected T operator(T x, T y)	{
-			return x.lessThanOperator(y).not();
-		}	
-	}
-	
-	protected class LeHandler extends GenericHandler {
-		@Override
-		protected T operator(T x, T y)	{
-			return y.lessThanOperator(x).not();
-		}	
-	}
-	
-	protected class SelectorHandler extends Handler {
-		@Override
-		public T evaluate(ValueNode output, 
-				          XlimOperation op,
-				          Context<T> context) {
-			T condition=getInput(op.getInputPort(0), context);
-			T result;
-			// TODO: We should handle phis in the same way (If) and 
-			// similarly for Loops (input 0 always, 1 if mayBeTrue)
-			if (mayBeTrue(condition))
-				result=getInput(op.getInputPort(1), context);
-			else
-				result=getNullValue();
-			if (mayBeFalse(condition))
-				result=join(result, getInput(op.getInputPort(1), context));
-			return restrict(result, op.getOutputPort(0).getType());
-		}
-	}
-	
-	protected class AssignHandler extends Handler {
+	protected T getAbstractValue(XlimInitValue initValue) {
+		XlimType scalarType=initValue.getScalarType();
+		if (scalarType!=null)
+			return getAbstractValue(initValue.getScalarValue(), scalarType);
+		else {
+			List<? extends XlimInitValue> children=initValue.getChildren();
+			AbstractValue<T> result=getAbstractValue(children.get(0));
 			
-		@Override
-		public T evaluate(ValueNode output,
-				          XlimOperation op,
-				          Context<T> context) {
-			if (op.getNumInputPorts()==1) {
-				// Unary variant of operator is assignment of scalar variable
-				// Value of variable becomes value of right-hand-side
-				return getInput(op.getInputPort(0), context);
+			if (initValue.isZero()==false) {
+				for (int i=1; i<children.size() && result!=null; ++i)
+					result=result.union(getAbstractValue(children.get(i)));
 			}
-			else {
-				// Binary variant is assignment of aggregate: v[op0]=op1
-				// Value of aggregate is join(oldValue,newValue)
-				// that is: the value represents any/all elements of the aggregate
-				T oldValue=getInput(op.getStateVarAttribute(),op,context);
-				T newValue=getInput(op.getInputPort(1), context);
-				return join(oldValue, newValue);
-			}
-				
+			// else: all elements the same as first one
+			return result.getAbstractValue();
 		}
 	}
-	
-	protected class VarRefHandler extends Handler {
-		@Override
-		public T evaluate(ValueNode output,
-                          XlimOperation op,
-                          Context<T> context) {
-			// Implements indexed access of aggregate: v[op0]
-			// Current value of aggregate represents any/all elements
-			return getInput(op.getStateVarAttribute(),op,context);
-		}		
-	}
-	
-	protected class PinReadHandler extends Handler {
-		@Override
-		public T evaluate(ValueNode output,
-				          XlimOperation op,
-				          Context<T> context) {
-			if (output==op.getOutputPort(0)) {
-				// Here, we assume that the value of an input port represents
-				// all values that can be read from the port
-				return getInput(op.getPortAttribute(),op,context); 
-			}
-			else {
-				// We recycle the same value to represent the updated
-				// port value (i.e. rest of the stream readable from the port)
-				return getInput(op.getPortAttribute(),op,context);
-			}
-		}
-	}
-	
-	protected class PinWriteHandler extends Handler {
-		@Override
-		public T evaluate(ValueNode output,
-				          XlimOperation op,
-				          Context<T> context) {
-			// Here, we assume that the value of an output port represents
-			// all values that can be written to the port
-			T oldValue=getInput(op.getPortAttribute(),op,context);
-			T newValue=getInput(op.getInputPort(0), context);
-			return join(oldValue, newValue);
-		}
-	}
-	
-	protected class PinStatusHandler extends Handler {
-		@Override
-		public T evaluate(ValueNode output,
-                          XlimOperation op,
-                          Context<T> context) {
-			// Returns a value representing "false" or "true"
-			return getUniverse(op.getOutputPort(0).getType());
-		}
-	}
-	
-	protected class PinAvailHandler extends Handler {
-		@Override
-		public T evaluate(ValueNode output,
-                          XlimOperation op,
-                          Context<T> context) {
-			// Returns a value representing 0..MAX_INT
-			XlimType type=op.getOutputPort(0).getType();
-			T maxValue=getAbstractValue(Long.toString(type.maxValue()));
-			return getUniverse(type).and(maxValue);
-		}
+
+	/**
+	 * @param port  an actor port
+	 * @return the initial abstract value of 'port'
+	 * 
+	 * This implementation returns null to indicate that no attempt is
+	 * made to interpret the port values.
+	 */
+	protected T initialState(XlimTopLevelPort port) {
+		return null;
 	}
 }

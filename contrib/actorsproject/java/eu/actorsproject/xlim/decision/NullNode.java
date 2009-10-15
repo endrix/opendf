@@ -37,10 +37,18 @@
 
 package eu.actorsproject.xlim.decision;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import eu.actorsproject.util.XmlElement;
 import eu.actorsproject.xlim.XlimContainerModule;
-import eu.actorsproject.xlim.XlimIfModule;
 import eu.actorsproject.xlim.XlimOperation;
+import eu.actorsproject.xlim.XlimTopLevelPort;
+import eu.actorsproject.xlim.absint.AbstractValue;
+import eu.actorsproject.xlim.absint.Context;
+import eu.actorsproject.xlim.absint.DemandContext;
 
 /**
  * A NullNode represents an empty leaf in the decision tree.
@@ -49,11 +57,30 @@ import eu.actorsproject.xlim.XlimOperation;
 public class NullNode extends DecisionTree {
 
 	private XlimContainerModule mProgramPoint;
-	private YieldAttribute mYieldAttribute;
+
+	private static Map<XlimTopLevelPort,Integer> sEmptyPortMap
+		= Collections.emptyMap();
+	private static PortSignature sEmptyPortSignature
+		= new PortSignature(sEmptyPortMap);
 	
 	public NullNode(XlimContainerModule programPoint) {
 		mProgramPoint=programPoint;
-		mYieldAttribute=new YieldAttribute();
+	}
+
+	@Override
+	public NullNode isNullNode() {
+		return this;
+	}
+	
+	@Override
+	public PortSignature requiredPortSignature() {
+		return sEmptyPortSignature;
+	}
+
+	
+	@Override
+	public PortSignature getMode() {
+		return null;
 	}
 
 	@Override
@@ -61,54 +88,91 @@ public class NullNode extends DecisionTree {
 		return mProgramPoint;
 	}
 	
+	
 	@Override
-	protected PortMap 
-	hoistAvailabilityTests(PortMap dominatingTests) {
-		return null; // null indicates that no ActionNode is found in this subtree
+	protected DecisionTree hoistAvailabilityTests(PortSignature parentSignature, 
+			                                      Map<XlimTopLevelPort, XlimOperation> pinAvailMap) {
+		// No tests to hoist at the leaves
+		return this;
+	}
+
+	
+	@Override
+	protected DecisionTree removeRedundantTests(Map<XlimTopLevelPort, Integer> successfulTests) {
+		// No tests to remove at the leaves
+		return this;
 	}
 
 	@Override
-	protected XlimIfModule sinkIntoIfModule() {
-		// Insert the IfModule at current program point
-		mProgramPoint.startPatchAtEnd();
-		XlimIfModule result=mProgramPoint.addIfModule();
-		mProgramPoint.completePatchAndFixup();
-		
-		// update program point
-		mProgramPoint=result.getThenModule();
-		return result;
+	protected void findPinAvail(Map<XlimTopLevelPort, XlimOperation> pinAvailMap) {
+		// No pinAvails here...	
 	}
+
 	
-	/**
-     * Decorates the NullNodes of a decision tree with the set of ports that may
-     * have been tested for availability tokens (input ports) or space (output ports)
-     * and the outcome of that test was failure.
-     * @param assertedTests tests that succeeded on *all* paths from the root
-	 * @param failedTests   tests that may have failed on *some* path from the
-     *                      root of the decision tree to this node.
-     */
 	@Override
-	protected DecisionTree topDownPass(PortMap assertedTests, PortMap failedTests) {
-		for (AvailabilityTest test: failedTests) {
-			AvailabilityTest asserted=assertedTests.get(test.getPort());
-			if (asserted==null || asserted.getTokenCount()<test.getTokenCount())
-				mYieldAttribute.add(new BlockingCondition(test));
-		}
+	protected void generateBlockingWaits(Map<XlimTopLevelPort, Integer> failedTests) {
+		// Copy the map to avoid possible future modification
+		Map<XlimTopLevelPort,Integer> copy=new HashMap<XlimTopLevelPort,Integer>(failedTests);
+		PortSignature yieldAttribute=new PortSignature(copy);
 		
-		return this;
-	}
-    	
- 	/**
-     * Alters the underlying XLIM-representation so that it uses blocking wait
-     */
- 	@Override
-    public void generateBlockingWait() {
- 		mProgramPoint.startPatchAtEnd();
+		mProgramPoint.startPatchAtEnd();
  		XlimOperation yield=mProgramPoint.addOperation("yield");
- 		yield.setGenericAttribute(mYieldAttribute);
+ 		yield.setGenericAttribute(yieldAttribute);
  		mProgramPoint.completePatchAndFixup();
- 	}
+	}
+
+	@Override
+	public <T extends AbstractValue<T>> DecisionTree foldDecisions(Context<T> context) {
+		return this; // found a leaf node
+	}
+
 	
+	@Override
+	public <T extends AbstractValue<T>> void propagateState(DemandContext<T> context, StateEnumeration<T> stateEnumeration) {
+		// Do nothing: no state has been modified on the path from the root of the decision tree
+	}
+
+	@Override
+	protected <T extends AbstractValue<T>> 
+	boolean createPhase(DemandContext<T> context, 
+			                 StateEnumeration<T> stateEnum, 
+			                 boolean blockOnNullNode, 
+			                 List<DecisionTree> leaves) {
+		if (blockOnNullNode==false)
+			leaves.add(this); // means termination
+		return false;  // *not* non-deterministic
+	}
+	
+	@Override
+	protected <T extends AbstractValue<T>> Characteristic 
+	printModes(StateEnumeration<T> stateEnum, PortSignature inMode) {
+		// Do nothing
+		return Characteristic.EMPTY;  // no "next" modes
+	}
+	
+	
+	@Override
+	public <T extends AbstractValue<T>> Characteristic 
+	printTransitions(DemandContext<T> context, 
+			         StateEnumeration<T> stateEnum, 
+			         PortSignature inMode, 
+			         boolean blockOnNullNode) {
+		if (blockOnNullNode) {
+			// Here NullNode means blocking -not termination
+			return Characteristic.EMPTY;
+		}
+		else {
+			// Here NullNode means termination (actor is dead)
+			System.out.println("    --> terminal mode (NullNode)");
+			return Characteristic.STATIC;
+		}
+	}
+	
+	@Override
+	public void findActionNodes(List<ActionNode> actionNodes) {
+		// No ActionNodes here: do nothing		
+	}
+
 	/* XmlElement interface */
 
 	@Override
@@ -118,6 +182,6 @@ public class NullNode extends DecisionTree {
 
 	@Override
 	public Iterable<? extends XmlElement> getChildren() {
-		return mYieldAttribute;
+		return Collections.emptyList();
 	}
 }

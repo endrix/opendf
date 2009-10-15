@@ -45,8 +45,6 @@ import eu.actorsproject.xlim.XlimType;
 
 import eu.actorsproject.xlim.codegenerator.ExpressionTreeGenerator;
 import eu.actorsproject.xlim.codegenerator.OperationGenerator;
-import eu.actorsproject.xlim.decision.BlockingCondition;
-import eu.actorsproject.xlim.decision.YieldAttribute;
 import eu.actorsproject.xlim.type.TypeFactory;
 import eu.actorsproject.xlim.util.LiteralPattern;
 import eu.actorsproject.xlim.util.OperationHandler;
@@ -723,19 +721,8 @@ class YieldGenerator extends BasicGenerator {
 
 	@Override
 	public void generateStatement(XlimOperation op, ExpressionTreeGenerator gen) {
-		YieldAttribute attribute=(YieldAttribute) op.getGenericAttribute();
-		String exitCode=gen.getGenericAttribute(attribute);
-		// For the time being, support both old-style (pinWait) and new style (exit code) 
-		// of communicatig the blocking condition.
-		for (BlockingCondition bc: attribute) {
-			XlimTopLevelPort port=bc.getPort();
-			String pinWait=(port.getDirection()==XlimTopLevelPort.Direction.in)?
-					"pinWaitIn(" : "pinWaitOut(";
-			gen.print(pinWait);
-			gen.print(port);
-			gen.print(", "+bc.getTokenCount()+");");
-			gen.println();
-		}
+		String exitCode=gen.getGenericAttribute(op.getGenericAttribute());
+		assert(exitCode!=null);
 		gen.print("return "+exitCode);
 	}
 }

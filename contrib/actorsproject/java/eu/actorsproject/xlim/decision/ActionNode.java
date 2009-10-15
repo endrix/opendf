@@ -37,11 +37,25 @@
 
 package eu.actorsproject.xlim.decision;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import eu.actorsproject.util.XmlElement;
 import eu.actorsproject.xlim.XlimBlockElement;
 import eu.actorsproject.xlim.XlimContainerModule;
-import eu.actorsproject.xlim.XlimIfModule;
 import eu.actorsproject.xlim.XlimModule;
+import eu.actorsproject.xlim.XlimOperation;
+import eu.actorsproject.xlim.XlimStateCarrier;
+import eu.actorsproject.xlim.XlimTaskModule;
+import eu.actorsproject.xlim.XlimTopLevelPort;
+import eu.actorsproject.xlim.absint.AbstractValue;
+import eu.actorsproject.xlim.absint.Context;
+import eu.actorsproject.xlim.absint.DemandContext;
+import eu.actorsproject.xlim.dependence.CallNode;
+import eu.actorsproject.xlim.dependence.DataDependenceGraph;
+import eu.actorsproject.xlim.dependence.ValueNode;
+import eu.actorsproject.xlim.dependence.ValueOperator;
 
 /**
  * An ActionNode is a leaf of the decision tree, which is
@@ -50,59 +64,229 @@ import eu.actorsproject.xlim.XlimModule;
  */
 public class ActionNode extends DecisionTree {
 
-	protected XlimContainerModule mAction;
+	private XlimContainerModule mAction;
+	private Map<XlimStateCarrier,ValueNode> mOutputMapping;
+	private PortSignature mPortSignature;
+	private String mDescription;
 	
 	public ActionNode(XlimContainerModule action) {
 		assert(action!=null);
-		mAction=action;
+		parseActionCode(action);
 	}
 	
+	@Override
+	public PortSignature requiredPortSignature() {
+		return mPortSignature;
+	}
+	
+	@Override
+	public PortSignature getMode() {
+		return mPortSignature;
+	}
+
 	@Override
 	protected XlimModule getModule() {
 		return mAction;
 	}
 	
 	@Override
-	protected DecisionTree topDownPass(PortMap assertedTests, PortMap failedTests) {
-		// ActionNode: Do nothing
+	public void findActionNodes(List<ActionNode> actionNodes) {
+		actionNodes.add(this);
+	}
+
+	
+	@Override
+	protected DecisionTree hoistAvailabilityTests(PortSignature parentSignature, 
+			                                      Map<XlimTopLevelPort, XlimOperation> pinAvailMap) {
+		// No tests to hoist at the leaves
 		return this;
 	}
 
 	
 	@Override
-	protected XlimIfModule sinkIntoIfModule() {
-		// Insert the IfModule in the current action module
-		mAction.startPatchAtEnd();
-		XlimIfModule result=mAction.addIfModule();
-		mAction.completePatchAndFixup();
-
-		// Move ("sink") action
-		XlimContainerModule dest=result.getThenModule();
-		dest.startPatchAtEnd();
-		XlimBlockElement element=mAction.getChildren().iterator().next();
-		while (element!=result) {
-			dest.cutAndPaste(element);
-			element=mAction.getChildren().iterator().next();
-		}
-        dest.completePatchAndFixup();
-        
-		// update program point
-		mAction=dest;
-		
-		return result;
+	protected void findPinAvail(Map<XlimTopLevelPort, XlimOperation> pinAvailMap) {
+		// No pinAvails here...	
 	}
 
 	@Override
-	protected PortMap hoistAvailabilityTests(PortMap dominatingTests) {
-		// Return set of dominating token-availability tests 
-		return dominatingTests;
-	}
-
-	@Override
-    public void generateBlockingWait() {
-		// ActionNode: Do nothing
+	protected DecisionTree removeRedundantTests(Map<XlimTopLevelPort, Integer> successfulTests) {
+		// Check that we have established required token availability 
+		assert(allAvailabilityTestsOk(successfulTests));
+		// No tests to remove at the leaves
+		return this;
 	}
 	
+	private boolean allAvailabilityTestsOk(Map<XlimTopLevelPort, Integer> successfulTests) {
+		for (Map.Entry<XlimTopLevelPort, Integer> entry: successfulTests.entrySet()) {
+			XlimTopLevelPort port=entry.getKey();
+			if(mPortSignature.getPortRate(port)>entry.getValue())
+				return false;
+		}
+		return true;
+	}
+	
+	
+	@Override
+	protected void generateBlockingWaits(Map<XlimTopLevelPort, Integer> failedTests) {
+		// Not a NullNode (nothing to do)
+	}
+
+	/**
+	 * @return the mapping from state to values at end of ActionNode
+	 */
+	public Map<XlimStateCarrier,ValueNode> getOutputMapping() {		
+		return mOutputMapping;
+	}
+		
+	@Override
+	public <T extends AbstractValue<T>> DecisionTree foldDecisions(Context<T> context) {
+		return this; // found a leaf node
+	}
+
+	
+	@Override
+	public <T extends AbstractValue<T>> void 
+		propagateState(DemandContext<T> context,
+				       StateEnumeration<T> stateEnumeration) {
+		// State propagation has reached a leaf (this ActionNode)
+		stateEnumeration.updateState(this,context);
+	}
+	
+	
+	@Override
+	protected <T extends AbstractValue<T>> 
+	boolean createPhase(DemandContext<T> context, 
+			                 StateEnumeration<T> stateEnum, 
+			                 boolean blockOnNullNode, 
+			                 List<DecisionTree> leaves) {
+		leaves.add(this);
+		return false;  // *not* non-deterministic
+	}
+
+	@Override
+	protected <T extends AbstractValue<T>> Characteristic 
+	printModes(StateEnumeration<T> stateEnum, PortSignature inMode) {
+		if (inMode==null) {
+			inMode=getMode();
+			System.out.println("Mode: "+inMode);
+		}
+		System.out.print("    ");
+		printAction();
+		
+		Characteristic cAction=stateEnum.printTransitions(this);
+		switch (cAction) {
+		case STATIC:
+			System.out.println("    Static next mode");
+			break;
+		case STATE_DEPENDENT:
+			System.out.println("    State-dependent next mode");
+			break;
+		case NON_DETERMINISTIC:
+			System.out.println("    input-dependent next mode");
+			break;
+		case EMPTY:
+		default:
+		}
+		
+		return cAction;
+	}
+	
+	@Override
+	public <T extends AbstractValue<T>> Characteristic 
+	printTransitions(DemandContext<T> context, 
+			         StateEnumeration<T> stateEnum, 
+			         PortSignature inMode, 
+			         boolean hasNDParent) {
+		if (inMode==null) {
+			inMode=getMode();
+			System.out.println("    --> Mode: "+inMode);
+		}
+		System.out.print("        --> ");
+		printAction();
+		
+		return Characteristic.STATIC;
+	}
+	
+	private void printAction() {
+		System.out.print("Action:");
+		for (XlimBlockElement element: mAction.getChildren()) {
+			if (element instanceof XlimOperation) {
+				XlimOperation op=(XlimOperation) element;
+				XlimTaskModule task=op.getTaskAttribute();
+				if (task!=null)
+				    System.out.print(" "+task.getName());
+			}
+		}
+		System.out.println();
+	}
+	
+	/**
+	 * Initializes this ActionNode by parsing its XLIM code
+	 * 
+	 * @param action  the XLIM code of an action node
+	 */
+	private void parseActionCode(XlimContainerModule action) {
+		mDescription="";
+		mAction=action;
+		mOutputMapping=new HashMap<XlimStateCarrier,ValueNode>();
+		HashMap<XlimTopLevelPort,Integer> portMap=new HashMap<XlimTopLevelPort,Integer>();
+		String delimiter="";
+		
+		// Visit the action code and find the final definitions of state vars/actor ports
+		for (XlimBlockElement element: mAction.getChildren()) {
+			if (element instanceof XlimOperation) {
+				// TODO: we could use BlockElement.Visitor instead, but
+				// we have no way of dealing with port rates and complex flow anyway...
+				XlimOperation xlimOp=(XlimOperation) element;
+				ValueOperator valueOp=xlimOp.getValueOperator();
+				for (ValueNode output: valueOp.getOutputValues()) {
+					XlimStateCarrier carrier=output.getStateCarrier();
+					if (carrier!=null)
+						mOutputMapping.put(carrier, output);
+				}
+				
+				// Add consumption/production rates of action
+				XlimTaskModule task=xlimOp.getTaskAttribute();
+				if (task!=null) {
+					addRates(task, portMap);
+					mDescription += delimiter+task.getName();
+					delimiter="+";
+				}
+			}
+			else // Don't know how to handle ActionNodes with non-trivial flow-of-control
+				throw new IllegalStateException("too complex ActionNode");
+		}	
+		
+		mPortSignature=new PortSignature(portMap);
+	}
+	
+	/**
+	 * Adds the port rates of 'task' to 'portMap'
+	 * 
+	 * @param task     an XLIM task (action)
+	 * @param portMap  map containing port rates
+	 */
+	private void addRates(XlimTaskModule task, Map<XlimTopLevelPort, Integer> portMap) {
+		// The ports are among the accessed state of the task
+		CallNode callNode=task.getCallNode();
+		DataDependenceGraph ddg=callNode.getDataDependenceGraph();
+		for (XlimStateCarrier carrier: ddg.getModifiedState()) {
+			XlimTopLevelPort port=carrier.isPort();
+			if (port!=null) {
+				Integer oldRate=portMap.get(port);
+				int newRate=task.getPortRate(port);
+				
+				if (oldRate!=null)
+					newRate+=oldRate;
+				portMap.put(port, newRate);
+			}
+		}
+	}
+
+	public String getDescription() {
+		return "ActionNode"+getIdentifier()+" ("+mDescription+")";
+	}
+
 	/* XmlElement interface */
 
 	@Override

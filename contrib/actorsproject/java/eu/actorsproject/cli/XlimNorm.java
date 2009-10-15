@@ -63,8 +63,8 @@ public class XlimNorm extends CheckXlim {
 	@Override
 	protected void printHelp() {
 		String myName=getClass().getSimpleName();
-		System.out.println("Usage: "+myName+" input-file.xlim [optional-output-file.xlim]");
-		System.out.println("\nChecks one or several XLIM files and prints diagnostics\n");
+		System.out.println("\nUsage: "+myName+" input-file.xlim [optional-output-file.xlim]");
+		System.out.println("\nChecks one or several XLIM files and prints diagnostics");
 		System.out.println("stdout is used unless an output file is specified\n");
 	}
 	
@@ -81,7 +81,10 @@ public class XlimNorm extends CheckXlim {
 	protected void parseCommandLine(String args[]) {
 		if (args.length<1 || args.length>2) {
 			printHelp();
-			reportError("Missing input file");
+			if (args.length==0)
+				reportError("Missing input file");
+			else
+				reportError("Too many files/command-line arguments");
 		}
 		else {
 			setInputFile(args[0]);

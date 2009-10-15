@@ -35,40 +35,69 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package eu.actorsproject.xlim.absint;
+package eu.actorsproject.xlim.decision;
 
+import java.util.Collections;
+import java.util.Map;
+
+import eu.actorsproject.util.XmlElement;
 import eu.actorsproject.xlim.XlimOperation;
+import eu.actorsproject.xlim.XlimSource;
+import eu.actorsproject.xlim.XlimTestModule;
+import eu.actorsproject.xlim.XlimTopLevelPort;
 import eu.actorsproject.xlim.dependence.ValueNode;
-import eu.actorsproject.xlim.util.OperationHandler;
-import eu.actorsproject.xlim.util.OperationPlugIn;
+import eu.actorsproject.xlim.util.LiteralPattern;
 
-public abstract class OperationEvaluator<T> {
+/**
+ * A Condition, which is associated with a DecisionNode.
+ * The subclass AvailabilityTest represents the special case
+ * of token/space availability on in-/out-port
+ */
+public class AtomicCondition extends Condition {
 
-	private OperationPlugIn<Handler> mAbstractOperators;
-	
-	public OperationEvaluator(Handler defaultHandler) {
-		mAbstractOperators=new OperationPlugIn<Handler>(defaultHandler);
+    private static LiteralPattern sTruePattern = new LiteralPattern(1);
+
+	public AtomicCondition(XlimSource xlimSource, ValueNode value) {
+		super(xlimSource, value);
 	}
+	    
+	@Override
+    public boolean alwaysTrue() {
+    	return sTruePattern.matches(getXlimSource());
+    }
+    
+	/* XmlElement interface */
 	
-	protected void register(String opKind, Handler handler) {
-		mAbstractOperators.registerHandler(opKind, handler);
+	@Override
+	public String getTagName() {
+		return "condition";
 	}
-	
-	public T evaluate(ValueNode output,
-            	      XlimOperation operation,
-                      Context<T> context) {
-		Handler handler=mAbstractOperators.getOperationHandler(operation);
-		return handler.evaluate(output,operation,context);
+
+	@Override
+	public String getAttributeDefinitions() {
+		return "decision=\""+getXlimSource().getUniqueId()+"\"";
 	}
-	
-	protected abstract class Handler implements OperationHandler {
-		
-		public boolean supports(XlimOperation op) {
-			return true;
-		}
-		
-		public abstract T evaluate(ValueNode output,
-                                   XlimOperation op,
-                                   Context<T> context);		
+
+	@Override
+	public Iterable<? extends XmlElement> getChildren() {
+		return Collections.emptyList();
+	}
+
+	@Override
+	protected void findPinAvail(Map<XlimTopLevelPort, XlimOperation> pinAvailMap) {
+		// Nothing to do here...		
+	}
+
+	@Override
+	protected void updateDominatingTests(Map<XlimTopLevelPort, Integer> testsInAncestors) {
+		// Nothing to do here (overridden in AvailabilityTest)
+	}
+
+	@Override
+	protected Condition removeRedundantTests(PortSignature portSignature, XlimTestModule testModule) {
+		if (isImpliedBy(portSignature))
+			return null;
+		else
+			return this;
 	}
 }

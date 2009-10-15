@@ -37,11 +37,14 @@
 
 package eu.actorsproject.xlim.dependence;
 
+import java.util.Collections;
+
 import eu.actorsproject.util.Linkage;
+import eu.actorsproject.util.XmlElement;
 import eu.actorsproject.xlim.XlimModule;
 import eu.actorsproject.xlim.XlimStateCarrier;
 
-public abstract class ValueUsage extends Linkage<ValueUsage> {
+public abstract class ValueUsage extends Linkage<ValueUsage> implements XmlElement {
 
 	protected ValueNode mValue;
 	
@@ -117,5 +120,22 @@ public abstract class ValueUsage extends Linkage<ValueUsage> {
 	@Override
 	public ValueUsage getElement() {
 		return this;
+	}
+	
+	/* Implementation of XmlElement */
+	
+	@Override
+	public String getTagName() {
+		return "ValueUsage";
+	}
+
+	@Override
+	public Iterable<? extends XmlElement> getChildren() {
+		return Collections.emptyList();
+	}
+
+	@Override
+	public String getAttributeDefinitions() {
+		return mValue.getAttributeDefinitions();
 	}
 }

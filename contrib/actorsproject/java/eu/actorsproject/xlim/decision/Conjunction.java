@@ -38,12 +38,17 @@
 package eu.actorsproject.xlim.decision;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 import eu.actorsproject.util.XmlElement;
-import eu.actorsproject.xlim.XlimContainerModule;
 import eu.actorsproject.xlim.XlimOperation;
+import eu.actorsproject.xlim.XlimOutputPort;
 import eu.actorsproject.xlim.XlimSource;
+import eu.actorsproject.xlim.XlimTestModule;
 import eu.actorsproject.xlim.XlimTopLevelPort;
+import eu.actorsproject.xlim.absint.AbstractValue;
+import eu.actorsproject.xlim.absint.Context;
 
 /**
  * Represents the condition: c1 && c2 && ... && cn
@@ -52,15 +57,13 @@ public class Conjunction extends Condition {
 
 	private ArrayList<Condition> mConditions;
 	
-	public Conjunction(XlimContainerModule container, XlimSource xlimSource) {
-		super(container,xlimSource);
+	public Conjunction(XlimOutputPort xlimCond) {
+		super(xlimCond, xlimCond.getValue());
 		mConditions=new ArrayList<Condition>();
 	}
 	
-	private Conjunction(XlimContainerModule container, 
-						XlimSource xlimSource,
-						ArrayList<Condition> conditions) {
-		super(container,xlimSource);
+	private Conjunction(XlimOutputPort xlimCond, ArrayList<Condition> conditions) {
+		super(xlimCond, xlimCond.getValue());
 		mConditions=conditions;
 	}
 	
@@ -72,86 +75,150 @@ public class Conjunction extends Condition {
 	protected void add(Condition condition) {
 		mConditions.add(condition);
 	}
-	
-	
+
 	@Override
-	protected int assertedTokenCount(XlimTopLevelPort port) {
-		int result=0;
+	protected boolean alwaysTrue() {
+		for (Condition cond: mConditions)
+			if (cond.alwaysTrue()==false)
+				return false;
+		return true;
+	}
+
+	public <T extends AbstractValue<T>> 
+	Evaluation evaluate(Context<T> context, PortSignature optSignature) {
+		Evaluation result=Evaluation.ALWAYS_TRUE;
+		
 		for (Condition cond: mConditions) {
-			int tokenCount=cond.assertedTokenCount(port);
-			if (tokenCount>result)
-				result=tokenCount;
+			switch (cond.evaluate(context, optSignature)) {
+			case TRUE_OR_FALSE:
+				result=Evaluation.TRUE_OR_FALSE;
+				break;
+			case ALWAYS_FALSE:
+				return Evaluation.ALWAYS_FALSE;
+			case ALWAYS_TRUE:
+			default:
+			}
 		}
 		return result;
 	}
-
-	@Override
-	protected PortMap updateFailedTests(PortMap failedTests) {
-		for (Condition cond: mConditions)
-			failedTests=cond.updateFailedTests(failedTests);
-		return failedTests;
-	}
-	
 	
 	@Override
-	protected PortMap updateSuccessfulTests(PortMap successfulTests) {	
-		for (Condition cond: mConditions)
-			successfulTests=cond.updateSuccessfulTests(successfulTests);
-		return successfulTests;
-	}
-
-	@Override
-	public Condition updateCondition(PortMap successfulTests) {
-		ArrayList<Condition> updated=new ArrayList<Condition>();
-		boolean changed=false;
-		
+	public boolean isImpliedBy(PortSignature portSignature) {
 		for (Condition cond: mConditions) {
-			// 
-			Condition newCondition=cond.updateCondition(successfulTests);
-			if (newCondition.alwaysTrue())
-				changed=true; // skip "cond"
-			else {
-				updated.add(newCondition);
-				if (newCondition!=cond)
-					changed=true;
-			}
+			if (!cond.isImpliedBy(portSignature))
+				return false;
 		}
-		
-		if (changed) {
-			if (updated.size()>=2) {
-				// Update conjunction: use simpler condition
-				ArrayList<XlimSource> inputs=new ArrayList<XlimSource>(updated.size());
-				for (Condition cond: updated)
-					inputs.add(cond.getXlimSource());
-
-				XlimContainerModule container=getXlimContainer();
-				container.startPatchAtEnd();
-				XlimOperation op=container.addOperation("$and", inputs);
-			    XlimSource decision=op.getOutputPort(0);
-			    container.completePatchAndFixup();
-			    
-			    return new Conjunction(container,decision,updated);
-			}
-			else if (updated.isEmpty()) {
-				// Create an always true condition
-				return makeAlwaysTrue();
-			}
-			else {
-				// A single condition remains
-				return updated.get(0);
-			}
-		}
-		else
-			return this;
+		return true;
 	}
-    
+	
+	@Override
+	public boolean dependsOnInput(PortSignature availableTokens) {
+		for (Condition cond: mConditions) {
+			if (cond.dependsOnInput(availableTokens))
+				return true;
+		}
+		return false;
+	}
+	
+	@Override
+	protected void findPinAvail(Map<XlimTopLevelPort, XlimOperation> pinAvailMap) {
+		for (Condition cond: mConditions) 
+			cond.findPinAvail(pinAvailMap);
+	}
+	
+	@Override
+	protected void updateDominatingTests(Map<XlimTopLevelPort, Integer> testsInAncestors) {
+		for (Condition cond: mConditions)
+			cond.updateDominatingTests(testsInAncestors);
+		
+	}
+
+	@Override
+	protected Condition removeRedundantTests(PortSignature portSignature, 
+			                                 XlimTestModule testModule) {
+		// We should have checked that there is something left of the condition...
+		assert(isImpliedBy(portSignature)==false);
+		
+		// First check if we can keep the condition "as is"
+		boolean keepAsIs=true;
+		for (Condition cond: mConditions)
+			if (cond.isImpliedBy(portSignature)) {
+				keepAsIs=false;
+				break;
+			}
+		
+		if (keepAsIs)
+			return this;
+		else {
+			// Update condition
+			ArrayList<Condition> newConditions=new ArrayList<Condition>();
+			
+			for (Condition cond: mConditions) {
+				if (cond.isImpliedBy(portSignature)==false)
+					newConditions.add(cond);
+			}
+			
+			if (newConditions.isEmpty())
+				return null;
+			else if (newConditions.size()==1)
+				return newConditions.get(0);
+			else {
+				List<XlimSource> sources=new ArrayList<XlimSource>();
+				for (Condition cond: newConditions)
+					sources.add(cond.getXlimSource());
+				
+				// Add an updated $and operation
+				testModule.startPatchAtEnd();
+				XlimOperation xlimAnd=testModule.addOperation("$and", sources);
+				XlimOutputPort result=xlimAnd.getOutputPort(0);
+				testModule.setDecision(result);
+				testModule.completePatchAndFixup();
+				
+				return new Conjunction(result, newConditions);
+			}
+		}
+	}
+
+// TODO: needs fixing if we need this one (specialized Conjunctions have no ValueNode)
+//	@Override
+//	protected Condition specialize(Mode mode) {
+//		assert(isImpliedByMode(mode)==false); // There should be something left...
+//		ArrayList<Condition> conditions=new ArrayList<Condition>();
+//		boolean changed=false;
+//		
+//		// Remove implied condition, keep specialized ones	
+//		for (Condition cond: mConditions) {
+//			if (cond.isImpliedByMode(mode))
+//				changed=true;
+//			else {
+//				Condition newCond=cond.specialize(mode);
+//				conditions.add(newCond);
+//				if (newCond!=cond)
+//					changed=true;
+//			}
+//		}
+//				
+//		if (conditions.size()==1)
+//			return conditions.get(0);
+//		else if (changed)
+//			return new Conjunction(conditions);
+//		else
+//			return this; // No specialization 
+//	}
+	
+	/* XmlElement interface */
+
 	@Override
 	public String getTagName() {
 		return "conjunction";
+	}
+	
+	public String getAttributeDefinitions() {
+		return "";
 	}
 
 	@Override
 	public Iterable<? extends XmlElement> getChildren() {
 		return mConditions;
-	}
+	}	
 }

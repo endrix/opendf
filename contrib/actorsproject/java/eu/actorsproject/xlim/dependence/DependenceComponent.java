@@ -35,33 +35,15 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package eu.actorsproject.xlim.absint;
+package eu.actorsproject.xlim.dependence;
 
-import java.util.ArrayDeque;
-import java.util.HashSet;
+import eu.actorsproject.util.XmlElement;
+import eu.actorsproject.xlim.absint.Evaluable;
 
-public class WorkList<T> {
+/**
+ * Represents a component in the acyclic condensation of a
+ * DataDependenceGraph or a DependenceSlice
+ */
+public interface DependenceComponent extends Evaluable, XmlElement {
 
-	private ArrayDeque<T> mDeque=new ArrayDeque<T>();
-	private HashSet<T> mQueued=new HashSet<T>();
-	
-	public boolean isEmpty() {
-		return mDeque.isEmpty();
-	}
-	
-	public boolean contains(T element) {
-		return mQueued.contains(element);
-	}
-	
-	public void enqueue(T element) {
-		if (mQueued.add(element)) {
-			mDeque.push(element);
-		}
-	}
-	
-	public T dequeue() {
-		T element=mDeque.pop();
-		mQueued.remove(element);
-		return element;
-	}
 }

@@ -35,44 +35,64 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package eu.actorsproject.cli;
+package eu.actorsproject.xlim.decision;
 
-import java.io.PrintStream;
-
-
-import eu.actorsproject.xlim.XlimDesign;
-import eu.actorsproject.xlim.util.XlimVisualPrinter;
+import java.util.List;
 
 /**
- * Translates an XLIM file into "human readable form".
- * The idea is to (unlike Xlim2c) reflect the exact contents 
- * of all elements, but present it in a format that is easier
- * to read than XML.
- * 
- * Usage: XlimVisual input-file.xlim [optional-output-file.xlim]
- * 
- * System.out is used when no output file is specified
+ * Represents one phase in an actor's local action schedule
  */
-public class XlimVisual extends XlimNorm {
+public class SchedulingPhase {
 
-	@Override
-	protected void generateOutput(XlimDesign design, PrintStream output) {
-		XlimVisualPrinter printer=new XlimVisualPrinter(output);
-	    printer.printDesign(design);
-    }
+	private List<DecisionTree> mLeaves;
+	private boolean mIsDeterministic;
+	private boolean mMayTerminate;
+	private boolean mAlwaysTerminates;
+	private PortSignature mMode;
 	
-	@Override
-	protected void printHelp() {
-		String myName=getClass().getSimpleName();
-		System.out.println("\nUsage: "+myName+" input-file.xlim [optional-output-file.xlim]");
-		System.out.println("\nTranslates XLIM into \"human readable\" form");
-		System.out.println("stdout is used unless an output file is specified\n");
+	public SchedulingPhase(List<DecisionTree> leaves, boolean isDeterministic) {
+		assert(leaves.isEmpty()==false);
+		mLeaves=leaves;
+		mIsDeterministic=isDeterministic;
+		mMayTerminate=false;
+		mAlwaysTerminates=true;
+		
+		// Check if we have a common "mode" (all port rates the same)
+		// and initialize the next-phase map
+		if (isDeterministic)
+			mMode=leaves.get(0).getMode();
+		for (DecisionTree leaf: leaves) {
+			PortSignature m=leaf.getMode();
+			if (mMode!=null && (m==null || mMode.equals(m)==false)) {
+				mMode=null;
+			}
+			
+			if (leaf instanceof NullNode) {
+				mMayTerminate=true;
+				mMode=null;
+			}
+			else
+				mAlwaysTerminates=false;
+		}
+	}
+		
+	public boolean mayTerminate() {
+		return mMayTerminate;
 	}
 	
-	public static void main(String[] args) {
-		XlimVisual compilerSession=new XlimVisual();
-		compilerSession.runFromCommandLine(args);
-		if (compilerSession.mHasErrors)
-			System.exit(1);
+	public boolean alwaysTerminates() {
+		return mAlwaysTerminates;
 	}
+	
+	public boolean isDeterministic() {
+		return mIsDeterministic;
+	}
+	
+	public PortSignature hasStaticPortSignature() {
+		return mMode;
+	}
+	
+	public List<DecisionTree> getLeaves() {
+		return mLeaves;
+	}	
 }

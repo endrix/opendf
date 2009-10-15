@@ -37,26 +37,51 @@
 
 package eu.actorsproject.xlim.absint;
 
-import eu.actorsproject.xlim.dependence.CallSite;
+import java.util.HashMap;
+import java.util.Map;
+
 import eu.actorsproject.xlim.dependence.ValueNode;
 
-public interface Context<T> {
+public class Context<T> {
 
+	protected Map<ValueNode,T> mValueMap;
+		
+	public Context() {
+		mValueMap=new HashMap<ValueNode,T>();
+	}
+		
 	/**
 	 * Retrieves the abstract value of a node (in "this" Context).
-	 * Abstract values are evaluated when needed and memoized after evaluation
 	 * @param node a ValueNode
 	 * @return abstract value that corresponds to the node
 	 */
-	T demand(ValueNode node);
+	public T get(ValueNode node) {
+		return mValueMap.get(node);
+	}
+		
+	/**
+	 * @param node
+	 * @return true iff 'node' is associate with a value (possibly null)
+	 */
+	public boolean hasValue(ValueNode node) {
+		return mValueMap.containsKey(node);
+	}
 	
 	/**
-	 * Retrieves the context associated with a taskCall made from this context.
-	 * @param callSite
-	 * @return The context associated with callSite
-	 * In a context insensitive analysis, all instances of a task are represented 
-	 * by a single context, whereas a context sensitive analysis uses distinct 
-	 * contexts per callSite and calling context.
+	 * Associates node with 'aValue'
+	 * @param node      A node of the data-dependence graph
+	 * @param newValue  An abstract value
+	 * @return          true iff the node was not already associated with 'aValue' 
 	 */
-	Context<T> getCalleeContext(CallSite callSite);
+	public boolean put(ValueNode node, T newValue) {
+		if (mValueMap.containsKey(node)) {
+			T oldValue=mValueMap.get(node);
+			if (oldValue==newValue
+				|| oldValue!=null && newValue!=null && newValue.equals(oldValue))
+				return false; // no change
+		}
+		
+		mValueMap.put(node, newValue);
+		return true;
+	}
 }

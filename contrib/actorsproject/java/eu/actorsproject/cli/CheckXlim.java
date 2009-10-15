@@ -101,7 +101,7 @@ public class CheckXlim extends Session {
 	
 	protected void printHelp() {
 		String myName=getClass().getSimpleName();
-		System.out.println("Usage: "+myName+" input-files...");
+		System.out.println("\nUsage: "+myName+" input-files...");
 		System.out.println("\nChecks one or several XLIM files and prints diagnostics\n");
 	}
 	

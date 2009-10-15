@@ -48,6 +48,8 @@ import eu.actorsproject.xlim.XlimModule;
 import eu.actorsproject.xlim.XlimOutputPort;
 import eu.actorsproject.xlim.XlimPhiNode;
 import eu.actorsproject.xlim.XlimSource;
+import eu.actorsproject.xlim.absint.AbstractDomain;
+import eu.actorsproject.xlim.absint.Context;
 import eu.actorsproject.xlim.dependence.InputValueIteration;
 import eu.actorsproject.xlim.dependence.PhiOperator;
 import eu.actorsproject.xlim.dependence.ValueNode;
@@ -246,7 +248,7 @@ class PhiNode extends Linkage<PhiNode> implements XlimPhiNode, Instruction, PhiO
 
 	@Override
 	public boolean inLoop() {
-		return false;
+		return mParent.isLoop();
 	}
 
 	@Override
@@ -254,6 +256,12 @@ class PhiNode extends Linkage<PhiNode> implements XlimPhiNode, Instruction, PhiO
 		return visitor.visitPhi(this, arg);
 	}
 	
+	
+	@Override
+	public <T> boolean evaluate(Context<T> context, AbstractDomain<T> domain) {
+		return domain.evaluate(this, context);
+	}
+
 	public String toString() {
 		return mOutput.getUniqueId()+"=phi("
 			+ mInputs.get(0).getSource().getUniqueId()

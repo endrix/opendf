@@ -38,10 +38,17 @@
 package eu.actorsproject.xlim.decision;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 import eu.actorsproject.util.XmlElement;
-import eu.actorsproject.xlim.XlimIfModule;
 import eu.actorsproject.xlim.XlimModule;
+import eu.actorsproject.xlim.XlimOperation;
+import eu.actorsproject.xlim.XlimTopLevelPort;
+import eu.actorsproject.xlim.absint.AbstractValue;
+import eu.actorsproject.xlim.absint.Context;
+import eu.actorsproject.xlim.absint.DemandContext;
+import eu.actorsproject.xlim.dependence.DependenceSlice;
 
 /**
  * A ParallelNode groups nodes of a decision tree that are evaluated
@@ -49,7 +56,9 @@ import eu.actorsproject.xlim.XlimModule;
  */
 public class ParallelNode extends DecisionTree {
 
-	ArrayList<DecisionTree> mChildren;
+	private ArrayList<DecisionTree> mChildren;
+	private PortSignature mPortSignature, mMode;
+	private boolean mModeHasBeenSet;
 	
 	public static DecisionTree create(DecisionTree t1, DecisionTree t2) {
 		if (t1==null)
@@ -80,8 +89,50 @@ public class ParallelNode extends DecisionTree {
 			mChildren.addAll(((ParallelNode) t).mChildren);
 		else
 			mChildren.add(t);
+		// adding a tree affects the port signature: invalidate it
+		mPortSignature=null;
+		if (mMode!=null) {
+			mModeHasBeenSet=false;
+			mMode=null;
+		}
 	}
 	
+	@Override
+	public PortSignature requiredPortSignature() {
+	
+		if (mPortSignature==null) {
+			PortSignature result=mChildren.get(0).requiredPortSignature();
+			
+			for (int i=1; i<mChildren.size() && result.isEmpty()==false; ++i) {
+				DecisionTree root=mChildren.get(i);
+				PortSignature s=root.requiredPortSignature();
+				result=PortSignature.intersect(result, s);
+			}
+			mPortSignature=result;
+		}
+		
+		return mPortSignature;
+	}
+	
+	
+	@Override
+	public PortSignature getMode() {
+		if (mModeHasBeenSet==false) {
+			PortSignature result=mChildren.get(0).getMode();
+			
+			for (int i=1; i<mChildren.size() && result!=null; ++i) {
+				DecisionTree root=mChildren.get(i);
+				PortSignature m=root.getMode();
+				if (m==null || m.equals(result)==false)
+					result=null;
+			}	
+			mMode=result;
+			mModeHasBeenSet=true;
+		}
+		
+		return mMode;
+	}
+
 	@Override
 	protected XlimModule getModule() {
 		// ParallelNode corresponds to several modules
@@ -90,15 +141,21 @@ public class ParallelNode extends DecisionTree {
 	
 	
 	@Override
-	protected XlimIfModule sinkIntoIfModule() {
-		// ParallelNode corresponds to several modules
-		throw new UnsupportedOperationException("ParallelNode.sinkIntoIfModule");
+	public void findActionNodes(List<ActionNode> actionNodes) {
+		for (DecisionTree root: mChildren)
+			root.findActionNodes(actionNodes);
 	}
 
 	@Override
-	protected PortMap 
-	hoistAvailabilityTests(PortMap dominatingTests) {
-		// We have not implemented any scheme for pinWait generation from "mutex" modules
+	protected void findPinAvail(Map<XlimTopLevelPort, XlimOperation> pinAvailMap) {
+		for (DecisionTree root: mChildren)
+			root.findPinAvail(pinAvailMap);
+	}
+	
+	@Override
+	protected DecisionTree hoistAvailabilityTests(PortSignature parentSignature, 
+			                                      Map<XlimTopLevelPort, XlimOperation> pinAvailMap) {
+		// We have not implemented any scheme for code generation from "mutex" modules
 		// (which imply parallel evaluation of guard conditions). Use the modified SSA-
 		// generator instead (which uses nested if-then-else constructs instead)
 		
@@ -106,21 +163,112 @@ public class ParallelNode extends DecisionTree {
 		throw new UnsupportedOperationException("\"mutex\" modules not supported");
 	}
 
+	
 	@Override
-    protected  DecisionTree topDownPass(PortMap assertedTests, PortMap failedTests) {
-		for (int i=0; i<mChildren.size(); ++i)
-		  mChildren.set(i, mChildren.get(i).topDownPass(assertedTests, failedTests));
+	protected DecisionTree removeRedundantTests(Map<XlimTopLevelPort, Integer> successfulTests) {
+		for (int i=0; i<mChildren.size(); ++i) {
+			DecisionTree root=mChildren.get(i);
+			root=root.removeRedundantTests(successfulTests);
+			mChildren.set(i, root);
+		}
 		return this;
+	}
+
+	
+	@Override
+	protected void generateBlockingWaits(Map<XlimTopLevelPort, Integer> failedTests) {
+		for (DecisionTree root: mChildren)
+			root.generateBlockingWaits(failedTests);
+	}
+
+	@Override
+	public void createDependenceSlice(DependenceSlice slice) {
+		for (DecisionTree root: mChildren)
+			root.createDependenceSlice(slice);
 	}
 	
 	@Override
-    public void generateBlockingWait() {
-		// We have not implemented any scheme for pinWait generation from "mutex" modules
-		// (which imply parallel evaluation of guard conditions). Use the modified SSA-
-		// generator instead (which uses nested if-then-else constructs instead)
-		throw new UnsupportedOperationException("\"mutex\" modules not supported");
-    }
+	public <T extends AbstractValue<T>> DecisionTree foldDecisions(Context<T> context) {
+		DecisionTree uniqueSubtree=null;
+		
+		// Look for a unique non-null subtree that can be deduced
+		for (DecisionTree root: mChildren) {
+			DecisionTree t=root.foldDecisions(context);
+			if (t.isNullNode()==null)
+				if (uniqueSubtree==null)
+					uniqueSubtree=t;
+				else
+					return this; // no unique root, return this node
+		}
+		
+		if (uniqueSubtree!=null)
+			return uniqueSubtree;
+		else
+			return this; // no unique root, return this node
+	}
 	
+
+	@Override
+	public <T extends AbstractValue<T>> void 
+		propagateState(DemandContext<T> context, 
+				       StateEnumeration<T> stateEnumeration) {
+		for (DecisionTree root: mChildren) {
+			root.propagateState(context, stateEnumeration);
+		}
+	}
+
+	
+	@Override
+	protected <T extends AbstractValue<T>> 
+	boolean createPhase(DemandContext<T> context, 
+			                 StateEnumeration<T> stateEnum, 
+			                 boolean blockOnNullNode, 
+			                 List<DecisionTree> leaves) {
+		boolean isNonDeterministic=false;
+		for (DecisionTree root: mChildren) {
+			if (root.createPhase(context, stateEnum, blockOnNullNode, leaves))
+				isNonDeterministic=true;
+		}
+		return isNonDeterministic;
+	}
+
+	@Override
+	protected <T extends AbstractValue<T>> Characteristic printModes(StateEnumeration<T> stateEnum, PortSignature inMode) {
+		if (inMode==null) {
+			inMode=getMode();
+			if (inMode!=null)
+				System.out.println("Mode: "+inMode);
+		}
+		Characteristic cMax=Characteristic.EMPTY;
+		for (DecisionTree child: mChildren) {
+			Characteristic cChild=child.printModes(stateEnum, inMode);
+			if (cChild.compareTo(cMax)>0)
+				cMax=cChild;
+		}
+		return cMax;
+	}
+	
+	@Override
+	public <T extends AbstractValue<T>> Characteristic 
+		printTransitions(DemandContext<T> context, 
+				         StateEnumeration<T> stateEnumeration, 
+				         PortSignature inMode, 
+				         boolean blockOnNullNode) {
+		if (inMode==null) {
+			inMode=getMode();
+			if (inMode!=null)
+				System.out.println("    --> Mode: "+inMode);
+		}
+		
+		Characteristic cMax=Characteristic.EMPTY; 
+		for (DecisionTree child: mChildren) {
+			Characteristic cChild=
+				child.printTransitions(context, stateEnumeration, inMode, blockOnNullNode);
+			if (cChild.compareTo(cMax)>0)
+				cMax=cChild;
+		}
+		return cMax;
+	}
 	/* XmlElement interface */
 
 	@Override

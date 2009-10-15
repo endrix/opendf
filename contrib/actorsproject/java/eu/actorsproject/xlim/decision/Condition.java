@@ -37,109 +37,137 @@
 
 package eu.actorsproject.xlim.decision;
 
-import java.util.Collections;
+import java.util.Map;
 
 import eu.actorsproject.util.XmlElement;
-import eu.actorsproject.xlim.XlimContainerModule;
 import eu.actorsproject.xlim.XlimOperation;
 import eu.actorsproject.xlim.XlimSource;
+import eu.actorsproject.xlim.XlimTestModule;
 import eu.actorsproject.xlim.XlimTopLevelPort;
-import eu.actorsproject.xlim.util.LiteralPattern;
+import eu.actorsproject.xlim.absint.AbstractValue;
+import eu.actorsproject.xlim.absint.Context;
+import eu.actorsproject.xlim.dependence.ValueNode;
 
 /**
  * A Condition, which is associated with a DecisionNode.
  * Two subclasses represent relevant special cases:
- * AvailabilityTest  token/space availability on in-/out-port
- * Conjunction       a conjunction: c1 && c2 && ... && cn of simpler conditions
- *                   (all of which are asserted on the "true" branch of a decision node)
+ * AtomicTest   a test that consists of a single CNF term
+ * Conjunction  a conjunction: c1 && c2 && ... && cn of AtomicTests
+ *              (all of which are asserted on the "true" branch of a decision node)
  */
-public class Condition implements XmlElement {
+/**
+ * @author ecarvon
+ *
+ */
+/**
+ * @author ecarvon
+ *
+ */
+public abstract class Condition implements XmlElement {
 
-	private XlimContainerModule mContainer;
-	private XlimSource mXlimSource;
+	private XlimSource mSource;
+	private ValueNode mValue;
 	
-	public Condition(XlimContainerModule container, XlimSource xlimSource) {
-		mContainer=container;
-		mXlimSource=xlimSource;
+	public Condition(XlimSource source, ValueNode value) {
+		mSource=source;
+		mValue=value;
+	}
+	
+	public XlimSource getXlimSource() {
+		return mSource;
+	}
+	
+	public ValueNode getValue() {
+		return mValue;
 	}
 	
 	public void addTo(Conjunction conjunction) {
 		conjunction.add(this);
 	}
-	
-	protected XlimSource getXlimSource() {
-		return mXlimSource;
-	}
-	
-	protected XlimContainerModule getXlimContainer() {
-		return mContainer;
-	}
-	
+
 	/**
-	 * @param port 
-	 * @return number of available tokens (on port) asserted by this condition
-	 * 	       (0 if this condition contains no token-availability test on port)
+	 * @return true iff this condition is the constant 'true'
 	 */
-	protected int assertedTokenCount(XlimTopLevelPort port) {
-		return 0;
+	protected abstract boolean alwaysTrue(); 
+		
+	public enum Evaluation {
+		ALWAYS_FALSE,
+		ALWAYS_TRUE,
+		TRUE_OR_FALSE
+	};
+	
+	/**
+	 * @param context       a mapping from value nodes to abstract values
+	 * @param optSignature  an optional port signature (may be null). If given it
+	 *                      expresses a token-availability assertion .
+	 * @return ALWAYS_TRUE if this condition is 'true' given context/token availability
+	 *         ALWAYS_FALSE if this condition is 'false' given context/token availability
+	 *         TRUE_OR_FALSE if the outcome cannot be deduced
+	 */
+	public <T extends AbstractValue<T>> Evaluation evaluate(Context<T> context,
+			                                                PortSignature optSignature) {
+		T aValue=context.get(mValue);
+		if (aValue!=null) {
+			if (aValue.mayContain(1)) {
+				if (aValue.mayContain(0)==false)
+					return Evaluation.ALWAYS_TRUE;
+			}
+			else
+				return Evaluation.ALWAYS_FALSE;
+		}
+		
+		if (optSignature!=null && isImpliedBy(optSignature))
+			return Evaluation.ALWAYS_TRUE;
+		
+		return Evaluation.TRUE_OR_FALSE;
 	}
 	
 	/**
-     * Updates the collection of tested (and possibly failed) token-availability tests
-     * @param failedTests Tests that may have failed on some path from
-     *                    the root of the decision tree to this node.
-	 * @return updated collection of tests
-     */
-    protected PortMap updateFailedTests(PortMap failedTests) {
-    	return failedTests; // Do nothing
-    }
-    
-    /**
-    * Updates the collection of asserted (successful) token-availability tests
-    * @param portMap     gives the maximum asserted token availability for port
-    *                    on a path from the root of the decision tree to the
-    *                    "true" branch that is guarded by this condition
-     * @return updated collection of tests
-    */
-    protected PortMap updateSuccessfulTests(PortMap successfulTests) {
-    	return successfulTests; // Do nothing!
-    }
-    
-    /**
-     * @param successfulTests tests known to be true
-     * @return true if the condition was updated
-     */
-    public Condition updateCondition(PortMap successfulTests) {
-    	return this; // Do nothing!
-    }
-    
-    protected Condition makeAlwaysTrue() {
-    	// Make if a constant "true" Condition
-		mContainer.startPatchAtEnd();
-		XlimOperation op=mContainer.addLiteral(true);
-		mContainer.completePatchAndFixup();
-		return new Condition(mContainer, op.getOutputPort(0));
-    }
-    
-    private static LiteralPattern sTruePattern = new LiteralPattern(1);
-    
-    public boolean alwaysTrue() {
-    	return sTruePattern.matches(mXlimSource);
-    }
-    
-	@Override
-	public String getTagName() {
-		return "condition";
+	 * @param optSignature  asserted token availability (may be null)
+	 * 
+	 * @return true if the condition contains a AvailabilityTest
+	 *         that is not implied by the asserted token availability
+	 */
+	
+	public boolean dependsOnInput(PortSignature optSignature) {
+		return false;
 	}
+	
+	/**
+	 * @param avaliableTokens  asserted token availability
+	 * @return true if the condition is true given the asserted token availability
+	 */
+	public boolean isImpliedBy(PortSignature availableTokens) {
+		// In the general case, only the (true) condition is implied
+		return alwaysTrue();
+	}
+	
+	
+	/**
+	 * Creates a port-to-pinAvail look-up by traversing AvailabilityTests.
+	 * An action scheduler must have a unique evaluation of pinAvail for each port
+	 * -not to take incorrect scheduling decisions for timing-dependent actors.
+	 * The look-up helps maintaining this property when creating new tests.
+	 * 
+	 * @param pinAvailMap  port-to-pinAvail look-up
+	 */
+	protected abstract void findPinAvail(Map<XlimTopLevelPort,XlimOperation> pinAvailMap);
+	
+	/**
+	 * Adds the port rate of TokenAvailabilityTests in the condition.
+	 * 
+	 * @param testsInAncestors  TokenAvailabilityTests made in ancestors
+	 */
+	protected abstract void updateDominatingTests(Map<XlimTopLevelPort,Integer> testsInAncestors);
 
-	@Override
-	public String getAttributeDefinitions() {
-		XlimSource xlimCondition=getXlimSource();
-		return "decision=\""+xlimCondition.getUniqueId()+"\"";
-	}
-
-	@Override
-	public Iterable<? extends XmlElement> getChildren() {
-		return Collections.emptyList();
-	}
+	/**
+	 * Removes tests that are redundant (given the port signature) from a Conjunction
+	 * 
+	 * @param portSignature  token availability that has been successfully established
+	 * @param testModule     TestModule of the condition (patch point)
+	 * 
+	 * @return simplified condition
+	 */
+	protected abstract Condition removeRedundantTests(PortSignature portSignature, 
+			                                          XlimTestModule testModule);
 }

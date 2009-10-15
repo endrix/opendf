@@ -41,10 +41,8 @@ import java.io.File;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import eu.actorsproject.util.OutputGenerator;
@@ -58,8 +56,7 @@ import eu.actorsproject.xlim.XlimTopLevelPort;
 import eu.actorsproject.xlim.XlimType;
 import eu.actorsproject.xlim.codegenerator.AbstractSymbolTable;
 import eu.actorsproject.xlim.codegenerator.OperationGenerator;
-import eu.actorsproject.xlim.decision.BlockingCondition;
-import eu.actorsproject.xlim.decision.YieldAttribute;
+import eu.actorsproject.xlim.decision.PortSignature;
 import eu.actorsproject.xlim.util.XlimTraversal;
 
 
@@ -511,51 +508,58 @@ public class Actor2c extends OutputGenerator {
 	 */
 	class ExitCodeGenerator extends XlimTraversal<Object,Object> {
 
-		Map<XlimTopLevelPort,Integer> mPortNumbers;
+		ArrayList<XlimTopLevelPort> mAllPorts=new ArrayList<XlimTopLevelPort>();
 		
 		ExitCodeGenerator() {
-			int n=0;
-			mPortNumbers=new HashMap<XlimTopLevelPort,Integer>();
-			for (XlimTopLevelPort in: mDesign.getInputPorts())
-				mPortNumbers.put(in, n++);
-			for (XlimTopLevelPort out: mDesign.getOutputPorts())
-				mPortNumbers.put(out, n++);
+			for (XlimTopLevelPort in: mDesign.getInputPorts()) {
+				mAllPorts.add(in);
+			}
+			for (XlimTopLevelPort out: mDesign.getOutputPorts()) {
+				mAllPorts.add(out);
+			}
 		}
 		
 		@Override
 		protected Object handleOperation(XlimOperation op, Object dummy) {
 			if (op.getKind().equals("yield")) {
-				YieldAttribute yieldAttrib=(YieldAttribute) op.getGenericAttribute();
-				String arrayName=mSymbols.getGenericAttribute(yieldAttrib);
+				Object yieldAttribute=op.getGenericAttribute();
+				String arrayName=mSymbols.getGenericAttribute(yieldAttribute);
 				if (arrayName==null) {
-					int size=yieldAttrib.size();
-
-					if (size==0) {
+					PortSignature blockingCondition=(PortSignature) yieldAttribute;
+					
+					if (blockingCondition.isEmpty()) {
 						arrayName= "EXITCODE_TERMINATE";
 					}
 					else {
 						arrayName="exitcode_block";
-						for (BlockingCondition bc: yieldAttrib) {
-							String portName=AbstractSymbolTable.createCName(bc.getPort().getSourceName());
-							arrayName += "_" + portName + "_" + bc.getTokenCount();
+						for (XlimTopLevelPort port: mAllPorts) {
+							int tokenRate=blockingCondition.getPortRate(port);
+							if (tokenRate!=0) {
+								String portName=AbstractSymbolTable.createCName(port.getSourceName());
+								arrayName += "_" + portName + "_" + tokenRate;
+							}
 						}
 					
 						println();
 						println("static const int " + arrayName + "[] = {");
 						increaseIndentation();
-						print("EXITCODE_BLOCK(" + String.valueOf(size) +")");
-						for (BlockingCondition bc: yieldAttrib) {
-							int port=mPortNumbers.get(bc.getPort());
-							print(", ");
-							lineWrap(60);
-							print(port + ", " + bc.getTokenCount());
+						int size=blockingCondition.getPorts().size();
+						print("EXITCODE_BLOCK(" + size +")");
+						for (int portNumber=0; portNumber<mAllPorts.size(); ++portNumber) {
+							XlimTopLevelPort port=mAllPorts.get(portNumber);
+							int tokenRate=blockingCondition.getPortRate(port);
+							if (tokenRate!=0) {
+								print(", ");
+								lineWrap(60);
+								print(portNumber + ", " + tokenRate);
+							}
 						}
 						decreaseIndentation();
 						println();
 						println("};");
 					}
 					
-					mSymbols.setGenericAttribute(yieldAttrib,arrayName);
+					mSymbols.setGenericAttribute(yieldAttribute,arrayName);
 				}
 			}
 			return null;

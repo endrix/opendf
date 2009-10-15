@@ -71,6 +71,7 @@ public class NativeTypeTransformation {
 		mHandlers.registerHandler("bitand", bitwiseHandler);
 		mHandlers.registerHandler("bitor", bitwiseHandler);
 		mHandlers.registerHandler("bitxor", bitwiseHandler);
+		mHandlers.registerHandler("urshift", new URShiftHandler());
 		
 		// PinWriteHandler: no output port, but possible sign-extension of input
 		mHandlers.registerHandler("pinWrite", new PinWriteHandler());
@@ -453,6 +454,42 @@ public class NativeTypeTransformation {
 						transformations.put(input, t);
 					}
 				}
+			}
+			
+			// Also transform the outputs, if needed
+			super.handleOperation(op, transformations);
+		}
+	}
+	
+	/**
+	 * In addition to dealing with the output ports (see DefaultHandler),
+	 * the URShiftHandler zero-extends the its left input.
+	 */
+	protected class URShiftHandler extends DefaultHandler {
+		
+		public void handleOperation(XlimOperation op, 
+                                    Map<Object,Transformation> transformations) {
+			
+			// Zero extend input?
+			// The left input of URShift ('x' in x>>>count) is zero-extended to the
+			// width of the native type.
+			XlimInputPort input=op.getInputPort(0);
+			XlimType declaredT=input.getSource().getSourceType();
+			XlimType nativeT=mNativeTypePlugIn.nativeType(declaredT);
+			if (declaredT!=nativeT) {
+				int width=declaredT.getSize();
+				if (mTrace) {
+					int actualW=op.getOutputPort(0).actualOutputType().getSize();
+					System.out.println("// NativeTypeTransform: " + op.toString()
+							+ " zero-extend " + input.getSource().getUniqueId()
+							+ " from " + width
+							+ " to " + nativeT.getSize()
+							+ " (actual:" + actualW + ")");
+				}
+				Transformation t=new InputPortTransformation(TransformKind.ZeroExtend,
+						                                     width,
+						                                     nativeT);
+				transformations.put(input, t);
 			}
 			
 			// Also transform the outputs, if needed

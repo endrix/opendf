@@ -43,6 +43,7 @@ import eu.actorsproject.xlim.XlimOutputPort;
 import eu.actorsproject.xlim.XlimPhiNode;
 import eu.actorsproject.xlim.XlimTaskModule;
 import eu.actorsproject.xlim.XlimType;
+import eu.actorsproject.xlim.absint.IntervalWidening;
 
 /**
  * An interval widening operator is needed to make range analysis practical (otherwise
