@@ -73,7 +73,7 @@ import eu.actorsproject.xlim.XlimInstruction;
 import eu.actorsproject.xlim.XlimOutputPort;
 import eu.actorsproject.xlim.util.Session;
 
-public class XlimReader {
+public class XlimReader implements IXlimReader {
 	
 	protected ReaderPlugIn mPlugIn;
 	protected XlimFactory mFactory;
@@ -118,22 +118,30 @@ public class XlimReader {
 		mTags.put("port", PORT_TAG);
 		mTags.put("note", NOTE_TAG);
 	}
-	
-	public XlimDesign read(File f) 
-		throws IOException, SAXException, ParserConfigurationException {
+
+	public XlimDesign read(File f) throws IOException {
+		
 		Document document=null;
 		DocumentBuilderFactory factory =
 		    DocumentBuilderFactory.newInstance();
 		factory.setCoalescing(true);
 		factory.setExpandEntityReferences(true);
 		factory.setIgnoringComments(true);
-		DocumentBuilder builder = factory.newDocumentBuilder();
-		document = builder.parse( f );
+		try {
+			DocumentBuilder builder = factory.newDocumentBuilder();
+			document = builder.parse( f );
+		} 
+		catch (ParserConfigurationException ex) {
+			throw new RuntimeException(ex);
+		} 
+		catch (SAXException ex) {
+			throw new RuntimeException(ex);
+		}
 		return createDesign(document.getDocumentElement());
 	}
 
 	public XlimDesign createDesign(Element domElement) {
-		ReaderContext context = new ReaderContext();
+		MutableReaderContext context = new MutableReaderContext();
 		String name=getRequiredAttribute("name",domElement);
 		XlimDesign design=mFactory.createDesign(name);
 		mDesignPass1.createTopLevelElements(domElement, context, design);
@@ -196,19 +204,20 @@ public class XlimReader {
 
 	protected void createOperation(Element child, 
 			                       XlimContainerModule parent,
-			                       ReaderContext context) {
+			                       MutableReaderContext context) {
 		ArrayList<XlimSource> inputs=new ArrayList<XlimSource>();
 		ArrayList<XlimOutputPort> outputs=new ArrayList<XlimOutputPort>();
 		String kind=getRequiredAttribute("kind",child);
 
 		mPortPass.findPorts(child,context,inputs,outputs);
 		XlimOperation op=parent.addOperation(kind,inputs,outputs);
-		mPlugIn.setAttributes(op,child.getAttributes(),context);
+		XlimAttributeList attributes=new DomAttributeList(child);
+		mPlugIn.setAttributes(op,attributes,context);
 	}
 
 	protected void createModule(Element child,
 			                    XlimContainerModule parent,
-			                    ReaderContext context) {
+			                    MutableReaderContext context) {
 		String kind=getRequiredAttribute("kind",child);
 		if (kind.equals("if")) {
 			XlimIfModule ifModule=parent.addIfModule();
@@ -231,7 +240,7 @@ public class XlimReader {
 			                                XlimPhiContainerModule container,
 			                                XlimModule dominator0,
 			                                XlimModule dominator1,
-			                                ReaderContext context) {
+			                                MutableReaderContext context) {
 		ArrayList<XlimSource> inputs=new ArrayList<XlimSource>();
 		ArrayList<XlimOutputPort> outputs=new ArrayList<XlimOutputPort>();
 		mPortPass.findPorts(child,context,inputs,outputs);
@@ -326,19 +335,22 @@ public class XlimReader {
 	
 	protected XlimType getType(Element domElement) {
 		String typeName=getRequiredAttribute("typeName",domElement);
-		XlimType type=mPlugIn.getType(typeName,domElement.getAttributes());
+		XlimAttributeList attributes=new DomAttributeList(domElement);
+		XlimType type=mPlugIn.getType(typeName,attributes);
 		if (type==null)
 			throw new RuntimeException("Unsupported or incomplete type: typeName=\""+typeName+"\"");
 		return type;
 	}
 	
 	protected abstract class PassPlugin<Arg1,Arg2> {
+		
 		protected abstract void processChild(Element child, 
-				                             ReaderContext context,
+				                             MutableReaderContext context,
 				                             Arg1 arg1,
 				                             Arg2 arg2);
+		
 		protected void processChildren(Element domElement, 
-				             ReaderContext context,
+				             MutableReaderContext context,
 				             Arg1 arg1,
 				             Arg2 arg2) {
 			for (Node child=domElement.getFirstChild(); child!=null; child=child.getNextSibling()) {
@@ -368,7 +380,7 @@ public class XlimReader {
 	
 				
 		protected void processChild(Element child, 
-				                    ReaderContext context,
+				                    MutableReaderContext context,
 				                    XlimDesign parent,
 				                    Object dummy) {
 			switch (getTag(child)) {
@@ -390,7 +402,7 @@ public class XlimReader {
 			}
 		}
 		
-		public void createTopLevelElements(Element domElement, ReaderContext context, XlimDesign design) {
+		public void createTopLevelElements(Element domElement, MutableReaderContext context, XlimDesign design) {
 			processChildren(domElement,context,design,null);
 		}
 	}
@@ -401,7 +413,7 @@ public class XlimReader {
 	 */
 	protected class DesignPass2 extends PassPlugin<Object,Object> {
 		
-		protected void processTask(Element child, ReaderContext context, XlimTaskModule task) {
+		protected void processTask(Element child, MutableReaderContext context, XlimTaskModule task) {
 			context.enterTask(task);
 			mDeclarationPass.declarePorts(child,context);
 			mBlockContainerPass.createContents(child,context,task);
@@ -409,7 +421,7 @@ public class XlimReader {
 		}
 		
 		protected void processChild(Element child,  
-				                    ReaderContext context, 
+				                    MutableReaderContext context, 
 				                    Object dummy1,
 				                    Object dummy2) {
 			if (getTag(child)==MODULE_TAG) {
@@ -419,7 +431,7 @@ public class XlimReader {
 			}
 		}
 		
-		public void createModules(Element domElement, ReaderContext context) {
+		public void createModules(Element domElement, MutableReaderContext context) {
 			processChildren(domElement,context,null,null);
 		}
 	}
@@ -429,7 +441,7 @@ public class XlimReader {
 	 */
 	protected class DeclarationPass extends PassPlugin<Object,Object> {
 		protected void processChild(Element child, 
-                                    ReaderContext context, 
+                                    MutableReaderContext context, 
                                     Object dummy1,
                                     Object dummy2) {
 			switch (getTag(child)) {
@@ -451,7 +463,7 @@ public class XlimReader {
 			}
 		}
 		
-		public void declarePorts(Element domElement, ReaderContext context) {
+		public void declarePorts(Element domElement, MutableReaderContext context) {
 			processChildren(domElement,context,null,null);
 		}
 	}
@@ -462,7 +474,7 @@ public class XlimReader {
 	protected class BlockContainerPass extends PassPlugin<XlimContainerModule,Object> {
 		
 		protected void processChild(Element child, 
-                                    ReaderContext context, 
+                                    MutableReaderContext context, 
                                     XlimContainerModule parent, 
                                     Object dummy) {
 			int tag=getTag(child);
@@ -476,7 +488,7 @@ public class XlimReader {
 				unhandledTag(child);
 		}
 		
-		protected void processNote(Element note, ReaderContext context) {
+		protected void processNote(Element note, MutableReaderContext context) {
 			String kind=getRequiredAttribute("kind",note);
 			
 			if (kind.equals("consumptionRates") || kind.equals("productionRates")) {
@@ -489,7 +501,7 @@ public class XlimReader {
 			}
 		}
 		
-		public void createContents(Element domModule, ReaderContext context, XlimContainerModule xlimModule) {
+		public void createContents(Element domModule, MutableReaderContext context, XlimContainerModule xlimModule) {
 			processChildren(domModule,context,xlimModule,null);
 		}
 	}
@@ -500,7 +512,7 @@ public class XlimReader {
 	protected class IfModulePass extends PassPlugin<XlimIfModule,List<Element>> {
 		protected void createModule(Element child,
                                     XlimIfModule parent,
-                                    ReaderContext context) {
+                                    MutableReaderContext context) {
 			String kind=getRequiredAttribute("kind",child);
 			XlimContainerModule module;
 			
@@ -525,7 +537,7 @@ public class XlimReader {
 		}
 		
 		protected void processChild(Element child, 
-                                    ReaderContext context,
+                                    MutableReaderContext context,
                                     XlimIfModule parent, 
                                     List<Element> phiNodes) {
 			int tag=getTag(child);
@@ -537,7 +549,7 @@ public class XlimReader {
 				unhandledTag(child);
 		}
 		
-		public void createContents(Element domModule, ReaderContext context, XlimIfModule xlimModule) {
+		public void createContents(Element domModule, MutableReaderContext context, XlimIfModule xlimModule) {
 			List<Element> phiNodes=new ArrayList<Element>();
 			processChildren(domModule,context,xlimModule,phiNodes);
 			// Now when we have created "then" or "else" modules we are ready to take on the phi-nodes
@@ -557,7 +569,7 @@ public class XlimReader {
 	protected class LoopModulePass extends PassPlugin<XlimLoopModule,List<Element>> {
 		protected void createModule(Element child,
                                     XlimLoopModule parent,
-                                    ReaderContext context) {
+                                    MutableReaderContext context) {
 			String kind=getRequiredAttribute("kind",child);
 			XlimContainerModule module;
 			
@@ -578,7 +590,7 @@ public class XlimReader {
 		}
 				
 		protected void processChild(Element child, 
-                                    ReaderContext context, 
+                                    MutableReaderContext context, 
                                     XlimLoopModule parent, 
                                     List<Element> phiNodes) {
 			int tag=getTag(child);
@@ -590,7 +602,7 @@ public class XlimReader {
 				unhandledTag(child);
 		}
 		
-		public void createContents(Element domModule, ReaderContext context, XlimLoopModule xlimModule) {
+		public void createContents(Element domModule, MutableReaderContext context, XlimLoopModule xlimModule) {
 			List<Element> phiNodes=new ArrayList<Element>();
 			processChildren(domModule,context,xlimModule,phiNodes);
 			// Now when we have created the "body" module we are ready to take on the phi-nodes
@@ -610,7 +622,7 @@ public class XlimReader {
 	protected class PortPass extends PassPlugin<ArrayList<XlimSource>,
 	                                            ArrayList<XlimOutputPort> > {
 		protected void processChild(Element child, 
-                ReaderContext context, 
+                MutableReaderContext context, 
                 ArrayList<XlimSource> inputs, 
                 ArrayList<XlimOutputPort> outputs) {
 			
@@ -638,7 +650,7 @@ public class XlimReader {
 		}
 		
 		public void findPorts(Element domElement,
-				              ReaderContext context,
+				              MutableReaderContext context,
 				              ArrayList<XlimSource> inputs, 
 				              ArrayList<XlimOutputPort> outputs) {
 			processChildren(domElement,context,inputs,outputs);
@@ -662,7 +674,7 @@ public class XlimReader {
 		}
 		
 		protected void processChild(Element child, 
-                ReaderContext dummyContext, 
+                MutableReaderContext dummyContext, 
                 Collection<XlimInitValue> initValues, 
                 Object dummy) {
 			

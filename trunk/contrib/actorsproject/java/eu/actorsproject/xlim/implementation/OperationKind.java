@@ -40,14 +40,12 @@ package eu.actorsproject.xlim.implementation;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Node;
-
 import eu.actorsproject.xlim.XlimInputPort;
 import eu.actorsproject.xlim.XlimOperation;
 import eu.actorsproject.xlim.XlimOutputPort;
 import eu.actorsproject.xlim.XlimSource;
 import eu.actorsproject.xlim.XlimType;
+import eu.actorsproject.xlim.io.XlimAttributeList;
 import eu.actorsproject.xlim.io.ReaderContext;
 import eu.actorsproject.xlim.type.TypeRule;
 
@@ -83,16 +81,8 @@ public class OperationKind {
 		return "kind=\"" + mKindAttribute + "\"";
 	}
 	
-	protected String getAttribute(String name, NamedNodeMap attributes) {
-		Node node=attributes.getNamedItem(name);
-		if (node==null)
-			return null;
-		else
-			return node.getNodeValue();
-	}
-	
-	protected Long getIntegerAttribute(String name, NamedNodeMap attributes) {
-		String value=getAttribute(name,attributes);
+	protected Long getIntegerAttribute(String name, XlimAttributeList attributes) {
+		String value=attributes.getAttributeValue(name);
 		if (value!=null)
 			return Long.valueOf(value);
 		else
@@ -100,7 +90,7 @@ public class OperationKind {
 	}
 	
 	public void setAttributes(XlimOperation op,
-			                  NamedNodeMap attributes, 
+			                  XlimAttributeList attributes, 
 			                  ReaderContext context) {
 		// default implementation does nothing...
 	}

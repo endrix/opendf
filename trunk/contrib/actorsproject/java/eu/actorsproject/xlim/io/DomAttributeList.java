@@ -34,43 +34,71 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+ 
+package eu.actorsproject.xlim.io;
 
-package eu.actorsproject.xlim.type;
+import java.util.Iterator;
 
+import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
 
-import eu.actorsproject.xlim.XlimType;
-import eu.actorsproject.xlim.io.XlimAttributeList;
+class DomAttributeList implements XlimAttributeList {
 
-/**
- * Type kind, which is common to all integer types
- */
-class IntegerTypeKind extends ParametricTypeKind {
-	IntegerTypeKind() {
-		super("int");
+	private Element mElement;
+	
+	DomAttributeList(Element element) {
+		mElement=element;
 	}
 	
-	@Override
-	protected Integer getParameter(XlimAttributeList attributes) {
-		return getIntegerAttribute("size",attributes);
+	public String getAttributeValue(String attributeName) {
+		return mElement.getAttribute(attributeName);
 	}
-	
-	@Override
-	protected XlimType create(Object param) {
-		if (param instanceof Integer) {
-			Integer size=(Integer) param;
-			return new IntegerType(this, size);
+
+	public Iterator<XlimAttribute> iterator() {
+		return new IteratorAdapter(mElement.getAttributes());
+	}	
+
+	static class IteratorAdapter implements Iterator<XlimAttribute> {
+
+		private NamedNodeMap mAttributes;
+		private int i;
+		
+		IteratorAdapter(NamedNodeMap attributes) {
+			mAttributes=attributes;
+			i=0;
 		}
-		else
-			throw new IllegalArgumentException("Type \"int\" requires Integer parameter");
+		
+		public boolean hasNext() {
+			return i<mAttributes.getLength();
+		}
+
+		public XlimAttribute next() {
+			Node node=mAttributes.item(i++);
+			return new AttributeAdapter(node);
+		}
+
+		public void remove() {
+			throw new UnsupportedOperationException();
+		}
+		
 	}
 	
-	@Override
-	XlimType createLub(XlimType t1, XlimType t2) {
-		XlimType intT1=promote(t1);
-		XlimType intT2=promote(t2);
-		if (intT1.getSize()>=intT2.getSize())
-			return intT1;
-		else
-			return intT2;
+	static class AttributeAdapter implements XlimAttribute {
+
+		private Node mNode;
+				
+		public AttributeAdapter(Node node) {
+			mNode = node;
+		}
+
+		public String getAttributeName() {
+			return mNode.getLocalName();
+		}
+
+		public String getAttributeValue() {
+			return mNode.getNodeValue();
+		}	
 	}
 }
+

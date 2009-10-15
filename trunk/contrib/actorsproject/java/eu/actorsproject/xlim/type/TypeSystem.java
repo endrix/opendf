@@ -39,10 +39,9 @@ package eu.actorsproject.xlim.type;
 
 import java.util.HashMap;
 
-import org.w3c.dom.NamedNodeMap;
-
 import eu.actorsproject.xlim.XlimType;
 import eu.actorsproject.xlim.XlimTypeKind;
+import eu.actorsproject.xlim.io.XlimAttributeList;
 
 /**
  * Container for all type kinds, types and type conversions
@@ -169,7 +168,7 @@ public class TypeSystem implements TypeFactory {
 	}
 	
 	@Override
-	public XlimType create(String typeName, NamedNodeMap attributes) {
+	public XlimType create(String typeName, XlimAttributeList attributes) {
 		TypeKind kind=getTypeKind(typeName);
 		return kind.createTypeFromAttributes(attributes);
 	}

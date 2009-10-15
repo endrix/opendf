@@ -37,8 +37,6 @@
 
 package eu.actorsproject.xlim.io;
 
-import org.w3c.dom.NamedNodeMap;
-
 import eu.actorsproject.xlim.XlimFactory;
 import eu.actorsproject.xlim.XlimOperation;
 import eu.actorsproject.xlim.XlimType;
@@ -53,15 +51,15 @@ public interface ReaderPlugIn {
 	 * Sets the attributes of an operation that are given by "attributes" and that are
 	 * representable in the particular implementation of XlimOperation
 	 * @param op          Operation
-	 * @param attributes  DOM representation of attributes
+	 * @param attributes  list of attributes
 	 * @param context     Reader context, which provides look-up of ports, tasks and sources
 	 */
-	void setAttributes(XlimOperation op, NamedNodeMap attributes, ReaderContext context);
+	void setAttributes(XlimOperation op, XlimAttributeList attributes, ReaderContext context);
 	
 	/**
 	 * @param typeName     typeName attribute
-	 * @param attributes   DOM representation of possible additional attributes (e.g. "size").
+	 * @param attributes   list of possible additional attributes (e.g. "size").
 	 * @return             XlimType corresponding to "typeName" and additional attributes
 	 */
-	XlimType getType(String typeName, NamedNodeMap attributes);
+	XlimType getType(String typeName, XlimAttributeList attributes);
 }

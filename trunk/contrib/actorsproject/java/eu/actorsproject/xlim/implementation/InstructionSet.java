@@ -41,11 +41,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import org.w3c.dom.NamedNodeMap;
-
 import eu.actorsproject.xlim.XlimOperation;
 import eu.actorsproject.xlim.XlimOutputPort;
 import eu.actorsproject.xlim.XlimSource;
+import eu.actorsproject.xlim.io.XlimAttributeList;
 import eu.actorsproject.xlim.io.ReaderContext;
 
 public class InstructionSet implements OperationFactory {
@@ -89,7 +88,7 @@ public class InstructionSet implements OperationFactory {
 			return null;  // No operation 'name'
 	} 
 	
-	public void setAttributes(XlimOperation xlimOp, NamedNodeMap attributes, ReaderContext context) {
+	public void setAttributes(XlimOperation xlimOp, XlimAttributeList attributes, ReaderContext context) {
 		assert(xlimOp instanceof Operation);
 		Operation op=(Operation) xlimOp;
 		op.setAttributes(attributes, context);
