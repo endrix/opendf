@@ -43,7 +43,7 @@ public class UnmodifiableList<T> implements Iterable<T> {
 
 	protected Linkage<T> mHead;
 	
-	public UnmodifiableList(Linkage<T> head) {
+	protected UnmodifiableList(Linkage<T> head) {
 		mHead = head;
 	}
 	

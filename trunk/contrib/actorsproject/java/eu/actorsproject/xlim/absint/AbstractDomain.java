@@ -38,21 +38,67 @@
 package eu.actorsproject.xlim.absint;
 
 import eu.actorsproject.xlim.XlimOperation;
+import eu.actorsproject.xlim.XlimPhiNode;
 import eu.actorsproject.xlim.XlimStateCarrier;
-import eu.actorsproject.xlim.dependence.PhiOperator;
-import eu.actorsproject.xlim.dependence.ValueNode;
+import eu.actorsproject.xlim.XlimType;
+import eu.actorsproject.xlim.dependence.StatePhiOperator;
 
 public interface AbstractDomain<T> {
 	
-	T getNullValue();
-
-	T join(T in1, T in2);
+	/**
+	 * @param type
+	 * @return the abstract respresentation of all possible values of 'type'
+	 */
+	T getUniverse(XlimType type);
 	
-	T evaluate(ValueNode output,
-			   XlimOperation operation,
-			   Context<T> context);
+	/**
+	 * @param constant A constant value (as String)
+	 * @param type     A type
+	 * @return         The abstraction of the constant in this domain
+	 */
+	T getAbstractValue(String constant, XlimType type);
+		
+	/**
+	 * @param aValue   An abstract value of the domain
+	 * @param type     a type
+	 * @return         the restriction of 'aValue' to 'type'
+	 *                 (e.g. a narrower integer type)
+	 *                 
+	 * This method is used to ensure that the output of an operation/phi-node
+	 * is restricted to the type of its output port
+	 */
+	T restrict(T aValue, XlimType type);
 	
-	T evaluate(PhiOperator phi, Context<T> context);
+	/**
+	 * Evaluates an XLIM operation in the given context
+	 * 
+	 * @param operation
+	 * @param context    a mapping from value nodes to abstract values
+	 * @return true iff the context was updated
+	 */
+	boolean evaluate(XlimOperation operation, Context<T> context);
 	
+	/**
+	 * Evaluates a phi-operator in the given context
+	 * 
+	 * @param phi        a phi-operator
+	 * @param context    a mapping from value nodes to abstract values
+	 * @return true iff the context was updated
+	 */
+	boolean evaluate(StatePhiOperator phi, Context<T> context);
+	
+	/**
+	 * Evaluates a phi-operator in the given context
+	 * 
+	 * @param phi        a phi-operator
+	 * @param context    a mapping from value nodes to abstract values
+	 * @return true iff the context was updated
+	 */
+	boolean evaluate(XlimPhiNode phi, Context<T> context);
+		
+	/**
+	 * @param carrier  a state variable or an actor port
+	 * @return         the abstraction of the initial value of 'carrier'
+	 */
 	T initialState(XlimStateCarrier carrier);
 }

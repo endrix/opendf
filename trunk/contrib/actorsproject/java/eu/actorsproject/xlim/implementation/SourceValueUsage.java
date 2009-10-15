@@ -39,6 +39,7 @@ package eu.actorsproject.xlim.implementation;
 
 import eu.actorsproject.xlim.XlimSource;
 import eu.actorsproject.xlim.XlimStateCarrier;
+import eu.actorsproject.xlim.XlimStateVar;
 import eu.actorsproject.xlim.dependence.ValueNode;
 import eu.actorsproject.xlim.dependence.ValueOperator;
 import eu.actorsproject.xlim.dependence.ValueUsage;
@@ -79,5 +80,19 @@ class SourceValueUsage extends ValueUsage {
 	
 	public XlimSource getSource() {
 		return mSource;
+	}
+	
+	@Override
+	public String getAttributeDefinitions() {
+		XlimStateVar stateVar=mSource.isStateVar();
+		String source="source=\"" + mSource.getUniqueId() + "\"";
+		
+		if (stateVar!=null) {
+			String sourceName=stateVar.getSourceName();
+			if (sourceName!=null)
+				return "name=\"" + sourceName + "\" " + source;
+		}
+		
+		return source; 
 	}
 }

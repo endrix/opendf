@@ -39,8 +39,10 @@ package eu.actorsproject.xlim.dependence;
 
 import eu.actorsproject.xlim.XlimModule;
 import eu.actorsproject.xlim.XlimOperation;
+import eu.actorsproject.xlim.absint.AbstractDomain;
+import eu.actorsproject.xlim.absint.Context;
 
-public interface ValueOperator {
+public interface ValueOperator extends DependenceComponent {
 	/**
 	 * @return the ValueUsages of this operator
 	 * 
@@ -91,6 +93,15 @@ public interface ValueOperator {
 	}
 	
 	<Result,Arg> Result accept(Visitor<Result,Arg> evaluator, Arg arg);
+
+	/**
+	 * @param context  a mapping from value nodes to abstract values
+	 * @param domain   a domain, in which XlimOperations and phi-nodes
+	 *                 can be evaluated
+	 * @return true iff context was updated
+	 */
+	@Override
+	<T> boolean evaluate(Context<T> context, AbstractDomain<T> domain);
 	
 	/**
 	 * @return textual representation of operator (for printouts)

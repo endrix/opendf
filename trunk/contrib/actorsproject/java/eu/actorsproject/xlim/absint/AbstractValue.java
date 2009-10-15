@@ -37,43 +37,44 @@
 
 package eu.actorsproject.xlim.absint;
 
-import eu.actorsproject.xlim.XlimType;
+import eu.actorsproject.util.XmlElement;
 
 /**
  * AbstractValue is the requirements placed on an abstract value by OperationEvaluator
  * -the primitives needed to do abstract interpretation of CAL operations.
  * @param <T> is intended to be the abstract value itself
  */
-public interface AbstractValue<T> {
+public interface AbstractValue<T> extends XmlElement {
 
 	/**
-	 * @return the abstract value represented by this object (typically the object itself)
+	 * @return the actual abstract value (i.e. an instance of T)
+	 * 
+	 * This allows the abstract methods to be declared as taking T arguments
+	 * (rather than AbstractValue<T> which would require any other implementation
+	 * to be handled as well). Note that there is no similar technicality associated
+	 * with return values, since an overridden method may have a *more* specific
+	 * return type (e.g. T in this case -provided T implements AbstractValue<T>).
 	 */
 	T getAbstractValue();
-
-	/**
-	 * @return the abstract value used in initialization
-	 * The following invariant must hold: union(x,getNullValue()) == x
-	 */
-	T getNullValue();
 	
 	/**
 	 * @param type
 	 * @return the abstract value that represents all values of the given type
 	 */
-	T getUniverse(XlimType type);
+	// AbstractValue<T> getUniverse(XlimType type);
 	
 	/**
 	 * @param constant
+	 * @param type     the type of the constant
 	 * @return the abstract value that represents the constant
 	 */
-	T getAbstractValue(String constant);	
+	// AbstractValue<T> getAbstractValue(String constant, XlimType type);	
 
 	/**
 	 * @param constant
 	 * @return true if the abstract value may represent ("contain") the constant
 	 */
-	boolean contains(long constant);
+	boolean mayContain(long constant);
 
 	/**
 	 * @param obj
@@ -94,27 +95,39 @@ public interface AbstractValue<T> {
 	 * union() is used as confluence operator at joining flow paths,
 	 * that is the result of two joining values is aValue1.union(aValue2)
 	 */
-	T union(T aValue);
+	AbstractValue<T> union(T aValue);
+	
+	/**
+	 * @param aValue
+	 * @return the intersection of this abstract value and aValue
+	 */
+	AbstractValue<T> intersect(T aValue);
+	
+	/**
+	 * @return true if the abstract value is "empty" 
+	 *         (corresponds to no concrete values)
+	 */
+	boolean isEmpty();
 	
 	/*
 	 * Effect of arithmetic operators:
 	 */
 	
-	T add(T aValue);
-	T subtract(T aValue);
-	T multiply(T aValue);
-	T divide(T aValue);
-	T shiftLeft(T aValue);
-	T shiftRight(T aValue);
-	T and(T aValue);
-	T or(T aValue);
-	T xor(T aValue);
-	T equalsOperator(T aValue);
-	T lessThanOperator(T aValue);
+	AbstractValue<T> add(T aValue);
+	AbstractValue<T> subtract(T aValue);
+	AbstractValue<T> multiply(T aValue);
+	AbstractValue<T> divide(T aValue);
+	AbstractValue<T> shiftLeft(T aValue);
+	AbstractValue<T> shiftRight(T aValue);
+	AbstractValue<T> and(T aValue);
+	AbstractValue<T> or(T aValue);
+	AbstractValue<T> xor(T aValue);
+	AbstractValue<T> equalsOperator(T aValue);
+	AbstractValue<T> lessThanOperator(T aValue);
 	
-	T negate();
-	T not();
-	T logicalComplement();
-	T signExtend(int fromBit);
-	T zeroExtend(int fromWidth);
+	AbstractValue<T> negate();
+	AbstractValue<T> not();
+	AbstractValue<T> logicalComplement();
+	AbstractValue<T> signExtend(int fromBit);
+	AbstractValue<T> zeroExtend(int fromWidth);
 }

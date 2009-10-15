@@ -41,9 +41,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 import eu.actorsproject.util.Linkage;
+import eu.actorsproject.util.XmlElement;
 import eu.actorsproject.xlim.XlimModule;
 import eu.actorsproject.xlim.XlimPhiContainerModule;
 import eu.actorsproject.xlim.XlimStateCarrier;
+import eu.actorsproject.xlim.absint.AbstractDomain;
+import eu.actorsproject.xlim.absint.Context;
 
 public class StatePhiOperator extends Linkage<StatePhiOperator> implements PhiOperator {
 
@@ -154,6 +157,11 @@ public class StatePhiOperator extends Linkage<StatePhiOperator> implements PhiOp
 	}
 
 	@Override
+	public <T> boolean evaluate(Context<T> context, AbstractDomain<T> domain) {
+		return domain.evaluate(this, context);
+	}
+
+	@Override
 	public String getOperatorName() {
 		return "state-phi";
 	}
@@ -178,6 +186,25 @@ public class StatePhiOperator extends Linkage<StatePhiOperator> implements PhiOp
 		       mInputs.get(1).getValue().getUniqueId() + ctrlDep + ")";	
 	}
 	
+	
+	@Override
+	public String getTagName() {
+		return "state-phi";
+	}
+
+	@Override
+	public Iterable<? extends XmlElement> getChildren() {
+		ArrayList<XmlElement> children=new ArrayList<XmlElement>(3);
+		children.add(mInputs.get(0));
+		children.add(mInputs.get(1));
+		children.add(mOutput);
+		return children;
+	}
+
+	@Override
+	public String getAttributeDefinitions() {
+		return "";
+	}
 	
 	/* implementation of Linkage */
 	public StatePhiOperator getElement() {

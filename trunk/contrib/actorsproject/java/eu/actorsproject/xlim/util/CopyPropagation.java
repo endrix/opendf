@@ -108,11 +108,13 @@ public class CopyPropagation extends XlimTraversal<Object,Object> {
 		private boolean checkSource(XlimSource source, XlimType resultT) {
 			XlimType sourceT=source.getSourceType();
 
+			// FIXME: shouldn't we copy other types as well, at least when unparameterized/identical
 			return source.isOutputPort()!=null
 			       && sourceT.isInteger()==resultT.isInteger()
 			       && sourceT.getSize()<=resultT.getSize();
 		}
 		
+		@Override
 		public void removeCopy(XlimOperation op) {
 			XlimOutputPort oldPort=op.getOutputPort(0);
 			XlimOutputPort newPort=op.getInputPort(0).getSource().isOutputPort();

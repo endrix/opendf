@@ -35,72 +35,38 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package eu.actorsproject.xlim.decision;
+package eu.actorsproject.xlim.dependence;
 
-import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.List;
 
-import eu.actorsproject.xlim.XlimTopLevelPort;
+import eu.actorsproject.xlim.absint.AbstractDomain;
+import eu.actorsproject.xlim.absint.Context;
 
 /**
- * Represents a blocking condition: pinAvail(port)>=N1 or ... or pinAvail(port_k)>=N_k,
- * which is used as the attribute of the "yield" operation.
- * 
- * The condition is necessary (but not always sufficient) for further
- * action firings: it is thus not useful to execute the action scheduler
- * until the condition is satisfied.
- * The special case of an empty blocking condition (k=0) signifies actor
- * termination -it should be interpreted as no amount of available tokens
- * will enable action firing.
+ * Represents a DependenceComponent with cyclic dependences
  */
-public class YieldAttribute implements Iterable<BlockingCondition> {
-	private ArrayList<BlockingCondition> mChildren=
-		new ArrayList<BlockingCondition>();
+public class StronglyConnectedComponent extends SequenceComponent {
+
+	public StronglyConnectedComponent(List<DependenceComponent> sequence) {
+		super(sequence);
+	}
 
 	@Override
-	public Iterator<BlockingCondition> iterator() {
-		return mChildren.iterator();
-	}
-	
-	public void add(BlockingCondition cond) {
-		// Insert blocking conditions ordered (to facilitate hashCode/equals)
-		int N=mChildren.size();
-		int i=0;
-		while (i<N && cond.compareTo(mChildren.get(i))>0)
-			++i;
+	public <T> boolean evaluate(Context<T> context, AbstractDomain<T> domain) {
+		boolean changed=super.evaluate(context, domain);
+		boolean stable=changed;
 		
-		if (i<N) {
-			// We don't want multiple blocking conditions on the same port
-			assert(cond.getPort()!=mChildren.get(i).getPort());
-			
-			// Insert new blocking condition at 'i'
-			while (i<N) {
-				BlockingCondition temp=mChildren.get(i);
-				mChildren.set(i, cond);
-				cond=temp;
-				++i;
-			}
+		// Iterate until stable
+		while (!stable) {
+			// TODO: widening...
+			stable=super.evaluate(context, domain);
 		}
 		
-		mChildren.add(cond);
-	}
-	
-	public int size() {
-		return mChildren.size();
-	}
-	
-	public boolean willNeverUnblock() {
-		return mChildren.isEmpty();
+		return changed;
 	}
 	
 	@Override
-	public boolean equals(Object o) {
-		return (o instanceof YieldAttribute 
-				&& mChildren.equals(((YieldAttribute) o).mChildren));
-	}
-	
-	@Override
-	public int hashCode() {
-		return mChildren.hashCode();
+	public String getTagName() {
+		return "StronglyConnectedComponent";
 	}
 }

@@ -39,9 +39,12 @@ package eu.actorsproject.xlim.implementation;
 
 import java.util.Collections;
 
+import eu.actorsproject.util.XmlElement;
 import eu.actorsproject.xlim.XlimModule;
 import eu.actorsproject.xlim.XlimSource;
 import eu.actorsproject.xlim.XlimTestModule;
+import eu.actorsproject.xlim.absint.AbstractDomain;
+import eu.actorsproject.xlim.absint.Context;
 import eu.actorsproject.xlim.dependence.FixupContext;
 import eu.actorsproject.xlim.dependence.TestOperator;
 import eu.actorsproject.xlim.dependence.ValueNode;
@@ -179,6 +182,26 @@ class TestModule extends ContainerModule implements XlimTestModule {
 		@Override
 		public <Result, Arg> Result accept(Visitor<Result, Arg> visitor, Arg arg) {
 			return visitor.visitTest(this, arg);
+		}
+
+		public <T> boolean evaluate(Context<T> context, AbstractDomain<T> domain) {
+			// The TestOperator is a sink, which doesn't produce any values
+			return false;
+		}
+		
+		@Override
+		public String getTagName() {
+			return "test";
+		}
+
+		@Override
+		public Iterable<? extends XmlElement> getChildren() {
+			return Collections.singletonList(mDecision);
+		}
+
+		@Override
+		public String getAttributeDefinitions() {
+			return "";
 		}
 	}
 }

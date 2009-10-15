@@ -37,8 +37,6 @@
 
 package eu.actorsproject.xlim.absint;
 
-import eu.actorsproject.xlim.dependence.PhiOperator;
-
 public interface WideningOperator<T> {
 
 	/**
@@ -48,8 +46,7 @@ public interface WideningOperator<T> {
 	 * to make very tall latices (such as Interval) practical in
 	 * the context of cyclic dependences. 
 	 * @param abstractValue the abstract value of a phi-operator
-	 * @param phi           phi-operator that causes a cycle in the dependence graph.
 	 * @return widened abstract value
 	 */
-	T widen(T abstractValue, PhiOperator phi);
+	T widen(T abstractValue);
 }

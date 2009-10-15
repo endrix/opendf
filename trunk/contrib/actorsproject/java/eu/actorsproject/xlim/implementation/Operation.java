@@ -51,6 +51,8 @@ import eu.actorsproject.xlim.XlimSource;
 import eu.actorsproject.xlim.XlimStateVar;
 import eu.actorsproject.xlim.XlimTaskModule;
 import eu.actorsproject.xlim.XlimTopLevelPort;
+import eu.actorsproject.xlim.absint.AbstractDomain;
+import eu.actorsproject.xlim.absint.Context;
 import eu.actorsproject.xlim.dependence.CallSite;
 import eu.actorsproject.xlim.dependence.FixupContext;
 import eu.actorsproject.xlim.dependence.InputValueIteration;
@@ -385,6 +387,11 @@ class Operation extends Linkage<AbstractBlockElement>
 	@Override
 	public <Result, Arg> Result accept(ValueOperator.Visitor<Result, Arg> visitor, Arg arg) {
 		return visitor.visitOperation(this, arg);
+	}
+
+	@Override
+	public <T> boolean evaluate(Context<T> context, AbstractDomain<T> domain) {
+		return domain.evaluate(this, context);
 	}
 	
 	@Override

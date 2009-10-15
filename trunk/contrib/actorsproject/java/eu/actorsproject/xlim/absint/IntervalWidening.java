@@ -35,25 +35,23 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package eu.actorsproject.xlim.util;
+package eu.actorsproject.xlim.absint;
 
 import java.util.TreeSet;
 
-import eu.actorsproject.xlim.absint.WideningOperator;
-import eu.actorsproject.xlim.dependence.PhiOperator;
+import eu.actorsproject.xlim.XlimType;
 
 
 public class IntervalWidening implements WideningOperator<Interval> {
 
 	private TreeSet<Long> mPoints;
 	
-	public IntervalWidening() {
+	public IntervalWidening(XlimType type) {
 		mPoints=new TreeSet<Long>();
-		mPoints.add(Long.MIN_VALUE);
 	}
-	
+		
 	@Override
-	public Interval widen(Interval abstractValue, PhiOperator phi) {
+	public Interval widen(Interval abstractValue) {
 		if (abstractValue.isEmpty())
 			return Interval.empty;
 		else {
@@ -67,19 +65,18 @@ public class IntervalWidening implements WideningOperator<Interval> {
 			}
 			else {
 				Long wHi=mPoints.higher(hi);
-				if (wHi==null)
-					hi=Long.MAX_VALUE;
-				else
-					hi=wHi-1;
-				lo=mPoints.floor(lo);
+				hi=(wHi==null)? Long.MAX_VALUE : wHi-1;
+				
+				Long wLo=mPoints.floor(lo);
+				lo=(wLo==null)? Long.MIN_VALUE : wLo;
+			
 				
 				// No need to widen past the bounds of the type
-				/*
-				XlimOutputPort port=phi.getOutputPort(0);
-				XlimType type=port.getType();
-				lo=Math.max(lo,type.minValue());
-				hi=Math.min(hi,type.maxValue());
-				*/
+				// if (mType!=null) {
+				//	 lo=Math.max(lo,mType.minValue());
+				//	 hi=Math.min(hi,mType.maxValue());
+				// }
+				
 				return abstractValue.create(lo,hi);
 			}
 		}
@@ -118,10 +115,8 @@ public class IntervalWidening implements WideningOperator<Interval> {
 	public String toString() {
 		String result="(-Inf";
 		for (long x: mPoints) {
-			if (x!=Long.MIN_VALUE) {
-				result += "," + (x-1) + "] ";
-				result += "[" + x;
-			}
+			result += "," + (x-1) + "] ";
+			result += "[" + x;
 		}
 		return result + ",+Inf)";
 	}

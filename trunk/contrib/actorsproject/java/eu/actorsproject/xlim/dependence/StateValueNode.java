@@ -37,6 +37,15 @@
 
 package eu.actorsproject.xlim.dependence;
 
+import java.util.Collections;
+
+import eu.actorsproject.util.XmlElement;
+import eu.actorsproject.xlim.XlimInitValue;
+import eu.actorsproject.xlim.XlimStateCarrier;
+import eu.actorsproject.xlim.XlimStateVar;
+import eu.actorsproject.xlim.XlimTopLevelPort;
+import eu.actorsproject.xlim.XlimType;
+
 /**
  * StateValueNode node is the common base of value nodes that represent state
  * (ports and state variables)
@@ -57,5 +66,59 @@ public abstract class StateValueNode extends ValueNode {
 	@Override
 	public String getUniqueId() {
 		return "v"+mUniqueId; 
-	}	
+	}
+	
+	@Override
+	public XlimType getScalarType() {
+		XlimStateCarrier carrier=getStateCarrier();
+		XlimTopLevelPort port=carrier.isPort();
+		if (port!=null)
+			return port.getType();
+		else {
+			XlimStateVar stateVar=carrier.isStateVar();
+			XlimInitValue initValue=stateVar.getInitValue();
+			return initValue.getScalarType();
+		}
+	}
+	
+	@Override
+	public XlimType getCommonElementType() {
+		XlimStateCarrier carrier=getStateCarrier();
+		XlimTopLevelPort port=carrier.isPort();
+		if (port!=null)
+			return port.getType();
+		else {
+			XlimStateVar stateVar=carrier.isStateVar();
+			XlimInitValue initValue=stateVar.getInitValue();
+			return initValue.getCommonElementType();
+		}
+	}
+
+	@Override
+	public String getTagName() {
+		return "StateValueNode";
+	}
+	
+	@Override
+	public String getAttributeDefinitions() {
+		XlimStateCarrier carrier=getStateCarrier();
+		String name=carrier.getSourceName();
+		String source="";
+		
+		if (name!=null)
+			name = " name=\"" + name + "\"";
+		else
+			name="";
+		
+		XlimStateVar stateVar=carrier.isStateVar();
+		if (stateVar!=null)
+			source = " source=\"" + stateVar.getUniqueId() + "\"";
+		
+		return "valueId=\"" + getUniqueId() + "\"" + name + source;
+	}
+
+	@Override
+	public Iterable<? extends XmlElement> getChildren() {
+		return Collections.emptyList();
+	}
 }

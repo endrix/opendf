@@ -53,6 +53,10 @@ public class IntrusiveList<T> extends UnmodifiableList<T> {
 		link.precede(mHead);
 	}
 
+	public void moveAll(IntrusiveList<T> list) {
+		mHead.moveAll(list.mHead.getNext(), list.mHead);	
+	}
+		
 	@Override
 	public Iterator<T> iterator() {
 		return new ForwardIteratorWithRemove();

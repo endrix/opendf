@@ -86,4 +86,26 @@ public abstract class Linkage<T> {
 	public void follow(Linkage<T> link) {
 		precede(link.mNext);
 	}
+	
+	/**
+	 * Moves a range [start,end) of linkage elements out of
+	 * their current list into, and preceding, this linkage
+	 * 
+	 * @param start  linkage, denoting the start of a range
+	 * @param end    linkage, denoting the end (non-inclusive) 
+	 */
+	public void moveAll(Linkage<T> start, Linkage<T> end) {
+		if (start!=end) {
+			// "cut" the range
+			Linkage<T> last=end.mPrev;
+			end.mPrev=start.mPrev;
+			start.mPrev.mNext=end;
+
+			// "paste" it so that it precedes this linkage
+			last.mNext=this;
+			start.mPrev=mPrev;
+			mPrev.mNext=start;
+			mPrev=last;
+		}
+	}
 }

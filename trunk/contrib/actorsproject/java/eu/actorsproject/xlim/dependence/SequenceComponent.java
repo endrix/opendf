@@ -35,44 +35,57 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package eu.actorsproject.cli;
+package eu.actorsproject.xlim.dependence;
 
-import java.io.PrintStream;
+import java.util.List;
 
-
-import eu.actorsproject.xlim.XlimDesign;
-import eu.actorsproject.xlim.util.XlimVisualPrinter;
+import eu.actorsproject.util.XmlElement;
+import eu.actorsproject.xlim.absint.AbstractDomain;
+import eu.actorsproject.xlim.absint.Context;
 
 /**
- * Translates an XLIM file into "human readable form".
- * The idea is to (unlike Xlim2c) reflect the exact contents 
- * of all elements, but present it in a format that is easier
- * to read than XML.
- * 
- * Usage: XlimVisual input-file.xlim [optional-output-file.xlim]
- * 
- * System.out is used when no output file is specified
+ * Represents a sequence of (evaluatable) DependenceComponents
  */
-public class XlimVisual extends XlimNorm {
+public class SequenceComponent implements DependenceComponent {
 
-	@Override
-	protected void generateOutput(XlimDesign design, PrintStream output) {
-		XlimVisualPrinter printer=new XlimVisualPrinter(output);
-	    printer.printDesign(design);
-    }
+	private List<DependenceComponent> mSequence;
+	private String mName;
 	
-	@Override
-	protected void printHelp() {
-		String myName=getClass().getSimpleName();
-		System.out.println("\nUsage: "+myName+" input-file.xlim [optional-output-file.xlim]");
-		System.out.println("\nTranslates XLIM into \"human readable\" form");
-		System.out.println("stdout is used unless an output file is specified\n");
+	public SequenceComponent(List<DependenceComponent> sequence, String name) {
+		mSequence=sequence;
+		mName=name;
 	}
 	
-	public static void main(String[] args) {
-		XlimVisual compilerSession=new XlimVisual();
-		compilerSession.runFromCommandLine(args);
-		if (compilerSession.mHasErrors)
-			System.exit(1);
+	public SequenceComponent(List<DependenceComponent> sequence) {
+		mSequence=sequence;
+	}
+
+	public <T> boolean evaluate(Context<T> context, AbstractDomain<T> domain) {
+		boolean changed=false;
+		
+		// Evaluate each of the value operators and keep track of changes
+		for (DependenceComponent component: mSequence)
+			if (component.evaluate(context,domain))
+				changed=true;
+
+		return changed;
+	}
+	
+	@Override
+	public String getTagName() {
+		return "SequenceComponent";
+	}
+	
+	@Override
+	public String getAttributeDefinitions() {
+		if (mName!=null)
+			return "name=\"" + mName + "\"";
+		else
+			return "";
+	}
+
+	@Override
+	public Iterable<? extends XmlElement> getChildren() {
+		return mSequence;
 	}
 }

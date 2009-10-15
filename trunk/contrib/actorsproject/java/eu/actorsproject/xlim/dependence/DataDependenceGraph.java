@@ -38,6 +38,7 @@
 package eu.actorsproject.xlim.dependence;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -82,6 +83,13 @@ public class DataDependenceGraph {
 	}
 
 	/**
+	 * @return the collection of all input values
+	 */
+	public Collection<ValueNode> getInputValues() {
+		return mInputValues.values();
+	}
+	
+	/**
 	 * @param carrier, a port or a state variable
 	 * @return the node in this graph that represents the final value
 	 *         of carrier (null if not accessed in this graph, the initial
@@ -94,7 +102,18 @@ public class DataDependenceGraph {
 		else
 			return mInputValues.get(carrier);
 	}
-		
+	
+	/**
+	 * @return Collection of all modified output values
+	 *         (input values that remain unchanged are not included)
+	 */
+	public Collection<ValueNode> getModifiedOutputValues() {
+		ArrayList<ValueNode> outputs=new ArrayList<ValueNode>();
+		for (ValueUsage usage: mOutputValues.values())
+			outputs.add(usage.getValue());
+		return outputs;
+	}
+	
 	public void resolveExposedUses(FixupContext context) {
 		if (mInputValues==null) {
 			// First time: allocate initial values and resolve exposed uses

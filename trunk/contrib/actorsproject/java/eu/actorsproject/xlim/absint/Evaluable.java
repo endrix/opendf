@@ -35,68 +35,18 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package eu.actorsproject.xlim.decision;
-
-import java.util.Collections;
-
-import eu.actorsproject.util.Pair;
-import eu.actorsproject.util.XmlElement;
-import eu.actorsproject.xlim.XlimTopLevelPort;
+package eu.actorsproject.xlim.absint;
 
 /**
- * Represents a blocking condition: pinAvail(port) >= N
+ * Represents pieces of code that are "evaluable".
+ * Implementations in: ValueOperator, ProgramSlice
  */
-public class BlockingCondition extends Pair<XlimTopLevelPort,Integer> 
-                               implements XmlElement, Comparable<BlockingCondition> {
-
-	public BlockingCondition(XlimTopLevelPort port, int tokenCount) {
-		super(port,tokenCount);
-	}
-	
-	public BlockingCondition(AvailabilityTest failedTest) {
-		super(failedTest.getPort(), failedTest.getTokenCount());
-	}
-			
-	public XlimTopLevelPort getPort() {
-		return mFirst;
-	}
-	
-	public int getTokenCount() {
-		return mSecond;
-	}
-	
-	@Override
-	public String getTagName() {
-		return "pinWait";
-	}
-
-	@Override
-	public int compareTo(BlockingCondition otherCond) {
-		// First compare port directions (inputs < outputs)
-		XlimTopLevelPort.Direction thisDir=getPort().getDirection();
-		XlimTopLevelPort.Direction otherDir=otherCond.getPort().getDirection();
-		int result=thisDir.compareTo(otherDir);
-		
-		if (result==0) {
-			// Second, compare port names
-			String thisPortName=getPort().getSourceName();
-			String otherPortName=otherCond.getPort().getSourceName();
-			result=thisPortName.compareTo(otherPortName);
-			
-			// Third, compare token counts
-			if (result==0)
-				result=getTokenCount()-otherCond.getTokenCount();
-		}
-		return result;
-	}
-	
-	@Override
-	public Iterable<? extends XmlElement> getChildren() {
-		return Collections.emptyList();
-	}
-	
-	@Override
-	public String getAttributeDefinitions() {
-		return "portName=\""+getPort().getSourceName()+"\" size=\""+getTokenCount()+"\"";
-	}
+public interface Evaluable {
+	/**
+	 * @param context  a mapping from value nodes to abstract values
+	 * @param domain   a domain, in which XlimOperations and phi-nodes
+	 *                 can be evaluated
+	 * @return true iff context was updated
+	 */
+	<T> boolean evaluate(Context<T> context, AbstractDomain<T> domain);
 }

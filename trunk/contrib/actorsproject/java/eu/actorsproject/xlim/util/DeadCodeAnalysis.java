@@ -68,9 +68,8 @@ public class DeadCodeAnalysis {
 		}
 		workList.formClosure();
 		return result;
-	}	
+	}
 }
-
 
 
 class UsefulCodeResult extends DeadCodePlugIn {

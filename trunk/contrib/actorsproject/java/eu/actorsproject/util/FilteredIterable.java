@@ -35,44 +35,65 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package eu.actorsproject.cli;
+package eu.actorsproject.util;
 
-import java.io.PrintStream;
-
-
-import eu.actorsproject.xlim.XlimDesign;
-import eu.actorsproject.xlim.util.XlimVisualPrinter;
+import java.util.Iterator;
 
 /**
- * Translates an XLIM file into "human readable form".
- * The idea is to (unlike Xlim2c) reflect the exact contents 
- * of all elements, but present it in a format that is easier
- * to read than XML.
- * 
- * Usage: XlimVisual input-file.xlim [optional-output-file.xlim]
- * 
- * System.out is used when no output file is specified
+ * An Iterable object, which is based on another Iterable
+ * with an added filter
  */
-public class XlimVisual extends XlimNorm {
+public abstract class FilteredIterable<T> implements Iterable<T> {
 
-	@Override
-	protected void generateOutput(XlimDesign design, PrintStream output) {
-		XlimVisualPrinter printer=new XlimVisualPrinter(output);
-	    printer.printDesign(design);
-    }
+	Iterable<? extends T> mUnfiltered;
 	
-	@Override
-	protected void printHelp() {
-		String myName=getClass().getSimpleName();
-		System.out.println("\nUsage: "+myName+" input-file.xlim [optional-output-file.xlim]");
-		System.out.println("\nTranslates XLIM into \"human readable\" form");
-		System.out.println("stdout is used unless an output file is specified\n");
+	public FilteredIterable(Iterable<? extends T> unfiltered) {
+		mUnfiltered=unfiltered;
 	}
 	
-	public static void main(String[] args) {
-		XlimVisual compilerSession=new XlimVisual();
-		compilerSession.runFromCommandLine(args);
-		if (compilerSession.mHasErrors)
-			System.exit(1);
+	public Iterator<T> iterator() {
+		return new FilteredIterator();
+	}
+	
+	/**
+	 * @param element  an element, which is returned from the iterator
+	 * @return         true if the element is to be included in the
+	 *                 filtered iteration
+	 */
+	protected abstract boolean include(T element);
+	
+	private class FilteredIterator implements Iterator<T> {
+	
+		private Iterator<? extends T> mUnfilteredIterator;
+		private T mLookAhead;
+		
+		FilteredIterator() {
+			mUnfilteredIterator=mUnfiltered.iterator();
+			mLookAhead=lookAhead();
+		}
+		
+		T lookAhead() {
+			while (mUnfilteredIterator.hasNext()) {
+				T next=mUnfilteredIterator.next();
+				if (include(next))
+					return next;
+			}
+			return null;
+		}
+		
+		public boolean hasNext() {
+			return mLookAhead!=null;
+		}
+
+		public T next() {
+			T result=mLookAhead;
+			mLookAhead=lookAhead();
+			return result;
+		}
+
+		public void remove() {
+			// last "unfiltered" next() is not the last "filtered" next
+			throw new UnsupportedOperationException();
+		}
 	}
 }

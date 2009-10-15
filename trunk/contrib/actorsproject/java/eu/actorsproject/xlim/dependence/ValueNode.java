@@ -38,9 +38,11 @@
 package eu.actorsproject.xlim.dependence;
 
 import eu.actorsproject.util.IntrusiveList;
+import eu.actorsproject.util.XmlElement;
 import eu.actorsproject.xlim.XlimStateCarrier;
+import eu.actorsproject.xlim.XlimType;
 
-public abstract class ValueNode {
+public abstract class ValueNode implements XmlElement {
 
 	private IntrusiveList<ValueUsage> mUses=new IntrusiveList<ValueUsage>();
 
@@ -91,6 +93,18 @@ public abstract class ValueNode {
 	 *         by this usage (null for values that correspond to OutputPorts)
 	 */
 	public abstract XlimStateCarrier getStateCarrier();
+	
+	/**
+	 * @return type of scalar value, null for aggregate values
+	 */
+	public abstract XlimType getScalarType();
+	
+	/**
+	 * @return the unique element type of an scalar/array/matrix kind of initializer,
+	 *         that is a multi-dimensional structure with a consistent element type,
+	 *         null for structures (records?) with varying element types.
+	 */
+	public abstract XlimType getCommonElementType();
 	
 	/**
 	 * @return the dominating definition, which is superseded by this ValueNode

@@ -48,6 +48,7 @@ import eu.actorsproject.xlim.XlimOutputPort;
 import eu.actorsproject.xlim.XlimSource;
 import eu.actorsproject.xlim.XlimTaskModule;
 import eu.actorsproject.xlim.XlimTestModule;
+import eu.actorsproject.xlim.dependence.ValueNode;
 import eu.actorsproject.xlim.util.InstructionPattern;
 import eu.actorsproject.xlim.util.OperationHandler;
 import eu.actorsproject.xlim.util.OperationPlugIn;
@@ -68,14 +69,27 @@ public class ActionSchedulerParser {
 		mConditionParser=new ConditionPlugIn();
 	}
 	
+	/**
+	 * @param  actionScheduler
+	 * @return the decision tree representation of an action scheduler
+	 */
 	public DecisionTree parseXlim(XlimTaskModule actionScheduler) {
-		XlimLoopModule infiniteLoop=null;
+		XlimLoopModule schedulingLoop=findSchedulingLoop(actionScheduler);
+		
+		if (schedulingLoop==null)
+			error();
+		
+		return parseDecisionTree(schedulingLoop.getBodyModule());
+	}
+
+	public XlimLoopModule findSchedulingLoop(XlimTaskModule actionScheduler) {
+		XlimLoopModule schedulingLoop=null;
 		
 		for (XlimBlockElement child: actionScheduler.getChildren()) {
 			switch (mClassifier.classify(child)) {
 			case LoopModule:
-				if (infiniteLoop==null)
-					infiniteLoop=(XlimLoopModule) child;
+				if (schedulingLoop==null)
+					schedulingLoop=(XlimLoopModule) child;
 				else
 					error();
 				break;
@@ -86,11 +100,8 @@ public class ActionSchedulerParser {
 			}
 		}
 		
-		if (infiniteLoop==null)
-			error();
-		return parseDecisionTree(infiniteLoop.getBodyModule());
+		return schedulingLoop;
 	}
-	
 	
 	private void error() {
 		throw new IllegalStateException("Unable to parse action scheduler");
@@ -107,7 +118,8 @@ public class ActionSchedulerParser {
 			
 			XlimTestModule testModule=ifModule.getTestModule();
 			XlimSource decision=testModule.getDecision();
-			Condition cond=mConditionParser.parse(testModule, decision);
+			ValueNode value=testModule.getValueUsage().getValue();
+			Condition cond=mConditionParser.parse(decision, value);
 			return new DecisionNode(ifModule, cond, ifTrue, ifFalse);
 		}
 		else
@@ -117,7 +129,6 @@ public class ActionSchedulerParser {
 	private DecisionTree parseDecisionTree(XlimContainerModule module) {
 		DecisionTree root=null;
 		boolean foundAction=false;
-		
 		for (XlimBlockElement child: module.getChildren()) {
 			switch (mClassifier.classify(child)) {
 			case BlockModule:
@@ -194,19 +205,15 @@ public class ActionSchedulerParser {
 			return true;
 		}
 
-		Condition parseCondition(XlimContainerModule container,
-				                 XlimSource decision, 
-				                 XlimOperation op) {
-			return new Condition(container, decision);			
+		Condition parseCondition(XlimOperation op, XlimOutputPort output) {
+			return new AtomicCondition(output, output.getValue());			
 		}
 	}
 
 	private class PinStatusHandler extends ConditionHandler {
 		@Override
-		Condition parseCondition(XlimContainerModule container,
-                                 XlimSource decision, 
-                                 XlimOperation op) {
-			return new AvailabilityTest(container, decision, op.getPortAttribute(), 1);			
+		Condition parseCondition(XlimOperation op, XlimOutputPort output) {
+			return new AvailabilityTest(output, op, 1);			
 		}
 	}
 	
@@ -223,30 +230,25 @@ public class ActionSchedulerParser {
 		}	
 		
 		@Override
-		Condition parseCondition(XlimContainerModule container,
-                                 XlimSource decision, 
-                                 XlimOperation op) {
+		Condition parseCondition(XlimOperation op, XlimOutputPort output) {
 			// Knowing that the pattern matches, we simply get the pinAvail and $literal_Integer
-			XlimOutputPort root=op.getOutputPort(0);
-			XlimOperation pinAvail=mPattern.getOperand(0, root).isOperation();
-			XlimOperation literal=mPattern.getOperand(1, root).isOperation();
+			XlimOperation pinAvail=mPattern.getOperand(0, output).isOperation();
+			XlimOperation literal=mPattern.getOperand(1, output).isOperation();
 			long numTokens=literal.getIntegerValueAttribute();
-			return new AvailabilityTest(container, 
-					                    decision, 
-					                    pinAvail.getPortAttribute(), 
-					                    (int) numTokens);			
+			return new AvailabilityTest(output, pinAvail, (int) numTokens);			
 		}
 	}
 	
 	private class ConjunctionHandler extends ConditionHandler {
 		@Override
-		Condition parseCondition(XlimContainerModule container,
-                                 XlimSource decision, 
-                                 XlimOperation op) {
-			Conjunction result=new Conjunction(container, decision);
+		Condition parseCondition(XlimOperation op,
+				                 XlimOutputPort output) {
+			Conjunction result=new Conjunction(output);
 			// Parse the inputs of the $and operator 
 			for (XlimInputPort input: op.getInputPorts()) {
-				Condition cond=mConditionParser.parse(container, input.getSource());
+				XlimSource src=input.getSource();
+				ValueNode value=input.getValue();
+				Condition cond=mConditionParser.parse(src, value);
 			    cond.addTo(result);
 			}
 			return result;			
@@ -264,16 +266,16 @@ public class ActionSchedulerParser {
 			registerHandler("$ge", new PinAvailHandler());
 		}
 		
-		public Condition parse(XlimContainerModule container, XlimSource cond) {
-			XlimOutputPort port=cond.isOutputPort();
+		public Condition parse(XlimSource src, ValueNode value) {
+			XlimOutputPort port=src.isOutputPort();
 			if (port!=null) {
 				XlimOperation op=port.getParent().isOperation();
 				if (op!=null) {
 					ConditionHandler handler=getOperationHandler(op);
-					return handler.parseCondition(container, cond, op);
+					return handler.parseCondition(op, port);
 				}
 			}
-			return new Condition(container, cond);
+			return new AtomicCondition(src, value);
 		}
 	}
 }
