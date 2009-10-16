@@ -171,9 +171,13 @@ public class XlimReaderWithDiagnostics implements IXlimReader {
 			
 			if (typeName!=null) {
 				XlimAttributeList attributes=element.getAttributes();
-				type=mPlugIn.getType(typeName,attributes);
-				if (type==null)
-					reportError(element, "Unsupported or incomplete type: typeName=\""+typeName+"\"");
+				try {
+				    type=mPlugIn.getType(typeName,attributes);
+				    if (type==null)
+						reportError(element, "Unsupported or incomplete type: typeName=\""+typeName+"\"");
+				} catch (RuntimeException ex) {
+					reportError(element, ex.getMessage());
+				}
 			}
 			return type;
 		}
