@@ -1,0 +1,242 @@
+/* -*-Java-*- */                                         
+
+/*
+ * Copyright (C) 2009  Anders Nilsson <anders.nilsson@cs.lth.se>
+ *                                                              
+ * This file is part of Actors model compiler.                      
+ */                                                             
+
+import java.io.PrintStream;
+import java.io.FileReader;
+import java.util.HashSet;
+
+
+aspect SSR {
+
+	void ASTNode.genSSR(java.io.PrintStream out) {
+		
+	}
+
+	public void Start.genSSR(java.io.PrintStream out) {
+		getSpecification().genSSR(out);
+	}
+
+	void Specification.genSSR(java.io.PrintStream out) {
+		
+	}
+
+}
+
+aspect SDF {
+	syn boolean Instance.isSDF() = xlimInstance().isSDF();
+
+	syn lazy xlimAST.Start Instance.xlimInstance() {
+		try {
+ 			System.out.println("Trying to open: "+name());
+			xlimAST.XmlParser parser = new xlimAST.XmlParser(new FileReader(name()+".xlim"));
+			return parser.Start();
+		} catch (Exception e) {
+			System.out.println( name()+".xlim not found");
+ 			e.printStackTrace();
+			return new xlimAST.EmptyStart();
+		}
+	}
+}
+
+aspect StaticSchedule {
+	public Instance Instance.next;
+	public Instance Instance.prev;
+
+
+	syn HashSet<Instance> ASTNode.genStaticSchedule(HashSet<Instance> l) = l;
+	eq Start.genStaticSchedule(HashSet<Instance> l) = getSpecification().genStaticSchedule(l);
+	eq Specification.genStaticSchedule(HashSet<Instance> l) {
+		for (int i=0; i<getNumElement(); i++) {
+			l = getElement(i).genStaticSchedule(l);
+		}
+		return l;
+	}
+	eq XDF.genStaticSchedule(HashSet<Instance> l) {
+		for (int i=0; i<getNumElement(); i++) {
+			l = getElement(i).genStaticSchedule(l);
+		}
+		return l;		
+	}
+	eq Connection.genStaticSchedule(HashSet<Instance> l) {
+		Instance src = getSource();
+		Instance dest = getDest();
+		if (dest.isSDF() && src.isSDF()) {
+			src.next = dest;
+			dest.prev = src;
+			l.remove(dest);
+		}
+		if (src.prev == null) {
+			l.add(src);
+		}
+		if (dest.prev == null) {
+			l.add(dest);
+		}
+ 		System.out.println(src.name());
+		return l;
+// 		Instance dest = getDest();
+	}
+}
+
+aspect ActorLookup {
+	syn Instance Connection.getSource() = root().getInstance(source());
+	
+	String Connection.source() {
+		for (Attribute a : getAttributes()) {
+			if (a instanceof src) {
+				return fix(a.getAttrValue().getLITERAL());
+			}
+		}
+		return "";
+	}
+
+	void Connection.setSource(String src) {
+		for (Attribute a : getAttributes()) {
+			if (a instanceof src) {
+				a.getAttrValue().setLITERAL(src);
+			}
+		}		
+	}
+
+	syn Instance Connection.getDest() = root().getInstance(dest());
+	
+	String Connection.dest() {
+		for (Attribute a : getAttributes()) {
+			if (a instanceof dst) {
+				return fix(a.getAttrValue().getLITERAL());
+			}
+		}
+		return "";
+	}
+
+	String Connection.dstPort() {
+		for (Attribute a : getAttributes()) {
+			if (a instanceof dst_port) {
+				return fix(a.getAttrValue().getLITERAL());
+			}
+		}
+		return "";
+	}
+	String Connection.srcPort() {
+		for (Attribute a : getAttributes()) {
+			if (a instanceof src_port) {
+				return fix(a.getAttrValue().getLITERAL());
+			}
+		}
+		return "";
+	}
+}
+
+aspect misc {
+	syn XDF ASTNode.root() = getParent().root();
+	eq XDF.root() = this;
+
+	syn Instance ASTNode.getInstance(String s) = null;
+	eq ComplexElement.getInstance(String s) {
+		Instance inst = null;
+		for (Element e : getElements()){
+			inst = e.getInstance(s);
+			if (inst!=null) {
+				return inst;
+			}
+		}
+		return null;
+	}
+	eq Instance.getInstance(String s) {
+// 		System.out.println(name()+" == "+s);
+		if (id().equals(s)) {
+			return this;
+		} else {
+			return super.getInstance(s);
+		}
+	}
+
+	syn String ComplexElement.name() = "";
+	eq Instance.name() = getUIDNote().value();
+
+	Note Instance.getUIDNote() {
+		for (Element e : getElements()) {
+			if (e instanceof Note) {
+// 				System.out.println("Checking "+e.kind());
+				if (e.kind().equals("UID")) {
+// 					System.out.println("  Yes");
+					return (Note) e;
+				}
+			}
+		}
+		return new Note(); // Probably better than returning null
+	}
+
+	void Instance.setName(String s) {
+		getUIDNote().setValue(s);
+	}
+
+	syn String Element.kind() = "";
+	eq Note.kind() {
+		for (Attribute a : getAttributes()) {
+// 			System.out.println("   checking: "+a);
+			if (a.isKind()) {
+// 				System.out.println("    found "+fix(a.getAttrValue().getLITERAL()));
+				return fix(a.getAttrValue().getLITERAL());
+			}
+		}
+		return "";
+	}
+
+	syn boolean Attribute.isKind() = false;
+	eq _kind.isKind() = true;
+
+	syn String Element.value() = "";
+	eq Note.value() {
+		for (Attribute a : getAttributes()) {
+			if (a instanceof _value) {
+				return fix(a.getAttrValue().getLITERAL());
+			}
+		}
+		return "";
+	}
+
+	void Note.setValue(String s) {
+		for (Attribute a : getAttributes()) {
+			if (a instanceof _value) {
+				a.getAttrValue().setLITERAL(unfix(s));
+			}
+		}		
+	}
+
+	syn String ComplexElement.id() = "";
+	eq Instance.id() {
+		for (int i=0; i<getNumAttribute(); i++) {
+			Attribute a = getAttribute(i);
+			if (a instanceof id) {
+				return fix(a.getAttrValue().getLITERAL());
+			}
+		}
+		return "";
+	}
+
+	static String ASTNode.fix(String s) {
+		if (s.indexOf('"') == 0) {
+			return s.substring(1,s.length()-1);
+		}
+		return s;
+	}
+	static String ASTNode.unfix(String s) {
+		if (s.indexOf('"') != 0) {
+			return "\""+s+"\"";
+		}
+		return s;
+	}
+}
+
+
+aspect Fixes {
+	int ASTNode.numChildren;
+	int ASTNode.numChildren() {return jjtGetNumChildren();}
+	int List.getNumNoTransformChild() {return getNumChildNoTransform();}
+	int Opt.getNumChildNoTransfrom() {return getNumChildNoTransform();}
+}

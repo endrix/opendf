@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         point="org.eclipse.ui.contexts">
+      <context
+            description="Debugging Opendf Programs"
+            id="opendf.debugging"
+            name="Debugging Opendf Programs"
+            parentId="org.eclipse.debug.ui.debugging">
+      </context>
+   </extension>
+   <extension
+         point="org.eclipse.debug.ui.debugModelPresentations">
+      <debugModelPresentation
+            class="net.sf.opendf.eclipse.debug.presentation.OpendfModelPresentation"
+            id="net.sf.opendf.eclipse.debug.model">
+      </debugModelPresentation>
+   </extension>
+   <extension
+         point="org.eclipse.debug.core.sourceLocators">
+      <sourceLocator
+            class="net.sf.opendf.eclipse.debug.sourceLookup.CALSourceLookupDirector"
+            id="opendf.CALSourceLocator"
+            name="CAL Source Locator">
+      </sourceLocator>
+   </extension>
+   <extension
+         point="org.eclipse.debug.core.sourcePathComputers">
+      <sourcePathComputer
+            class="net.sf.opendf.eclipse.debug.sourceLookup.CALSourcePathComputerDelegate"
+            id="opendf.CALSourcePathComputer">
+      </sourcePathComputer>
+   </extension>
+   <extension
+         id="net.sf.opendf.eclipse.debug.markerType.lineBreakpoint"
+         name="Actor Line Breakpoint Marker"
+         point="org.eclipse.core.resources.markers">
+      <super type="org.eclipse.debug.core.lineBreakpointMarker"/>
+      <persistent value="true"/>
+   </extension>
+   <extension
+         id="net.sf.opendf.eclipse.debug.markerType.watchBreakpoint"
+         name="Actor Watchpoint Marker"
+         point="org.eclipse.core.resources.markers">
+      <super type="net.sf.opendf.eclipse.debug.markerType.lineBreakpoint"/>
+      <persistent value="true"/>
+   </extension>
+   <extension
+         point="org.eclipse.debug.core.breakpoints">
+      <breakpoint
+            class="net.sf.opendf.eclipse.debug.breakpoints.ActorLineBreakpoint"
+            name="Actor Line Breakpoints"
+            markerType="net.sf.opendf.eclipse.debug.markerType.lineBreakpoint"
+            id="opendf.lineBreakpoint"/>
+      <breakpoint
+            class="net.sf.opendf.eclipse.debug.breakpoints.ActorWatchpoint"
+            name="Actor Watchpoints"
+            markerType="net.sf.opendf.eclipse.debug.markerType.watchBreakpoint"
+            id="opendf.watchpoint"/>
+   </extension>
+   <extension
+         point="org.eclipse.core.runtime.adapters">
+      <factory
+            adaptableType="org.eclipse.ui.texteditor.ITextEditor"
+            class="net.sf.opendf.eclipse.debug.breakpoints.ActorEditorAdapterFactory">
+         <adapter
+               type="org.eclipse.debug.ui.actions.IToggleBreakpointsTarget">
+         </adapter>
+         <adapter
+               type="org.eclipse.debug.ui.actions.IRunToLineTarget">
+         </adapter>
+      </factory>
+   </extension>
+	  <extension
+	        point="org.eclipse.debug.ui.debugModelContextBindings">
+	     <modelContextBinding
+	           contextId="opendf.debugging"
+	           debugModelId="opendf.debugModel"/>
+	  </extension>
+
+</plugin>

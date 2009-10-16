@@ -1,0 +1,608 @@
+/* -*-Java-*- */
+
+options {
+    MULTI                       = true;
+    VISITOR                     = true;
+    NODE_DEFAULT_VOID           = true;
+    NODE_SCOPE_HOOK             = false;
+    NODE_PREFIX                 = "";
+    JAVA_UNICODE_ESCAPE         = true;
+    STATIC                      = false;
+} 
+
+PARSER_BEGIN(XmlParser)
+    package xdfAST;
+    public class XmlParser {
+}
+PARSER_END(XmlParser)
+
+//----------------------------------------------//
+//                LEXICAL TOKENS                //
+//----------------------------------------------//
+<DEFAULT,BOUNDS> SPECIAL_TOKEN : /* WHITE SPACE */
+{
+    " "
+    |
+    "\t"
+    |
+    "\n"
+    |
+    "\r"
+    |
+    "\f"
+}// WHITE SPACE
+
+<DEFAULT,BOUNDS> SPECIAL_TOKEN : /* COMMENTS */ 
+{
+    < "<!--" ( ~["-"] | ( "-" ~["-"] ) )* "-->">
+}// COMMENTS
+
+<DEFAULT> TOKEN : /* Reserved Words */
+{
+   <XML		: "xml">
+ | <DOCTYPE : "DOCTYPE">
+ | <PUBLIC : "PUBLIC">
+ | <encoding		: "encoding">
+ | <version		: "version">
+ | <XsiNoNamespaceSchemaLocation		: "xsi:noNamespaceSchemaLocation">
+ | <XmlnsXsi		: "xmlns:xsi">
+ | <Output		: "Output" >
+ | <Class		: "Class" >
+ | <Op		: "Op" >
+ | <Parameter		: "Parameter" >
+ | <QID		: "QID" >
+ | <_text_end_line		: "text-end-line" >
+ | <Connection		: "Connection" >
+ | <Note		: "Note" >
+ | <_text_begin_line		: "text-begin-line" >
+ | <_name		: "name" >
+ | <from		: "from" >
+ | <Instance		: "Instance" >
+ | <Entry		: "Entry" >
+ | <dst_port		: "dst-port" >
+ | <Guards		: "Guards" >
+ | <src		: "src" >
+ | <_ID		: "ID" >
+ | <Action		: "Action" >
+ | <Import		: "Import" >
+ | <Port		: "Port" >
+ | <literal_kind		: "literal-kind" >
+ | <Transition		: "Transition" >
+ | <assignable		: "assignable" >
+ | <initial_state		: "initial-state" >
+ | <ActionTags		: "ActionTags" >
+ | <Args		: "Args" >
+ | <dst		: "dst" >
+ | <id		: "id" >
+ | <Expr		: "Expr" >
+ | <_port		: "port" >
+ | <_text_begin_col		: "text-begin-col" >
+ | <src_port		: "src-port" >
+ | <_text_end_col		: "text-end-col" >
+ | <_value		: "value" >
+ | <Decl		: "Decl" >
+ | <Input		: "Input" >
+ | <_kind		: "kind" >
+ | <Stmt		: "Stmt" >
+ | <Type		: "Type" >
+ | <XDF		: "XDF" >
+ | <_Attribute		: "Attribute" >
+ | <Schedule		: "Schedule" >
+ | <_to		: "to" >
+ | <Actor		: "Actor" >
+}// Reserved Words
+
+<DEFAULT, BOUNDS> TOKEN : /* LITERALS */
+{
+    < INTEGER_LITERAL:
+        <DECIMAL_LITERAL> (["l","L"])?
+        |
+        <HEX_LITERAL> (["l","L"])?
+        |
+        <OCTAL_LITERAL> (["l","L"])?
+    >
+    |
+    < #DECIMAL_LITERAL: ["1"-"9"] (["0"-"9"])* >
+    |
+    < #HEX_LITERAL: "0" ["x","X"] (["0"-"9","a"-"f","A"-"F"])+ >
+    |
+    < #OCTAL_LITERAL: "0" (["0"-"7"])* >
+    |
+    < FLOAT_LITERAL:
+        (["0"-"9"])+ "." (["0"-"9"])* (<EXPONENT>)? (["f","F","d","D"])?
+        |
+        "." (["0"-"9"])+ (<EXPONENT>)? (["f","F","d","D"])?
+        |
+        (["0"-"9"])+ <EXPONENT> (["f","F","d","D"])?
+        |
+        (["0"-"9"])+ (<EXPONENT>)? ["f","F","d","D"]
+    >
+    |
+    < #EXPONENT: ["e","E"] (["+","-"])? (["0"-"9"])+ >
+    |
+    < CHARACTER_LITERAL:
+        "'"
+        (   (~["'","\\","\n","\r"])
+            |
+            ("\\"
+                (   ["n","t","b","r","f","\\","'","\""]
+                    |
+                    ["0"-"7"] ( ["0"-"7"] )?
+                    |
+                    ["0"-"3"] ["0"-"7"] ["0"-"7"]
+                )
+            )
+        )
+        "'"
+    >
+    |
+    < STRING_LITERAL:
+        ("\""
+        (   (~["\"","\n","\r"])
+        )*
+        "\"")
+       | ("\'"
+        (   (~["\'","\n","\r"])
+        )*
+        "\'")
+    >
+}// LITERALS
+<DEFAULT, BOUNDS> TOKEN : /* IDENTIFIERS */
+{
+    < IDENTIFIER: <LETTER> (<LETTER>|<DIGIT>|"-")* >
+    |
+    < #LETTER:
+        [
+        "\u0024",
+        "\u0041"-"\u005a",
+        "\u005f",
+        "\u0061"-"\u007a",
+        "\u00c0"-"\u00d6",
+        "\u00d8"-"\u00f6",
+        "\u00f8"-"\u00ff",
+        "\u0100"-"\u1fff",
+        "\u3040"-"\u318f",
+        "\u3300"-"\u337f",
+        "\u3400"-"\u3d2d",
+        "\u4e00"-"\u9fff",
+        "\uf900"-"\ufaff"
+        ]
+    >
+    |
+    < #DIGIT:
+        [
+        "\u0030"-"\u0039",
+        "\u0660"-"\u0669",
+        "\u06f0"-"\u06f9",
+        "\u0966"-"\u096f",
+        "\u09e6"-"\u09ef",
+        "\u0a66"-"\u0a6f",
+        "\u0ae6"-"\u0aef",
+        "\u0b66"-"\u0b6f",
+        "\u0be7"-"\u0bef",
+        "\u0c66"-"\u0c6f",
+        "\u0ce6"-"\u0cef",
+        "\u0d66"-"\u0d6f",
+        "\u0e50"-"\u0e59",
+        "\u0ed0"-"\u0ed9",
+        "\u1040"-"\u1049"
+        ]
+    >
+}// IDENTIFIERS
+<DEFAULT,BOUNDS> TOKEN : /* SEPARATORS */
+{
+     < LBRACE               : "{"    >
+    | < RBRACE               : "}"    >
+    | < LBRACKET             : "["    >
+    | < RBRACKET             : "]"    >
+    | < SEMICOLON            : ";"    >
+    | < LTSLASH              : "</"    > : DEFAULT
+    | < LTBANG               : "<!"    > : DEFAULT
+    | < LT                   : "<"    > : DEFAULT
+    | < LTQ                  : "<?"    > : DEFAULT
+    | < GT                   : ">"    > : BOUNDS
+    | < QGT                  : "?>"    > : BOUNDS
+}// SEPARATORS
+<DEFAULT,BOUNDS> TOKEN : /* OPERATORS */
+{
+      < ASSIGN               : "="    >
+}// OPERATORS
+Start Start() #Start : {}
+{
+  Specification()
+  { return jjtThis; }
+}
+
+void Specification() #Specification : {}
+{
+  XmlHeader()
+  ( [DocType()] ) #Opt(true)
+  ElementList()
+}
+
+void DocType() #DocType : {String s;}
+{
+  <LTBANG>
+  {
+		s = new String();
+		if (getToken(1).kind != GT ) {
+		   s += getData();
+        } 
+  }       
+     {jjtThis.setSTRING(s);}
+}
+
+JAVACODE
+String getData() {
+	StringBuffer s = new StringBuffer();
+//     jjtThis.someData = true;
+    while ((getToken(1)).kind != LT && (getToken(1)).kind != LTSLASH) {
+		Token t = getNextToken();
+		if (t.specialToken != null) {
+			Token tmp_t = t.specialToken;
+			while (tmp_t.specialToken != null) {
+				tmp_t = tmp_t.specialToken;
+			}
+			while (tmp_t != null) {
+				s.append(tmp_t.image);
+				tmp_t = tmp_t.next;
+			}
+		}
+		s.append(t.image);
+       s.append(" ");
+	}
+	return s.toString();
+}
+
+void XmlHeader() #XmlHeader : {}
+{
+  <LTQ> <XML> AttributeList() <QGT>
+}
+
+void ElementList() #List : {}
+{
+  (Element())*
+}
+
+void AttributeList() #List : {}
+{
+  (LOOKAHEAD(2) Attribute())*
+}
+
+void AttrValue() #AttrValue : { Token t; }
+{
+    t = <STRING_LITERAL>
+        {jjtThis.setLITERAL(t.image);}
+}
+
+void Encoding() #Encoding : {}
+{
+  <encoding> "=" AttrValue()
+}
+
+void Version() #Version : {}
+{
+  <version> "=" AttrValue()
+}
+
+void XsiNoNamespaceSchemaLocation() #XsiNoNamespaceSchemaLocation : {}
+{
+  <XsiNoNamespaceSchemaLocation> "=" AttrValue()
+}
+
+void XmlnsXsi() #XmlnsXsi : {}
+{
+  <XmlnsXsi> "=" AttrValue()
+}
+
+void Element()  : {}
+{
+ ( <LT> (
+  ActionTags()
+  | Stmt()
+  | _Attribute()
+  | Action()
+  | QID()
+  | Transition()
+  | Output()
+  | Parameter()
+  | XDF()
+  | Args()
+  | Entry()
+  | Expr()
+  | Note()
+  | Guards()
+  | Actor()
+  | Decl()
+  | _ID()
+  | Type()
+  | Import()
+  | Op()
+  | Port()
+  | Input()
+  | Class()
+  | Schedule()
+  | Connection()
+  | Instance()
+  | __DefaultElement__() 
+ )) 
+ | SimpleElement()
+}
+
+void SimpleElement() : {}
+{
+    IntElement()
+	| FloatElement()
+  	| StringElement()
+}
+
+void IntElement() #IntElement : { Token t; }
+{
+    t = <INTEGER_LITERAL>
+	{jjtThis.setLITERAL(t.image);}
+}
+
+void FloatElement() #FloatElement : { Token t; }
+{
+    t = <FLOAT_LITERAL>
+	{jjtThis.setLITERAL(t.image);}
+}
+
+void StringElement() #StringElement : { Token t;String s; }
+{
+	t = <IDENTIFIER>
+	{
+		s = t.image;
+		if (getToken(1).kind != GT ) {
+		s += getData();
+	}
+	}
+        {jjtThis.setLITERAL(s);}
+}
+void __DefaultElement__() #__DefaultElement__ : { Token t;String s; }
+{
+	t = <IDENTIFIER> AttributeList()
+ 	(">" ElementList() "</" <IDENTIFIER> ">" | ElementList() "/>")
+	{
+		s = t.image;
+		if (getToken(1).kind != GT ) {
+		s += getData();
+	}
+	}
+        {jjtThis.setTAG(s);}
+}
+void Attribute()  : {}
+{
+  Encoding()
+ | Version()
+ | XsiNoNamespaceSchemaLocation()
+ | XmlnsXsi()
+  | _to()
+  | literal_kind()
+  | src()
+  | _kind()
+  | _text_begin_col()
+  | _port()
+  | dst_port()
+  | initial_state()
+  | id()
+  | _value()
+  | from()
+  | _text_end_line()
+  | _text_end_col()
+  | src_port()
+  | assignable()
+  | _text_begin_line()
+  | dst()
+  | _name()
+  | __DefaultAttribute__() 
+  
+}
+
+void __DefaultAttribute__() # __DefaultAttribute__ : {Token t;}
+{
+  t=<IDENTIFIER> "=" AttrValue()
+        {jjtThis.setNAME(t.image);}
+}
+void Output() #Output : {}
+{
+   <Output> AttributeList()
+  ( <GT> ElementList()  "</" <Output>  ">" | ElementList() "/>" )
+}
+void Class() #Class : {}
+{
+   <Class> AttributeList()
+  ( <GT> ElementList()  "</" <Class>  ">" | ElementList() "/>" )
+}
+void Op() #Op : {}
+{
+   <Op> AttributeList()
+  ( <GT> ElementList()  "</" <Op>  ">" | ElementList() "/>" )
+}
+void Parameter() #Parameter : {}
+{
+   <Parameter> AttributeList()
+  ( <GT> ElementList()  "</" <Parameter>  ">" | ElementList() "/>" )
+}
+void QID() #QID : {}
+{
+   <QID> AttributeList()
+  ( <GT> ElementList()  "</" <QID>  ">" | ElementList() "/>" )
+}
+void _text_end_line() #_text_end_line : {}
+{
+  <_text_end_line> "=" AttrValue()
+}
+void Connection() #Connection : {}
+{
+   <Connection> AttributeList()
+  ( <GT> ElementList()  "</" <Connection>  ">" | ElementList() "/>" )
+}
+void Note() #Note : {}
+{
+   <Note> AttributeList()
+  ( <GT> ElementList()  "</" <Note>  ">" | ElementList() "/>" )
+}
+void _text_begin_line() #_text_begin_line : {}
+{
+  <_text_begin_line> "=" AttrValue()
+}
+void _name() #_name : {}
+{
+  <_name> "=" AttrValue()
+}
+void from() #from : {}
+{
+  <from> "=" AttrValue()
+}
+void Instance() #Instance : {}
+{
+   <Instance> AttributeList()
+  ( <GT> ElementList()  "</" <Instance>  ">" | ElementList() "/>" )
+}
+void Entry() #Entry : {}
+{
+   <Entry> AttributeList()
+  ( <GT> ElementList()  "</" <Entry>  ">" | ElementList() "/>" )
+}
+void dst_port() #dst_port : {}
+{
+  <dst_port> "=" AttrValue()
+}
+void Guards() #Guards : {}
+{
+   <Guards> AttributeList()
+  ( <GT> ElementList()  "</" <Guards>  ">" | ElementList() "/>" )
+}
+void src() #src : {}
+{
+  <src> "=" AttrValue()
+}
+void _ID() #_ID : {}
+{
+   <_ID> AttributeList()
+  ( <GT> ElementList()  "</" <_ID>  ">" | ElementList() "/>" )
+}
+void Action() #Action : {}
+{
+   <Action> AttributeList()
+  ( <GT> ElementList()  "</" <Action>  ">" | ElementList() "/>" )
+}
+void Import() #Import : {}
+{
+   <Import> AttributeList()
+  ( <GT> ElementList()  "</" <Import>  ">" | ElementList() "/>" )
+}
+void Port() #Port : {}
+{
+   <Port> AttributeList()
+  ( <GT> ElementList()  "</" <Port>  ">" | ElementList() "/>" )
+}
+void literal_kind() #literal_kind : {}
+{
+  <literal_kind> "=" AttrValue()
+}
+void Transition() #Transition : {}
+{
+   <Transition> AttributeList()
+  ( <GT> ElementList()  "</" <Transition>  ">" | ElementList() "/>" )
+}
+void assignable() #assignable : {}
+{
+  <assignable> "=" AttrValue()
+}
+void initial_state() #initial_state : {}
+{
+  <initial_state> "=" AttrValue()
+}
+void ActionTags() #ActionTags : {}
+{
+   <ActionTags> AttributeList()
+  ( <GT> ElementList()  "</" <ActionTags>  ">" | ElementList() "/>" )
+}
+void Args() #Args : {}
+{
+   <Args> AttributeList()
+  ( <GT> ElementList()  "</" <Args>  ">" | ElementList() "/>" )
+}
+void dst() #dst : {}
+{
+  <dst> "=" AttrValue()
+}
+void id() #id : {}
+{
+  <id> "=" AttrValue()
+}
+void Expr() #Expr : {}
+{
+   <Expr> AttributeList()
+  ( <GT> ElementList()  "</" <Expr>  ">" | ElementList() "/>" )
+}
+void _port() #_port : {}
+{
+  <_port> "=" AttrValue()
+}
+void _text_begin_col() #_text_begin_col : {}
+{
+  <_text_begin_col> "=" AttrValue()
+}
+void src_port() #src_port : {}
+{
+  <src_port> "=" AttrValue()
+}
+void _text_end_col() #_text_end_col : {}
+{
+  <_text_end_col> "=" AttrValue()
+}
+void _value() #_value : {}
+{
+  <_value> "=" AttrValue()
+}
+void Decl() #Decl : {}
+{
+   <Decl> AttributeList()
+  ( <GT> ElementList()  "</" <Decl>  ">" | ElementList() "/>" )
+}
+void Input() #Input : {}
+{
+   <Input> AttributeList()
+  ( <GT> ElementList()  "</" <Input>  ">" | ElementList() "/>" )
+}
+void _kind() #_kind : {}
+{
+  <_kind> "=" AttrValue()
+}
+void Stmt() #Stmt : {}
+{
+   <Stmt> AttributeList()
+  ( <GT> ElementList()  "</" <Stmt>  ">" | ElementList() "/>" )
+}
+void Type() #Type : {}
+{
+   <Type> AttributeList()
+  ( <GT> ElementList()  "</" <Type>  ">" | ElementList() "/>" )
+}
+void XDF() #XDF : {}
+{
+   <XDF> AttributeList()
+  ( <GT> ElementList()  "</" <XDF>  ">" | ElementList() "/>" )
+}
+void _Attribute() #_Attribute : {}
+{
+   <_Attribute> AttributeList()
+  ( <GT> ElementList()  "</" <_Attribute>  ">" | ElementList() "/>" )
+}
+void Schedule() #Schedule : {}
+{
+   <Schedule> AttributeList()
+  ( <GT> ElementList()  "</" <Schedule>  ">" | ElementList() "/>" )
+}
+void _to() #_to : {}
+{
+  <_to> "=" AttrValue()
+}
+void Actor() #Actor : {}
+{
+   <Actor> AttributeList()
+  ( <GT> ElementList()  "</" <Actor>  ">" | ElementList() "/>" )
+}

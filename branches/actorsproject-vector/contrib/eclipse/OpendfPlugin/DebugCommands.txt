@@ -1,0 +1,63 @@
+// Eclipse debugger commands
+//
+// These commands are sent via a socket connection to an execution platform
+//
+// An execution platform may be the opendf interpreter or a C code implementation of an actor network.
+//
+// Version 1.0 23 March 2009
+// Author  Robert Esser
+
+
+
+
+
+// control
+
+	 step N - single step forward in component N; 
+	   reply is ok | nok
+	   
+	 suspend N - suspend execution of component N;
+	   reply is ok
+	   
+	 resume N - resume execution of component N; 
+	   reply is ok
+
+     exit - terminate execution
+       reply is ok
+
+// variables
+
+	 getvar N F M - return the contents of variable M in function F of component N;
+	   reply is variable value
+
+	 setvar N F M V - set the contents of variable M in function F of component N to value V; 
+	   reply is ok
+
+	 watch N V K - set a watchpoint on variable V in component N to the kind K;
+	   the kind K corresponds to read | write | readwrite | clear;
+	   reply is ok
+	   
+	 stack N - return the current stack frame for component N;
+	   reply is control stack from oldest to newest as a single string
+	   frame#frame#frame...#frame where each frame is a string
+	   "fileName|componentName|function name|location|variable name|variable name|...|variable name"
+	   
+
+// status
+
+   getComponents
+     reply is componentName|componentName|componentName....
+
+   getComponentStatus N - return the status of component N
+     reply guardName gx|guardName gx|..... where
+     gx = insufficientTokens | incorrectState | insufficientPriority | enabled 
+     for each action whether or not it has an explicit guard
+
+// breakpoints
+
+	 clear N L - clear the breakpoint in component N on line L;
+	   reply is ok | nok
+
+	 set N L - set a line breakpoint in component N on line L (lines are indexed from 0); 
+	   reply is ok | nok
+
