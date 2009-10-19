@@ -71,6 +71,7 @@ import eu.actorsproject.xlim.XlimType;
 import eu.actorsproject.xlim.XlimOperation;
 import eu.actorsproject.xlim.XlimInstruction;
 import eu.actorsproject.xlim.XlimOutputPort;
+import eu.actorsproject.xlim.XlimTypeKind;
 import eu.actorsproject.xlim.util.Session;
 
 public class XlimReader implements IXlimReader {
@@ -335,11 +336,22 @@ public class XlimReader implements IXlimReader {
 	
 	protected XlimType getType(Element domElement) {
 		String typeName=getRequiredAttribute("typeName",domElement);
-		XlimAttributeList attributes=new DomAttributeList(domElement);
-		XlimType type=mPlugIn.getType(typeName,attributes);
-		if (type==null)
-			throw new RuntimeException("Unsupported or incomplete type: typeName=\""+typeName+"\"");
-		return type;
+		XlimTypeKind typeKind=mPlugIn.getTypeKind(typeName);
+		
+		if (typeKind!=null) {
+			String sizeAttribute=getAttribute("size", domElement);
+			if (sizeAttribute!=null) {
+				// Special fix for legacy "int" type with "size" attribute
+				int size=Integer.valueOf(sizeAttribute);
+				return typeKind.createType(size);
+			}
+			else {
+				return typeKind.createType();
+			}
+		}
+		else {
+			throw new RuntimeException("Unsupported type: typeName=\""+typeName+"\"");
+		}
 	}
 	
 	protected abstract class PassPlugin<Arg1,Arg2> {

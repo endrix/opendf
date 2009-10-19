@@ -38,8 +38,10 @@
 package eu.actorsproject.xlim.type;
 
 import java.util.HashMap;
+import java.util.List;
+
 import eu.actorsproject.xlim.XlimType;
-import eu.actorsproject.xlim.io.XlimAttributeList;
+import eu.actorsproject.xlim.XlimTypeArgument;
 
 public abstract class ParametricTypeKind extends TypeKind {
 	
@@ -52,28 +54,62 @@ public abstract class ParametricTypeKind extends TypeKind {
 
 	@Override
 	public XlimType createType() {
-		throw new UnsupportedOperationException("Type "+getTypeName()+" requires a parameter");
+		throw new UnsupportedOperationException("Type "+getTypeName()+" requires parameter(s)");
 	}
 	
 	@Override
-	public XlimType createType(Object parameter) {
-		XlimType type=mTypeMap.get(parameter);
-		if (type==null) {
-			type=create(parameter);
-			mTypeMap.put(parameter,type);
-		}
-		return type;
+	public XlimType createType(int size) {
+		throw new UnsupportedOperationException("Type "+getTypeName()+" requires parameter(s)");
 	}
 
 	@Override
-	public XlimType createTypeFromAttributes(XlimAttributeList attributes) {
-		Object parameter=getParameter(attributes);
-		if (parameter!=null)
-			return createType(parameter);
-		else
-			return null;
+	public XlimType createType(List<XlimTypeArgument> typeArg) {
+		if (typeArg.isEmpty())
+			return createType();
+		else {
+			Object typeParameter=getParameter(typeArg);
+			if (typeParameter!=null)
+				return createAndCache(typeParameter);
+			else
+				return null;
+		}
 	}
 	
-	protected abstract Object getParameter(XlimAttributeList attributes);
-	protected abstract XlimType create(Object parameter);
+	/**
+	 * @param typeParameter
+	 * @return instanced type, either a fresh instance or a cached one
+	 *         with the same type parameter.
+	 *         
+	 * Updates the map of instantiated types.
+	 */
+	protected XlimType createAndCache(Object typeParameter) {
+		assert(typeParameter!=null);
+		XlimType type=mTypeMap.get(typeParameter);
+		if (type==null) {
+			type=create(typeParameter);
+			mTypeMap.put(typeParameter, type);
+		}
+		return type;
+	}
+	
+	/**
+	 * @param typeArg  list of type arguments
+	 * @return         encoding of type argument record
+	 *                 
+	 * The number of type arguments, their names and values/types is checked
+	 * and an object representing the complete record of arguments is returned.
+	 * The returned object is used in two ways:
+	 * (1) As a look-up in the map of instantiated types (the object should
+	 *     implement equals and hashCode properly -to avoid duplicates)
+	 * (2) As the argument of the create() method, which instantiates the type.
+	 */
+	protected abstract Object getParameter(List<XlimTypeArgument> typeArg);
+	
+	/**
+	 * @param typeParameter
+	 * @return an instantiation of the type, with the given type parameter
+	 * 
+	 * The type parameter is the object that is returned by getParameter
+	 */
+	protected abstract XlimType create(Object typeParameter);
 }

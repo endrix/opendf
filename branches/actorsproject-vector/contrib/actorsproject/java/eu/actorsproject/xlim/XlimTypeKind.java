@@ -37,6 +37,8 @@
 
 package eu.actorsproject.xlim;
 
+import java.util.List;
+
 /**
  * XlimTypeKind groups the type constructor (createType methods) and
  * type conversions of a set of XlimTypes. 
@@ -44,17 +46,32 @@ package eu.actorsproject.xlim;
 public interface XlimTypeKind {
 
 	/**
-	 * @return (unparametric) type (=result of this type kind's type
-	 *         constructor).
+	 * @return (unparametric) type (=result of a nullary type constructor).
+	 * 
+	 * This method fails for parametric type kind (arg->type).
 	 */
 	XlimType createType();
 	
 	/**
 	 * @param param
-	 * @return (parametric) type (=result of this type kind's type
-	 *         constructor applied to 'param').
+	 * @return an instance of a parametric type 
+	 *         (=result of a type constructor applied to 'typeArg').
+	 *         
+	 * Unless 'typeArg' is the empty list, this method fails for unparametric types. 
 	 */
-	XlimType createType(Object param);
+	XlimType createType(List<XlimTypeArgument> typeArg);
+	
+	
+	/**
+	 * @param size
+	 * @return an instance of a type that is either unparameteric or parametric
+	 *         in an int-valued parameter only.
+	 *         
+	 * This method supports legacy XLIM, which doesn't deal with parametric types
+	 * other than int(size), in which also the (unparametric) bool type may have a 
+	 * size attribute in XLIM.
+	 */
+	XlimType createType(int size);
 	
 	/**
 	 * @param kind

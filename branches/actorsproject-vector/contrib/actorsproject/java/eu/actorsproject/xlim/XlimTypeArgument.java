@@ -35,59 +35,38 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package eu.actorsproject.xlim.type;
-
-import java.util.List;
-
-import eu.actorsproject.xlim.XlimOperation;
-import eu.actorsproject.xlim.XlimOutputPort;
-import eu.actorsproject.xlim.XlimSource;
-import eu.actorsproject.xlim.XlimType;
-import eu.actorsproject.xlim.util.Session;
+package eu.actorsproject.xlim;
 
 /**
- * TypeRule, with a single, scalar integer as output
- *
+ * Represents a named argument to a type constructor:
+ * either a type or a (non-type) value
  */
-public abstract class IntegerTypeRule extends TypeRule {
+public interface XlimTypeArgument {
 
-	public IntegerTypeRule(Signature signature) {
-		super(signature);
-	}
+	/**
+	 * @return the name of the type argument
+	 */
+	String getName();
 	
-	@Override
-	public boolean matchesOutputs(List<? extends XlimOutputPort> outputs) {
-		return outputs.size()==1 && outputs.get(0).getType().getTypeName().equals("int");
-	}
+	/**
+	 * @return true if the type argument is a (non-type) value
+	 */
+	boolean isValueParameter();
 	
-	@Override
-	public int defaultNumberOfOutputs() {
-		return 1;
-	}
-	
-	@Override
-	public XlimType defaultOutputType(List<? extends XlimSource> inputs, int i) {
-		assert(i==0);
-		TypeFactory fact=Session.getTypeFactory();
-		TypeKind kind=fact.getTypeKind("int");
-		return kind.createType(defaultWidth(inputs));
-	}
-
-	protected abstract int defaultWidth(List<? extends XlimSource> inputs);
-	
-	@Override
-	public XlimType actualOutputType(XlimOperation op, int i) {
-		assert(i==0);
-		TypeFactory fact=Session.getTypeFactory();
-		TypeKind kind=fact.getTypeKind("int");
-		return kind.createType(actualWidth(op));
-	}
-
-	protected abstract int actualWidth(XlimOperation op);
+	/**
+	 * @return the value of a value paramter (non-type type argument)
+	 * 
+	 * Provided that isValueParameter() returns true, getValue() should
+	 * return a non-null value
+	 */
+	String getValue();
 	
 	
-	@Override
-	protected String outputToString() {
-		return "int";
-	}
+	/**
+	 * @return the type that is bound to a (type) type argument
+	 * 
+	 * Provided that isValueParameter() returns false, getType() should
+	 * return a non-null value
+	 */
+	XlimType getType();
 }

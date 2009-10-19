@@ -37,57 +37,46 @@
 
 package eu.actorsproject.xlim.type;
 
-import java.util.List;
-
-import eu.actorsproject.xlim.XlimOperation;
-import eu.actorsproject.xlim.XlimOutputPort;
-import eu.actorsproject.xlim.XlimSource;
 import eu.actorsproject.xlim.XlimType;
-import eu.actorsproject.xlim.util.Session;
+import eu.actorsproject.xlim.XlimTypeArgument;
 
 /**
- * TypeRule, with a single, scalar integer as output
- *
+ * Represents a named argument to a type constructor:
+ * either a type or a (non-type) value
  */
-public abstract class IntegerTypeRule extends TypeRule {
+public class TypeArgument implements XlimTypeArgument {
 
-	public IntegerTypeRule(Signature signature) {
-		super(signature);
+	private String mName;
+	private XlimType mType;
+	private String mValue;
+	
+	public TypeArgument(String name, XlimType type) {
+		mName=name;
+		mType=type;
 	}
 	
-	@Override
-	public boolean matchesOutputs(List<? extends XlimOutputPort> outputs) {
-		return outputs.size()==1 && outputs.get(0).getType().getTypeName().equals("int");
-	}
-	
-	@Override
-	public int defaultNumberOfOutputs() {
-		return 1;
-	}
-	
-	@Override
-	public XlimType defaultOutputType(List<? extends XlimSource> inputs, int i) {
-		assert(i==0);
-		TypeFactory fact=Session.getTypeFactory();
-		TypeKind kind=fact.getTypeKind("int");
-		return kind.createType(defaultWidth(inputs));
+	public TypeArgument(String name, String value) {
+		mName=name;
+		mValue=value;
 	}
 
-	protected abstract int defaultWidth(List<? extends XlimSource> inputs);
+	@Override
+	public String getName() {
+		return mName;
+	}
 	
 	@Override
-	public XlimType actualOutputType(XlimOperation op, int i) {
-		assert(i==0);
-		TypeFactory fact=Session.getTypeFactory();
-		TypeKind kind=fact.getTypeKind("int");
-		return kind.createType(actualWidth(op));
+	public boolean isValueParameter() {
+		return mValue!=null;
 	}
 
-	protected abstract int actualWidth(XlimOperation op);
-	
-	
 	@Override
-	protected String outputToString() {
-		return "int";
+	public String getValue() {
+		return mValue;
+	}
+		
+	@Override
+	public XlimType getType() {
+		return mType;
 	}
 }

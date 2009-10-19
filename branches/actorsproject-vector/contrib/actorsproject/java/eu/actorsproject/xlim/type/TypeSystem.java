@@ -41,7 +41,6 @@ import java.util.HashMap;
 
 import eu.actorsproject.xlim.XlimType;
 import eu.actorsproject.xlim.XlimTypeKind;
-import eu.actorsproject.xlim.io.XlimAttributeList;
 
 /**
  * Container for all type kinds, types and type conversions
@@ -146,7 +145,8 @@ public class TypeSystem implements TypeFactory {
 	// TODO: replace by create w parameter
 	@Override
 	public XlimType createInteger(int size) {
-		return create("int", size);
+		TypeKind kind=getTypeKind("int");
+		return kind.createType(size);
 	}
 	
 	// TODO: replace by "plain" create
@@ -155,21 +155,10 @@ public class TypeSystem implements TypeFactory {
 		return create("bool");
 	}
 	
+	// TODO: replace by getTypeKind()/TypeKind.create
 	@Override
 	public XlimType create(String typeName) {
 		TypeKind kind=getTypeKind(typeName);
 		return kind.createType();
-	}
-	
-	@Override
-	public XlimType create(String typeName, Object param) {
-		TypeKind kind=getTypeKind(typeName);
-		return kind.createType(param);
-	}
-	
-	@Override
-	public XlimType create(String typeName, XlimAttributeList attributes) {
-		TypeKind kind=getTypeKind(typeName);
-		return kind.createTypeFromAttributes(attributes);
 	}
 }

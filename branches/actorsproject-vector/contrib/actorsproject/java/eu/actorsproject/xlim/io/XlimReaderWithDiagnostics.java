@@ -66,6 +66,7 @@ import eu.actorsproject.xlim.XlimType;
 import eu.actorsproject.xlim.XlimOperation;
 import eu.actorsproject.xlim.XlimInstruction;
 import eu.actorsproject.xlim.XlimOutputPort;
+import eu.actorsproject.xlim.XlimTypeKind;
 import eu.actorsproject.xlim.util.Session;
 
 /**
@@ -166,20 +167,32 @@ public class XlimReaderWithDiagnostics implements IXlimReader {
 		}
 		
 		protected XlimType getType(XlimElement element) {
-			XlimType type=null;
 			String typeName=getRequiredAttribute("typeName", element);
 			
-			if (typeName!=null) {
-				XlimAttributeList attributes=element.getAttributes();
-				try {
-				    type=mPlugIn.getType(typeName,attributes);
-				    if (type==null)
-						reportError(element, "Unsupported or incomplete type: typeName=\""+typeName+"\"");
-				} catch (RuntimeException ex) {
-					reportError(element, ex.getMessage());
+			try {
+				XlimTypeKind typeKind=mPlugIn.getTypeKind(typeName);
+			
+				if (typeKind!=null) {
+					String sizeAttribute=element.getAttributeValue("size");				
+				
+					if (sizeAttribute!=null) {
+						// Special fix for legacy "int" type with "size" attribute
+						int size=Integer.valueOf(sizeAttribute);
+						return typeKind.createType(size);
+					}
+					else {
+						return typeKind.createType();
+					}
 				}
+				else {
+					reportError(element, "Unsupported type: typeName=\""+typeName+"\"");
+				}
+			} catch (RuntimeException ex) {
+				reportError(element, ex.getMessage());
 			}
-			return type;
+			
+			// On error return null type
+			return null;
 		}
 		
 		protected void unhandledTag(XlimElement element) {
