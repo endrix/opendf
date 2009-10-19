@@ -39,6 +39,8 @@ package eu.actorsproject.xlim.io;
 
 import eu.actorsproject.xlim.XlimFactory;
 import eu.actorsproject.xlim.XlimOperation;
+import eu.actorsproject.xlim.XlimType;
+import eu.actorsproject.xlim.XlimTypeArgument;
 import eu.actorsproject.xlim.XlimTypeKind;
 
 public interface ReaderPlugIn {
@@ -61,4 +63,18 @@ public interface ReaderPlugIn {
 	 * @return             TypeKind (of parametric/unparametric type)
 	 */
 	XlimTypeKind getTypeKind(String typeName);
+	
+	/**
+	 * @param name   Name of type argument
+	 * @param value  Value of type argument
+	 * @return       Argument (name=value) of a parametric type/type constructor
+	 */
+	XlimTypeArgument createTypeArgument(String name, String value);
+	
+	/**
+	 * @param name  Name of type argument
+	 * @param type  Type
+	 * @return      Argument (name=type) of a parametric type/type constructor
+	 */
+	XlimTypeArgument createTypeArgument(String name, XlimType type);
 }

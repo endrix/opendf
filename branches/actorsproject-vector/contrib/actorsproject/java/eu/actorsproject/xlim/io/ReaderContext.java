@@ -44,6 +44,7 @@ import eu.actorsproject.xlim.XlimSource;
 import eu.actorsproject.xlim.XlimStateVar;
 import eu.actorsproject.xlim.XlimTaskModule;
 import eu.actorsproject.xlim.XlimTopLevelPort;
+import eu.actorsproject.xlim.XlimType;
 
 
 /**
@@ -53,6 +54,7 @@ public class ReaderContext {
 	protected HashMap<String,XlimTopLevelPort> mTopLevelPorts=new HashMap<String,XlimTopLevelPort>();
 	protected HashMap<String,XlimTaskModule> mTasks=new HashMap<String,XlimTaskModule>();
 	protected HashMap<String,XlimStateVar> mStateVars=new HashMap<String,XlimStateVar>();
+	protected HashMap<String,XlimType> mTypeDefs=new HashMap<String,XlimType>();
 	protected HashMap<String,XlimOutputPort> mOutputPorts;
 	
 	public XlimTopLevelPort getTopLevelPort(String name) {
@@ -80,4 +82,8 @@ public class ReaderContext {
 		else
 			return null;
 	}	
+	
+	public XlimType getTypeDef(String name) {
+		return mTypeDefs.get(name);
+	}
 }

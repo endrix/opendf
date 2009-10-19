@@ -41,6 +41,8 @@ import java.util.ArrayList;
 
 import eu.actorsproject.xlim.XlimFactory;
 import eu.actorsproject.xlim.XlimOperation;
+import eu.actorsproject.xlim.XlimType;
+import eu.actorsproject.xlim.XlimTypeArgument;
 import eu.actorsproject.xlim.XlimTypeKind;
 import eu.actorsproject.xlim.implementation.DefaultXlimFactory;
 import eu.actorsproject.xlim.implementation.InstructionSet;
@@ -48,6 +50,7 @@ import eu.actorsproject.xlim.implementation.OperationFactory;
 import eu.actorsproject.xlim.io.XlimAttributeList;
 import eu.actorsproject.xlim.io.ReaderContext;
 import eu.actorsproject.xlim.io.ReaderPlugIn;
+import eu.actorsproject.xlim.type.TypeArgument;
 import eu.actorsproject.xlim.type.TypeFactory;
 import eu.actorsproject.xlim.type.TypeSystem;
 
@@ -159,6 +162,14 @@ public class Session {
 		@Override
 		public void setAttributes(XlimOperation op, XlimAttributeList attributes, ReaderContext context) {
 			mInstructionSet.setAttributes(op,attributes,context);
+		}
+
+		public XlimTypeArgument createTypeArgument(String name, String value) {
+			return new TypeArgument(name,value);
+		}
+
+		public XlimTypeArgument createTypeArgument(String name, XlimType type) {
+			return new TypeArgument(name,type);
 		}
 	}	
 }

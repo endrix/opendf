@@ -43,6 +43,7 @@ import eu.actorsproject.xlim.XlimOutputPort;
 import eu.actorsproject.xlim.XlimStateVar;
 import eu.actorsproject.xlim.XlimTaskModule;
 import eu.actorsproject.xlim.XlimTopLevelPort;
+import eu.actorsproject.xlim.XlimType;
 
 /**
  * ReaderContext with modifyable contents
@@ -65,6 +66,11 @@ class MutableReaderContext extends ReaderContext {
 	public void addStateVar(String identifier, XlimStateVar stateVar) {
 		if (mStateVars.put(identifier,stateVar)!=null)
 			throw new IllegalArgumentException("Multiple definitions of source "+identifier);
+	}
+	
+	public void addTypeDef(String identifier, XlimType type) {
+		if (mTypeDefs.put(identifier,type)!=null)
+			throw new IllegalArgumentException("Multiple definitions of type "+identifier);
 	}
 	
 	public void enterTask(XlimTaskModule task) {
