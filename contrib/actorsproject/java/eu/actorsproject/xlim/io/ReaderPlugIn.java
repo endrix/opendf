@@ -39,7 +39,7 @@ package eu.actorsproject.xlim.io;
 
 import eu.actorsproject.xlim.XlimFactory;
 import eu.actorsproject.xlim.XlimOperation;
-import eu.actorsproject.xlim.XlimType;
+import eu.actorsproject.xlim.XlimTypeKind;
 
 public interface ReaderPlugIn {
 	/**
@@ -58,8 +58,7 @@ public interface ReaderPlugIn {
 	
 	/**
 	 * @param typeName     typeName attribute
-	 * @param attributes   list of possible additional attributes (e.g. "size").
-	 * @return             XlimType corresponding to "typeName" and additional attributes
+	 * @return             TypeKind (of parametric/unparametric type)
 	 */
-	XlimType getType(String typeName, XlimAttributeList attributes);
+	XlimTypeKind getTypeKind(String typeName);
 }

@@ -41,12 +41,11 @@ import java.util.ArrayList;
 
 import eu.actorsproject.xlim.XlimFactory;
 import eu.actorsproject.xlim.XlimOperation;
-import eu.actorsproject.xlim.XlimType;
+import eu.actorsproject.xlim.XlimTypeKind;
 import eu.actorsproject.xlim.implementation.DefaultXlimFactory;
 import eu.actorsproject.xlim.implementation.InstructionSet;
 import eu.actorsproject.xlim.implementation.OperationFactory;
 import eu.actorsproject.xlim.io.XlimAttributeList;
-import eu.actorsproject.xlim.io.IXlimReader;
 import eu.actorsproject.xlim.io.ReaderContext;
 import eu.actorsproject.xlim.io.ReaderPlugIn;
 import eu.actorsproject.xlim.type.TypeFactory;
@@ -153,8 +152,8 @@ public class Session {
 		}
 
 		@Override
-		public XlimType getType(String typeName, XlimAttributeList attributes) {
-			return mTypeSystem.create(typeName, attributes);
+		public XlimTypeKind getTypeKind(String typeName) {
+			return mTypeSystem.getTypeKind(typeName);
 		}
 
 		@Override
