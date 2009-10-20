@@ -60,8 +60,7 @@ public class ListType implements XlimType {
 
 	@Override
 	public XlimTypeKind getTypeKind() {
-		// TODO Auto-generated method stub
-		return null;
+		return mListTypeCtor;
 	}
 	
 	@Override
@@ -99,6 +98,22 @@ public class ListType implements XlimType {
 	public long minValue() {
 		throw new UnsupportedOperationException("ListType.minValue()");
 	}	
+	
+	@Override
+	public XlimType getTypeParameter(String name) {
+		if (name.equals("type"))
+			return mElementType;
+		else
+			return null;
+	}
+
+	@Override
+	public String getValueParameter(String name) {
+		if (name.equals("size"))
+			return Integer.toString(mNumElements);
+		else
+			return null;
+	}
 	
 	@Override
 	public String toString() {

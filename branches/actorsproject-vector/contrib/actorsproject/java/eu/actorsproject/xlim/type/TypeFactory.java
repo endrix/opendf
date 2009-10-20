@@ -61,4 +61,11 @@ public interface TypeFactory {
 	
 	// TODO: replace by create via getTypeKind
 	XlimType create(String typeName);
+	
+	/**
+	 * @param elementType  type parameter of List (element type)
+	 * @param size         length of List
+	 * @return             the instance List(type,size)
+	 */
+	XlimType createList(XlimType elementType, int size);
 }

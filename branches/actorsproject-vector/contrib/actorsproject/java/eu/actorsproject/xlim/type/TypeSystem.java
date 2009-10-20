@@ -37,9 +37,12 @@
 
 package eu.actorsproject.xlim.type;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import eu.actorsproject.xlim.XlimType;
+import eu.actorsproject.xlim.XlimTypeArgument;
 import eu.actorsproject.xlim.XlimTypeKind;
 
 /**
@@ -160,5 +163,17 @@ public class TypeSystem implements TypeFactory {
 	public XlimType create(String typeName) {
 		TypeKind kind=getTypeKind(typeName);
 		return kind.createType();
+	}
+
+	public XlimType createList(XlimType elementType, int size) {
+		TypeKind listCtor=getTypeKind("List");
+		if (listCtor!=null) {
+			List<XlimTypeArgument> typeArgs=new ArrayList<XlimTypeArgument>(2);
+			typeArgs.add(new TypeArgument("type", elementType));
+			typeArgs.add(new TypeArgument("size", Integer.toString(size)));
+			return listCtor.createType(typeArgs);
+		}
+		else
+			return null;
 	}
 }

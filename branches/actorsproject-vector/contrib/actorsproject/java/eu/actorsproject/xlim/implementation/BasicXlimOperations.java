@@ -83,6 +83,7 @@ public class BasicXlimOperations extends XlimFeature {
 		TypeFactory fact=Session.getTypeFactory();
 		TypeKind intTypeKind=fact.getTypeKind("int");
 		XlimType boolType=fact.create("bool");
+		boolean mayHaveRepeat=true;
 		
 		/*
 		 * Operations found in XLIM spec 1.0 (September 18, 2007)
@@ -90,16 +91,16 @@ public class BasicXlimOperations extends XlimFeature {
 		
 		// pinRead: void -> PortType
 		OperationKind pinRead=new PortOperationKind("pinRead",
-                new PinReadTypeRule(null),
+                new PinReadTypeRule(null, mayHaveRepeat),
                 "portName", 
                 true /* modifies port */, 
                 null /* no size */);
 		s.registerOperation(pinRead);
 		
 		// pinWrite: T -> void, T assignable to port
-		Signature scalarWildCard=new Signature(new WildCardTypePattern());
+		Signature wildCard=new Signature(new WildCardTypePattern());
 		OperationKind pinWrite=new PortOperationKind("pinWrite",
-                new PinWriteTypeRule(scalarWildCard),
+                new PinWriteTypeRule(wildCard, mayHaveRepeat),
                 "portName", 
                 true /* modifies port */, 
                 null /* no size */);
@@ -111,7 +112,7 @@ public class BasicXlimOperations extends XlimFeature {
 		
 		// pinPeek: integer -> PortType
 		OperationKind pinPeek=new PortOperationKind("pinPeek",
-                new PinReadTypeRule(new Signature(intTypeKind)),
+                new PinReadTypeRule(new Signature(intTypeKind), false /* no repeat */),
                 "portName", 
                 false /* doesn't modify port */, 
                 null /* no size */);
