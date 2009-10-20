@@ -451,46 +451,65 @@ public class XlimReaderWithDiagnostics implements IXlimReader {
 		
 		public XlimType readType(XlimElement parent, MutableReaderContext context) {
 			Iterator<XlimElement> pType=parent.getElements().iterator();
+			boolean typeTagFound=false;
 			XlimType result=null;
 			
-			if (pType.hasNext()) {
+			while (pType.hasNext()) {
 				XlimElement typeElement=pType.next();
 				
-				if (getTag(typeElement)==XlimTag.TYPE_TAG) {
-					String typeName=getRequiredAttribute("typeName", typeElement);
-					result=context.getTypeDef(typeName);
-					if (result==null) {
-						List<XlimTypeArgument> typeArguments=new ArrayList<XlimTypeArgument>();
-						processChildren(typeElement,context,typeArguments,null);
-						
-						try {
-						    XlimTypeKind typeKind=mPlugIn.getTypeKind(typeName);
-						    if (typeKind!=null)
-							    result=typeKind.createType(typeArguments);
-						    else
-							    reportError(typeElement, 
-								            "Unsupported type: typeName=\""+typeName+"\"");
-						} catch (RuntimeException ex) {
-							reportError(typeElement, ex.getMessage());
+				if (typeTagFound) {
+					reportWarning(typeElement, 
+						    "Unhandled element <"+typeElement.getTagName()+"> follows <type>");
+				}
+				else if (getTag(typeElement)==XlimTag.TYPE_TAG) {
+					typeTagFound=true;
+					
+					String typeName=getRequiredAttribute("name", typeElement);
+					if (typeName!=null) {
+						result=context.getTypeDef(typeName);
+						if (result!=null) {
+							// it was a typedef: there should be no enclosed elements
+							checkThatEmpty(typeElement);
+						}
+						else {
+							// it was a built-in type name/type constructor: create type
+							List<XlimTypeArgument> typeArguments=new ArrayList<XlimTypeArgument>();
+							processChildren(typeElement,context,typeArguments,null);
+							result=createType(typeElement,typeName,typeArguments);
 						}
 					}
+					// else: no "name" attribute (error already reported)
 				}
-				else {
-					reportError(typeElement, 
-							    "Expected <type> element, found <"+typeElement.getTagName()+">");
-				}
-				
-				// <type> is the only element in both its contexts (typeDef and typePar) 
-				if (pType.hasNext()) {
-					reportWarning(pType.next(),
-							      "Unexpected/unhandled element following <type>");
+				else {					
+					reportWarning(typeElement, 
+							    "Expected <type> element, found unhandled element <"+typeElement.getTagName()+">");
 				}
 			}
-			else {
+			
+			if (typeTagFound==false) {
 				reportError(parent,"Expecting a <type> element");
 			}
 			
 			return result;
+		}
+		
+		
+		private XlimType createType(XlimElement typeElement, 
+				                    String typeName,
+				                    List<XlimTypeArgument> typeArguments) {
+			
+			try {
+				XlimTypeKind typeKind=mPlugIn.getTypeKind(typeName);
+				if (typeKind!=null)
+					return typeKind.createType(typeArguments);
+				else
+					reportError(typeElement, 
+							"Unsupported type: typeName=\""+typeName+"\"");
+			} catch (RuntimeException ex) {
+				reportError(typeElement, ex.getMessage());
+			}
+			
+			return null;
 		}
 		
 		protected void processChild(XlimElement child, 
