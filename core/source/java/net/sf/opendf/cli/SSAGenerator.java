@@ -77,7 +77,8 @@ public class SSAGenerator extends XSLTTransformRunner
     // Cannot cache the transformers as they are returned from the method calls below. 
     private static String[] parserTransforms = {    
         "net/sf/opendf/cal/transforms/CanonicalizePortTags.xslt",
-        "net/sf/opendf/cal/transforms/AddInputTypes.xslt", 
+
+        "net/sf/opendf/cal/transforms/AddInputTypes2.xslt",                  
         "net/sf/opendf/cal/transforms/ReplaceOld.xslt",
 
         //Replace Generators        
