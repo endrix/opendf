@@ -97,4 +97,17 @@ class IntegerType implements XlimType {
 	public boolean isInteger() {
 		return true;
 	}
+	
+	@Override
+	public XlimType getTypeParameter(String name) {
+		return null;
+	}
+
+	@Override
+	public String getValueParameter(String name) {
+		if (name.equals("size"))
+			return Integer.toString(mSize);
+		else
+			return null;
+	}
 }

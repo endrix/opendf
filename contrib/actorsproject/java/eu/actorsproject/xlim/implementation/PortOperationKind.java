@@ -54,6 +54,7 @@ import eu.actorsproject.xlim.dependence.ValueUsage;
 import eu.actorsproject.xlim.io.XlimAttributeList;
 import eu.actorsproject.xlim.io.ReaderContext;
 import eu.actorsproject.xlim.type.Signature;
+import eu.actorsproject.xlim.type.TypeFactory;
 import eu.actorsproject.xlim.type.TypeKind;
 import eu.actorsproject.xlim.type.TypeRule;
 import eu.actorsproject.xlim.type.VoidTypeRule;
@@ -139,23 +140,25 @@ class PortOperationKind extends OperationKind {
  */
 class PinReadTypeRule extends TypeRule {
 
-	PinReadTypeRule(Signature signature) {
+	private boolean mMayHaveRepeat;
+	
+	PinReadTypeRule(Signature signature, boolean mayHaveRepeat) {
 		super(signature);
+		mMayHaveRepeat=mayHaveRepeat;
 	}
 	
 	
 	@Override
 	public boolean matchesOutputs(List<? extends XlimOutputPort> outputs) {
+		// Number of outputs must be 1
 		return outputs.size()==1;
 	}
-
 
 	@Override
 	public int defaultNumberOfOutputs() {
 		return 1;
 	}
-	
-	
+		
 	@Override
 	public XlimType defaultOutputType(List<? extends XlimSource> inputs, int i) {
 		// Not possible to deduce ("port" attribute needed)
@@ -164,20 +167,30 @@ class PinReadTypeRule extends TypeRule {
 
 	@Override
 	public XlimType actualOutputType(XlimOperation op, int i) {
-		return op.getPortAttribute().getType();
+		XlimType portType=op.getPortAttribute().getType();
+		XlimType t=op.getOutputPort(0).getType();
+		
+		if (mMayHaveRepeat && t.getTypeName().equals("List")) {
+			int repeat=Integer.valueOf(t.getValueParameter("size"));
+			TypeFactory fact=Session.getTypeFactory();
+			return fact.createList(portType, repeat);
+		}
+		return portType;
 	}
 
 	@Override
 	public boolean typecheck(XlimOperation op) {
 		if (op.getPortAttribute()!=null) {
 		    XlimType t=op.getOutputPort(0).getType();
-		    // TODO: to strong to require exact match (e.g. different integer widths)?
-		    return t==actualOutputType(op, 0);
+		    
+	    	// TODO: to strong to require exact match (e.g. different integer widths)?
+	    	return t==actualOutputType(op, 0);
 		}
 		else
 			return true; // "port" required (defer typecheck)
 	}
 }
+
 
 /**
  * Represents
@@ -185,8 +198,11 @@ class PinReadTypeRule extends TypeRule {
  */
 class PinWriteTypeRule extends VoidTypeRule {
 	
-	PinWriteTypeRule(Signature signature) {
+	private boolean mMayHaveRepeat;
+	
+	PinWriteTypeRule(Signature signature, boolean mayHaveRepeat) {
 		super(signature);
+		mMayHaveRepeat=mayHaveRepeat;
 	}
 	
 	@Override
@@ -195,8 +211,13 @@ class PinWriteTypeRule extends VoidTypeRule {
 		if (port!=null) {
 		    XlimType inT=op.getInputPort(0).getSource().getSourceType();
 		    XlimType portT=port.getType();
-		    TypeKind portKind=Session.getTypeFactory().getTypeKind(portT.getTypeName());
-		    return portKind.hasConversionFrom(inT);
+		    if (mMayHaveRepeat && inT.getTypeName().equals("List")) {
+		    	return inT.getTypeParameter("type")==portT;
+		    }
+		    else {
+		    	TypeKind portKind=Session.getTypeFactory().getTypeKind(portT.getTypeName());
+		    	return portKind.hasConversionFrom(inT);
+		    }
 		}
 		else
 			return true; // "port" needed (defer typecheck)
