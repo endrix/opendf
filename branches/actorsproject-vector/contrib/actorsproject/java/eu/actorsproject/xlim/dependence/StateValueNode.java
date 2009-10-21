@@ -40,10 +40,8 @@ package eu.actorsproject.xlim.dependence;
 import java.util.Collections;
 
 import eu.actorsproject.util.XmlElement;
-import eu.actorsproject.xlim.XlimInitValue;
 import eu.actorsproject.xlim.XlimStateCarrier;
 import eu.actorsproject.xlim.XlimStateVar;
-import eu.actorsproject.xlim.XlimTopLevelPort;
 import eu.actorsproject.xlim.XlimType;
 
 /**
@@ -69,34 +67,13 @@ public abstract class StateValueNode extends ValueNode {
 	}
 	
 	@Override
-	public XlimType getScalarType() {
-		XlimStateCarrier carrier=getStateCarrier();
-		XlimTopLevelPort port=carrier.isPort();
-		if (port!=null)
-			return port.getType();
-		else {
-			XlimStateVar stateVar=carrier.isStateVar();
-			XlimInitValue initValue=stateVar.getInitValue();
-			return initValue.getScalarType();
-		}
+	public String getTagName() {
+		return "StateValueNode";
 	}
 	
 	@Override
-	public XlimType getCommonElementType() {
-		XlimStateCarrier carrier=getStateCarrier();
-		XlimTopLevelPort port=carrier.isPort();
-		if (port!=null)
-			return port.getType();
-		else {
-			XlimStateVar stateVar=carrier.isStateVar();
-			XlimInitValue initValue=stateVar.getInitValue();
-			return initValue.getCommonElementType();
-		}
-	}
-
-	@Override
-	public String getTagName() {
-		return "StateValueNode";
+	public XlimType getType() {
+		return getStateCarrier().getType();
 	}
 	
 	@Override

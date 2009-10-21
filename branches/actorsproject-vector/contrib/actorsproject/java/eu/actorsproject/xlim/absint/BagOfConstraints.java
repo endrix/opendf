@@ -114,7 +114,7 @@ public class BagOfConstraints<T extends AbstractValue<T>> {
 	 */
 	public boolean constrainCondition(ValueNode condition,
 			                          boolean newValue) {
-		assert(condition.getScalarType().isBoolean());
+		assert(condition.getType().isBoolean());
 		T aValue=mConstraintEvaluator.getAbstractValue(newValue);
 		return putConstraint(condition, aValue);
 	}

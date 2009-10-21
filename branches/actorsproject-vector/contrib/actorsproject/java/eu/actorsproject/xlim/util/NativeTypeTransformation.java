@@ -55,6 +55,7 @@ import eu.actorsproject.xlim.XlimSource;
 import eu.actorsproject.xlim.XlimStateVar;
 import eu.actorsproject.xlim.XlimTopLevelPort;
 import eu.actorsproject.xlim.XlimType;
+import eu.actorsproject.xlim.dependence.ValueNode;
 
 public class NativeTypeTransformation {
 
@@ -575,16 +576,19 @@ public class NativeTypeTransformation {
 
 		@Override
 		protected XlimType signExtendFrom(XlimOperation op) {
-			return op.getStateVarAttribute().getInitValue().getCommonElementType();
+			XlimType elementT=op.getStateVarAttribute().getType();
+			while (elementT.isList())
+				elementT=elementT.getTypeParameter("type");
+			return elementT;
 		}
 
 		@Override
 		protected XlimType nativeType(XlimOperation op) {
-			XlimType t=op.getStateVarAttribute().getInitValue().getScalarType();
-			if (t!=null)
-				return mNativeTypePlugIn.nativeType(t);
-			else
+			XlimType targetT=op.getStateVarAttribute().getType();
+			if (targetT.isList())
 				return mNativeTypePlugIn.nativeElementType(signExtendFrom(op));
-		}
+			else
+				return mNativeTypePlugIn.nativeType(targetT);
+		}		
 	}
 }

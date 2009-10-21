@@ -41,4 +41,5 @@ public interface XlimStateCarrier {
 	XlimStateVar isStateVar();
 	XlimTopLevelPort isPort();
 	String getSourceName();
+	XlimType getType();
 }

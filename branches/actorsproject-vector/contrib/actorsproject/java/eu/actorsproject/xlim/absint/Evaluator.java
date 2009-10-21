@@ -159,12 +159,19 @@ public class Evaluator {
 			ValueOperator valueOp=op.getValueOperator();
 			
 			for (ValueNode outputValue: valueOp.getOutputValues()) {
-				XlimType type=outputValue.getCommonElementType();
+				XlimType type=elementType(outputValue);
 				T universe=domain.getUniverse(type);
 				if (context.put(outputValue, universe))
 					changed=true;
 			}
 			return changed;
+		}
+		
+		private XlimType elementType(ValueNode outputValue) {
+			XlimType type=outputValue.getType();
+			while (type.isList())
+				type=type.getTypeParameter("type");
+			return type;
 		}
 	}
 	
