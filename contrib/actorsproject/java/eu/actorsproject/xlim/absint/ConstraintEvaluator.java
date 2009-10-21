@@ -152,7 +152,7 @@ public abstract class ConstraintEvaluator<T extends AbstractValue<T>> {
 		@Override
 		public boolean supports(XlimOperation xlimOp) {
 			XlimInputPort input=xlimOp.getInputPort(0);
-			XlimType inputT=input.getSource().getSourceType();
+			XlimType inputT=input.getSource().getType();
 			XlimType outputT=xlimOp.getOutputPort(0).getType();
 			
 			// Supports "pure" copies and sign extension, 

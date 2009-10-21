@@ -46,5 +46,5 @@ public interface XlimSource {
 	XlimStateVar isStateVar();
 	XlimOutputPort isOutputPort();
 	String getUniqueId();
-	XlimType getSourceType();
+	XlimType getType();
 }

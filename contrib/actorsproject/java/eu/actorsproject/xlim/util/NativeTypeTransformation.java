@@ -145,7 +145,7 @@ public class NativeTypeTransformation {
 					// Sign-extend inputs of phi-node?
 					// This needed if the inputs are *longer* than the declared size of the output
 					// We then decide for a new sign-bit and extend to the width of the native type
-					XlimType inT=input.getSource().getSourceType();
+					XlimType inT=input.getSource().getType();
 					int inW=inT.getSize();
 					if (inW>outW) {
 						if (mTrace)
@@ -435,7 +435,7 @@ public class NativeTypeTransformation {
 				// zero-extended to the width of the native type). The longer operand
 				// always has a consistent sign-extension. Everything is also OK if
 				// operands have the same size (no extension needed).
-				XlimType declaredT=input.getSource().getSourceType();
+				XlimType declaredT=input.getSource().getType();
 				XlimType nativeT=mNativeTypePlugIn.nativeType(declaredT);
 				if (declaredT!=nativeT) {
 					int fromW=declaredT.getSize();
@@ -474,7 +474,7 @@ public class NativeTypeTransformation {
 			// The left input of URShift ('x' in x>>>count) is zero-extended to the
 			// width of the native type.
 			XlimInputPort input=op.getInputPort(0);
-			XlimType declaredT=input.getSource().getSourceType();
+			XlimType declaredT=input.getSource().getType();
 			XlimType nativeT=mNativeTypePlugIn.nativeType(declaredT);
 			if (declaredT!=nativeT) {
 				int width=declaredT.getSize();
@@ -515,7 +515,7 @@ public class NativeTypeTransformation {
 			XlimType nativeT=nativeType(op);
 			if (fromT!=nativeT) {
 				XlimInputPort input=getDataPort(op);
-				XlimType inputT=input.getSource().getSourceType();
+				XlimType inputT=input.getSource().getType();
 				// TODO: do we have to convert input to integer sometimes (e.g. real-to-int)?
 				assert(inputT.isInteger() && nativeT.isInteger() && fromT.isInteger());
 			

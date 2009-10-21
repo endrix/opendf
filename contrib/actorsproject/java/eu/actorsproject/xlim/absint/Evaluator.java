@@ -254,11 +254,11 @@ public class Evaluator {
                                             Context<T> context,
                                             AbstractDomain<T> domain) {
 			XlimInputPort in1=op.getInputPort(0);
-			int width1=in1.getSource().getSourceType().getSize();
+			int width1=in1.getSource().getType().getSize();
 			T aValue1=context.get(in1.getValue());
 			
 			XlimInputPort in2=op.getInputPort(1);
-			int width2=in1.getSource().getSourceType().getSize();
+			int width2=in1.getSource().getType().getSize();
 			T aValue2=context.get(in2.getValue());
 			
 			if (aValue1!=null && aValue2!=null) {
@@ -361,7 +361,7 @@ public class Evaluator {
                                             Context<T> context,
                                             AbstractDomain<T> domain) {
 			XlimInputPort in1=op.getInputPort(0);
-			int width1=in1.getSource().getSourceType().getSize();
+			int width1=in1.getSource().getType().getSize();
 			T aValue1=context.get(in1.getValue());
 			T aValue2=context.get(op.getInputPort(1).getValue());
 			

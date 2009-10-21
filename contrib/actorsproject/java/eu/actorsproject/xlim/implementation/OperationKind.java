@@ -246,12 +246,12 @@ public class OperationKind {
 		String result=op.getKind()+": ";
 		
 		if (op.getNumInputPorts()==1)
-			result += op.getInputPort(0).getSource().getSourceType();
+			result += op.getInputPort(0).getSource().getType();
 		else {
 			String delimiter="";
 			result += "(";
 			for (XlimInputPort input: op.getInputPorts()) {
-				result += delimiter+input.getSource().getSourceType();
+				result += delimiter+input.getSource().getType();
 				delimiter=",";
 			}
 			result += ")";

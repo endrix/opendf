@@ -57,6 +57,11 @@ class ScalarInitValue implements XlimInitValue {
 		return Collections.emptyList();
 	}
 
+	
+	public XlimType getType() {
+		return mType;
+	}
+
 	@Override
 	public XlimType getScalarType() {
 		return mType;

@@ -45,5 +45,6 @@ import eu.actorsproject.util.XmlElement;
  */
 public interface XlimStateVar extends XmlElement, XlimSource, XlimStateCarrier {
 	String getSourceName();
+	XlimType getType();
 	XlimInitValue getInitValue();
 }

@@ -84,11 +84,8 @@ class StateVar implements XlimStateVar {
 	}
 
 	@Override
-	public XlimType getSourceType() {
-		XlimType type=mInitValue.getScalarType();
-		if (type==null)
-			throw new IllegalStateException("Aggregate state variable cannot be used as source");
-		return type;
+	public XlimType getType() {
+		return mInitValue.getType();
 	}
 	
 	@Override

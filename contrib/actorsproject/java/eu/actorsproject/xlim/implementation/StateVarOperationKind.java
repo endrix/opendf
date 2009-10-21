@@ -23,7 +23,6 @@ import eu.actorsproject.xlim.type.VoidTypeRule;
 import eu.actorsproject.xlim.util.Session;
 
 
-
 class StateVarOperationKind extends OperationKind {
 	private String mAttributeName;
 	private boolean mModifiesState;
@@ -74,7 +73,7 @@ class StateVarOperationKind extends OperationKind {
 		XlimStateVar stateVar=context.getStateVar(ident);
 		if (stateVar!=null)
 		    op.setStateVarAttribute(stateVar);
-	}
+	}	
 }
 
 /**
@@ -107,7 +106,15 @@ class VarRefTypeRule extends TypeRule {
 
 	@Override
 	public XlimType actualOutputType(XlimOperation op, int i) {
-		return op.getStateVarAttribute().getInitValue().getCommonElementType();
+		XlimStateVar source=op.getStateVarAttribute();
+		if (source!=null) {
+		    XlimType resultT=op.getOutputPort(0).getType();
+		    XlimType sourceT=source.getType();
+		    if (sourceT!=null) {
+		    	return findElementType(sourceT,resultT);
+		    }
+		}
+		return null; // Doesn't typecheck
 	}
 
 	@Override
@@ -123,12 +130,33 @@ class VarRefTypeRule extends TypeRule {
 		// There is thus no way of telling different types apart (output type must be provided)
 		// return op.getOutputPort(0).getType()!=null;
 	}
+	
+	/**
+	 * @param sourceT  type of aggregate variable
+	 * @param resultT  result type of index operation
+	 * @return the element type of sourceT, which matches resultT
+	 * 
+	 * If sourceT is a 1-dimensional vector/List the element type is the scalar element type.
+	 * If it is a matrix (List of List), it might be a vector or a scalar, and so on.
+	 */
+	private XlimType findElementType(XlimType sourceT, XlimType resultT) {
+		// Find the actual sourceT (the one that matches outT)
+		// It might be the element-type of sourceT, or
+		// the element-type of that type (if sourceT is a matrix), and so on
+		while (sourceT.isList()) {
+			sourceT=sourceT.getTypeParameter("type");
+			// TODO: to strong to require exact match (e.g. different integer widths)?
+			// conversion from sourceT to resultT sufficient?
+			if (sourceT==resultT)
+				return sourceT;
+		}
+		return null; // error, no applicable element type
+	}
 }
 
 /**
  * Represents
- * assign: T -> void,         T assignable to state variable
- * assign: integer,T -> void  T assignable to element of state variable
+ * assign: T -> void,         T assignable to (entire) state variable
  */
 class AssignTypeRule extends VoidTypeRule {
 	
@@ -140,11 +168,50 @@ class AssignTypeRule extends VoidTypeRule {
 	public boolean typecheck(XlimOperation op) {
 		XlimStateVar target=op.getStateVarAttribute();
 		if (target!=null) {
-			int dataPort=op.getNumInputPorts()-1;
-		    XlimType inT=op.getInputPort(dataPort).getSource().getSourceType();
-		    XlimType targetT=target.getInitValue().getCommonElementType();
-		    TypeKind targetKind=Session.getTypeFactory().getTypeKind(targetT.getTypeName());
-		    return targetKind.hasConversionFrom(inT);
+		    XlimType inT=op.getInputPort(0).getSource().getType();
+		    XlimType targetT=target.getType();
+		    return mayAssign(inT,targetT);
+		}
+		else
+			return true; // "port" needed (defer typecheck)
+	}
+	
+	protected boolean mayAssign(XlimType inT, XlimType targetT) {
+		TypeKind targetKind=Session.getTypeFactory().getTypeKind(targetT.getTypeName());
+	    return targetKind.hasConversionFrom(inT);
+	}
+}
+
+/**
+ * Represents
+ * assign: integer,T -> void  T assignable to element of aggregate state variable
+ */
+class IndexedAssignTypeRule extends AssignTypeRule {
+	IndexedAssignTypeRule(Signature signature) {
+		super(signature);
+	}
+	
+	@Override
+	public boolean typecheck(XlimOperation op) {
+		XlimStateVar target=op.getStateVarAttribute();
+		if (target!=null) {
+			// int indexPort=0;
+			int dataPort=1;
+		    XlimType inT=op.getInputPort(dataPort).getSource().getType();
+		    XlimType targetT=target.getType();
+		    if (targetT!=null && targetT.isList()) {
+		    	// Find the actual targetT (the one that matches inT)
+		    	// It might be the element-type of targetT, or
+		    	// the element-type of that type (if targetT is a matrix), and so on
+		    	while (targetT.isList()) {
+		    		targetT=targetT.getTypeParameter("type");
+		    		// TODO: to strong to require exact match (e.g. different integer widths)?
+		    		// conversion from inT to targetT sufficient?
+		    		if (mayAssign(inT,targetT))
+		    			return true;
+		    	}
+		    }
+	    	return false;
 		}
 		else
 			return true; // "port" needed (defer typecheck)
