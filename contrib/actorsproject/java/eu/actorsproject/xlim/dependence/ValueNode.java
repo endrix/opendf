@@ -95,16 +95,9 @@ public abstract class ValueNode implements XmlElement {
 	public abstract XlimStateCarrier getStateCarrier();
 	
 	/**
-	 * @return type of scalar value, null for aggregate values
+	 * @return the type of the value
 	 */
-	public abstract XlimType getScalarType();
-	
-	/**
-	 * @return the unique element type of an scalar/array/matrix kind of initializer,
-	 *         that is a multi-dimensional structure with a consistent element type,
-	 *         null for structures (records?) with varying element types.
-	 */
-	public abstract XlimType getCommonElementType();
+	public abstract XlimType getType();
 	
 	/**
 	 * @return the dominating definition, which is superseded by this ValueNode

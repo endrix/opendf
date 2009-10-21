@@ -108,16 +108,6 @@ class OutputPort extends ValueNode implements XlimOutputPort {
 	}
 	
 	@Override
-	public XlimType getScalarType() {
-		return mType;
-	}
-	
-	@Override
-	public XlimType getCommonElementType() {
-		return mType;
-	}
-	
-	@Override
 	public XlimType actualOutputType() {
 		Operation op=mParent.isOperation();
 		if (op==null) {
