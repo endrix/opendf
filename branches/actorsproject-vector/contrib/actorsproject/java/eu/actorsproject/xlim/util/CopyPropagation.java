@@ -106,9 +106,11 @@ public class CopyPropagation extends XlimTraversal<Object,Object> {
 		}
 
 		private boolean checkSource(XlimSource source, XlimType resultT) {
-			XlimType sourceT=source.getSourceType();
+			XlimType sourceT=source.getType();
 
 			// FIXME: shouldn't we copy other types as well, at least when unparameterized/identical
+			// Careful about List-types, since the noop might signify a required copy (in the context
+			// of elementwise updates: vector2:=vector1; vector1[i]:=0; ...vector2...
 			return source.isOutputPort()!=null
 			       && sourceT.isInteger()==resultT.isInteger()
 			       && sourceT.getSize()<=resultT.getSize();

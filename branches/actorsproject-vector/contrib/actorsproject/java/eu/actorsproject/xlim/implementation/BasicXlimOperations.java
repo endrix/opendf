@@ -151,7 +151,7 @@ public class BasicXlimOperations extends XlimFeature {
 		// assign: (integer,T) -> void
 		Signature assign2Signature=new Signature(intTypeKind,wildcardPattern);
 		OperationKind assign2=new StateVarOperationKind("assign", 
-                new AssignTypeRule(assign2Signature),
+                new IndexedAssignTypeRule(assign2Signature),
                 true, /* modifies state */
                 "target");
 		s.registerOperation(assign2);
@@ -395,7 +395,7 @@ class WidestInputTypeRule extends IntegerTypeRule {
 	protected int defaultWidth(List<? extends XlimSource> inputs) {
 		int widest=0;
 		for (XlimSource source: inputs) {
-			int w=source.getSourceType().getSize();
+			int w=source.getType().getSize();
 			if (w>widest)
 				widest=w;
 		}
@@ -406,7 +406,7 @@ class WidestInputTypeRule extends IntegerTypeRule {
 	protected int actualWidth(XlimOperation op) {
 		int widest=0;
 		for (XlimInputPort input: op.getInputPorts()) {
-			int w=input.getSource().getSourceType().getSize();
+			int w=input.getSource().getType().getSize();
 			if (w>widest)
 				widest=w;
 		}
@@ -449,7 +449,7 @@ class MulTypeRule extends IntegerTypeRule {
 	protected int defaultWidth(List<? extends XlimSource> inputs) {
 		int width=0;
 		for (XlimSource source: inputs)
-			width += source.getSourceType().getSize();
+			width += source.getType().getSize();
 		return (width>mMaxWidth)? mMaxWidth : width;
 	}
 
@@ -458,7 +458,7 @@ class MulTypeRule extends IntegerTypeRule {
 	protected int actualWidth(XlimOperation op) {
 		int width=0;
 		for (XlimInputPort input: op.getInputPorts())
-			width += input.getSource().getSourceType().getSize();
+			width += input.getSource().getType().getSize();
 		return width;
 	}
 }
@@ -477,7 +477,7 @@ class FirstInputTypeRule extends IntegerTypeRule {
 	
 	@Override
 	public XlimType defaultOutputType(List<? extends XlimSource> inputs, int i) {
-		return inputs.get(0).getSourceType();
+		return inputs.get(0).getType();
 	}
 
 	@Override
@@ -488,7 +488,7 @@ class FirstInputTypeRule extends IntegerTypeRule {
 	@Override
 	public XlimType actualOutputType(XlimOperation op, int i) {
 		assert(i==0);
-		return op.getInputPort(0).getSource().getSourceType();
+		return op.getInputPort(0).getSource().getType();
 	}
 
 	@Override

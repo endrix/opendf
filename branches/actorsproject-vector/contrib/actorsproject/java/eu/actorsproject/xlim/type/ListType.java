@@ -78,7 +78,13 @@ public class ListType implements XlimType {
 		return false;
 	}
 
+	@Override
+	public boolean isList() {
+		return true;
+	}
+	
 	// TODO: this method doesn't make sense, can it be removed?
+	// In particular it doesn't mean the same thing as getValueParameter("size") 
 	@Override
 	public int getSize() {
 		throw new UnsupportedOperationException("ListType.getSize()");

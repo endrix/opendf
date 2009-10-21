@@ -496,7 +496,7 @@ abstract class ExpressionGenerator extends BasicGenerator {
 			                                   ExpressionTreeGenerator gen);
 	
 	protected void translateSubTree(XlimInputPort input, XlimType opType, ExpressionTreeGenerator gen) {
-		XlimType inputType=input.getSource().getSourceType();
+		XlimType inputType=input.getSource().getType();
 		if (inputType!=opType) {
 			gen.print("(" + getCast(opType,gen));
 			gen.translateSubTree(input);
@@ -554,7 +554,7 @@ class BitwiseGenerator extends OperatorGenerator {
 	}
 
 	protected void translateSubTree(XlimInputPort input, XlimType opType, ExpressionTreeGenerator gen) {
-		XlimType inputType=input.getSource().getSourceType();
+		XlimType inputType=input.getSource().getType();
 		if (inputType!=opType) {
 			int inputSize=inputType.getSize();
 			String cast=(inputSize<opType.getSize())? 
@@ -589,8 +589,8 @@ class RelOpGenerator extends OperatorGenerator {
 	@Override
     protected XlimType operationType(XlimOperation op) {
 		TypeFactory fact=Session.getTypeFactory();
-		XlimType t1=op.getInputPort(0).getSource().getSourceType();
-		XlimType t2=op.getInputPort(1).getSource().getSourceType();
+		XlimType t1=op.getInputPort(0).getSource().getType();
+		XlimType t2=op.getInputPort(1).getSource().getType();
 		return fact.leastUpperBound(t1, t2);
     }
 }
@@ -616,7 +616,7 @@ class DivAndShiftGenerator extends OperatorGenerator {
 	// operationSize determined by the first input
 	@Override
     protected XlimType operationType(XlimOperation op) {
-		return op.getInputPort(0).getSource().getSourceType();
+		return op.getInputPort(0).getSource().getType();
 	}
 }
 
@@ -628,7 +628,7 @@ class UrshiftGenerator extends DivAndShiftGenerator {
 	
 	@Override
 	public void generateExpression(XlimOperation op, XlimType opType, ExpressionTreeGenerator gen) {
-		int inputSize=op.getInputPort(0).getSource().getSourceType().getSize();
+		int inputSize=op.getInputPort(0).getSource().getType().getSize();
 		
 		gen.print("(" + getCast(opType, gen) + " ");
 		gen.print("("+getUnsignedCast(inputSize));

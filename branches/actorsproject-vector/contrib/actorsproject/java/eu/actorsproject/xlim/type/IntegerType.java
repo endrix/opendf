@@ -99,6 +99,11 @@ class IntegerType implements XlimType {
 	}
 	
 	@Override
+	public boolean isList() {
+		return false;
+	}
+	
+	@Override
 	public XlimType getTypeParameter(String name) {
 		return null;
 	}

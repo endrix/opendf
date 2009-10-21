@@ -209,7 +209,7 @@ class PinWriteTypeRule extends VoidTypeRule {
 	public boolean typecheck(XlimOperation op) {
 		XlimTopLevelPort port=op.getPortAttribute();
 		if (port!=null) {
-		    XlimType inT=op.getInputPort(0).getSource().getSourceType();
+		    XlimType inT=op.getInputPort(0).getSource().getType();
 		    XlimType portT=port.getType();
 		    if (mMayHaveRepeat && inT.getTypeName().equals("List")) {
 		    	return inT.getTypeParameter("type")==portT;

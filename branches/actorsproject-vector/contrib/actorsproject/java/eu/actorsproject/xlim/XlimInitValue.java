@@ -50,6 +50,11 @@ public interface XlimInitValue extends XmlElement {
 	
 	
 	/**
+	 * @return type of the initializer (either a scalar type of a List type)
+	 */
+	XlimType getType();
+	
+	/**
 	 * @return type of scalar value, null for aggregate values
 	 */
 	XlimType getScalarType();

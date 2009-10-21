@@ -81,7 +81,7 @@ public class CastTypeRule extends TypeRule {
 	public boolean typecheck(XlimOperation op) {
 		XlimType tOut=op.getOutputPort(0).getType();
 		if (tOut!=null) {
-			XlimType tIn=op.getInputPort(0).getSource().getSourceType();
+			XlimType tIn=op.getInputPort(0).getSource().getType();
 			TypeKind kindOut=Session.getTypeFactory().getTypeKind(tOut.getTypeName());
 			return kindOut.hasConversionFrom(tIn);
 		}
