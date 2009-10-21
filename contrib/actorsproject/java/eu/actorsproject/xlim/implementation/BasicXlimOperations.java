@@ -41,6 +41,7 @@ import java.util.List;
 
 import eu.actorsproject.xlim.XlimInputPort;
 import eu.actorsproject.xlim.XlimOperation;
+import eu.actorsproject.xlim.XlimOutputPort;
 import eu.actorsproject.xlim.XlimSource;
 import eu.actorsproject.xlim.XlimType;
 import eu.actorsproject.xlim.type.CastTypeRule;
@@ -68,7 +69,7 @@ public class BasicXlimOperations extends XlimFeature {
 	public void initialize(InstructionSet instructionSet) {
 		addPortOperations(instructionSet);
 		addStateVarOperations(instructionSet);
-		addCast(instructionSet);
+		addGenericOperations(instructionSet);
 		addTaskCall(instructionSet);
 		addBooleanOperations(instructionSet);
 		addIntegerOperations(instructionSet);
@@ -170,13 +171,28 @@ public class BasicXlimOperations extends XlimFeature {
 
 
 	/**
-	 * Adds taskCall to 's'
+	 * Adds cast and the generic versions of noop and $select
 	 */
 
-	private void addCast(InstructionSet s) {
+	private void addGenericOperations(InstructionSet s) {
 		// cast: S->T, S converts to T
 		OperationKind cast=new OperationKind("cast", new CastTypeRule());
 		s.registerOperation(cast);
+		
+		// noop: T->T (exact type match required)
+		OperationKind noop=new OperationKind("noop", new GenericNoopTypeRule());
+		s.registerOperation(noop);
+		
+		// $select: (bool,T,T)->T (exact type match required)
+		TypeFactory fact=Session.getTypeFactory();
+		TypeKind boolKind=fact.getTypeKind("bool");
+		XlimType boolType=boolKind.createType();
+		TypePattern wildcard=new WildCardTypePattern();
+		Signature ternarySignature=new Signature(boolKind, wildcard, wildcard);
+		
+		OperationKind selector=new OperationKind("$selector", 
+				new FixOutputTypeRule(ternarySignature, boolType));
+		s.registerOperation(selector);
 	}
 
 	/**
@@ -239,16 +255,6 @@ public class BasicXlimOperations extends XlimFeature {
 		// $ne: (bool,bool) -> bool
 		OperationKind ne=new OperationKind("$ne", binaryRule);
 		s.registerOperation(ne);
-		
-		// noop: bool -> bool
-		OperationKind noop=new OperationKind("noop", unaryRule);
-		s.registerOperation(noop);
-		
-		// $selector: (bool,bool,bool) -> bool
-		Signature ternarySignature=new Signature(boolKind, boolKind, boolKind);
-		OperationKind selector=new OperationKind("$selector", 
-				new FixOutputTypeRule(ternarySignature, boolType));
-		s.registerOperation(selector);
 	}
 	
 	/**
@@ -348,6 +354,92 @@ public class BasicXlimOperations extends XlimFeature {
 	}
 }
 
+/**
+ * Generic TypeRule for noop: T->T (exact type match required)
+ * It is used for bool and real but int, which is parametric in size,
+ * uses a more specific type rule.
+ */
+class GenericNoopTypeRule extends TypeRule {
+
+	public GenericNoopTypeRule() {
+		super(new Signature(new WildCardTypePattern()));
+	}
+
+	@Override
+	public int defaultNumberOfOutputs() {
+		return 1;
+	}
+
+	@Override
+	public XlimType defaultOutputType(List<? extends XlimSource> inputs, int i) {
+		assert(i==0);
+		return inputs.get(0).getType();
+	}
+	
+	@Override
+	public XlimType actualOutputType(XlimOperation op, int i) {
+		return op.getInputPort(0).getSource().getType();
+	}
+
+	@Override
+	public boolean matchesOutputs(List<? extends XlimOutputPort> outputs) {
+		return outputs.size()==1;
+	}
+	
+	@Override
+	public boolean typecheck(XlimOperation op) {
+		XlimType outT=op.getOutputPort(0).getType();
+		if (outT!=null) {
+			XlimType inT=op.getInputPort(0).getSource().getType();
+			return inT==outT;
+		}
+		else
+			return false;
+	}
+}
+
+/**
+ * Generic TypeRule for $select: (bool,T,T)->T (exact type match required)
+ * It is used for bool and real but int, which is parametric in size,
+ * uses a more specific type rule.
+ */
+class GenericSelectTypeRule extends TypeRule {
+
+	public GenericSelectTypeRule(Signature signature) {
+		super(signature);
+	}
+	
+	@Override
+	public int defaultNumberOfOutputs() {
+		return 1;
+	}
+
+	@Override
+	public XlimType defaultOutputType(List<? extends XlimSource> inputs, int i) {
+		assert(i==0 && inputs.size()==3);
+		XlimType t1=inputs.get(1).getType();
+		XlimType t2=inputs.get(2).getType();
+		return (t1==t2)? t1 : null;
+	}
+	
+	@Override
+	public XlimType actualOutputType(XlimOperation op, int i) {
+		assert(i==0 && op.getNumInputPorts()==3);
+		XlimType t1=op.getInputPort(1).getSource().getType();
+		XlimType t2=op.getInputPort(2).getSource().getType();
+		return (t1==t2)? t1 : null;
+	}
+
+	@Override
+	public boolean matchesOutputs(List<? extends XlimOutputPort> outputs) {
+		return outputs.size()==1;
+	}
+
+	@Override
+	public boolean typecheck(XlimOperation op) {
+		return actualOutputType(op,0)==op.getOutputPort(0).getType();
+	}	
+}
 
 class LiteralIntegerTypeRule extends IntegerTypeRule {
 
