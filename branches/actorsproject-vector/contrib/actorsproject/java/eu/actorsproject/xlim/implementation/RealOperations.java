@@ -102,25 +102,15 @@ public class RealOperations extends XlimFeature {
 			s.registerOperation(op);
 		}
 		
-		// noop: real -> real
-		TypeRule unaryRule=new FixOutputTypeRule(new Signature(realKind),realType);
-		OperationKind noop=new OperationKind("noop", unaryRule);
-		s.registerOperation(noop);
-		
 		// $negate: real -> real
+		TypeRule unaryRule=new FixOutputTypeRule(new Signature(realKind),realType);
 		OperationKind negate=new OperationKind("$negate", unaryRule);
-		s.registerOperation(negate);
-		
-		// $selector: (bool,real,real) -> real
-		Signature ternarySignature=new Signature(boolKind, realKind, realKind);
-		OperationKind selector=new OperationKind("$selector", 
-				new FixOutputTypeRule(ternarySignature, realType));
-		s.registerOperation(selector);
+		s.registerOperation(negate);		
 	}
 }
 
 /**
- * OperationKind of IntegerAttributeOperations ($literal_Integer, $signExtend)
+ * OperationKind of RealAttributeOperations ($literal_Integer)
  */
 class RealAttributeOperationKind extends OperationKind {
 	private String mAttributeName;
