@@ -100,10 +100,13 @@ public class TaskOperationKind extends OperationKind {
 	public void setAttributes(XlimOperation op,
 			                  XlimAttributeList attributes, 
 			                  ReaderContext context) {
-		String ident=attributes.getAttributeValue(mAttributeName);
+		String ident=getRequiredAttribute(mAttributeName,attributes);
 		XlimTaskModule task=context.getTask(ident);
 		if (task!=null) {
 		    op.setTaskAttribute(task);
+		}
+		else {
+			throw new RuntimeException("No such task/action: \""+ident+"\"");
 		}
 	}
 }

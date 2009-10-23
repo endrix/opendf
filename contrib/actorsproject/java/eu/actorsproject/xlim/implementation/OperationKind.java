@@ -81,12 +81,23 @@ public class OperationKind {
 		return "kind=\"" + mKindAttribute + "\"";
 	}
 	
-	protected Long getIntegerAttribute(String name, XlimAttributeList attributes) {
+	protected String getRequiredAttribute(String name, XlimAttributeList attributes) {
 		String value=attributes.getAttributeValue(name);
 		if (value!=null)
-			return Long.valueOf(value);
+			return value;
 		else
-			return null;
+			throw new RuntimeException("Operation kind=\""+mKindAttribute
+					                   +"\" missing attribute \""+name+"\"");
+	}
+	
+	protected Long getRequiredIntegerAttribute(String name, XlimAttributeList attributes) {
+		String value=getRequiredAttribute(name, attributes);
+		try {
+			return Long.valueOf(value);
+		} catch (NumberFormatException ex) {
+			throw new RuntimeException("Expecting integer attribute, found: "+name
+					                   +"=\""+value+"\"");
+		}
 	}
 	
 	public void setAttributes(XlimOperation op,
