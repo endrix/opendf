@@ -100,7 +100,10 @@ class StateVar implements XlimStateVar {
 
 	@Override
 	public String getAttributeDefinitions() {
-		return "name=\"" + getUniqueId() + "\" sourceName=\"" + mSourceName + "\"";
+		String attributes="name=\"" + getUniqueId() + "\"";
+		if (mSourceName!=null)
+			attributes+=" sourceName=\"" + mSourceName + "\"";
+		return attributes;
 	}
 
 	@Override

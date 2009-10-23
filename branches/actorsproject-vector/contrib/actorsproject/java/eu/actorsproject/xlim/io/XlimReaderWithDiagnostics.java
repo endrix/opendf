@@ -81,6 +81,7 @@ public class XlimReaderWithDiagnostics implements IXlimReader {
 	protected XlimFactory mFactory;
 	protected HashMap<String,XlimTag> mTags;
 	protected int mNumErrors;
+	protected int mErrorLimit=42;
 	
 	/* tag constants */
 	protected enum XlimTag {
@@ -402,8 +403,10 @@ public class XlimReaderWithDiagnostics implements IXlimReader {
 			processChildren(element,context,initValues,null);
 			if (initValues.size()==1)
 				return initValues.get(0);
-			else
+			else if (!initValues.isEmpty())
 				return mFactory.createInitValue(initValues);
+			else
+				return null; // Error
 		}
 		
 		protected void processChild(XlimElement child, 
@@ -433,17 +436,20 @@ public class XlimReaderWithDiagnostics implements IXlimReader {
 			XlimType type=getType(element,context);
 			String value=getRequiredAttribute("value",element);			
 			checkThatEmpty(element);
-			if (value!=null)
+			if (value!=null && type!=null)
 				return mFactory.createInitValue(value,type);
 			else
-				return null;
+				return null; // Error
 		}
 		
 		protected XlimInitValue createAggregate(XlimElement element, 
 				                                MutableReaderContext context) {
 			List<XlimInitValue> aggregate=new ArrayList<XlimInitValue>();
 			processChildren(element,context,aggregate,null);
-			return mFactory.createInitValue(aggregate);
+			if (!aggregate.isEmpty())
+				return mFactory.createInitValue(aggregate);
+			else
+				return null; // Error
 		}
 	}
 
@@ -967,6 +973,9 @@ public class XlimReaderWithDiagnostics implements IXlimReader {
 	public void reportError(XlimElement atElement, String message) {
 		System.err.println(formatDiagnostic(atElement, "error: "+message));
 		mNumErrors++;
+		if (mNumErrors>mErrorLimit) {
+			throw new RuntimeException("Too many errors, make fewer!");
+		}
 	}
 
 	public void reportFatalError(XlimElement atElement, String message) {

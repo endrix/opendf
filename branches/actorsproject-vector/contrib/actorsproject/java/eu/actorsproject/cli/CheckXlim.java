@@ -94,8 +94,7 @@ public class CheckXlim extends Session {
 			String message=ex.getMessage();
 			if (message==null)
 				message="Exception: "+ex.toString();
-			reportError(message);
-			fatalError("Error reading "+input.getPath());
+			fatalError(message);
 		}
 		if (design==null)
 			mHasErrors=true;
@@ -143,12 +142,12 @@ public class CheckXlim extends Session {
 	}
 	
 	protected void reportError(String message) {
-		System.err.println(message);
+		System.err.println("error: "+message);
 		mHasErrors=true;
 	}
 	
 	protected void fatalError(String message) {
-		reportError(message);
+		System.err.println("fatal error: "+message);
 		System.err.println();
 		System.exit(2);
 	}
