@@ -142,7 +142,7 @@ class RealAttributeOperationKind extends OperationKind {
 	public void setAttributes(XlimOperation op,
 			                  XlimAttributeList attributes, 
 			                  ReaderContext context) {
-		String value=attributes.getAttributeValue(mAttributeName);
+		String value=getRequiredAttribute(mAttributeName,attributes);
 		if (value!=null)
 			op.setValueAttribute(value);
 	}		

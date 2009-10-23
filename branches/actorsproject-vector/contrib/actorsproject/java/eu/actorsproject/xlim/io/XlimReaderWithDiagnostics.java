@@ -188,8 +188,14 @@ public class XlimReaderWithDiagnostics implements IXlimReader {
 
 							if (sizeAttribute!=null) {
 								// Special fix for legacy "int" type with "size" attribute
-								int size=Integer.valueOf(sizeAttribute);
-								type=typeKind.createType(size);
+								try {
+									int size=Integer.valueOf(sizeAttribute);
+									type=typeKind.createType(size);
+								} catch (NumberFormatException ex) {
+									reportWarning(element, "Expecting integer attribute, found: size=\""
+											      +sizeAttribute+"\"");
+									type=typeKind.createType();
+								}
 							}
 							else {
 								type=typeKind.createType();
@@ -620,9 +626,13 @@ public class XlimReaderWithDiagnostics implements IXlimReader {
 					reportError(note, "No such port: "+name);
 				try {
 					context.setPortRate(port, Integer.valueOf(rate));
-				} catch (RuntimeException ex) {
+				} catch (NumberFormatException ex) {
+					reportError(note, "Expecting integer attribute, found: value=\""
+						      +rate+"\"");
+			    } catch (RuntimeException ex) {
 					reportError(note, ex.getMessage());
 				}
+				
 				
 				// match end
 				checkThatEmpty(note);

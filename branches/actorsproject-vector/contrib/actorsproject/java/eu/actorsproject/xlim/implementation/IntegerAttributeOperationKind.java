@@ -81,7 +81,7 @@ public class IntegerAttributeOperationKind extends OperationKind {
 	public void setAttributes(XlimOperation op,
 			                  XlimAttributeList attributes, 
 			                  ReaderContext context) {
-		Long value=getIntegerAttribute(mAttributeName,attributes);
+		Long value=getRequiredIntegerAttribute(mAttributeName,attributes);
 		if (value!=null)
 			op.setIntegerValueAttribute(value);
 	}		

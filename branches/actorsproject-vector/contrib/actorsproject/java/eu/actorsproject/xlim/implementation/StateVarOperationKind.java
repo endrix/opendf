@@ -69,10 +69,13 @@ class StateVarOperationKind extends OperationKind {
 	public void setAttributes(XlimOperation op,
 			                  XlimAttributeList attributes, 
 			                  ReaderContext context) {
-		String ident=attributes.getAttributeValue(mAttributeName);
+		String ident=getRequiredAttribute(mAttributeName,attributes);
 		XlimStateVar stateVar=context.getStateVar(ident);
 		if (stateVar!=null)
 		    op.setStateVarAttribute(stateVar);
+		else {
+			throw new RuntimeException("No such state variable: \""+ident+"\"");
+		}
 	}	
 }
 

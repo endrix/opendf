@@ -121,13 +121,17 @@ class PortOperationKind extends OperationKind {
 			                  XlimAttributeList attributes, 
 			                  ReaderContext context) {
 		// Set port attribute
-		String portName=attributes.getAttributeValue(mPortAttributeName);
+		String portName=getRequiredAttribute(mPortAttributeName,attributes);
 		XlimTopLevelPort port=context.getTopLevelPort(portName);
-		if (port!=null)
+		if (port!=null) {
 		    op.setPortAttribute(port);
+		}
+		else {
+			throw new RuntimeException("No such port: \""+portName+"\"");
+		}
 		// Possibly there is also an integer attribute
 		if (mIntAttributeName!=null) {
-			Long attrib=getIntegerAttribute(mIntAttributeName,attributes);
+			Long attrib=getRequiredIntegerAttribute(mIntAttributeName,attributes);
 			op.setIntegerValueAttribute(attrib);
 		}
 	}
