@@ -509,7 +509,10 @@ public class Evaluator {
 		public <T extends AbstractValue<T>> boolean evaluate(XlimOperation op,
                 Context<T> context,
                 AbstractDomain<T> domain) {
-			XlimStateVar stateVar=op.getStateVarAttribute();
+			// TODO: We don't support local vectors yet
+			XlimStateVar stateVar=op.getStateVarAttribute().isStateVar();
+			assert(stateVar!=null);
+			
 			ValueNode newValueNode=findValueNode(stateVar,op.getValueOperator().getOutputValues());
 			XlimType elementType=stateVar.getInitValue().getCommonElementType();
 			T result;
@@ -552,7 +555,9 @@ public class Evaluator {
 		evaluateScalar(XlimOperation op, Context<T> context, AbstractDomain<T> domain) {
 			// Implements indexed access of aggregate: v[op0]
 			// Current value of aggregate represents any/all elements
-			XlimStateCarrier carrier=op.getStateVarAttribute();
+			
+			// TODO: We don't support local vectors yet!
+			XlimStateCarrier carrier=op.getStateVarAttribute().isStateVar();
 			ValueNode oldValueNode=findValueNode(carrier,op.getValueOperator().getInputValues());
 			return context.get(oldValueNode);
 		}		

@@ -58,9 +58,9 @@ class StateVarOperationKind extends OperationKind {
 	
 	@Override
 	public String getAttributeDefinitions(XlimOperation op) {
-		XlimStateVar stateVar=op.getStateVarAttribute();
-		if (stateVar!=null)
-			return super.getAttributeDefinitions(op)+" "+mAttributeName+"=\""+stateVar.getUniqueId()+"\"";
+		XlimSource location=op.getStateVarAttribute();
+		if (location!=null)
+			return super.getAttributeDefinitions(op)+" "+mAttributeName+"=\""+location.getUniqueId()+"\"";
 		else
 			return super.getAttributeDefinitions(op);
 	}
@@ -70,9 +70,9 @@ class StateVarOperationKind extends OperationKind {
 			                  XlimAttributeList attributes, 
 			                  ReaderContext context) {
 		String ident=getRequiredAttribute(mAttributeName,attributes);
-		XlimStateVar stateVar=context.getStateVar(ident);
-		if (stateVar!=null)
-		    op.setStateVarAttribute(stateVar);
+		XlimSource location=context.getSource(ident);
+		if (location!=null)
+		    op.setStateVarAttribute(location);
 		else {
 			throw new RuntimeException("No such state variable: \""+ident+"\"");
 		}
@@ -109,7 +109,7 @@ class VarRefTypeRule extends TypeRule {
 
 	@Override
 	public XlimType actualOutputType(XlimOperation op, int i) {
-		XlimStateVar source=op.getStateVarAttribute();
+		XlimSource source=op.getStateVarAttribute();
 		if (source!=null) {
 		    XlimType resultT=op.getOutputPort(0).getType();
 		    XlimType sourceT=source.getType();
@@ -169,7 +169,7 @@ class AssignTypeRule extends VoidTypeRule {
 	
 	@Override
 	public boolean typecheck(XlimOperation op) {
-		XlimStateVar target=op.getStateVarAttribute();
+		XlimSource target=op.getStateVarAttribute();
 		if (target!=null) {
 		    XlimType inT=op.getInputPort(0).getSource().getType();
 		    XlimType targetT=target.getType();
@@ -196,7 +196,7 @@ class IndexedAssignTypeRule extends AssignTypeRule {
 	
 	@Override
 	public boolean typecheck(XlimOperation op) {
-		XlimStateVar target=op.getStateVarAttribute();
+		XlimSource target=op.getStateVarAttribute();
 		if (target!=null) {
 			// int indexPort=0;
 			int dataPort=1;
@@ -221,8 +221,12 @@ class IndexedAssignTypeRule extends AssignTypeRule {
 	}
 }
 
+/**
+ * Represents operations that has a location (XlimSource) attribute:
+ * var_ref and assign
+ */
 class StateVarOperation extends Operation {
-	protected XlimStateVar mStateVar;
+	protected XlimSource mLocation;
 	protected ValueUsage mStateVarAccess;
 	
 	public StateVarOperation(OperationKind kind,
@@ -233,15 +237,15 @@ class StateVarOperation extends Operation {
 	}
 
 	@Override
-	public XlimStateVar getStateVarAttribute() {
-		return mStateVar;
+	public XlimSource getStateVarAttribute() {
+		return mLocation;
 	}
 	
 	@Override
-	public boolean setStateVarAttribute(XlimStateVar stateVar) {
-		if (mStateVar!=null)
+	public boolean setStateVarAttribute(XlimSource location) {
+		if (mLocation!=null)
 		    throw new IllegalStateException("state variable attribute already set"); // Do this once!
-		mStateVar=stateVar;
+		mLocation=location;
 		mStateVarAccess=new StateVarUsage();
 		mKind.doDeferredTypecheck(this);
 		return true;
@@ -265,12 +269,12 @@ class StateVarOperation extends Operation {
 	 */
 	@Override
 	public String attributesToString() {
-		if (mStateVar!=null) {
-			String name=mStateVar.getSourceName();
-			if (name!=null)
-				return name;
+		if (mLocation!=null) {
+			XlimStateVar stateVar=mLocation.isStateVar();
+			if (stateVar!=null && stateVar.getSourceName()!=null)
+				return stateVar.getSourceName();
 			else
-				return mStateVar.getUniqueId();
+				return mLocation.getUniqueId();
 		}
 		else
 			return "";
@@ -288,7 +292,9 @@ class StateVarOperation extends Operation {
 		
 		@Override
 		public XlimStateCarrier getStateCarrier() {
-			return mStateVar;
+			// TODO: we don't support side-effects on local vectors yet
+			assert(mLocation.isStateVar()!=null);
+			return mLocation.isStateVar();
 		}
 	}
 }
@@ -306,10 +312,12 @@ class AssignOperation extends StateVarOperation {
 	
 	
 	@Override
-	public boolean setStateVarAttribute(XlimStateVar stateVar) {
-		if (mStateVar!=null)
+	public boolean setStateVarAttribute(XlimSource location) {
+		if (mLocation!=null)
 		    throw new IllegalStateException("state variable attribute already set"); // Do this once!
-		mStateVar=stateVar;
+		if (getNumInputPorts()==1 && location.isStateVar()==null)
+			throw new IllegalArgumentException("complete assignment only applicable to state variables");
+		mLocation=location;
 		mStateVarAccess=new AssignmentStateVarUsage();
 		mSideEffect=new AssignmentSideEffect();
 		mKind.doDeferredTypecheck(this);
@@ -343,7 +351,9 @@ class AssignOperation extends StateVarOperation {
 	private class AssignmentSideEffect extends StateValueNode {
 		@Override
 		public XlimStateCarrier getStateCarrier() {
-			return mStateVar;
+			// TODO: we don't support side-effects on local vectors yet
+			assert(mLocation.isStateVar()!=null);
+			return mLocation.isStateVar();
 		}
 		
 		@Override
