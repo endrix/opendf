@@ -367,7 +367,9 @@ class VarRefGenerator extends BasicGenerator {
 	
 	@Override
 	public void generateExpression(XlimOperation op, ExpressionTreeGenerator gen) {
-		XlimStateVar stateVar=op.getStateVarAttribute();
+		// TODO: We don't support local vectors yet!
+		XlimStateVar stateVar=op.getStateVarAttribute().isStateVar();
+		assert(stateVar!=null);
 		int length=stateVar.getInitValue().totalNumberOfElements();
 		gen.print(stateVar);
 		gen.print("[RANGECHK(");
@@ -389,7 +391,9 @@ class AssignGenerator extends BasicGenerator {
 	
 	@Override
 	public void generateStatement(XlimOperation op, ExpressionTreeGenerator gen) {
-		XlimStateVar stateVar=op.getStateVarAttribute();
+		// TODO: we don't support local vectors yet!
+		XlimStateVar stateVar=op.getStateVarAttribute().isStateVar();
+		assert(stateVar!=null);
 		int dataPort;
 		
 		gen.print(stateVar);

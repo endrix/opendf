@@ -227,9 +227,9 @@ public class XlimVisualPrinter extends OutputGenerator {
 			print(delimiter+port.getSourceName());
 			delimiter=",";
 		}
-		XlimStateVar stateVar=op.getStateVarAttribute();
-		if (stateVar!=null) {
-			print(delimiter+getSourceName(stateVar));
+		XlimSource location=op.getStateVarAttribute();
+		if (location!=null) {
+			print(delimiter+getSourceName(location));
 			delimiter=",";
 		}
 		XlimTaskModule task=op.getTaskAttribute();

@@ -197,7 +197,7 @@ class Operation extends Linkage<AbstractBlockElement>
 	}
 
 	@Override
-	public XlimStateVar getStateVarAttribute() {
+	public XlimSource getStateVarAttribute() {
 		return null;
 	}
 
@@ -242,7 +242,7 @@ class Operation extends Linkage<AbstractBlockElement>
 	}
 
 	@Override
-	public boolean setStateVarAttribute(XlimStateVar stateVar) {
+	public boolean setStateVarAttribute(XlimSource location) {
 		return false;
 	}
 
