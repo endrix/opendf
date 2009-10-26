@@ -101,8 +101,10 @@ public class Session {
 	}
 	
 	private static synchronized void setInstance(Session s) {
-		if (sSingletonSession!=null)
-			throw new IllegalStateException("Session already created");
+		if (sSingletonSession!=null) {
+			// throw new IllegalStateException("Session already created");
+			System.out.println("*** Beware of dragons, assumed singleton Session initialized twice! ***");
+		}
 		sSingletonSession=s;
 	}
 	

@@ -9,7 +9,10 @@
 import java.io.PrintStream;
 import java.io.FileReader;
 import java.util.HashSet;
-
+import eu.actorsproject.cli.ActorClassifier;
+import eu.actorsproject.xlim.XlimDesign;
+import eu.actorsproject.xlim.decision.ModeScheduler;
+import eu.actorsproject.xlim.decision.ActionSchedule;
 
 aspect SSR {
 
@@ -27,7 +30,21 @@ aspect SSR {
 
 }
 
-aspect SDF {
+aspect CSDF {
+	syn lazy boolean  Instance.isCSDF() {
+		if (!name().startsWith("art_")) {
+			// No need trying to analyze system actors
+			System.out.println("Trying to analyze: "+name());
+			ActorClassifier ac = new ActorClassifier();
+			ac.initSession(null);
+			XlimDesign xlim = ac.read(new File(name()+".xlim"));
+			ModeScheduler modeScheduler = new ModeScheduler();
+			ActionSchedule actionSchedule = modeScheduler.getActionSchedule(xlim);
+			return actionSchedule.isDeterministic();
+		}
+		return false;
+	}
+
 	syn boolean Instance.isSDF() = xlimInstance().isSDF();
 
 	syn lazy xlimAST.Start Instance.xlimInstance() {

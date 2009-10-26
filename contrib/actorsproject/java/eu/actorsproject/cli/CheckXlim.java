@@ -90,6 +90,7 @@ public class CheckXlim extends Session {
 			String message=ex.getMessage();
 			if (message==null)
 				message="Exception: "+ex.toString();
+			ex.printStackTrace();
 			reportError(message);
 			fatalError("Error reading "+input.getPath());
 		}

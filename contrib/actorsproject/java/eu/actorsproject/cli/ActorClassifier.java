@@ -65,7 +65,7 @@ public class ActorClassifier extends CheckXlim {
 	private DeadCodeRemoval mDeadCodeRemoval;
 	
 	@Override
-	protected void initSession(String args[]) {
+	public void initSession(String args[]) {
 		super.initSession(args);
 		mCopyPropagation=new CopyPropagation();
 		mDeadCodeAnalysis=new DeadCodeAnalysis();

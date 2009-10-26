@@ -308,4 +308,17 @@ public class ModeScheduler {
 		}
 	}
 
+	/**
+	 * @param design the XLIM design for which to grenerate action schedule (if possible)
+	 * 
+	 * Returns the action schedule for the given actor.
+	 * 
+	 */
+	public ActionSchedule getActionSchedule(XlimDesign design) {
+		create(design);
+		// Enumerate state space
+		StateEnumeration<Interval> stateEnum=enumerateStateSpace(design);
+		return stateEnum.createActionSchedule();
+	}
+
 }
