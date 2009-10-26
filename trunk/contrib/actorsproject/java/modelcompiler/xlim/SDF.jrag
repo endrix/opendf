@@ -19,6 +19,19 @@ aspect SDF {
 	eq design.isSDF() = nbrOfActions() == 1;
 }
 
+// aspect CSDF {
+// 	syn boolean ASTNode.isCSDF() = false;
+// 	eq Start.isCSDF() = jjtGetNumChildren() == 0 ? false : getSpecification().isCSDF();
+// 	eq Specification.isCSDF() {
+// 		boolean result = false;
+// 		for (Element e : getElements()) {
+// 			result |= e.isCSDF();
+// 		}
+// 		return result;
+// 	}
+// 	eq design.isCSDF() = nbrOfActions() == 1;
+// }
+
 aspect Misc {
 	syn int design.nbrOfActions() {
 		int nbrActions = 0;
