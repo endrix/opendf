@@ -91,13 +91,13 @@ public class XlimVisualPrinter extends OutputGenerator {
 	}
 
 	public void printPort(XlimTopLevelPort port) {
-		println(port.getTagName()+"<"+port.getType()+","+port.getDirection()+"> "+port.getName()+";");
+		println(port.getTagName()+" "+port.getType()+" "+port.getName()+"; // dir="+port.getDirection());
 	}
 	
 	public void printStateVar(XlimStateVar stateVar) {
 		XlimInitValue initValue=stateVar.getInitValue();
 		XlimType elementType=initValue.getCommonElementType();
-		print("stateVar<"+elementType+"> "+stateVar.getDebugName());
+		print("stateVar "+elementType+" "+stateVar.getDebugName());
 		
 		if (initValue.getScalarType()!=null) {
 			println("="+initValue.getScalarValue()+";");
@@ -170,7 +170,7 @@ public class XlimVisualPrinter extends OutputGenerator {
 		decreaseIndentation();
 		println("else {");
 		increaseIndentation();
-		printContainerModule(ifModule.getThenModule());
+		printContainerModule(ifModule.getElseModule());
 		decreaseIndentation();
 		println("}");
 		printPhiNodes(ifModule);

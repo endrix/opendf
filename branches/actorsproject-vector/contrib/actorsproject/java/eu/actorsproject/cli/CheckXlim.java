@@ -84,19 +84,24 @@ public class CheckXlim extends Session {
 	}
 	
 	public XlimDesign read(File input) {
-		XlimDesign design=null;
+		mInputFile=input;
+		return read();
+	}
+	
+	protected XlimDesign read() {
+		mXlimDesign=null;
 		
 		try {
-			design=mReader.read(input);
+			mXlimDesign=mReader.read(mInputFile);
 		} catch (Exception ex) {
 			String message=ex.getMessage();
 			if (message==null)
 				message="Exception: "+ex.toString();
 			fatalError(message);
 		}
-		if (design==null)
+		if (mXlimDesign==null)
 			mHasErrors=true;
-		return design;
+		return mXlimDesign;
 	}
 	
 	
@@ -132,10 +137,10 @@ public class CheckXlim extends Session {
 			for (String fileName: args) {
 				setInputFile(fileName);
 				if (mInputFile!=null)
-					read(mInputFile);
+					read();
 			}
 		else if (mInputFile!=null) {
-			mXlimDesign=read(mInputFile);
+			read();
 		}
 	}
 	
