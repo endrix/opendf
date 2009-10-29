@@ -113,6 +113,19 @@ ENDCOPYRIGHT
     <attr name="typeName" value="{concat(@id, '$typedef')}"/>
   </xsl:template>
  
+  <xsl:template match="Type" mode="init-var">
+    <xsl:choose>
+      <xsl:when test="Entry[ @kind='Type' ]">
+        <xsl:apply-templates select="Entry[ @kind='Type' ]/Type"/>
+      </xsl:when>
+      
+      <xsl:otherwise>
+        <xsl:apply-templates select="."/>        
+      </xsl:otherwise>
+      
+    </xsl:choose>
+  </xsl:template>
+ 
  <!--
   <xsl:template match="Type">
      <xsl:choose>
@@ -138,7 +151,7 @@ ENDCOPYRIGHT
     <xsl:message>Error Here!</xsl:message>
   </xsl:template>
   
-  
+ 
   <xsl:template match="Port">
 
     <xsl:variable name="name" select="@name"/>
@@ -183,7 +196,7 @@ ENDCOPYRIGHT
       <xsl:when test="parent::Actor">
         <xsl:comment>Actor state variable <xsl:value-of select="@name"/></xsl:comment>
         <stateVar name="{@id}" sourceName="{@name}">
-          <xsl:apply-templates select="Expr" mode="init-state-var"/>
+          <xsl:apply-templates select="Expr" mode="init-var"/>
           <xsl:if test="not( Expr )">
             <initValue value="0">
               <xsl:for-each select="$var-type-attrs/attr">
@@ -263,6 +276,9 @@ ENDCOPYRIGHT
       <operation  kind="pinRead" portName="{../@port}" removable="no" style="simple">        
       <port source="{@id}" dir="out">
         <xsl:attribute name="typeName"><xsl:value-of select="$type-info/type/@name"/></xsl:attribute>
+        <xsl:for-each select="$type-info/type/valuePar">
+          <xsl:attribute name="{@name}"><xsl:value-of select="@value"/></xsl:attribute>
+        </xsl:for-each>
       </port>
       </operation>      
     </xsl:for-each>
@@ -380,7 +396,7 @@ ENDCOPYRIGHT
   
   <xsl:template match="Expr[@kind = 'List' ]" mode="flatten-expr">
     <xsl:variable name="type-attrs">
-      <xsl:apply-templates select="ancestor::Decl/Type/Entry[@kind='Type']/Type"/>
+      <xsl:apply-templates select="ancestor::Decl/Type" mode="init-var"/>
     </xsl:variable>
     
     <attr name="kind" value="$vcons"/>
@@ -922,9 +938,10 @@ ENDCOPYRIGHT
     
   </xsl:template>
 
-  <xsl:template match="Expr[ @kind='Literal' ]" mode="init-state-var">
-    <xsl:variable name="type-attrs">
-      <xsl:apply-templates select="ancestor::Decl/Type/Entry[@kind='Type']/Type"/>
+  <xsl:template match="Expr[ @kind='Literal' ]" mode="init-var">
+     <xsl:variable name="type-attrs">
+ <!--     <xsl:apply-templates select="ancestor::Decl/Type/Entry[@kind='Type']/Type"/> -->
+       <xsl:apply-templates select="ancestor::Decl/Type" mode="init-var"/>
     </xsl:variable>
     <initValue value="{@value}">
       <xsl:for-each select="$type-attrs/attr">
@@ -933,9 +950,9 @@ ENDCOPYRIGHT
     </initValue>
   </xsl:template>
 
-  <xsl:template match="*" mode="init-state-var">
+  <xsl:template match="*" mode="init-var">
     <initValue typeName="{@kind}">
-      <xsl:apply-templates select="Expr" mode="init-state-var"/>            
+      <xsl:apply-templates select="Expr" mode="init-var"/>            
     </initValue>
   </xsl:template>
 
@@ -1028,7 +1045,7 @@ ENDCOPYRIGHT
     <xsl:apply-templates select="Args/Expr"/>
     <xsl:for-each select="Args/Expr">
       <xsl:variable name="pos" select="position()"/>
-      <xsl:variable name="const" select="../../Note[@kind='dimension'][@index=$pos]/@multiplier"/>
+      <xsl:variable name="const" select="../../Note[@kind='dimension'][@index=$pos][1]/@multiplier"/>
       <xsl:variable name="const-name" select="concat(@id,'$CONST')"/>
       <xsl:variable name="mul-name" select="concat(@id,'$MUL')"/>
       <xsl:variable name="this" select="concat(@id,'$ADDR')"/>
