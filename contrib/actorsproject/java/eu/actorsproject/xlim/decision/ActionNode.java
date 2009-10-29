@@ -46,7 +46,6 @@ import eu.actorsproject.xlim.XlimBlockElement;
 import eu.actorsproject.xlim.XlimContainerModule;
 import eu.actorsproject.xlim.XlimModule;
 import eu.actorsproject.xlim.XlimOperation;
-import eu.actorsproject.xlim.XlimStateCarrier;
 import eu.actorsproject.xlim.XlimTaskModule;
 import eu.actorsproject.xlim.XlimTopLevelPort;
 import eu.actorsproject.xlim.absint.AbstractValue;
@@ -54,8 +53,10 @@ import eu.actorsproject.xlim.absint.Context;
 import eu.actorsproject.xlim.absint.DemandContext;
 import eu.actorsproject.xlim.dependence.CallNode;
 import eu.actorsproject.xlim.dependence.DataDependenceGraph;
+import eu.actorsproject.xlim.dependence.Location;
 import eu.actorsproject.xlim.dependence.ValueNode;
 import eu.actorsproject.xlim.dependence.ValueOperator;
+import eu.actorsproject.xlim.dependence.StateLocation;
 
 /**
  * An ActionNode is a leaf of the decision tree, which is
@@ -65,7 +66,7 @@ import eu.actorsproject.xlim.dependence.ValueOperator;
 public class ActionNode extends DecisionTree {
 
 	private XlimContainerModule mAction;
-	private Map<XlimStateCarrier,ValueNode> mOutputMapping;
+	private Map<StateLocation,ValueNode> mOutputMapping;
 	private PortSignature mPortSignature;
 	private String mDescription;
 	
@@ -134,7 +135,7 @@ public class ActionNode extends DecisionTree {
 	/**
 	 * @return the mapping from state to values at end of ActionNode
 	 */
-	public Map<XlimStateCarrier,ValueNode> getOutputMapping() {		
+	public Map<StateLocation,ValueNode> getOutputMapping() {		
 		return mOutputMapping;
 	}
 		
@@ -228,7 +229,7 @@ public class ActionNode extends DecisionTree {
 	private void parseActionCode(XlimContainerModule action) {
 		mDescription="";
 		mAction=action;
-		mOutputMapping=new HashMap<XlimStateCarrier,ValueNode>();
+		mOutputMapping=new HashMap<StateLocation,ValueNode>();
 		HashMap<XlimTopLevelPort,Integer> portMap=new HashMap<XlimTopLevelPort,Integer>();
 		String delimiter="";
 		
@@ -240,9 +241,9 @@ public class ActionNode extends DecisionTree {
 				XlimOperation xlimOp=(XlimOperation) element;
 				ValueOperator valueOp=xlimOp.getValueOperator();
 				for (ValueNode output: valueOp.getOutputValues()) {
-					XlimStateCarrier carrier=output.getStateCarrier();
-					if (carrier!=null)
-						mOutputMapping.put(carrier, output);
+					Location location=output.actsOnLocation();
+					if (location!=null && location.isStateLocation())
+						mOutputMapping.put(location.asStateLocation(), output);
 				}
 				
 				// Add consumption/production rates of action
@@ -270,8 +271,8 @@ public class ActionNode extends DecisionTree {
 		// The ports are among the accessed state of the task
 		CallNode callNode=task.getCallNode();
 		DataDependenceGraph ddg=callNode.getDataDependenceGraph();
-		for (XlimStateCarrier carrier: ddg.getModifiedState()) {
-			XlimTopLevelPort port=carrier.isPort();
+		for (StateLocation carrier: ddg.getModifiedState()) {
+			XlimTopLevelPort port=carrier.asActorPort();
 			if (port!=null) {
 				Integer oldRate=portMap.get(port);
 				int newRate=task.getPortRate(port);

@@ -44,7 +44,6 @@ import java.util.Iterator;
 import eu.actorsproject.util.IntrusiveList;
 import eu.actorsproject.util.Linkage;
 import eu.actorsproject.xlim.XlimOperation;
-import eu.actorsproject.xlim.XlimStateCarrier;
 
 public class CallSite  {
 
@@ -78,37 +77,43 @@ public class CallSite  {
 		return mOutputValues;
 	}
 	
-	public ValueNode getInputValue(XlimStateCarrier carrier) {
-		for (ValueUsage usage: mInputValues)
-			if (usage.getStateCarrier()==carrier)
-				return usage.getValue();
+	public ValueNode getInputValue(StateLocation location) {
+		for (ValueUsage usage: mInputValues) {
+			ValueNode usedValue=usage.getValue();
+			if (usedValue.actsOnLocation()==location)
+				return usedValue;
+		}
 		return null;
 	}
 	
-	public ValueNode getOutputValue(XlimStateCarrier carrier) {
+	public ValueNode getOutputValue(StateLocation location) {
 		for (ValueNode sideEffect: mOutputValues)
-			if (sideEffect.getStateCarrier()==carrier)
+			if (sideEffect.actsOnLocation()==location)
 				return sideEffect;
 		return null;
 	}
 	
 	public ValueNode getCalleeInput(ValueNode inputInCaller) {
 		DataDependenceGraph ddg=getCallee().getDataDependenceGraph();
-		return ddg.getInputValue(inputInCaller.getStateCarrier());
+		Location location=inputInCaller.actsOnLocation();
+		assert(location!=null && location.isStateLocation());
+		return ddg.getInputValue(location.asStateLocation());
 	}
 	
 	public ValueNode getCalleeOutput(ValueNode outputInCaller) {
 		DataDependenceGraph ddg=getCallee().getDataDependenceGraph();
-		return ddg.getOutputValue(outputInCaller.getStateCarrier());
+		Location location=outputInCaller.actsOnLocation();
+		assert(location!=null && location.isStateLocation());
+		return ddg.getOutputValue(location.asStateLocation());
 	}
 	
-	public void createInputValues(Collection<XlimStateCarrier> stateCarriers) {
-		for (XlimStateCarrier carrier: stateCarriers)
+	public void createInputValues(Collection<StateLocation> stateCarriers) {
+		for (StateLocation carrier: stateCarriers)
 			mInputValues.add(new CallSiteStateUsage(carrier,mOperation.getValueOperator()));
 	}
 	
-	public void createOutputValues(Collection<XlimStateCarrier> stateCarriers) {
-		for (XlimStateCarrier carrier: stateCarriers)
+	public void createOutputValues(Collection<StateLocation> stateCarriers) {
+		for (StateLocation carrier: stateCarriers)
 			mOutputValues.add(new CallSiteSideEffect(carrier));
 	}
 
@@ -117,7 +122,9 @@ public class CallSite  {
 		mCallerLink.remove();
 		mCalleeLink.remove();
 		for (ValueNode output: mOutputValues) {
-			ValueNode input=getInputValue(output.getStateCarrier());
+			Location location=output.actsOnLocation();
+			assert(location!=null && location.isStateLocation());
+			ValueNode input=getInputValue(location.asStateLocation());
 			output.substitute(input);
 			assert(output.isReferenced()==false);
 		}
@@ -128,14 +135,15 @@ public class CallSite  {
 		mInputValues.clear();
 	}
 
-	public void removeStateAccess(XlimStateCarrier carrier) {
+	public void removeStateAccess(StateLocation location) {
 		Iterator<ValueUsage> pUsage=mInputValues.iterator();
 		ValueNode inputValue=null;
 		
 		while (pUsage.hasNext()) {
 			ValueUsage usage=pUsage.next();
-			if (usage.getStateCarrier()==carrier) {
-				inputValue=usage.getValue();
+			ValueNode usedValue=usage.getValue();
+			if (usedValue.actsOnLocation()==location) {
+				inputValue=usedValue;
 				usage.out();
 				pUsage.remove();
 				break;
@@ -148,7 +156,7 @@ public class CallSite  {
 		Iterator<ValueNode> pValue=mOutputValues.iterator();
 		while (pValue.hasNext()) {
 			ValueNode value=pValue.next();
-			if (value.getStateCarrier()==carrier) {
+			if (value.actsOnLocation()==location) {
 				value.substitute(inputValue);
 				pValue.remove();
 				break;
@@ -195,18 +203,23 @@ public class CallSite  {
 	}
 	
 	private class CallSiteStateUsage extends ValueUsage {
-		private XlimStateCarrier mStateCarrier;
+		private StateLocation mStateCarrier;
 		
-		CallSiteStateUsage(XlimStateCarrier carrier, ValueOperator op) {
+		CallSiteStateUsage(StateLocation carrier, ValueOperator op) {
 			super(null /* no value set yet */);
 			mStateCarrier=carrier;
 		}
 
 		@Override
-		public XlimStateCarrier getStateCarrier() {
-			return mStateCarrier;
+		public boolean needsFixup() {
+			return true;
 		}
 		
+		@Override
+		public Location getFixupLocation() {
+			return mStateCarrier;
+		}
+
 		@Override
 		public ValueOperator usedByOperator() {
 			return getTaskCall().getValueOperator();
@@ -218,18 +231,20 @@ public class CallSite  {
 		}
 	}
 	
-	private class CallSiteSideEffect extends StateValueNode {
-		private XlimStateCarrier mStateCarrier;
+	private class CallSiteSideEffect extends SideEffect {
+		private StateLocation mLocation;
 		
-		CallSiteSideEffect(XlimStateCarrier carrier) {
-			mStateCarrier=carrier;
+		CallSiteSideEffect(StateLocation location) {
+			mLocation=location;
 		}
+		
 		
 		@Override
-		public XlimStateCarrier getStateCarrier() {
-			return mStateCarrier;
+		public Location actsOnLocation() {
+			return mLocation;
 		}
-		
+
+
 		@Override
 		public ValueOperator getDefinition() {
 			return getTaskCall().getValueOperator();
@@ -238,7 +253,7 @@ public class CallSite  {
 		
 		@Override
 		public ValueNode getDominatingDefinition() {
-			return getInputValue(mStateCarrier);
+			return getInputValue(mLocation);
 		}
 
 		@Override

@@ -48,7 +48,6 @@ import eu.actorsproject.xlim.XlimModule;
 import eu.actorsproject.xlim.XlimOperation;
 import eu.actorsproject.xlim.XlimOutputPort;
 import eu.actorsproject.xlim.XlimSource;
-import eu.actorsproject.xlim.XlimStateVar;
 import eu.actorsproject.xlim.XlimTaskModule;
 import eu.actorsproject.xlim.XlimTopLevelPort;
 import eu.actorsproject.xlim.absint.AbstractDomain;
@@ -56,6 +55,7 @@ import eu.actorsproject.xlim.absint.Context;
 import eu.actorsproject.xlim.dependence.CallSite;
 import eu.actorsproject.xlim.dependence.FixupContext;
 import eu.actorsproject.xlim.dependence.InputValueIteration;
+import eu.actorsproject.xlim.dependence.Location;
 import eu.actorsproject.xlim.dependence.ValueNode;
 import eu.actorsproject.xlim.dependence.ValueOperator;
 import eu.actorsproject.xlim.dependence.ValueUsage;
@@ -142,11 +142,15 @@ class Operation extends Linkage<AbstractBlockElement>
 	}
 	
 	@Override
-	public boolean mayAccessState() {
-		return mKind.mayAccessState(this);
+	public boolean dependsOnLocation() {
+		return mKind.dependsOnLocation(this);
 	}
 	
 	
+	public boolean modifiesLocation() {
+		return mKind.modifiesLocation(this);
+	}
+
 	protected ValueUsage getStateAccessViaAttribute() {
 		return null;
 	}
@@ -156,7 +160,7 @@ class Operation extends Linkage<AbstractBlockElement>
 	}
 	
 	@Override
-	public boolean mayModifyState() {
+	public boolean modifiesState() {
 		return mKind.mayModifyState(this);
 	}
 
@@ -197,7 +201,7 @@ class Operation extends Linkage<AbstractBlockElement>
 	}
 
 	@Override
-	public XlimSource getStateVarAttribute() {
+	public Location getLocation() {
 		return null;
 	}
 
@@ -242,7 +246,7 @@ class Operation extends Linkage<AbstractBlockElement>
 	}
 
 	@Override
-	public boolean setStateVarAttribute(XlimSource location) {
+	public boolean setLocation(Location location) {
 		return false;
 	}
 
@@ -314,7 +318,7 @@ class Operation extends Linkage<AbstractBlockElement>
 	public void substituteStateValueNodes() {
 		// Substitute StateValueNodes (definitions) in the operations that use them
 		// so that this operation can be moved
-		if (mayModifyState()) {
+		if (modifiesLocation()) {
 			for (ValueNode output: getOutputValues()) {
 				ValueNode domDef=output.getDominatingDefinition();
 				output.substitute(domDef);
@@ -329,9 +333,9 @@ class Operation extends Linkage<AbstractBlockElement>
 	 */
 	@Override
 	public void fixupAll(FixupContext context) {
-		if (mayAccessState())
+		if (dependsOnLocation())
 			context.fixup(getUsedValues());
-		if (mayModifyState())
+		if (modifiesLocation())
 			context.setNewValues(getOutputValues());
 	}
 
@@ -341,10 +345,10 @@ class Operation extends Linkage<AbstractBlockElement>
 	 */
 	@Override
 	public void propagateNewValues(FixupContext context) {
-		if (mayAccessState())
+		if (dependsOnLocation())
 			context.propagateNewValues(getUsedValues());
 		// Terminate propagation of new values when we find an old definition
-		if (mayModifyState())
+		if (modifiesLocation())
 			context.endPropagation(getOutputValues());
 	}
 
@@ -355,11 +359,11 @@ class Operation extends Linkage<AbstractBlockElement>
 	@Override
 	public void resolveExposedUses(FixupContext context) {
 		// Look for definitions that match the exposed uses
-		if (mayModifyState())
+		if (modifiesLocation())
 			context.resolveExposedUses(getOutputValues());
 		// Look for use of resources that match exposed uses
 		// (and grab the definition they are associated with)
-		if (mayAccessState())
+		if (dependsOnLocation())
 			context.resolveExposedUsesViaUse(getUsedValues());
 	}
 

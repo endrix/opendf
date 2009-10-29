@@ -47,11 +47,11 @@ import eu.actorsproject.xlim.XlimLoopModule;
 import eu.actorsproject.xlim.XlimModule;
 import eu.actorsproject.xlim.XlimOperation;
 import eu.actorsproject.xlim.XlimPhiNode;
-import eu.actorsproject.xlim.XlimStateCarrier;
 import eu.actorsproject.xlim.XlimTaskModule;
 import eu.actorsproject.xlim.XlimTestModule;
+import eu.actorsproject.xlim.dependence.Location;
 import eu.actorsproject.xlim.dependence.PhiOperator;
-import eu.actorsproject.xlim.dependence.StatePhiOperator;
+import eu.actorsproject.xlim.dependence.SideEffectPhiOperator;
 import eu.actorsproject.xlim.dependence.ValueNode;
 import eu.actorsproject.xlim.dependence.ValueOperator;
 import eu.actorsproject.xlim.dependence.ValueUsage;
@@ -135,7 +135,7 @@ class LatestEvaluationArg {
 					
 		// Better safe than sorry, in this version we neither move state updates
 		// nor things with "volatile" side-effects (such as pinWaits)
-		if (latest==null || op.mayModifyState() || op.isRemovable()==false) {
+		if (latest==null || op.modifiesLocation() || op.isRemovable()==false) {
 			// if (latest==null)
 			//  System.out.println("// LatestEvaluationAnalysis: no latest point: "+op);
 			// else
@@ -145,7 +145,7 @@ class LatestEvaluationArg {
 		
 		// If op accesses state, we must take care not to move beyond state updates
 		Iterable<? extends ValueNode> inputs=null;
-		if (op.mayAccessState()) {
+		if (op.dependsOnLocation()) {
 			inputs=op.getValueOperator().getInputValues();
 		}
 		
@@ -160,11 +160,11 @@ class LatestEvaluationArg {
 			}
 			else if (inputs!=null && child!=null) {
 				// The set of values killed on the path from 'm' to 'child'
-				Set<XlimStateCarrier> killed=mKilled.killedInParent(child);
+				Set<Location> killed=mKilled.killedInParent(child);
 				for (ValueNode value: inputs) {
-					XlimStateCarrier carrier=value.getStateCarrier();
-					if (carrier!=null && killed.contains(carrier)) {
-						// System.out.println("// LatestEvaluationAnalysis: "+op+"hoisted above definition of "+carrier);
+					Location location=value.actsOnLocation();
+					if (location!=null && killed.contains(location)) {
+						// System.out.println("// LatestEvaluationAnalysis: "+op+"hoisted above definition of "+location);
 						latest=m;
 						break;
 					}
@@ -203,9 +203,9 @@ class LatestEvaluationTraversal extends BottomUpXlimTraversal<Object,LatestEvalu
 		return null;
 	}	
 
-	private void traverseStatePhiNodes(Iterable<? extends StatePhiOperator> phiOperators,
+	private void traverseStatePhiNodes(Iterable<? extends SideEffectPhiOperator> phiOperators,
 				                  LatestEvaluationArg arg) {
-		for (StatePhiOperator phi: phiOperators) {
+		for (SideEffectPhiOperator phi: phiOperators) {
 			handlePhiOperator(phi,arg);
 		}
 	}

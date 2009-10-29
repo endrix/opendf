@@ -42,11 +42,11 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
-import eu.actorsproject.xlim.XlimStateCarrier;
 
 /**
- * FixupContext keeps track of current values of stateful resources (state 
- * variables and ports) when building or patching the data dependence graph.
+ * FixupContext keeps track of current values of Locations (state variables,
+ * actor ports and local aggregates) when building or patching the data dependence 
+ * graph.
  * It also keeps track of exposed uses, which must be resolved by associating
  * them with a proper definition (ValueNode).
  * Further it provides methods to process a patch (finding exposed uses and
@@ -55,18 +55,18 @@ import eu.actorsproject.xlim.XlimStateCarrier;
  */
 public class FixupContext {
 
-	private HashMap<XlimStateCarrier,ArrayList<ValueUsage>> mExposedUses;
-	private HashMap<XlimStateCarrier,ValueNode> mCurrValues;
-	private HashSet<XlimStateCarrier> mNewValues;
+	private HashMap<Location,ArrayList<ValueUsage>> mExposedUses;
+	private HashMap<Location,ValueNode> mCurrValues;
+	private HashSet<Location> mNewValues;
 	
 	public FixupContext() {
-		mExposedUses=new HashMap<XlimStateCarrier,ArrayList<ValueUsage>>();
-		mCurrValues=new HashMap<XlimStateCarrier,ValueNode>();
-		mNewValues=new HashSet<XlimStateCarrier>();
+		mExposedUses=new HashMap<Location,ArrayList<ValueUsage>>();
+		mCurrValues=new HashMap<Location,ValueNode>();
+		mNewValues=new HashSet<Location>();
 	}
 		
 	private FixupContext(FixupContext c) {
-		mCurrValues=new HashMap<XlimStateCarrier,ValueNode>(c.mCurrValues);
+		mCurrValues=new HashMap<Location,ValueNode>(c.mCurrValues);
 	}
 	
 	/**
@@ -77,7 +77,7 @@ public class FixupContext {
 	public FixupContext createFixupSubContext() {
 		FixupContext result=new FixupContext(this);
 		result.mExposedUses=mExposedUses;
-		result.mNewValues=new HashSet<XlimStateCarrier>();
+		result.mNewValues=new HashSet<Location>();
 		return result;
 	}
 	
@@ -88,25 +88,25 @@ public class FixupContext {
 	public FixupContext createPropagationSubContext() {
 		FixupContext result=new FixupContext(this);
 		result.mExposedUses=null;
-		result.mNewValues=new HashSet<XlimStateCarrier>(mNewValues);
+		result.mNewValues=new HashSet<Location>(mNewValues);
 		return result;		
 	}
 	
 	/**
-	 * @param carrier a stateful resource
-	 * @return the "current" value of carrier
+	 * @param location 
+	 * @return the "current" value of location
 	 */
-	public ValueNode getValue(XlimStateCarrier carrier) {
-		return mCurrValues.get(carrier);
+	public ValueNode getValue(Location location) {
+		return mCurrValues.get(location);
 	}
 	
 	/**
 	 * @return the set of stateful resources with new values (needs to be propagated)
 	 * 
 	 * Whereas it is OK to iterate over the new values for the purposes of propagating values,
-	 * we mustn't iterate and endPropagation(), since this would modify the set we are iterating over.
+	 * we mustn't iterate and do endPropagation(), since this would modify the set we are iterating over.
 	 */
-	public Set<XlimStateCarrier> getNewValues() {
+	public Set<Location> getNewValues() {
 		return mNewValues;
 	}
 
@@ -115,7 +115,7 @@ public class FixupContext {
 	 * 
 	 * Note that we mustn't iterate over the exposed uses when resolving them (map is modified).
 	 */
-	public Set<XlimStateCarrier> getExposedUses() {
+	public Set<Location> getExposedUses() {
 		return mExposedUses.keySet();
 	}
 	
@@ -126,10 +126,10 @@ public class FixupContext {
 	 * as new, which means that it will have to be propagated out of the patch.
 	 */
 	public void setNewValue(ValueNode newValue) {
-		XlimStateCarrier carrier=newValue.getStateCarrier();
-		if (carrier!=null) {
-			mCurrValues.put(carrier, newValue);
-			mNewValues.add(carrier);
+		Location location=newValue.actsOnLocation();
+		if (location!=null) {
+			mCurrValues.put(location, newValue);
+			mNewValues.add(location);
 		}
 		// else: this is an output-port (no state carrier)
 	}
@@ -145,13 +145,13 @@ public class FixupContext {
 			setNewValue(v);
 	}
 
-	private ArrayList<ValueUsage> getArrayList(XlimStateCarrier carrier) {
-		assert(carrier!=null);
-		ArrayList<ValueUsage> l=mExposedUses.get(carrier);
+	private ArrayList<ValueUsage> getExposedUses(Location location) {
+		assert(location!=null);
+		ArrayList<ValueUsage> l=mExposedUses.get(location);
 		if (l==null) {
-			// First use
+			// This is the first use, create the array
 			l=new ArrayList<ValueUsage>();
-			mExposedUses.put(carrier, l);
+			mExposedUses.put(location, l);
 		}
 		return l;
 	}
@@ -162,20 +162,21 @@ public class FixupContext {
 	 * Otherwise it is put in the collection of upwards exposed usages
 	 */
 	public void fixup(ValueUsage use) {
-		XlimStateCarrier carrier=use.getStateCarrier();
-		if (carrier!=null) {
-			ValueNode currValue=getValue(carrier);
+		if (use.needsFixup()) {
+		    Location location=use.getFixupLocation();
+		    assert(location!=null);
+			ValueNode currValue=getValue(location);
 			if (currValue!=null) {
 				// Fix-up value usage
 				use.setValue(currValue);
 			}
 			else {
 				// Add an exposed usage
-				ArrayList<ValueUsage> l=getArrayList(carrier);
+				ArrayList<ValueUsage> l=getExposedUses(location);
 				l.add(use);
 			}
 		}
-		// else: this is an output-port use (no state carrier)
+		// else: this is an output-port use (no location)
 	}
 	
 	/**
@@ -194,9 +195,9 @@ public class FixupContext {
 	 * @return true if an exposed use was resolved
 	 */
 	public boolean resolveExposedUses(ValueNode def) {
-		XlimStateCarrier carrier=def.getStateCarrier();
-		if (carrier!=null) {
-			ArrayList<ValueUsage> expUses=mExposedUses.remove(carrier);
+		Location location=def.actsOnLocation();
+		if (location!=null) {
+			ArrayList<ValueUsage> expUses=mExposedUses.remove(location);
 			if (expUses!=null) {
 				resolve(expUses,def);
 				return true;
@@ -223,12 +224,13 @@ public class FixupContext {
 	/**
 	 * Attempts to resolve exposed usages using another use (which refers
 	 * to a definition/ValueNode)
-	 * @param def a definition, which dominates the patched code
+	 * @param use  a use, which dominates the patched code
 	 */
 	public void resolveExposedUsesViaUse(ValueUsage use) {
-		XlimStateCarrier carrier=use.getStateCarrier();
-		if (carrier!=null) {
-			ArrayList<ValueUsage> expUses=mExposedUses.remove(carrier);
+		if (use.needsFixup()) {
+			Location location=use.getFixupLocation();
+			assert(location!=null);
+			ArrayList<ValueUsage> expUses=mExposedUses.remove(location);
 			if (expUses!=null) {
 				resolve(expUses,use.getValue());
 			}
@@ -254,11 +256,15 @@ public class FixupContext {
 	 * @param use
 	 */
 	public void propagateNewValue(ValueUsage use) {
-		XlimStateCarrier carrier=use.getStateCarrier();
-		if (carrier!=null && mNewValues.contains(carrier)) {
-			ValueNode currValue=getValue(carrier);
-			assert(currValue!=null);
-			use.setValue(currValue);
+		
+		if (use.needsFixup()) {
+			Location location=use.getFixupLocation();
+			assert(location!=null);
+			if (mNewValues.contains(location)) {
+				ValueNode currValue=getValue(location);
+				assert(currValue!=null);
+				use.setValue(currValue);
+			}
 		}
 	}
 	
@@ -279,9 +285,9 @@ public class FixupContext {
 	 * @return true if the propagation of a new value ended
 	 */
 	public boolean endPropagation(ValueNode def) {
-		XlimStateCarrier carrier=def.getStateCarrier();
-		if (carrier!=null)
-			return mNewValues.remove(carrier);
+		Location location=def.actsOnLocation();
+		if (location!=null)
+			return mNewValues.remove(location);
 		else
 			return false;
 	}

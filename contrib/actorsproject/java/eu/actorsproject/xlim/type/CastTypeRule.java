@@ -43,6 +43,7 @@ import eu.actorsproject.xlim.XlimOperation;
 import eu.actorsproject.xlim.XlimOutputPort;
 import eu.actorsproject.xlim.XlimSource;
 import eu.actorsproject.xlim.XlimType;
+import eu.actorsproject.xlim.XlimTypeKind;
 import eu.actorsproject.xlim.util.Session;
 
 /**
@@ -82,8 +83,10 @@ public class CastTypeRule extends TypeRule {
 		XlimType tOut=op.getOutputPort(0).getType();
 		if (tOut!=null) {
 			XlimType tIn=op.getInputPort(0).getSource().getType();
-			TypeKind kindOut=Session.getTypeFactory().getTypeKind(tOut.getTypeName());
-			return kindOut.hasConversionFrom(tIn);
+			XlimTypeKind kindOut=tOut.getTypeKind();
+			// TODO: we should add the necessessary stuff to XlimTypeKind!
+			assert(kindOut instanceof TypeKind);
+			return ((TypeKind) kindOut).hasConversionFrom(tIn);
 		}
 		else
 			return false; // output type required -there is no default 

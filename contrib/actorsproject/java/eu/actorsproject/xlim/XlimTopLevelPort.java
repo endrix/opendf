@@ -41,20 +41,22 @@
 package eu.actorsproject.xlim;
 
 import eu.actorsproject.util.XmlElement;
+import eu.actorsproject.xlim.dependence.StateLocation;
 
 /**
  * @author ecarvon
  *
  */
-public interface XlimTopLevelPort extends XmlElement, XlimStateCarrier {
-	String getSourceName();
-	XlimType getType();
-	void setType(XlimType t);
-	Direction getDirection();
-	
+public interface XlimTopLevelPort extends XmlElement {
 	enum Direction {
 		in,
 		out,
 		internal /* both in/out */
 	}
+	
+	String getName();
+	XlimType getType();
+	void setType(XlimType t);
+	Direction getDirection();
+	StateLocation asStateLocation();
 }

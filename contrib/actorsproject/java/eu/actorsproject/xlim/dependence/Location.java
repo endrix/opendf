@@ -37,65 +37,50 @@
 
 package eu.actorsproject.xlim.dependence;
 
-import java.util.Collections;
-
-import eu.actorsproject.util.XmlElement;
-import eu.actorsproject.xlim.XlimStateCarrier;
-import eu.actorsproject.xlim.XlimStateVar;
+import eu.actorsproject.xlim.XlimSource;
 import eu.actorsproject.xlim.XlimType;
 
 /**
- * StateValueNode node is the common base of value nodes that represent state
- * (ports and state variables)
- *  
- * StateValueNodes model data dependence that is caused by operations on
- * ports and state variables, both true dependence ("read-after-write") and
- * artificial dependence ("write-after-write" and "write-after-read").
+ * A Location represents the target of a side-effect:
+ * an actor port, a state variable or a local aggregate (vector)
  */
-public abstract class StateValueNode extends ValueNode {
+public interface Location {
 
-	private static int mNextId;
-	private int mUniqueId;
-	
-	public StateValueNode() {
-		mUniqueId=mNextId++;
-	}
-	
-	@Override
-	public String getUniqueId() {
-		return "v"+mUniqueId; 
-	}
-	
-	@Override
-	public String getTagName() {
-		return "StateValueNode";
-	}
-	
-	@Override
-	public XlimType getType() {
-		return getStateCarrier().getType();
-	}
-	
-	@Override
-	public String getAttributeDefinitions() {
-		XlimStateCarrier carrier=getStateCarrier();
-		String name=carrier.getSourceName();
-		String source="";
-		
-		if (name!=null)
-			name = " name=\"" + name + "\"";
-		else
-			name="";
-		
-		XlimStateVar stateVar=carrier.isStateVar();
-		if (stateVar!=null)
-			source = " source=\"" + stateVar.getUniqueId() + "\"";
-		
-		return "valueId=\"" + getUniqueId() + "\"" + name + source;
-	}
+	/**
+	 * @return the type of the location
+	 * 
+	 * This is the as the type of the state variable, the actor port
+	 * or the type of the local aggregate, which is represented by the Location
+	 */
+	XlimType getType();
 
-	@Override
-	public Iterable<? extends XmlElement> getChildren() {
-		return Collections.emptyList();
-	}
+	/**
+	 * @return true iff this Location represents a stateful resource (state variable
+	 *         or actor port).
+	 */
+	boolean isStateLocation();
+	
+	/**
+	 * @return the stateful resource (state variable or actor port), which is 
+	 *         represented by this location (or null if there is no such StateLocation)
+	 */
+	StateLocation asStateLocation();
+	
+	/**
+	 * @return true iff this Location is defined by an XlimSource (state variable or
+	 *         output port of an operation).
+	 */
+	boolean hasSource();
+	
+	/**
+	 * @return the XlimSource that defines the Location  (or null if there is no such 
+	 *         source, i.e. the Location is an actor port)
+	 */
+	XlimSource getSource();
+	
+	/**
+	 * @return a string that describes the location for the purposes of debug printouts
+	 *         and diagnostics (neither guaranteed to be unique nor a legal C/CAL idententifier)
+	 */
+	String getDebugName();
 }

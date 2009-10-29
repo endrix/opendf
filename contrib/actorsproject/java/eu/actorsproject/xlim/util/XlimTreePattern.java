@@ -49,14 +49,14 @@ public abstract class XlimTreePattern {
 	 * @return true if this pattern matches at 'root'
 	 */
 	public boolean matches(XlimSource root) {
-		XlimOutputPort output=root.isOutputPort();
+		XlimOutputPort output=root.asOutputPort();
 		
 		if (output!=null) {
 			XlimInstruction parent=output.getParent();
 			return matchesAtRoot(parent) && matchesSubPatterns(parent);
 		}
 		else {
-			XlimStateVar stateVar=output.isStateVar();
+			XlimStateVar stateVar=output.asStateVar();
 			assert(stateVar!=null);
 			
 			return matchesStateVar(stateVar);

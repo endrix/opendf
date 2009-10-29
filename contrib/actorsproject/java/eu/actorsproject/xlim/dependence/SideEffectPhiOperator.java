@@ -44,22 +44,21 @@ import eu.actorsproject.util.Linkage;
 import eu.actorsproject.util.XmlElement;
 import eu.actorsproject.xlim.XlimModule;
 import eu.actorsproject.xlim.XlimPhiContainerModule;
-import eu.actorsproject.xlim.XlimStateCarrier;
 import eu.actorsproject.xlim.absint.AbstractDomain;
 import eu.actorsproject.xlim.absint.Context;
 
-public class StatePhiOperator extends Linkage<StatePhiOperator> implements PhiOperator {
+public class SideEffectPhiOperator extends Linkage<SideEffectPhiOperator> implements PhiOperator {
 
 	private ArrayList<ValueUsage> mInputs;
-	private JoinValueNode mOutput;
+	private SideEffectJoin mOutput;
 	private XlimPhiContainerModule mParentModule;
-	private XlimStateCarrier mStateCarrier;
+	private Location mLocation;
 	private boolean mIsLoopJoin;
 	
-	public StatePhiOperator(XlimPhiContainerModule parent, XlimStateCarrier carrier, boolean isLoopJoin) {
-		mOutput=new JoinValueNode();
+	public SideEffectPhiOperator(XlimPhiContainerModule parent, Location location, boolean isLoopJoin) {
+		mOutput=new SideEffectJoin();
 		mParentModule=parent;
-		mStateCarrier=carrier;
+		mLocation=location;
 		mIsLoopJoin=isLoopJoin;
 		mInputs=new ArrayList<ValueUsage>(2);
 		mInputs.add(new JoinStateUsage());
@@ -171,11 +170,8 @@ public class StatePhiOperator extends Linkage<StatePhiOperator> implements PhiOp
 	 */
 	@Override 
 	public String attributesToString() {
-		XlimStateCarrier carrier=mOutput.getStateCarrier();
-		String name=carrier.getSourceName();
-		if (name==null)
-			name=carrier.isStateVar().getUniqueId();
-		return name;
+		Location location=mOutput.actsOnLocation();
+		return location.getDebugName();
 	}
 	
 	public String toString() {
@@ -207,7 +203,7 @@ public class StatePhiOperator extends Linkage<StatePhiOperator> implements PhiOp
 	}
 	
 	/* implementation of Linkage */
-	public StatePhiOperator getElement() {
+	public SideEffectPhiOperator getElement() {
 		return this;
 	}
 	
@@ -218,25 +214,30 @@ public class StatePhiOperator extends Linkage<StatePhiOperator> implements PhiOp
 		}
 		
 		@Override
-		public XlimStateCarrier getStateCarrier() {
-			return mStateCarrier;
+		public boolean needsFixup() {
+			return true;
+		}
+		
+		@Override
+		public Location getFixupLocation() {
+			return mLocation;
 		}
 		
 		@Override
 		public ValueOperator usedByOperator() {
-			return StatePhiOperator.this;
+			return SideEffectPhiOperator.this;
 		}
 	}
 	
-	private class JoinValueNode extends StateValueNode {
-		@Override
-		public XlimStateCarrier getStateCarrier() {
-			return mStateCarrier;
-		}
+	private class SideEffectJoin extends SideEffect {
 		
 		@Override
+		public Location actsOnLocation() {
+			return mLocation;
+		}
+		@Override
 		public ValueOperator getDefinition() {
-			return StatePhiOperator.this;
+			return SideEffectPhiOperator.this;
 		}
 
 		@Override
@@ -244,7 +245,7 @@ public class StatePhiOperator extends Linkage<StatePhiOperator> implements PhiOp
 			// Traverse along the path of input value #0 
 			// (avoid back-edge of loop, which is #1)
 			// Until we're in a module that encloses the test module
-			XlimModule container=StatePhiOperator.this.getParentModule();
+			XlimModule container=SideEffectPhiOperator.this.getParentModule();
 			ValueNode value=getInputValue(0);
 			ValueOperator def=value.getDefinition();
 			while (def!=null && container.leastCommonAncestor(def.getParentModule())==container) {

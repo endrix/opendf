@@ -38,11 +38,14 @@
 package eu.actorsproject.xlim.implementation;
 
 import eu.actorsproject.util.XmlElement;
+import eu.actorsproject.xlim.XlimSource;
 import eu.actorsproject.xlim.XlimTopLevelPort;
 import eu.actorsproject.xlim.XlimType;
+import eu.actorsproject.xlim.dependence.StateLocation;
+
 import java.util.Collections;
 
-class TopLevelPort implements XlimTopLevelPort {
+class TopLevelPort implements XlimTopLevelPort, StateLocation {
 
 	private String mName;
 	private Direction mDirection;
@@ -60,11 +63,6 @@ class TopLevelPort implements XlimTopLevelPort {
 	}
 
 	@Override
-	public String getSourceName() {
-		return mName;
-	}
-
-	@Override
 	public XlimType getType() {
 		return mType;
 	}
@@ -73,7 +71,17 @@ class TopLevelPort implements XlimTopLevelPort {
 	public void setType(XlimType t) {
 		mType=t;
 	}
+
 	
+	public String getName() {
+		return mName;
+	}
+
+	@Override
+	public String getDebugName() {
+		return mName;
+	}
+
 	@Override
 	public String getAttributeDefinitions() {
 		String dir;
@@ -97,13 +105,31 @@ class TopLevelPort implements XlimTopLevelPort {
 			return "actor-port";
 	}
 	
-	@Override
-	public StateVar isStateVar() {
-		return null;
+	
+	public boolean isStateLocation() {
+		return true;  // yes, it's a StateLocation (see Location)
+	}
+
+	public StateLocation asStateLocation() {
+		return this;  // yes, it's a StateLocation (see Location)
 	}
 	
 	@Override
-	public TopLevelPort isPort() {
-		return this;
+	public TopLevelPort asActorPort() {
+		return this;  // yes, it's an actor port (see StateLocation)
+	}
+
+	@Override
+	public StateVar asStateVar() {
+		return null;  // no, it's not a state variable (see StateLocation)
+	}
+	
+
+	public boolean hasSource() {
+		return false; // no, it hasn't any source (see Location)
+	}
+
+	public XlimSource getSource() {
+		return null; // no, it hasn't any source (see Location)
 	}
 }

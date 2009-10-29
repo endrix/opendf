@@ -945,7 +945,7 @@ public class XlimReaderWithDiagnostics implements IXlimReader {
 		private boolean belongsToPath(XlimSource source, XlimModule dominator) {
 			if (source!=null && dominator!=null) {
 				XlimModule defInModule=null;
-				XlimOutputPort port=source.isOutputPort();
+				XlimOutputPort port=source.asOutputPort();
 				if (port!=null) {
 					XlimInstruction instr=port.getParent();
 					if (instr!=null)

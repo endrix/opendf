@@ -40,7 +40,6 @@ package eu.actorsproject.xlim.dependence;
 import eu.actorsproject.util.IntrusiveList;
 import eu.actorsproject.xlim.XlimContainerModule;
 import eu.actorsproject.xlim.XlimOperation;
-import eu.actorsproject.xlim.XlimStateCarrier;
 import eu.actorsproject.xlim.XlimTaskModule;
 
 public class CallNode {
@@ -125,7 +124,7 @@ public class CallNode {
 	 * graph and the data dependence surrounding all call sites are updated. 
 	 * @param carrier, a state variable or a port
 	 */
-	public void removeStateAccess(XlimStateCarrier carrier) {
+	public void removeStateAccess(StateLocation carrier) {
 		for (CallSite caller: mCallers) {
 			caller.removeStateAccess(carrier);
 		}

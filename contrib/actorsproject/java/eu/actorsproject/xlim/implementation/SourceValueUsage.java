@@ -38,8 +38,8 @@
 package eu.actorsproject.xlim.implementation;
 
 import eu.actorsproject.xlim.XlimSource;
-import eu.actorsproject.xlim.XlimStateCarrier;
 import eu.actorsproject.xlim.XlimStateVar;
+import eu.actorsproject.xlim.dependence.Location;
 import eu.actorsproject.xlim.dependence.ValueNode;
 import eu.actorsproject.xlim.dependence.ValueOperator;
 import eu.actorsproject.xlim.dependence.ValueUsage;
@@ -50,14 +50,19 @@ class SourceValueUsage extends ValueUsage {
 	private ValueOperator mOperator;
 	
 	public SourceValueUsage(XlimSource source, ValueOperator op) {
-		super((source.isOutputPort()!=null)? source.isOutputPort().getValue() : null);
+		super((source.asOutputPort()!=null)? source.asOutputPort().getValue() : null);
 		mSource=source;
 		mOperator=op;
 	}
 	
 	@Override
-	public XlimStateCarrier getStateCarrier() {
-		return mSource.isStateVar(); // the state variable, or null if output port
+	public boolean needsFixup() {
+		return mSource.hasLocation();
+	}
+	
+	@Override
+	public Location getFixupLocation() {
+		return mSource.getLocation();
 	}
 	
 	@Override
@@ -69,12 +74,15 @@ class SourceValueUsage extends ValueUsage {
 	public void setValue(ValueNode newValue) {
 		super.setValue(newValue);
 		if (newValue!=null) {
-			XlimStateCarrier carrier=newValue.getStateCarrier();
-			if (carrier!=null)
-				mSource=carrier.isStateVar();
-			else
+			if (newValue.isSideEffect()) {
+				Location location=newValue.actsOnLocation();
+				assert(location.hasSource());
+				mSource=location.getSource();
+			}
+			else {
+				assert(newValue instanceof OutputPort);
 				mSource=(OutputPort) newValue;
-			assert(mSource!=null);
+			}
 		}
 	}
 	
@@ -84,11 +92,11 @@ class SourceValueUsage extends ValueUsage {
 	
 	@Override
 	public String getAttributeDefinitions() {
-		XlimStateVar stateVar=mSource.isStateVar();
+		XlimStateVar stateVar=mSource.asStateVar();
 		String source="source=\"" + mSource.getUniqueId() + "\"";
 		
 		if (stateVar!=null) {
-			String sourceName=stateVar.getSourceName();
+			String sourceName=stateVar.getDebugName();
 			if (sourceName!=null)
 				return "name=\"" + sourceName + "\" " + source;
 		}

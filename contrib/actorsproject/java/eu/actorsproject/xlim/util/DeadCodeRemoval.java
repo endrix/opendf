@@ -51,14 +51,14 @@ import eu.actorsproject.xlim.XlimInstruction;
 import eu.actorsproject.xlim.XlimLoopModule;
 import eu.actorsproject.xlim.XlimOperation;
 import eu.actorsproject.xlim.XlimPhiNode;
-import eu.actorsproject.xlim.XlimStateCarrier;
 import eu.actorsproject.xlim.XlimStateVar;
 import eu.actorsproject.xlim.XlimTaskModule;
 import eu.actorsproject.xlim.XlimTopLevelPort;
 import eu.actorsproject.xlim.dependence.CallNode;
 import eu.actorsproject.xlim.dependence.DataDependenceGraph;
-import eu.actorsproject.xlim.dependence.StatePhiOperator;
+import eu.actorsproject.xlim.dependence.SideEffectPhiOperator;
 import eu.actorsproject.xlim.dependence.ValueNode;
+import eu.actorsproject.xlim.dependence.StateLocation;
 
 public class DeadCodeRemoval {
 	
@@ -86,7 +86,7 @@ public class DeadCodeRemoval {
 		@Override
 		public boolean isDead(XlimInstruction instr) {
 			return (instr.isReferenced()==false 
-					&& instr.mayModifyState()==false
+					&& instr.modifiesState()==false
 					&& instr.isRemovable());
 		}
 		
@@ -126,9 +126,11 @@ public class DeadCodeRemoval {
 	 */
 	private void topDownPass(XlimDesign design, ArrayList<CallNode> postorder, DeadCodePlugIn plugIn) {
 		// Start by assuming that all state variables and (internal) actor ports are unref:ed
-		HashSet<XlimStateCarrier> unreferenced=new HashSet<XlimStateCarrier>();
-		unreferenced.addAll(design.getStateVars());
-		unreferenced.addAll(design.getInternalPorts());
+		HashSet<StateLocation> unreferenced=new HashSet<StateLocation>();
+		for (XlimStateVar stateVar: design.getStateVars())
+			unreferenced.add(stateVar.asStateLocation());
+		for (XlimTopLevelPort internalPort: design.getInternalPorts())
+			unreferenced.add(internalPort.asStateLocation());
 		
 		// Look for unreferenced (non-autostart) tasks in reverse postorder
 		// (caller before called node/task)
@@ -152,20 +154,18 @@ public class DeadCodeRemoval {
 			}
 		}
 		
-		for (XlimStateCarrier carrier: unreferenced) {
-			XlimStateVar stateVar=carrier.isStateVar();
+		for (StateLocation loc: unreferenced) {
+			XlimStateVar stateVar=loc.asStateVar();
 			if (stateVar!=null) {
 				if (mTrace) {
-					String name=stateVar.getSourceName();
-					name=(name!=null)? " ("+name+")" : "";
-					System.out.println("// DeadCodeRemoval: removing state variable "+stateVar.getUniqueId()+name);
+					System.out.println("// DeadCodeRemoval: removing state variable "+loc.getDebugName());
 				}
 				design.removeStateVar(stateVar);
 			}
 			else {
-				XlimTopLevelPort port=carrier.isPort();
+				XlimTopLevelPort port=loc.asActorPort();
 				if (mTrace)
-					System.out.println("// DeadCodeRemoval: removing port "+port.getSourceName());
+					System.out.println("// DeadCodeRemoval: removing port "+loc.getDebugName());
 				design.removeTopLevelPort(port);
 			}
 		}
@@ -183,16 +183,16 @@ public class DeadCodeRemoval {
 		public Boolean traverse(XlimTaskModule task, DeadCodePlugIn plugIn) {
 			boolean empty=super.traverse(task, plugIn);
 			DataDependenceGraph ddg=task.getCallNode().getDataDependenceGraph();
-			ArrayList<XlimStateCarrier> unused=null;
+			ArrayList<StateLocation> unused=null;
 
 			// check for state access that has become dead:
 			// input unused, no modification within task.
-			for (XlimStateCarrier carrier: ddg.getAccessedState()) {
+			for (StateLocation carrier: ddg.getAccessedState()) {
 				ValueNode input=ddg.getInputValue(carrier);
 				ValueNode output=ddg.getOutputValue(carrier);
 				if (plugIn.isDead(input) && input==output) {
 					if (unused==null)
-						unused=new ArrayList<XlimStateCarrier>();
+						unused=new ArrayList<StateLocation>();
 					unused.add(carrier);
 				}
 			}
@@ -201,7 +201,7 @@ public class DeadCodeRemoval {
 			// This affects callSites in the callers of this task
 			if (unused!=null) {
 				CallNode callNode=task.getCallNode();
-				for (XlimStateCarrier carrier: unused) {
+				for (StateLocation carrier: unused) {
 					callNode.removeStateAccess(carrier);
 				}
 			}
@@ -276,11 +276,11 @@ public class DeadCodeRemoval {
 			return empty;
 		}
 
-		boolean traverseStatePhiNodes(Iterable<? extends StatePhiOperator> statePhis) {
-			Iterator<? extends StatePhiOperator> pPhi=statePhis.iterator();
+		boolean traverseStatePhiNodes(Iterable<? extends SideEffectPhiOperator> statePhis) {
+			Iterator<? extends SideEffectPhiOperator> pPhi=statePhis.iterator();
 			boolean empty=true;
 			while (pPhi.hasNext()) {
-				StatePhiOperator phi=pPhi.next();
+				SideEffectPhiOperator phi=pPhi.next();
 				ValueNode in0=phi.getInputValue(0);
 				ValueNode in1=phi.getInputValue(1);
 				// A state-phi is removed when it represents "no modification":

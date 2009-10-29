@@ -46,6 +46,7 @@ import eu.actorsproject.xlim.XlimSource;
 import eu.actorsproject.xlim.XlimType;
 import eu.actorsproject.xlim.type.TypeFactory;
 import eu.actorsproject.xlim.type.TypeRule;
+import eu.actorsproject.xlim.type.TypeSystem;
 import eu.actorsproject.xlim.type.VarArgSignature;
 import eu.actorsproject.xlim.type.WildCardTypePattern;
 import eu.actorsproject.xlim.util.Session;
@@ -56,6 +57,12 @@ import eu.actorsproject.xlim.util.XlimFeature;
  *
  */
 public class ListOperations extends XlimFeature {
+
+	
+	@Override
+	public void initialize(TypeSystem typeSystem) {
+		typeSystem.addListType();
+	}
 
 	@Override
 	public void initialize(InstructionSet s) {

@@ -576,7 +576,7 @@ public class NativeTypeTransformation {
 
 		@Override
 		protected XlimType signExtendFrom(XlimOperation op) {
-			XlimType elementT=op.getStateVarAttribute().getType();
+			XlimType elementT=op.getLocation().getType();
 			while (elementT.isList())
 				elementT=elementT.getTypeParameter("type");
 			return elementT;
@@ -584,7 +584,7 @@ public class NativeTypeTransformation {
 
 		@Override
 		protected XlimType nativeType(XlimOperation op) {
-			XlimType targetT=op.getStateVarAttribute().getType();
+			XlimType targetT=op.getLocation().getType();
 			if (targetT.isList())
 				return mNativeTypePlugIn.nativeElementType(signExtendFrom(op));
 			else

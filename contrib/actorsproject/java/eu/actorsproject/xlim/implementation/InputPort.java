@@ -86,8 +86,8 @@ class InputPort implements XlimInputPort {
 		mValueAccess.setValue(null);
 	}
 		
-	public boolean isStateAccess() {
-		return (mValueAccess.getStateCarrier()!=null);
+	public boolean dependsOnLocation() {
+		return (mValueAccess.needsFixup());
 	}
 	
 	@Override
