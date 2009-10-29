@@ -73,8 +73,8 @@ public class ActorClassifier extends CheckXlim {
 	}
 	
 	@Override
-	public XlimDesign read(File input) {
-		XlimDesign design=super.read(input);
+	protected XlimDesign read() {
+		XlimDesign design=super.read();
 		if (design!=null) {
 			// First do some clean-ups
 			design.createCallGraph();
@@ -84,7 +84,7 @@ public class ActorClassifier extends CheckXlim {
 			// Then find the modes and and print classification
 			ModeScheduler modeScheduler=new ModeScheduler();
 			System.out.println("Actor: "+design.getName());
-			System.out.println("File:  "+input.getPath());
+			System.out.println("File:  "+mInputFile.getPath());
 			modeScheduler.create(design);
 			System.out.println();
 		}
