@@ -116,7 +116,7 @@ ENDCOPYRIGHT
   <xsl:template match="Type" mode="init-var">
     <xsl:choose>
       <xsl:when test="Entry[ @kind='Type' ]">
-        <xsl:apply-templates select="Entry[ @kind='Type' ]/Type"/>
+        <xsl:apply-templates select="Entry[ @kind='Type' ]/Type" mode="init-var"/>
       </xsl:when>
       
       <xsl:otherwise>
@@ -487,7 +487,7 @@ ENDCOPYRIGHT
     <xsl:comment>Statement <xsl:value-of select="@id"/></xsl:comment>
     
     <xsl:choose>
-      <!-- Indexed assign: must write a state variable -->
+      <!-- Indexed assign -->
       <xsl:when test="Args">
         <xsl:apply-templates select="." mode="generate-indexers"/>
         <xsl:comment>Write back actor state variable <xsl:value-of select="@name"/></xsl:comment>
@@ -495,6 +495,13 @@ ENDCOPYRIGHT
           <port source="{concat(Args/Expr[last()]/@id,'$ADDR')}" dir="in"/>
           <port source="{Expr/@id}" dir="in"/>
         </operation>          
+      </xsl:when>
+
+      <!-- Assignment to non scalar variable -->
+      <xsl:when test="Note[@kind='var-used' and @mode='write' and @scalar='no']">
+        <operation kind="assign" target="{Note[@kind='varMod']/@decl-id}">
+          <port source="{Expr/@id}" dir="in"/>
+        </operation>                  
       </xsl:when>
 
       <!-- Scalar assignment: the Expr becomes the true-source for this variable -->
