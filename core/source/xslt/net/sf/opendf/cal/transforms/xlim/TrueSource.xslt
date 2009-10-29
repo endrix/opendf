@@ -184,7 +184,7 @@ ENDCOPYRIGHT
         <!-- For debug trap missing modifier -->
         <xsl:if test="string-length( string( *[@id=$modifier-id]/Note[@kind='var-used']
           [@mode='write'][@decl-id=$decl-id]/@last-child-modifier ) ) = 0">
-          <xsl:message terminate="yes">
+          <xsl:message terminate="no">
             Fatal flaw in var-used notes: missing last-child-modifier
           </xsl:message>
         </xsl:if>           
