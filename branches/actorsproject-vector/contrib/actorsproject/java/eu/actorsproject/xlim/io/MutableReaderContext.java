@@ -53,8 +53,8 @@ class MutableReaderContext extends ReaderContext {
 	private XlimTaskModule mCurrentTask;
 	
 	public void addTopLevelPort(XlimTopLevelPort port) {
-		if (mTopLevelPorts.put(port.getSourceName(),port)!=null)
-			throw new IllegalArgumentException("Multiple definitions of toplevel port "+port.getSourceName());
+		if (mTopLevelPorts.put(port.getName(),port)!=null)
+			throw new IllegalArgumentException("Multiple definitions of toplevel port "+port.getName());
 	}
 	
 	public void addTask(XlimTaskModule task) {
@@ -92,6 +92,6 @@ class MutableReaderContext extends ReaderContext {
 		if (mCurrentTask.getPortRate(port)==0)
 			mCurrentTask.setPortRate(port, rate);
 		else
-			throw new IllegalArgumentException("Multiple definitions of port rate: "+port.getSourceName());
+			throw new IllegalArgumentException("Multiple definitions of port rate: "+port.getName());
 	}	
 }

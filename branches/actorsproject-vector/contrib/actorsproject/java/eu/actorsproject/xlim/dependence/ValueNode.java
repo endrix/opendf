@@ -39,7 +39,6 @@ package eu.actorsproject.xlim.dependence;
 
 import eu.actorsproject.util.IntrusiveList;
 import eu.actorsproject.util.XmlElement;
-import eu.actorsproject.xlim.XlimStateCarrier;
 import eu.actorsproject.xlim.XlimType;
 
 public abstract class ValueNode implements XmlElement {
@@ -89,10 +88,16 @@ public abstract class ValueNode implements XmlElement {
 	}
 	
 	/**
-	 * @return the stateful resource (port/state variable), which corresponds to
-	 *         by this usage (null for values that correspond to OutputPorts)
+	 * @return true iff the ValueNode represents a side effect
+	 *         (i.e. is not among the output ports of an operation)
 	 */
-	public abstract XlimStateCarrier getStateCarrier();
+	public abstract boolean isSideEffect();
+	
+	/**
+	 * @return the location, which a side-effect acts on (null, if
+	 *         this ValueNode doesn't represent a side effect).
+	 */
+	public abstract Location actsOnLocation();
 	
 	/**
 	 * @return the type of the value

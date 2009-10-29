@@ -35,11 +35,63 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package eu.actorsproject.xlim;
+package eu.actorsproject.xlim.dependence;
 
-public interface XlimStateCarrier {
-	XlimStateVar isStateVar();
-	XlimTopLevelPort isPort();
-	String getSourceName();
-	XlimType getType();
+import java.util.Collections;
+
+import eu.actorsproject.util.XmlElement;
+import eu.actorsproject.xlim.XlimType;
+
+/**
+ * SideEffect node is the common base of value nodes that represent side effects
+ * (which act on actor ports, state variables or local aggregates)
+ *  
+ * StateValueNodes model data dependence that is caused by operations on
+ * ports and state variables, both true dependence ("read-after-write") and
+ * artificial dependence ("write-after-write" and "write-after-read").
+ */
+public abstract class SideEffect extends ValueNode {
+
+	private static int mNextId;
+	private int mUniqueId;
+	
+	public SideEffect() {
+		mUniqueId=mNextId++;
+	}
+	
+	@Override
+	public boolean isSideEffect() {
+		return true;
+	}
+
+	@Override
+	public String getUniqueId() {
+		return "v"+mUniqueId; 
+	}
+	
+	@Override
+	public String getTagName() {
+		return "SideEffect";
+	}
+	
+	@Override
+	public XlimType getType() {
+		Location location=actsOnLocation();
+		return location.getType();
+	}
+	
+	@Override
+	public String getAttributeDefinitions() {
+		Location location=actsOnLocation();
+		String name=location.getDebugName();
+		String source=(location.hasSource())?
+			" source=\"" + location.getSource().getUniqueId() + "\"" : "";
+		
+		return "valueId=\"" + getUniqueId() + "\" name=\"" + name + "\"" + source;
+	}
+
+	@Override
+	public Iterable<? extends XmlElement> getChildren() {
+		return Collections.emptyList();
+	}
 }

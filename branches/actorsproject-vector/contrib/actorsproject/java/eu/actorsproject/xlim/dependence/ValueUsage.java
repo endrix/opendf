@@ -42,7 +42,6 @@ import java.util.Collections;
 import eu.actorsproject.util.Linkage;
 import eu.actorsproject.util.XmlElement;
 import eu.actorsproject.xlim.XlimModule;
-import eu.actorsproject.xlim.XlimStateCarrier;
 
 public abstract class ValueUsage extends Linkage<ValueUsage> implements XmlElement {
 
@@ -61,12 +60,6 @@ public abstract class ValueUsage extends Linkage<ValueUsage> implements XmlEleme
 	public abstract ValueOperator usedByOperator();
 	
 	/**
-	 * @return the stateful resource (port/state variable), which corresponds to
-	 *         by this usage (null for values that correspond to OutputPorts)
-	 */
-	public abstract XlimStateCarrier getStateCarrier();
-
-	/**
 	 * @return the ValueNode, referred to by this ValueUsage
 	 */
 	public ValueNode getValue() {
@@ -84,7 +77,25 @@ public abstract class ValueUsage extends Linkage<ValueUsage> implements XmlEleme
 		if (value!=null)
 			value.addUsage(this);
 	}
-		
+	
+	/**
+	 * @return true iff this ValueUsage represents the use of a Location,
+	 *         that has to be fixed-up after creating or patching the code.
+	 *         
+	 * The purpose of fixing-up references is to set the value to the
+	 * immediately preceding side effect that acts on the Location.
+	 */
+	public abstract boolean needsFixup();
+	
+	/**
+	 * @return Location to be used for fixing up this ValueUsage
+	 *         (null if needsFixup() returns false) 
+	 *
+	 * The purpose of fixing-up references is to set the value to the
+	 * immediately preceding side effect that acts on the Location.
+	 */
+	public abstract Location getFixupLocation();
+	
 	/**
 	 * @return the XlimModule, in which the usage is made 
 	 * 

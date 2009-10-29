@@ -50,7 +50,8 @@ import eu.actorsproject.xlim.XlimTypeKind;
  */
 public class TypeSystem implements TypeFactory {
 	private HashMap<String,TypeKind> mTypeMap = new HashMap<String,TypeKind>();
-			
+	private ListTypeConstructor mListConstructor = new ListTypeConstructor();
+	
 	/**
 	 * Add a TypeKind, by which type instances (XlimType) 
 	 * can be created 
@@ -60,6 +61,17 @@ public class TypeSystem implements TypeFactory {
 		mTypeMap.put(kind.getTypeName(), kind);
 	}
 
+	/**
+	 * A list type is needed -even if not available to the programmer-
+	 * since we rely on List-types to annotate aggragate state variables with
+	 * a type.
+	 * This method makes the type constructor, List(type,size), available
+	 * for other uses aswell. 
+	 */
+	public void addListType() {
+		addTypeKind(mListConstructor);
+	}
+	
 	/**
 	 * Adds a "specific" type promotion, which is used when it matches
 	 * (source type, target type) exactly. 
@@ -96,11 +108,26 @@ public class TypeSystem implements TypeFactory {
 	public void completeInitialization() {
 		int numTypeKinds=mTypeMap.size();
 		int dfsNumber=numTypeKinds;
+		
+		if (mTypeMap.containsKey(mListConstructor.getTypeName())) {
+			// It is not certain that we have added the List constructor, but
+			// if we have it should be the same one as is used in createList
+			assert(mTypeMap.get(mListConstructor.getTypeName())==mListConstructor);
+		}
+		else {
+			// We have to initialize the List constructor anyway, since it is
+			// used for aggregate state variables, but it won't be returned by getTypeKind(). 
+			numTypeKinds++;
+			mListConstructor.topSort(dfsNumber);
+		}
+		
 		for (TypeKind kind: mTypeMap.values())
 			dfsNumber=kind.topSort(dfsNumber);
 		
 		for (TypeKind kind: mTypeMap.values())
 			kind.computeAncestors(numTypeKinds);
+		// Also sort the List-type (in case it is not registered)
+		mListConstructor.computeAncestors(numTypeKinds);
 	}
 	
 	/*
@@ -166,14 +193,9 @@ public class TypeSystem implements TypeFactory {
 	}
 
 	public XlimType createList(XlimType elementType, int size) {
-		TypeKind listCtor=getTypeKind("List");
-		if (listCtor!=null) {
-			List<XlimTypeArgument> typeArgs=new ArrayList<XlimTypeArgument>(2);
-			typeArgs.add(new TypeArgument("type", elementType));
-			typeArgs.add(new TypeArgument("size", Integer.toString(size)));
-			return listCtor.createType(typeArgs);
-		}
-		else
-			return null;
+		List<XlimTypeArgument> typeArgs=new ArrayList<XlimTypeArgument>(2);
+		typeArgs.add(new TypeArgument("type", elementType));
+		typeArgs.add(new TypeArgument("size", Integer.toString(size)));
+		return mListConstructor.createType(typeArgs);
 	}
 }

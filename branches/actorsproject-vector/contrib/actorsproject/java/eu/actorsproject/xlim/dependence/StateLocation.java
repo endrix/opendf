@@ -35,21 +35,32 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package eu.actorsproject.xlim.type;
+package eu.actorsproject.xlim.dependence;
 
-import eu.actorsproject.xlim.util.XlimFeature;
-
+import eu.actorsproject.xlim.XlimStateVar;
+import eu.actorsproject.xlim.XlimTopLevelPort;
+import eu.actorsproject.xlim.XlimType;
 
 /**
- * @author ecarvon
+ * Represents the target of a side effect, which is either
+ * an actor port or a state variable (but not a local aggregate)
  *
  */
-public class ListTypeFeature extends XlimFeature {
-
-	@Override
-	public void initialize(TypeSystem typeSystem) {
-		TypeKind listTypeConstructor=new ListTypeConstructor();
-		
-		typeSystem.addTypeKind(listTypeConstructor);
-	}
+public interface StateLocation extends Location {
+	/**
+	 * @return the type of the actor port or state variable
+	 */
+	XlimType getType();
+	
+	/**
+	 * @return state variable (or null if this Location
+	 *         is not a state variable)
+	 */
+	XlimStateVar asStateVar();
+	
+	/**
+	 * @return actor port (or null if this Location is
+	 *         not an actor port)
+	 */
+	XlimTopLevelPort asActorPort();
 }

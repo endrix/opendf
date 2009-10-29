@@ -192,7 +192,9 @@ public class DependenceSlice {
 			Set<ValueNode> calleeSliceInputs=calleeSlice.getInputValues();
 			DataDependenceGraph ddg=callee.getDataDependenceGraph();
 			for (ValueNode actualInput: callSite.getInputValues()) {
-				ValueNode formalInput=ddg.getInputValue(actualInput.getStateCarrier());
+				Location loc=actualInput.actsOnLocation();
+				assert(loc!=null && loc.isStateLocation());
+				ValueNode formalInput=ddg.getInputValue(loc.asStateLocation());
 				
 				if (calleeSliceInputs.contains(formalInput)) {
 					visitPredecessor(actualInput);

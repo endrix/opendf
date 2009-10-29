@@ -127,7 +127,8 @@ public class LocalStorageAllocation implements XlimBlockElement.Visitor<Object,X
 		
 		if (op.getNumOutputPorts()!=1   // generateExpression can only handle scalars
 			|| op.isReferenced()==false // Also print out unreferenced stuff (someone else should remove!)
-			|| op.mayAccessState()      // operation may access state, make it a statement
+			|| op.dependsOnLocation()   // operation depends on a side effect, make it a statement
+			|| op.modifiesLocation()      // operation has a side effect
 			|| mPlugIn.hasGenerateExpression(op)==false) // handler can't generate expressions
 			return true;  // make it a statement!
 		else {

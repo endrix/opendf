@@ -143,7 +143,7 @@ public class BasicXlimOperations extends XlimFeature {
 		// assign: T -> void
 		TypePattern wildcardPattern=new WildCardTypePattern();
 		Signature scalarWildCard=new Signature(wildcardPattern);
-		OperationKind assign1=new StateVarOperationKind("assign", 
+		OperationKind assign1=new LocationOperationKind("assign", 
                                                         new AssignTypeRule(scalarWildCard),
                                                         true, /* modifies state */
                                                         "target");
@@ -151,7 +151,7 @@ public class BasicXlimOperations extends XlimFeature {
 		
 		// assign: (integer,T) -> void
 		Signature assign2Signature=new Signature(intTypeKind,wildcardPattern);
-		OperationKind assign2=new StateVarOperationKind("assign", 
+		OperationKind assign2=new LocationOperationKind("assign", 
                 new IndexedAssignTypeRule(assign2Signature),
                 true, /* modifies state */
                 "target");
@@ -162,7 +162,7 @@ public class BasicXlimOperations extends XlimFeature {
 		 */
 		
 		// var_ref: integer -> T
-		OperationKind var_ref=new StateVarOperationKind("var_ref", 
+		OperationKind var_ref=new LocationOperationKind("var_ref", 
                 new VarRefTypeRule(new Signature(intTypeKind)),
                 false, /* modifies state */
                 "name");

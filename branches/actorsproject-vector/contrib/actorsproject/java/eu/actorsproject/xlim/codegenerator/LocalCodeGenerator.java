@@ -163,7 +163,7 @@ public abstract class LocalCodeGenerator implements ExpressionTreeGenerator {
 	}
 	
 	protected void generateExpression(XlimSource source) {
-		XlimOutputPort port=source.isOutputPort();
+		XlimOutputPort port=source.asOutputPort();
 		
 		if (port!=null) {
 			TemporaryVariable temp=mLocalSymbols.getTemporaryVariable(port);
@@ -183,7 +183,7 @@ public abstract class LocalCodeGenerator implements ExpressionTreeGenerator {
 			}
 		}
 		else
-			print(source.isStateVar());
+			print(source.asStateVar());
 	}
 
 	
@@ -197,7 +197,7 @@ public abstract class LocalCodeGenerator implements ExpressionTreeGenerator {
 	}
 
 	protected boolean isUseful(XlimOperation op) {
-		return (op.isReferenced() || op.mayModifyState() || op.isRemovable()==false);
+		return (op.isReferenced() || op.modifiesState() || op.isRemovable()==false);
 	}
 	
 	protected boolean needsElse(XlimIfModule m) {

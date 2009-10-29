@@ -63,9 +63,18 @@ public class OperationKind {
 		return mKindAttribute;
 	}
 	
-	public boolean mayAccessState(Operation op) {
+	public boolean dependsOnLocation(Operation op) {
 		for (int i=0; i<op.getNumInputPorts(); ++i)
-			if (op.getInputPort(i).getSource().isStateVar()!=null)
+			if (op.getInputPort(i).dependsOnLocation())
+				return true;
+		return false;
+	}
+	
+	public boolean modifiesLocation(Operation op) {
+		// The default implementation just checks if 
+		// a local aggreagate (with a location) is defined
+		for (int i=0; i<op.getNumOutputPorts(); ++i)
+			if (op.getOutputPort(i).hasLocation())
 				return true;
 		return false;
 	}

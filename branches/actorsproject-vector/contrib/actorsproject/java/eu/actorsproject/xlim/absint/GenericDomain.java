@@ -44,13 +44,13 @@ import eu.actorsproject.xlim.XlimInitValue;
 import eu.actorsproject.xlim.XlimOperation;
 import eu.actorsproject.xlim.XlimOutputPort;
 import eu.actorsproject.xlim.XlimPhiNode;
-import eu.actorsproject.xlim.XlimStateCarrier;
 import eu.actorsproject.xlim.XlimStateVar;
 import eu.actorsproject.xlim.XlimTopLevelPort;
 import eu.actorsproject.xlim.XlimType;
 import eu.actorsproject.xlim.dependence.PhiOperator;
-import eu.actorsproject.xlim.dependence.StatePhiOperator;
+import eu.actorsproject.xlim.dependence.SideEffectPhiOperator;
 import eu.actorsproject.xlim.dependence.ValueNode;
+import eu.actorsproject.xlim.dependence.StateLocation;
 
 /**
  * Intended as a base class of abstract domains: factors out reasonable
@@ -117,7 +117,7 @@ public abstract class GenericDomain<T extends AbstractValue<T>> implements Abstr
 	}
 	
 	@Override
-	public boolean evaluate(StatePhiOperator phi, Context<T> context) {
+	public boolean evaluate(SideEffectPhiOperator phi, Context<T> context) {
 		T aValue=evaluatePhi(phi,context);
 		
 		if (mTrace) {
@@ -191,12 +191,12 @@ public abstract class GenericDomain<T extends AbstractValue<T>> implements Abstr
 	}
 
 	@Override
-	public T initialState(XlimStateCarrier carrier) {
-		XlimStateVar stateVar=carrier.isStateVar();
+	public T initialState(StateLocation carrier) {
+		XlimStateVar stateVar=carrier.asStateVar();
 		if (stateVar!=null)
 			return initialState(stateVar);
 		else {
-			XlimTopLevelPort port=carrier.isPort();
+			XlimTopLevelPort port=carrier.asActorPort();
 			assert(port!=null);
 			return initialState(port);
 		}

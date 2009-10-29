@@ -43,7 +43,6 @@ import java.util.List;
 import java.util.Set;
 
 import eu.actorsproject.xlim.XlimDesign;
-import eu.actorsproject.xlim.XlimStateCarrier;
 import eu.actorsproject.xlim.XlimTaskModule;
 
 public class CallGraph {
@@ -118,8 +117,8 @@ public class CallGraph {
 			// update callers (we haven't fixed them up yet), 
 			// since we traverse the call graph from callee-to-caller
 			DataDependenceGraph ddg=callNode.getDataDependenceGraph();
-			Set<XlimStateCarrier> inputs=ddg.getAccessedState();
-			Set<XlimStateCarrier> outputs=ddg.getModifiedState();
+			Set<StateLocation> inputs=ddg.getAccessedState();
+			Set<StateLocation> outputs=ddg.getModifiedState();
 			
 			for (CallSite callSite: callNode.getCallers()) {
 				callSite.createInputValues(inputs);

@@ -45,12 +45,11 @@ import java.util.Map;
 import java.util.Set;
 
 import eu.actorsproject.xlim.XlimModule;
-import eu.actorsproject.xlim.XlimStateCarrier;
 
 public class DataDependenceGraph {
 
-	private Map<XlimStateCarrier,ValueNode> mInputValues;
-	private Map<XlimStateCarrier,ValueUsage> mOutputValues;
+	private Map<StateLocation,ValueNode> mInputValues;
+	private Map<StateLocation,ValueUsage> mOutputValues;
 	private CallNode mCallNode;
 	
 	public DataDependenceGraph(CallNode callNode) {
@@ -61,7 +60,7 @@ public class DataDependenceGraph {
 	 * @return the port/state variables that are accessed (used and/or modified) 
 	 *         in this graph
 	 */
-	public Set<XlimStateCarrier> getAccessedState() {
+	public Set<StateLocation> getAccessedState() {
 		return mInputValues.keySet();
 	}
 	
@@ -69,7 +68,7 @@ public class DataDependenceGraph {
 	 * @return the ports/state variables that are modified in this graph
 	 *         (this is a subset of the accessed ports/state variables) 
 	 */
-	public Set<XlimStateCarrier> getModifiedState() {
+	public Set<StateLocation> getModifiedState() {
 		return mOutputValues.keySet();
 	}
 	
@@ -78,7 +77,7 @@ public class DataDependenceGraph {
 	 * @return the node in this graph that represents the initial value
 	 *         of carrier (null if not accessed in this graph)
 	 */
-	public ValueNode getInputValue(XlimStateCarrier carrier) {
+	public ValueNode getInputValue(StateLocation carrier) {
 		return mInputValues.get(carrier);
 	}
 
@@ -95,7 +94,7 @@ public class DataDependenceGraph {
 	 *         of carrier (null if not accessed in this graph, the initial
 	 *         value if not modified in this graph)
 	 */
-	public ValueNode getOutputValue(XlimStateCarrier carrier) {
+	public ValueNode getOutputValue(StateLocation carrier) {
 		ValueUsage output=mOutputValues.get(carrier);
 		if (output!=null)
 			return output.getValue();
@@ -117,22 +116,25 @@ public class DataDependenceGraph {
 	public void resolveExposedUses(FixupContext context) {
 		if (mInputValues==null) {
 			// First time: allocate initial values and resolve exposed uses
-			mInputValues=new HashMap<XlimStateCarrier,ValueNode>();
+			mInputValues=new HashMap<StateLocation,ValueNode>();
 			// We have to copy the exposed uses (we are modifying the underlying map)
-			ArrayList<XlimStateCarrier> exposedUses=
-				new ArrayList<XlimStateCarrier>(context.getExposedUses());
-			for (XlimStateCarrier carrier: exposedUses) {
-				ValueNode initialValue=new InitialValueNode(carrier);
-				mInputValues.put(carrier, initialValue);
+			ArrayList<Location> exposedUses=
+				new ArrayList<Location>(context.getExposedUses());
+			for (Location location: exposedUses) {
+				assert(location.isStateLocation());
+				StateLocation stateLoc=location.asStateLocation();
+				ValueNode initialValue=new InitialValueNode(stateLoc);
+				mInputValues.put(stateLoc, initialValue);
 				context.resolveExposedUses(initialValue);
 			}
 		}
 		else {
 			// Following times: use existing initial values to resolve exposed uses
-			ArrayList<XlimStateCarrier> exposedUses=
-				new ArrayList<XlimStateCarrier>(context.getExposedUses());
-			for (XlimStateCarrier carrier: exposedUses) {
-				ValueNode initialValue=mInputValues.get(carrier);
+			ArrayList<Location> exposedUses=
+				new ArrayList<Location>(context.getExposedUses());
+			for (Location location: exposedUses) {
+				assert(location.isStateLocation());
+				ValueNode initialValue=mInputValues.get(location.asStateLocation());
 				if (initialValue!=null)
 					context.resolveExposedUses(initialValue);
 				else {
@@ -140,8 +142,8 @@ public class DataDependenceGraph {
 					// Doing so doesn't seem terribly useful. Support is complicated in that
 					// it affects the callers of the task (each call site needs to be updated 
 					// and the resulting exposed uses need to be resolved in the caller tasks).
-					throw new UnsupportedOperationException("Patch adds access to new state carrier: "
-							+carrier.getSourceName());
+					throw new UnsupportedOperationException("Patch adds access to new location: "
+							+location.getDebugName());
 				}
 			}
 		}
@@ -150,27 +152,36 @@ public class DataDependenceGraph {
 	public void propagateNewValues(FixupContext context) {
 		if (mOutputValues==null) {
 			// First time: allocate final value uses and fix them up
-			mOutputValues=new HashMap<XlimStateCarrier,ValueUsage>();
-			for (XlimStateCarrier carrier: context.getNewValues()) {
-				ValueUsage finalUse=new FinalStateUsage(carrier);
-				mOutputValues.put(carrier, finalUse);
-				context.propagateNewValue(finalUse);
+			mOutputValues=new HashMap<StateLocation,ValueUsage>();
+			for (Location location: context.getNewValues()) {
+				if (location.isStateLocation()) {
+					StateLocation stateLoc=location.asStateLocation();
+					ValueUsage finalUse=new FinalStateUsage(stateLoc);
+					mOutputValues.put(stateLoc, finalUse);
+					context.propagateNewValue(finalUse);
+				}
+				// else: location is a local aggregate, 
+				// which doesn't propagare further (it goes out of scope)
 			}
 		}
 		else {
 			// Following times: use existing final value uses, but set new values
-			for (XlimStateCarrier carrier: context.getNewValues()) {
-				ValueUsage finalUse=mOutputValues.get(carrier);
-				if (finalUse!=null)
-					context.propagateNewValue(finalUse);
-				else {
-					// Currently we do not support patches that access new stateful resources.
-					// Doing so does not seem terribly useful. Support is complicated in that
-					// it affects the callers of the task (each call site needs to be updated 
-					// and the resulting new values need to be propagated in the caller tasks).
-					throw new UnsupportedOperationException("Patch adds access to new state carrier: "
-							+carrier.getSourceName());
+			for (Location location: context.getNewValues()) {
+				if (location.isStateLocation()) {
+					ValueUsage finalUse=mOutputValues.get(location);
+					if (finalUse!=null)
+						context.propagateNewValue(finalUse);
+					else {
+						// Currently we do not support patches that access new stateful resources.
+						// Doing so does not seem terribly useful. Support is complicated in that
+						// it affects the callers of the task (each call site needs to be updated 
+						// and the resulting new values need to be propagated in the caller tasks).
+						throw new UnsupportedOperationException("Patch adds access to new state carrier: "
+								+location.getDebugName());
+					}
 				}
+			    // else: location is a local aggregate, 
+				// which doesn't propagare further (it goes out of scope)
 			}
 		}
 	}
@@ -179,7 +190,7 @@ public class DataDependenceGraph {
 	 * Removes an input/output value (used by CallNode, which also updates callers)
 	 * @param carrier
 	 */
-	void remove(XlimStateCarrier carrier) {
+	void remove(StateLocation carrier) {
 		// First check that we are not doing anything stupid
 		ValueNode input=mInputValues.get(carrier);
 		ValueUsage output=mOutputValues.get(carrier);
@@ -191,17 +202,18 @@ public class DataDependenceGraph {
 	}
 	
 	
-	private class InitialValueNode extends StateValueNode {
+	private class InitialValueNode extends SideEffect {
 
-		private XlimStateCarrier mStateCarrier;
+		private StateLocation mLocation;
 		
-		public InitialValueNode(XlimStateCarrier carrier) {
-			mStateCarrier=carrier;
+		public InitialValueNode(StateLocation location) {
+			mLocation=location;
 		}
 				
+		
 		@Override
-		public XlimStateCarrier getStateCarrier() {
-			return mStateCarrier;
+		public Location actsOnLocation() {
+			return mLocation;
 		}
 		
 		@Override
@@ -227,15 +239,20 @@ public class DataDependenceGraph {
 	// Perhaps let the CallNode check, remove output values and update callers?
 	private class FinalStateUsage extends ValueUsage {
 
-		private XlimStateCarrier mStateCarrier;
+		private StateLocation mStateCarrier;
 		
-		public FinalStateUsage(XlimStateCarrier carrier) {
+		public FinalStateUsage(StateLocation carrier) {
 			super(null);
 			mStateCarrier=carrier;
 		}
 		
 		@Override
-		public XlimStateCarrier getStateCarrier() {
+		public boolean needsFixup() {
+			return true;
+		}
+		
+		@Override
+		public Location getFixupLocation() {
 			return mStateCarrier;
 		}
 		

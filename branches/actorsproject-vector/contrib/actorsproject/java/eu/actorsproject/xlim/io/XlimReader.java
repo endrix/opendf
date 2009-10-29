@@ -269,7 +269,7 @@ public class XlimReader implements IXlimReader {
 	private boolean belongsToPath(XlimSource source, XlimModule dominator) {
 		if (dominator!=null) {
 			XlimModule defInModule=null;
-			XlimOutputPort port=source.isOutputPort();
+			XlimOutputPort port=source.asOutputPort();
 			if (port!=null) {
 				XlimInstruction instr=port.getParent();
 				if (instr!=null)
@@ -649,7 +649,7 @@ public class XlimReader implements IXlimReader {
 					inputs.add(xlimSrc);
 				}
 				else if (dir.equals("out")) {
-					XlimOutputPort port=xlimSrc.isOutputPort();
+					XlimOutputPort port=xlimSrc.asOutputPort();
 					if (port==null)
 						throw new RuntimeException("Not a port: source=\""+source+"\"");
 					outputs.add(port);

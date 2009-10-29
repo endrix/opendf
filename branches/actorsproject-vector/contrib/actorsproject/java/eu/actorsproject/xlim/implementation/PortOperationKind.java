@@ -44,10 +44,11 @@ import java.util.List;
 import eu.actorsproject.xlim.XlimOperation;
 import eu.actorsproject.xlim.XlimOutputPort;
 import eu.actorsproject.xlim.XlimSource;
-import eu.actorsproject.xlim.XlimStateCarrier;
 import eu.actorsproject.xlim.XlimTopLevelPort;
 import eu.actorsproject.xlim.XlimType;
-import eu.actorsproject.xlim.dependence.StateValueNode;
+import eu.actorsproject.xlim.XlimTypeKind;
+import eu.actorsproject.xlim.dependence.Location;
+import eu.actorsproject.xlim.dependence.SideEffect;
 import eu.actorsproject.xlim.dependence.ValueNode;
 import eu.actorsproject.xlim.dependence.ValueOperator;
 import eu.actorsproject.xlim.dependence.ValueUsage;
@@ -77,8 +78,13 @@ class PortOperationKind extends OperationKind {
 	}
 	
 	@Override
-	public boolean mayAccessState(Operation op) {
+	public boolean dependsOnLocation(Operation op) {
 		return true;
+	}
+	
+	@Override
+	public boolean modifiesLocation(Operation op) {
+		return mModifiesPort;
 	}
 	
 	@Override
@@ -101,7 +107,7 @@ class PortOperationKind extends OperationKind {
 		XlimTopLevelPort port=op.getPortAttribute();
 		assert(port!=null);
 		String result=super.getAttributeDefinitions(op)
-			+" "+mPortAttributeName+"=\""+port.getSourceName()+"\"";
+			+" "+mPortAttributeName+"=\""+port.getName()+"\"";
 		if (mIntAttributeName!=null) {
 			Long l=op.getIntegerValueAttribute();
 			if (l!=null)
@@ -174,7 +180,7 @@ class PinReadTypeRule extends TypeRule {
 		XlimType portType=op.getPortAttribute().getType();
 		XlimType t=op.getOutputPort(0).getType();
 		
-		if (mMayHaveRepeat && t.getTypeName().equals("List")) {
+		if (mMayHaveRepeat && t.isList()) {
 			int repeat=Integer.valueOf(t.getValueParameter("size"));
 			TypeFactory fact=Session.getTypeFactory();
 			return fact.createList(portType, repeat);
@@ -215,12 +221,14 @@ class PinWriteTypeRule extends VoidTypeRule {
 		if (port!=null) {
 		    XlimType inT=op.getInputPort(0).getSource().getType();
 		    XlimType portT=port.getType();
-		    if (mMayHaveRepeat && inT.getTypeName().equals("List")) {
+		    if (mMayHaveRepeat && inT.isList()) {
 		    	return inT.getTypeParameter("type")==portT;
 		    }
 		    else {
-		    	TypeKind portKind=Session.getTypeFactory().getTypeKind(portT.getTypeName());
-		    	return portKind.hasConversionFrom(inT);
+		    	XlimTypeKind portKind=portT.getTypeKind();
+		    	// TODO: we should add the necessessary stuff to XlimTypeKind!
+				assert(portKind instanceof TypeKind);
+		    	return ((TypeKind) portKind).hasConversionFrom(inT);
 		    }
 		}
 		else
@@ -274,7 +282,7 @@ class PortAccessOperation extends Operation {
 	public String attributesToString() {
 		XlimTopLevelPort port=getPortAttribute();
 		if (port!=null)
-			return port.getSourceName();
+			return port.getName();
 		else
 			return "";
 	}
@@ -290,8 +298,13 @@ class PortAccessOperation extends Operation {
 		}
 		
 		@Override
-		public XlimStateCarrier getStateCarrier() {
-			return mPort;
+		public boolean needsFixup() {
+			return true;
+		}
+		
+		@Override
+		public Location getFixupLocation() {
+			return mPort.asStateLocation();
 		}
 	}
 }
@@ -348,12 +361,13 @@ class PortModificationOperation extends PortAccessOperation {
 		return mSideEffect;
 	}		
 	
-	private class PortSideEffect extends StateValueNode {
-		@Override
-		public XlimStateCarrier getStateCarrier() {
-			return mPort;
-		}
+	private class PortSideEffect extends SideEffect {
 		
+		@Override
+		public Location actsOnLocation() {
+			return mPort.asStateLocation();
+		}
+
 		@Override
 		public ValueOperator getDefinition() {
 			return PortModificationOperation.this;

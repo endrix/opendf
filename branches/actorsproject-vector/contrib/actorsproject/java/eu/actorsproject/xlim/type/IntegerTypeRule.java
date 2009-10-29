@@ -57,7 +57,7 @@ public abstract class IntegerTypeRule extends TypeRule {
 	
 	@Override
 	public boolean matchesOutputs(List<? extends XlimOutputPort> outputs) {
-		return outputs.size()==1 && outputs.get(0).getType().getTypeName().equals("int");
+		return outputs.size()==1 && outputs.get(0).getType().isInteger();
 	}
 	
 	@Override

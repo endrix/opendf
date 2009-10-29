@@ -45,6 +45,7 @@ import eu.actorsproject.xlim.XlimType;
 
 import eu.actorsproject.xlim.codegenerator.ExpressionTreeGenerator;
 import eu.actorsproject.xlim.codegenerator.OperationGenerator;
+import eu.actorsproject.xlim.dependence.Location;
 import eu.actorsproject.xlim.type.TypeFactory;
 import eu.actorsproject.xlim.util.LiteralPattern;
 import eu.actorsproject.xlim.util.OperationHandler;
@@ -367,8 +368,10 @@ class VarRefGenerator extends BasicGenerator {
 	
 	@Override
 	public void generateExpression(XlimOperation op, ExpressionTreeGenerator gen) {
+		Location location=op.getLocation();
+		assert(location.hasSource());
 		// TODO: We don't support local vectors yet!
-		XlimStateVar stateVar=op.getStateVarAttribute().isStateVar();
+		XlimStateVar stateVar=location.getSource().asStateVar();
 		assert(stateVar!=null);
 		int length=stateVar.getInitValue().totalNumberOfElements();
 		gen.print(stateVar);
@@ -391,8 +394,10 @@ class AssignGenerator extends BasicGenerator {
 	
 	@Override
 	public void generateStatement(XlimOperation op, ExpressionTreeGenerator gen) {
+		Location location=op.getLocation();
+		assert(location.hasSource());
 		// TODO: we don't support local vectors yet!
-		XlimStateVar stateVar=op.getStateVarAttribute().isStateVar();
+		XlimStateVar stateVar=location.getSource().asStateVar();
 		assert(stateVar!=null);
 		int dataPort;
 		

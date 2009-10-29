@@ -165,7 +165,7 @@ public class Actor2c extends OutputGenerator {
 				if (i!=0)
 					println(",");
 				String type=mSymbols.getTargetTypeName(p.getType());
-				print("{\"" + p.getSourceName() + "\", sizeof("+type+")}");
+				print("{\"" + p.getName() + "\", sizeof("+type+")}");
 				++i;
 			}
 			decreaseIndentation();
@@ -535,7 +535,7 @@ public class Actor2c extends OutputGenerator {
 						for (XlimTopLevelPort port: mAllPorts) {
 							int tokenRate=blockingCondition.getPortRate(port);
 							if (tokenRate!=0) {
-								String portName=AbstractSymbolTable.createCName(port.getSourceName());
+								String portName=AbstractSymbolTable.createCName(port.getName());
 								arrayName += "_" + portName + "_" + tokenRate;
 							}
 						}

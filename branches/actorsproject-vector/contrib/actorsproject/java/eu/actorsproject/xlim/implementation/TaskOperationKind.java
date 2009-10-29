@@ -69,7 +69,12 @@ public class TaskOperationKind extends OperationKind {
 	}
 		
 	@Override
-	public boolean mayAccessState(Operation op) {
+	public boolean dependsOnLocation(Operation op) {
+		return true;
+	}
+	
+	@Override
+	public boolean modifiesLocation(Operation op) {
 		return true;
 	}
 	

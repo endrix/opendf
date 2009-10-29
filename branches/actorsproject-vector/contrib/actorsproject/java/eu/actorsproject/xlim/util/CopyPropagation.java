@@ -111,7 +111,7 @@ public class CopyPropagation extends XlimTraversal<Object,Object> {
 			// FIXME: shouldn't we copy other types as well, at least when unparameterized/identical
 			// Careful about List-types, since the noop might signify a required copy (in the context
 			// of elementwise updates: vector2:=vector1; vector1[i]:=0; ...vector2...
-			return source.isOutputPort()!=null
+			return source.asOutputPort()!=null
 			       && sourceT.isInteger()==resultT.isInteger()
 			       && sourceT.getSize()<=resultT.getSize();
 		}
@@ -119,7 +119,7 @@ public class CopyPropagation extends XlimTraversal<Object,Object> {
 		@Override
 		public void removeCopy(XlimOperation op) {
 			XlimOutputPort oldPort=op.getOutputPort(0);
-			XlimOutputPort newPort=op.getInputPort(0).getSource().isOutputPort();
+			XlimOutputPort newPort=op.getInputPort(0).getSource().asOutputPort();
 			oldPort.substitute(newPort);
 			if (mTrace)
 				System.out.println("// CopyPropagation: substituting " + newPort.getUniqueId()

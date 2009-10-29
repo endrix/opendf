@@ -38,6 +38,7 @@
 package eu.actorsproject.xlim;
 
 import eu.actorsproject.xlim.dependence.CallSite;
+import eu.actorsproject.xlim.dependence.Location;
 
 /**
  * @author ecarvon
@@ -47,8 +48,7 @@ public interface XlimOperation extends XlimBlockElement, XlimInstruction {
 	
 	@Override
 	XlimContainerModule getParentModule();
-	
-	XlimSource getStateVarAttribute();     // target of assign, name of var_ref
+	Location getLocation();              // target of assign, name of var_ref
 	XlimTaskModule getTaskAttribute();   // target of taskCall
 	XlimTopLevelPort getPortAttribute(); // portName of pinRead, pinWrite, pinPeek, pinStatus
 	Long getIntegerValueAttribute();     // value of $literal_Integer (interpreted as integer)
@@ -65,7 +65,7 @@ public interface XlimOperation extends XlimBlockElement, XlimInstruction {
 	 * @param "target" attribute of assign, "name" attribute of var_ref
 	 * @return true if attribute was set (if internal state was updated)
 	 */
-	boolean setStateVarAttribute(XlimSource stateVar);
+	boolean setLocation(Location stateVar);
 	boolean setTaskAttribute(XlimTaskModule task);
 	boolean setPortAttribute(XlimTopLevelPort port);
 	boolean setIntegerValueAttribute(long value);

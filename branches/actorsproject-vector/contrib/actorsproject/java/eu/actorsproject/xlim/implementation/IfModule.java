@@ -45,8 +45,8 @@ import eu.actorsproject.xlim.XlimBlockElement;
 import eu.actorsproject.xlim.XlimContainerModule;
 import eu.actorsproject.xlim.XlimIfModule;
 import eu.actorsproject.xlim.XlimModule;
-import eu.actorsproject.xlim.XlimStateCarrier;
 import eu.actorsproject.xlim.dependence.FixupContext;
+import eu.actorsproject.xlim.dependence.Location;
 
 class IfModule extends PhiContainerModule implements XlimIfModule {
 
@@ -139,8 +139,7 @@ class IfModule extends PhiContainerModule implements XlimIfModule {
 		mElseModule.fixupAll(elseContext);
 		
 		// Create phi-nodes for the union of new values in the two paths
-		HashSet<XlimStateCarrier> phis=
-			new HashSet<XlimStateCarrier>(thenContext.getNewValues());
+		HashSet<Location> phis=new HashSet<Location>(thenContext.getNewValues());
 		phis.addAll(elseContext.getNewValues());
 		createStatePhiOperators(phis);
 		

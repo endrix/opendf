@@ -167,7 +167,7 @@ public class Task2c extends LocalCodeGenerator {
 	protected void generatePhi(XlimInputPort input, TemporaryVariable dest) {
 		String cName=mTopLevelSymbols.getReference(dest);
 		XlimSource source=input.getSource();
-		XlimOutputPort port=source.isOutputPort();
+		XlimOutputPort port=source.asOutputPort();
 		if (port!=null) {
 			// source and destination represented by same temporary?
 			TemporaryVariable temp=mLocalSymbols.getTemporaryVariable(port);

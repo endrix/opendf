@@ -129,7 +129,7 @@ public class PortSignature  {
 		for (Map.Entry<XlimTopLevelPort, Integer> entry: mPortMap.entrySet()) {
 			XlimTopLevelPort port=entry.getKey();
 			Integer rate=entry.getValue();
-			String descr=port.getSourceName();
+			String descr=port.getName();
 			if (rate!=1)
 				descr+=":"+rate;
 

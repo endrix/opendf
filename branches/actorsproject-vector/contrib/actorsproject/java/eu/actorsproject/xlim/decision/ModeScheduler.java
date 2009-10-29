@@ -10,7 +10,6 @@ import eu.actorsproject.util.XmlPrinter;
 import eu.actorsproject.xlim.XlimDesign;
 import eu.actorsproject.xlim.XlimLoopModule;
 import eu.actorsproject.xlim.XlimModule;
-import eu.actorsproject.xlim.XlimStateCarrier;
 import eu.actorsproject.xlim.XlimStateVar;
 import eu.actorsproject.xlim.XlimTaskModule;
 import eu.actorsproject.xlim.absint.AbstractValue;
@@ -23,6 +22,7 @@ import eu.actorsproject.xlim.dependence.CallNode;
 import eu.actorsproject.xlim.dependence.DataDependenceGraph;
 import eu.actorsproject.xlim.dependence.DependenceComponent;
 import eu.actorsproject.xlim.dependence.DependenceSlice;
+import eu.actorsproject.xlim.dependence.Location;
 import eu.actorsproject.xlim.dependence.ModuleDependenceSlice;
 import eu.actorsproject.xlim.dependence.SliceSorter;
 import eu.actorsproject.xlim.dependence.ValueNode;
@@ -111,12 +111,15 @@ public class ModeScheduler {
 	private boolean updateRelevantState() {
 		boolean changed=false;
 		for (ValueNode input: mDecisionSlice.getInputValues()) {
-			XlimStateCarrier carrier=input.getStateCarrier();
+			Location location=input.actsOnLocation();
 			// We are in trouble if there is other inputs than state vars/ports
-			assert(carrier!=null);
-			XlimStateVar stateVar=carrier.isStateVar();
-			if (stateVar!=null && mRelevantState.add(stateVar))
-				changed=true;
+			assert(location!=null && location.isStateLocation());
+			if (location.hasSource()) {
+				XlimStateVar stateVar=location.getSource().asStateVar();
+				assert(stateVar!=null);
+				if (mRelevantState.add(stateVar))
+					changed=true;
+			}
 		}
 		return changed;
 	}
@@ -194,9 +197,9 @@ public class ModeScheduler {
 	private void addRelevantOutputs(DependenceSlice slice, 
 			                        Iterable<ValueNode> outputs) {
 		for (ValueNode outputValue: outputs) {
-			XlimStateCarrier carrier=outputValue.getStateCarrier();
+			Location location=outputValue.actsOnLocation();
 			
-			if (carrier!=null && mRelevantState.contains(carrier))
+			if (location!=null && mRelevantState.contains(location))
 				slice.add(outputValue);
 		}
 	}
