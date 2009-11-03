@@ -150,7 +150,7 @@ public class KilledStateProperty {
 		private Set<Location> visitPhiContainer(XlimPhiContainerModule m) {
 			Set<Location> result=new HashSet<Location>();
 			for (SideEffectPhiOperator phi: m.getStatePhiOperators()) {
-				Location carrier=phi.getOutput().actsOnLocation();
+				Location carrier=phi.getOutput().getLocation();
 				result.add(carrier);
 			}
 			return result;
@@ -168,7 +168,7 @@ public class KilledStateProperty {
 			if (op.modifiesLocation()) {
 				Set<Location> result=new HashSet<Location>();
 				for (ValueNode output: op.getValueOperator().getOutputValues()) {
-					Location carrier=output.actsOnLocation();
+					Location carrier=output.getLocation();
 					if (carrier!=null)
 						result.add(carrier);
 				}

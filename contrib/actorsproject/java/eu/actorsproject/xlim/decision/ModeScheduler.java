@@ -111,7 +111,7 @@ public class ModeScheduler {
 	private boolean updateRelevantState() {
 		boolean changed=false;
 		for (ValueNode input: mDecisionSlice.getInputValues()) {
-			Location location=input.actsOnLocation();
+			Location location=input.getLocation();
 			// We are in trouble if there is other inputs than state vars/ports
 			assert(location!=null && location.isStateLocation());
 			if (location.hasSource()) {
@@ -197,7 +197,7 @@ public class ModeScheduler {
 	private void addRelevantOutputs(DependenceSlice slice, 
 			                        Iterable<ValueNode> outputs) {
 		for (ValueNode outputValue: outputs) {
-			Location location=outputValue.actsOnLocation();
+			Location location=outputValue.getLocation();
 			
 			if (location!=null && mRelevantState.contains(location))
 				slice.add(outputValue);

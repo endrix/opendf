@@ -338,7 +338,7 @@ public class SliceSorter {
 		DataDependenceGraph ddg=callee.getDataDependenceGraph();
 		ArrayList<ValueNode> inputsInCaller=new ArrayList<ValueNode>();
 		for (ValueNode input: callSite.getInputValues()) {
-			Location loc=input.actsOnLocation();
+			Location loc=input.getLocation();
 			assert(loc!=null && loc.isStateLocation());
 			ValueNode inputInCallee=ddg.getInputValue(loc.asStateLocation());
 			
@@ -350,7 +350,7 @@ public class SliceSorter {
 		// create the list of outputs in the caller
 		ArrayList<ValueNode> outputsInCaller=new ArrayList<ValueNode>();
 		for (ValueNode output: callSite.getOutputValues()) {
-			Location location=output.actsOnLocation();
+			Location location=output.getLocation();
 			assert(location!=null && location.isStateLocation());
 			ValueNode outputInCallee=ddg.getOutputValue(location.asStateLocation());
 			

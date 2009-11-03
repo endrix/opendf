@@ -166,7 +166,7 @@ abstract class PhiContainerModule extends AbstractModule
 		if (mStatePhis.isEmpty()==false) {
 			newLocations=new HashSet<Location>(newLocations);  // copy
 			for (SideEffectPhiOperator phi: mStatePhis) {
-				Location loc=phi.getOutput().actsOnLocation();
+				Location loc=phi.getOutput().getLocation();
 				assert(loc!=null);
 				newLocations.remove(loc);
 			}

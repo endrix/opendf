@@ -71,17 +71,7 @@ class OutputPort extends ValueNode implements XlimOutputPort {
 	public ValueOperator getDefinition() {
 		return mParent.getValueOperator();
 	}
-		
-	@Override
-	public boolean isSideEffect() {
-		return false;
-	}
 	
-	@Override
-	public Location actsOnLocation() {
-		return null;
-	}
-
 	@Override
 	public ValueNode getDominatingDefinition() {
 		return null; // null for OutputPorts

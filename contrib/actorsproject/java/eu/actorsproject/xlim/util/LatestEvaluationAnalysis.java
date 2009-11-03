@@ -162,7 +162,7 @@ class LatestEvaluationArg {
 				// The set of values killed on the path from 'm' to 'child'
 				Set<Location> killed=mKilled.killedInParent(child);
 				for (ValueNode value: inputs) {
-					Location location=value.actsOnLocation();
+					Location location=value.getLocation();
 					if (location!=null && killed.contains(location)) {
 						// System.out.println("// LatestEvaluationAnalysis: "+op+"hoisted above definition of "+location);
 						latest=m;

@@ -57,4 +57,5 @@ public interface XlimType {
 	boolean isList();
 	XlimType getTypeParameter(String name);
 	String getValueParameter(String name);
+	int getIntegerParameter(String name);
 }

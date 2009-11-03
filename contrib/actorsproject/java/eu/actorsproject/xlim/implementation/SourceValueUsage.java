@@ -74,8 +74,8 @@ class SourceValueUsage extends ValueUsage {
 	public void setValue(ValueNode newValue) {
 		super.setValue(newValue);
 		if (newValue!=null) {
-			if (newValue.isSideEffect()) {
-				Location location=newValue.actsOnLocation();
+			if (newValue.hasLocation()) {
+				Location location=newValue.getLocation();
 				assert(location.hasSource());
 				mSource=location.getSource();
 			}

@@ -241,7 +241,7 @@ public class ActionNode extends DecisionTree {
 				XlimOperation xlimOp=(XlimOperation) element;
 				ValueOperator valueOp=xlimOp.getValueOperator();
 				for (ValueNode output: valueOp.getOutputValues()) {
-					Location location=output.actsOnLocation();
+					Location location=output.getLocation();
 					if (location!=null && location.isStateLocation())
 						mOutputMapping.put(location.asStateLocation(), output);
 				}

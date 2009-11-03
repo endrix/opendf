@@ -126,7 +126,7 @@ public class FixupContext {
 	 * as new, which means that it will have to be propagated out of the patch.
 	 */
 	public void setNewValue(ValueNode newValue) {
-		Location location=newValue.actsOnLocation();
+		Location location=newValue.getLocation();
 		if (location!=null) {
 			mCurrValues.put(location, newValue);
 			mNewValues.add(location);
@@ -195,7 +195,7 @@ public class FixupContext {
 	 * @return true if an exposed use was resolved
 	 */
 	public boolean resolveExposedUses(ValueNode def) {
-		Location location=def.actsOnLocation();
+		Location location=def.getLocation();
 		if (location!=null) {
 			ArrayList<ValueUsage> expUses=mExposedUses.remove(location);
 			if (expUses!=null) {
@@ -285,7 +285,7 @@ public class FixupContext {
 	 * @return true if the propagation of a new value ended
 	 */
 	public boolean endPropagation(ValueNode def) {
-		Location location=def.actsOnLocation();
+		Location location=def.getLocation();
 		if (location!=null)
 			return mNewValues.remove(location);
 		else

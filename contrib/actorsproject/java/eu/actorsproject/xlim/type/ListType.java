@@ -110,7 +110,7 @@ public class ListType implements XlimType {
 		if (name.equals("type"))
 			return mElementType;
 		else
-			return null;
+			throw new IllegalArgumentException("No such type parameter: "+name);
 	}
 
 	@Override
@@ -118,7 +118,15 @@ public class ListType implements XlimType {
 		if (name.equals("size"))
 			return Integer.toString(mNumElements);
 		else
-			return null;
+			throw new IllegalArgumentException("No such value parameter: "+name);
+	}
+	
+	@Override
+	public int getIntegerParameter(String name) {
+		if (name.equals("size"))
+			return mNumElements;
+		else
+			throw new IllegalArgumentException("No such value parameter: "+name);
 	}
 	
 	@Override
