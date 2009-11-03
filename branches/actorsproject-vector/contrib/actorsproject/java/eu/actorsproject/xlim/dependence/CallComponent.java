@@ -85,7 +85,7 @@ public class CallComponent implements DependenceComponent {
 		// Copy the actual inputs to the formal inputs...
 		for (ValueNode inputInCaller: mInputsInCaller) {
 			T aValue=callerContext.get(inputInCaller);
-			Location location=inputInCaller.actsOnLocation();
+			Location location=inputInCaller.getLocation();
 			assert(location!=null && location.isStateLocation());
 			ValueNode inputInCallee=ddg.getInputValue(location.asStateLocation());
 			result.put(inputInCallee, aValue);
@@ -108,7 +108,7 @@ public class CallComponent implements DependenceComponent {
 		
 		//Copy the outputs from callee to the caller context
 		for (ValueNode outputInCaller: mOutputsInCaller) {
-			Location location=outputInCaller.actsOnLocation();
+			Location location=outputInCaller.getLocation();
 			assert(location!=null && location.isStateLocation());
 			ValueNode outputInCallee=ddg.getOutputValue(location.asStateLocation());
 			T aValue=outputContext.get(outputInCallee);

@@ -58,9 +58,39 @@ public class TemporaryVariable extends Linkage<TemporaryVariable>{
 		return mCreatedFrom;
 	}
 	
-	// TODO: this is not needed
+	/**
+	 * @return the type of the TemporaryVariable
+	 */
 	public XlimType getType() {
 		return mCreatedFrom.getType();
+	}
+
+	/**
+	 * @return for aggregate (List-) type: the scalar element type,
+	 *         for scalars: same as getType()
+	 *         
+	 * Generalizes to List of List of ... of scalar type
+	 */
+	public XlimType getElementType() {
+		XlimType type=mCreatedFrom.getType();
+		while (type.isList()) {
+			type=type.getTypeParameter("type");
+		}
+		return type;
+	}
+	
+	/**
+	 * @return for aggregate (List-) type: the total number of scalar elements
+	 *         for scalars: one
+	 */
+	public int getNumberOfElements() {
+		int numElements=1;
+		XlimType type=mCreatedFrom.getType();
+		while (type.isList()) {
+			numElements *= type.getIntegerParameter("size");
+			type=type.getTypeParameter("type");
+		}
+		return numElements;
 	}
 	
 	public TemporaryVariable getClassLeader() {

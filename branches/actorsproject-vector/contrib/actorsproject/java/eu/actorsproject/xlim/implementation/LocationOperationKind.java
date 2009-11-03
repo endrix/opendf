@@ -20,7 +20,6 @@ import eu.actorsproject.xlim.type.Signature;
 import eu.actorsproject.xlim.type.TypeKind;
 import eu.actorsproject.xlim.type.TypeRule;
 import eu.actorsproject.xlim.type.VoidTypeRule;
-import eu.actorsproject.xlim.util.Session;
 
 
 class LocationOperationKind extends OperationKind {
@@ -331,10 +330,9 @@ class LocationOperation extends Operation {
 			// We can't set a new value unless it is
 			// a) A side effect that acts on the same location, or
 			// b) It is the OutputPort that defines the (local) location
-			if (value.isSideEffect())
-				return value.actsOnLocation()==mLocation;
-			else
-				return value==mLocation.getSource().asOutputPort();
+			Location location=value.getLocation();
+			assert(location!=null && location.hasSource());
+			return location==mLocation;
 		}
 	}
 }
@@ -391,7 +389,7 @@ class AssignOperation extends LocationOperation {
 	private class AssignmentSideEffect extends SideEffect {
 		
 		@Override
-		public Location actsOnLocation() {
+		public Location getLocation() {
 			return mLocation;
 		}
 

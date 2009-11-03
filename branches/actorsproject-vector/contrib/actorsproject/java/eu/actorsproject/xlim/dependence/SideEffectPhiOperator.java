@@ -170,7 +170,7 @@ public class SideEffectPhiOperator extends Linkage<SideEffectPhiOperator> implem
 	 */
 	@Override 
 	public String attributesToString() {
-		Location location=mOutput.actsOnLocation();
+		Location location=mOutput.getLocation();
 		return location.getDebugName();
 	}
 	
@@ -232,7 +232,7 @@ public class SideEffectPhiOperator extends Linkage<SideEffectPhiOperator> implem
 	private class SideEffectJoin extends SideEffect {
 		
 		@Override
-		public Location actsOnLocation() {
+		public Location getLocation() {
 			return mLocation;
 		}
 		@Override

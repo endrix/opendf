@@ -39,6 +39,8 @@ package eu.actorsproject.xlim.xlim2c;
 
 import eu.actorsproject.xlim.XlimInputPort;
 import eu.actorsproject.xlim.XlimOperation;
+import eu.actorsproject.xlim.XlimOutputPort;
+import eu.actorsproject.xlim.XlimSource;
 import eu.actorsproject.xlim.XlimStateVar;
 import eu.actorsproject.xlim.XlimTopLevelPort;
 import eu.actorsproject.xlim.XlimType;
@@ -57,12 +59,16 @@ public class Operation2c implements OperationGenerator {
 	protected OperationPlugIn<BasicGenerator> mGenerators;
 	
 	private static BasicGenerator sGenerators[] = {
+		new PinReadRepeatGenerator("pinRead","pinReadRepeat",true),
 		new TypedPortOperationGenerator("pinRead","pinRead",true),
+		new PinWriteRepeatGenerator("pinWrite","pinWriteRepeat",false),
 		new TypedPortOperationGenerator("pinWrite","pinWrite",false),
 		new PinPeekFrontGenerator("pinPeek", "pinPeekFront", true),
 		new TypedPortOperationGenerator("pinPeek","pinPeek",true),
 		new PinStatusGenerator("pinStatus","pinStatus",true),
+		new ListTypeVarRefGenerator("var_ref"),
 		new VarRefGenerator("var_ref"),
+		new ListTypeAssignGenerator("assign"),
 		new AssignGenerator("assign"),
 		new TaskCallGenerator("taskCall"),
 		new LiteralIntegerGenerator("$literal_Integer"),
@@ -128,6 +134,11 @@ public class Operation2c implements OperationGenerator {
 	public void generateStatement(XlimOperation op, ExpressionTreeGenerator treeGenerator) {
 		BasicGenerator generator=mGenerators.getOperationHandler(op);
 		generator.generateStatement(op,treeGenerator);
+	}
+
+	@Override
+	public void generateCopy(XlimSource source, XlimSource dest, ExpressionTreeGenerator gen) {
+		BasicGenerator.generateCopy(source,dest,gen);
 	}
 }
 
@@ -197,9 +208,102 @@ abstract class BasicGenerator implements OperationHandler {
 	public void generateStatement(XlimOperation op, ExpressionTreeGenerator gen) {
 		if (op.getNumOutputPorts()!=1)
 			throw new IllegalArgumentException("Unhandled multiple outputs in "+op.toString());
-		gen.print(op.getOutputPort(0));
-		gen.print("=");
-		generateExpression(op,gen);
+		
+		XlimOutputPort output=op.getOutputPort(0);
+		XlimType type=output.getType();
+		
+		if (type.isList()) {
+			int N=totalNumberOfElements(type);
+			XlimType elementT=elementType(type);
+			gen.print("MEMCPY(");
+			gen.print(output);
+			gen.print(", ");
+			generateExpression(op,gen);
+			gen.print(", "+N+"*sizeof("+gen.getTargetTypeName(elementT)+"))");
+		}
+		else {
+			gen.print(output);
+			gen.print("=");
+			generateExpression(op,gen);
+		}
+	}
+	
+	protected static void generateCopy(XlimSource source, XlimSource dest, ExpressionTreeGenerator gen) {
+		XlimType type=source.getType();
+		
+		if (type.isList()) {
+			int N=totalNumberOfElements(type);
+			XlimType elementT=elementType(type);
+			gen.print("MEMCPY(");
+			generateSource(dest,gen);
+			gen.print(", ");
+			generateSource(source,gen);
+			gen.print(", "+N+"*sizeof("+gen.getTargetTypeName(elementT)+"))");
+		}
+		else {
+			generateSource(dest,gen);
+			gen.print("=");
+			generateSource(source,gen);
+		}
+	}
+	
+	protected static void generateSource(XlimSource source, ExpressionTreeGenerator gen) {
+		XlimStateVar stateVar=source.asStateVar();
+		
+		if (stateVar!=null)
+			gen.print(stateVar);
+		else
+			gen.print(source.asOutputPort());
+	}
+
+	/**
+	 * Prints a location, which corresponds either to a state variable or an OutputPort
+	 * @param location
+	 * @param gen
+	 */
+	protected static void generateLocation(Location location, ExpressionTreeGenerator gen) {
+		assert(location.hasSource());
+		generateSource(location.getSource(),gen);
+	}
+	
+	/**
+	 * Generates a range-checked index expression
+	 * @param locationType     Type of the variable/aggregate
+	 * @param elementType      Element type (scalar or List) 
+	 * @param indexExpression  the index expression to be generated
+	 * @param gen
+	 */
+	protected static void generateIndex(XlimType locationType,
+			                            XlimType elementType,
+			                            XlimInputPort indexExpression,
+			                            ExpressionTreeGenerator gen) {
+		int locationLength=totalNumberOfElements(locationType);
+		int elementLength=totalNumberOfElements(elementType);
+		int limit=locationLength-elementLength+1;
+		
+		gen.print("RANGECHK(");
+		gen.translateSubTree(indexExpression);
+		gen.print("," + limit + ")");
+	}
+	
+	/**
+	 * @param type
+	 * @return the total number of scalar elements in a List type (one for scalars)
+	 */
+	protected static int totalNumberOfElements(XlimType type) {
+		int numElements=1;
+		while (type.isList()) {
+			numElements *= type.getIntegerParameter("size");
+			type=type.getTypeParameter("type");
+		}
+		return numElements;
+	}
+	
+	protected static XlimType elementType(XlimType type) {
+		while (type.isList()) {
+			type=type.getTypeParameter("type");
+		}
+		return type;
 	}
 }
 
@@ -303,6 +407,57 @@ class TypedPortOperationGenerator extends PortOperationGenerator {
 	}	
 }
 
+class PinReadRepeatGenerator extends TypedPortOperationGenerator {
+
+	public PinReadRepeatGenerator(String opKind, String functionName, boolean hasGenerateExpression) {
+		super(opKind, functionName, hasGenerateExpression);
+	}
+
+	@Override
+	public boolean supports(XlimOperation op) {
+		return op.getOutputPort(0).getType().isList();
+	}
+	
+	
+	@Override
+	public void generateStatement(XlimOperation op, ExpressionTreeGenerator gen) {
+		// If generating pinRead as a statement, there should be no t= (array passed as argument)
+		generateExpression(op, gen);
+	}
+
+	@Override
+	protected void generateArguments(XlimOperation op, ExpressionTreeGenerator gen) {
+		XlimOutputPort output=op.getOutputPort(0);
+		int repeat=output.getType().getIntegerParameter("size");
+		
+		super.generateArguments(op, gen);
+		gen.print(", ");
+		gen.print(output);
+		gen.print(", "+repeat);
+	}
+}
+
+class PinWriteRepeatGenerator extends TypedPortOperationGenerator {
+
+	public PinWriteRepeatGenerator(String opKind, String functionName, boolean hasGenerateExpression) {
+		super(opKind, functionName, hasGenerateExpression);
+	}
+
+	@Override
+	public boolean supports(XlimOperation op) {
+		return op.getInputPort(0).getSource().getType().isList();
+	}
+	
+	@Override
+	protected void generateArguments(XlimOperation op, ExpressionTreeGenerator gen) {
+		XlimType type=op.getInputPort(0).getSource().getType();
+		int repeat=type.getIntegerParameter("size");
+		
+		super.generateArguments(op, gen);
+		gen.print(", "+repeat);
+	}
+}
+
 class PinStatusGenerator extends PortOperationGenerator {
 
 	public PinStatusGenerator(String opKind, String functionName, boolean hasGenerateExpression) {
@@ -369,16 +524,42 @@ class VarRefGenerator extends BasicGenerator {
 	@Override
 	public void generateExpression(XlimOperation op, ExpressionTreeGenerator gen) {
 		Location location=op.getLocation();
-		assert(location.hasSource());
-		// TODO: We don't support local vectors yet!
-		XlimStateVar stateVar=location.getSource().asStateVar();
-		assert(stateVar!=null);
-		int length=stateVar.getInitValue().totalNumberOfElements();
-		gen.print(stateVar);
-		gen.print("[RANGECHK(");
-		gen.translateSubTree(op.getInputPort(0));
-		gen.print("," + length + ")]");
-	}		
+		
+		generateLocation(location,gen);
+		gen.print("[");
+		generateIndex(location.getType(), 
+				      op.getOutputPort(0).getType(),
+				      op.getInputPort(0),
+				      gen);
+		gen.print("]");
+	}
+}
+
+class ListTypeVarRefGenerator extends VarRefGenerator {
+
+	public ListTypeVarRefGenerator(String opKind) {
+		super(opKind);
+	}
+	
+	@Override
+	public boolean supports(XlimOperation op) {
+		return (op.getNumInputPorts()==1 && op.getNumOutputPorts()==1 
+				&& op.getOutputPort(0).getType().isList());
+	}
+	
+	@Override
+	public void generateExpression(XlimOperation op, ExpressionTreeGenerator gen) {
+		Location location=op.getLocation();
+		
+		gen.print("(");
+		generateLocation(location, gen);
+		gen.print("+");
+		generateIndex(location.getType(), 
+			      op.getOutputPort(0).getType(),
+			      op.getInputPort(0),
+			      gen);
+		gen.print(")");
+	}
 }
 
 class AssignGenerator extends BasicGenerator {
@@ -395,25 +576,68 @@ class AssignGenerator extends BasicGenerator {
 	@Override
 	public void generateStatement(XlimOperation op, ExpressionTreeGenerator gen) {
 		Location location=op.getLocation();
-		assert(location.hasSource());
-		// TODO: we don't support local vectors yet!
-		XlimStateVar stateVar=location.getSource().asStateVar();
-		assert(stateVar!=null);
 		int dataPort;
 		
-		gen.print(stateVar);
+		generateLocation(location,gen);
 		if (op.getNumInputPorts()>1) {
-			int length=stateVar.getInitValue().totalNumberOfElements();
-
-			gen.print("[RANGECHK(");
-			gen.translateSubTree(op.getInputPort(0));
-			gen.print("," + length + ")]");
+			gen.print("[");
+			generateIndex(location.getType(), 
+				          op.getInputPort(1).getSource().getType(),
+				          op.getInputPort(0),
+				          gen);
+			gen.print("]");
 			dataPort=1;
 		}
 		else
 			dataPort=0;
 		gen.print("=");
 		gen.translateSubTree(op.getInputPort(dataPort));
+	}
+}
+
+
+class ListTypeAssignGenerator extends AssignGenerator {
+	
+	public ListTypeAssignGenerator(String opKind) {
+		super(opKind);
+	}
+	
+	@Override
+	public boolean supports(XlimOperation op) {
+		int dataPort=op.getNumInputPorts()-1;
+		return (dataPort==0 || dataPort==1) 
+		       && op.getInputPort(dataPort).getSource().getType().isList()
+		       && op.getNumOutputPorts()==0;
+	}
+	
+	@Override
+	public void generateStatement(XlimOperation op, ExpressionTreeGenerator gen) {
+		Location location=op.getLocation();
+	    int numElements;
+		int dataPort;
+		
+		gen.print("MEMCPY(");
+		generateLocation(location,gen);
+		if (op.getNumInputPorts()>1) {
+			XlimType elementT=op.getInputPort(1).getSource().getType();
+			gen.print("+");
+			generateIndex(location.getType(), 
+				          elementT,
+				          op.getInputPort(0),
+				          gen);
+			dataPort=1;
+			numElements=totalNumberOfElements(elementT);
+		}
+		else {
+			dataPort=0;
+			numElements=totalNumberOfElements(location.getType());
+		}
+		
+		gen.print(", ");
+		gen.translateSubTree(op.getInputPort(dataPort));
+		gen.print(", "+numElements+"*sizeof(");
+		gen.print(gen.getTargetTypeName(elementType(location.getType())));
+		gen.print("))");
 	}
 }
 

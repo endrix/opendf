@@ -181,7 +181,7 @@ class PinReadTypeRule extends TypeRule {
 		XlimType t=op.getOutputPort(0).getType();
 		
 		if (mMayHaveRepeat && t.isList()) {
-			int repeat=Integer.valueOf(t.getValueParameter("size"));
+			int repeat=t.getIntegerParameter("size");
 			TypeFactory fact=Session.getTypeFactory();
 			return fact.createList(portType, repeat);
 		}
@@ -364,7 +364,7 @@ class PortModificationOperation extends PortAccessOperation {
 	private class PortSideEffect extends SideEffect {
 		
 		@Override
-		public Location actsOnLocation() {
+		public Location getLocation() {
 			return mPort.asStateLocation();
 		}
 

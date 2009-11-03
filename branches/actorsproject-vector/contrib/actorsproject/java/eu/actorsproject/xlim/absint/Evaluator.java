@@ -128,7 +128,7 @@ public class Evaluator {
 			                          Iterable<? extends ValueNode> valueNodes) {
 		assert(location!=null);
 		for (ValueNode value: valueNodes) {
-			if (value.actsOnLocation()==location)
+			if (value.getLocation()==location)
 				return value;
 		}
 		throw new IllegalArgumentException("No such location: "+location.getDebugName());

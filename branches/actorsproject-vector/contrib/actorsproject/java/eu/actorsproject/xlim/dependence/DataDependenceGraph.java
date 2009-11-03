@@ -210,9 +210,8 @@ public class DataDependenceGraph {
 			mLocation=location;
 		}
 				
-		
 		@Override
-		public Location actsOnLocation() {
+		public Location getLocation() {
 			return mLocation;
 		}
 		

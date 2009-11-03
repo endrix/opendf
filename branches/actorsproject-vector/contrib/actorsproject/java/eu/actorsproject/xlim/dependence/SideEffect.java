@@ -60,7 +60,7 @@ public abstract class SideEffect extends ValueNode {
 	}
 	
 	@Override
-	public boolean isSideEffect() {
+	public boolean hasLocation() {
 		return true;
 	}
 
@@ -76,13 +76,13 @@ public abstract class SideEffect extends ValueNode {
 	
 	@Override
 	public XlimType getType() {
-		Location location=actsOnLocation();
+		Location location=getLocation();
 		return location.getType();
 	}
 	
 	@Override
 	public String getAttributeDefinitions() {
-		Location location=actsOnLocation();
+		Location location=getLocation();
 		String name=location.getDebugName();
 		String source=(location.hasSource())?
 			" source=\"" + location.getSource().getUniqueId() + "\"" : "";

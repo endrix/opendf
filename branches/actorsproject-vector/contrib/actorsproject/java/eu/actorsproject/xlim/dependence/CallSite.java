@@ -80,7 +80,7 @@ public class CallSite  {
 	public ValueNode getInputValue(StateLocation location) {
 		for (ValueUsage usage: mInputValues) {
 			ValueNode usedValue=usage.getValue();
-			if (usedValue.actsOnLocation()==location)
+			if (usedValue.getLocation()==location)
 				return usedValue;
 		}
 		return null;
@@ -88,21 +88,21 @@ public class CallSite  {
 	
 	public ValueNode getOutputValue(StateLocation location) {
 		for (ValueNode sideEffect: mOutputValues)
-			if (sideEffect.actsOnLocation()==location)
+			if (sideEffect.getLocation()==location)
 				return sideEffect;
 		return null;
 	}
 	
 	public ValueNode getCalleeInput(ValueNode inputInCaller) {
 		DataDependenceGraph ddg=getCallee().getDataDependenceGraph();
-		Location location=inputInCaller.actsOnLocation();
+		Location location=inputInCaller.getLocation();
 		assert(location!=null && location.isStateLocation());
 		return ddg.getInputValue(location.asStateLocation());
 	}
 	
 	public ValueNode getCalleeOutput(ValueNode outputInCaller) {
 		DataDependenceGraph ddg=getCallee().getDataDependenceGraph();
-		Location location=outputInCaller.actsOnLocation();
+		Location location=outputInCaller.getLocation();
 		assert(location!=null && location.isStateLocation());
 		return ddg.getOutputValue(location.asStateLocation());
 	}
@@ -122,7 +122,7 @@ public class CallSite  {
 		mCallerLink.remove();
 		mCalleeLink.remove();
 		for (ValueNode output: mOutputValues) {
-			Location location=output.actsOnLocation();
+			Location location=output.getLocation();
 			assert(location!=null && location.isStateLocation());
 			ValueNode input=getInputValue(location.asStateLocation());
 			output.substitute(input);
@@ -142,7 +142,7 @@ public class CallSite  {
 		while (pUsage.hasNext()) {
 			ValueUsage usage=pUsage.next();
 			ValueNode usedValue=usage.getValue();
-			if (usedValue.actsOnLocation()==location) {
+			if (usedValue.getLocation()==location) {
 				inputValue=usedValue;
 				usage.out();
 				pUsage.remove();
@@ -156,7 +156,7 @@ public class CallSite  {
 		Iterator<ValueNode> pValue=mOutputValues.iterator();
 		while (pValue.hasNext()) {
 			ValueNode value=pValue.next();
-			if (value.actsOnLocation()==location) {
+			if (value.getLocation()==location) {
 				value.substitute(inputValue);
 				pValue.remove();
 				break;
@@ -240,7 +240,7 @@ public class CallSite  {
 		
 		
 		@Override
-		public Location actsOnLocation() {
+		public Location getLocation() {
 			return mLocation;
 		}
 

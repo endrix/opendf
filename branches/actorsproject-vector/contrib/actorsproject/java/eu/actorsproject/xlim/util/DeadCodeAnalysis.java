@@ -134,7 +134,7 @@ class UsefulCodeWorkList  {
 		@Override
 		public Object visitInitial(ValueNode v, CallNode callNode, Object dummyArg) {
 			// Initial values (of tasks): mark corresponding input of all callers
-			Location loc=v.actsOnLocation();
+			Location loc=v.getLocation();
 			assert(loc!=null && loc.isStateLocation());
 			StateLocation stateLoc=loc.asStateLocation();
 			
@@ -147,7 +147,7 @@ class UsefulCodeWorkList  {
 
 		@Override
 		public Object visitCall(ValueNode v, CallSite callSite, Object dummyArg) {
-			Location loc=v.actsOnLocation();
+			Location loc=v.getLocation();
 			assert(loc!=null && loc.isStateLocation());
 			
 			// For taskCalls: mark corresponding output value of the called task and its task module

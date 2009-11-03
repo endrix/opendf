@@ -97,7 +97,7 @@ public class StateMapping {
 		
 		// TODO: is this method used, apart from createContext?
 		for (ValueNode valueNode: getValueNodes()) {
-			StateLocation location=valueNode.actsOnLocation().asStateLocation();
+			StateLocation location=valueNode.getLocation().asStateLocation();
 			assert(location!=null);
 			
 			T aValue=summary.get(location.asStateLocation());
@@ -143,7 +143,7 @@ public class StateMapping {
 		boolean changed=false;
 		
 		for (ValueNode valueNode: getValueNodes()) {
-			StateLocation location=valueNode.actsOnLocation().asStateLocation();
+			StateLocation location=valueNode.getLocation().asStateLocation();
 			assert(location!=null);
 			
 			// Possibly filter out ports from the summary
@@ -165,7 +165,7 @@ public class StateMapping {
 	 */
 	private static boolean haveStateCarriers(Iterable<ValueNode> valueNodes) {
 		for (ValueNode valueNode: valueNodes) {
-			Location location=valueNode.actsOnLocation();
+			Location location=valueNode.getLocation();
 			if (location==null || location.isStateLocation()==false)
 				return false;
 		}

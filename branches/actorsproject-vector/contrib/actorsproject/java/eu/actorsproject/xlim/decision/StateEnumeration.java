@@ -255,7 +255,7 @@ public class StateEnumeration<T extends AbstractValue<T>> {
 	private DemandContext<T> computeInitialState() {
 		DemandContext<T> initialState=new DemandContext<T>(mDomain);
 		for (ValueNode input: mMappingAtRoot.getValueNodes()) {
-			Location location=input.actsOnLocation();
+			Location location=input.getLocation();
 			assert(location!=null && location.isStateLocation());
 			T aValue=mDomain.initialState(location.asStateLocation());
 			initialState.put(input, aValue);
@@ -278,7 +278,7 @@ public class StateEnumeration<T extends AbstractValue<T>> {
 			                                    Map<StateLocation,ValueNode> stateMapping) {
 		DemandContext<T> newInputContext=new DemandContext<T>(mDomain);
 		for (ValueNode inputNode: mMappingAtRoot.getValueNodes()) {
-			Location location=inputNode.actsOnLocation();
+			Location location=inputNode.getLocation();
 			assert(location!=null && location.isStateLocation());
 			
 			ValueNode outputNode=stateMapping.get(location.asStateLocation());

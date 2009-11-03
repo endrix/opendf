@@ -192,7 +192,7 @@ public class DependenceSlice {
 			Set<ValueNode> calleeSliceInputs=calleeSlice.getInputValues();
 			DataDependenceGraph ddg=callee.getDataDependenceGraph();
 			for (ValueNode actualInput: callSite.getInputValues()) {
-				Location loc=actualInput.actsOnLocation();
+				Location loc=actualInput.getLocation();
 				assert(loc!=null && loc.isStateLocation());
 				ValueNode formalInput=ddg.getInputValue(loc.asStateLocation());
 				

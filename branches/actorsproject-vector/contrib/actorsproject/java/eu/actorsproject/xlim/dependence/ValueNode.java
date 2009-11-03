@@ -88,16 +88,18 @@ public abstract class ValueNode implements XmlElement {
 	}
 	
 	/**
-	 * @return true iff the ValueNode represents a side effect
-	 *         (i.e. is not among the output ports of an operation)
+	 * @return true iff this ValueNode has an associated location
+	 *         (=the ValueNode represents a side effect or 
+	 *         the creation of a local location).
 	 */
-	public abstract boolean isSideEffect();
+	public abstract boolean hasLocation();
 	
 	/**
-	 * @return the location, which a side-effect acts on (null, if
-	 *         this ValueNode doesn't represent a side effect).
+	 * @return the location, which a side-effect acts on (null, if 
+	 *         this ValueNode neither represent a side effect nor
+	 *         the creation of a new location).
 	 */
-	public abstract Location actsOnLocation();
+	public abstract Location getLocation();
 	
 	/**
 	 * @return the type of the value

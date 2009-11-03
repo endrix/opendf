@@ -74,7 +74,7 @@ public class Task2c extends LocalCodeGenerator {
 			new HashMap<String,ArrayList<TemporaryVariable>>();
 			
 		for (TemporaryVariable temp: scope.getTemporaries()) {
-			String cType=mTopLevelSymbols.getTargetTypeName(temp.getType());
+			String cType=mTopLevelSymbols.getTargetTypeName(temp.getElementType());
 			ArrayList<TemporaryVariable> list=typeMap.get(cType);
 			if (list==null) {
 				list=new ArrayList<TemporaryVariable>();
@@ -85,11 +85,14 @@ public class Task2c extends LocalCodeGenerator {
 			
 		// Print them
 		for (Map.Entry<String,ArrayList<TemporaryVariable>> entry: typeMap.entrySet()) {
-			boolean first=true;
+			char delimiter=' ';
 			mOutput.print(entry.getKey());
 			for (TemporaryVariable temp: entry.getValue()) {
-				mOutput.print((first? " ":",")+mTopLevelSymbols.getTargetName(temp));
-				first=false;
+				mOutput.print(delimiter+mTopLevelSymbols.getTargetName(temp));
+				if (temp.getType().isList()) {
+					mOutput.print("["+temp.getNumberOfElements()+"]");
+				}
+				delimiter=',';
 			}
 			mOutput.println(";");
 		}

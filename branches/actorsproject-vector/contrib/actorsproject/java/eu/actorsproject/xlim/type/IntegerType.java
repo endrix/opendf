@@ -105,7 +105,7 @@ class IntegerType implements XlimType {
 	
 	@Override
 	public XlimType getTypeParameter(String name) {
-		return null;
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
@@ -113,6 +113,14 @@ class IntegerType implements XlimType {
 		if (name.equals("size"))
 			return Integer.toString(mSize);
 		else
-			return null;
+			throw new IllegalArgumentException("no such value parameter: "+name);
+	}
+	
+	@Override
+	public int getIntegerParameter(String name) {
+		if (name.equals("size"))
+			return mSize;
+		else
+			throw new IllegalArgumentException("no such value parameter: "+name);
 	}
 }

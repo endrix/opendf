@@ -102,14 +102,19 @@ public abstract class UnparametricType extends TypeKind implements XlimType {
 	
 	@Override
 	public XlimType getTypeParameter(String name) {
-		return null;
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
 	public String getValueParameter(String name) {
-		return null;
+		throw new UnsupportedOperationException();
 	}
 
+	@Override
+	public int getIntegerParameter(String name) {
+		throw new UnsupportedOperationException();
+	}
+	
 	@Override
 	XlimType createLub(XlimType t1, XlimType t2) {
 		assert(hasPromotionFrom(t1.getTypeKind()) 
