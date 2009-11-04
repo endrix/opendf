@@ -220,6 +220,10 @@ public class XlimReaderWithDiagnostics implements IXlimReader {
 			reportWarning(element, "Unknown/unhandled tag <"+tagName+">");
 		}
 		
+		protected boolean isEmpty(XlimElement element) {
+			return element.getElements().iterator().hasNext()==false;
+		}
+		
 		protected void checkThatEmpty(XlimElement element) {
 			if (element.getElements().iterator().hasNext()) {
 				String tagName=element.getTagName();
@@ -339,7 +343,24 @@ public class XlimReaderWithDiagnostics implements IXlimReader {
 		protected void readStateVar(XlimElement stateVarElement,
                                     MutableReaderContext context,
                                     XlimDesign design) {
-			XlimInitValue initValue=mInitValueHandler.readInitValue(stateVarElement,context);
+			XlimInitValue initValue=null;
+			
+			if (isEmpty(stateVarElement)) {
+				// <stateVar> with no <initValue>: create a zero initializer
+				String typeName=stateVarElement.getAttributeValue("typeName");
+				if (typeName!=null) {
+					XlimType type=getType(stateVarElement, context);
+					if (type!=null)
+						initValue=createZeroInitializer(type);
+				}
+				else {
+					reportError(stateVarElement,
+							    "Attribute \"typeName\" required in <stateVar> with no <initValue>");
+				}
+			}
+			else
+				initValue=mInitValueHandler.readInitValue(stateVarElement,context);
+			
 			String sourceName=stateVarElement.getAttributeValue("sourceName");
 			String name=getRequiredAttribute("name",stateVarElement);
 			if (name!=null) {
@@ -352,6 +373,19 @@ public class XlimReaderWithDiagnostics implements IXlimReader {
 			}
 		}
 
+		protected XlimInitValue createZeroInitializer(XlimType type) {
+		
+			if (type.isList()) {
+				XlimInitValue zeroElement=createZeroInitializer(type.getTypeParameter("type"));
+				int numElements=type.getIntegerParameter("size");
+				return mFactory.createInitValue(zeroElement, numElements);
+			}
+			else {
+				String zeroValue=type.getZero();
+				return mFactory.createInitValue(zeroValue, type);
+			}
+		}
+		
 		protected void readTypeDef(XlimElement typeDefElement,
 				                   MutableReaderContext context) {
 			String name=getRequiredAttribute("name",typeDefElement);
