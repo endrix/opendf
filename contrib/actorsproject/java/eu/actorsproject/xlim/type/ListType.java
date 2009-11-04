@@ -91,10 +91,16 @@ public class ListType implements XlimType {
 	}	
 
 	// TODO: this method doesn't make sense, can it be removed?
+	@Override
 	public boolean isZero(String value) {
 		throw new UnsupportedOperationException("ListType.isZero()");
 	}
 
+	@Override
+	public String getZero() {
+		throw new UnsupportedOperationException("ListType.isZero()");
+	}
+	
 	// TODO: this method doesn't make sense, can it be removed?
 	public long maxValue() {
 		throw new UnsupportedOperationException("ListType.maxValue()");

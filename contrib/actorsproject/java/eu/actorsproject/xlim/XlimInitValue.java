@@ -81,8 +81,9 @@ public interface XlimInitValue extends XmlElement {
 	/**
 	 * Transforms the element type of an scalar/array/matrix kind of initializer
 	 * @param t new type
+	 * @return  the resulting type of the scalar/array/matrix initializer
 	 */
-	void setCommonElementType(XlimType t);
+	XlimType setCommonElementType(XlimType t);
 	
 	/**
 	 * @return the total number of scalar elements in the structure

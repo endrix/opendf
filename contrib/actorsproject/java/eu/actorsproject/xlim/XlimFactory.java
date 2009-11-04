@@ -49,8 +49,26 @@ public interface XlimFactory {
 
 	XlimDesign createDesign(String name);
 	
+	/**
+	 * @param value
+	 * @param type
+	 * @return Scalar initial value of given type/value
+	 */
 	XlimInitValue createInitValue(String value, XlimType type);
+
+	/**
+	 * @param aggregate 
+	 * @return Aggregate initial value with given elements
+	 */
 	XlimInitValue createInitValue(List<? extends XlimInitValue> aggregate);
 
+	/**
+	 * @param initValue
+	 * @param repeatFactor
+	 * @return Aggregate initial value, consisting of 'repeatFactor' copies
+	 *         of 'initValue'
+	 */
+	XlimInitValue createInitValue(XlimInitValue initValue, int repeatFactor);
+	
 	XlimOutputPort createOutputPort(XlimType type);
 }

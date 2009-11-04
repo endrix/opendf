@@ -78,8 +78,9 @@ class ScalarInitValue implements XlimInitValue {
 	}
 
 	@Override
-	public void setCommonElementType(XlimType t) {
+	public XlimType setCommonElementType(XlimType t) {
 		mType=t;
+		return t;
 	}
 	
 	@Override
