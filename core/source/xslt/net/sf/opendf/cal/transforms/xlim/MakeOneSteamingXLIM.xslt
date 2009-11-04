@@ -125,33 +125,11 @@ ENDCOPYRIGHT
       
     </xsl:choose>
   </xsl:template>
- 
- <!--
-  <xsl:template match="Type">
-     <xsl:choose>
-      <xsl:when test="Entry[ @kind='Type' ]">
-        <xsl:apply-templates select="Entry[ @kind='Type' ]/Type"/>
-      </xsl:when>
-      
-      <xsl:otherwise>
-        <attr name="typeName" value="{@name}"/>
-        <xsl:for-each select="Entry[@kind='Expr']">
-          <attr name="{@name}" value="{Expr/@value}"/>
-        </xsl:for-each>
-        <xsl:if test="@name='bool' and not(Entry[@name='size'])">
-          <attr name="size" value="1"/>
-        </xsl:if>
-      </xsl:otherwise>
-      
-    </xsl:choose>
-  </xsl:template>
- -->
   
   <xsl:template match="Type">
     <xsl:message>Error Here!</xsl:message>
   </xsl:template>
   
- 
   <xsl:template match="Port">
 
     <xsl:variable name="name" select="@name"/>
@@ -196,11 +174,14 @@ ENDCOPYRIGHT
       <xsl:when test="parent::Actor">
         <xsl:comment>Actor state variable <xsl:value-of select="@name"/></xsl:comment>
         <stateVar name="{@id}" sourceName="{@name}">
+          <xsl:for-each select="$var-type-attrs/attr">
+            <xsl:attribute name="{@name}"><xsl:value-of select="@value"/></xsl:attribute> 
+          </xsl:for-each>  
           <xsl:apply-templates select="Expr" mode="init-var"/>
           <xsl:if test="not( Expr )">
             <initValue value="0">
               <xsl:for-each select="$var-type-attrs/attr">
-                <xsl:attribute name="{@name}"><xsl:value-of select="@value"/></xsl:attribute>
+                <xsl:attribute name="{@name}"><xsl:value-of select="@value"/></xsl:attribute> 
               </xsl:for-each>              
             </initValue>
           </xsl:if>
@@ -336,9 +317,9 @@ ENDCOPYRIGHT
 
     <xsl:variable name="type-attrs">      
       <xsl:choose>
-        <xsl:when test="name(..)='Decl'">
+        <xsl:when test="ancestor::Decl and @kind='List'">
           <!-- Get the type as declared -->    
-          <xsl:apply-templates select="../Type"/>        
+          <xsl:apply-templates select="ancestor::Decl/Type"/>        
         </xsl:when>
         <xsl:otherwise>
           <!-- Get the type assigned by the expr evaluator -->    
@@ -368,9 +349,7 @@ ENDCOPYRIGHT
       
       <!-- Add the ports created by the flattener -->
       <xsl:for-each select="$expr/port">
-        <xsl:copy>
-         <!-- ERROR Here! We now have more that 1 port!-->
-                 
+        <xsl:copy>                
           <xsl:for-each select="@*">
             <xsl:attribute name="{name()}"><xsl:value-of select="."/></xsl:attribute>
           </xsl:for-each>
@@ -391,7 +370,14 @@ ENDCOPYRIGHT
     <!-- TODO fix hard-wired literal type -->
     <attr name="kind" value="$literal_Integer"/>
     <attr name="value" value="{@value}"/>
-    <port source="{@id}" dir="out"/>
+    <xsl:choose>
+      <xsl:when test="@literal-kind='Integer'">
+        <port source="{@id}" dir="out" typeName="int" size="32"/>
+      </xsl:when>
+      <xsl:otherwise>
+        <port source="{@id}" dir="out" />        
+      </xsl:otherwise>
+    </xsl:choose>    
   </xsl:template>
   
   <xsl:template match="Expr[@kind = 'List' ]" mode="flatten-expr">
@@ -401,7 +387,7 @@ ENDCOPYRIGHT
     
     <attr name="kind" value="$vcons"/>
     <xsl:for-each select="./Expr">     
-      <xsl:apply-templates select="."/>
+      <xsl:apply-templates select="." />
       <port dir="in" source="{./@id}">
         <xsl:for-each select="$type-attrs/attr">
           <xsl:attribute name="{@name}"><xsl:value-of select="@value"/></xsl:attribute>
