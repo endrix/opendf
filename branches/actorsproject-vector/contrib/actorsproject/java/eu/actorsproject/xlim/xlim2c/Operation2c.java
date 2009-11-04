@@ -98,7 +98,8 @@ public class Operation2c implements OperationGenerator {
 		new SelectorGenerator("$selector"),
 		new PinAvailGenerator("pinAvail","pinAvail",true),
 		new YieldGenerator("yield"),
-		new SignExtendGenerator("signExtend")
+		new SignExtendGenerator("signExtend"),
+		new VConsGenerator("$vcons")
 	};
 	
 	public Operation2c() {
@@ -638,6 +639,31 @@ class ListTypeAssignGenerator extends AssignGenerator {
 		gen.print(", "+numElements+"*sizeof(");
 		gen.print(gen.getTargetTypeName(elementType(location.getType())));
 		gen.print("))");
+	}
+}
+
+class VConsGenerator extends BasicGenerator {
+
+	public VConsGenerator(String opKind) {
+		super(opKind);
+	}
+	
+	@Override
+	public void generateStatement(XlimOperation op, ExpressionTreeGenerator gen) {
+		XlimOutputPort output=op.getOutputPort(0);
+		XlimType resultT=output.getType();
+		int N=op.getNumInputPorts();
+		assert(resultT.isList() && resultT.getIntegerParameter("size")==N);
+		
+		for (int i=0; i<N; ++i) {
+			if (i!=0) {
+				gen.print(";");
+				gen.println();
+			}
+			gen.print(output);
+			gen.print("["+i+"]=");
+			gen.translateSubTree(op.getInputPort(i));
+		}
 	}
 }
 
