@@ -55,7 +55,6 @@ import eu.actorsproject.xlim.XlimSource;
 import eu.actorsproject.xlim.XlimStateVar;
 import eu.actorsproject.xlim.XlimTopLevelPort;
 import eu.actorsproject.xlim.XlimType;
-import eu.actorsproject.xlim.dependence.ValueNode;
 
 public class NativeTypeTransformation {
 
@@ -397,24 +396,30 @@ public class NativeTypeTransformation {
 		public void handleOperation(XlimOperation op, 
 				                    Map<Object,Transformation> transformations) {
 			for (XlimOutputPort output: op.getOutputPorts()) {
-				// Sign extend output?
-				// This is needed if the declared type is *shorter* than the worst-case
-				// ("actual") width. We then extend up to the width of the native type. 
 				XlimType declaredT=output.getType();
-				XlimType nativeT=mNativeTypePlugIn.nativeType(declaredT);
-				if (declaredT!=nativeT) {
-					int fromW=declaredT.getSize();
-					int actualW=output.actualOutputType().getSize();
-			
-					if (fromW<actualW) {
-						if (mTrace)
-							System.out.println("// NativeTypeTransform: " + op.toString()
-									           + " sign-extend " + output.getUniqueId()
-									           + " from " + fromW
-									           + " to " + nativeT.getSize()
-									           + " (actual:" + actualW + ")");
-						Transformation t=new OutputPortTransformation(fromW, nativeT);
-						transformations.put(output, t);
+				
+				if (declaredT.isList()) {
+					assert(output.actualOutputType()==declaredT);
+				}
+				else {
+					// Sign extend output?
+					// This is needed if the declared type is *shorter* than the worst-case
+					// ("actual") width. We then extend up to the width of the native type. 
+					XlimType nativeT=mNativeTypePlugIn.nativeType(declaredT);
+					if (declaredT!=nativeT) {
+						int fromW=declaredT.getSize();
+						int actualW=output.actualOutputType().getSize();
+
+						if (fromW<actualW) {
+							if (mTrace)
+								System.out.println("// NativeTypeTransform: " + op.toString()
+										+ " sign-extend " + output.getUniqueId()
+										+ " from " + fromW
+										+ " to " + nativeT.getSize()
+										+ " (actual:" + actualW + ")");
+							Transformation t=new OutputPortTransformation(fromW, nativeT);
+							transformations.put(output, t);
+						}
 					}
 				}
 			}			
@@ -508,32 +513,44 @@ public class NativeTypeTransformation {
 		public void handleOperation(XlimOperation op, 
                                     Map<Object,Transformation> transformations) {
 
-			// Sign-extend input?
-			// This is needed when writing to ports and state variables
-			// that are *shorter* than the input. We then extend from the
-			// width of the port/state variable to the width of the native type
+			XlimType inputT=getDataPort(op).getSource().getType();
 			XlimType fromT=signExtendFrom(op);
-			XlimType nativeT=nativeType(op);
-			if (fromT!=nativeT) {
-				XlimInputPort input=getDataPort(op);
-				XlimType inputT=input.getSource().getType();
-				// TODO: do we have to convert input to integer sometimes (e.g. real-to-int)?
-				assert(inputT.isInteger() && nativeT.isInteger() && fromT.isInteger());
 			
-				int fromW=fromT.getSize();
-				int actualW=inputT.getSize();			
-				if (fromW<actualW) {
-					if (mTrace)
-						System.out.println("// NativeTypeTransform: " + op.toString()
-								+ " sign-extend " + input.getSource().getUniqueId()
-								+ " from " + fromW
-								+ " to " + nativeT.getSize()
-								+ " (was:" + actualW + ")");
+			if (inputT.isList()) {
+				// Make sure the elements in the input matches that of the state variable (or port)
+				XlimType elementT=inputT;
+				while (elementT.isList())
+					elementT=elementT.getTypeParameter("type");
+				
+				assert(fromT==elementT);
+			}
+			else {
+				// Sign-extend input?
+				// This is needed when writing to ports and state variables
+				// that are *shorter* than the input. We then extend from the
+				// width of the port/state variable to the width of the native type
+				XlimType nativeT=nativeType(op);
+				if (fromT!=nativeT) {				
+					// TODO: do we have to convert input to integer sometimes (e.g. real-to-int)?
+					assert(inputT.isInteger() && nativeT.isInteger() && fromT.isInteger());
 
-					Transformation t=new InputPortTransformation(TransformKind.SignExtend,
-                                                                 fromW,
-                                                                 nativeT);
-					transformations.put(input, t);
+					int fromW=fromT.getSize();
+					int actualW=inputT.getSize();			
+					if (fromW<actualW) {
+						XlimInputPort input=getDataPort(op);
+
+						if (mTrace)
+							System.out.println("// NativeTypeTransform: " + op.toString()
+									+ " sign-extend " + input.getSource().getUniqueId()
+									+ " from " + fromW
+									+ " to " + nativeT.getSize()
+									+ " (was:" + actualW + ")");
+
+						Transformation t=new InputPortTransformation(TransformKind.SignExtend,
+								fromW,
+								nativeT);
+						transformations.put(input, t);
+					}
 				}
 			}
 			
@@ -554,7 +571,7 @@ public class NativeTypeTransformation {
 		protected XlimInputPort getDataPort(XlimOperation op) {
 			return op.getInputPort(0);
 		}
-
+		
 		@Override
 		protected XlimType signExtendFrom(XlimOperation op) {
 			return op.getPortAttribute().getType();

@@ -191,7 +191,7 @@ public class BasicXlimOperations extends XlimFeature {
 		Signature ternarySignature=new Signature(boolKind, wildcard, wildcard);
 		
 		OperationKind selector=new OperationKind("$selector", 
-				new FixOutputTypeRule(ternarySignature, boolType));
+				new GenericSelectorTypeRule(ternarySignature));
 		s.registerOperation(selector);
 	}
 
@@ -403,9 +403,9 @@ class GenericNoopTypeRule extends TypeRule {
  * It is used for bool and real but int, which is parametric in size,
  * uses a more specific type rule.
  */
-class GenericSelectTypeRule extends TypeRule {
+class GenericSelectorTypeRule extends TypeRule {
 
-	public GenericSelectTypeRule(Signature signature) {
+	public GenericSelectorTypeRule(Signature signature) {
 		super(signature);
 	}
 	
