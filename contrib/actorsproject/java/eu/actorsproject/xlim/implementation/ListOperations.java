@@ -45,6 +45,8 @@ import eu.actorsproject.xlim.XlimOutputPort;
 import eu.actorsproject.xlim.XlimSource;
 import eu.actorsproject.xlim.XlimType;
 import eu.actorsproject.xlim.type.TypeFactory;
+import eu.actorsproject.xlim.type.TypeKind;
+import eu.actorsproject.xlim.type.TypePattern;
 import eu.actorsproject.xlim.type.TypeRule;
 import eu.actorsproject.xlim.type.TypeSystem;
 import eu.actorsproject.xlim.type.VarArgSignature;
@@ -66,19 +68,30 @@ public class ListOperations extends XlimFeature {
 
 	@Override
 	public void initialize(InstructionSet s) {
-		//TypeFactory fact=Session.getTypeFactory();
+		TypeFactory fact=Session.getTypeFactory();
+		TypeKind intKind=fact.getTypeKind("int");
 		//TypeKind listKind=fact.getTypeKind("list");
 
 		// $vcons(T,...)->List(type:T,size=N)
-		OperationKind and=new OperationKind("$vcons",new VConsTypeRule());
-		s.registerOperation(and);
+		TypePattern wildcard=new WildCardTypePattern();
+		OperationKind vconsGen=new OperationKind("$vcons",new GenericVConsTypeRule(wildcard));
+		s.registerOperation(vconsGen);
+		
+		// $vcons(int,...)->List(type:int,size=N)
+		OperationKind vconsInt=new OperationKind("$vcons",new IntVConsTypeRule(intKind));
+		s.registerOperation(vconsInt);
 	}
 }
 
-class VConsTypeRule extends TypeRule {
+/**
+ * Type rule that demands that
+ * a) The N inputs are of the same type T
+ * b) The output is of type List(type:T, size=N)
+ */
+class GenericVConsTypeRule extends TypeRule {
 
-	public VConsTypeRule() {
-		super(new VarArgSignature(new WildCardTypePattern()));
+	public GenericVConsTypeRule(TypePattern typePattern) {
+		super(new VarArgSignature(typePattern));
 	}
 
 	@Override
@@ -129,5 +142,65 @@ class VConsTypeRule extends TypeRule {
 	public boolean typecheck(XlimOperation op) {
 		XlimType outT=op.getOutputPort(0).getType();
 		return outT!=null && outT==actualOutputType(op,0);
+	}
+}
+
+
+/**
+ * Relaxed type rule for integer vector constructor, $vcons:
+ * a) The N inputs are of integer type
+ * b) The output is of type List(type:T, size=N), for some integer type T
+ * 
+ * Default output type has T=the widest input type
+ */
+class IntVConsTypeRule extends GenericVConsTypeRule {
+
+	public IntVConsTypeRule(TypePattern typePattern) {
+		super(typePattern);
+	}
+	
+	@Override
+	public XlimType defaultOutputType(List<? extends XlimSource> inputs, int i) {
+		assert(i==0);
+		XlimType elementT=widestInput(inputs);
+		if (elementT!=null) {
+			TypeFactory fact=Session.getTypeFactory();
+			return fact.createList(elementT,inputs.size());
+		}
+		else
+			return null;
+	}
+
+	@Override
+	public XlimType actualOutputType(XlimOperation op, int i) {
+		assert(i==0);
+		return op.getOutputPort(0).getType();
+	}
+	
+	@Override
+	public boolean typecheck(XlimOperation op) {
+		XlimType type=op.getOutputPort(0).getType();
+		if (type.isList()) {
+			XlimType elementT=type.getTypeParameter("type");
+			return elementT.isInteger() 
+			       && type.getIntegerParameter("size")==op.getNumInputPorts();
+		}
+		else
+			return false;
+	}
+	
+	protected XlimType widestInput(List<? extends XlimSource> inputs) {
+		int widest=0;
+		XlimType widestType=null;
+		
+		for (XlimSource source: inputs) {
+			XlimType type=source.getType();
+			int w=type.getSize();
+			if (w>widest) {
+				widest=w;
+				widestType=type;
+			}
+		}
+		return widestType;
 	}
 }
