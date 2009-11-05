@@ -308,22 +308,31 @@ ENDCOPYRIGHT
   </xsl:template>
   
   <xsl:template match="Expr">
-    
-    <xsl:if test="not(Note[@kind='exprType'])">
-      <xsl:message>
-        <xsl:value-of select="@id"/> has no exprType
-      </xsl:message>
-    </xsl:if>
-
+ 
     <xsl:variable name="type-attrs">      
-      <xsl:choose>
-        <xsl:when test="ancestor::Decl and @kind='List'">
-          <!-- Get the type as declared -->    
-          <xsl:apply-templates select="ancestor::Decl/Type"/>        
+      <xsl:choose> 
+        <!-- Somewhat of a hack to force use the typedefs for lists -->
+        <xsl:when test="@kind='List' and ancestor::Decl">
+          <xsl:apply-templates select="ancestor::Decl/Type"/>
         </xsl:when>
-        <xsl:otherwise>
+
+        <xsl:when test="@kind='Let' and ./Expr[@kind='List']">
+          <xsl:apply-templates select="ancestor::Decl/Type"/>
+        </xsl:when>
+        
+        <xsl:when test="Note[@kind='exprType']">
           <!-- Get the type assigned by the expr evaluator -->    
-          <xsl:apply-templates select="Note[@kind='exprType']/Type"/>        
+          <xsl:apply-templates select="Note[@kind='exprType']/Type"/>      
+        </xsl:when>
+        
+        <xsl:when test="@kind='Literal'">
+          <xsl:apply-templates select="."  mode="flatten-expr"/>
+        </xsl:when>  
+        
+        <xsl:otherwise>
+          <xsl:message>
+            <xsl:value-of select="@id"/> has no exprType
+          </xsl:message>
         </xsl:otherwise>
       </xsl:choose>
     </xsl:variable>
@@ -933,8 +942,7 @@ ENDCOPYRIGHT
 
   <xsl:template match="Expr[ @kind='Literal' ]" mode="init-var">
      <xsl:variable name="type-attrs">
- <!--     <xsl:apply-templates select="ancestor::Decl/Type/Entry[@kind='Type']/Type"/> -->
-       <xsl:apply-templates select="ancestor::Decl/Type" mode="init-var"/>
+        <xsl:apply-templates select="ancestor::Decl/Type" mode="init-var"/>
     </xsl:variable>
     <initValue value="{@value}">
       <xsl:for-each select="$type-attrs/attr">
