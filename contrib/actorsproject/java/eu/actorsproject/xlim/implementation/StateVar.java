@@ -112,6 +112,12 @@ class StateVar implements XlimStateVar, StateLocation {
 	}
 
 	@Override
+	public boolean isModified() {
+		// For now assume that all statevars are modified at some point
+		// TODO: identify immutable statevars
+		return true;
+	}
+	@Override
 	public XlimType getType() {
 		return mInitValue.getType();
 	}

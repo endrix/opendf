@@ -44,11 +44,12 @@ import eu.actorsproject.xlim.XlimPhiNode;
 import eu.actorsproject.xlim.XlimSource;
 import eu.actorsproject.xlim.XlimTaskModule;
 import eu.actorsproject.xlim.XlimType;
+import eu.actorsproject.xlim.dependence.ValueNode;
 
 public class CopyPropagation extends XlimTraversal<Object,Object> {
 
 	protected OperationPlugIn<CopyPropagator> mPlugIn;
-	protected boolean mTrace=false; // Debug printouts
+	protected boolean mTrace=true; // Debug printouts
 	
 	public CopyPropagation() {
 		CopyPropagator defaultHandler=new CopyPropagator();
@@ -101,16 +102,25 @@ public class CopyPropagation extends XlimTraversal<Object,Object> {
 		public boolean supports(XlimOperation op) {
 			return (op.getNumOutputPorts()==1
 					&& op.getNumInputPorts()==1
-					&& checkSource(op.getInputPort(0).getSource(),
-							       op.getOutputPort(0).getType()));
+					&& okToPropagate(op.getInputPort(0).getSource(), 
+							         op.getOutputPort(0).getValue()));
 		}
 
-		private boolean checkSource(XlimSource source, XlimType resultT) {
+		private boolean okToPropagate(XlimSource source, ValueNode output) {
 			XlimType sourceT=source.getType();
-
+			XlimType resultT=output.getType();
+			
 			if (sourceT.isList()) {
-				// TODO: When to eliminate List-valued noops?
-				return false;
+				assert(resultT.isList());
+				assert(source.hasLocation() && output.hasLocation());
+				
+				// Don't propagate copy if
+				// a) source/result types are not the same, or 
+				// b) the location of the source is modified, or
+				// c) the location of the output is modified
+				return sourceT==resultT 
+				       && source.getLocation().isModified()==false
+				       && output.getLocation().isModified()==false;
 			}
 			else if (sourceT.isInteger()){
 				// Integer source and result,
@@ -127,7 +137,7 @@ public class CopyPropagation extends XlimTraversal<Object,Object> {
 				   && sourceT==resultT;
 			}
 		}
-		
+				
 		@Override
 		public void removeCopy(XlimOperation op) {
 			XlimOutputPort oldPort=op.getOutputPort(0);

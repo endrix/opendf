@@ -73,6 +73,7 @@ class TopLevelPort implements XlimTopLevelPort, StateLocation {
 	}
 
 	
+	@Override
 	public String getName() {
 		return mName;
 	}
@@ -106,10 +107,12 @@ class TopLevelPort implements XlimTopLevelPort, StateLocation {
 	}
 	
 	
+	@Override
 	public boolean isStateLocation() {
 		return true;  // yes, it's a StateLocation (see Location)
 	}
 
+	@Override
 	public StateLocation asStateLocation() {
 		return this;  // yes, it's a StateLocation (see Location)
 	}
@@ -125,11 +128,19 @@ class TopLevelPort implements XlimTopLevelPort, StateLocation {
 	}
 	
 
+	@Override
 	public boolean hasSource() {
 		return false; // no, it hasn't any source (see Location)
 	}
 
+	@Override
 	public XlimSource getSource() {
 		return null; // no, it hasn't any source (see Location)
+	}
+	
+	@Override
+	public boolean isModified() {
+		// assuming that the port is at all used, it is modified
+		return true; 
 	}
 }
