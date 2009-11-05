@@ -49,7 +49,7 @@ import eu.actorsproject.xlim.dependence.ValueNode;
 public class CopyPropagation extends XlimTraversal<Object,Object> {
 
 	protected OperationPlugIn<CopyPropagator> mPlugIn;
-	protected boolean mTrace=true; // Debug printouts
+	protected boolean mTrace=false; // Debug printouts
 	
 	public CopyPropagation() {
 		CopyPropagator defaultHandler=new CopyPropagator();
