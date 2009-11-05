@@ -49,6 +49,7 @@ import eu.actorsproject.xlim.dependence.Location;
 import eu.actorsproject.xlim.dependence.StateLocation;
 import eu.actorsproject.xlim.dependence.ValueNode;
 import eu.actorsproject.xlim.dependence.ValueOperator;
+import eu.actorsproject.xlim.dependence.ValueUsage;
 
 class OutputPort extends ValueNode implements XlimOutputPort {
 
@@ -133,7 +134,7 @@ class OutputPort extends ValueNode implements XlimOutputPort {
 	public Location getLocation() {
 		return mLocation;
 	}
-
+	
 	@Override
 	public OutputPort asOutputPort() {
 		return this; // yes, it's an OutputPort (see XlimSource)
@@ -216,6 +217,20 @@ class OutputPort extends ValueNode implements XlimOutputPort {
 			return null;
 		}
 
+		@Override
+		public boolean isModified() {
+			// Traverse all the uses and look for an operator
+			// that produces an output to this location
+			// (if it exists that would be an element-wise assign)
+			for (ValueUsage use: getUses()) {
+				ValueOperator op=use.usedByOperator();
+				for (ValueNode output: op.getOutputValues())
+					if (output.hasLocation() && output.getLocation()==this)
+						return true;
+			}
+			return false;  // no modification
+		}
+		
 		@Override
 		public String getDebugName() {
 			return getUniqueId();

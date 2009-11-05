@@ -79,6 +79,15 @@ public interface Location {
 	XlimSource getSource();
 	
 	/**
+	 * @return true if this location is modified after its initial definition
+	 * 
+	 * A local location is modified by elementwise assignment. A state variable
+	 * may be modified by complete or elementwise assignment. An actor port is
+	 * modified by pinRead/pinWrite (=always, unless unused).
+	 */
+	boolean isModified();
+	
+	/**
 	 * @return a string that describes the location for the purposes of debug printouts
 	 *         and diagnostics (neither guaranteed to be unique nor a legal C/CAL idententifier)
 	 */
