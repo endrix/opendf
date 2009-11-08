@@ -53,6 +53,7 @@ ENDCOPYRIGHT
     <design name="{@name}">
       <xsl:apply-templates select="Port"/>
       <xsl:apply-templates select="//Decl/Type[@name='List']" mode="typedef"/>
+      <xsl:apply-templates select="//Stmt//Note[@kind='exprType']/Type[@name='List']" mode="typedef"/>      
       <xsl:apply-templates select="Decl[ @kind='Variable' ]"/>
       <xsl:apply-templates select="Action"/>
       <!-- The default template is to ignore the node so most notes will be ignored -->      
@@ -316,7 +317,7 @@ ENDCOPYRIGHT
           <xsl:apply-templates select="ancestor::Decl/Type"/>
         </xsl:when>
 
-        <xsl:when test="@kind='Let' and ./Expr[@kind='List']">
+        <xsl:when test="@kind='Let' and ./Expr[@kind='List'] and ancestor::Decl">         
           <xsl:apply-templates select="ancestor::Decl/Type"/>
         </xsl:when>
         
@@ -492,12 +493,14 @@ ENDCOPYRIGHT
         </operation>          
       </xsl:when>
 
-      <!-- Assignment to non scalar variable -->
+      <!-- Assignment to non scalar variable 
+        DOES NOT WORK
       <xsl:when test="Note[@kind='var-used' and @mode='write' and @scalar='no']">
         <operation kind="assign" target="{Note[@kind='varMod']/@decl-id}">
           <port source="{Expr/@id}" dir="in"/>
         </operation>                  
       </xsl:when>
+      -->
 
       <!-- Scalar assignment: the Expr becomes the true-source for this variable -->
       <xsl:otherwise> 
