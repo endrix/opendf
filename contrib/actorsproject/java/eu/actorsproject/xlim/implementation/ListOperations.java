@@ -44,6 +44,8 @@ import eu.actorsproject.xlim.XlimOperation;
 import eu.actorsproject.xlim.XlimOutputPort;
 import eu.actorsproject.xlim.XlimSource;
 import eu.actorsproject.xlim.XlimType;
+import eu.actorsproject.xlim.type.CastTypeRule;
+import eu.actorsproject.xlim.type.Signature;
 import eu.actorsproject.xlim.type.TypeFactory;
 import eu.actorsproject.xlim.type.TypeKind;
 import eu.actorsproject.xlim.type.TypePattern;
@@ -70,8 +72,9 @@ public class ListOperations extends XlimFeature {
 	public void initialize(InstructionSet s) {
 		TypeFactory fact=Session.getTypeFactory();
 		TypeKind intKind=fact.getTypeKind("int");
-		//TypeKind listKind=fact.getTypeKind("list");
-
+		TypeKind listKind=fact.getTypeKind("List");
+        Signature unaryList=new Signature(listKind);
+        
 		// $vcons(T,...)->List(type:T,size=N)
 		TypePattern wildcard=new WildCardTypePattern();
 		OperationKind vconsGen=new OperationKind("$vcons",new GenericVConsTypeRule(wildcard));
@@ -80,6 +83,16 @@ public class ListOperations extends XlimFeature {
 		// $vcons(int,...)->List(type:int,size=N)
 		OperationKind vconsInt=new OperationKind("$vcons",new IntVConsTypeRule(intKind));
 		s.registerOperation(vconsInt);
+		
+		// cast: List(type:S,size=N)->List(type:T,size=N)
+		OperationKind cast=new OperationKind("cast", new ListCastTypeRule(unaryList));
+		s.registerOperation(cast);
+		
+		// noop: List(type:S,size=N)->List(type:T,size=N)
+		// TODO: Unlike the GenericNoopTypeRule, this rule allows for type conversion
+		// Is this really a good idea? Alternatively use cast/fix the XLIM generation...
+		OperationKind noop=new OperationKind("noop", new SloppyListNoopTypeRule(unaryList));
+		s.registerOperation(noop);
 	}
 }
 
@@ -202,5 +215,74 @@ class IntVConsTypeRule extends GenericVConsTypeRule {
 			}
 		}
 		return widestType;
+	}
+}
+
+class ListCastTypeRule extends CastTypeRule {
+
+	public ListCastTypeRule(Signature signature) {
+		super(signature);
+	}
+	
+	@Override
+	protected boolean typecheck(XlimType tIn, XlimType tOut) {
+		assert(tIn.isList());
+		// Cast from list-type typechecks if:
+		// a) Output is list-type with same number of elements, and
+		// b) there is a conversion between element types
+		while (tIn.isList() && tOut.isList()
+			   && tIn.getIntegerParameter("size")==tOut.getIntegerParameter("size")) {
+			tIn=tIn.getTypeParameter("type");
+			tOut=tOut.getTypeParameter("type");
+		}
+		return super.typecheck(tIn, tOut);
+	}
+}
+
+class SloppyListNoopTypeRule extends TypeRule {
+	
+	public SloppyListNoopTypeRule(Signature signature) {
+		super(signature);
+	}
+
+	@Override
+	public int defaultNumberOfOutputs() {
+		return 1;
+	}
+
+	@Override
+	public XlimType defaultOutputType(List<? extends XlimSource> inputs, int i) {
+		assert(i==0);
+		return inputs.get(0).getType();
+	}
+	
+	@Override
+	public XlimType actualOutputType(XlimOperation op, int i) {
+		return op.getInputPort(0).getSource().getType();
+	}
+
+	@Override
+	public boolean matchesOutputs(List<? extends XlimOutputPort> outputs) {
+		return outputs.size()==1;
+	}
+	
+	@Override
+	public boolean typecheck(XlimOperation op) {
+		XlimType tOut=op.getOutputPort(0).getType();
+		if (tOut!=null) {
+			XlimType tIn=op.getInputPort(0).getSource().getType();
+			assert(tIn.isList());
+			// Noop from list-type typechecks if:
+			// a) Output is list-type with same number of elements, and
+			// b) element types same (or integers -possibly of different sizes)
+			while (tIn.isList() && tOut.isList()
+				   && tIn.getIntegerParameter("size")==tOut.getIntegerParameter("size")) {
+				tIn=tIn.getTypeParameter("type");
+				tOut=tOut.getTypeParameter("type");
+			}
+			return tIn==tOut || (tIn.isInteger() && tOut.isInteger());
+		}
+		else
+			return false;
 	}
 }

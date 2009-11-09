@@ -44,7 +44,7 @@ import eu.actorsproject.xlim.XlimOutputPort;
 import eu.actorsproject.xlim.XlimSource;
 import eu.actorsproject.xlim.XlimType;
 import eu.actorsproject.xlim.XlimTypeKind;
-import eu.actorsproject.xlim.util.Session;
+
 
 /**
  * @author ecarvon
@@ -56,6 +56,10 @@ public class CastTypeRule extends TypeRule {
 		super(new Signature(new WildCardTypePattern()));
 	}
 
+	protected CastTypeRule(Signature signature) {
+		super(signature);
+	}
+	
 	@Override
 	public int defaultNumberOfOutputs() {
 		return 1;
@@ -83,12 +87,18 @@ public class CastTypeRule extends TypeRule {
 		XlimType tOut=op.getOutputPort(0).getType();
 		if (tOut!=null) {
 			XlimType tIn=op.getInputPort(0).getSource().getType();
-			XlimTypeKind kindOut=tOut.getTypeKind();
-			// TODO: we should add the necessessary stuff to XlimTypeKind!
-			assert(kindOut instanceof TypeKind);
-			return ((TypeKind) kindOut).hasConversionFrom(tIn);
+			if (tIn!=null)
+				return typecheck(tIn, tOut);
+			// else: input type required -doesn't typecheck
 		}
-		else
-			return false; // output type required -there is no default 
+		// else: output type required -there is no default
+		return false;
+	}
+	
+	protected boolean typecheck(XlimType tIn, XlimType tOut) {
+		XlimTypeKind kindOut=tOut.getTypeKind();
+		// TODO: we should add the necessessary stuff to XlimTypeKind!
+		assert(kindOut instanceof TypeKind);
+		return ((TypeKind) kindOut).hasConversionFrom(tIn);
 	}
 }
