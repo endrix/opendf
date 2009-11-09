@@ -185,7 +185,7 @@ ENDCOPYRIGHT
         <xsl:if test="string-length( string( *[@id=$modifier-id]/Note[@kind='var-used']
           [@mode='write'][@decl-id=$decl-id]/@last-child-modifier ) ) = 0">
           <xsl:message terminate="no">
-            Fatal flaw in var-used notes: missing last-child-modifier
+            Fatal flaw in var-used notes: missing last-child-modifier <xsl:value-of select="$decl-id"/>
           </xsl:message>
         </xsl:if>           
             
