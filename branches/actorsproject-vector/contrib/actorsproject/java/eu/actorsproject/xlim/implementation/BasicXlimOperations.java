@@ -113,7 +113,7 @@ public class BasicXlimOperations extends XlimFeature {
 		
 		// pinPeek: integer -> PortType
 		OperationKind pinPeek=new PortOperationKind("pinPeek",
-                new PinReadTypeRule(new Signature(intTypeKind), false /* no repeat */),
+                new PinReadTypeRule(new Signature(intTypeKind), mayHaveRepeat),
                 "portName", 
                 false /* doesn't modify port */, 
                 null /* no size */);
@@ -186,7 +186,6 @@ public class BasicXlimOperations extends XlimFeature {
 		// $select: (bool,T,T)->T (exact type match required)
 		TypeFactory fact=Session.getTypeFactory();
 		TypeKind boolKind=fact.getTypeKind("bool");
-		XlimType boolType=boolKind.createType();
 		TypePattern wildcard=new WildCardTypePattern();
 		Signature ternarySignature=new Signature(boolKind, wildcard, wildcard);
 		

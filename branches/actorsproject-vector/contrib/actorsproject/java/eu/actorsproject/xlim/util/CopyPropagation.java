@@ -125,7 +125,15 @@ public class CopyPropagation extends XlimTraversal<Object,Object> {
 			else if (sourceT.isInteger()){
 				// Integer source and result,
 				// result at least as wide as source
-				// not a reference to a state variable,
+				// not a reference to a state variable
+				
+				// TODO: isn't it a problem if a propagated source
+				// is used in a bitwise op instead of a wider result, since
+				// it might be subject to zero extension?
+				// Proposed solution: don't propagate "narrow" source until 
+				// after transformation to native types (then it will be wider).
+				// Alternatively: check that the result is not used in a bitop.
+				// Or even: add explicit zero-extension operations
 				return source.asOutputPort()!=null
 			       && resultT.isInteger()
 			       && sourceT.getSize()<=resultT.getSize();
