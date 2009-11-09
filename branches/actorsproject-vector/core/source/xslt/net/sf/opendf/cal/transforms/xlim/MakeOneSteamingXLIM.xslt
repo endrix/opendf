@@ -54,6 +54,8 @@ ENDCOPYRIGHT
       <xsl:apply-templates select="Port"/>
       <xsl:apply-templates select="//Decl/Type[@name='List']" mode="typedef"/>
       <xsl:apply-templates select="//Stmt//Note[@kind='exprType']/Type[@name='List']" mode="typedef"/>      
+      <xsl:apply-templates select="//Output//Note[@kind='exprType']/Type[@name='List']" mode="typedef"/>      
+      
       <xsl:apply-templates select="Decl[ @kind='Variable' ]"/>
       <xsl:apply-templates select="Action"/>
       <!-- The default template is to ignore the node so most notes will be ignored -->      
