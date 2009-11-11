@@ -319,20 +319,15 @@ class LocationOperation extends Operation {
 		public Location getFixupLocation() {
 			return mLocation;
 		}
-
+		
 		@Override
 		public void setValue(ValueNode value) {
-			assert(value==null || sameLocation(value));
+			if (value!=null) {
+				Location location=value.getLocation();
+				assert(location!=null && location.hasSource());
+				mLocation=location;
+			}
 			super.setValue(value);
-		}
-		
-		private boolean sameLocation(ValueNode value) {
-			// We can't set a new value unless it is
-			// a) A side effect that acts on the same location, or
-			// b) It is the OutputPort that defines the (local) location
-			Location location=value.getLocation();
-			assert(location!=null && location.hasSource());
-			return location==mLocation;
 		}
 	}
 }
@@ -379,6 +374,19 @@ class AssignOperation extends LocationOperation {
 	}
 	
 	private class AssignmentStateVarUsage extends LocationReference {
+		@Override
+		public void setValue(ValueNode value) {
+			assert(value==null || sameLocation(value));
+			super.setValue(value);
+		}
+		
+		private boolean sameLocation(ValueNode value) {
+			// We can't set a new value unless it has the same location
+			Location location=value.getLocation();
+			assert(location!=null && location.hasSource());
+			return location==mLocation;
+		}
+		
 		@Override
 		public <Result,Arg> Result accept(Visitor<Result,Arg> visitor, Arg arg) {
 			boolean killed=(AssignOperation.this.getNumInputPorts()==1);
