@@ -18,7 +18,7 @@ actor art_Sink_yuv (string title,
                     int WIDTH_IN_MB, 
                     int HEIGHT_IN_MB) 
 
-                   int In ==> :
+                   int In ==> int Out :
 
   int xAcross = 16*WIDTH_IN_MB;
   int yOver   = 16*HEIGHT_IN_MB;

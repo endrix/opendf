@@ -37,16 +37,18 @@ endif
 
 CFLAGS += -O3
 
-INSTALL_H=actors-rts.h actors-config.h
+INSTALL_H=actors-rts.h actors-config.h dll.h
 INSTALL_SYSACTORS=art_DDRModel.cal art_Display_yuv.cal \
                   art_Sink_bin.cal art_Sink_yuv.cal art_Sink_txt.cal \
                   art_Source_bin.cal art_Source_txt.cal art_Source_real.cal \
-                  art_Sink_real.cal
+                  art_Sink_real.cal art_DBus_test.cal
 
 OBJECTS=exec_network.o \
         art_Sink_bin.o art_Sink_txt.o art_Source_bin.o art_Source_txt.o \
-        art_DDRModel.o art_Display_yuv.o art_Source_real.o \
-        art_Sink_real.o art_Sink.o art_Source.o ddrmodel.o display.o
+        art_DDRModel.o art_Display_yuv.o art_Source_real.o edf_syscall.o \
+        art_Sink_real.o art_Sink.o art_Source.o ddrmodel.o display.o xmlTrace.o
+
+CXXOBJECTS =  art_DBus_test.o genericdbushandler.o
 
 # delete the built-in suffixes to avoid surprises
 .SUFFIXES:   
@@ -61,14 +63,17 @@ libdir?=$(exec_prefix)/lib
 datarootdir?=$(prefix)/share
 datadir?=$(datarootdir)
 
-LDLIBS=-lpthread -lc
+LDLIBS=-lpthread -lc -ldbus-1 /lib/libgcc_s.so.1 /usr/lib/libstdc++.so.6
+
+CXX_INCLUDES = -I$(srcdir)/dbus -I/usr/include/dbus-1.0 -I/usr/lib/dbus-1.0/include
 
 .PHONY: all uninstall clean
 .PHONY: install install-lib install-include install-sysactors 
 
 all: $(REAL_NAME)
 
-$(REAL_NAME): $(OBJECTS)
+$(REAL_NAME): $(OBJECTS) $(CXXOBJECTS)
+
 ifeq "$(STATIC)" ""
 	$(LD) -shared -soname=$(SONAME) -o $@ $(LDFLAGS) $^ $(LDLIBS)
 else
@@ -77,6 +82,9 @@ endif
 
 $(OBJECTS): %.o : $(srcdir)/%.c
 	$(CC) -fPIC -c -Wall $(CFLAGS) -o $@ $<
+
+$(CXXOBJECTS): %.o : $(srcdir)/%.cpp
+	$(CXX) -fPIC -c -g -Wall $(CFLAGS) $(CXX_INCLUDES) -o $@ $<
 
 install: install-lib install-include install-sysactors
 
@@ -106,5 +114,5 @@ uninstall:
 	@rm -f $(INSTALLED_FILES)
 
 clean:
-	@rm -f *.o $(REAL_NAME)
+	@rm -f *.o $(REAL_NAME) *.a *~
 
