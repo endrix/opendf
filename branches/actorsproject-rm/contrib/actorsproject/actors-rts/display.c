@@ -54,8 +54,8 @@
 #define RGB565(r, g, b) ((r >> 3) << 11)| ((g >> 2) << 5)| ((b >> 3) << 0)
 #define RGB555(r, g, b) ((r >> 3) << 10)| ((g >> 3) << 5)| ((b >> 3) << 0)
 
-#define WIDTH_IN_MB         11
-#define HEIGHT_IN_MB        9
+//#define WIDTH_IN_MB         11
+//#define HEIGHT_IN_MB        9
 
 #define START_Y 0
 #define START_U (4*64)
@@ -163,6 +163,11 @@ static const int exitcode_block_In_1[] = {
   EXITCODE_BLOCK(1), 0, 1
 };
 
+static const int exitcode_block_Out_1[] = {
+  EXITCODE_BLOCK(1), 0, 1
+};
+#define OUT0_Out(thisActor) OUTPUT_PORT(thisActor->base,0)
+#define FRAMES_PER_SECOND   24
 const int *art_Display_yuv_action_scheduler(AbstractActorInstance *pBase) {
   ActorInstance_art_Display_yuv *thisActor=
     (ActorInstance_art_Display_yuv *) pBase;
@@ -232,14 +237,44 @@ const int *art_Display_yuv_action_scheduler(AbstractActorInstance *pBase) {
       comp=0;
       start=0;
       thisActor->mbx+=16;
-    } while (thisActor->mbx<16*WIDTH_IN_MB);
-    
+    } while (thisActor->mbx<thisActor->width);
+
     thisActor->mbx=0;
     thisActor->mby+=16;
-    if (thisActor->mby>=16*HEIGHT_IN_MB){
-	  thisActor->totFrames++;	
+    if (thisActor->mby>=thisActor->height){
+      thisActor->totFrames++;
       thisActor->mby=0;
-	  }
+#ifdef RM_SUPPORT
+      {
+      struct timeb tb;
+      int now;
+      int32_t happiness;
+      ftime(&tb);
+      now = tb.time*1000 + tb.millitm;
+      if(now - thisActor->now >= 1000)
+      {
+        //report action
+        int frame_per_sec = thisActor->totFrames - thisActor->lastFrames;
+        if(frame_per_sec>=FRAMES_PER_SECOND)
+          happiness=100;
+        else
+          happiness = 100*frame_per_sec/FRAMES_PER_SECOND;
+        thisActor->now = now;
+        thisActor->lastFrames  = thisActor->totFrames;
+        int space=pinAvailOut_int32_t(OUT0_Out(thisActor));
+        if(space>=1){
+          TRACE_ACTION(&thisActor->base, 3, "report");
+          pinWrite_int32_t(OUT0_Out(thisActor), happiness);
+        }
+        else
+        {
+          pinWaitOut(OUT0_Out(thisActor),1);
+          return exitcode_block_Out_1;
+        }
+      }
+      }
+#endif
+    }
   }
 } 
 
@@ -256,7 +291,9 @@ void art_Display_yuv_constructor(AbstractActorInstance *pBase) {
 	thisActor->start=0;
 	
 	thisActor->startTime=tb.time*1000+tb.millitm;
+    thisActor->now=thisActor->startTime;
 	thisActor->totFrames=0;
+    thisActor->lastFrames=0;
 #ifdef FB
 	/* size of video memory in bytes */
 	long int screensize;

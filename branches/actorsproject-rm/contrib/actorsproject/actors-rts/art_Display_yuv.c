@@ -10,6 +10,10 @@ static const PortDescription inputPortDescriptions[]={
   {"In", sizeof(int32_t)}
 };
 
+static const PortDescription outputPortDescriptions[]={
+  {"Out", sizeof(int32_t)}
+};
+
 static const int portRate_1[] = {
   1
 };
@@ -19,9 +23,10 @@ static const int portRate_0[] = {
 };
 
 static const ActionDescription actionDescriptions[] = {
-  {"read", portRate_1, 0},
-  {"done.comp", portRate_0, 0},
-  {"done.mb", portRate_0, 0}
+  {"read", portRate_1, portRate_0},
+  {"done.comp", portRate_0, portRate_0},
+  {"done.mb", portRate_0, portRate_0},
+  {"report", portRate_0,portRate_1}
 };
 
 ActorClass ActorClass_art_Display_yuv = INIT_ActorClass(
@@ -32,6 +37,6 @@ ActorClass ActorClass_art_Display_yuv = INIT_ActorClass(
   art_Display_yuv_action_scheduler,
   art_Display_yuv_destructor,
   1, inputPortDescriptions,
-  0, 0,
-  3, actionDescriptions
+  1, outputPortDescriptions,
+  4, actionDescriptions
 );
