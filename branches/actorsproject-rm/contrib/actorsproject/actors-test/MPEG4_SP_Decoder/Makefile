@@ -13,7 +13,7 @@ DEST_DIR=$(datadir)/actors-test/MPEG4_SP_Decoder
 TESTS=acdcTest ddrTest decoderTest idct1dTest idct2dTest motionTest parserTest
 
 # Files that need to be modified when installed (excluding .in suffix)
-IN_FILES=Makefile $(TESTS:%=%.nl) decoderDemo.nl
+IN_FILES=Makefile $(TESTS:%=%.nl) decoderDemo.nl decoderDBusDemo.nl
 
 # Generate sed scripts that substitutes @datadir@
 SEDIFY=$(srcdir)/../../install-scripts/sedify.sh
