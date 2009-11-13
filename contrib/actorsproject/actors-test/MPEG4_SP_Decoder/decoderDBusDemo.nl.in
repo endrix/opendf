@@ -2,7 +2,6 @@ network decoderDemo () ==> :
 
 entities
 	decoder = decoder();
-	sourceBits = art_Source_bin(fileName="@datadir@/actors-test/MPEG4_SP_Decoder/input/decoderDemo/foreman_qcif_30.bit");
 	sourceBits = art_Source_bin(fileName="./foreman_qcif_30.bit");
 	display = art_Display_yuv(title="Foreman QCIF",
                                   width=720,
