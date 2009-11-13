@@ -48,7 +48,8 @@
 extern "C" {
 #endif /* __cplusplus */
 
-#define COPY(a)				a
+#define COPY(a)				(a)
+#define MEMCPY(d,s,c)                   (memcpy(d,s,c))
 
 #define TRACE_ACTION(INSTANCE,INDEX,NAME) (INSTANCE)->hasFiredHack=1
 #define RANGECHK(X,B) ((unsigned)(X)<(unsigned)(B)?(X):RANGEERR(X,B))
@@ -263,6 +264,59 @@ static inline double pinRead_double(InputPort *p) {
   return result;
 }
 
+
+static inline void pinReadRepeat_common(InputPort *p, 
+                                        char *dest, 
+                                        int count) {
+  char *src=p->readPtr;
+  int left=p->bufferEnd-src;
+
+  if (count>=left) {
+    // The end of the circular buffer is crossed
+    MEMCPY(dest,src,left);
+    dest+=left;
+    src=p->bufferStart;
+    count-=left;
+  }
+  MEMCPY(dest,src,count);
+  p->readPtr=src+count;
+}
+
+static inline void pinReadRepeat_int32_t(InputPort *p,
+                                         int32_t *dest,
+                                         int count) {
+#ifdef DEBUG
+  assert(pinAvailIn(p)>=count);
+#endif
+  pinReadRepeat_common(p,(char*)dest,count*sizeof(int32_t));
+  p->numRead+=count;
+  p->availTokens-=count;
+}
+
+static inline void pinReadRepeat_bool_t(InputPort *p,
+                                        bool_t *dest,
+                                        int count) {
+#ifdef DEBUG
+  assert(pinAvailIn(p)>=count);
+#endif
+  pinReadRepeat_common(p,(char*)dest,count*sizeof(bool_t));
+  p->numRead+=count;
+  p->availTokens-=count;
+}
+
+static inline void pinReadRepeat_double(InputPort *p,
+                                        double *dest,
+                                        int count) {
+#ifdef DEBUG
+  assert(pinAvailIn(p)>=count);
+#endif
+  pinReadRepeat_common(p,(char*)dest,count*sizeof(double));
+  p->numRead+=count;
+  p->availTokens-=count;
+}
+
+
+
 static inline void pinWrite_int32_t(OutputPort *p, int32_t token) {
 #ifdef DEBUG
   assert(pinAvailOut(p)>0);
@@ -307,6 +361,57 @@ static inline void pinWrite_double(OutputPort *p, double token) {
   p->numWritten++;
   p->availSpace--;
 }
+
+
+static inline void pinWriteRepeat_common(OutputPort *p, 
+                                         char *src, 
+                                         int count) {
+  char *dest=p->writePtr;
+  int left=p->writePtr-dest;
+  if (count>=left) {
+    // The end of the circular buffer is crossed
+    MEMCPY(dest,src,left);
+    src+=left;
+    dest=p->bufferStart;
+    count-=left;
+  }
+  MEMCPY(dest,src,count);
+  p->writePtr=dest;
+}
+
+static inline void pinWriteRepeat_int32_t(OutputPort *p, 
+                                          int32_t *src, 
+                                          int count) {
+#ifdef DEBUG
+  assert(pinAvailOut(p)>=count);
+#endif
+  pinWriteRepeat_common(p,(char*)src,count*sizeof(int32_t));
+  p->numWritten+=count;
+  p->availSpace-=count;
+}
+
+static inline void pinWriteRepeat_bool_t(OutputPort *p, 
+                                         int32_t *src, 
+                                         int count) {
+#ifdef DEBUG
+  assert(pinAvailOut(p)>=count);
+#endif
+  pinWriteRepeat_common(p,(char*)src,count*sizeof(bool_t));
+  p->numWritten+=count;
+  p->availSpace-=count;
+}
+
+static inline void pinWriteRepeat_double(OutputPort *p, 
+                                         double *src, 
+                                         int count) {
+#ifdef DEBUG
+  assert(pinAvailOut(p)>=count);
+#endif
+  pinWriteRepeat_common(p,(char*)src,count*sizeof(double));
+  p->numWritten+=count;
+  p->availSpace-=count;
+}
+
 
 extern int rangeError(int x, int y, const char *filename, int line);
 extern void runtimeError(AbstractActorInstance*, const char *format,...);
