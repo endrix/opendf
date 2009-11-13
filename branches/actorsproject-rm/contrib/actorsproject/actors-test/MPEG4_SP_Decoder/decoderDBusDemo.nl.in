@@ -1,0 +1,25 @@
+network decoderDemo () ==> :
+
+entities
+	decoder = decoder();
+	sourceBits = art_Source_bin(fileName="@datadir@/actors-test/MPEG4_SP_Decoder/input/decoderDemo/foreman_qcif_30.bit");
+	sourceBits = art_Source_bin(fileName="./foreman_qcif_30.bit");
+	display = art_Display_yuv(title="Foreman QCIF",
+                                  width=720,
+			          height=480);
+        ddr = art_DDRModel(MAXW_IN_MB = 665, MAXH_IN_MB = 425);
+	dbus = art_DBus_test();
+	sink = art_Sink_txt(fileName = "./dbus.txt");
+
+structure
+	sourceBits.Out --> decoder.bits;
+	decoder.VIDEO --> display.In;
+	dbus.Out --> sink.In;
+	display.Out --> dbus.In;
+	
+	ddr.RD --> decoder.MCD {bufferSize = 100;};
+	decoder.MBD --> ddr.WD {bufferSize = 100;};
+	decoder.MBA --> ddr.WA {bufferSize = 100;};
+	decoder.MCA --> ddr.RA {bufferSize = 100;};
+
+end
