@@ -15,8 +15,12 @@ static const int portRate_0[] = {
   0
 };
 
+static const int portRate_1[] = {
+  1
+};
+
 static const ActionDescription actionDescriptions[] = {
-  {"actionAtLine_7", 0, portRate_0}
+  {"actionAtLine_7", 0, portRate_1}
 };
 
 ActorClass ActorClass_art_Source_txt = INIT_ActorClass(
