@@ -75,7 +75,7 @@ $(EXE): $(OBJECTS)
 #
 
 %.o : %.c
-	$(CC) -c -g -Wall $(CPPFLAGS) $(CFLAGS) -o $@ $<
+	$(CC) -c -O3 -Wall $(CPPFLAGS) $(CFLAGS) -o $@ $<
 
 # Preserve generated C files (make otherwise considers them temporary files)
 .SECONDARY: $(ACTOR_C_FILES)
