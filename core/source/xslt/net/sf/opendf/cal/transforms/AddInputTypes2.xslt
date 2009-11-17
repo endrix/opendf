@@ -58,11 +58,42 @@
     </xsl:copy>
   </xsl:template>
   
+  <xsl:template match="Output">
+    
+    <xsl:copy>
+      <xsl:for-each select="@*">
+        <xsl:attribute name="{name()}"><xsl:value-of select="."/></xsl:attribute>
+      </xsl:for-each>
+      <xsl:apply-templates/>
+      <xsl:if test="not(Type)">
+        <xsl:variable name="port" select="./@port"/>
+        <xsl:choose>
+          <xsl:when test="./Repeat">
+            <Type name="List">
+              <Entry kind="Type" name="type">
+                <xsl:copy-of select="../../Port[@kind='Output'][@name=$port]/Type"/>
+              </Entry>
+              <Entry kind="Expr" name="size">
+                <xsl:copy-of select="./Repeat/Expr"/>
+              </Entry>  
+            </Type>            
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:copy-of select="../../Port[@kind='Output'][@name=$port]/Type"/>
+          </xsl:otherwise>
+        </xsl:choose>        
+      </xsl:if>
+    </xsl:copy>
+  </xsl:template>
+  
   <xd:doc>
     Default just copies.
   </xd:doc>
   
+  
   <xsl:template match="Repeat"/>
+
+
 
   <xsl:template match="*">
     

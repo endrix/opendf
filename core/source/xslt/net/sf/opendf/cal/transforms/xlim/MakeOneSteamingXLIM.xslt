@@ -55,7 +55,8 @@ ENDCOPYRIGHT
       <xsl:apply-templates select="//Decl/Type[@name='List']" mode="typedef"/>
       <xsl:apply-templates select="//Stmt//Note[@kind='exprType']/Type[@name='List']" mode="typedef"/>      
       <xsl:apply-templates select="//Output//Note[@kind='exprType']/Type[@name='List']" mode="typedef"/>      
-      
+      <xsl:apply-templates select="//Output/Type[@name='List']" mode="typedef"/>            
+
       <xsl:apply-templates select="Decl[ @kind='Variable' ]"/>
       <xsl:apply-templates select="Action"/>
       <!-- The default template is to ignore the node so most notes will be ignored -->      
@@ -466,9 +467,22 @@ ENDCOPYRIGHT
   
   <xsl:template match="Output">
     <xsl:apply-templates select="Expr"/>
+    <xsl:variable name="type-attrs">      
+      <xsl:apply-templates select="Type"/>
+    </xsl:variable>
     <xsl:for-each select="Expr">
-       <operation kind="pinWrite" portName="{../@port}" style="simple">
+      
+      <operation kind="cast">
         <port dir="in" source="{@id}"/>
+        <port dir="out" source="{concat(@id,'$output')}">
+          <xsl:for-each select="$type-attrs/attr">
+            <xsl:attribute name="{@name}"><xsl:value-of select="@value"/></xsl:attribute>
+          </xsl:for-each>          
+        </port>        
+      </operation>
+      
+      <operation kind="pinWrite" portName="{../@port}" style="simple">
+        <port dir="in" source="{concat(@id,'$output')}"/>
       </operation>
     </xsl:for-each>
     <note kind="productionRates" name="{@port}" value="{count(Expr)}"/>    
@@ -486,6 +500,7 @@ ENDCOPYRIGHT
     
     <xsl:choose>
       <!-- Indexed assign -->
+      <!--
       <xsl:when test="Args">
         <xsl:apply-templates select="." mode="generate-indexers"/>
         <xsl:comment>Write back actor state variable <xsl:value-of select="@name"/></xsl:comment>
@@ -494,18 +509,30 @@ ENDCOPYRIGHT
           <port source="{Expr/@id}" dir="in"/>
         </operation>          
       </xsl:when>
-
-      <!-- Assignment to non scalar variable 
-        DOES NOT WORK
-      <xsl:when test="Note[@kind='var-used' and @mode='write' and @scalar='no']">
-        <operation kind="assign" target="{Note[@kind='varMod']/@decl-id}">
-          <port source="{Expr/@id}" dir="in"/>
-        </operation>                  
-      </xsl:when>
       -->
-
+      <xsl:when test="Args and Note[@kind='varMod']" >
+        <xsl:apply-templates select="." mode="generate-indexers"/>
+        <xsl:comment>Write back actor state variable <xsl:value-of select="@name"/></xsl:comment>
+        <operation kind="assign" target="{Note[@kind='varMod']/@decl-id}">
+          <port source="{concat(Args/Expr[last()]/@id,'$ADDR')}" dir="in"/>
+          <port source="{Expr/@id}" dir="in"/>
+        </operation>          
+      </xsl:when>
+      
+      <xsl:when test="Args" >
+        <!-- We treat element wise writes to local lists as read access to the list, not write -->
+        <xsl:apply-templates select="." mode="generate-indexers"/>
+        <xsl:comment>Assign values to local lists <xsl:value-of select="@name"/></xsl:comment>
+        <xsl:variable name="target-name" select="@name"/>
+        <operation kind="assign" target="{Note[@kind='var-used'][@name=$target-name]/@decl-id}">
+          <port source="{concat(Args/Expr[last()]/@id,'$ADDR')}" dir="in"/>
+          <port source="{Expr/@id}" dir="in"/>
+        </operation>          
+      </xsl:when>
+      
       <!-- Scalar assignment: the Expr becomes the true-source for this variable -->
       <xsl:otherwise> 
+        <!-- FIX ME : introduce cast to match type of lhs -->
         <operation kind="noop">
           <port dir="in" source="{Expr/@id}"/>
           <port source="{@id}" dir="out">
