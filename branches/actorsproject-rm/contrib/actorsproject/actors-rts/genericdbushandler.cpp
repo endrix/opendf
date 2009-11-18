@@ -61,7 +61,7 @@ GenericDBusHandler::GenericDBusHandler()
 
    m_notificationPipe[0] = -1;
    m_notificationPipe[1] = -1;
-
+   f = fopen("/tmp/fibdbuslog", "w+");
    pthread_mutex_init(&m_notificationMutex, 0);
 
    setupPollFds();
@@ -70,7 +70,7 @@ GenericDBusHandler::GenericDBusHandler()
 
 GenericDBusHandler::~GenericDBusHandler()
 {
-   fprintf(stderr, "~GenericDBusHandler()\n");
+   fprintf(f, "~GenericDBusHandler()\n");
    pthread_mutex_destroy(&m_notificationMutex);
 
    closeNotificationPipe();
@@ -103,7 +103,7 @@ int GenericDBusHandler::initServer()
       fprintf(stderr, "initServer() dbus_server_listen() returned 0\n");
       return -1;
    }
-   fprintf(stderr, "initServer() succsessfully created server\n");
+   fprintf(f, "initServer() succsessfully created server\n");
 
    dbus_server_set_new_connection_function(m_server, GenericDBusHandler::newConnectionCallbackHelper, this, 0);
 
@@ -134,7 +134,7 @@ void GenericDBusHandler::newConnectionCallback(DBusServer* server, DBusConnectio
 {
    assert(server == m_server);
    assert(connection != 0);
-   fprintf(stderr, "newConnectionCallback() got new connection\n");
+   fprintf(f, "newConnectionCallback() got new connection\n");
    dbus_connection_ref(connection);
    m_connections.push_back(connection);
 }
@@ -148,7 +148,7 @@ int GenericDBusHandler::init()
 #endif
 
    int result = pipe(m_notificationPipe);
-   fprintf(stderr, "notificationPipe: %d %d\n", m_notificationPipe[0], m_notificationPipe[1]);
+   fprintf(f, "notificationPipe: %d %d\n", m_notificationPipe[0], m_notificationPipe[1]);
    if (result != 0)
    {
       return -1;
@@ -162,7 +162,7 @@ int GenericDBusHandler::init()
    m_connection = dbus_bus_get(DBUS_BUS_SYSTEM, &err);
    if (dbus_error_is_set(&err))
    {
-      fprintf(stderr, "Connection Error(%s)\n", err.message);
+      fprintf(f, "Connection Error(%s)\n", err.message);
       dbus_error_free(&err);
    }
    if (m_connection==0)
@@ -176,7 +176,7 @@ int GenericDBusHandler::init()
       result = dbus_bus_request_name(m_connection, interfaceName(), DBUS_NAME_FLAG_REPLACE_EXISTING, &err);
       if (dbus_error_is_set(&err))
       {
-         fprintf(stderr, "Name Error (%s)\n", err.message);
+         fprintf(f, "Name Error (%s)\n", err.message);
          dbus_error_free(&err);
          // TODO: what to do with the connection in this case ?
          return -3;
@@ -194,7 +194,7 @@ int GenericDBusHandler::init()
    dbus_bus_add_match(m_connection, "type='signal',interface='eu.actorsproject.ResourceManagerInterface'", &err);
    if (dbus_error_is_set(&err))
    {
-      fprintf(stderr, "AddMatch Error (%s)\n", err.message);
+      fprintf(f, "AddMatch Error (%s)\n", err.message);
       dbus_error_free(&err);
       // TODO: what to do with the connection in this case ?
       return -6;
@@ -268,7 +268,7 @@ bool GenericDBusHandler::handleMessage(const Message* msg)
 
 void GenericDBusHandler::mainloop()
 {
-//   FILE* f = fopen("/tmp/fibdbuslog", "w+");
+//    FILE* f = fopen("/tmp/fibdbuslog", "w+");
    // this is the mainloop
    while (m_exitMainloop == false)
    {
@@ -280,12 +280,13 @@ void GenericDBusHandler::mainloop()
       while (m_suspended || ((m_messageQueue.empty()) && (m_dbusEventOccured==false)))
       {
          setupPollFds();
-         fprintf(stderr, "Calling poll...\n");
+//          fprintf(stderr, "Calling poll...\n");
+         fprintf(f, "Calling poll...\n");
 
          pthread_mutex_unlock(&m_notificationMutex);
          int numberOfFds = poll(m_pollFds, m_pollFdCount, -1);
          pthread_mutex_lock(&m_notificationMutex);
-         fprintf(stderr, "poll() returned %d pipe: %d\n", numberOfFds, m_notificationPipeIndex);
+         fprintf(f, "poll() returned %d pipe: %d\n", numberOfFds, m_notificationPipeIndex);
 
          if (numberOfFds > 0)
          {
@@ -296,11 +297,11 @@ void GenericDBusHandler::mainloop()
                {
                   char dummy;
                   read(m_notificationPipe[0], &dummy, 1);
-                  fprintf(stderr, "pipe POLLIN\n");
+                  fprintf(f, "pipe POLLIN\n");
                }
                if (m_pollFds[m_notificationPipeIndex].revents & POLLNVAL)
                {
-                  fprintf(stderr, "pipe POLLNVAL\n");
+                  fprintf(f, "pipe POLLNVAL\n");
                   closeNotificationPipe();
                }
 
@@ -311,32 +312,32 @@ void GenericDBusHandler::mainloop()
             {
                if (m_pollFds[i].revents & POLLIN)
                {
-                  fprintf(stderr, "fd %d: POLLIN\n", i);
+                   fprintf(f, "fd %d: POLLIN\n", i);
 
                }
                if (m_pollFds[i].revents & POLLNVAL)
                {
-                  fprintf(stderr, "fd %d: POLLNVAL\n", i);
+                  fprintf(f, "fd %d: POLLNVAL\n", i);
                }
                if (m_pollFds[i].revents & POLLPRI)
                {
-                  fprintf(stderr, "fd %d: POLLPRI\n", i);
+                  fprintf(f, "fd %d: POLLPRI\n", i);
                }
                if (m_pollFds[i].revents & POLLOUT)
                {
-                  fprintf(stderr, "fd %d: POLLOUT\n", i);
+                  fprintf(f, "fd %d: POLLOUT\n", i);
                }
                if (m_pollFds[i].revents & POLLRDHUP)
                {
-                  fprintf(stderr, "fd %d: POLLRDHUP\n", i);
+                  fprintf(f, "fd %d: POLLRDHUP\n", i);
                }
                if (m_pollFds[i].revents & POLLERR)
                {
-                  fprintf(stderr, "fd %d: POLLERR\n", i);
+                  fprintf(f, "fd %d: POLLERR\n", i);
                }
                if (m_pollFds[i].revents & POLLHUP)
                {
-                  fprintf(stderr, "fd %d: POLLHUP\n", i);
+                  fprintf(f, "fd %d: POLLHUP\n", i);
                }
             }
 
@@ -453,7 +454,7 @@ void GenericDBusHandler::setupPollFds()
          break;
       }
    }
-   fprintf(stderr, "setupPollFds, %d fds\n", m_pollFdCount);
+//    fprintf(stderr, "setupPollFds, %d fds\n", m_pollFdCount);
 }
 
 
@@ -492,7 +493,7 @@ DBusHandlerResult GenericDBusHandler::messageFilterHelper(DBusConnection* connec
 
 dbus_bool_t GenericDBusHandler::watchAddedCallback(DBusWatch* watch)
 {
-   fprintf(stderr, "add %p\n", watch);
+   fprintf(f, "add %p\n", watch);
    m_dbusWatches.push_back(watch);
    setupPollFds();
    return TRUE;
@@ -501,7 +502,7 @@ dbus_bool_t GenericDBusHandler::watchAddedCallback(DBusWatch* watch)
 
 void GenericDBusHandler::watchRemovedCallback(DBusWatch* watch)
 {
-   fprintf(stderr, "remove %p\n", watch);
+   fprintf(f, "remove %p\n", watch);
    std::vector<DBusWatch*>::iterator it = std::find(m_dbusWatches.begin(), m_dbusWatches.end(), watch);
    if (it!=m_dbusWatches.end())
    {
@@ -529,11 +530,11 @@ DBusHandlerResult GenericDBusHandler::messageFilter(DBusConnection* connection, 
    const char* interface = dbus_message_get_interface(message);
    const char* object = dbus_message_get_path(message);
    const char* function = dbus_message_get_member(message);
-   fprintf(stderr, "Executing message filter for message, interface %s, object %s, member %s, from %s\n",
+   fprintf(f, "Executing message filter for message, interface %s, object %s, member %s, from %s\n",
               interface, object, function, dbus_message_get_sender(message));
    if (connection != m_connection)
    {
-      fprintf(stderr, "connection of message != m_connection\n");
+      fprintf(f, "connection of message != m_connection\n");
       return DBUS_HANDLER_RESULT_HANDLED;
    }
 
@@ -542,7 +543,7 @@ DBusHandlerResult GenericDBusHandler::messageFilter(DBusConnection* connection, 
    {
       case DBUS_MESSAGE_TYPE_METHOD_CALL:
       {
-         fprintf(stderr, "Received message METHOD_CALL\n");
+         fprintf(f, "Received message METHOD_CALL\n");
          if(interface && (strcmp(interface, "org.freedesktop.DBus.Introspectable")==0))
          {
             if (object
@@ -569,13 +570,13 @@ DBusHandlerResult GenericDBusHandler::messageFilter(DBusConnection* connection, 
          break;
       }
       case DBUS_MESSAGE_TYPE_METHOD_RETURN:
-         fprintf(stderr, "Received message METHOD_RETURN\n");
+         fprintf(f, "Received message METHOD_RETURN\n");
          break;
       case DBUS_MESSAGE_TYPE_ERROR:
-         fprintf(stderr, "Received message TYPE_ERROR\n");
+         fprintf(f, "Received message TYPE_ERROR\n");
          break;
       case DBUS_MESSAGE_TYPE_SIGNAL:
-         fprintf(stderr, "Received message TYPE_SIGNAL\n");
+         fprintf(f, "Received message TYPE_SIGNAL\n");
          handleDBusSignal(message);
          break;
       default:
