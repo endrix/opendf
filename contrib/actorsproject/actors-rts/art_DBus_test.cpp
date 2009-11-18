@@ -159,11 +159,20 @@ void SystemActorDBusHandler::handleDBusSignal(DBusMessage* message)
    }
    else if (dbus_message_is_signal(message, ACTRM_INTERFACE_NAME, "changeQualityLevel"))
    {
+
    }
    else
    {
       const char* signal =dbus_message_get_member(message);
-      fprintf(stderr, "Received unknown signal %s\n", signal);
+      if(strcmp(signal,"NameAcquired")==0){
+        char* name = 0;
+        DBusMessageIter args;
+        dbus_message_iter_init(message, &args);
+        dbus_message_iter_get_basic(&args, &name);
+        fprintf(stderr, "%s %s\n", signal,name);
+      }
+      else
+        fprintf(stderr, "Received unknown signal %s\n", signal);
    }
 }
 
