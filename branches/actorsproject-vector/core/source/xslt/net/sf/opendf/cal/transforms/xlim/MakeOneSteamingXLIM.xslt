@@ -500,16 +500,7 @@ ENDCOPYRIGHT
     
     <xsl:choose>
       <!-- Indexed assign -->
-      <!--
-      <xsl:when test="Args">
-        <xsl:apply-templates select="." mode="generate-indexers"/>
-        <xsl:comment>Write back actor state variable <xsl:value-of select="@name"/></xsl:comment>
-        <operation kind="assign" target="{Note[@kind='varMod']/@decl-id}">
-          <port source="{concat(Args/Expr[last()]/@id,'$ADDR')}" dir="in"/>
-          <port source="{Expr/@id}" dir="in"/>
-        </operation>          
-      </xsl:when>
-      -->
+   
       <xsl:when test="Args and Note[@kind='varMod']" >
         <xsl:apply-templates select="." mode="generate-indexers"/>
         <xsl:comment>Write back actor state variable <xsl:value-of select="@name"/></xsl:comment>
