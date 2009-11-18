@@ -505,6 +505,20 @@ void print_extList2(LIST *list){
   printf("\n");
 }
 
+void printActorList(LIST **list,int numList)
+{
+  int i;
+  LinkedNode *lnode;
+  for(i=0;i<numList;i++){
+    LIST *a=list[i];
+    printf("list %d\n",i);
+    for(lnode=a->head;lnode;lnode=lnode->next){
+      AbstractActorInstance *instance=(AbstractActorInstance *)lnode->obj;
+      printf("%s\n",instance->actor->name);
+    }
+  }
+}
+
 void computeExtList(LIST *list)
 {
   LinkedNode *lnode;
@@ -517,9 +531,6 @@ void computeExtList(LIST *list)
   }
   print_extList2(list);
 }
-
-#define SEPERATOR   -1
-#define TERMINATOR  -2
 
 enum Actors{
 ParseHeaders,
@@ -559,7 +570,7 @@ art_DBus,
 art_Sink
 };
 
-LIST **initList(AbstractActorInstance **actorInstance,int numInstances,int *ptrNumLists){
+LIST **initList(int argc,char **argv,AbstractActorInstance **actorInstance,int numInstances,int *ptrNumLists){
   int actorIndex[]={
     art_Source_bin,
     byte2bit,
@@ -595,7 +606,118 @@ LIST **initList(AbstractActorInstance **actorInstance,int numInstances,int *ptrN
     art_Sink_yuv,
     DDRModel,
     art_Sink,
-SEPERATOR,
+    art_DBus,
+  };
+  int i,j;
+  LIST **list=(LIST**)calloc(128,sizeof(LIST*));
+#ifdef XML_TRACE
+  char filename[128];
+  int firstActionIndex=0;
+#endif
+  int arrayIndex=0;
+  int listIndex;
+  int num;
+  int totNum=numInstances;
+
+  for(i=2,listIndex=0;;listIndex++,i++)
+  {
+    list[listIndex]=(LIST*)calloc(1,sizeof(LIST));
+    list[listIndex]->lid=listIndex;
+#if defined SCHED_EDF_SUPPORT
+    list[listIndex]->list_period = default_period;
+    list[listIndex]->list_budget = default_runtime;
+#endif
+    pthread_mutex_init(&list[listIndex]->mt, NULL);
+    pthread_cond_init (&list[listIndex]->cv, NULL);
+    if(argc>i)
+      num=atoi(argv[i]);
+    else
+      num=totNum;
+
+    for(j=0;j<num;j++,arrayIndex++,totNum--)
+    {
+      LinkedNode *lnode = (LinkedNode *)calloc(1,sizeof(LinkedNode));
+      AbstractActorInstance *pInstance=actorInstance[actorIndex[arrayIndex]];
+      lnode->obj=pInstance;
+      append_node(list[listIndex],lnode);
+      pInstance->list=list[listIndex];
+      pInstance->extList=(LIST*)calloc(1,sizeof(LIST));
+    }
+    if(!totNum)
+    {
+        listIndex++;
+        break;
+    }
+  }
+  printActorList(list,listIndex);
+  //compute the external list per actor instance
+  for(i=0; i<numInstances; i++){
+    AbstractActorInstance *pInstance=actorInstance[i];
+    //set the external list per actor instance
+    computeExtList2(pInstance->extList,pInstance);
+//     print_extList(pInstance);
+#ifdef XML_TRACE
+    // global action index (used in traces)
+    pInstance->firstActionIndex=firstActionIndex;
+    firstActionIndex += pInstance->actor->numActions;
+#endif
+  }
+
+  //compute the external list per list
+  for(i=0;i<listIndex;i++){
+    LIST *myList=list[i];
+    computeExtList(myList);
+#ifdef XML_TRACE
+    //create file per list
+    sprintf(filename,"trace_%d.xml",myList->lid);
+    myList->file=xmlCreateTrace(filename);
+#endif
+  }
+  *ptrNumLists = listIndex;
+  return list;
+}
+
+#if 0
+#define SEPERATOR   -1
+#define TERMINATOR  -2
+LIST **initList(AbstractActorInstance **actorInstance,int numInstances,int *ptrNumLists){
+  int actorIndex[]={
+    art_Source_bin,
+    byte2bit,
+    ParseHeaders,
+    MVSequence,
+    BlockExpand,
+    MVReconstruct,
+    Sequence,
+    DCSplit,
+    DCPred,
+    ZigzagAddr,
+    Zigzag,
+    ACPred,
+    Dequant,
+    Scale,
+    Combine,
+    ShuffleFly,
+    Shuffle,
+    Final,
+    RowSort,
+    FairMerge,
+    Downsample,
+    Separate,
+    Transpose,
+    Retranspose,
+SEPERATOR,	
+    Clip,
+    MemoryManager,
+    MBPacker,
+    SearchWindow,
+    Unpack,
+    Interpolate,
+    Add,
+    art_Sink_yuv,
+    DDRModel,
+    art_Sink,
+//SEPERATOR,
     art_DBus,
 TERMINATOR
   };
@@ -661,20 +783,7 @@ TERMINATOR
   *ptrNumLists = listIndex;
   return list;
 }
-
-void printActorList(LIST **list,int numList)
-{
-  int i;
-  LinkedNode *lnode;
-  for(i=0;i<numList;i++){
-    LIST *a=list[i];
-    printf("list %d\n",i);
-    for(lnode=a->head;lnode;lnode=lnode->next){
-      AbstractActorInstance *instance=(AbstractActorInstance *)lnode->obj;
-      printf("%s\n",instance->actor->name);
-    }
-  }
-}
+#endif
 
 void wakeup_waitingList(LIST *list){
   pthread_mutex_lock(&list->mt);
@@ -1001,7 +1110,7 @@ int executeNetwork(int argc, char *argv[],AbstractActorInstance **actorInstance,
   pthread_attr_init(&attr);
   pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
-  actorLists = initList(actorInstance,numInstances,&numLists);
+  actorLists = initList(argc,argv,actorInstance,numInstances,&numLists);
 
 //   printActorList(actorLists,numLists);
 
