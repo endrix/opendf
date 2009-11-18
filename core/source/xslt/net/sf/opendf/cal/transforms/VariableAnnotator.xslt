@@ -41,8 +41,7 @@
         <xsl:variable name="name"><xsl:value-of select="@name"/></xsl:variable>
         <xsl:variable name="ref-type">
           <xsl:choose>
-            <xsl:when test="name()='Expr'">varRef</xsl:when>
-            <xsl:when test="@kind='Assign' and Args">varRef</xsl:when> 
+            <xsl:when test="name()='Expr'">varRef</xsl:when> 
             <xsl:otherwise>varMod</xsl:otherwise>
           </xsl:choose>
         </xsl:variable>

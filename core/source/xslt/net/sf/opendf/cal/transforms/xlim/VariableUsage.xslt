@@ -150,11 +150,17 @@ ENDCOPYRIGHT
 
       <!-- Add all variables modified in this element -->      
       <xsl:for-each select="Note[@kind='varMod']">
-        <Note kind="var-used" mode="write" name="{../@name}" decl-id="{@decl-id}" scope-id="{@scope-id}">
+        <Note kind="var-used"  name="{../@name}" decl-id="{@decl-id}" scope-id="{@scope-id}">
           <xsl:attribute name="scalar">
             <xsl:choose>
               <xsl:when test="Type/Entry[@kind != 'Expr']">no</xsl:when>
               <xsl:otherwise>yes</xsl:otherwise>
+            </xsl:choose>
+          </xsl:attribute>
+          <xsl:attribute name="mode">
+          <xsl:choose>
+              <xsl:when test="parent::Stmt[ @kind='Assign' ]/Args">mutate</xsl:when>
+              <xsl:otherwise>write</xsl:otherwise>
             </xsl:choose>
           </xsl:attribute>
         </Note>

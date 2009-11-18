@@ -95,7 +95,7 @@ ENDCOPYRIGHT
 
   <xd:doc>Augment write notes which have a last-child-modifier attribute to point to the true source,
       which is useful for implementing PHI.</xd:doc>
-  <xsl:template match="Note[ @kind='var-used' and @mode='write' ]">
+  <xsl:template match="Note[ @kind='var-used' and @mode='write']">
 
     <xsl:copy>
       <xsl:for-each select="@*">
@@ -162,11 +162,12 @@ ENDCOPYRIGHT
       <!-- Decl inside an Input is a true source -->
       <xsl:when test="Decl[ @id = $modifier-id ][ parent::Input ]">
         <xsl:value-of select="$modifier-id"/>
-      </xsl:when>
+      </xsl:when>      
+        
           
       <!-- Flow control block PHI function is a true source -->
       <xsl:when test="Stmt[ @kind='If' or @kind='While' ][ @id=$modifier-id ]">
-        <xsl:value-of select="concat( $modifier-id, '$PHI$', $decl-id )"/>
+        <xsl:value-of select="concat( $modifier-id, '$PHI$', $decl-id)"/>
       </xsl:when>
 
       <!-- Assign is a true source -->
