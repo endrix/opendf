@@ -452,9 +452,17 @@ ENDCOPYRIGHT
     <expr>
       <xsl:apply-templates select="." mode="generate-indexers"/> 
     </expr>
+    <xsl:variable name="target-name" select="Expr[@kind='Var']/@name"/>      
     <attr name="kind" value="var_ref"/>
-    <!-- Note that the true source for a memory is the original decl, not the previous writer -->
-    <attr name="name" value="{Expr/Note[@kind='var-used']/@decl-id}"/>
+    <xsl:choose>
+      <xsl:when test="Expr/Note[@actor-scope='yes']">
+        <!-- Note that the true source for a memory is the original decl, not the previous writer --> 
+        <attr name="name" value="{Expr/Note[@kind='var-used']/@decl-id}"/>        
+      </xsl:when>
+      <xsl:otherwise>
+        <attr name="name" value="{Expr/Note[@kind='var-used'][@name=$target-name]/@true-source}"/>  -
+      </xsl:otherwise>
+    </xsl:choose>
     <port source="{concat(Args/Expr[last()]/@id,'$ADDR')}" dir="in"/>
     <port source="{@id}" dir="out"/>
   </xsl:template>
@@ -498,10 +506,22 @@ ENDCOPYRIGHT
     
     <xsl:comment>Statement <xsl:value-of select="@id"/></xsl:comment>
     
+    <xsl:variable name="target-name" select="@name"/>
+    
     <xsl:choose>
       <!-- Indexed assign -->
    
-      <xsl:when test="Args and Note[@kind='varMod']" >
+      <xsl:when test="Args and Note[@actor-scope='no']" >
+        <!-- We treat element wise writes to local lists as read access to the list, not write -->
+        <xsl:apply-templates select="." mode="generate-indexers"/>
+        <xsl:comment>Assign values to local lists <xsl:value-of select="@name"/></xsl:comment>        
+        <operation kind="assign" target="{Note[@kind='var-used'][@name=$target-name]/@true-source}">
+          <port source="{concat(Args/Expr[last()]/@id,'$ADDR')}" dir="in"/>
+          <port source="{Expr/@id}" dir="in"/>
+        </operation>          
+      </xsl:when>
+      
+      <xsl:when test="Args" >
         <xsl:apply-templates select="." mode="generate-indexers"/>
         <xsl:comment>Write back actor state variable <xsl:value-of select="@name"/></xsl:comment>
         <operation kind="assign" target="{Note[@kind='varMod']/@decl-id}">
@@ -509,18 +529,7 @@ ENDCOPYRIGHT
           <port source="{Expr/@id}" dir="in"/>
         </operation>          
       </xsl:when>
-      
-      <xsl:when test="Args" >
-        <!-- We treat element wise writes to local lists as read access to the list, not write -->
-        <xsl:apply-templates select="." mode="generate-indexers"/>
-        <xsl:comment>Assign values to local lists <xsl:value-of select="@name"/></xsl:comment>
-        <xsl:variable name="target-name" select="@name"/>
-        <operation kind="assign" target="{Note[@kind='var-used'][@name=$target-name]/@decl-id}">
-          <port source="{concat(Args/Expr[last()]/@id,'$ADDR')}" dir="in"/>
-          <port source="{Expr/@id}" dir="in"/>
-        </operation>          
-      </xsl:when>
-      
+            
       <!-- Scalar assignment: the Expr becomes the true-source for this variable -->
       <xsl:otherwise> 
         <!-- FIX ME : introduce cast to match type of lhs -->

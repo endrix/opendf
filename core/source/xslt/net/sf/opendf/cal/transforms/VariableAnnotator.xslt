@@ -51,56 +51,62 @@
             Later, if that is not empty, choose the last.
             Decls are enumerated along the ancestor axis: innermost decl is last.
             
-DBP: Fix bug that causes assignable and mutable attributes to have lists of values
-or be an empty string. Also, last "when" is never executed?
+            DBP: Fix bug that causes assignable and mutable attributes to have lists of values
+            or be an empty string. Also, last "when" is never executed?
 
-Also, normalize the assignable/mutable values to be either 'yes' or 'no'
-TDB: are the defaults right in the event of missing attribute string?
+            Also, normalize the assignable/mutable values to be either 'yes' or 'no'
+            TDB: are the defaults right in the event of missing attribute string?
 
-Also, what about Generator Decls?
+            Also, what about Generator Decls?
         -->
-    <xsl:variable name="decls">
-      <xsl:for-each select="ancestor::*">
+        <xsl:variable name="decls">
+          <xsl:for-each select="ancestor::*">
 
-        <xsl:choose>
-          <xsl:when test="Decl[@kind='Variable'][@name=$name]">
-              <xsl:variable name="this-decl" select="Decl[@kind='Variable'][@name=$name]"/>
-              <Note kind="{$ref-type}" free="no" scope-id="{@id}" decl-id="{$this-decl/@id}">
-               <xsl:attribute name="assignable">
-                 <xsl:call-template name="normalize-yesno">
-                   <xsl:with-param name="string">
-                       <xsl:value-of select="$this-decl/@assignable"/>
-                   </xsl:with-param>
-                   <xsl:with-param name="default">yes</xsl:with-param>
-                 </xsl:call-template>
-               </xsl:attribute>
-               <xsl:attribute name="mutable">
-                 <xsl:call-template name="normalize-yesno">
-                   <xsl:with-param name="string">
-                       <xsl:value-of select="$this-decl/@mutable"/>
-                   </xsl:with-param>
-                   <xsl:with-param name="default">no</xsl:with-param>
-                 </xsl:call-template>
-               </xsl:attribute>
-                  <xsl:copy-of select="$this-decl/Type"/>
-             </Note>
-           </xsl:when>
-           <xsl:when test="Decl[@kind='Parameter'][@name=$name]">
-               <xsl:variable name="this-decl" select="Decl[@kind='Parameter'][@name=$name]"/>
-               <Note kind="{$ref-type}" free="no" assignable="no" mutable="no" scope-id="{@id}"
-                   decl-id="{$this-decl/@id}">
-                   <xsl:copy-of select="$this-decl/Type"/>
-             </Note>
-          </xsl:when>
-          <xsl:when test="Input/Decl[@name=$name]">
-            <xsl:variable name="port"><xsl:value-of select="Input/@port"/></xsl:variable>
-              <xsl:variable name="this-decl" select="Input/Decl[@name=$name]"/>
-              <Note kind="{$ref-type}" free="no" assignable="no" mutable="no" scope-id="{@id}" decl-id="{$this-decl/@id}">
-              <xsl:copy-of select="ancestor::*/Port[@name=$port][1]/Type"/>
-            </Note>
-           </xsl:when>
-     <!-- DBP: this appears to be useless
-                    <xsl:when test="Input/Decl[@name=$name]">
+            <xsl:choose>
+              <xsl:when test="Decl[@kind='Variable'][@name=$name]">
+                <xsl:variable name="this-decl" select="Decl[@kind='Variable'][@name=$name]"/>
+                <Note kind="{$ref-type}" free="no" scope-id="{@id}" decl-id="{$this-decl/@id}">
+                  <xsl:attribute name="assignable">
+                    <xsl:call-template name="normalize-yesno">
+                      <xsl:with-param name="string">
+                        <xsl:value-of select="$this-decl/@assignable"/>
+                      </xsl:with-param>
+                      <xsl:with-param name="default">yes</xsl:with-param>
+                    </xsl:call-template>
+                  </xsl:attribute>
+                  <xsl:attribute name="mutable">
+                    <xsl:call-template name="normalize-yesno">
+                      <xsl:with-param name="string">
+                        <xsl:value-of select="$this-decl/@mutable"/>
+                      </xsl:with-param>
+                      <xsl:with-param name="default">no</xsl:with-param>
+                     </xsl:call-template>
+                  </xsl:attribute>
+                  <xsl:attribute name="actor-scope">
+                    <xsl:choose>
+                        <xsl:when test="self::Actor">yes</xsl:when>
+                        <xsl:otherwise>no</xsl:otherwise>
+                    </xsl:choose>                      
+                  </xsl:attribute>    
+                  <xsl:copy-of select="$this-decl/Type"/>                              
+                </Note>
+              </xsl:when>
+              <xsl:when test="Decl[@kind='Parameter'][@name=$name]">
+                <xsl:variable name="this-decl" select="Decl[@kind='Parameter'][@name=$name]"/>
+                <Note kind="{$ref-type}" free="no" assignable="no" mutable="no" scope-id="{@id}"
+                      decl-id="{$this-decl/@id}">
+                    <xsl:copy-of select="$this-decl/Type"/>
+                </Note>
+              </xsl:when>
+              <xsl:when test="Input/Decl[@name=$name]">
+                <xsl:variable name="port"><xsl:value-of select="Input/@port"/></xsl:variable>
+                <xsl:variable name="this-decl" select="Input/Decl[@name=$name]"/>
+                <Note kind="{$ref-type}" free="no" assignable="no" mutable="no" scope-id="{@id}" decl-id="{$this-decl/@id}">
+                  <xsl:copy-of select="ancestor::*/Port[@name=$port][1]/Type"/>
+                </Note>
+              </xsl:when>
+              <!-- DBP: this appears to be useless
+                      <xsl:when test="Input/Decl[@name=$name]">
                         <xsl:variable name="port"><xsl:value-of select="Input/@port"/></xsl:variable>
                         <Note kind="{$ref-type}" free="no" assignable="no" mutable="no" scope-id="{@id}">
                             <Type name="Seq">
@@ -110,17 +116,17 @@ Also, what about Generator Decls?
                             </Type>
                         </Note>
                     </xsl:when>
-      -->
+             -->
             <!-- DBP Add support for Generators -->
-            <xsl:when test="Generator/Decl[@name=$name]">
+              <xsl:when test="Generator/Decl[@name=$name]">
                 <xsl:variable name="this-decl" select="Generator/Decl[@name=$name]"/>
                 <Note kind="{$ref-type}" free="no" assignable="no" mutable="no" scope-id="{$this-decl/../../@id}"
-                 decl-id="{$this-decl/@id}">
-                    <xsl:copy-of select="$this-decl/Type"/>
+                   decl-id="{$this-decl/@id}">
+                  <xsl:copy-of select="$this-decl/Type"/>
                 </Note>
-            </xsl:when>
-                </xsl:choose>
-            </xsl:for-each>
+              </xsl:when>
+            </xsl:choose>
+          </xsl:for-each>
         </xsl:variable>
         <xsl:copy>
             <xsl:for-each select="@*">
