@@ -197,7 +197,7 @@ public abstract class LocalCodeGenerator implements ExpressionTreeGenerator {
 	}
 
 	protected boolean isUseful(XlimOperation op) {
-		return (op.isReferenced() || op.modifiesState() || op.isRemovable()==false);
+		return (op.isReferenced() || op.modifiesLocation() || op.isRemovable()==false);
 	}
 	
 	protected boolean needsElse(XlimIfModule m) {
@@ -224,6 +224,10 @@ public abstract class LocalCodeGenerator implements ExpressionTreeGenerator {
 	}
 	
 	protected void visitPhiNodes(Iterable<? extends XlimInstruction> phiNodes, int fromPath) {
+		// TODO: phi-nodes should be top-sorted in dependence order
+		// When we start coalescing storage locations, we will be in trouble otherwise.
+		// Cyclic dependence is also possible, say t1=phi(t0,t2), t2=phi(t0,t1), in which
+		// case we must introduce a temporary (noop).
 		for (XlimInstruction phi: phiNodes) {
 			TemporaryVariable dest=mLocalSymbols.getTemporaryVariable(phi.getOutputPort(0));
 			XlimInputPort input=phi.getInputPort(fromPath);
