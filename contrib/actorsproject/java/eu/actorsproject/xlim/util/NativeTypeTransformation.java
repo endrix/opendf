@@ -399,7 +399,8 @@ public class NativeTypeTransformation {
 				XlimType declaredT=output.getType();
 				
 				if (declaredT.isList()) {
-					assert(output.actualOutputType()==declaredT);
+					XlimType actualT=output.actualOutputType();
+					assert(mNativeTypePlugIn.nativeType(declaredT)==mNativeTypePlugIn.nativeType(actualT));
 				}
 				else {
 					// Sign extend output?
