@@ -443,9 +443,18 @@ ENDCOPYRIGHT
   </xsl:template>
   
   <xsl:template match="Expr[@kind = 'Var' ]" mode="flatten-expr">
-    <attr name="kind" value="noop"/>
-    <port source="{Note[@kind='var-used']/@true-source}" dir="in"/>
-    <port source="{@id}" dir="out"/>
+    <xsl:choose>
+      <xsl:when test="Note[@actor-scope='yes'] and Note[@scalar='no']">
+        <attr name="kind" value="noop"/>
+        <port source="{Note[@kind='var-used']/@decl-id}" dir="in"/>
+        <port source="{@id}" dir="out"/>        
+      </xsl:when>
+      <xsl:otherwise>
+        <attr name="kind" value="noop"/>
+        <port source="{Note[@kind='var-used']/@true-source}" dir="in"/>
+        <port source="{@id}" dir="out"/>        
+      </xsl:otherwise>      
+    </xsl:choose>
   </xsl:template>
 
   <xsl:template match="Expr[@kind = 'Indexer' ]" mode="flatten-expr">
@@ -529,7 +538,14 @@ ENDCOPYRIGHT
           <port source="{Expr/@id}" dir="in"/>
         </operation>          
       </xsl:when>
-            
+
+      <xsl:when test="Note[@actor-scope='yes'] and Note[@kind='var-used'][@mode='write'][@scalar='no']" >               
+        <xsl:comment>Assign global list <xsl:value-of select="@name"/></xsl:comment>        
+        <operation kind="assign" target="{Note[@kind='varMod']/@decl-id}">          
+          <port source="{Expr/@id}" dir="in"/>
+        </operation>          
+      </xsl:when>
+                      
       <!-- Scalar assignment: the Expr becomes the true-source for this variable -->
       <xsl:otherwise> 
         <!-- FIX ME : introduce cast to match type of lhs -->
