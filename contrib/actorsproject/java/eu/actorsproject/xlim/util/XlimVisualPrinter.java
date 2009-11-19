@@ -145,9 +145,19 @@ public class XlimVisualPrinter extends OutputGenerator {
 		increaseIndentation();
 		println("// kind=\""+task.getKind()+"\"");
 		println("// autostart=\""+(task.isAutostart()? "yes" : "no")+"\"");
+		printInitialValues(task);
 		printContainerModule(task);
+		printFinalValues(task);
 		decreaseIndentation();
 		println("}");
+	}
+	
+	protected void printInitialValues(XlimTaskModule task) {
+		// Override to print initial values
+	}
+	
+	protected void printFinalValues(XlimTaskModule task) {
+		// Override to print final values
 	}
 	
 	public void printBlockModule(XlimBlockModule module) {
@@ -194,7 +204,7 @@ public class XlimVisualPrinter extends OutputGenerator {
 		println("}");
 	}
 	
-	private void printPhiNodes(XlimPhiContainerModule module) {
+	protected void printPhiNodes(XlimPhiContainerModule module) {
 		for (XlimPhiNode phi: module.getPhiNodes()) {
 			XlimOutputPort out=phi.getOutputPort(0);
 			println(out.getType()+" "+out.getUniqueId()+"=phi("+
@@ -203,8 +213,7 @@ public class XlimVisualPrinter extends OutputGenerator {
 		}
 	}
 	
-	private void printOperation(XlimOperation op) {
-		String delimiter;
+	protected void printOutputs(XlimOperation op) {
 		int N=op.getNumOutputPorts();
 		if (N>=1) {
 			if (N==1) {
@@ -212,7 +221,7 @@ public class XlimVisualPrinter extends OutputGenerator {
 				print(out.getType()+" "+out.getUniqueId()+"=");
 			}
 			else {
-				delimiter="(";
+				String delimiter="(";
 				for (XlimOutputPort out: op.getOutputPorts()) {
 					print(delimiter+out.getUniqueId()+":"+out.getType());
 					delimiter=",";
@@ -220,8 +229,10 @@ public class XlimVisualPrinter extends OutputGenerator {
 				print(")=");	
 			}
 		}
-		print(op.getKind()+"(");
-		delimiter="";
+	}
+	
+	protected void printInputs(XlimOperation op) {
+		String delimiter="";
 		XlimTopLevelPort port=op.getPortAttribute();
 		if (port!=null) {
 			print(delimiter+port.getName());
@@ -229,7 +240,7 @@ public class XlimVisualPrinter extends OutputGenerator {
 		}
 		Location location=op.getLocation();
 		if (location!=null) {
-			print(delimiter+location.getDebugName());
+			print(delimiter+"location="+location.getDebugName());
 			delimiter=",";
 		}
 		XlimTaskModule task=op.getTaskAttribute();
@@ -246,7 +257,19 @@ public class XlimVisualPrinter extends OutputGenerator {
 			print(delimiter+in.getSource().getDebugName());
 			delimiter=",";
 		}
-		println(");");
+	}
+	
+	protected void printComment(XlimOperation op) {
+		// Override to print operation comment
+	}
+	
+	protected void printOperation(XlimOperation op) {
+		printOutputs(op);
+		print(op.getKind()+"(");
+		printInputs(op);
+		print(");");
+		printComment(op);
+		println();
 	}
 		
 	public void printContainerModule(XlimContainerModule module) {

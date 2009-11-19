@@ -190,6 +190,17 @@ public class FixupContext {
 	}
 	
 	/**
+	 * @param contextWithExposedUses
+	 * Fixes up exposed usages of 'contextWithExposedUses' using this context
+	 * (or puts them in the collection of exposed usages in this context)
+	 */
+	public void fixup(FixupContext contextWithExposedUses) {
+		for (ArrayList<ValueUsage> usages: contextWithExposedUses.mExposedUses.values()) {
+			fixup(usages);
+		}
+	}
+	
+	/**
 	 * Attempts to resolve exposed usages using a definition (ValueNode)
 	 * @param def a definition, which dominates the patched code
 	 * @return true if an exposed use was resolved
