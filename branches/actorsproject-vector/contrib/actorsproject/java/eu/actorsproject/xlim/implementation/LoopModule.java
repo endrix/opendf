@@ -120,7 +120,7 @@ class LoopModule extends PhiContainerModule implements XlimLoopModule {
 	@Override
 	public void fixupAll(FixupContext dominatingContext) {
 		// Create a sub-context (initially empty set of new values) and process the loop
-		FixupContext loopContext=dominatingContext.createFixupSubContext();
+		FixupContext loopContext=new FixupContext();
 		getTestModule().fixupAll(loopContext);
 		mBodyModule.fixupAll(loopContext);
 
@@ -137,7 +137,8 @@ class LoopModule extends PhiContainerModule implements XlimLoopModule {
 		dominatingContext.fixup(getNormalPhiInputs(/*path:*/ 0));
 		loopContext.fixup(getNormalPhiInputs(/*path:*/ 1));
 				
-		// Finally add the new values
+		// Finally add the exposed uses and the new values to the dominating context
+		dominatingContext.fixup(loopContext);
 		dominatingContext.setNewValues(phiOutputs);
 	}
 
