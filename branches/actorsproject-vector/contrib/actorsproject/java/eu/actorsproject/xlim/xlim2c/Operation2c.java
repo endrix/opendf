@@ -94,6 +94,7 @@ public class Operation2c implements OperationGenerator {
 		new PrefixOperatorGenerator("bitnot","~"),
 		new UrshiftGenerator("urshift"),
 		new NoopGenerator("noop"),
+		new ListCastGenerator("cast"),
 		new NoopGenerator("cast"),
 		new SelectorGenerator("$selector"),
 		new PinAvailGenerator("pinAvail","pinAvail",true),
@@ -925,6 +926,35 @@ class NoopGenerator extends PrefixOperatorGenerator {
 	@Override
 	public void generateExpression(XlimOperation op, XlimType opType, ExpressionTreeGenerator gen) {
 		translateSubTree(op.getInputPort(0), opType, gen);
+	}
+}
+
+class ListCastGenerator extends BasicGenerator {
+
+	public ListCastGenerator(String opKind) {
+		super(opKind);
+	}
+
+	@Override
+	public boolean supports(XlimOperation op) {
+		return op.getNumOutputPorts()==1 && op.getOutputPort(0).getType().isList();
+	}
+	
+	@Override
+	public void generateStatement(XlimOperation op, ExpressionTreeGenerator gen) {
+		XlimType dstT=op.getOutputPort(0).getType();
+		XlimType srcT=op.getInputPort(0).getSource().getType();
+		assert(dstT.isList() && srcT.isList());
+		int N=dstT.getIntegerParameter("size");
+		assert(srcT.getIntegerParameter("size")==N);
+		XlimType dstElementT=dstT.getTypeParameter("type");
+		gen.print("for(int i=0; i<"+N+"; ++i)"); gen.println();
+		gen.print("  ");
+		gen.print(op.getOutputPort(0));
+		gen.print("[i]=("+gen.getTargetTypeName(dstElementT)+")");
+		generateSource(op.getInputPort(0).getSource(),gen);
+		gen.print("[i]");
+		
 	}
 }
 

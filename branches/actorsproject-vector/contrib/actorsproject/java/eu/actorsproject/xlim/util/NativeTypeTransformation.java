@@ -78,6 +78,9 @@ public class NativeTypeTransformation {
 		
 		// AssignHandler: no output port, but possible sign-extension of input
 		mHandlers.registerHandler("assign", new AssignHandler());
+		
+		// noop: fix the confusion regarding List-types
+		mHandlers.registerHandler("noop", new NoopHandler());
 	}
 	
 	public void transform(XlimDesign design) {
@@ -155,7 +158,7 @@ public class NativeTypeTransformation {
 									+ " to " + nativeT.getSize()
 									+ " (was:" + inW + ")");
 					
-						Transformation t=new PhiTransformation(TransformKind.SignExtend,outW,nativeT);
+						Transformation t=new PhiTransformation(outW,nativeT);
 						map.put(input, t);
 					}
 				}
@@ -235,65 +238,29 @@ public class NativeTypeTransformation {
 	
 	
 	/**
-	 * InputPortTransformations have either of two "flavors":
-	 * zero-extension of input (used for bitwise operations: bitand, bitor, bitxor)
-	 * sign-extension of input (used for pinWrite and assign) 
-	 *
+	 * Transformation of InputPorts
 	 */
-	enum TransformKind { ZeroExtend, SignExtend };
 	
-	private class InputPortTransformation extends Transformation {
+	private abstract class InputPortTransformation extends Transformation {
 		
-		private TransformKind mKind;
-		private int mFromWidth;
-		private XlimType mExtendToType;
-	
-		public InputPortTransformation(TransformKind kind, int fromWidth, XlimType toType) {
-			mKind=kind;
-			mFromWidth=fromWidth;
-			mExtendToType=toType;
-		}
-
 		protected void startPatch(XlimInputPort port, 
 				                  XlimInstruction instr,
 				                  XlimContainerModule module) {
 			module.startPatchBefore(instr.isOperation());
 		}
 		
+		protected abstract XlimOutputPort apply(XlimSource oldSource, XlimContainerModule inModule);
+		
 		@Override
 		public void apply(XlimInputPort port, 
 				          XlimInstruction instr,
 				          XlimContainerModule module) {
 			XlimSource oldSource=port.getSource();
-			XlimOutputPort newSource=null;
 
 			startPatch(port, instr, module);
-
-			if (mKind==TransformKind.SignExtend) {
-				XlimOperation sex=module.addOperation("signExtend", 
-						                               oldSource, 
-						                               mExtendToType);
-				sex.setIntegerValueAttribute(mFromWidth);
-				newSource=sex.getOutputPort(0);
-				
-				if (mTrace)
-					System.out.println("// NativeTypeTransform: added "+sex.toString());
-			}
-			else if (mKind==TransformKind.ZeroExtend) {
-				XlimOperation mask=module.addLiteral((1L << mFromWidth)-1);
-				XlimOutputPort maskOutput=mask.getOutputPort(0);
-				XlimType outT=mNativeTypePlugIn.nativeType(maskOutput.getType());
-				maskOutput.setType(outT);
-				
-				XlimOperation and=module.addOperation("bitand",oldSource,maskOutput,mExtendToType);
-				newSource=and.getOutputPort(0);
-				
-				if (mTrace) {
-					System.out.println("// NativeTypeTransform: added "+mask.toString());
-					System.out.println("// NativeTypeTransform: added "+and.toString());
-				}
-			}
 			
+			XlimOutputPort newSource=apply(oldSource,module);
+						
 			assert(newSource!=null);
 			port.setSource(newSource);
 			
@@ -303,16 +270,73 @@ public class NativeTypeTransformation {
 	}
 	
 	/**
+	 * sign-extension of input (used for pinWrite and assign) 
+	 */
+	private class SignedInputPortTransformation extends InputPortTransformation {
+
+		private int mFromWidth;
+		private XlimType mExtendToType;
+		
+		public SignedInputPortTransformation(int fromWidth, XlimType toType) {
+			mFromWidth=fromWidth;
+			mExtendToType=toType;
+		}
+		
+		@Override
+		protected XlimOutputPort apply(XlimSource oldSource, XlimContainerModule inModule) {
+			XlimOperation sex=inModule.addOperation("signExtend", 
+					oldSource, 
+					mExtendToType);
+			sex.setIntegerValueAttribute(mFromWidth);
+			
+			if (mTrace)
+				System.out.println("// NativeTypeTransform: added "+sex.toString());
+			
+			return sex.getOutputPort(0);
+		}
+	}
+	
+	/**
+	 * zero-extension of input (used for bitwise operations: bitand, bitor, bitxor)
+	 */
+	private class UnsignedInputPortTransformation extends InputPortTransformation {
+
+		private int mFromWidth;
+		private XlimType mExtendToType;
+		
+		public UnsignedInputPortTransformation(int fromWidth, XlimType toType) {
+			mFromWidth=fromWidth;
+			mExtendToType=toType;
+		}
+		
+		@Override
+		protected XlimOutputPort apply(XlimSource oldSource, XlimContainerModule inModule) {
+			XlimOperation mask=inModule.addLiteral((1L << mFromWidth)-1);
+			XlimOutputPort maskOutput=mask.getOutputPort(0);
+			XlimType outT=mNativeTypePlugIn.nativeType(maskOutput.getType());
+			maskOutput.setType(outT);
+			
+			XlimOperation and=inModule.addOperation("bitand",oldSource,maskOutput,mExtendToType);
+			
+			if (mTrace) {
+				System.out.println("// NativeTypeTransform: added "+mask.toString());
+				System.out.println("// NativeTypeTransform: added "+and.toString());
+			}
+			
+			return and.getOutputPort(0);
+		}
+	}
+	
+	/**
 	 * PhiNodes need different handling, since added code is not patched in
 	 * their parent module (a Loop or If-module), but in the predecessor that
 	 * corresponds to the respective input port.
 	 */
-	private class PhiTransformation extends InputPortTransformation {
+	private class PhiTransformation extends SignedInputPortTransformation {
 	
-		public PhiTransformation(TransformKind kind, 
-				                 int fromWidth,
+		public PhiTransformation(int fromWidth,
 				                 XlimType toType) {
-			super(kind, fromWidth, toType);
+			super(fromWidth, toType);
 		}
 		
 		@Override
@@ -426,6 +450,59 @@ public class NativeTypeTransformation {
 			}			
 		}
 	} 
+
+	/**
+	 * FIXME: this class is only motivated by the unpredicatble typing of noops:
+	 * We are forced to view noops as casts and must relax the assertions of the DefaultHandler
+	 */
+
+	private class AddCastInputPortTransformation extends InputPortTransformation {
+		XlimType mCastToType;
+		
+		public AddCastInputPortTransformation(XlimType toType) {
+			mCastToType=toType;
+		}
+		
+		@Override
+		protected XlimOutputPort apply(XlimSource oldSource, XlimContainerModule inModule) {
+			XlimOperation cast=inModule.addOperation("cast", oldSource, mCastToType);
+			
+			if (mTrace)
+				System.out.println("// NativeTypeTransform: added "+cast.toString());
+			
+			return cast.getOutputPort(0);
+		}
+	}
+	
+	protected class NoopHandler extends DefaultHandler {
+
+		@Override
+		public void handleOperation(XlimOperation op, 
+                                    Map<Object,Transformation> transformations) {
+			assert(op.getNumOutputPorts()==1 && op.getNumInputPorts()==1);
+			
+			XlimType declaredT=op.getOutputPort(0).getType();
+			if (declaredT.isList()) {
+				XlimType actualT=op.getOutputPort(0).actualOutputType();
+				XlimType inT=mNativeTypePlugIn.nativeType(actualT);
+				XlimType outT=mNativeTypePlugIn.nativeType(declaredT);
+				
+				if (inT!=outT) {
+					XlimInputPort input=op.getInputPort(0);
+					if (mTrace)
+						System.out.println("// NativeTypeTransform: " + op.toString()
+								+ " cast " + input.getSource().getUniqueId()
+								+ " from " + inT
+								+ " to " + outT);
+
+					Transformation t=new AddCastInputPortTransformation(outT);
+					transformations.put(input, t);
+				}
+			}
+			else
+				super.handleOperation(op, transformations);
+		}
+	}
 	
 	/**
 	 * In addition to dealing with the output ports (see DefaultHandler),
@@ -455,9 +532,7 @@ public class NativeTypeTransformation {
 									+ " to " + nativeT.getSize()
 									+ " (actual:" + actualW + ")");
 
-						Transformation t=new InputPortTransformation(TransformKind.ZeroExtend,
-                                                                     fromW,
-                                                                     nativeT);
+						Transformation t=new UnsignedInputPortTransformation(fromW,nativeT);
 						transformations.put(input, t);
 					}
 				}
@@ -493,9 +568,7 @@ public class NativeTypeTransformation {
 							+ " to " + nativeT.getSize()
 							+ " (actual:" + actualW + ")");
 				}
-				Transformation t=new InputPortTransformation(TransformKind.ZeroExtend,
-						                                     width,
-						                                     nativeT);
+				Transformation t=new UnsignedInputPortTransformation(width,nativeT);
 				transformations.put(input, t);
 			}
 			
@@ -547,9 +620,7 @@ public class NativeTypeTransformation {
 									+ " to " + nativeT.getSize()
 									+ " (was:" + actualW + ")");
 
-						Transformation t=new InputPortTransformation(TransformKind.SignExtend,
-								fromW,
-								nativeT);
+						Transformation t=new SignedInputPortTransformation(fromW,nativeT);
 						transformations.put(input, t);
 					}
 				}
