@@ -110,8 +110,11 @@ ENDCOPYRIGHT
       
       <xsl:apply-templates/>
       
-      <xsl:apply-templates select="key('find-decl',$decl-id)/Expr/Note[@kind='exprType']/Type" mode="dimensions">
-        <xsl:with-param name="index">1</xsl:with-param>
+      
+<!--   <xsl:apply-templates select="key('find-decl',$decl-id)/Expr/Note[@kind='exprType']/Type" mode="dimensions"> -->
+      <xsl:apply-templates select="//Decl[@id=$decl-id]/Type" mode="dimensions"> 
+      
+      <xsl:with-param name="index">1</xsl:with-param>
       </xsl:apply-templates>
       
     </xsl:copy>
