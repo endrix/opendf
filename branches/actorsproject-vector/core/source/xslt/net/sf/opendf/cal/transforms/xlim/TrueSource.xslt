@@ -64,7 +64,7 @@ ENDCOPYRIGHT
   </xd:doc>
 
   <xd:doc>Augment read notes to point to the true source.</xd:doc>
-  <xsl:template match="Note[ @kind='var-used' and @mode='read' ]">
+  <xsl:template match="Note[ @kind='var-used' and (@mode='read' or @mode='mutate') ]">
     
     <xsl:copy>
       <xsl:for-each select="@*">
@@ -148,7 +148,7 @@ ENDCOPYRIGHT
         <xsl:apply-templates select=".." mode="true-source">
           <xsl:with-param name="decl-id" select="$decl-id"/>
           <xsl:with-param name="modifier-id" select="Note[@kind='var-used']
-            [@mode='read'][@decl-id=$decl-id]/@preceding-sibling-modifier"/>
+            [(@mode='read' or @mode='mutate')][@decl-id=$decl-id]/@preceding-sibling-modifier"/>
         </xsl:apply-templates>
       </xsl:when>
 

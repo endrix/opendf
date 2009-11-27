@@ -524,7 +524,7 @@ ENDCOPYRIGHT
         <!-- We treat element wise writes to local lists as read access to the list, not write -->
         <xsl:apply-templates select="." mode="generate-indexers"/>
         <xsl:comment>Assign values to local lists <xsl:value-of select="@name"/></xsl:comment>        
-        <operation kind="assign" target="{Note[@kind='var-used'][@name=$target-name]/@true-source}">
+        <operation kind="assign" target="{Note[@kind='var-used'][@name=$target-name][@mode='mutate']/@true-source}">
           <port source="{concat(Args/Expr[last()]/@id,'$ADDR')}" dir="in"/>
           <port source="{Expr/@id}" dir="in"/>
         </operation>          
