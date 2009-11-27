@@ -101,8 +101,10 @@
               <xsl:when test="Input/Decl[@name=$name]">
                 <xsl:variable name="port"><xsl:value-of select="Input/@port"/></xsl:variable>
                 <xsl:variable name="this-decl" select="Input/Decl[@name=$name]"/>
-                <Note kind="{$ref-type}" free="no" assignable="no" mutable="no" scope-id="{@id}" decl-id="{$this-decl/@id}">
-                  <xsl:copy-of select="ancestor::*/Port[@name=$port][1]/Type"/>
+                <Note kind="{$ref-type}" free="no" assignable="no" mutable="no" scope-id="{@id}" 
+                      decl-id="{$this-decl/@id}">
+                 <!--  <xsl:copy-of select="ancestor::*/Port[@name=$port][1]/Type"/> -->
+                    <xsl:copy-of select="$this-decl/Type"/>
                 </Note>
               </xsl:when>
               <!-- DBP: this appears to be useless
