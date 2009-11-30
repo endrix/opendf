@@ -367,7 +367,7 @@ static inline void pinWriteRepeat_common(OutputPort *p,
                                          char *src, 
                                          int count) {
   char *dest=p->writePtr;
-  int left=p->writePtr-dest;
+  int left=p->bufferEnd-dest;
   if (count>=left) {
     // The end of the circular buffer is crossed
     MEMCPY(dest,src,left);
@@ -376,7 +376,7 @@ static inline void pinWriteRepeat_common(OutputPort *p,
     count-=left;
   }
   MEMCPY(dest,src,count);
-  p->writePtr=dest;
+  p->writePtr=dest+count;
 }
 
 static inline void pinWriteRepeat_int32_t(OutputPort *p, 
