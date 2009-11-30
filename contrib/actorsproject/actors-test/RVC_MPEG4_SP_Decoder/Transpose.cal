@@ -1,0 +1,27 @@
+// ECARVON: comprehension -> loops
+
+actor Transpose () int In ==> int Out :
+
+  action In:[ x ] repeat 64 ==> Out: [ xt ] repeat 64
+  var
+    List(type:int, size=64) xt := [0 : for i in Integers(0,63)],
+    int j,
+    int k,
+    int k0
+  do
+    // [ x[ 8 * c + r ] : for int r in Integers(0,7), 
+    //                    for int c in Integers(0,7) ]
+    j:=0;
+    k0:=0;
+    while (j<64) do
+      k:=k0;
+      while (k<64) do
+        xt[j]:=x[k];
+        j:=j+1;
+        k:=k+8;
+      end
+      k0:=k0+1;
+    end
+  end
+
+end

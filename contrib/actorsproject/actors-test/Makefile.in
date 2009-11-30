@@ -6,7 +6,7 @@
 srcdir=@datadir@/actors-test
 
 # New categories also needs to be added in second last rule of this file
-CATEGORIES=SystemActors MPEG4_SP_Decoder
+CATEGORIES=SystemActors MPEG4_SP_Decoder RVC_MPEG4_SP_Decoder
 
 .PHONY: all report help clean FORCE $(CATEGORIES)
 

@@ -4,7 +4,7 @@
 .SUFFIXES:   
 
 # Contents of actors-make
-TEST_DIRS=SystemActors MPEG4_SP_Decoder
+TEST_DIRS=SystemActors MPEG4_SP_Decoder RVC_MPEG4_SP_Decoder
 MK_FILE_DEST=$(datadir)/actors-test/Makefile
 
 # Directories

@@ -1,0 +1,28 @@
+network idct2dTest() ==> :
+
+var
+	PIX_SZ = 9;
+	SAMPLE_SZ = 13;
+
+entities
+
+        sourceIn = art_Source_txt(fileName = "@datadir@/actors-test/RVC_MPEG4_SP_Decoder/input/idct2dTest/in.txt");
+
+        sourceSigned = art_Source_txt(fileName = "@datadir@/actors-test/RVC_MPEG4_SP_Decoder/input/idct2dTest/signed.txt");
+
+
+        idct2d = idct2d_23002(
+		SIN_SZ = SAMPLE_SZ,
+		PIX_SZ = PIX_SZ
+	);
+
+        sinkOut = art_Sink_txt(fileName = "./output/idct2dTest/out.txt");
+
+
+structure
+        sourceIn.Out --> idct2d.IN;
+
+	sourceSigned.Out --> idct2d.SIGNED;
+
+        idct2d.OUT --> sinkOut.In;
+end
