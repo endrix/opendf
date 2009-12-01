@@ -53,6 +53,7 @@ ENDCOPYRIGHT
     <design name="{@name}">
       <xsl:apply-templates select="Port"/>
       <xsl:apply-templates select="//Decl/Type[@name='List']" mode="typedef"/>
+      <xsl:apply-templates select="//Decl//Note[@kind='exprType']" mode="typedef"/>
       <xsl:apply-templates select="//Stmt//Note[@kind='exprType']/Type[@name='List']" mode="typedef"/>      
       <xsl:apply-templates select="//Output//Note[@kind='exprType']/Type[@name='List']" mode="typedef"/>      
       <xsl:apply-templates select="//Output/Type[@name='List']" mode="typedef"/>            
@@ -65,8 +66,7 @@ ENDCOPYRIGHT
       <xsl:call-template name="scheduler">
         <xsl:with-param name="actor" select="."/>
       </xsl:call-template>
-    </design>
-    
+    </design>   
   </xsl:template>
 
   <xsl:template match="Type[@name='List']" mode="typedef">       
@@ -182,13 +182,15 @@ ENDCOPYRIGHT
             <xsl:attribute name="{@name}"><xsl:value-of select="@value"/></xsl:attribute> 
           </xsl:for-each>  
           <xsl:apply-templates select="Expr" mode="init-var"/>
-          <xsl:if test="not( Expr )">
+          <!--
+          <xsl:if test="not( Expr )">            
             <initValue value="0">
               <xsl:for-each select="$var-type-attrs/attr">
                 <xsl:attribute name="{@name}"><xsl:value-of select="@value"/></xsl:attribute> 
               </xsl:for-each>              
             </initValue>
           </xsl:if>
+          -->
         </stateVar>
       </xsl:when>
 
@@ -279,17 +281,26 @@ ENDCOPYRIGHT
         </xsl:otherwise>
       </xsl:choose>
     </xsl:variable>
-         
-    <operation kind="$literal_Integer" value="{count(Decl)}"> 
-      <port dir="out" size="32" source="{concat(./@id, '$',./@port, '$tokenCount')}" typeName="int"/> 
-    </operation> 
-    
+
+    <xsl:choose>    
+      <xsl:when test="Decl/Note[@kind='Repeat-applied']">    
+        <operation kind="$literal_Integer" value="{Decl/Note[@kind='Repeat-applied']/@value * count(Decl) }"> 
+          <port dir="out" size="32" source="{concat(./@id, '$',./@port, '$tokenCount')}" typeName="int"/> 
+        </operation>         
+      </xsl:when>
+      <xsl:otherwise>
+        <operation kind="$literal_Integer" value="{count(Decl)}"> 
+          <port dir="out" size="32" source="{concat(./@id, '$',./@port, '$tokenCount')}" typeName="int"/> 
+        </operation>         
+      </xsl:otherwise>
+    </xsl:choose>
+
     <operation kind="$ge"> 
       <port dir="in" source="{concat(./@port, '$pinAvail')}"/> 
       <port dir="in" source="{concat(./@id, '$',./@port, '$tokenCount')}"/> 
       <port dir="out" size="1" source="{concat(@id, '$ready')}" typeName="bool"/> 
-    </operation>
-    
+    </operation>            
+           
     <xsl:for-each select="Decl">
       <xsl:variable name="type-attrs">
         <xsl:apply-templates select="Type"/>
@@ -866,9 +877,19 @@ ENDCOPYRIGHT
 
             <xsl:for-each select="Output">
               <xsl:variable name="port" select="@port"/>
-                <operation kind="$literal_Integer" value="{count(Expr)}">
-                  <port source="{concat($actionId, '$', $port, '$exprCount')}" dir="out" typeName="int" size="32"/>
-                </operation>              
+                <xsl:choose>
+                  <xsl:when test="Note[@kind='Repeat-applied']">
+                    <operation kind="$literal_Integer" value="{count(Expr) * Note[@kind='Repeat-applied']/@value}">
+                      <port source="{concat($actionId, '$', $port, '$exprCount')}" dir="out" typeName="int" size="32"/>
+                    </operation>                                                      
+                  </xsl:when>
+                  <xsl:otherwise>
+                    <operation kind="$literal_Integer" value="{count(Expr)}">
+                      <port source="{concat($actionId, '$', $port, '$exprCount')}" dir="out" typeName="int" size="32"/>
+                    </operation>                                                      
+                  </xsl:otherwise>              
+                </xsl:choose>
+                            
                 <operation kind="$ge">                       
                   <port source="{concat(../../Port[@name=$port]/@id,'$status')}" dir="in"/>
                   <port source="{concat($actionId, '$', $port, '$exprCount')}" dir="in"/>
