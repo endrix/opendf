@@ -10,7 +10,7 @@ endif
 
 DEST_DIR=$(datadir)/actors-test/RVC_MPEG4_SP_Decoder
 
-TESTS=idct2dTest texture_16x16Test motionTest parserTest
+TESTS=idct2dTest texture_16x16Test motionTest parserTest decoderTest
 
 # Files that need to be modified when installed (excluding .in suffix)
 IN_FILES=Makefile $(TESTS:%=%.nl)
@@ -33,12 +33,15 @@ CAL_FILES=art_Sink_bin.cal art_Sink_txt.cal art_Source_txt.cal \
           MPEG4_algo_Interpolation_halfpel.cal MPEG4_algo_Add.cal \
           ParseHeaders.cal MVSequence.cal MVReconstruct.cal BlockExpand.cal \
           splitter_BTYPE.cal splitter_MV.cal splitter_420_B.cal \
-          splitter_Qp.cal
+          splitter_Qp.cal MPEG4_algo_ byte2bit.cal GEN_mgnt_Merger420.cal \
+          DCRaddressing_8x8.cal MPEG4_algo_IAP_8x8.cal \
+          MPEG4_algo_DCRinvpred_chroma_8x8.cal
 
 # TODO: We should need no additional networks
 
 XDF_FILES=idct2d_23002.xdf texture_16x16.xdf DC_Reconstruction_16x16.xdf \
-          motion.xdf orcc_parser.xdf
+          motion.xdf orcc_parser.xdf DC_Reconstruction_8x8.xdf \
+          texture_8x8.xdf orcc_decoder.xdf
 
 SUBDIRS=input gold $(TESTS:%=input/%) $(TESTS:%=gold/%)
 

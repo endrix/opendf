@@ -70,6 +70,6 @@ structure
     parser.MV_V --> sinkMV_V.In;
     parser.B_V --> sinkB_V.In;
     parser.QUANT_V --> sinkQUANT_V.In;
-    parser.WIDTH --> sinkWidth.In;
-    parser.HEIGHT --> sinkHeight.In;
+    parser.WIDTH --> sinkWIDTH.In;
+    parser.HEIGHT --> sinkHEIGHT.In;
 end
