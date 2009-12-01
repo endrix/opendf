@@ -7,7 +7,7 @@
 export srcdir=@datadir@/actors-test/RVC_MPEG4_SP_Decoder
 
 # Default definitions of tools and directories
-include /home/ecarvon/actors/share/actors-make/definitions.mk
+include @datadir@/actors-make/definitions.mk
 
 TITLE=RVC_MPEG4_SP_Decoder
 
