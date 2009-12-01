@@ -48,7 +48,8 @@
               <Entry kind="Expr" name="size">
                 <xsl:copy-of select="../Repeat/Expr"/>
               </Entry>  
-            </Type>            
+            </Type>  
+            <Note kind="Repeat-applied" value="{../Repeat/Expr/@value}" />
           </xsl:when>
           <xsl:otherwise>
             <xsl:copy-of select="../../../Port[@kind='Input'][@name=$port]/Type"/>
@@ -76,7 +77,8 @@
               <Entry kind="Expr" name="size">
                 <xsl:copy-of select="./Repeat/Expr"/>
               </Entry>  
-            </Type>            
+            </Type>  
+            <Note kind="Repeat-applied" value="{./Repeat/Expr/@value}" />          
           </xsl:when>
           <xsl:otherwise>
             <xsl:copy-of select="../../Port[@kind='Output'][@name=$port]/Type"/>
@@ -91,7 +93,7 @@
   </xd:doc>
   
   
-  <xsl:template match="Repeat"/>
+ <xsl:template match="Repeat"/> 
 
 
 
