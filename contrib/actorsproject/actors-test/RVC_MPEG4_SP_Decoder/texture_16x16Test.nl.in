@@ -34,5 +34,5 @@ structure
 
         sourceQP.Out --> texture.QP;
 
-        texture.QP --> sinkf.In;
+        texture.f --> sinkf.In;
 end
