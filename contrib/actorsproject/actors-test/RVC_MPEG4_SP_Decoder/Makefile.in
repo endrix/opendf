@@ -11,7 +11,7 @@ include @datadir@/actors-make/definitions.mk
 
 TITLE=RVC_MPEG4_SP_Decoder
 
-ALL_TEST_MODELS=idct2dTest texture_16x16Test
+ALL_TEST_MODELS=idct2dTest texture_16x16Test motionTest
 
 LOCAL_SKIP=$(filter $(SKIPPED_TEST_MODELS:$(TITLE)/%=%), $(ALL_TEST_MODELS))
 RUN_TEST_MODELS=$(filter-out $(LOCAL_SKIP), $(ALL_TEST_MODELS))
