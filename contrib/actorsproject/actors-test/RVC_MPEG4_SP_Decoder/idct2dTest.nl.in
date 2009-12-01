@@ -6,9 +6,9 @@ var
 
 entities
 
-        sourceIn = art_Source_txt(fileName = "@datadir@/actors-test/RVC_MPEG4_SP_Decoder/input/idct2dTest/in.txt");
+        sourceIn = art_Source_txt(fileName = "@datadir@/actors-test/RVC_MPEG4_SP_Decoder/input/idct2dTest/IN.txt");
 
-        sourceSigned = art_Source_txt(fileName = "@datadir@/actors-test/RVC_MPEG4_SP_Decoder/input/idct2dTest/signed.txt");
+        sourceSigned = art_Source_txt(fileName = "@datadir@/actors-test/RVC_MPEG4_SP_Decoder/input/idct2dTest/SIGNED.txt");
 
 
         idct2d = idct2d_23002(
@@ -16,7 +16,7 @@ entities
 		PIX_SZ = PIX_SZ
 	);
 
-        sinkOut = art_Sink_txt(fileName = "./output/idct2dTest/out.txt");
+        sinkOut = art_Sink_txt(fileName = "./output/idct2dTest/OUT.txt");
 
 
 structure

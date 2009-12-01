@@ -1,0 +1,38 @@
+network texture_16x16Test() ==> :
+
+var
+	PIX_SZ = 9;
+	SAMPLE_SZ = 13;
+
+entities
+
+        sourceBTYPE = art_Source_txt(fileName = "@datadir@/actors-test/RVC_MPEG4_SP_Decoder/input/texture_16x16Test/BTYPE.txt");
+
+	sourceQFS = art_Source_txt(fileName = "@datadir@/actors-test/RVC_MPEG4_SP_Decoder/input/texture_16x16Test/QFS.txt");
+
+        sourceQP = art_Source_txt(fileName = "@datadir@/actors-test/RVC_MPEG4_SP_Decoder/input/texture_16x16Test/QP.txt");
+
+        texture = texture_16x16(MAXW_IN_MB=121,
+                                MB_COORD_SZ=8,
+                                BTYPE_SZ=12,
+                                SAMPLE_SZ=13,
+                                NEWVOP=2048,
+                                INTRA=1024,
+                                INTER=512,
+                                QUANT_MASK=31,
+                                ACCODED=2,
+                                ACPRED=1,
+                                QUANT_SZ=6);
+
+        sinkf = art_Sink_txt(fileName = "./output/texture_16x16Test/f.txt");
+
+
+structure
+        sourceBTYPE.Out --> texture.BTYPE;
+
+	sourceQFS.Out --> texture.QFS;
+
+        sourceQP.Out --> texture.QP;
+
+        texture.QP --> sinkf.In;
+end
