@@ -69,8 +69,13 @@ class MutableReaderContext extends ReaderContext {
 	}
 	
 	public void addTypeDef(String identifier, XlimType type) {
-		if (mTypeDefs.put(identifier,type)!=null)
+		XlimType oldType=mTypeDefs.get(identifier);
+		
+		if (oldType==null)
+			mTypeDefs.put(identifier, type);
+		else if (type!=oldType)
 			throw new IllegalArgumentException("Multiple definitions of type "+identifier);
+		// else: multiple definitions of identical types
 	}
 	
 	public void enterTask(XlimTaskModule task) {
