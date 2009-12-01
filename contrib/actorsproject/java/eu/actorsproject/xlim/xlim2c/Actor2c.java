@@ -394,7 +394,7 @@ public class Actor2c extends OutputGenerator {
 				String type=getElementType(initValue);
 				String name=mSymbols.getAggregateInitializer(stateVar);
 				int length=initValue.totalNumberOfElements();
-				println("const " + type + " " + name + "[" + length + "] = {");
+				println("static const " + type + " " + name + "[" + length + "] = {");
 				increaseIndentation();
 				
 				String delimiter="";
