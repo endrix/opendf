@@ -10,7 +10,7 @@ endif
 
 DEST_DIR=$(datadir)/actors-test/RVC_MPEG4_SP_Decoder
 
-TESTS=idct2dTest
+TESTS=idct2dTest texture_16x16Test
 
 # Files that need to be modified when installed (excluding .in suffix)
 IN_FILES=Makefile $(TESTS:%=%.nl)
@@ -25,19 +25,26 @@ SEDCMD:=$(shell $(SEDIFY) @datadir@ $(datadir))
 
 CAL_FILES=art_Sink_bin.cal art_Sink_txt.cal art_Source_txt.cal \
           art_Source_bin.cal Clip.cal rightshift.cal Scale.cal \
-          scaled_1d_idct.cal Transpose.cal
+          scaled_1d_idct.cal Transpose.cal \
+          GEN_mgnt_DCSplit.cal MPEG4_algo_DCRaddressing_16x16.cal \
+          MPEG4_algo_DCRinvpred_luma_16x16.cal MPEG4_algo_IAP_16x16.cal \
+          MPEG4_algo_Inversequant.cal MPEG4_algo_IS.cal
 
 # TODO: We should need no additional networks
 
-NL_FILES=idct2d_23002.nl
+XDF_FILES=idct2d_23002.xdf texture_16x16.xdf DC_Reconstruction_16x16.xdf
 
 SUBDIRS=input gold $(TESTS:%=input/%) $(TESTS:%=gold/%)
- 
-INPUT_DATA=input/idct2dTest/in.txt input/idct2dTest/signed.txt
 
-GOLDEN_DATA=gold/idct2dTest/out.txt
+INPUT_DATA=input/idct2dTest/IN.txt input/idct2dTest/SIGNED.txt \
+           input/texture_16x16Test/BTYPE.txt \
+           input/texture_16x16Test/QFS.txt \
+           input/texture_16x16Test/QP.txt 
 
-COPY_FILES=$(CAL_FILES) $(NL_FILES) $(INPUT_DATA) $(GOLDEN_DATA)
+GOLDEN_DATA=gold/idct2dTest/OUT.txt \
+            gold/texture_16x16Test/f.txt
+
+COPY_FILES=$(CAL_FILES) $(XDF_FILES) $(INPUT_DATA) $(GOLDEN_DATA)
 
 .PHONY: install install_dir copy_files in_files bitstreams
 
