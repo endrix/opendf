@@ -136,7 +136,7 @@ actor ParseHeaders (
   // completion with the boolean done_reading_bits() and get the value
   // with read_result(). Use the done function in a guard to wait for the
   // reading to be complete.
-  int(size=7) bits_to_read_count := -1;
+  int(size=8) bits_to_read_count := -1;
   int(size=32) read_result_in_progress;
 
 // ECARVON: procedure inlined manually (not properly done otherwise)
@@ -592,8 +592,8 @@ send_new_vop_height: action ==> BTYPE: [ vol_height ], HEIGHT: [ vol_height ] en
   guard 
 	done_reading_bits()
   do
+	prev_quant:=vop_quant;
 	if (btype_is_Q) then
-		prev_quant:=vop_quant;
 		vop_quant:=vop_quant+dquant_table[read_result()];
         if ( vop_quant > 31 ) then 
             vop_quant := 31 ;
@@ -602,6 +602,7 @@ send_new_vop_height: action ==> BTYPE: [ vol_height ], HEIGHT: [ vol_height ] en
             vop_quant := 1 ;
 		end
 	end
+	vop_quant:=vop_quant;
   end
   
   mb_dispatch_done: action ==>

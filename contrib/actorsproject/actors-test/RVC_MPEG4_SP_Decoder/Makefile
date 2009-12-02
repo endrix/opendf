@@ -69,7 +69,10 @@ GOLDEN_DATA=gold/idct2dTest/OUT.txt \
             gold/parserTest/B_V.txt \
             gold/parserTest/QUANT_V.txt \
             gold/parserTest/WIDTH.txt \
-            gold/parserTest/HEIGHT.txt
+            gold/parserTest/HEIGHT.txt \
+            gold/decoderTest/VID.txt \
+            gold/decoderTest/WIDTH.txt \
+            gold/decoderTest/HEIGHT.txt
 
 COPY_FILES=$(CAL_FILES) $(XDF_FILES) $(INPUT_DATA) $(GOLDEN_DATA)
 
