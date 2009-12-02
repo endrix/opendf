@@ -11,6 +11,9 @@ include @datadir@/actors-make/definitions.mk
 
 TITLE=RVC_MPEG4_SP_Decoder
 
+# We currently use for(int i=...) for vector casts and thus need C99
+export CFLAGS += -std=c99
+
 ALL_TEST_MODELS=idct2dTest texture_16x16Test motionTest parserTest decoderTest
 
 LOCAL_SKIP=$(filter $(SKIPPED_TEST_MODELS:$(TITLE)/%=%), $(ALL_TEST_MODELS))
