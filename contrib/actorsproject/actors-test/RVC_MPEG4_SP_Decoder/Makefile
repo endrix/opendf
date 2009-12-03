@@ -33,7 +33,7 @@ CAL_FILES=art_Sink_bin.cal art_Sink_txt.cal art_Source_txt.cal \
           MPEG4_algo_Interpolation_halfpel.cal MPEG4_algo_Add.cal \
           ParseHeaders.cal MVSequence.cal MVReconstruct.cal BlockExpand.cal \
           splitter_BTYPE.cal splitter_MV.cal splitter_420_B.cal \
-          splitter_Qp.cal MPEG4_algo_ byte2bit.cal GEN_mgnt_Merger420.cal \
+          splitter_Qp.cal byte2bit.cal GEN_mgnt_Merger420.cal \
           MPEG4_algo_DCRaddressing_8x8.cal MPEG4_algo_IAP_8x8.cal \
           MPEG4_algo_DCRinvpred_chroma_8x8.cal
 

@@ -56,7 +56,7 @@ actor MPEG4_algo_Inversequant ( int QUANT_SZ, int SAMPLE_SZ ) int(size=SAMPLE_SZ
     j:=0;
     while (j<63) do
       v := quant*(lshift( abs(i[j]), 1) + 1) - round;
-      o[j] := if i[j]<0 then 0
+      o[j] := if i[j] = 0 then 0
               else if i[j]<0 then saturate(-v)
               else saturate(v) end end;
       j := j + 1;
