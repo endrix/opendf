@@ -13,7 +13,7 @@ DEST_DIR=$(datadir)/actors-test/RVC_MPEG4_SP_Decoder
 TESTS=idct2dTest texture_16x16Test motionTest parserTest decoderTest
 
 # Files that need to be modified when installed (excluding .in suffix)
-IN_FILES=Makefile $(TESTS:%=%.nl)
+IN_FILES=Makefile $(TESTS:%=%.nl) decoderDemo.nl
 
 # Generate sed scripts that substitutes @datadir@
 SEDIFY=$(srcdir)/../../install-scripts/sedify.sh
@@ -24,8 +24,8 @@ SEDCMD:=$(shell $(SEDIFY) @datadir@ $(datadir))
 #       and Idct2dSeq.cal
 
 CAL_FILES=art_Sink_bin.cal art_Sink_txt.cal art_Source_txt.cal \
-          art_Source_bin.cal Clip.cal rightshift.cal Scale.cal \
-          scaled_1d_idct.cal Transpose.cal \
+          art_Source_bin.cal art_Display_yuv.cal \
+          Clip.cal rightshift.cal Scale.cal scaled_1d_idct.cal Transpose.cal \
           GEN_mgnt_DCSplit.cal MPEG4_algo_DCRaddressing_16x16.cal \
           MPEG4_algo_DCRinvpred_luma_16x16.cal MPEG4_algo_IAP_16x16.cal \
           MPEG4_algo_Inversequant.cal MPEG4_algo_IS.cal \
@@ -78,7 +78,7 @@ COPY_FILES=$(CAL_FILES) $(XDF_FILES) $(INPUT_DATA) $(GOLDEN_DATA)
 
 .PHONY: install install_dir copy_files in_files bitstreams
 
-install: install_dirs copy_files in_files # bitstreams
+install: install_dirs copy_files in_files bitstreams
 
 # Create directory
 install_dirs:
@@ -98,5 +98,5 @@ in_files:
 
 bitstreams:
 	@mkdir -p $(DEST_DIR)/input/decoderDemo
-	@cp $(srcdir)/input/decoderDemo/foreman_qcif_30.bit \
+	@cp -d $(srcdir)/input/decoderDemo/foreman_qcif_30.bit \
             $(DEST_DIR)/input/decoderDemo
