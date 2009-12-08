@@ -1,0 +1,11 @@
+BUGS on actorsproject-vector branch
+
+1. "Old" tests (Xlinx MPEG4_SP_Decoder) no longer passes
+   Identify issues...
+
+2. Local aggregates (Lists) require initializers to compile
+
+3. Comprehensions with generators not supported
+
+4. Multiple actions with identical "tags" result in multiple XLIM tasks
+   that have the same name. Did this work properly in old SsaGenerator?
