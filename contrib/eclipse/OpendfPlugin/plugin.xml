@@ -35,7 +35,6 @@
             contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
             default="true"
             extensions="cal"
-            filenames="*.cal"
             icon="icons/actor.gif"
             id="opendf.editors.CAL"
             name="CAL Editor">
@@ -45,7 +44,6 @@
             contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
             default="true"
             extensions="nl"
-            filenames="*.nl"
             icon="icons/network.gif"
             id="opendf.editors.NL"
             name="NL Editor"/>
