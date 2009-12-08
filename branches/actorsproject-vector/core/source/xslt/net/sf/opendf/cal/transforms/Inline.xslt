@@ -110,7 +110,7 @@
   <xsl:template match="Stmt[@kind='Call'][Expr[@kind='Let' and Expr[@kind='Var']]]">
     <xsl:param name="actor" select="UNDEFINED"/>
     
-    <xsl:variable name="args" select="Expr[@kind='Let']/Args"/>
+    <xsl:variable name="args" select="Args/Expr[@kind='Let']"/>
     <!-- get name of procedure -->        
     <xsl:variable name="pname" select="Expr[@kind='Let']/Expr[@kind='Var']/@name"/>
     
