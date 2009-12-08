@@ -91,7 +91,7 @@ public class SSAGenerator extends XSLTTransformRunner
         // "net/sf/opendf/cal/transforms/Scalarize.xslt", 
         // "net/sf/opendf/cal/transforms/AddID.xslt",
         
-        "net/sf/opendf/cal/transforms/FlattenComprehensions.xslt",            
+        // "net/sf/opendf/cal/transforms/FlattenComprehensions.xslt",            
         "net/sf/opendf/cal/transforms/VariableAnnotator.xslt",
                 
 //         "net/sf/opendf/cal/transforms/ContextInfoAnnotator.xslt",
