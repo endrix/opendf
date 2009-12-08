@@ -131,7 +131,9 @@ ENDCOPYRIGHT
   </xsl:template>
   
   <xsl:template match="Type">
-    <xsl:message>Error Here!</xsl:message>
+    <xsl:message>
+      Error Here:<xsl:value-of select="."/>  
+    </xsl:message>
   </xsl:template>
   
   <xsl:template match="Port">
@@ -254,7 +256,15 @@ ENDCOPYRIGHT
   <!-- Any number of reads supported --> 
   <xsl:template match="Input">
     <xsl:variable name="port" select="@port"/>
-    <note kind="consumptionRates" name="{$port}" value="{count(Decl)}"/>          
+    <xsl:choose>    
+      <xsl:when test="Decl/Note[@kind='Repeat-applied']">    
+        <note kind="consumptionRates" name="{$port}" value="{Decl/Note[@kind='Repeat-applied']/@value * count(Decl) }"/>  
+      </xsl:when>
+      <xsl:otherwise>
+        <note kind="consumptionRates" name="{$port}" value="{count(Decl)}"/>       
+      </xsl:otherwise>
+    </xsl:choose>
+               
     <xsl:for-each select="Decl">
       <xsl:variable name="type-info">
         <xsl:apply-templates select="Type" mode="definition"/>
@@ -513,7 +523,14 @@ ENDCOPYRIGHT
         <port dir="in" source="{concat(@id,'$output')}"/>
       </operation>
     </xsl:for-each>
-    <note kind="productionRates" name="{@port}" value="{count(Expr)}"/>    
+    <xsl:choose>
+      <xsl:when test="Note[@kind='Repeat-applied']">
+        <note kind="productionRates" name="{@port}" value="{count(Expr) * Note[@kind='Repeat-applied']/@value}"/>    
+      </xsl:when>
+      <xsl:otherwise>
+        <note kind="productionRates" name="{@port}" value="{count(Expr)}"/>    
+      </xsl:otherwise>              
+    </xsl:choose>
   </xsl:template>
 
   <xsl:template match="Stmt[ @kind='Assign' ]">
