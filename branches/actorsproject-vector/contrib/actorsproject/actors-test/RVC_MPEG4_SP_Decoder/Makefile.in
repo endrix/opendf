@@ -1,4 +1,4 @@
-# MPEG4_SP_Decoder module tests
+# RVC_MPEG4_SP_Decoder module tests
 
 # delete the built-in suffixes to avoid surprises
 .SUFFIXES:   
