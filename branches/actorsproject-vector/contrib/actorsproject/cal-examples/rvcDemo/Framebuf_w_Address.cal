@@ -212,7 +212,11 @@ actor Framebuf_w_Address (
                       0 
                     end,
     int clip_right = if (x+9 > vop_width_in_samples) then
-                        x + 9 - vop_width_in_samples
+                        if x>=vop_width_in_samples then
+                          9
+                        else
+                          x + 9 - vop_width_in_samples
+                        end
                      else
                         0
                      end,
