@@ -45,9 +45,17 @@ public class TemporaryVariable extends Linkage<TemporaryVariable>{
 
 	private XlimOutputPort mCreatedFrom;
 	private TemporaryVariable mMergedWith;
+	private int mLiveRangeStart;
+	private int mLiveRangeEnd;
+	private int mFirstMutation;
+	private int mLastMutation;
 	
 	public TemporaryVariable(XlimOutputPort port) {
 		mCreatedFrom=port;
+		mLiveRangeStart=Integer.MAX_VALUE;
+		mLiveRangeEnd=Integer.MIN_VALUE;
+		mFirstMutation=Integer.MAX_VALUE;
+		mLastMutation=Integer.MIN_VALUE;
 	}
 	
 	public TemporaryVariable getElement() {
@@ -98,5 +106,99 @@ public class TemporaryVariable extends Linkage<TemporaryVariable>{
 		while (temp.mMergedWith!=null)
 			temp=temp.mMergedWith;
 		return temp;
+	}
+	
+	public void mergeWith(TemporaryVariable temp) {
+		assert(mMergedWith==null);
+		temp=temp.getClassLeader();
+		
+		if (temp!=this) {
+			mMergedWith=temp;
+		
+			// Update live range
+			temp.mergeLiveRange(this);
+		
+			// remove from scope
+			out();
+		}
+		// else: already in same equivalence class
+	}
+	
+	private void mergeLiveRange(TemporaryVariable temp) {
+		if (temp.mLiveRangeStart < mLiveRangeStart)
+			mLiveRangeStart=temp.mLiveRangeStart;
+		
+		if (mLiveRangeEnd < temp.mLiveRangeEnd)
+			mLiveRangeEnd =temp.mLiveRangeEnd;
+		
+		if (temp.isMutated()) {
+			if (temp.mFirstMutation < mFirstMutation)
+				mFirstMutation=temp.mFirstMutation;
+			
+			if (mLastMutation < temp.mLastMutation)
+				mLastMutation =temp.mLastMutation;
+		}
+	}
+	
+	/**
+	 * @param lrStart  definition point
+	 * 
+	 * Creates an initial live range [lrStart,lrStart), which can later
+	 * be extended (using extendLiveRange) so that the end-point is further away.
+	 */
+	public void createLiveRange(int lrStart) {
+		assert(mLiveRangeStart==Integer.MAX_VALUE);
+		mLiveRangeStart=lrStart;
+		mLiveRangeEnd=lrStart;
+	}
+	
+	/**
+	 * @param newLrEnd
+	 * 
+	 * Extends the live range to newLrEnd (non-inclusive)
+	 * If we already have a later end-point, there's no effect.
+	 */
+	public void extendLiveRange(int newLrEnd) {
+		assert(newLrEnd>=mLiveRangeStart);
+		if (newLrEnd>mLiveRangeEnd)
+			mLiveRangeEnd=newLrEnd;
+	}
+
+	public boolean hasLiveRange() {
+		return mLiveRangeStart!=Integer.MAX_VALUE;
+	}
+	
+	public int getLiveRangeStart() {
+		return mLiveRangeStart;
+	}
+	
+	public int getLiveRangeEnd() {
+		return mLiveRangeEnd;
+	}
+	public void registerMutation(int atEvent) {
+		extendLiveRange(atEvent);
+		if (mLastMutation<=atEvent) {
+			mLastMutation=atEvent+1;
+			if (mFirstMutation==Integer.MAX_VALUE)
+				mFirstMutation=atEvent;
+		}
+	}
+	
+	public boolean isMutated() {
+		return mFirstMutation!=Integer.MAX_VALUE;
+	}
+	
+	public int getFirstMutation() {
+		return mFirstMutation;
+	}
+	
+	public int getLastMutation() {
+		return mLastMutation;
+	}
+	
+	public boolean mutationOverlaps(TemporaryVariable temp) {
+		return isMutated() 
+		       && temp.getLiveRangeStart() < mLastMutation 
+		       && mFirstMutation < temp.getLiveRangeEnd();
 	}
 }
