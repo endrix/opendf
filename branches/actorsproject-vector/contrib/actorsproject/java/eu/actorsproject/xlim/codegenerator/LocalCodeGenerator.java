@@ -84,7 +84,10 @@ public abstract class LocalCodeGenerator implements ExpressionTreeGenerator {
 	
 	protected void storageAllocation(XlimTaskModule task) {
 		LocalStorageAllocation storageAllocation=new LocalStorageAllocation(mLocalSymbols, mPlugIn);
+		LocalStorageAssignment storageAssignment=new LocalStorageAssignment(mLocalSymbols);
+		
 		storageAllocation.allocateStorage(task);
+		storageAssignment.coalesceLiveRanges(task);
 	}
 	
 	protected void generateCode(XlimContainerModule m) {

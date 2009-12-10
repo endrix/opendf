@@ -71,8 +71,10 @@ public class XlimTransformer {
 			codeMotion(design);
 		if (mTransformToNativeTypes)
 			mNativeTypeTransformation.transform(design);
-        // TODO: By changing the types we enable more copy propagation
-		// TODO: Copy propagation enables more dead-code removal
+		if (mDoCopyPropagation)
+			copyPropagate(design);
+		if (mDoDeadCodeRemoval)
+			deadCodeElimination(design);
 	}
 
 	public void copyPropagate(XlimDesign design) {
