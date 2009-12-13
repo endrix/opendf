@@ -46,6 +46,7 @@ import eu.actorsproject.xlim.XlimIfModule;
 import eu.actorsproject.xlim.XlimLoopModule;
 import eu.actorsproject.xlim.XlimModule;
 import eu.actorsproject.xlim.XlimOperation;
+import eu.actorsproject.xlim.XlimPhiContainerModule;
 import eu.actorsproject.xlim.XlimPhiNode;
 import eu.actorsproject.xlim.XlimTaskModule;
 import eu.actorsproject.xlim.XlimTestModule;
@@ -62,6 +63,7 @@ import eu.actorsproject.xlim.dependence.ValueUsage;
  */
 public class LatestEvaluationAnalysis {
 
+	static boolean sTrace=false;
 	protected LatestEvaluationTraversal mTaskTraversal=new LatestEvaluationTraversal();
 	
 	public CodeMotionPlugIn analyze(XlimDesign design) {
@@ -136,10 +138,11 @@ class LatestEvaluationArg {
 		// Better safe than sorry, in this version we neither move state updates
 		// nor things with "volatile" side-effects (such as pinWaits)
 		if (latest==null || op.modifiesLocation() || op.isRemovable()==false) {
-			// if (latest==null)
-			//  System.out.println("// LatestEvaluationAnalysis: no latest point: "+op);
-			// else
-			//   System.out.println("// LatestEvaluationAnalysis: not moved: "+op);
+			if (LatestEvaluationAnalysis.sTrace)
+			  if (latest==null)
+			    System.out.println("// LatestEvaluationAnalysis: no latest point: "+op);
+			  else
+			   System.out.println("// LatestEvaluationAnalysis: not moved: "+op);
 			latest=earliest;
 		}
 		
@@ -155,7 +158,8 @@ class LatestEvaluationArg {
 		XlimModule child=null;
 		while (m!=earliest) {
 			if (m instanceof XlimLoopModule) {
-				// System.out.println("// LatestEvaluationAnalysis: "+op+" hoisted out of loop "+m);
+				if (LatestEvaluationAnalysis.sTrace)
+				 System.out.println("// LatestEvaluationAnalysis: "+op+" hoisted out of loop "+m);
 				latest=m;
 			}
 			else if (inputs!=null && child!=null) {
@@ -164,7 +168,8 @@ class LatestEvaluationArg {
 				for (ValueNode value: inputs) {
 					Location location=value.getLocation();
 					if (location!=null && killed.contains(location)) {
-						// System.out.println("// LatestEvaluationAnalysis: "+op+"hoisted above definition of "+location);
+						if (LatestEvaluationAnalysis.sTrace)
+						  System.out.println("// LatestEvaluationAnalysis: "+op+"hoisted above definition of "+location);
 						latest=m;
 						break;
 					}
@@ -174,7 +179,12 @@ class LatestEvaluationArg {
 			m=m.getParentModule();
 		}
 		
-		// System.out.println("// LatestEvaluationAnalysis: LATEST("+op+")="+latest);
+		if (LatestEvaluationAnalysis.sTrace) {
+		  XlimModule original=op.getParentModule();
+		  String comment=(latest==original)? " (original)" : (" (from: "+original+")");
+		  System.out.println("// LatestEvaluationAnalysis: LATEST("+op+")="+latest+comment);
+		}
+		
 		noLater(op, latest);
 		return latest;
 	}
@@ -192,38 +202,44 @@ class LatestEvaluationTraversal extends BottomUpXlimTraversal<Object,LatestEvalu
 
 	@Override
 	protected Object traverseIfModule(XlimIfModule m, LatestEvaluationArg arg) {
-		traverseStatePhiNodes(m.getStatePhiOperators(),arg);
-		super.traverseIfModule(m, arg);
+		traversePhiNodes(m,arg);
+		traverseContainerModule(m.getThenModule(),arg);
+		traverseContainerModule(m.getElseModule(),arg);
+		traverseTestModule(m.getTestModule(),arg);
 		return null;
 	}
 	
 	protected Object traverseLoopModule(XlimLoopModule m, LatestEvaluationArg arg) {
-		super.traverseLoopModule(m, arg);
-		traverseStatePhiNodes(m.getStatePhiOperators(),arg);
+		traversePhiNodes(m,arg);
+		traverseContainerModule(m.getBodyModule(),arg);
+		traverseTestModule(m.getTestModule(),arg);
 		return null;
 	}	
 
-	private void traverseStatePhiNodes(Iterable<? extends SideEffectPhiOperator> phiOperators,
-				                  LatestEvaluationArg arg) {
-		for (SideEffectPhiOperator phi: phiOperators) {
-			handlePhiOperator(phi,arg);
+	private void traversePhiNodes(XlimPhiContainerModule m,
+			                      LatestEvaluationArg arg) {
+		for (XlimPhiNode phi: m.getPhiNodes()) {
+			handlePhiOperator(phi.getValueOperator(),0, arg);
+			handlePhiOperator(phi.getValueOperator(),1, arg);
+			
+		}
+		for (SideEffectPhiOperator phi: m.getStatePhiOperators()) {
+			handlePhiOperator(phi,0, arg);
+			handlePhiOperator(phi,1, arg);
 		}
 	}
 
 	@Override
 	protected Object handlePhiNode(XlimPhiNode phi, LatestEvaluationArg arg) {
-		handlePhiOperator(phi.getValueOperator(), arg);
-		return null;
+		throw new UnsupportedOperationException();
 	}
 	
-	private void handlePhiOperator(PhiOperator phi, LatestEvaluationArg arg) {
+	private void handlePhiOperator(PhiOperator phi, int path, LatestEvaluationArg arg) {
 		// Arguments of phi-nodes must be available at end predecessor modules:
 		// "then-module" or loop pre-header for first argument
 		// "else-module" or loop body for second argument
-		ValueUsage use0=phi.getUsedValue(0);
-		ValueUsage use1=phi.getUsedValue(1);
-		arg.noLater(use0, phi.usedInModule(use0));
-		arg.noLater(use1, phi.usedInModule(use1));
+		ValueUsage use=phi.getUsedValue(path);
+		arg.noLater(use, phi.usedInModule(use));
 	}
 	
 	@Override
@@ -233,10 +249,12 @@ class LatestEvaluationTraversal extends BottomUpXlimTraversal<Object,LatestEvalu
 		// Propagate latest to the values used by 'op'
 		for (ValueUsage use: op.getValueOperator().getUsedValues()) {
 			arg.noLater(use, latest);
-			// boolean changed=arg.noLater(use, latest);
-			// if (changed)
-			//	System.out.println("// LatestEvaluationAnalysis: "+use.getValue().getUniqueId()
-			//			            +" <= LATEST("+op+")");
+			if (LatestEvaluationAnalysis.sTrace) {
+			  boolean changed=arg.noLater(use, latest);
+			  if (changed)
+			    System.out.println("// LatestEvaluationAnalysis: "+use.getValue().getUniqueId()
+			 	  		            +" <= LATEST("+op+")");
+			}
 		}
 		
 		return null;

@@ -42,8 +42,6 @@ import java.io.PrintStream;
 import eu.actorsproject.xlim.XlimOperation;
 import eu.actorsproject.xlim.XlimOutputPort;
 import eu.actorsproject.xlim.XlimPhiContainerModule;
-import eu.actorsproject.xlim.XlimPhiNode;
-import eu.actorsproject.xlim.XlimSource;
 import eu.actorsproject.xlim.XlimTaskModule;
 import eu.actorsproject.xlim.dependence.CallNode;
 import eu.actorsproject.xlim.dependence.DataDependenceGraph;

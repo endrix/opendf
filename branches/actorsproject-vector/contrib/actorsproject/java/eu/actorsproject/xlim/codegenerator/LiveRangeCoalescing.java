@@ -53,6 +53,7 @@ import eu.actorsproject.xlim.util.OperationPlugIn;
 
 public class LiveRangeCoalescing  {
 
+	protected boolean mTrace=false;
 	protected LocalSymbolTable mLocalSymbols;
 	protected OperationPlugIn<CoalesceHandler> mCoalesceHandlers;
 	protected List<XlimOperation> mCopyOps;
@@ -98,8 +99,9 @@ public class LiveRangeCoalescing  {
 	 * @param t2  Temporary variable, which is merged into t1
 	 */
 	protected void mergeLiveRanges(TemporaryVariable t1, TemporaryVariable t2) {
-		System.out.println("// "+t1.getOutputPort().getUniqueId()
-				           + " and "+t2.getOutputPort().getUniqueId()+" coalesced");
+		if (mTrace)
+			System.out.println("// "+t2.getOutputPort().getUniqueId()
+				               + " represented by "+t1.getOutputPort().getUniqueId());
 		t2.mergeWith(t1);
 	}
 	
@@ -170,14 +172,16 @@ public class LiveRangeCoalescing  {
     		
     		if (sourceTemp.mutationOverlaps(destTemp)==false
     			&& destTemp.mutationOverlaps(sourceTemp)==false) {
-    			System.out.println("// coalescing: "+op);
+    			if (mTrace)
+    				System.out.println("// coalescing: "+op);
+    			
     			mergeLiveRanges(sourceTemp,destTemp);
     			// We can now remove the operation  (so that we don't have to test 
     			// for this special case in the code generator)
     			op.getOutputPort(0).substitute(sourcePort);
     			op.getParentModule().remove(op);
     		}
-    		else {
+    		else if (mTrace) {
     			System.out.println("// couldn't coalesce: "+op+" due to overlapping mutation");
     		}
     	}
