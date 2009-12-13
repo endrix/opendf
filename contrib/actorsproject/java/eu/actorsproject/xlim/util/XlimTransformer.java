@@ -49,14 +49,17 @@ public class XlimTransformer {
 	private LatestEvaluationAnalysis mLatestEvaluationAnalysis=
 		new LatestEvaluationAnalysis();
 	private CodeMotion mCodeMotion=new CodeMotion();
+	private NativeTypePlugIn mNativeTypes=new NativeTypesDefault();
 	private NativeTypeTransformation mNativeTypeTransformation=
-		new NativeTypeTransformation(new NativeTypesDefault());
+		new NativeTypeTransformation(mNativeTypes);
+	private BitWidthReduction mBitWidthReduction=new BitWidthReduction(mNativeTypes);
 	
 	protected boolean mDoCopyPropagation=true;
 	protected boolean mDoDeadCodeRemoval=true;
 	protected boolean mGenerateBlockingWaits=true;
 	protected boolean mDoCodeMotion=true;
 	protected boolean mTransformToNativeTypes=true;
+	protected boolean mReduceBitWidth=true;
 	
 	public void transform(XlimDesign design) {
 		if (mDoCopyPropagation)
@@ -71,6 +74,8 @@ public class XlimTransformer {
 			codeMotion(design);
 		if (mTransformToNativeTypes)
 			mNativeTypeTransformation.transform(design);
+		if (mReduceBitWidth)
+			mBitWidthReduction.transform(design);
 		if (mDoCopyPropagation)
 			copyPropagate(design);
 		if (mDoDeadCodeRemoval)
