@@ -83,6 +83,7 @@ public class SSAGenerator extends XSLTTransformRunner
 
         //Replace Generators        
         "net/sf/opendf/cal/transforms/ReplaceConstantGenerators.xslt",
+        "net/sf/opendf/cal/transforms/AddID.xslt",
         "net/sf/opendf/cal/transforms/EvaluateConstantExpressions.xslt",
 
         // Convert repeats into multiple reads and writes        
@@ -90,9 +91,8 @@ public class SSAGenerator extends XSLTTransformRunner
         // "net/sf/opendf/cal/transforms/AnnotateConstantIndexers.xslt",        
         // "net/sf/opendf/cal/transforms/Scalarize.xslt", 
         // "net/sf/opendf/cal/transforms/AddID.xslt",
-        
-        // "net/sf/opendf/cal/transforms/FlattenComprehensions.xslt",            
-        "net/sf/opendf/cal/transforms/VariableAnnotator.xslt",
+         
+           "net/sf/opendf/cal/transforms/VariableAnnotator.xslt",
                 
 //         "net/sf/opendf/cal/transforms/ContextInfoAnnotator.xslt",
 //         "net/sf/opendf/cal/transforms/CanonicalizeOperators.xslt",

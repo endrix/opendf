@@ -52,7 +52,7 @@ ENDCOPYRIGHT
  
     <design name="{@name}">
       <xsl:apply-templates select="Port"/>
-      <xsl:apply-templates select="//Decl/Type[@name='List']" mode="typedef"/>
+      <xsl:apply-templates select="//Decl//Type[@name='List']" mode="typedef"/>
       <xsl:apply-templates select="//Decl//Note[@kind='exprType']" mode="typedef"/>
       <xsl:apply-templates select="//Stmt//Note[@kind='exprType']/Type[@name='List']" mode="typedef"/>      
       <xsl:apply-templates select="//Output//Note[@kind='exprType']/Type[@name='List']" mode="typedef"/>      
@@ -155,6 +155,7 @@ ENDCOPYRIGHT
       <xsl:for-each select="$type-attrs/attr">
         <xsl:attribute name="{@name}"><xsl:value-of select="@value"/></xsl:attribute>
       </xsl:for-each>
+      <!--
       <xsl:choose>
         <xsl:when test="$dir = 'in'"/>
         <xsl:when test="../Action/Output[@port=$name][ count( Expr ) > 1]">
@@ -165,6 +166,7 @@ ENDCOPYRIGHT
         <xsl:otherwise>
         </xsl:otherwise>
       </xsl:choose>
+      -->
     </actor-port>
 
   </xsl:template>

@@ -56,7 +56,7 @@
 
       <xsl:call-template name="replace-constant-generators">
         <xsl:with-param name="E">
-          <xsl:copy-of select="Expr"/>
+          <xsl:apply-templates select="Expr"/>
         </xsl:with-param>
         <xsl:with-param name="G" select="Generator"/>
       </xsl:call-template>
@@ -75,7 +75,9 @@
     <!-- Preserve the existing element information -->  
     <xsl:copy>
       <xsl:for-each select="@*">
-        <xsl:attribute name="{name()}"><xsl:value-of select="."/></xsl:attribute>
+        <xsl:if test="name()!='id'">
+          <xsl:attribute name="{name()}"><xsl:value-of select="."/></xsl:attribute>
+        </xsl:if>  
       </xsl:for-each>
       
       <xsl:apply-templates/>   
@@ -90,13 +92,13 @@
     <xsl:choose>
       <!-- all done -->
       <xsl:when test="not( $G )">
-        <xsl:copy-of select="$E/*"/>
+        <xsl:apply-templates select="$E/*"/>
       </xsl:when>
       
       <!-- generator is not constant -->
       <xsl:when test="$G/Expr[not( @kind='List' ) or Generator ]">
-        <xsl:copy-of select="$E/*"/>
-        <xsl:copy-of select="$G"/>
+        <xsl:apply-templates select="$E/*"/>
+        <xsl:apply-templates select="$G"/>
       </xsl:when>
       
       <xsl:otherwise>
@@ -106,14 +108,14 @@
               <!-- create a decl for use in a Let -->
               <xsl:variable name="D">
                 <Decl name="{../../Decl/@name}">
-                  <xsl:copy-of select="../../Decl/Type"/>
-                  <xsl:copy-of select="."/>
+                  <xsl:apply-templates select="../../Decl/Type"/>
+                  <xsl:apply-templates select="."/>
                 </Decl>
               </xsl:variable>
               <xsl:for-each select="$E/*">
                 <Expr kind="Let">
-                  <xsl:copy-of select="$D/*"/>
-                  <xsl:copy-of select="."/>
+                  <xsl:apply-templates select="$D/*"/>
+                  <xsl:apply-templates select="."/>
                 </Expr>
               </xsl:for-each>
             </xsl:for-each>

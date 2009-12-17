@@ -143,14 +143,14 @@
                   <xsl:with-param name="mode" select="$mode"/>
                 </xsl:call-template>
               </xsl:variable>  
-              <xsl:apply-templates>
+              <xsl:apply-templates select="*[not(self::Note[@kind='exprType'])]">
                 <xsl:with-param name="env" select="$local-env/env"/>
                 <xsl:with-param name="mode" select="$mode"/>
               </xsl:apply-templates>
             </xsl:when>
             <xsl:otherwise>
               <!-- use the existing environment for evaluating the children -->
-              <xsl:apply-templates>
+              <xsl:apply-templates select="*[not(self::Note[@kind='exprType'])]">
                 <xsl:with-param name="env" select="$env"/>
                 <xsl:with-param name="mode" select="$mode"/>
               </xsl:apply-templates>
@@ -209,7 +209,7 @@
           </xsl:choose>
           -->
           
-          <xsl:apply-templates select="*">
+          <xsl:apply-templates select="*[not(self::Note[@kind='exprType'])]">
             <xsl:with-param name="env" select="$env"/>
             <xsl:with-param name="mode">Initial</xsl:with-param>
           </xsl:apply-templates>
@@ -220,6 +220,7 @@
     
   </xsl:template>
    
+        
   <xsl:template match="*">
     <xsl:param name="env" select="$empty-env/env"/>
     <xsl:param name="mode">Runtime</xsl:param>
