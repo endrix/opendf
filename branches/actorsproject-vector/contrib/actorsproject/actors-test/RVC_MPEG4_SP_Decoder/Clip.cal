@@ -13,8 +13,6 @@
 // Author: Matthieu Wipliez (mwipliez@insa-rennes.fr)
 // Rewrote the actor at block-level
 
-// ECARVON: comprehension -> loop
-
 // Limit pixel value to either [0,255] or [-255,255]
 
 actor GEN_algo_Clip ( int isz, int osz ) int(size=isz) I, bool SIGNED ==> int(size=osz) O :
@@ -26,24 +24,20 @@ actor GEN_algo_Clip ( int isz, int osz ) int(size=isz) I, bool SIGNED ==> int(si
     sflag := s;
   end
 
-  clip: action I:[ x ] repeat 64 ==> O:[ y ] repeat 64
-  var
-    List(type:int(size=osz), size=64) y = [ 0: for k in Integers(0,63) ],
-    int min=if (sflag) then -255 else 0 end,
-    int i:=0
-  do
-    while (i<64) do
-      y[i]:=if x[i]>255 then
-              255
-            else
-              if x[i]<min then
-                min
-              else
-                x[i]
-              end
-            end;
-      i:=i+1;
-    end
+  clip: action I:[ x ] repeat 64 ==> O: [
+    [ if x[i] > 255 then
+        255
+      else
+        if (not sflag) and x[i] < 0 then
+          0
+        else
+          if x[i] < -255 then
+            -255
+          else
+            x[i]
+  end
+  end
+      end : for int i in Integers(0, 63) ] ] repeat 64
   end     
 
   schedule fsm set_sign:

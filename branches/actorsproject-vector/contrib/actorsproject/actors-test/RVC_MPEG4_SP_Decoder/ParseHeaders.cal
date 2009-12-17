@@ -136,17 +136,13 @@ actor ParseHeaders (
   // completion with the boolean done_reading_bits() and get the value
   // with read_result(). Use the done function in a guard to wait for the
   // reading to be complete.
-  int(size=8) bits_to_read_count := -1;
+  int(size=7) bits_to_read_count := -1;
   int(size=32) read_result_in_progress;
-
-// ECARVON: procedure inlined manually (not properly done otherwise)
-  /*
   procedure set_bits_to_read( int count )
   begin
     bits_to_read_count := count - 1;
     read_result_in_progress := 0;
   end
-  */
   function done_reading_bits() --> bool : bits_to_read_count < 0 end
   function read_result() --> int : read_result_in_progress end
   action bits:[ b ] ==>
@@ -171,21 +167,13 @@ actor ParseHeaders (
   guard
     done_reading_bits()
   do
-//  set_bits_to_read(
-//     if b then
-//       // is_object_layer_identifier asserted
-//       VISUAL_OBJECT_LAYER_VERID_LENGTH + VISUAL_OBJECT_LAYER_PRIORITY_LENGTH + ASPECT_RATIO_INFO_LENGTH
-//     else
-//       ASPECT_RATIO_INFO_LENGTH
-//     end );
-
-    bits_to_read_count:=if b then
+    set_bits_to_read(
+       if b then
          // is_object_layer_identifier asserted
-         VISUAL_OBJECT_LAYER_VERID_LENGTH + VISUAL_OBJECT_LAYER_PRIORITY_LENGTH + ASPECT_RATIO_INFO_LENGTH - 1
+         VISUAL_OBJECT_LAYER_VERID_LENGTH + VISUAL_OBJECT_LAYER_PRIORITY_LENGTH + ASPECT_RATIO_INFO_LENGTH
        else
-         ASPECT_RATIO_INFO_LENGTH - 1
-       end;
-    read_result_in_progress := 0;
+         ASPECT_RATIO_INFO_LENGTH
+       end );
     bit_count := bit_count + 1;
   end
 
@@ -195,9 +183,7 @@ actor ParseHeaders (
     mask_bits( read_result(), ASPECT_RATIO_INFO_LENGTH ) = ASPECT_RATIO_INFO_IS_DETAILED
   do
     // Skip over aspect ratio details
-    // set_bits_to_read( PAR_WIDTH_LENGTH + PAR_HEIGHT_LENGTH );
-    bits_to_read_count := PAR_WIDTH_LENGTH + PAR_HEIGHT_LENGTH - 1;
-    read_result_in_progress := 0;
+    set_bits_to_read( PAR_WIDTH_LENGTH + PAR_HEIGHT_LENGTH );
   end
 
   vol_control.detailed: action bits:[b] ==>
@@ -205,9 +191,7 @@ actor ParseHeaders (
     done_reading_bits(),
     b
   do
-    // set_bits_to_read( CHROMA_FORMAT_LENGTH + LOW_DELAY_LENGTH );
-    bits_to_read_count := CHROMA_FORMAT_LENGTH + LOW_DELAY_LENGTH - 1;
-    read_result_in_progress := 0;
+    set_bits_to_read( CHROMA_FORMAT_LENGTH + LOW_DELAY_LENGTH );
     bit_count := bit_count + 1;
   end
 
@@ -216,20 +200,12 @@ actor ParseHeaders (
     done_reading_bits(),
     b
   do
-//  set_bits_to_read(   FIRST_HALF_BIT_RATE_LENGTH    + MARKER_LENGTH +
-//                      LAST_HALF_BIT_RATE_LENGTH     + MARKER_LENGTH +
-//                      FIRST_HALF_VBV_BUF_SZ_LENGTH  + MARKER_LENGTH +
-//                      LAST_HALF_VBV_BUF_SZ_LENGTH   +
-//                      FIRST_HALF_VBV_OCC_LENGTH     + MARKER_LENGTH +
-//                      LAST_HALF_VBV_OCC_LENGTH      + MARKER_LENGTH );
-
-    bits_to_read_count := FIRST_HALF_BIT_RATE_LENGTH    + MARKER_LENGTH +
+    set_bits_to_read(   FIRST_HALF_BIT_RATE_LENGTH    + MARKER_LENGTH +
                         LAST_HALF_BIT_RATE_LENGTH     + MARKER_LENGTH +
                         FIRST_HALF_VBV_BUF_SZ_LENGTH  + MARKER_LENGTH +
                         LAST_HALF_VBV_BUF_SZ_LENGTH   +
                         FIRST_HALF_VBV_OCC_LENGTH     + MARKER_LENGTH +
-                        LAST_HALF_VBV_OCC_LENGTH      + MARKER_LENGTH - 1;
-    read_result_in_progress := 0;
+                        LAST_HALF_VBV_OCC_LENGTH      + MARKER_LENGTH );
     bit_count := bit_count + 1;
   end
 
@@ -237,10 +213,7 @@ actor ParseHeaders (
   guard
     done_reading_bits()
   do
-//  set_bits_to_read( VOL_SHAPE_LENGTH + MARKER_LENGTH + TIME_INC_RES_LENGTH + MARKER_LENGTH + 1 );
-
-    bits_to_read_count := VOL_SHAPE_LENGTH + MARKER_LENGTH + TIME_INC_RES_LENGTH + MARKER_LENGTH + 1 - 1;
-    read_result_in_progress := 0;
+    set_bits_to_read( VOL_SHAPE_LENGTH + MARKER_LENGTH + TIME_INC_RES_LENGTH + MARKER_LENGTH + 1 );
   end
 
   int(size=7) mylog;
@@ -262,25 +235,15 @@ actor ParseHeaders (
     end
     mylog := if ones > 1 then count else count - 1 end;
     mylog := if mylog < 1 then 1 else mylog end;
-//  set_bits_to_read(if bitand( read_result(), 1 ) = 1 then
-//    // fixed vop rate
-//    //mylog + MARKER_LENGTH 
-//    mylog
-//  else
-//    // variable vop rate
-//    //MARKER_LENGTH
-//    0
-//  end + MARKER_LENGTH + VOL_WIDTH_LENGTH + MARKER_LENGTH );
-
-    bits_to_read_count := if bitand( read_result(), 1 ) = 1 then
-                            // fixed vop rate
-                            mylog
-                          else
-                            // variable vop rate
-                            0
-                          end 
-      + MARKER_LENGTH + VOL_WIDTH_LENGTH + MARKER_LENGTH - 1;
-    read_result_in_progress := 0;
+    set_bits_to_read(if bitand( read_result(), 1 ) = 1 then
+      // fixed vop rate
+      //mylog + MARKER_LENGTH 
+      mylog
+    else
+      // variable vop rate
+      //MARKER_LENGTH
+      0
+    end + MARKER_LENGTH + VOL_WIDTH_LENGTH + MARKER_LENGTH );
   end
 
   // The vol width and height in units of macroblocks, ie. the pixel w/h divided by 16.
@@ -293,10 +256,7 @@ actor ParseHeaders (
     done_reading_bits()
   do
     vol_width  := mask_bits( rshift( read_result(), MARKER_LENGTH + 4 ), VOL_WIDTH_LENGTH-4 ); // strip marker and divide by 16
-    // set_bits_to_read( VOL_HEIGHT_LENGTH + MARKER_LENGTH );
-
-    bits_to_read_count := VOL_HEIGHT_LENGTH + MARKER_LENGTH - 1;
-    read_result_in_progress := 0;
+    set_bits_to_read( VOL_HEIGHT_LENGTH + MARKER_LENGTH );
   end
 
   set_vol_height: action ==>
@@ -304,10 +264,7 @@ actor ParseHeaders (
     done_reading_bits()
   do
     vol_height  := mask_bits( rshift( read_result(), MARKER_LENGTH + 4  ), VOL_HEIGHT_LENGTH ); // strip marker and divide by 16
-    // set_bits_to_read( MISC_BIT_LENGTH );
-
-    bits_to_read_count := MISC_BIT_LENGTH - 1;
-    read_result_in_progress := 0;
+    set_bits_to_read( MISC_BIT_LENGTH );
   end
 
   // Detect unsupported features:
@@ -327,10 +284,7 @@ actor ParseHeaders (
 
   byte_align: action ==>
   do
-    // set_bits_to_read( 8 - bitand( bit_count, 7 ) );
-
-    bits_to_read_count := 8 - bitand( bit_count, 7 ) - 1;
-    read_result_in_progress := 0;
+    set_bits_to_read( 8 - bitand( bit_count, 7 ) );
   end
 
   // Note: no check for correct bit stuffing
@@ -366,10 +320,7 @@ actor ParseHeaders (
   vop_timebase.zero:action bits:[b] ==>
   do
     bit_count := bit_count + 1;
-    // set_bits_to_read( MARKER_LENGTH + mylog + MARKER_LENGTH );
-
-    bits_to_read_count := MARKER_LENGTH + mylog + MARKER_LENGTH - 1;
-    read_result_in_progress := 0;
+    set_bits_to_read( MARKER_LENGTH + mylog + MARKER_LENGTH );
   end
 
   int(size=4) comp;
@@ -389,23 +340,14 @@ actor ParseHeaders (
   guard
     done_reading_bits()
   do
-//  set_bits_to_read(
-//     if not prediction_is_IVOP then
-//       // round_type, intra_dc_vlc_thr[3], vop_[5], vop_fcode_for[3]
-//       1 + INTRA_DC_VLC_THR_LENGTH + BITS_QUANT + VOP_FCODE_FOR_LENGTH
-//     else
-//       // intra_dc_vlc_thr[3], vop_quant[5]
-//       INTRA_DC_VLC_THR_LENGTH + BITS_QUANT
-//     end );
-
-    bits_to_read_count := if not prediction_is_IVOP then
+    set_bits_to_read(
+       if not prediction_is_IVOP then
          // round_type, intra_dc_vlc_thr[3], vop_[5], vop_fcode_for[3]
-         1 + INTRA_DC_VLC_THR_LENGTH + BITS_QUANT + VOP_FCODE_FOR_LENGTH - 1
+         1 + INTRA_DC_VLC_THR_LENGTH + BITS_QUANT + VOP_FCODE_FOR_LENGTH
        else
          // intra_dc_vlc_thr[3], vop_quant[5]
-         INTRA_DC_VLC_THR_LENGTH + BITS_QUANT - 1
-       end;
-    read_result_in_progress := 0;
+         INTRA_DC_VLC_THR_LENGTH + BITS_QUANT
+       end );
     bit_count := bit_count + 1;
   end
 
@@ -457,7 +399,6 @@ send_new_vop_height: action ==> BTYPE: [ vol_height ], HEIGHT: [ vol_height ] en
   int(size=CBP_SZ) cbp;
 
   // Advance the mb coordinates with wrap
-
   procedure next_mbxy()
   begin
     mbx := mbx + 1;
@@ -477,9 +418,7 @@ send_new_vop_height: action ==> BTYPE: [ vol_height ], HEIGHT: [ vol_height ] en
   guard
     prediction_is_IVOP
   do
-    // start_vld_engine( MCBPC_IVOP_START_INDEX );
-    vld_index := MCBPC_IVOP_START_INDEX;
-    vld_codeword := 2;
+    start_vld_engine( MCBPC_IVOP_START_INDEX );
   end
 
   get_mcbpc.pvop: action bits:[b] ==>
@@ -487,9 +426,7 @@ send_new_vop_height: action ==> BTYPE: [ vol_height ], HEIGHT: [ vol_height ] en
     not prediction_is_IVOP,
     not b
   do
-    // start_vld_engine( MCBPC_PVOP_START_INDEX  );
-    vld_index := MCBPC_PVOP_START_INDEX;
-    vld_codeword := 2;
+    start_vld_engine( MCBPC_PVOP_START_INDEX  );
     bit_count := bit_count + 1;
   end
 
@@ -527,9 +464,7 @@ send_new_vop_height: action ==> BTYPE: [ vol_height ], HEIGHT: [ vol_height ] en
     fourmvflag := (type = 2);
     cbpc := bitand( rshift( mcbpc, 4 ), 3 );
     acpredflag := false;
-    // start_vld_engine( CBPY_START_INDEX );
-    vld_index := CBPY_START_INDEX;
-    vld_codeword := 2;
+    start_vld_engine( CBPY_START_INDEX );
   end
 
   get_mbtype.ac: action bits:[b] ==> 
@@ -544,9 +479,7 @@ send_new_vop_height: action ==> BTYPE: [ vol_height ], HEIGHT: [ vol_height ] en
     cbpc := bitand( rshift( mcbpc, 4 ), 3 );
     acpredflag := b;
     bit_count := bit_count + 1;
-    // start_vld_engine( CBPY_START_INDEX );
-    vld_index := CBPY_START_INDEX;
-    vld_codeword := 2;
+    start_vld_engine( CBPY_START_INDEX );
   end
 
   bool ac_coded;
@@ -564,9 +497,7 @@ send_new_vop_height: action ==> BTYPE: [ vol_height ], HEIGHT: [ vol_height ] en
     mvcomp := 0;
     cbp := bitor( lshift( cbpy, 2), cbpc );
 	if (btype_is_Q) then
-          // set_bits_to_read(2);
-	  bits_to_read_count := 2 - 1;
-          read_result_in_progress := 0;
+		set_bits_to_read(2);
 	end
   end
 
@@ -579,9 +510,7 @@ send_new_vop_height: action ==> BTYPE: [ vol_height ], HEIGHT: [ vol_height ] en
     comp := 0;
     cbp := bitor( lshift(cbpy, 2), cbpc );
 	if (btype_is_Q) then
-          // set_bits_to_read(2);
-          bits_to_read_count := 2 - 1;
-          read_result_in_progress := 0;
+		set_bits_to_read(2);
 	end
   end
   
@@ -592,8 +521,8 @@ send_new_vop_height: action ==> BTYPE: [ vol_height ], HEIGHT: [ vol_height ] en
   guard 
 	done_reading_bits()
   do
-	prev_quant:=vop_quant;
 	if (btype_is_Q) then
+		prev_quant:=vop_quant;
 		vop_quant:=vop_quant+dquant_table[read_result()];
         if ( vop_quant > 31 ) then 
             vop_quant := 31 ;
@@ -602,7 +531,6 @@ send_new_vop_height: action ==> BTYPE: [ vol_height ], HEIGHT: [ vol_height ] en
             vop_quant := 1 ;
 		end
 	end
-	vop_quant:=vop_quant;
   end
   
   mb_dispatch_done: action ==>
@@ -641,9 +569,7 @@ send_new_vop_height: action ==> BTYPE: [ vol_height ], HEIGHT: [ vol_height ] en
   guard
     btype_is_INTRA, prev_quant<intra_dc_vlc_thr
   do
-    // start_vld_engine( if comp < 4 then DCBITS_Y_START_INDEX else DCBITS_UV_START_INDEX end );
-    vld_index := if comp < 4 then DCBITS_Y_START_INDEX else DCBITS_UV_START_INDEX end;
-    vld_codeword := 2;
+    start_vld_engine( if comp < 4 then DCBITS_Y_START_INDEX else DCBITS_UV_START_INDEX end );
     b_last := false;
   end
 
@@ -691,9 +617,7 @@ send_new_vop_height: action ==> BTYPE: [ vol_height ], HEIGHT: [ vol_height ] en
     vld_success()
   do
     dc_bits := vld_result();
-    // set_bits_to_read( dc_bits );
-    bits_to_read_count := dc_bits - 1;
-    read_result_in_progress := 0;
+    set_bits_to_read( dc_bits );
   end
 
   int(size=14) msb_result;
@@ -719,9 +643,7 @@ send_new_vop_height: action ==> BTYPE: [ vol_height ], HEIGHT: [ vol_height ] en
     if bitand( v, msb_result ) = 0 then
       v := v + 1 - lshift( msb_result, 1 );
     end   
-    // set_bits_to_read( if dc_bits > 8 then MARKER_LENGTH else 0 end );
-    bits_to_read_count := if dc_bits > 8 then MARKER_LENGTH else 0 end - 1;
-    read_result_in_progress := 0;
+    set_bits_to_read( if dc_bits > 8 then MARKER_LENGTH else 0 end );
     b_last := not ac_coded;
   end
 
@@ -739,9 +661,7 @@ send_new_vop_height: action ==> BTYPE: [ vol_height ], HEIGHT: [ vol_height ] en
   guard
     done_reading_bits()
   do
-    // start_vld_engine( if btype_is_INTRA then COEFF_INTRA_START_INDEX else COEFF_INTER_START_INDEX end );
-    vld_index := if btype_is_INTRA then COEFF_INTRA_START_INDEX else COEFF_INTER_START_INDEX end;
-    vld_codeword := 2;
+    start_vld_engine( if btype_is_INTRA then COEFF_INTRA_START_INDEX else COEFF_INTER_START_INDEX end );
   end
 
   vld_code: action bits:[sign] ==> VALUE:[if sign then -level else level end], RUN:[run], LAST:[ last ]
@@ -770,10 +690,7 @@ send_new_vop_height: action ==> BTYPE: [ vol_height ], HEIGHT: [ vol_height ] en
     not level_offset
   do
     bit_count := bit_count + 1;
-    // start_vld_engine( if btype_is_INTRA then COEFF_INTRA_START_INDEX else COEFF_INTER_START_INDEX end );
-
-    vld_index := if btype_is_INTRA then COEFF_INTRA_START_INDEX else COEFF_INTER_START_INDEX end;
-    vld_codeword := 2;
+    start_vld_engine( if btype_is_INTRA then COEFF_INTRA_START_INDEX else COEFF_INTER_START_INDEX end );
   end
 
   vld_run_or_direct: action bits:[level_offset] ==>
@@ -788,19 +705,13 @@ send_new_vop_height: action ==> BTYPE: [ vol_height ], HEIGHT: [ vol_height ] en
     not run_offset
   do
     bit_count := bit_count + 1;
-    // start_vld_engine( if btype_is_INTRA then COEFF_INTRA_START_INDEX else COEFF_INTER_START_INDEX end );
-
-    vld_index := if btype_is_INTRA then COEFF_INTRA_START_INDEX else COEFF_INTER_START_INDEX end;
-    vld_codeword := 2;
+    start_vld_engine( if btype_is_INTRA then COEFF_INTRA_START_INDEX else COEFF_INTER_START_INDEX end );
   end
 
   vld_direct_read: action bits:[run_offset] ==>
   do
     bit_count := bit_count + 1;
-    // set_bits_to_read( 1 + RUN_LENGTH + MARKER_LENGTH + LEVEL_LENGTH + MARKER_LENGTH );
-
-    bits_to_read_count := 1 + RUN_LENGTH + MARKER_LENGTH + LEVEL_LENGTH + MARKER_LENGTH - 1;
-    read_result_in_progress := 0;
+    set_bits_to_read( 1 + RUN_LENGTH + MARKER_LENGTH + LEVEL_LENGTH + MARKER_LENGTH );
   end
 
   vld_direct: action  ==>  VALUE:[if sign then -level else level end], RUN:[run], LAST:[ last ]
@@ -988,9 +899,7 @@ send_new_vop_height: action ==> BTYPE: [ vol_height ], HEIGHT: [ vol_height ] en
 
   mvcode: action ==>
   do
-    // start_vld_engine( MV_START_INDEX );
-    vld_index := MV_START_INDEX;
-    vld_codeword := 2;
+    start_vld_engine( MV_START_INDEX );
   end
 
   mag_x: action ==> MV:[ mvval ]
@@ -999,10 +908,7 @@ send_new_vop_height: action ==> BTYPE: [ vol_height ], HEIGHT: [ vol_height ] en
   var
     int (size=VLD_TABLE_DATA_BITS) mvval = vld_result()
   do
-    // set_bits_to_read( if fcode <= 1 or mvval = 0 then 0 else fcode-1 end );
-
-    bits_to_read_count := if fcode <= 1 or mvval = 0 then 0 else fcode-1 end - 1;
-    read_result_in_progress := 0;
+    set_bits_to_read( if fcode <= 1 or mvval = 0 then 0 else fcode-1 end );
   end
 
   get_residual_x: action ==> MV:[ read_result() ]
@@ -1016,9 +922,7 @@ send_new_vop_height: action ==> BTYPE: [ vol_height ], HEIGHT: [ vol_height ] en
   var
     int (size=VLD_TABLE_DATA_BITS) mvval = vld_result()
   do
-    // set_bits_to_read( if fcode <= 1 or mvval = 0 then 0 else fcode-1 end );
-    bits_to_read_count := if fcode <= 1 or mvval = 0 then 0 else fcode-1 end - 1;
-    read_result_in_progress := 0;
+    set_bits_to_read( if fcode <= 1 or mvval = 0 then 0 else fcode-1 end );
   end
 
   get_residual_y: action ==> MV:[ read_result() ]
@@ -1190,15 +1094,11 @@ send_new_vop_height: action ==> BTYPE: [ vol_height ], HEIGHT: [ vol_height ] en
   // VLD decode engine.
   int( size=VLD_TABLE_ADDR_BITS ) vld_index;
   int( size=VLD_TABLE_DATA_BITS ) vld_codeword := 1;
-
-// ECARVON: procedure inlined manually (not properly done otherwise)
-/*
   procedure start_vld_engine( int index )
   begin
     vld_index := index;
     vld_codeword := 2;
   end
-*/
   function vld_success() --> bool : bitand(vld_codeword,3) = 0 end
   function vld_failure() --> bool : bitand(vld_codeword,1) = 1 end
   function vld_result() --> int( size=VLD_TABLE_DATA_BITS ) : rshift(vld_codeword,2) end
@@ -1247,9 +1147,7 @@ send_new_vop_height: action ==> BTYPE: [ vol_height ], HEIGHT: [ vol_height ] en
     read_result() = VOL_START_CODE  // 0X20
   do
     // Ignore the next two fields
-    // set_bits_to_read( VOL_ID_LENGTH + VIDEO_OBJECT_TYPE_INDICATION_LENGTH );
-    bits_to_read_count := VOL_ID_LENGTH + VIDEO_OBJECT_TYPE_INDICATION_LENGTH - 1;
-    read_result_in_progress := 0;
+    set_bits_to_read( VOL_ID_LENGTH + VIDEO_OBJECT_TYPE_INDICATION_LENGTH );
   end
   
   test_vop_byte: action ==>
@@ -1259,9 +1157,7 @@ send_new_vop_height: action ==> BTYPE: [ vol_height ], HEIGHT: [ vol_height ] en
   do
     mbx     := 0;
     mby     := 0;
-    // set_bits_to_read( VOP_PREDICTION_LENGTH );
-    bits_to_read_count := VOP_PREDICTION_LENGTH - 1;
-    read_result_in_progress := 0;
+    set_bits_to_read( VOP_PREDICTION_LENGTH );
   end
   
 
@@ -1276,9 +1172,7 @@ send_new_vop_height: action ==> BTYPE: [ vol_height ], HEIGHT: [ vol_height ] en
   guard
     done_reading_bits()
   do
-    // set_bits_to_read( 8 );
-    bits_to_read_count := 8 - 1;
-    read_result_in_progress := 0;
+    set_bits_to_read( 8 );
   end
 
 
