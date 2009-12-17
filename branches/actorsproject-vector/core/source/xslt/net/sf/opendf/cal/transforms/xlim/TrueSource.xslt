@@ -153,17 +153,21 @@ ENDCOPYRIGHT
       </xsl:when>
 
       <!-- Backtrack to the local modifier -->
-           
-      <!-- Variable Decl is a true source -->
+         
+      <!--   
+         Variable Decl is a true source 
       <xsl:when test="Decl[@kind='Variable'][ @id = $modifier-id ]">
         <xsl:value-of select="$modifier-id"/>
       </xsl:when>
 
-      <!-- Decl inside an Input is a true source -->
+      Decl inside an Input is a true source
       <xsl:when test="Decl[ @id = $modifier-id ][ parent::Input ]">
         <xsl:value-of select="$modifier-id"/>
-      </xsl:when>      
-        
+      </xsl:when>  
+      -->
+      <xsl:when test="Decl[ @id = $modifier-id ]">
+        <xsl:value-of select="$modifier-id"/>
+      </xsl:when>           
           
       <!-- Flow control block PHI function is a true source -->
       <xsl:when test="Stmt[ @kind='If' or @kind='While' ][ @id=$modifier-id ]">
