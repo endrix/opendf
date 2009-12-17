@@ -44,27 +44,23 @@
     <xsl:template match="Instance">
         <xsl:variable name="id-src" select="@id"/>   
         <xsl:variable name="UID" select="./Note[@kind='UID']/@value"/>                    
-         <xsl:for-each select="Actor/Port">
-            <xsl:choose>
-                <xsl:when test="@kind = 'Output'">               
-                    <xsl:for-each select="//Connection[@src = $id-src]">    
-                        <xsl:text>        </xsl:text>
-                        <xsl:value-of select="$UID"/> <xsl:text>-></xsl:text>  
-                        <xsl:variable name="id-dst" select="@dst"/>
-                        <xsl:value-of select="//Instance[@id = $id-dst]/Note[@kind='UID']/@value"/>                           
-                        <xsl:text>&#xa;</xsl:text>           
-                    </xsl:for-each>  
-                </xsl:when>    
-            </xsl:choose>           
-        </xsl:for-each>
+         <xsl:for-each select="//Instance">
+            <xsl:variable name="id-dst" select="@id"/>   
+             <xsl:if test="//Connection[@src = $id-src][@dst=$id-dst]">
+                            <xsl:text>        </xsl:text>
+                            <xsl:value-of select="$UID"/> <xsl:text>-></xsl:text>                          
+                            <xsl:value-of select="//Instance[@id = $id-dst]/Note[@kind='UID']/@value"/>                                     
+                            <xsl:text>&#xa;</xsl:text>           
+             </xsl:if>  
+         </xsl:for-each>
         <xsl:text>&#xa;</xsl:text>     
     </xsl:template>  
     
     <xsl:template match="/">  
         <xsl:text>
 digraph prof {
-        size="6,4"; ratio = fill;
-        node [style=filled];
+        size="12,6"; ratio = fill;
+        node [style=filled, shape=box];
         </xsl:text>
         <xsl:apply-templates select="//Instance"/>    
         <xsl:text>
