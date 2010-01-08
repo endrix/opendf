@@ -1,0 +1,7 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Open Dataflow Documentation
+Bundle-SymbolicName: net.sf.opendf.eclipse.doc;singleton:=true
+Bundle-Version: 1.2.15
+Bundle-Vendor: The Open Dataflow Project
+Bundle-Localization: plugin

@@ -1,0 +1,36 @@
+
+The XDF part of the tool chain deals with the netlist 
+(represented in XDF format). It does two things:
+(a) generate VHDL from the netlist,
+(b) generate actor instances (in CalML) based on the 
+    parameters in the netlist.
+
+Both tasks share a common sequence of initial transformations, 
+and differ only in the last step. 
+
+1  These are the initial steps to be taken when processing
+   netlists in XDF format:
+
+	xdfInline.xslt 
+    xdfPropagateConstants.xslt 
+    xdfFlatten.xslt 
+    xdfPropagateTypes.xslt
+   	xdfCheckTypes.xslt
+	xdfAnnotateDataWidth.xslt
+	xdfAnnotateFanout.xslt
+    xdfAddInstanceNames.xslt
+    xdfInsertDefaultBufferSize.xslt
+    xdfAnnotateBufferSize.xslt
+
+2a The result of (1) is then processed into VHDL for the 
+   netlist by the following transformation:
+
+	xdfGenerateVHDL.xslt
+    
+2b The result of (1) is used to produce the actor instances by 
+   this transformation:
+
+	xdfCreateActorInstances.xslt
+
+
+Date: 2005-05-08

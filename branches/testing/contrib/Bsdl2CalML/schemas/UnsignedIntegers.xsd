@@ -1,0 +1,295 @@
+<?xml version="1.0"?>
+
+<!--*
+  * Copyright(c)2008, Samuel Keller, Christophe Lucarz, Joseph Thomas-Kerr 
+  * All rights reserved.
+  *
+  * Redistribution and use in source and binary forms, with or without
+  * modification, are permitted provided that the following conditions are met:
+  *     * Redistributions of source code must retain the above copyright
+  *       notice, this list of conditions and the following disclaimer.
+  *     * Redistributions in binary form must reproduce the above copyright
+  *       notice, this list of conditions and the following disclaimer in the
+  *       documentation and/or other materials provided with the distribution.
+  *     * Neither the name of the EPFL, University of Wollongong nor the
+  *       names of its contributors may be used to endorse or promote products
+  *       derived from this software without specific prior written permission.
+  *
+  * THIS SOFTWARE IS PROVIDED BY  Samuel Keller, Christophe Lucarz, 
+  * Joseph Thomas-Kerr ``AS IS'' AND ANY 
+  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+  * DISCLAIMED. IN NO EVENT SHALL  Samuel Keller, Christophe Lucarz, 
+  * Joseph Thomas-Kerr BE LIABLE FOR ANY
+  * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+  * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+  * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+  *-->
+
+<xsd:schema
+
+	version="ISO/IEC 21000-7"
+
+	id="UnsignedIntegers.xsd"
+
+ 	xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+   
+   <xsd:simpleType name="b32">
+   <xsd:restriction base="xsd:hexBinary">          
+      <xsd:length value="4"/>           
+   </xsd:restriction>     
+   </xsd:simpleType>
+
+   <xsd:simpleType name="b31">
+      <xsd:restriction base="xsd:unsignedInt">
+         <xsd:maxExclusive value="2147483648"/>
+      </xsd:restriction>
+   </xsd:simpleType>
+   
+   <xsd:simpleType name="b30">
+      <xsd:restriction base="xsd:unsignedInt">
+         <xsd:maxExclusive value="1073741824"/>
+      </xsd:restriction>
+   </xsd:simpleType>
+
+   <xsd:simpleType name="b29">
+      <xsd:restriction base="xsd:unsignedInt">
+         <xsd:maxExclusive value="536870912"/>
+      </xsd:restriction>
+   </xsd:simpleType>
+   
+   <xsd:simpleType name="b28">
+      <xsd:restriction base="xsd:unsignedInt">
+         <xsd:maxExclusive value="268435456"/>
+      </xsd:restriction>
+   </xsd:simpleType>
+   
+   <xsd:simpleType name="b27">
+      <xsd:restriction base="xsd:unsignedInt">
+         <xsd:maxExclusive value="134217728"/>
+      </xsd:restriction>
+   </xsd:simpleType>
+   
+   <xsd:simpleType name="b26">
+      <xsd:restriction base="xsd:unsignedInt">
+         <xsd:maxExclusive value="67108864"/>
+      </xsd:restriction>
+   </xsd:simpleType>
+   
+   <xsd:simpleType name="b25">
+      <xsd:restriction base="xsd:unsignedInt">
+         <xsd:maxExclusive value="33554432"/>
+      </xsd:restriction>
+   </xsd:simpleType>
+   
+   <xsd:simpleType name="b24">
+      <xsd:restriction base="xsd:unsignedInt">
+         <xsd:maxExclusive value="16777216"/>
+      </xsd:restriction>
+   </xsd:simpleType>
+   
+   <xsd:simpleType name="b23">
+      <xsd:restriction base="xsd:unsignedInt">
+         <xsd:maxExclusive value="8388608"/>
+      </xsd:restriction>
+   </xsd:simpleType>
+   
+   <xsd:simpleType name="b22">
+      <xsd:restriction base="xsd:unsignedInt">
+         <xsd:maxExclusive value="4194304"/>
+      </xsd:restriction>
+   </xsd:simpleType>
+   
+   <xsd:simpleType name="b21">
+      <xsd:restriction base="xsd:unsignedInt">
+         <xsd:maxExclusive value="2097152"/>
+      </xsd:restriction>
+   </xsd:simpleType>
+   
+   <xsd:simpleType name="b20">
+      <xsd:restriction base="xsd:unsignedInt">
+         <xsd:maxExclusive value="1048576"/>
+      </xsd:restriction>
+   </xsd:simpleType>
+
+   <xsd:simpleType name="b19">
+      <xsd:restriction base="xsd:unsignedInt">
+         <xsd:maxExclusive value="524288"/>
+      </xsd:restriction>
+   </xsd:simpleType>
+   
+   <xsd:simpleType name="b18">
+      <xsd:restriction base="xsd:unsignedInt">
+         <xsd:maxExclusive value="262144"/>
+      </xsd:restriction>
+   </xsd:simpleType>
+   
+   <xsd:simpleType name="b17">
+      <xsd:restriction base="xsd:unsignedInt">
+         <xsd:maxExclusive value="131072"/>
+      </xsd:restriction>
+   </xsd:simpleType>
+   
+
+   <xsd:simpleType name="b16">
+
+      <xsd:restriction base="xsd:unsignedShort"/>
+
+   </xsd:simpleType>
+
+   <xsd:simpleType name="b15">
+
+      <xsd:restriction base="xsd:unsignedShort">
+
+         <xsd:maxExclusive value="32768"/>
+
+      </xsd:restriction>
+
+   </xsd:simpleType>
+
+   <xsd:simpleType name="b14">
+
+      <xsd:restriction base="xsd:unsignedShort">
+
+         <xsd:maxExclusive value="16384"/>
+
+      </xsd:restriction>
+
+   </xsd:simpleType>
+
+   <xsd:simpleType name="b13">
+
+      <xsd:restriction base="xsd:unsignedShort">
+
+         <xsd:maxExclusive value="8192"/>
+
+      </xsd:restriction>
+
+   </xsd:simpleType>
+
+   <xsd:simpleType name="b12">
+
+      <xsd:restriction base="xsd:unsignedShort">
+
+         <xsd:maxExclusive value="4096"/>
+
+      </xsd:restriction>
+
+   </xsd:simpleType>
+
+   <xsd:simpleType name="b11">
+
+      <xsd:restriction base="xsd:unsignedShort">
+
+         <xsd:maxExclusive value="2048"/>
+
+      </xsd:restriction>
+
+   </xsd:simpleType>
+
+   <xsd:simpleType name="b10">
+
+      <xsd:restriction base="xsd:unsignedShort">
+
+         <xsd:maxExclusive value="1024"/>
+
+      </xsd:restriction>
+
+   </xsd:simpleType>
+
+   <xsd:simpleType name="b9">
+
+      <xsd:restriction base="xsd:unsignedShort">
+
+         <xsd:maxExclusive value="512"/>
+
+      </xsd:restriction>
+
+   </xsd:simpleType>
+
+   <xsd:simpleType name="b8">
+
+      <xsd:restriction base="xsd:unsignedShort">
+
+         <xsd:maxExclusive value="256"/>
+
+      </xsd:restriction>
+
+   </xsd:simpleType>
+
+   <xsd:simpleType name="b7">
+
+      <xsd:restriction base="xsd:unsignedShort">
+
+         <xsd:maxExclusive value="128"/>
+
+      </xsd:restriction>
+
+   </xsd:simpleType>
+
+   <xsd:simpleType name="b6">
+
+      <xsd:restriction base="xsd:unsignedShort">
+
+         <xsd:maxExclusive value="64"/>
+
+      </xsd:restriction>
+
+   </xsd:simpleType>
+
+   <xsd:simpleType name="b5">
+
+      <xsd:restriction base="xsd:unsignedShort">
+
+         <xsd:maxExclusive value="32"/>
+
+      </xsd:restriction>
+
+   </xsd:simpleType>
+
+   <xsd:simpleType name="b4">
+
+      <xsd:restriction base="xsd:unsignedShort">
+
+         <xsd:maxExclusive value="16"/>
+
+      </xsd:restriction>
+
+   </xsd:simpleType>
+
+   <xsd:simpleType name="b3">
+
+      <xsd:restriction base="xsd:unsignedShort">
+
+         <xsd:maxExclusive value="8"/>
+
+      </xsd:restriction>
+
+   </xsd:simpleType>
+
+   <xsd:simpleType name="b2">
+
+      <xsd:restriction base="xsd:unsignedShort">
+
+         <xsd:maxExclusive value="4"/>
+
+      </xsd:restriction>
+
+   </xsd:simpleType>
+
+   <xsd:simpleType name="b1">
+
+      <xsd:restriction base="xsd:unsignedShort">
+
+         <xsd:maxExclusive value="2"/>
+
+      </xsd:restriction>
+
+   </xsd:simpleType>
+  
+   
+   
+</xsd:schema>
