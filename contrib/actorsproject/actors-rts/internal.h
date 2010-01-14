@@ -50,10 +50,11 @@ extern "C" {
 #define	LOG_EXEC			4			//also log func exec
 #define	LOG_STOP			(-99)		//disable log file
 
+#define MAX_ACTOR_NUM       256
 #define DEFAULT_FIFO_LENGTH 256
 
 extern int log_level;
-extern void trace(int level, const char*,...);
+// extern void trace(int level, const char*,...);
 
 #ifdef __cplusplus
 }

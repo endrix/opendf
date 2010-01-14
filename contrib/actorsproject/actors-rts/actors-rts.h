@@ -42,6 +42,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <assert.h>
+#include "dll.h"
 
 /* make the header usable from C++ */
 #ifdef __cplusplus
@@ -51,7 +52,16 @@ extern "C" {
 #define COPY(a)				(a)
 #define MEMCPY(d,s,c)                   (memcpy(d,s,c))
 
+//#define XML_TRACE
+
+#ifndef XML_TRACE
 #define TRACE_ACTION(INSTANCE,INDEX,NAME) (INSTANCE)->hasFiredHack=1
+#else
+#define TRACE_ACTION(INSTANCE,INDEX,NAME) \
+        (INSTANCE)->hasFiredHack=1; \
+        actionTrace((INSTANCE),INDEX,NAME)
+#endif
+
 #define RANGECHK(X,B) ((unsigned)(X)<(unsigned)(B)?(X):RANGEERR(X,B))
 #define RANGEERR(X,B) (rangeError((X),(B),__FILE__,__LINE__))
 
@@ -71,6 +81,7 @@ extern "C" {
 typedef int32_t           bool_t;
 
 typedef struct ActorClass ActorClass;
+typedef struct AbstractActorInstance AbstractActorInstance;
 typedef struct OutputPort OutputPort;
 
 typedef struct {
@@ -82,6 +93,12 @@ typedef struct {
   unsigned capacity;    // in tokens
 
   const OutputPort *writer;
+
+  AbstractActorInstance *readerActor;
+  AbstractActorInstance *writerActor;
+
+  int cid;
+
 } InputPort;
 
 struct OutputPort {
@@ -94,14 +111,23 @@ struct OutputPort {
 
   int numReaders;
   InputPort **readers;
+
+  AbstractActorInstance *writerActor;
+
+  int cid;
 };
 
-typedef struct {
-	ActorClass		*actor;					//actor
-	InputPort		*inputPort;
-	OutputPort		*outputPort;
-	int			hasFiredHack;
-}AbstractActorInstance;
+struct AbstractActorInstance {
+  ActorClass  *actor;          //actor
+  InputPort   *inputPort;
+  OutputPort  *outputPort;
+  int         hasFiredHack;
+
+  LIST        *list;
+  LIST        *extList;
+
+  int         firstActionIndex;
+};
 
 // Get port-pointers from abstract instance
 #define INPUT_PORT(instance,n)  (instance.inputPort+(n))
@@ -415,6 +441,23 @@ static inline void pinWriteRepeat_double(OutputPort *p,
 
 extern int rangeError(int x, int y, const char *filename, int line);
 extern void runtimeError(AbstractActorInstance*, const char *format,...);
+extern void trace(int level, const char*,...);
+extern void actionTrace(AbstractActorInstance *instance,
+            int localActionIndex,
+            char *actionName);
+extern void wakeup_waitingList(LIST *list);
+
+/** This function has to be called once by every thread executed within the runtime.
+ * It registers the thread id of that thread, so it can be queried later. */
+extern void register_thread_id(void);
+
+/** Returns an array containing all thread ids of the currently existing threads.
+ * The array has been allocated via malloc() and must be freed by the caller via free(). */
+extern void get_thread_ids(int* count, pid_t** threadIds);
+
+extern void wakeup_src();
+extern void wakeup_sink();
+extern void stop_runtime();
 
 #ifdef __cplusplus
 }

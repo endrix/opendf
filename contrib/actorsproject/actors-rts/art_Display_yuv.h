@@ -7,6 +7,8 @@
 #ifndef ART_DISPLAY_H
 #define ART_DISPLAY_H
 
+#include "actors-rts.h"
+
 #ifdef FB
 #include <linux/fb.h>
 #elif defined GTK
@@ -15,11 +17,14 @@
 #include "SDL/SDL.h"
 #endif
 
-#include "actors-rts.h"
+//#include "actors-rts.h"
 
 #define MB_SIZE (6*64)
-#define IMAGE_WIDTH				176
-#define IMAGE_HEIGHT			144
+#define IMAGE_WIDTH       176
+#define IMAGE_HEIGHT      144
+
+//#define IMAGE_WIDTH       720
+//#define IMAGE_HEIGHT      480
 
 typedef struct {
   AbstractActorInstance base;
@@ -32,6 +37,8 @@ typedef struct {
   int                   comp;
   int                   start;
   int                   startTime;
+  int                   now;
+  int                   lastFrames;
   int                   totFrames;
   int                   fp;
   int                   ppf;
