@@ -104,6 +104,7 @@ public class PhasedSimulator {
     private boolean done;
     private boolean dusted;
     private boolean failed;
+    
     // A list of string identifiers used in the XML semantic checks to
     // identify issues.  Any id contained in this list will NOT be
     // displayed to the user.  Note that ids are hierarchical, thus a
