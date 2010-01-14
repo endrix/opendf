@@ -35,18 +35,39 @@ ifeq ($(SDL), y)
 CFLAGS += `sdl-config --cflags` -DSDL
 endif
 
-CFLAGS += -O3
+ifeq ($(RM), y)
+CFLAGS += -DRM
+endif
 
-INSTALL_H=actors-rts.h actors-config.h
+ifeq ($(EDF), y)
+CFLAGS += -DEDF
+endif
+
+ifeq ($(BAREBONE), y)
+CFLAGS += -DBAREBONE
+endif
+
+CFLAGS += -O3
+#CFLAGS += -g
+
+INSTALL_H=actors-rts.h actors-config.h dll.h
 INSTALL_SYSACTORS=art_DDRModel.cal art_Display_yuv.cal \
                   art_Sink_bin.cal art_Sink_yuv.cal art_Sink_txt.cal \
                   art_Source_bin.cal art_Source_txt.cal art_Source_real.cal \
-                  art_Sink_real.cal
+                  art_Sink_real.cal art_DBus_test.cal
 
 OBJECTS=exec_network.o \
         art_Sink_bin.o art_Sink_txt.o art_Source_bin.o art_Source_txt.o \
         art_DDRModel.o art_Display_yuv.o art_Source_real.o \
-        art_Sink_real.o art_Sink.o art_Source.o ddrmodel.o display.o
+        art_Sink_real.o art_Sink.o art_Source.o ddrmodel.o display.o xmlTrace.o
+
+ifeq ($(EDF),y)
+OBJECTS += edf_syscall.o
+endif
+
+ifeq ($(RM), y)
+CXXOBJECTS =  art_DBus_test.o genericdbushandler.o
+endif
 
 # delete the built-in suffixes to avoid surprises
 .SUFFIXES:   
@@ -61,14 +82,27 @@ libdir?=$(exec_prefix)/lib
 datarootdir?=$(prefix)/share
 datadir?=$(datarootdir)
 
+ifeq ($(RM), y)
+LDLIBS=-lpthread -lc -ldbus-1 /lib/libgcc_s.so.1 /usr/lib/libstdc++.so.6
+else
 LDLIBS=-lpthread -lc
+endif	
+
+ifeq ($(RM), y)
+CXX_INCLUDES = -I$(srcdir)/dbus -I/usr/include/dbus-1.0 -I/usr/lib/dbus-1.0/include
+endif
 
 .PHONY: all uninstall clean
 .PHONY: install install-lib install-include install-sysactors 
 
 all: $(REAL_NAME)
 
+ifeq ($(RM), y)
+$(REAL_NAME): $(OBJECTS) $(CXXOBJECTS)
+else
 $(REAL_NAME): $(OBJECTS)
+endif
+
 ifeq "$(STATIC)" ""
 	$(LD) -shared -soname=$(SONAME) -o $@ $(LDFLAGS) $^ $(LDLIBS)
 else
@@ -77,6 +111,9 @@ endif
 
 $(OBJECTS): %.o : $(srcdir)/%.c
 	$(CC) -fPIC -c -Wall $(CFLAGS) -o $@ $<
+
+$(CXXOBJECTS): %.o : $(srcdir)/%.cpp
+	$(CXX) -fPIC -c -Wall $(CFLAGS) $(CXX_INCLUDES) -o $@ $<
 
 install: install-lib install-include install-sysactors
 
@@ -106,5 +143,5 @@ uninstall:
 	@rm -f $(INSTALLED_FILES)
 
 clean:
-	@rm -f *.o $(REAL_NAME)
+	@rm -f *.o $(REAL_NAME) *.a *~
 
