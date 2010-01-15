@@ -1,8 +1,8 @@
 package net.sf.opendf.util.json;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.io.Reader;
+import java.io.Writer;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -310,120 +310,120 @@ public class JSONLib {
 	
 	
 	
-	public static void write(Object v, PrintWriter p) {
+	public static void write(Object v, Writer p) throws IOException {
 		if (v == null) {
-			p.print("null");
+			p.write("null");
 		} else if (v instanceof Map) {
 			Map m = (Map)v;
-			p.print("{");
+			p.write("{");
 			boolean isFirst = true;
 			for (Object k : m.keySet()) {
 				if (!isFirst)
-					p.print(",");
+					p.write(",");
 				write(k, p);
-				p.print(":");
+				p.write(":");
 				write(m.get(k), p);
 				isFirst = false;
 			}
-			p.print("}");
+			p.write("}");
 		} else if (v instanceof Collection) {
 			Collection c = (Collection)v;
-			p.print("[");
+			p.write("[");
 			boolean isFirst = true;
 			for (Object a : c) {
 				if (!isFirst)
-					p.print(",");
+					p.write(",");
 				write(a, p);
 				isFirst = false;
 			}
-			p.print("]");
+			p.write("]");
 		} else if (v instanceof String) {
-			p.print(quote((String)v));
+			p.write(quote((String)v));
 		} else if (v instanceof Boolean) {
-			p.print(v);
+			p.write(v.toString());
 		} else if (v instanceof Number) {
-			p.print(v);
+			p.write(v.toString());
 		} else if (v instanceof Object []) {
 			Object [] a = (Object []) v;
-			p.print("[");
+			p.write("[");
 			for (int i = 0; i < a.length; i++) {
 				if (i > 0)
-					p.print(",");
+					p.write(",");
 				write(a[i], p);
 			}
-			p.print("]");
+			p.write("]");
 		} else if (v instanceof boolean []) {
 			boolean [] a = (boolean []) v;
-			p.print("[");
+			p.write("[");
 			for (int i = 0; i < a.length; i++) {
 				if (i > 0)
-					p.print(",");
+					p.write(",");
 				write(a[i], p);
 			}
-			p.print("]");
+			p.write("]");
 		} else if (v instanceof byte []) {
 			byte [] a = (byte []) v;
-			p.print("[");
+			p.write("[");
 			for (int i = 0; i < a.length; i++) {
 				if (i > 0)
-					p.print(",");
+					p.write(",");
 				write(a[i], p);
 			}
-			p.print("]");
+			p.write("]");
 		} else if (v instanceof char []) {
 			char [] a = (char []) v;
-			p.print("[");
+			p.write("[");
 			for (int i = 0; i < a.length; i++) {
 				if (i > 0)
-					p.print(",");
+					p.write(",");
 				write(a[i], p);
 			}
-			p.print("]");
+			p.write("]");
 		} else if (v instanceof short []) {
 			short [] a = (short []) v;
-			p.print("[");
+			p.write("[");
 			for (int i = 0; i < a.length; i++) {
 				if (i > 0)
-					p.print(",");
+					p.write(",");
 				write(a[i], p);
 			}
-			p.print("]");
+			p.write("]");
 		} else if (v instanceof int []) {
 			int [] a = (int []) v;
-			p.print("[");
+			p.write("[");
 			for (int i = 0; i < a.length; i++) {
 				if (i > 0)
-					p.print(",");
+					p.write(",");
 				write(a[i], p);
 			}
-			p.print("]");
+			p.write("]");
 		} else if (v instanceof long []) {
 			long [] a = (long []) v;
-			p.print("[");
+			p.write("[");
 			for (int i = 0; i < a.length; i++) {
 				if (i > 0)
-					p.print(",");
+					p.write(",");
 				write(a[i], p);
 			}
-			p.print("]");
+			p.write("]");
 		} else if (v instanceof float []) {
 			float [] a = (float []) v;
-			p.print("[");
+			p.write("[");
 			for (int i = 0; i < a.length; i++) {
 				if (i > 0)
-					p.print(",");
+					p.write(",");
 				write(a[i], p);
 			}
-			p.print("]");
+			p.write("]");
 		} else if (v instanceof double []) {
 			double [] a = (double []) v;
-			p.print("[");
+			p.write("[");
 			for (int i = 0; i < a.length; i++) {
 				if (i > 0)
-					p.print(",");
+					p.write(",");
 				write(a[i], p);
 			}
-			p.print("]");
+			p.write("]");
 		} else {
 			throw new JSONException("Cannot translate object of type " + v.getClass() + "(" + v + ").");
 		}
@@ -485,6 +485,4 @@ public class JSONLib {
         sb.append('"');
         return sb.toString();
     }
-
-
 }
