@@ -2,21 +2,11 @@ package net.sf.opendf.hades.execution;
 
 public interface Transport {
 
-	public void response(Object data) throws TransportException;
-
-	public void status(Object data) throws TransportException;
-
-	public void token(String port, double time, Object value);
-
+	public void sendPacket(Object p) throws TransportException;
 	
-	public interface Callback {
+	public Object receivePacket() throws TransportException;
+	
+	public void  createConnection() throws TransportException;
 		
-		void command(String kind, Object data);
-		void token(String port, double time, Object value);
-	}
-	
-	public interface Factory {
-		Transport  create(Callback cb) throws TransportException;
-	}
 
 }
