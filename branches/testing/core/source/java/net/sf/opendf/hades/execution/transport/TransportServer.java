@@ -1,6 +1,6 @@
-package net.sf.opendf.hades.execution;
+package net.sf.opendf.hades.execution.transport;
 
-public interface Transport {
+public interface TransportServer {
 
 	public void sendPacket(Object p) throws TransportException;
 	

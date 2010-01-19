@@ -12,12 +12,10 @@ import java.net.Socket;
 import java.util.HashMap;
 import java.util.Map;
 
-import net.sf.opendf.hades.execution.ExecutionController;
-import net.sf.opendf.hades.execution.Transport;
-import net.sf.opendf.hades.execution.TransportException;
+import net.sf.opendf.hades.execution.controller.ExecutionController;
 import net.sf.opendf.util.json.JSONLib;
 
-public class SocketTransport implements Transport {
+public class SocketTransportServer implements TransportServer {
 
 	@Override
 	public void sendPacket(Object packet) throws TransportException {
@@ -51,7 +49,7 @@ public class SocketTransport implements Transport {
 		}
 	}
 	
-	protected SocketTransport(int socket) throws TransportException {
+	protected SocketTransportServer(int socket) throws TransportException {
 		this.socketNo = socket;
 		try {
 			serverSocket = new ServerSocket(socket);
