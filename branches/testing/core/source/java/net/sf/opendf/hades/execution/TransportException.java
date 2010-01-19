@@ -2,6 +2,11 @@ package net.sf.opendf.hades.execution;
 
 public class TransportException extends Exception {
 	
+	public Transport  getTransport() {
+		return transport;
+	}
+	
+	
 	public TransportException (String message, Transport transport, Throwable cause) {
 		super("Transport exception: '" + message + " ' on transport [" + transport + "].", cause);
 		
