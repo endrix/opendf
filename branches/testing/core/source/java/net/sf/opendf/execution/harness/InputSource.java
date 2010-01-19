@@ -1,14 +1,16 @@
 package net.sf.opendf.execution.harness;
 
-import java.io.IOException;
+import java.io.InputStream;
 
 public interface InputSource {
 
-	void open() throws IOException;
 	void close();
 	
 	boolean hasToken();
 	Object  nextToken();
 	double  nextInputTime();
-	
+
+	interface Factory {
+		InputSource  create(InputStream s);
+	}
 }
