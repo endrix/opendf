@@ -1,4 +1,4 @@
-package net.sf.opendf.hades.execution;
+package net.sf.opendf.hades.execution.controller;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -8,6 +8,8 @@ import java.util.Map;
 import net.sf.opendf.hades.des.DiscreteEventComponent;
 import net.sf.opendf.hades.des.schedule.SimpleScheduler;
 import net.sf.opendf.hades.execution.transport.PacketConstants;
+import net.sf.opendf.hades.execution.transport.TransportServer;
+import net.sf.opendf.hades.execution.transport.TransportException;
 import net.sf.opendf.hades.simulation.SequentialSimulatorCallback;
 
 /**
@@ -162,7 +164,7 @@ public class ExecutionController implements PacketConstants {
 	//  ctor
 
 	public ExecutionController(double t, DiscreteEventComponent dec, ClassLoader classLoader, 
-			                   Transport transport, boolean asynchronousTokens) {
+			                   TransportServer transport, boolean asynchronousTokens) {
 		this.dec = dec;
 		scheduler = null;
 		this.transport = transport;
@@ -222,7 +224,7 @@ public class ExecutionController implements PacketConstants {
 	private ClassLoader				classLoader;
 	private DiscreteEventComponent	dec;
 	private SimpleScheduler 		scheduler;
-	private Transport 				transport;
+	private TransportServer 				transport;
 	private boolean					asynchronousTokens;
 	
 	private InputLoop				inputLoop;
