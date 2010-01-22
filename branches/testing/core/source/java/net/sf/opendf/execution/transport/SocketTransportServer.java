@@ -15,41 +15,20 @@ import java.util.Map;
 import net.sf.opendf.execution.controller.ExecutionController;
 import net.sf.opendf.util.json.JSONLib;
 
-public class SocketTransportServer implements TransportServer {
+public class SocketTransportServer extends AbstractSocketTransport implements Transport {
 
 	@Override
-	public void sendPacket(Object packet) throws TransportException {
+	protected Socket createSocket() throws TransportException {
 		try {
-			JSONLib.write(packet, writer);
-		}
-		catch (IOException e) {
-			throw new TransportException("Error writing packet.", this, e);			
-		}
-	}
-
-	@Override
-	public Object receivePacket() throws TransportException {
-		try {
-			return JSONLib.read(reader);
-		}
-		catch (IOException e) {
-			throw new TransportException("Error reading packet.", this, e);			
-		}
-	}
-
-	@Override
-	public void createConnection() throws TransportException {
-		try {
-			socket = serverSocket.accept();
-			reader = new InputStreamReader(socket.getInputStream());	// consider buffering
-			writer = new OutputStreamWriter(socket.getOutputStream());  // consider buffering
+			return serverSocket.accept();
 		}
 		catch (IOException e) {
 			throw new TransportException("Error accepting connection on server socket " + socketNo + ".", this, e);			
 		}
 	}
 	
-	protected SocketTransportServer(int socket) throws TransportException {
+	public SocketTransportServer(int socket) throws TransportException {
+		super();
 		this.socketNo = socket;
 		try {
 			serverSocket = new ServerSocket(socket);
@@ -59,11 +38,6 @@ public class SocketTransportServer implements TransportServer {
 		}
 	}
 	
-	private Socket 			socket;
 	private ServerSocket	serverSocket;
-	private int  			socketNo;
-	
-	private Reader			reader;
-	private Writer			writer;
-	
+	private int  			socketNo;	
 }

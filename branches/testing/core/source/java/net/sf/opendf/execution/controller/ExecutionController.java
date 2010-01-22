@@ -5,12 +5,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import net.sf.opendf.execution.transport.PacketConstants;
 import net.sf.opendf.execution.transport.TransportException;
-import net.sf.opendf.execution.transport.TransportServer;
+import net.sf.opendf.execution.transport.Transport;
 import net.sf.opendf.hades.des.DiscreteEventComponent;
 import net.sf.opendf.hades.des.schedule.SimpleScheduler;
-import net.sf.opendf.hades.simulation.SequentialSimulatorCallback;
+
+import static net.sf.opendf.execution.transport.PacketConstants.*;
 
 /**
  * The ExecutionController is the top-level supervisor of a dataflow execution on a computing node. It 
@@ -28,7 +28,7 @@ import net.sf.opendf.hades.simulation.SequentialSimulatorCallback;
  *
  */
 
-public class ExecutionController implements PacketConstants {
+public class ExecutionController {
 	
 	//  commands
 	
@@ -52,6 +52,7 @@ public class ExecutionController implements PacketConstants {
 		if (scheduler == null)
 			throw new RuntimeException("System has not been initialized.");
 
+		flushPendingTokens();
 		boolean didStep = false;
 		if (scheduler.hasEvent()) {
 			scheduler.execute();
@@ -80,6 +81,7 @@ public class ExecutionController implements PacketConstants {
 
 		long nSteps = 0;
 
+		flushPendingTokens();
 		while (scheduler.hasEvent() && (inclusive ? scheduler.nextEventTime() <= time : scheduler.nextEventTime() < time)) {
 			if (asynchronousTokens)
 				flushPendingTokens();
@@ -98,12 +100,32 @@ public class ExecutionController implements PacketConstants {
 		return m;
 	}
 	
+	public Object status() {
+		
+		Map m = new HashMap();
+		m.put(fieldPacket, packetResponse);
+		m.put(fieldResponse, responseStatus);
+
+		m.put(fieldTime, scheduler.currentTime());
+		if (scheduler.hasEvent()) {
+			m.put(fieldActive, true);
+			m.put(fieldNextEventTime, scheduler.nextEventTime());
+		} else {
+			m.put(fieldActive, false);
+			m.put(fieldNextEventTime, scheduler.currentTime());
+		}
+		m.put(fieldNSteps, scheduler.currentEventCount());
+		
+		return m;
+	}
+	
 	public Object terminateExecution() {
 		running = false;
 
 		Map m = new HashMap();
 		m.put(fieldPacket, packetResponse);
 		m.put(fieldResponse, responseTerminated);
+		m.put(fieldTime, scheduler.currentTime());
 
 		return m;
 	}
@@ -164,7 +186,7 @@ public class ExecutionController implements PacketConstants {
 	//  ctor
 
 	public ExecutionController(double t, DiscreteEventComponent dec, ClassLoader classLoader, 
-			                   TransportServer transport, boolean asynchronousTokens) {
+			                   Transport transport, boolean asynchronousTokens) {
 		this.dec = dec;
 		scheduler = null;
 		this.transport = transport;
@@ -184,7 +206,7 @@ public class ExecutionController implements PacketConstants {
 			}
 			if (running) {			// this means we have a command
 				assert command != null;
-				flushPendingTokens();
+
 				Object response = command.execute();
 				command = null;		// do not reset command until execution complete
 				try {
@@ -224,7 +246,7 @@ public class ExecutionController implements PacketConstants {
 	private ClassLoader				classLoader;
 	private DiscreteEventComponent	dec;
 	private SimpleScheduler 		scheduler;
-	private TransportServer 				transport;
+	private Transport 				transport;
 	private boolean					asynchronousTokens;
 	
 	private InputLoop				inputLoop;
@@ -292,7 +314,14 @@ public class ExecutionController implements PacketConstants {
 								public Object execute() {
 									return step();
 								}
-							});							
+							});	
+						} else if (commandStatus.equals(cmd)) {
+							setCommand(new Command() {
+								@Override
+								public Object execute() {
+									return status();
+								}
+							});
 						} else if (commandTerminate.equals(cmd)) {
 							setCommand(new Command() {
 								@Override
