@@ -1,6 +1,7 @@
 package net.sf.opendf.util.json;
 
 import java.io.IOException;
+import java.io.PushbackReader;
 import java.io.Reader;
 import java.io.Writer;
 import java.math.BigInteger;
@@ -15,8 +16,8 @@ import java.util.Map;
  * BigInteger to represent unbounded size integers), Boolean, String, Collection, and Map. It represents the 
  * JSON "null" value using the Java "null", and also returns that value when it encounters the end of the
  * input stream. Consequently, it is indistinguishable from an infinite sequence of null values, which means
- * using null values as top-level (i.e. outermost) values does not work well. Using them inside containers
- * is of course no problem.
+ * using null values as top-level (i.e. outermost) values does not work well if one relies on the return value 
+ * of this reader to detect the end of the input stream. Using them inside containers is of course no problem.
  * 
  * When reading integral values, it will use and Integer or Long objects if the value fits into the respective
  * range. Only when it exceeds the Long range will a BigInteger be returned.
@@ -24,6 +25,19 @@ import java.util.Map;
  * The writer supports arrays in addition to Collection objects.
  * 
  * Credits: Some of the code has been lifted from org.json.*.
+ * 
+ * Note on Readers and PushbackReaders: Reading JSON requires a one-character lookahead, which is realized
+ * using a PushbackReader. If the Reader passed to the "read" method is a PushbackReader already, it is simply 
+ * used. Otherwise, a PushbackReader is wrapped around it. For strings, lists and arrays, which terminate 
+ * with defined characters, this should make no difference. However, for numbers it does. Reading the sequence
+ * 			1234"null"
+ * from a PushbackReader results in two entities, the number 1234 and the string "null". Reading the same 
+ * sequence from a reader results in the number 1234 and the null token, with one character still to be read.
+ * The reason is that the separating quote character went into the pushback buffer of the temporary 
+ * PushbackReader created for the first object, and was lost when that was discarded. In order to obtain 
+ * identical results in both cases, token-separating whitespace would have to be presented in the input 
+ * stream:
+ * 			1234 "null"
  * 
  * @author jwj
  *
@@ -33,12 +47,12 @@ import java.util.Map;
 public class JSONLib {
 	
 	public static Object read (Reader r) throws IOException {
-		PutbackReader r1 = new PutbackReader(r);
+		PushbackReader r1 = (r instanceof PushbackReader) ? (PushbackReader)r : new PushbackReader(r);
 		Object v = readValue(r1);
 		return v;
 	}
 		
-	private static Object readValue(PutbackReader r) throws IOException {
+	private static Object readValue(PushbackReader r) throws IOException {
 		
 		int c = readNextNonWhitespace(r);
 		
@@ -61,7 +75,7 @@ public class JSONLib {
 		case '9':
 		case '-':
 		case '.':
-			r.putback(c);
+			r.unread(c);
 			return readNumber(r);
 		case 'n':
 			return readNull(r);
@@ -76,7 +90,7 @@ public class JSONLib {
 		}
 	}
 	
-	private static int readNextNonWhitespace(PutbackReader r) throws IOException {
+	private static int readNextNonWhitespace(PushbackReader r) throws IOException {
 		int c = r.read();
 		while (c >= 0 && whitespace.indexOf(c) >= 0) {
 			c = r.read();
@@ -86,14 +100,14 @@ public class JSONLib {
 
 	private static final String whitespace = " \r\n\t";
 	
-	private static char next(PutbackReader r) throws IOException {
+	private static char next(PushbackReader r) throws IOException {
 		int c = r.read();
 		if (c < 0)
 			throw new JSONException("Encountered end of stream, cannot finish reading.");
 		return (char)c;
 	}
 
-	private static String next(int n, PutbackReader r) throws IOException {
+	private static String next(int n, PushbackReader r) throws IOException {
 		char b[] = new char [n];
 		
 		for (int i = 0; i < n; i++)
@@ -102,7 +116,7 @@ public class JSONLib {
 		return new String(b);
 	}
 	
-	private static char nextNonWhitespace(PutbackReader r) throws IOException {
+	private static char nextNonWhitespace(PushbackReader r) throws IOException {
 		int c = readNextNonWhitespace(r);
 		if (c < 0)
 			throw new JSONException("Encountered end of stream, cannot finish reading.");
@@ -110,7 +124,7 @@ public class JSONLib {
 	}
 
 	
-	private static String readString(PutbackReader r, char quote) throws IOException {
+	private static String readString(PushbackReader r, char quote) throws IOException {
         char c;
         StringBuffer sb = new StringBuffer();
         for (;;) {
@@ -160,14 +174,14 @@ public class JSONLib {
         }
     }
 	
-	private static List readArray(PutbackReader r) throws IOException {
+	private static List readArray(PushbackReader r) throws IOException {
 		List v = new ArrayList();
 		
 		int c = nextNonWhitespace(r);
 		if (c == ']')
 			return v;
 		
-		r.putback(c);
+		r.unread(c);
 		
 		while (true) {
 			Object a = readValue(r);
@@ -185,14 +199,14 @@ public class JSONLib {
 		
 	}
 
-	private static Map readObject(PutbackReader r) throws IOException {
+	private static Map readObject(PushbackReader r) throws IOException {
 		Map m = new HashMap();
 		
 		int c = nextNonWhitespace(r);
 		if (c == '}')
 			return m;
 		
-		r.putback(c);
+		r.unread(c);
 		
 		while (true) {
 			Object k = readValue(r);
@@ -213,7 +227,7 @@ public class JSONLib {
 		}	
 	}
 	
-	private static Number  readNumber(PutbackReader r) throws IOException {
+	private static Number  readNumber(PushbackReader r) throws IOException {
 		StringBuffer sb = new StringBuffer();
 		boolean isFloat = false;
 		int c = r.read();
@@ -223,7 +237,7 @@ public class JSONLib {
 			sb.append((char)c);
 			c = r.read();
 		}
-		r.putback(c);
+		r.unread(c);
 
 		String s = sb.toString().trim();
 		
@@ -234,52 +248,22 @@ public class JSONLib {
 		}		
 	}
 	
-	private static Object readNull(PutbackReader r) throws IOException {
+	private static Object readNull(PushbackReader r) throws IOException {
 		if (!"ull".equals(next(3, r)))
 			throw new JSONException("Error reading 'null' token.");
 		return null;
 	}
 	
-	private static Object readTrue(PutbackReader r) throws IOException {
+	private static Object readTrue(PushbackReader r) throws IOException {
 		if (!"rue".equals(next(3, r)))
 			throw new JSONException("Error reading 'true' token.");
 		return Boolean.TRUE;
 	}
 	
-	private static Object readFalse(PutbackReader r) throws IOException {
+	private static Object readFalse(PushbackReader r) throws IOException {
 		if (!"alse".equals(next(4, r)))
 			throw new JSONException("Error reading 'false' token.");
 		return Boolean.FALSE;
-	}
-	
-	static class PutbackReader {
-		
-		public int read() throws IOException {
-			if (putback) {
-				putback = false;
-				return c;
-			} else {
-				return r.read();
-			}
-		}
-		
-		public void putback (int c) {
-			if (putback)
-				throw new JSONException("Cannot put back more than one character.");
-			this.c = c;
-			putback = true;
-		}
-		
-		
-		public PutbackReader(Reader r) {
-			this.r = r;
-			c = 0;
-			putback = false;
-		}
-		
-		private Reader r;
-		int c;
-		boolean putback;
 	}
 	
 	
@@ -309,8 +293,12 @@ public class JSONLib {
 
 	
 	
-	
 	public static void write(Object v, Writer p) throws IOException {
+		writeValue(v, p);
+		p.flush();
+	}
+	
+	public static void writeValue(Object v, Writer p) throws IOException {
 		if (v == null) {
 			p.write("null");
 		} else if (v instanceof Map) {
@@ -320,9 +308,9 @@ public class JSONLib {
 			for (Object k : m.keySet()) {
 				if (!isFirst)
 					p.write(",");
-				write(k, p);
+				writeValue(k, p);
 				p.write(":");
-				write(m.get(k), p);
+				writeValue(m.get(k), p);
 				isFirst = false;
 			}
 			p.write("}");
@@ -333,7 +321,7 @@ public class JSONLib {
 			for (Object a : c) {
 				if (!isFirst)
 					p.write(",");
-				write(a, p);
+				writeValue(a, p);
 				isFirst = false;
 			}
 			p.write("]");
@@ -349,7 +337,7 @@ public class JSONLib {
 			for (int i = 0; i < a.length; i++) {
 				if (i > 0)
 					p.write(",");
-				write(a[i], p);
+				writeValue(a[i], p);
 			}
 			p.write("]");
 		} else if (v instanceof boolean []) {
@@ -358,7 +346,7 @@ public class JSONLib {
 			for (int i = 0; i < a.length; i++) {
 				if (i > 0)
 					p.write(",");
-				write(a[i], p);
+				writeValue(a[i], p);
 			}
 			p.write("]");
 		} else if (v instanceof byte []) {
@@ -367,7 +355,7 @@ public class JSONLib {
 			for (int i = 0; i < a.length; i++) {
 				if (i > 0)
 					p.write(",");
-				write(a[i], p);
+				writeValue(a[i], p);
 			}
 			p.write("]");
 		} else if (v instanceof char []) {
@@ -376,7 +364,7 @@ public class JSONLib {
 			for (int i = 0; i < a.length; i++) {
 				if (i > 0)
 					p.write(",");
-				write(a[i], p);
+				writeValue(a[i], p);
 			}
 			p.write("]");
 		} else if (v instanceof short []) {
@@ -385,7 +373,7 @@ public class JSONLib {
 			for (int i = 0; i < a.length; i++) {
 				if (i > 0)
 					p.write(",");
-				write(a[i], p);
+				writeValue(a[i], p);
 			}
 			p.write("]");
 		} else if (v instanceof int []) {
@@ -394,7 +382,7 @@ public class JSONLib {
 			for (int i = 0; i < a.length; i++) {
 				if (i > 0)
 					p.write(",");
-				write(a[i], p);
+				writeValue(a[i], p);
 			}
 			p.write("]");
 		} else if (v instanceof long []) {
@@ -403,7 +391,7 @@ public class JSONLib {
 			for (int i = 0; i < a.length; i++) {
 				if (i > 0)
 					p.write(",");
-				write(a[i], p);
+				writeValue(a[i], p);
 			}
 			p.write("]");
 		} else if (v instanceof float []) {
@@ -412,7 +400,7 @@ public class JSONLib {
 			for (int i = 0; i < a.length; i++) {
 				if (i > 0)
 					p.write(",");
-				write(a[i], p);
+				writeValue(a[i], p);
 			}
 			p.write("]");
 		} else if (v instanceof double []) {
@@ -421,7 +409,7 @@ public class JSONLib {
 			for (int i = 0; i < a.length; i++) {
 				if (i > 0)
 					p.write(",");
-				write(a[i], p);
+				writeValue(a[i], p);
 			}
 			p.write("]");
 		} else {

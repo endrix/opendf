@@ -32,6 +32,7 @@ public interface PacketConstants {
 	public final static String fieldNextEventTime = ":nextEventTime";
 	public final static String fieldValue = ":value";
 	public final static String fieldType = ":type";
+	public final static String fieldStep = ":step";
 
 	
 	public final static String packetResponse = "response";
@@ -45,7 +46,7 @@ public interface PacketConstants {
 	public final static String commandStep = "step";
 	public final static String commandRun = "run";
 	public final static String commandRunUntil = "runUntil";
-	public final static String commandStats = "stats";
+	public final static String commandStatus = "status";
 	public final static String commandTerminate = "terminate";
 		
 	public final static String eventTerminate = "terminate";
@@ -58,5 +59,6 @@ public interface PacketConstants {
 	public final static String responseInitialized = "initialized";
 	public final static String responseTerminated = "terminated";
 	public final static String responseDone = "done";
+	public final static String responseStatus = "status";
 	
 }

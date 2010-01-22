@@ -13,14 +13,13 @@ public class HarnessConfiguration {
 		
 		return null;
 	}
-	
-	
-	InputSource.Factory getInputSourceFactory(String inputPort) {
+
+	InputPortConfiguration  getInputPortConfiguration(String port) {
 		
 		return null;
 	}
 	
-	OutputSink.Factory getOutputSinkFactory(String outputPort) {
+	OutputPortConfiguration  getOutputPortConfiguration(String port) {
 		
 		return null;
 	}
