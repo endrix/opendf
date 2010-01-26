@@ -41,6 +41,7 @@ import eu.actorsproject.util.OutputGenerator;
 import eu.actorsproject.xlim.XlimBlockElement;
 import eu.actorsproject.xlim.XlimBlockModule;
 import eu.actorsproject.xlim.XlimContainerModule;
+import eu.actorsproject.xlim.XlimDesign;
 import eu.actorsproject.xlim.XlimIfModule;
 import eu.actorsproject.xlim.XlimInputPort;
 import eu.actorsproject.xlim.XlimInstruction;
@@ -59,6 +60,7 @@ import eu.actorsproject.xlim.XlimType;
  */
 public abstract class LocalCodeGenerator implements ExpressionTreeGenerator {
 	
+	protected XlimDesign mDesign;
 	protected SymbolTable mActorScope;
 	protected LocalSymbolTable mLocalSymbols;
 	protected OperationGenerator mPlugIn;
@@ -67,9 +69,11 @@ public abstract class LocalCodeGenerator implements ExpressionTreeGenerator {
 	private BlockElementVisitor mVisitor;
 
 	
-	public LocalCodeGenerator(SymbolTable topLevelSymbols, 
+	public LocalCodeGenerator(XlimDesign design,
+			                  SymbolTable topLevelSymbols, 
 			                  OperationGenerator plugIn, 
 			                  OutputGenerator output) {
+		mDesign = design;
 		mActorScope = topLevelSymbols;
 		mLocalSymbols = new LocalSymbolTable();
 		mPlugIn = plugIn;
@@ -79,7 +83,8 @@ public abstract class LocalCodeGenerator implements ExpressionTreeGenerator {
 
 	public void translateTask(XlimTaskModule task) {
 		storageAllocation(task);
-		generateCode(task);
+		declareTemporaries(task);
+		generateBlockElements(task);
 	}
 	
 	protected void storageAllocation(XlimTaskModule task) {
@@ -87,14 +92,21 @@ public abstract class LocalCodeGenerator implements ExpressionTreeGenerator {
 		storageAllocation.allocateStorage(task);
 	}
 	
-	protected void generateCode(XlimContainerModule m) {
+	protected void declareTemporaries(XlimContainerModule m) {
 		LocalScope scope=mLocalSymbols.getScope(m);
 		if (scope!=null) {
 			generateDeclaration(scope);
 		}
-		
+	}
+	
+	protected void generateBlockElements(XlimContainerModule m) {
 		for (XlimBlockElement child: m.getChildren())
 			child.accept(mVisitor, null);
+	}
+	
+	protected void generateCode(XlimContainerModule m) {
+		declareTemporaries(m);
+		generateBlockElements(m);
 	}
 
 	protected abstract void generateDeclaration(LocalScope scope);
