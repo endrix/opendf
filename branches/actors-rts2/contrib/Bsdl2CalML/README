@@ -1,0 +1,14 @@
+WARNING: BSDL2CALML IS ACTUALLY NOT COMPLETED. IT IS STILL CURRENTLY MODIFIED.
+IT'S ACTUALLY MISSING EXPRESSION PARSING
+
+---------------------------------------------------------------------------------
+                                 Prerequisites
+                                 -------------
+
+A XSLT engine
+
+
+                                      Use
+                                      ---
+
+The top file for using this XSLT transformation is : bsdlGenerator.xslt

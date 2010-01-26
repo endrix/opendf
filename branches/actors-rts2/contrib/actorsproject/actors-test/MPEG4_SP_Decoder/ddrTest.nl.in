@@ -1,0 +1,33 @@
+network ddrTest() ==> :
+
+var
+	BTYPE_SZ = 12;
+	NEWVOP = 2048;
+	INTRA = 1024;
+entities
+
+        sourceBTYPE = art_Source_txt(fileName = "@datadir@/actors-test/MPEG4_SP_Decoder/input/ddrTest/BTYPE.txt");
+
+        sourceMBD = art_Source_txt(fileName = "@datadir@/actors-test/MPEG4_SP_Decoder/input/ddrTest/MBD.txt");
+
+        sourceMBA = art_Source_txt(fileName = "@datadir@/actors-test/MPEG4_SP_Decoder/input/ddrTest/MBA.txt");
+
+        sourceMCA = art_Source_txt(fileName = "@datadir@/actors-test/MPEG4_SP_Decoder/input/ddrTest/MCA.txt");
+
+        seq = DDRSeq(BTYPE_SZ=BTYPE_SZ, NEWVOP=NEWVOP, INTRA=INTRA);
+
+        ddr = art_DDRModel(MAXW_IN_MB = 121, MAXH_IN_MB = 69);
+
+        sinkRD = art_Sink_txt(fileName = "./output/ddrTest/RD.txt");
+
+structure
+        sourceBTYPE.Out --> seq.BTYPE;
+	sourceMBA.Out --> seq.MbaIn;
+	sourceMCA.Out --> seq.McaIn;
+        sourceMBD.Out --> ddr.WD {bufferSize = 100;};
+
+	seq.MbaOut --> ddr.WA {bufferSize = 100;};
+	seq.McaOut --> ddr.RA {bufferSize = 100;};
+
+        ddr.RD --> sinkRD.In;
+end

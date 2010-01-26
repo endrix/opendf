@@ -1,0 +1,145 @@
+/* -*-Java-*- */                                         
+
+/*
+ * Copyright (C) 2009  Anders Nilsson <anders.nilsson@cs.lth.se>
+ *                                                              
+ * This file is part of Actors model compiler.                      
+ */                                                             
+
+import java.util.HashSet;
+import java.io.File; 
+import java.io.FileNotFoundException; 
+import java.io.PrintStream; 
+
+aspect MergeActors {
+	void Element.mergeActors() {}
+	public void Start.mergeActors() {
+		getSpecification().mergeActors();
+	}
+	void ComplexElement.mergeActors() {
+		for (Element e : getElements()) {
+			e.mergeActors();
+		}
+	}
+	void Specification.mergeActors() {
+		for (Element e : getElements()) {
+			e.mergeActors();
+		}
+	}
+	void Instance.mergeActors() {}
+	void Connection.mergeActors() {
+		String srcPort="",dstPort="";
+		Instance src = getSource();
+		Instance dst = getDest();
+		if (src == null) {
+			System.out.println(source()+" is null");
+			return;
+		}
+		if (dst == null) {
+			System.out.println(dest()+" is null");
+			return;
+		}
+		if (src.isCSDF() && dst.isCSDF()) {
+			System.out.println("   Found mergeable actors");
+			// Check port names and perform actual actor
+			// merge. Then set remove_me flag so that this
+			// connection will be removed from the actor
+			// network.
+			srcPort = srcPort();
+			dstPort = dstPort();
+			System.out.println("Merging "+src.name()+":"+dst.name());
+			src.isMerged(true);
+			src.merge(dst,srcPort,dstPort);
+			// Change all further references to the removed actor
+			HashSet<Connection> cons = root().getConnections(new HashSet<Connection>());
+			for (Connection c : cons) {
+				if (dest().equals(c.source())) {
+					c.setSource("\""+source()+"\"");
+				}
+			}
+			dst.disabled = true;
+			dst.is$Final(false);
+			src.genFile();
+			remove_me = true;
+			is$Final(false);
+		}
+	}
+
+	void Instance.merge(Instance inst,String srcPort, String dstPort) {
+		if (isMerged()) {
+			xlimInstance().merge(inst.xlimInstance(),srcPort,dstPort);
+		}
+	}
+
+	void Instance.genFile() {
+		if (isMerged()) {
+			System.out.println("generating actor: "+name());
+			try {
+				if (!(xlimInstance() instanceof xlimAST.EmptyStart)) {
+					xlimInstance().prettyPrint("",new PrintStream(new File(name()+".xlim")));
+				}
+			} catch (FileNotFoundException e) {
+				System.out.println("Could not print to file: "+name());
+			} 
+		}
+		if (disabled) {
+			// remove from AST
+			is$Final(false);
+		}
+	}
+
+	private boolean Instance.isMerged = false;
+	public void Instance.isMerged(boolean b) {
+		isMerged = b;
+	}
+	public boolean Instance.isMerged() {
+		return isMerged;
+	}
+}
+
+aspect Misc {
+	syn HashSet<Connection> Element.getConnections(HashSet<Connection> set) = set;
+	eq XDF.getConnections(HashSet<Connection> set) {		
+		for (Element e : getElements()) {
+			set = e.getConnections(set);
+		}
+		return set;
+	}
+	eq Connection.getConnections(HashSet<Connection> set) {
+		set.add(this);
+		return set;
+	}
+
+	public HashSet<Instance> XDF.getInstances() {
+		return getInstances(new HashSet<Instance>());
+	}
+	syn HashSet<Instance> Element.getInstances(HashSet<Instance> inst) = inst;
+	eq XDF.getInstances(HashSet<Instance> inst) {
+		for (Element e : getElements()) {
+			inst = e.getInstances(inst);
+		}
+		return inst;
+	}
+	eq Instance.getInstances(HashSet<Instance> inst) {
+		inst.add(this);
+		return inst;
+	}
+
+}
+
+aspect Rewrites {
+	boolean Connection.remove_me = false;
+	boolean Instance.disabled = false;
+	
+	rewrite Connection {
+		when (remove_me) to ComplexElement {
+			return new ComplexElement();
+		}
+	}
+	rewrite Instance {
+		when (disabled) to ComplexElement {
+			System.out.println("Removing instance: "+name());
+			return new ComplexElement();
+		}
+	}
+}
