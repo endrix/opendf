@@ -84,7 +84,7 @@ public class Task2c extends LocalCodeGenerator {
 			String actorInstanceRef=mTopLevelSymbols.getActorInstanceReference();
 			
 			mOutput.println(actorInstanceT+" *"+actorInstanceRef+"=("+actorInstanceT+"*) pBase;");
-			mOutput.println("int *exitCode=EXIT_CODE_YIELD;");
+			mOutput.println("const int *exitCode=EXIT_CODE_YIELD;");
 			declareTemporaries(task);
 			
 			mOutput.println("ART_ACTION_SCHEDULER_ENTER("+numInputs+","+numOutputs+");");
@@ -110,10 +110,13 @@ public class Task2c extends LocalCodeGenerator {
 	protected void generateSchedulerLoop(XlimTaskModule actionScheduler) {
 		ActionSchedulerParser parser=new ActionSchedulerParser();
 		XlimLoopModule schedulerLoop=parser.findSchedulingLoop(actionScheduler);
+		LocalScope loopScope=mLocalSymbols.getScope(schedulerLoop);
 		
 		mOutput.println("ART_ACTION_SCHEDULER_LOOP {");
 		mOutput.increaseIndentation();
 		mOutput.println("ART_ACTION_SCHEDULER_LOOP_TOP;");
+		if (loopScope!=null)
+			generateDeclaration(loopScope);
 		generateCode(schedulerLoop.getBodyModule());
 		mOutput.println("ART_ACTION_SCHEDULER_LOOP_BOTTOM;");
 		mOutput.decreaseIndentation();

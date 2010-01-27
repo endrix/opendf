@@ -466,7 +466,8 @@ public class Actor2c extends OutputGenerator {
 				println("ART_ACTION_SCHEDULER("+mSymbols.getTargetName(task)+");");
 			}
 			else {
-				println("ART_ACTION("+mSymbols.getTargetName(task)+");");
+				String actorInstanceT=mSymbols.getActorInstanceType();
+				println("ART_ACTION("+mSymbols.getTargetName(task)+","+actorInstanceT+");");
 			}
 		}
 		if (!actionSchedulerFound)
@@ -482,8 +483,9 @@ public class Actor2c extends OutputGenerator {
 		for (XlimTaskModule task: mDesign.getTasks()) {
 			if (task!=actionScheduler) {
 				String name=mSymbols.getTargetName(task);
+				String actorInstanceT=mSymbols.getActorInstanceType();
 				println();
-				println("ART_ACTION("+name+") {");
+				println("ART_ACTION("+name+","+actorInstanceT+") {");
 			}
 			else {
 				ExitCodeGenerator ecg=new ExitCodeGenerator();			
