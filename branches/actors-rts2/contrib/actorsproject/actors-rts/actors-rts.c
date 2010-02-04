@@ -505,7 +505,9 @@ static void *cache_aligned_calloc(size_t size)
 {
   void *result; 
   
-  posix_memalign(&result, CACHE_LINE_SIZE, size);
+  if (posix_memalign(&result, CACHE_LINE_SIZE, size) != 0) {
+    runtimeError(NULL, "Failed to align %d bytes\n", size);
+  }
   memset(result, 0, size);
   return result;
 }
