@@ -1,0 +1,15 @@
+Available command-line options for built programs:
+
+  --timing	run actors with timing measurements
+  --info	print out some (currently rather uninteresting) info
+  --single_cpu	run all actor on single cpu, if not all actors are
+		given an affinity, system will fall-back to this mode
+  --fifosize=N	use given fifosize (in bytes) as default
+  --loopmax=N	maximum number of loops until an actor gives up
+		execution
+  --affinityN=comma_separated_list_of_actors	run the named
+		actors on CPU N
+
+
+Arguments to actors (from the .nl file), can be specified as $NAME, 
+and then they are taken from the environment of the process.

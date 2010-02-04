@@ -35,18 +35,17 @@ ifeq ($(SDL), y)
 CFLAGS += `sdl-config --cflags` -DSDL
 endif
 
-CFLAGS += -O3
+CFLAGS += -O3 -Wall -Werror
 
-INSTALL_H=actors-rts.h actors-config.h
-INSTALL_SYSACTORS=art_DDRModel.cal art_Display_yuv.cal \
-                  art_Sink_bin.cal art_Sink_yuv.cal art_Sink_txt.cal \
-                  art_Source_bin.cal art_Source_txt.cal art_Source_real.cal \
-                  art_Sink_real.cal
+INSTALL_H=actors-rts.h actors-fifo.h actors-config.h
+INSTALL_SYSACTORS=art_DDRModel.cal art_Display_yuv.cal art_Sink_yuv.cal \
+                  art_Sink_bin.cal art_Sink_txt.cal art_Sink_real.cal \
+                  art_Source_bin.cal art_Source_txt.cal art_Source_real.cal
 
-OBJECTS=exec_network.o \
-        art_Sink_bin.o art_Sink_txt.o art_Source_bin.o art_Source_txt.o \
-        art_DDRModel.o art_Display_yuv.o art_Source_real.o \
-        art_Sink_real.o art_Sink.o art_Source.o ddrmodel.o display.o
+OBJECTS=actors-rts.o \
+        art_Sink_bin.o art_Sink_txt.o art_Sink_real.o \
+	art_Source_bin.o art_Source_txt.o art_Source_real.o \
+        art_DDRModel.o art_Display_yuv.o 
 
 # delete the built-in suffixes to avoid surprises
 .SUFFIXES:   
@@ -75,7 +74,7 @@ else
 	$(AR) rcs $@ $^
 endif
 
-$(OBJECTS): %.o : $(srcdir)/%.c
+$(OBJECTS): %.o : $(srcdir)/%.c $(INSTALL_H)
 	$(CC) -fPIC -c -Wall $(CFLAGS) -o $@ $<
 
 install: install-lib install-include install-sysactors
@@ -108,3 +107,4 @@ uninstall:
 clean:
 	@rm -f *.o $(REAL_NAME)
 
+actors-rts.o: actors_execute_network.h
