@@ -21,7 +21,7 @@ static void *EXECUTE_NETWORK(cpu_runtime_data_t *runtime,
   int *old_sleep;
   AbstractActorInstance **actor = runtime->actor;
   int actors = runtime->actors;
-  struct cpu_runtime_data *cpu = runtime->cpu;
+  cpu_runtime_data_t *cpu = runtime->cpu;
   int this_cpu = runtime->cpu_index;
   int this_balance;
   DECLARE_TIMEBASE(t1);
@@ -57,30 +57,32 @@ static void *EXECUTE_NETWORK(cpu_runtime_data_t *runtime,
     for (i = 0 ; i < actors ; i++) {
       actor[i]->fireable = 0;
       actor[i]->fired = 0;
-      for (j = 0 ; j < actor[i]->inputs ; j++) {
-	int available = (
-	  atomic_get(&actor[i]->input[j].writer->shared->count) -
-	  atomic_get(&actor[i]->input[j].shared->count));
-	actor[i]->input[j].local->available = available;
-	actor[i]->input[j].local->count = 0;
-	if (available) { 
-	  actor[i]->fireable = 1; 
+      if (!actor[i]->terminated) {
+	for (j = 0 ; j < actor[i]->inputs ; j++) {
+	  int available = (
+	    atomic_get(&actor[i]->input[j].writer->shared->count) -
+	    atomic_get(&actor[i]->input[j].shared->count));
+	  actor[i]->input[j].local->available = available;
+	  actor[i]->input[j].local->count = 0;
+	  if (available) { 
+	    actor[i]->fireable = 1; 
+	  }
 	}
-      }
-      for (j = 0 ; j < actor[i]->outputs ; j++) {
-	int max_unconsumed = 0;
-	int available;
-	for (k = 0 ; k < actor[i]->output[j].readers ; k++) {
-	  int unconsumed = (
-	    atomic_get(&actor[i]->output[j].shared->count) -
-	    atomic_get(&actor[i]->output[j].reader[k]->shared->count));
-	  if (unconsumed > max_unconsumed) { max_unconsumed = unconsumed; }
-	}
-	available = actor[i]->output[j].capacity - max_unconsumed;
-	actor[i]->output[j].local->available = available;
-	actor[i]->output[j].local->count = 0;
-	if (available) { 
-	  actor[i]->fireable = 1;	
+	for (j = 0 ; j < actor[i]->outputs ; j++) {
+	  int max_unconsumed = 0;
+	  int available;
+	  for (k = 0 ; k < actor[i]->output[j].readers ; k++) {
+	    int unconsumed = (
+	      atomic_get(&actor[i]->output[j].shared->count) -
+	      atomic_get(&actor[i]->output[j].reader[k]->shared->count));
+	    if (unconsumed > max_unconsumed) { max_unconsumed = unconsumed; }
+	  }
+	  available = actor[i]->output[j].capacity - max_unconsumed;
+	  actor[i]->output[j].local->available = available;
+	  actor[i]->output[j].local->count = 0;
+	  if (available) { 
+	    actor[i]->fireable = 1;	
+	  }
 	}
       }
     }
@@ -91,10 +93,15 @@ static void *EXECUTE_NETWORK(cpu_runtime_data_t *runtime,
     ADD_TIMER(&statistics.read_barrier, &t1);
     for (i = 0 ; i < actors ; i++) {
       if (actor[i]->fireable) {
+	const int *result;
 	INIT_TIMEBASE(&t3);
-	actor[i]->actor->action_scheduler(actor[i], loopmax);
+	result = actor[i]->actor->action_scheduler(actor[i], loopmax);
 	ADD_TIMER(&actor[i]->total, &t3);
 	actor[i]->nloops++;
+	if (result == EXITCODE_TERMINATE) {
+	  actor[i]->terminated = 1;
+	  printf("%s terminated\n", actor[i]->name);
+	}
       }
     }
     ADD_TIMER(&statistics.fire, &t1);
@@ -118,9 +125,7 @@ static void *EXECUTE_NETWORK(cpu_runtime_data_t *runtime,
 
 	    atomic_set(&input->shared->count, 
 		       atomic_get(&input->shared->count) + count);
-	    atomic_set(&cpu[this_cpu].io_count[wcpu].from_cpu,
-		       atomic_get(&cpu[this_cpu].io_count[wcpu].from_cpu) + 
-		       count);
+	    cpu[this_cpu].has_affected[wcpu] = 1;
 	    this_balance -= count;
 	  }
 	}
@@ -132,11 +137,7 @@ static void *EXECUTE_NETWORK(cpu_runtime_data_t *runtime,
 	    atomic_set(&output->shared->count,
 		       atomic_get(&output->shared->count) + count);
 	    for (k = 0 ; k < output->readers ; k++) {
-	      int rcpu = output->reader[k]->cpu;
-	      
-	      atomic_set(&cpu[this_cpu].io_count[rcpu].to_cpu,
-			 atomic_get(&cpu[this_cpu].io_count[rcpu].to_cpu) +
-			 count);
+	      cpu[this_cpu].has_affected[output->reader[k]->cpu] = 1;
 	      this_balance += count;
 	    }
 	  }
@@ -169,13 +170,13 @@ static void *EXECUTE_NETWORK(cpu_runtime_data_t *runtime,
 	      // Thread is active, no need to wake it
 	      old_sleep[i] = current_sleep;
 	    } else {
-	      if (atomic_get(&cpu[this_cpu].io_count[i].to_cpu) !=
-		  atomic_get(&cpu[i].io_count[this_cpu].from_cpu)) {
+	      if (cpu[this_cpu].has_affected[i]) {
 		// This assumes that sem_post does not reach the waiting 
 		// cpu before all the updates from above are visible.
 		// Do we need an extra write_barrier, and how can we test it?
 		sem_post(cpu[i].sem);
 		// Only wake it once for each sleep
+		cpu[this_cpu].has_affected[i] = 0;
 		old_sleep[i] = current_sleep;
 	      }
 	    }
@@ -233,18 +234,22 @@ static void *EXECUTE_NETWORK(cpu_runtime_data_t *runtime,
 		// Thread is active, no need to wake it
 		old_sleep[i] = current_sleep;
 	      } else {	  
-		if (atomic_get(&cpu[this_cpu].io_count[i].to_cpu) !=
-		    atomic_get(&cpu[i].io_count[this_cpu].from_cpu)) {
+		if (cpu[this_cpu].has_affected[i]) {
 		  // We have data for some sleeping thread
 		  sem_post(cpu[i].sem);
 		  // Only wake it once for each sleep
+		  cpu[this_cpu].has_affected[i] = 0;
 		  old_sleep[i] = current_sleep;
+		  printf("B %d wakes %d %d\n", this_cpu, i, old_sleep[i]);
 		}
-	      }
-	      if (atomic_get(&cpu[i].io_count[this_cpu].to_cpu) !=
-		  atomic_get(&cpu[this_cpu].io_count[i].from_cpu)) {
-		// Sleeping thread has data for us
-		sleep = 0;
+		if (cpu[i].has_affected[this_cpu]) {
+		  // Sleeping thread has data for us, since thread is
+		  // sleeping and we hold mutex, we can safely access 
+		  // their counter to indicate that we have seen 
+		  // their data
+		  cpu[i].has_affected[this_cpu] = 0;
+		  sleep = 0;
+		}
 	      }
 	    }
 	  }

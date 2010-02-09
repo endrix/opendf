@@ -138,6 +138,7 @@ struct AbstractActorInstance {
   InputPort *input;
   int fireable;
   int fired;
+  int terminated;
   long long nloops;
   unsigned long long total;
 };

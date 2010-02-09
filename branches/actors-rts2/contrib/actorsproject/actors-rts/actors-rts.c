@@ -75,10 +75,7 @@ typedef struct cpu_runtime_data {
   int actors;
   AbstractActorInstance **actor; /* Pointer to actors for this cpu */
   void *actor_data;
-  struct {
-    atomic_value_t to_cpu;
-    atomic_value_t from_cpu;
-  } *io_count;
+  int *has_affected;
   statistics_t statistics;
 } cpu_runtime_data_t;
 
@@ -350,7 +347,7 @@ static int set_affinity(ActorInstance_1_t **instance,
 {
   int result = 0;
   char *p;
-  int affinity;
+  int affinity = 0;
 
   for (p = arg ; p && *p && *p != '=' ; p++) {
     affinity = affinity * 10 + *p - '0';
@@ -579,7 +576,7 @@ static cpu_runtime_data_t *allocate_network(
     (num_outputs + num_inputs) * sizeof(LocalContext) +
     numInstances * sizeof(AbstractActorInstance *) + 
     actor_bytes +
-    nr_of_cpus(used_cpus) * sizeof(*result[0].io_count));
+    nr_of_cpus(used_cpus) * sizeof(*result[0].has_affected));
   shared_bytes = 
     cache_bytes(sizeof(*result[0].sleep))+
     cache_bytes((num_outputs + num_inputs) * sizeof(SharedContext));
@@ -693,8 +690,8 @@ static cpu_runtime_data_t *allocate_network(
       cpu_actor_data = cpu_local_p;
       cpu_local_p += actor_bytes;
       result[cpu].actor_data = cpu_actor_data;
-      result[cpu].io_count = cpu_local_p;
-      cpu_local_p += (nr_of_cpus(used_cpus) * sizeof(*result[0].io_count));
+      result[cpu].has_affected = cpu_local_p;
+      cpu_local_p += (nr_of_cpus(used_cpus) * sizeof(*result[0].has_affected));
 
       for (j = 0 ; j < numInstances ; j++) {
 	if (instance[j]->affinity == result[cpu].physical_id) {
