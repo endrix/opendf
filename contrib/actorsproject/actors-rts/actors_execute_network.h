@@ -29,7 +29,7 @@ static void *EXECUTE_NETWORK(cpu_runtime_data_t *runtime,
   DECLARE_TIMEBASE(t3);
   statistics_t statistics;
 
-  printf("START#%d %s %s %p\n", this_cpu, __DATE__, __TIME__, runtime);
+//  printf("START#%d %s %s %p\n", this_cpu, __DATE__, __TIME__, runtime);
   old_sleep = malloc(runtime->cpu_count * sizeof(*old_sleep));
   for (i  = 0 ; i < runtime->cpu_count ; i++) {
     old_sleep[i] = 0;
@@ -100,7 +100,6 @@ static void *EXECUTE_NETWORK(cpu_runtime_data_t *runtime,
 	actor[i]->nloops++;
 	if (result == EXITCODE_TERMINATE) {
 	  actor[i]->terminated = 1;
-	  printf("%s terminated\n", actor[i]->name);
 	}
       }
     }
@@ -150,8 +149,6 @@ static void *EXECUTE_NETWORK(cpu_runtime_data_t *runtime,
       MUTEX_LOCK();
       balance += this_balance;
       this_balance = 0;
-
-      printf("Balance=: %d %d %Ld\n", this_cpu, this_balance, balance);
       MUTEX_UNLOCK();
     }
     
@@ -188,9 +185,6 @@ static void *EXECUTE_NETWORK(cpu_runtime_data_t *runtime,
       // No fired actors found, prepare to sleep
       int sleep = 1;
 
-      while (sem_trywait(cpu[this_cpu].sem) == 0) { 
-	// Consume old activations before announcing sleep
-      }
       MUTEX_LOCK();
       // Possible scenarios:
       //   1. Active CPU connected to this CPU that will eventually 
@@ -211,6 +205,7 @@ static void *EXECUTE_NETWORK(cpu_runtime_data_t *runtime,
       balance += this_balance;
       this_balance = 0;
       if (sleepers == runtime->cpu_count && balance == 0) { 
+	// Only terminate when all threads are starved
 	int do_terminate = 1;
 	for (i = 0 ; i < runtime->cpu_count ; i++) { 
 	  if (cpu[i].starved == 0) {
@@ -240,12 +235,11 @@ static void *EXECUTE_NETWORK(cpu_runtime_data_t *runtime,
 		  // Only wake it once for each sleep
 		  cpu[this_cpu].has_affected[i] = 0;
 		  old_sleep[i] = current_sleep;
-		  printf("B %d wakes %d %d\n", this_cpu, i, old_sleep[i]);
 		}
 		if (cpu[i].has_affected[this_cpu]) {
 		  // Sleeping thread has data for us, since thread is
 		  // sleeping and we hold mutex, we can safely access 
-		  // their counter to indicate that we have seen 
+		  // their state to indicate that we have seen 
 		  // their data
 		  cpu[i].has_affected[this_cpu] = 0;
 		  sleep = 0;
@@ -256,7 +250,7 @@ static void *EXECUTE_NETWORK(cpu_runtime_data_t *runtime,
 	}
       }
       if (sleep) {
-	// This will be entered, unless some other tread generated
+	// This will be entered, unless some sleeping thread generated
 	// data for us while we were preparing to sleep.
 	(*cpu[this_cpu].sleep)++;
 	MUTEX_UNLOCK();
@@ -276,6 +270,13 @@ static void *EXECUTE_NETWORK(cpu_runtime_data_t *runtime,
       sleepers--;
       cpu[this_cpu].starved = 1;
       MUTEX_UNLOCK();
+      while (sem_trywait(cpu[this_cpu].sem) == 0) { 
+	// Consume all active activations (might have been awakened 
+	// by more than one thread), but as far away as possible from 
+	// the wait to catch as many wakeups as possible.
+	// We assume that a sem_wait/sem_trywait guarantees that all
+	// data from the thread that did the sem_signal has reached us.
+      }
       ADD_TIMER(&statistics.sync_blocked, &t1);
     }
   }
