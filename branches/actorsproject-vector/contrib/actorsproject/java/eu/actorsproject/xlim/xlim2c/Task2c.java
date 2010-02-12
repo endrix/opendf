@@ -43,6 +43,7 @@ import java.util.Map;
 
 
 import eu.actorsproject.util.OutputGenerator;
+import eu.actorsproject.xlim.XlimDesign;
 import eu.actorsproject.xlim.XlimIfModule;
 import eu.actorsproject.xlim.XlimInputPort;
 import eu.actorsproject.xlim.XlimLoopModule;
@@ -55,16 +56,71 @@ import eu.actorsproject.xlim.codegenerator.LocalCodeGenerator;
 import eu.actorsproject.xlim.codegenerator.LocalScope;
 import eu.actorsproject.xlim.codegenerator.OperationGenerator;
 import eu.actorsproject.xlim.codegenerator.TemporaryVariable;
+import eu.actorsproject.xlim.decision.ActionSchedulerParser;
 
 public class Task2c extends LocalCodeGenerator {
 
 	private CSymbolTable mTopLevelSymbols;
+	private int mActionIndex;
 	
-	public Task2c(CSymbolTable topLevelSymbols,
+	public Task2c(XlimDesign design,
+			      CSymbolTable topLevelSymbols,
 			      OperationGenerator plugIn,
 			      OutputGenerator output) {
-		super(topLevelSymbols, plugIn, output);
+		super(design,topLevelSymbols, plugIn, output);
 		mTopLevelSymbols=topLevelSymbols;
+		mActionIndex=0;
+	}
+	
+	@Override
+	public void translateTask(XlimTaskModule task) {
+		storageAllocation(task);
+	
+		if (task.isAutostart()) {
+			// Action Scheduler
+			int numInputs=mDesign.getInputPorts().size();
+			int numOutputs=mDesign.getOutputPorts().size();
+			String actorInstanceT=mTopLevelSymbols.getActorInstanceType();
+			String actorInstanceRef=mTopLevelSymbols.getActorInstanceReference();
+			
+			mOutput.println(actorInstanceT+" *"+actorInstanceRef+"=("+actorInstanceT+"*) pBase;");
+			mOutput.println("const int *exitCode=EXIT_CODE_YIELD;");
+			declareTemporaries(task);
+			
+			mOutput.println("ART_ACTION_SCHEDULER_ENTER("+numInputs+","+numOutputs+");");
+			generateSchedulerLoop(task);
+			mOutput.println("action_scheduler_exit:");
+			mOutput.println("ART_ACTION_SCHEDULER_EXIT("+numInputs+","+numOutputs+");");
+			mOutput.println("return exitCode;");
+		}
+		else {
+			// Action
+			String name=mTopLevelSymbols.getTargetName(task);
+			
+			declareTemporaries(task);
+			mOutput.println("ART_ACTION_ENTER("+name+","+mActionIndex+");");
+			generateBlockElements(task);
+		    mOutput.println("ART_ACTION_EXIT("+name+","+mActionIndex+");");	
+		    
+		    mActionIndex++;
+		}
+		
+	}
+	
+	protected void generateSchedulerLoop(XlimTaskModule actionScheduler) {
+		ActionSchedulerParser parser=new ActionSchedulerParser();
+		XlimLoopModule schedulerLoop=parser.findSchedulingLoop(actionScheduler);
+		LocalScope loopScope=mLocalSymbols.getScope(schedulerLoop);
+		
+		mOutput.println("ART_ACTION_SCHEDULER_LOOP {");
+		mOutput.increaseIndentation();
+		mOutput.println("ART_ACTION_SCHEDULER_LOOP_TOP;");
+		if (loopScope!=null)
+			generateDeclaration(loopScope);
+		generateCode(schedulerLoop.getBodyModule());
+		mOutput.println("ART_ACTION_SCHEDULER_LOOP_BOTTOM;");
+		mOutput.decreaseIndentation();
+		mOutput.println("}");
 	}
 	
 	@Override
@@ -193,7 +249,6 @@ public class Task2c extends LocalCodeGenerator {
 
 	@Override
 	public void print(XlimTaskModule task) {
-		mOutput.print(mTopLevelSymbols.getReference(task)
-				      +"("+mTopLevelSymbols.getActorInstanceReference()+")");
+		mOutput.print("ART_FIRE_ACTION("+mTopLevelSymbols.getReference(task)+")");
 	}
 }

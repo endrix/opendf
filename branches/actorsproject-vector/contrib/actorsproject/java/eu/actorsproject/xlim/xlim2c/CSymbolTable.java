@@ -118,7 +118,7 @@ public class CSymbolTable extends AbstractSymbolTable {
 	
 	@Override
 	public String getReference(XlimTopLevelPort port) {
-		return getTargetName(port)+"("+getActorInstanceReference()+")";
+		return getTargetName(port);
 	}
 	
 	@Override
