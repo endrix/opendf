@@ -110,7 +110,13 @@ public class BitWidthReduction  {
 		// assign: propagate width of location (and index type)
 		register("assign", new AssignHandler());
 		
-		// right-shift and division bugs us!
+		register("signExtend", new SignExtendHandler());
+		
+		register("lshift", new LShiftHandler());
+		
+		BitWidthHandler rShiftHandler=new RShiftHandler();
+		register("rshift", rShiftHandler);
+		register("urshift", rShiftHandler);
 	}
 	
 	public void transform(XlimDesign design) {
@@ -377,18 +383,27 @@ public class BitWidthReduction  {
 			return supportedType(op.getOutputPort(0).getType());
 		}
 
+		protected int bitWidth(XlimOperation op, BitWidthContainer bw) {
+			Integer usedWidth=bw.getWidestUse(op.getOutputPort(0));
+			if (usedWidth==null)
+				return bitWidth(op.getOutputPort(0).getType());
+			else
+				return usedWidth;
+		}
+
+		protected void propagate(XlimOperation op, int usedWidth, BitWidthContainer bw) {
+			for (XlimInputPort input: op.getInputPorts())
+				bw.use(input, usedWidth);
+		}
+		
 		@Override
 		public void propagate(XlimOperation op, BitWidthContainer bw) {
 			// Propagate output type to inputs
 			// * If the output is narrower: this width will be propagated
 			// * If the output is wider: declared width of input is propagated, use() takes care of this
 			// * Booleans and floats inputs: nothing happens, again use() handles this case
-			Integer usedWidth=bw.getWidestUse(op.getOutputPort(0));
-			if (usedWidth==null)
-				usedWidth=bitWidth(op.getOutputPort(0).getType());
-
-			for (XlimInputPort input: op.getInputPorts())
-				bw.use(input, usedWidth);
+			int usedWidth=bitWidth(op,bw);
+			propagate(op, usedWidth, bw);
 		}
 		
 		@Override
@@ -403,6 +418,92 @@ public class BitWidthReduction  {
 		}
 	}	
 	
+	/**
+	 * signExtend: uses at most "fromWidth" bits 
+	 */
+	protected class SignExtendHandler extends PrettyUsefulHandler {
+		
+		@Override
+		public boolean supports(XlimOperation op) {
+			return true;
+		}
+
+		
+		@Override
+		protected int bitWidth(XlimOperation op, BitWidthContainer bw) {
+			int fromWidth=(int)(long)op.getIntegerValueAttribute();
+			Integer usedWidth=bw.getWidestUse(op.getOutputPort(0));
+			
+			if (usedWidth!=null && usedWidth<fromWidth)
+				return usedWidth;
+			else
+				return fromWidth;
+		}
+	}
+
+
+	/**
+	 * lshift, rshift and urshift:
+	 * propagate width only to first input port
+	 * constant shift-count is a common and useful special case
+	 */
+	protected abstract class ShiftHandler extends PrettyUsefulHandler {
+
+		protected InstructionPattern mLiteralPattern=new InstructionPattern("$literal_Integer");
+		
+		@Override
+		public boolean supports(XlimOperation op) {
+			return true;
+		}
+
+		@Override
+		protected int bitWidth(XlimOperation op, BitWidthContainer bw) {
+			int usedWidth=super.bitWidth(op, bw);
+			XlimSource shiftCount=op.getInputPort(1).getSource();
+			
+			if (mLiteralPattern.matches(shiftCount)) {
+				XlimOutputPort port=shiftCount.asOutputPort();
+				XlimOperation literalOp=(XlimOperation) port.getParent();
+				return constantShift(usedWidth, literalOp.getIntegerValueAttribute().intValue());
+			}
+			else
+				return usedWidth;
+		}
+
+		/**
+		 * @param usedWidth   Width of result
+		 * @param shiftCount  constant, by which input is shifted
+		 * @return used width of input
+		 */
+		protected abstract int constantShift(int usedWidth, int shiftCount);
+		
+		@Override
+		protected void propagate(XlimOperation op, int usedWidth, BitWidthContainer bw) {
+			bw.use(op.getInputPort(0), usedWidth);
+			bw.useFullWidth(op.getInputPort(1));  // shift-count
+		}
+	}
+	
+	
+	protected class LShiftHandler extends ShiftHandler {
+
+		@Override
+		protected int constantShift(int usedWidth, int shiftCount) {
+			if (usedWidth>shiftCount)
+				return usedWidth-shiftCount;
+			else
+				return 1;
+		}
+	}
+
+	protected class RShiftHandler extends ShiftHandler {
+
+		@Override
+		protected int constantShift(int usedWidth, int shiftCount) {
+			return usedWidth+shiftCount;
+		}
+	}
+
 	protected class VarRefHandler extends BitWidthHandler {
 
 		@Override
