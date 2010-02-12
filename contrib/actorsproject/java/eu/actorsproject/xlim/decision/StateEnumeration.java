@@ -106,6 +106,8 @@ public class StateEnumeration<T extends AbstractValue<T>> {
 	 * @param initialState  summary of the actor's initial state
 	 */
 	public void enumerateStateSpace() {	
+		int iterations=1;
+		
 		if (mTrace) {
 			mPrinter.println("<!-- decision tree -->");
 			mPrinter.printElement(mDecisionTree);
@@ -148,6 +150,7 @@ public class StateEnumeration<T extends AbstractValue<T>> {
 			}		
 
 			// Propagate state from 'root' to action nodes
+			iterations=iterations+1;
 			mDecisionTree.propagateState(newInputContext,this);
 
  			if (mTrace) {
@@ -159,6 +162,7 @@ public class StateEnumeration<T extends AbstractValue<T>> {
 		
 		if (mTrace) {
 			mPrinter.println("<!-- State-space enumeration complete -->");
+			mPrinter.println("<!-- Number of iterations: "+iterations+" -->");
 			mPrinter.println();
 			for (StateSummary<T> summary: mAbstractState.values()) {
 				mPrinter.println();
