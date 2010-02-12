@@ -259,7 +259,7 @@ const int *art_Display_yuv_action_scheduler(AbstractActorInstance *pBase) {
         //  happiness=100;
         //else
         //  happiness = 100*frame_per_sec/FRAMES_PER_SECOND;
-		happiness=frame_per_sec;  
+        happiness=frame_per_sec;
         thisActor->now = now;
         thisActor->lastFrames  = thisActor->totFrames;
         int space=pinAvailOut_int32_t(OUT0_Out(thisActor));

@@ -47,6 +47,58 @@
 
 #define MSG_CUSTOM_ID_START         (1000)
 
+/**Categories can be used to group items according to some property.*/
+enum Category
+{
+  /**Invalid category.*/
+  CategoryNone = 0,
+  /**A generic ``Low'' category.*/
+  CategoryLow = 1,
+  /**A generic ``Medium'' category.*/
+  CategoryMedium = 2,
+  /**A generic ``High'' category.*/
+  CategoryHigh = 3
+};
+
+enum ResourceId
+{
+
+  /**Invalid resource.*/
+  ResourceNone = 0,
+
+  /**The CPU bandwidth resource. This value will be inpreted relative to the maximum
+  CPU bandwidth value for this application.*/
+  ResourceCPUBandwidth = 1,
+
+  /**The CPU granularity resource. This will be an absolute time value
+  in microseconds which specifies during which time the requested
+  CPU bandwidth should be provided.*/
+  ResourceCPUGranularity = 2
+};
+
+/**A mapping from resource Ids to an amount (absolute or relative) of them.  The amount must be an integer value.*/
+typedef std::map<ResourceId, unsigned int> ResourceDemand;
+
+
+/**A struct representing one quality level of an application, i.e.
+   the quality and the required resources.
+   It is used in announceQualityLevels().
+   In bindings that need a separate name, arrays of QualityLevel
+   should be called QualityLevelList.*/
+struct QualityLevel
+{
+   /**This one indicates the quality of this level. It is an integer value
+      ranging from 0 (worst) to 100 (best).*/
+   unsigned int quality;
+
+   /**Number of entries in the resourceDemands map.*/
+   unsigned int resourceDemandCount;
+
+   /**This is a map of resource identifikations to their required amount,
+      e.g. ResourceCPUBandwidth or ResourceCPUGranularity.*/
+   ResourceDemand resourceDemands;
+};
+
 class Message;
 
 // fastdelegates are used here for implementing message handlers: http://www.codeproject.com/KB/cpp/FastDelegate.aspx
@@ -99,6 +151,35 @@ class IntMessage : public Message
    private:
       IntMessage();
 };
+/** This message is sent from the dbus handler to the resourcemanager whenever a client application
+announces its overall CPU deman category. */
+class CategoryMessage : public Message
+{
+   public:
+      CategoryMessage(int id, Category category)
+            : Message(id)
+            , m_category(category){}
 
+      Category getCategory() const {return m_category;}
+   protected:
+      Category m_category;
+   private:
+      CategoryMessage();
+};
+
+/** This message is sent from the dbus handler to the resourcemanager whenever a client application
+announces its quality levels. */
+class QualityLevelsMessage : public Message
+{
+   public:
+      QualityLevelsMessage(int id,
+                           const std::vector<QualityLevel>& levels)
+            : Message(id)
+            , m_qualityLevels(levels){}
+
+      const std::vector<QualityLevel>& getQualityLevels() const {return m_qualityLevels;}
+   protected:
+      std::vector<QualityLevel> m_qualityLevels;
+};
 #endif
 
