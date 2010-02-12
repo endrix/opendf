@@ -68,6 +68,8 @@ class SystemActorDBusHandler : public GenericDBusHandler
       ~SystemActorDBusHandler();
       void registerApp();
       void reportHappiness(int happiness);
+      void announceCPUCategory(Category category);
+      void announceQualityLevels(std::vector<QualityLevel>& qualityLevels);
 
 
       bool getNextOutgoingValue(int* value);
@@ -77,6 +79,8 @@ class SystemActorDBusHandler : public GenericDBusHandler
       void handleDBusSignal(DBusMessage* message);
       void handleRegisterClient(const Message* msg);
       void handleReportHappiness(const IntMessage* msg);
+      void handleAnnounceCPUCategory(const CategoryMessage *msg);
+      void handleAnnounceQualityLevels(const QualityLevelsMessage *msg);
 
       std::string m_name;
       pthread_mutex_t m_outgoingValuesMutex;
@@ -93,6 +97,8 @@ SystemActorDBusHandler::SystemActorDBusHandler(AbstractActorInstance* base, cons
    pthread_mutex_init(&m_outgoingValuesMutex, 0);
    addMessageHandler(MSG_REGISTER_CLIENT, MAKE_MESSAGE_DELEGATE(this, &SystemActorDBusHandler::handleRegisterClient));
    addMessageHandler(MSG_REPORT_HAPPINESS, MAKE_MESSAGE_DELEGATE(this, &SystemActorDBusHandler::handleReportHappiness));
+   addMessageHandler(MSG_CPU_CATEGORY, MAKE_MESSAGE_DELEGATE(this, &SystemActorDBusHandler::handleAnnounceCPUCategory));
+   addMessageHandler(MSG_QUALITY_LEVELS, MAKE_MESSAGE_DELEGATE(this, &SystemActorDBusHandler::handleAnnounceQualityLevels));
 }
 
 
@@ -176,6 +182,102 @@ void SystemActorDBusHandler::handleDBusSignal(DBusMessage* message)
    }
 }
 
+void SystemActorDBusHandler::announceQualityLevels(std::vector<QualityLevel>& qualityLevels)
+{
+   this->postMessage(new QualityLevelsMessage(MSG_QUALITY_LEVELS,qualityLevels));
+}
+
+void SystemActorDBusHandler::handleAnnounceQualityLevels(const QualityLevelsMessage *qualityLevelsMsg)
+{
+   bool result;
+   int value;
+   DBusMessageIter args1;
+   DBusMessage* message = 0;
+   std::vector<QualityLevel> qualityLevels;
+
+   assert(qualityLevelsMsg);
+
+   message = dbus_message_new_method_call(ACTRM_INTERFACE_NAME, "/", ACTRM_INTERFACE_NAME, "announceQualityLevels");
+   dbus_message_iter_init_append(message, &args1);
+   qualityLevels = qualityLevelsMsg->getQualityLevels();
+   value = 0;
+   dbus_message_iter_append_basic(&args1, ((int) 'u'), &value);
+   value = qualityLevels.size();
+   dbus_message_iter_append_basic(&args1, ((int) 'u'), &value);
+   {
+      DBusMessageIter args2;
+      dbus_message_iter_open_container(&args1, DBUS_TYPE_ARRAY, "(uua{uu})", &args2);
+      for (std::vector<QualityLevel>::const_iterator it = qualityLevels.begin(); it != qualityLevels.end(); ++it)
+      {
+         const QualityLevel& qualityLevelsTmp = *it;
+         {
+            DBusMessageIter args3;
+            dbus_message_iter_open_container(&args2, DBUS_TYPE_STRUCT, NULL, &args3);
+            dbus_message_iter_append_basic(&args3, ((int) 'u'), &qualityLevelsTmp.quality);
+            dbus_message_iter_append_basic(&args3, ((int) 'u'), &qualityLevelsTmp.resourceDemandCount);
+            {
+               DBusMessageIter args4;
+               dbus_message_iter_open_container(&args3, DBUS_TYPE_ARRAY, "{uu}", &args4);
+               for(ResourceDemand::const_iterator it = qualityLevelsTmp.resourceDemands.begin(); it != qualityLevelsTmp.resourceDemands.end(); ++it)
+               {
+                  const ResourceId& tmpKey = it->first;
+                  const unsigned int& tmpValue = it->second;
+                  DBusMessageIter args5;
+                  dbus_message_iter_open_container(&args4, DBUS_TYPE_DICT_ENTRY, NULL, &args5);
+                  dbus_message_iter_append_basic(&args5, ((int) 'u'), &tmpKey);
+                  dbus_message_iter_append_basic(&args5, ((int) 'u'), &tmpValue);
+                  dbus_message_iter_close_container(&args4, &args5);
+               }
+               dbus_message_iter_close_container(&args3, &args4);
+            }
+            dbus_message_iter_close_container(&args2, &args3);
+         }
+      }
+      dbus_message_iter_close_container(&args1, &args2);
+   }
+   // handle the reply
+   dbus_uint32_t replies = 0; 
+   result = dbus_connection_send(m_connection, message, &replies);
+   if(result==false)
+      fprintf(stderr, "dbus_connection_send failed\n");
+   else
+      fprintf(stderr, "dbus_connection_send announceQualityLevels\n");
+   dbus_connection_flush(m_connection);
+   dbus_message_unref(message);
+}
+
+void SystemActorDBusHandler::announceCPUCategory(Category category)
+{
+   this->postMessage(new CategoryMessage(MSG_CPU_CATEGORY, category));
+}
+
+void SystemActorDBusHandler::handleAnnounceCPUCategory(const CategoryMessage* categoryMsg)
+{
+   bool result;
+   assert(categoryMsg);
+   DBusMessage* methodCallMsg = dbus_message_new_method_call(ACTRM_INTERFACE_NAME,
+                                                             "/",
+                                                             ACTRM_INTERFACE_NAME,
+                                                             "announceCPUCategory");
+   DBusMessageIter args;
+   dbus_message_iter_init_append(methodCallMsg, &args);
+
+   const char* tmpString = m_name.c_str();
+   Category value = categoryMsg->getCategory();
+//    dbus_message_iter_append_basic(&args, DBUS_TYPE_STRING, &tmpString);
+   dbus_message_iter_append_basic(&args, DBUS_TYPE_INT32, &value);
+
+   dbus_uint32_t replies = 0;
+   result = dbus_connection_send(m_connection, methodCallMsg, &replies);
+   if(result==false)
+      fprintf(stderr, "dbus_connection_send failed\n");
+   else
+      fprintf(stderr, "dbus_connection_send announceCPUCategory %d\n",value);
+   dbus_connection_flush(m_connection);
+   dbus_message_unref(methodCallMsg);
+}
+
+
 
 void SystemActorDBusHandler::reportHappiness(int happiness)
 {
@@ -185,6 +287,7 @@ void SystemActorDBusHandler::reportHappiness(int happiness)
 
 void SystemActorDBusHandler::handleReportHappiness(const IntMessage* happinessMsg)
 {
+   bool result;
    assert(happinessMsg);
    DBusMessage* methodCallMsg = dbus_message_new_method_call(ACTRM_INTERFACE_NAME,
                                                              "/",
@@ -199,9 +302,14 @@ void SystemActorDBusHandler::handleReportHappiness(const IntMessage* happinessMs
    dbus_message_iter_append_basic(&args, DBUS_TYPE_INT32, &value);
 
    dbus_uint32_t replies = 0;
-   dbus_connection_send(m_connection, methodCallMsg, &replies);
+   result = dbus_connection_send(m_connection, methodCallMsg, &replies);
+   if(result==false)
+      fprintf(stderr, "dbus_connection_send failed\n");
+   else
+      fprintf(stderr, "dbus_connection_send happiness %d\n",value);
    dbus_connection_flush(m_connection);
    dbus_message_unref(methodCallMsg);
+   
 }
 
 
@@ -382,7 +490,7 @@ static const int *a_action_scheduler(AbstractActorInstance *pBase) {
    }
 
    int available = pinAvailIn_int32_t(IN0_In(thisActor));
-//    fprintf(stderr, "----------- available: %d TOKENSIZE: %d\n", available, thisActor->IN0_TOKENSIZE);
+   //fprintf(stderr, "----------- available: %d\n", available);
 
    // report happiness once per second
    static time_t lastHappinessTime = 0;
@@ -390,11 +498,12 @@ static const int *a_action_scheduler(AbstractActorInstance *pBase) {
    {
       TRACE_ACTION(&thisActor->base, 0, "reportHappiness");
       value = pinRead_int32_t(IN0_In(thisActor));
+//printf("time(0)(%d)-last(%d)=%d value=%d\n",time(0),lastHappinessTime,time(0)-lastHappinessTime,value);
       if ((time(0) - lastHappinessTime) > 0)
       {
          lastHappinessTime = time(0);
          thisActor->dbusHandler->reportHappiness(value);
-         //fprintf(stderr, "-------------- %d\n", value);
+//         fprintf(stderr, "-------------- %d\n", value);
       }
    }
    return exitcode_block_In_1;
@@ -413,7 +522,34 @@ static void constructor(AbstractActorInstance *pBase) {
    {
    }
 
+   //register app 
    thisActor->dbusHandler->registerApp();
+
+   //announce cpu category
+   Category category;
+   category= CategoryHigh;
+   thisActor->dbusHandler->announceCPUCategory(category);
+
+   //announce quality levels; 
+   std::vector<QualityLevel> levels;
+   QualityLevel level;
+   level.quality=100;
+   level.resourceDemandCount=2;
+   level.resourceDemands[ResourceCPUBandwidth]=100;
+   level.resourceDemands[ResourceCPUGranularity]=2500;
+   levels.push_back(level);
+   level.quality=70;
+   level.resourceDemandCount=2;
+   level.resourceDemands[ResourceCPUBandwidth]=80;
+   level.resourceDemands[ResourceCPUGranularity]=1000;
+   levels.push_back(level);
+   level.quality=50;
+   level.resourceDemandCount=2;
+   level.resourceDemands[ResourceCPUBandwidth]=60;
+   level.resourceDemands[ResourceCPUGranularity]=1000;
+   levels.push_back(level);
+
+   thisActor->dbusHandler->announceQualityLevels(levels);
 }
 
 static void destructor(AbstractActorInstance *pBase)

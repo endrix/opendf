@@ -443,7 +443,12 @@ void GenericDBusHandler::setupPollFds()
 
    for (std::vector<DBusWatch*>::const_iterator it = m_dbusWatches.begin(); it != m_dbusWatches.end(); ++it)
    {
-      m_pollFds[m_pollFdCount].fd = dbus_watch_get_unix_fd(*it);
+#if (DBUS_VERSION_MAJOR == 1 && DBUS_VERSION_MINOR == 1 && DBUS_VERSION_MICRO >= 1) || (DBUS_VERSION_MAJOR == 1 && DBUS_VERSION_MAJOR > 1) || (DBUS_VERSION_MAJOR > 1)
+	  m_pollFds[m_pollFdCount].fd=dbus_watch_get_unix_fd(*it);
+#else
+	  m_pollFds[m_pollFdCount].fd=dbus_watch_get_fd(*it);
+#endif
+      //m_pollFds[m_pollFdCount].fd = dbus_watch_get_unix_fd(*it);
       m_pollFds[m_pollFdCount].events = POLLIN;
       m_pollFds[m_pollFdCount].revents = 0;
 

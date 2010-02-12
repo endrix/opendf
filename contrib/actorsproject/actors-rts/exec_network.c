@@ -1398,7 +1398,7 @@ int executeNetwork(int argc, char *argv[],AbstractActorInstance **actorInstance,
 
   actorLists = initList(argc,argv,actorInstance,numInstances,&numLists);
 
-  printActorList(actorLists,numLists);
+  //printActorList(actorLists,numLists);
 
   //distribute lists on cpu cores
   for(i=0;i<numLists;i++){

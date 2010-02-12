@@ -48,7 +48,6 @@ CFLAGS += -DBAREBONE
 endif
 
 CFLAGS += -O3
-#CFLAGS += -g
 
 INSTALL_H=actors-rts.h actors-config.h dll.h
 INSTALL_SYSACTORS=art_DDRModel.cal art_Display_yuv.cal \
@@ -81,14 +80,17 @@ includedir?=$(prefix)/include
 libdir?=$(exec_prefix)/lib
 datarootdir?=$(prefix)/share
 datadir?=$(datarootdir)
+#ARMDBUSDIR=$HOME/work/actor/arm-rm/usr/local
 
 ifeq ($(RM), y)
+#LDLIBS=-lpthread -lc -L$(ARMDBUSDIR)/lib -ldbus-1 $(ARMDBUSDIR)/lib/libgcc_s.so.1 $(ARMDBUSDIR)/lib/libstdc++.so.6
 LDLIBS=-lpthread -lc -ldbus-1 /lib/libgcc_s.so.1 /usr/lib/libstdc++.so.6
 else
 LDLIBS=-lpthread -lc
 endif	
 
 ifeq ($(RM), y)
+#CXX_INCLUDES = -I$(srcdir)/dbus -I$(ARMDBUSDIR)/include/dbus-1.0 -I$(ARMDBUSDIR)/lib/dbus-1.0/include
 CXX_INCLUDES = -I$(srcdir)/dbus -I/usr/include/dbus-1.0 -I/usr/lib/dbus-1.0/include
 endif
 
