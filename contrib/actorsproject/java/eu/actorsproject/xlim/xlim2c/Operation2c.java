@@ -1012,7 +1012,7 @@ class YieldGenerator extends BasicGenerator {
 	public void generateStatement(XlimOperation op, ExpressionTreeGenerator gen) {
 		String exitCode=gen.getGenericAttribute(op.getGenericAttribute());
 		assert(exitCode!=null);
-		gen.print("return "+exitCode);
+		gen.print("exitCode="+exitCode+"; goto action_scheduler_exit");
 	}
 }
 

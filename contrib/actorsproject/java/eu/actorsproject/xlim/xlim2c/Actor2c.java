@@ -102,6 +102,7 @@ public class Actor2c extends OutputGenerator {
 		createHeader();
 		defineMacros();
 		declareActorInstance();
+		declareActionContext();
 		declareFunctions();
 		defineActorClass();
 		defineAggregateInitializers();
@@ -128,8 +129,8 @@ public class Actor2c extends OutputGenerator {
 	 */
 	protected void defineMacros() {
 		println();
-		definePortMacros(mDesign.getInputPorts(), sActorInputPortMacro);
-		definePortMacros(mDesign.getOutputPorts(), sActorOutputPortMacro);
+		definePortMacros(mDesign.getInputPorts(), "ART_INPUT");
+		definePortMacros(mDesign.getOutputPorts(), "ART_OUTPUT");
 	}
 	
 	protected void definePortMacros(Iterable<? extends XlimTopLevelPort> ports,
@@ -137,8 +138,7 @@ public class Actor2c extends OutputGenerator {
 		int index=0;
 		for (XlimTopLevelPort port: ports) {
 			String cName=mSymbols.getTargetName(port);
-			println("#define " + cName + "(thisActor) " + portMacro 
-					+ "(thisActor->" + sActorInstanceBaseName + "," + index+")");
+			println("#define " + cName + " " +portMacro + "(" + index + ")");
 			index++;
 		}
 	}
@@ -308,6 +308,15 @@ public class Actor2c extends OutputGenerator {
 		println();
 	}
 	
+	/*
+	 * Generate the macro that declares the ActionContext type 
+	 */
+	protected void declareActionContext() {
+		int numInputs=mDesign.getInputPorts().size();
+		int numOutputs=mDesign.getOutputPorts().size();
+		println();
+		println("ART_ACTION_CONTEXT("+numInputs+","+numOutputs+")");
+	}
 	
 	/**
 	 * Generate the data type of the actor instance struct
@@ -454,10 +463,11 @@ public class Actor2c extends OutputGenerator {
 				if (actionSchedulerFound)
 					throw new RuntimeException("multiple action schedulers");
 				actionSchedulerFound=true;
-				println("static const int *"+mSymbols.getTargetName(task)+"("+sActorInstanceBaseType+"*);");
+				println("ART_ACTION_SCHEDULER("+mSymbols.getTargetName(task)+");");
 			}
 			else {
-				println("static void "+mSymbols.getTargetName(task)+"("+mSymbols.getActorInstanceType()+"*);");
+				String actorInstanceT=mSymbols.getActorInstanceType();
+				println("ART_ACTION("+mSymbols.getTargetName(task)+","+actorInstanceT+");");
 			}
 		}
 		if (!actionSchedulerFound)
@@ -469,28 +479,24 @@ public class Actor2c extends OutputGenerator {
 	 * Generates a C function per action and one for the action scheduler
 	 */
 	protected void defineTasks() {
-		int actionIndex=0;
 		XlimTaskModule actionScheduler = mDesign.getActionScheduler();
 		for (XlimTaskModule task: mDesign.getTasks()) {
 			if (task!=actionScheduler) {
+				String name=mSymbols.getTargetName(task);
+				String actorInstanceT=mSymbols.getActorInstanceType();
 				println();
-				println("static void "+mSymbols.getTargetName(task)+"("+
-						mSymbols.getActorInstanceType()+" *"+mSymbols.getActorInstanceReference()+") {");
-				increaseIndentation();
-				println("TRACE_ACTION(&" + mSymbols.getActorInstanceReference() + "->base, "
-						+ actionIndex + ", \"" + task.getName() + "\");");
-				++actionIndex;
+				println("ART_ACTION("+name+","+actorInstanceT+") {");
 			}
 			else {
 				ExitCodeGenerator ecg=new ExitCodeGenerator();
+				
 				ecg.traverse(task, null);
+				
+				String name=mSymbols.getTargetName(task);
 				println();
-				println("static const int *"+mSymbols.getTargetName(task)+"("+sActorInstanceBaseType
-						+" *pBase) {");
-				increaseIndentation();
-				println(mSymbols.getActorInstanceType()+" *"+mSymbols.getActorInstanceReference()+
-						"=("+mSymbols.getActorInstanceType()+"*) pBase;");
+				println("ART_ACTION_SCHEDULER("+name+") {");
 			}
+		    increaseIndentation();
 		    generateBody(task);
 		    decreaseIndentation();
 		    println("}");
@@ -498,7 +504,7 @@ public class Actor2c extends OutputGenerator {
 	}
 		
 	protected void generateBody(XlimTaskModule task) {
-		Task2c gen = new Task2c(mSymbols,mTaskGeneratorPlugIn,this);
+		Task2c gen = new Task2c(mDesign,mSymbols,mTaskGeneratorPlugIn,this);
 		gen.translateTask(task);
 	}
 	
