@@ -41,102 +41,120 @@
 #include <string.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <assert.h>
-#include "dll.h"
-
-/* make the header usable from C++ */
-#ifdef __cplusplus
-extern "C" {
-#endif /* __cplusplus */
-
-#define COPY(a)				(a)
-#define MEMCPY(d,s,c)                   (memcpy(d,s,c))
-
-//#define XML_TRACE
-
-#ifndef XML_TRACE
-#define TRACE_ACTION(INSTANCE,INDEX,NAME) (INSTANCE)->hasFiredHack=1
-#else
-#define TRACE_ACTION(INSTANCE,INDEX,NAME) \
-        (INSTANCE)->hasFiredHack=1; \
-        actionTrace((INSTANCE),INDEX,NAME)
+#include <pthread.h>
+#ifndef DEBUG
+#define NDEBUG
 #endif
+#include <assert.h>
+
+// LEGACY
+#define INPUT_PORT(ignore, index) ART_INPUT(index)
+#define OUTPUT_PORT(ignore, index) ART_OUTPUT(index) 
+// ENDLEGACY
+
+#if defined(__i386__)
+
+#define CACHE_LINE_SIZE 128
+#define mb()    asm volatile("mfence":::"memory")
+#define rmb()   asm volatile("lfence":::"memory")
+#define wmb()   asm volatile("sfence" ::: "memory")
+
+#elif defined(__arm__)
+
+#define CACHE_LINE_SIZE 64
+#error Not implemented yet
+
+#endif
+
+#define COPY(a) a
 
 #define RANGECHK(X,B) ((unsigned)(X)<(unsigned)(B)?(X):RANGEERR(X,B))
 #define RANGEERR(X,B) (rangeError((X),(B),__FILE__,__LINE__))
 
-#define pinWait(port,length)
-#define pinAvail_int32_t(port)    pinAvail(port)
-#define pinAvail_bool_t(port)     pinAvail(port)
-#define pinAvail_double(port)     pinAvail(port)
-#define pinAvailIn_int32_t(port)  pinAvailIn(port)
-#define pinAvailOut_int32_t(port) pinAvailOut(port)
-#define pinAvailIn_double(port)   pinAvailIn(port)
-#define pinAvailOut_double(port)  pinAvailOut(port)
-#define pinAvailIn_bool_t(port)   pinAvailIn(port)
-#define pinAvailOut_bool_t(port)  pinAvailOut(port)
-#define pinWaitIn(port, length)   pinWait(port,length)
-#define pinWaitOut(port, length)  pinWait(port, length)
+typedef int32_t				bool_t;
 
-typedef int32_t           bool_t;
+typedef struct {
+	char			*key;
+	char			*value;
+}ActorParameter;
 
 typedef struct ActorClass ActorClass;
-typedef struct AbstractActorInstance AbstractActorInstance;
 typedef struct OutputPort OutputPort;
+typedef struct InputPort InputPort;
+typedef struct AbstractActorInstance AbstractActorInstance;
 
-typedef struct {
-  char    *bufferStart; // properly aligned, given type T
-  char    *bufferEnd;   // = bufferStart + sizeof(T)*capacity;
-  char    *readPtr;
-  unsigned numRead;     // in tokens
-  unsigned availTokens; // in tokens
-  unsigned capacity;    // in tokens
+typedef struct LocalContext {
+  int pos;
+  int count;
+  int available;
+} LocalContext;
 
+typedef struct { volatile int value; } atomic_value_t;
+#define atomic_get(a) ((a)->value)
+#define atomic_set(a,v) (((a)->value) = (v))
+
+typedef struct SharedContext {
+  atomic_value_t count;
+} SharedContext;
+
+struct InputPort {
+  // Struct accessed between cores, only semi-constant data
+  int index;     // index into shared/local vectors
+  int cpu;       // The CPU where this port currently resides
+  AbstractActorInstance *actor;
+  SharedContext *shared;
+  LocalContext *local;
+  void *buffer; 
+  unsigned capacity;
   const OutputPort *writer;
-
-  AbstractActorInstance *readerActor;
-  AbstractActorInstance *writerActor;
-
-  int cid;
-
-} InputPort;
+};
 
 struct OutputPort {
-  char *bufferStart;    // properly aligned, given type T
-  char *bufferEnd;      // = bufferStart + sizeof(T)*capacity;
-  char *writePtr;
-  unsigned numWritten;  // in tokens
-  unsigned availSpace;  // in tokens
-  unsigned capacity;    // in tokens
-
-  int numReaders;
-  InputPort **readers;
-
-  AbstractActorInstance *writerActor;
-
-  int cid;
+  // Struct accessed between cores, only semi-constant data
+  int index;     // index into shared/local vectors
+  int cpu;       // The CPU where this port currently resides
+  AbstractActorInstance *actor;
+  SharedContext *shared;
+  LocalContext *local;
+  void *buffer; 
+  unsigned capacity;
+  int readers;
+  InputPort **reader;
 };
-
-struct AbstractActorInstance {
-  ActorClass  *actor;          //actor
-  InputPort   *inputPort;
-  OutputPort  *outputPort;
-  int         hasFiredHack;
-
-  LIST        *list;
-  LIST        *extList;
-
-  int         firstActionIndex;
-};
-
-// Get port-pointers from abstract instance
-#define INPUT_PORT(instance,n)  (instance.inputPort+(n))
-#define OUTPUT_PORT(instance,n) (instance.outputPort+(n))
 
 typedef struct {
-	const char	*name;
-	const int 	*consumption;
-	const int 	*production;
+  int pos;
+  int available;
+  void *buffer; 
+  unsigned capacity;
+} LocalInputPort;
+
+typedef struct {
+  int pos;
+  int available;
+  void *buffer; 
+  unsigned capacity;
+} LocalOutputPort;
+
+struct AbstractActorInstance {
+  ActorClass *actor;					//actor
+  char *name;
+  int cpu_index;       // The CPU where this actor currently resides
+  int outputs;
+  OutputPort *output;
+  int inputs;
+  InputPort *input;
+  int fireable;
+  int fired;
+  int terminated;
+  long long nloops;
+  unsigned long long total;
+};
+
+typedef struct {
+  const char	*name;
+  const int 	*consumption;
+  const int 	*production;
 } ActionDescription;
 
 typedef struct {
@@ -145,19 +163,19 @@ typedef struct {
 } PortDescription;
 
 struct ActorClass {
-	char			*name;
-	int				numInputPorts;
-	int				numOutputPorts;
-	int				sizeActorInstance;
-	const int*		(*action_scheduler)(AbstractActorInstance*);
-	void			(*constructor)(AbstractActorInstance*);
-	void			(*destructor)(AbstractActorInstance*);
-	void			(*set_param)(AbstractActorInstance*,const char*, const char*);
-	const PortDescription		*inputPortDescriptions;
-	const PortDescription		*outputPortDescriptions;
-	int				actorExecMode;
-	int				numActions;
-	const ActionDescription *actionDescriptions;
+  char *name;
+  int numInputPorts;
+  int numOutputPorts;
+  int sizeActorInstance;
+  const int* (*action_scheduler)(AbstractActorInstance*, int);
+  void (*constructor)(AbstractActorInstance*);
+  void (*destructor)(AbstractActorInstance*);
+  void (*set_param)(AbstractActorInstance*,const char*, const char*);
+  const PortDescription *inputPortDescriptions;
+  const PortDescription *outputPortDescriptions;
+  int actorExecMode;
+  int numActions;
+  const ActionDescription *actionDescriptions;
 };
 
 // Creates an ActorClass initializer
@@ -193,274 +211,116 @@ struct ActorClass {
 
 #define EXITCODE_TERMINATE 0
 #define EXITCODE_BLOCK(n)  (n)
-#define EXITCODE_YIELD     -1
-
-// Same pinAvail can be used for all token sizes (since we count tokens)
-
-static inline unsigned pinAvailIn(const InputPort *p) {
-  return p->availTokens;
-}
-
-static inline unsigned pinAvailOut(const OutputPort *p) {
-
-  return p->availSpace;
-}
-
-static inline int32_t pinPeekFront_int32_t(const InputPort *p) {
-	return *((int32_t*) p->readPtr);
-}
-
-static inline bool_t pinPeekFront_bool_t(const InputPort *p) {
-	return *((bool_t*) p->readPtr);
-}
-
-static inline double pinPeekFront_double(const InputPort *p) {
-	return *((double*) p->readPtr);
-}
-
-static inline int32_t pinPeek_int32_t(const InputPort *p, int offset) {
-  int32_t *ptr=(int32_t*) p->readPtr + offset;
-  if (ptr >= (int32_t*) p->bufferEnd)
-    ptr -= p->capacity;
-  return *ptr;
-}
-
-static inline bool_t pinPeek_bool_t(const InputPort *p, int offset) {
-  bool_t *ptr=(bool_t*) p->readPtr + offset;
-  if (ptr >= (bool_t*) p->bufferEnd)
-    ptr -= p->capacity;
-  return *ptr;
-}
-
-static inline double pinPeek_double(const InputPort *p, int offset) {
-  double *ptr=(double*) p->readPtr + offset;
-  if (ptr >= (double*) p->bufferEnd)
-    ptr -= p->capacity;
-  return *ptr;
-}
-
-static inline int32_t pinRead_int32_t(InputPort *p) {
-#ifdef DEBUG
-  assert(pinAvailIn(p)>0);
-#endif
-  int32_t *ptr=(int32_t*) p->readPtr;
-  int32_t result=*ptr++;
-
-  if (ptr==(int32_t*) p->bufferEnd)
-    p->readPtr=p->bufferStart;
-  else
-    p->readPtr=(char*) ptr;
-  p->numRead++;
-  p->availTokens--;
-
-  return result;
-}
-
-static inline bool_t pinRead_bool_t(InputPort *p) {
-#ifdef DEBUG
-  assert(pinAvailIn(p)>0);
-#endif
-  bool_t *ptr=(bool_t*) p->readPtr;
-  bool_t result=*ptr++;
-
-  if (ptr==(bool_t*) p->bufferEnd)
-    p->readPtr=p->bufferStart;
-  else
-    p->readPtr=(char*) ptr;
-  p->numRead++;
-  p->availTokens--;
- 
-  return result;
-}
-
-static inline double pinRead_double(InputPort *p) {
-#ifdef DEBUG
-  assert(pinAvailIn(p)>0);
-#endif
-  double *ptr=(double*) p->readPtr;
-  double result=*ptr++;
-
-  if (ptr==(double*) p->bufferEnd)
-    p->readPtr=p->bufferStart;
-  else
-    p->readPtr=(char*) ptr;
-  p->numRead++;
-  p->availTokens--;
- 
-  return result;
-}
+#define EXIT_CODE_YIELD     NULL
 
 
-static inline void pinReadRepeat_common(InputPort *p, 
-                                        char *dest, 
-                                        int count) {
-  char *src=p->readPtr;
-  int left=p->bufferEnd-src;
+extern AbstractActorInstance	*actorInstance[];
+extern int						log_level;
 
-  if (count>=left) {
-    // The end of the circular buffer is crossed
-    MEMCPY(dest,src,left);
-    dest+=left;
-    src=p->bufferStart;
-    count-=left;
-  }
-  MEMCPY(dest,src,count);
-  p->readPtr=src+count;
-}
-
-static inline void pinReadRepeat_int32_t(InputPort *p,
-                                         int32_t *dest,
-                                         int count) {
-#ifdef DEBUG
-  assert(pinAvailIn(p)>=count);
-#endif
-  pinReadRepeat_common(p,(char*)dest,count*sizeof(int32_t));
-  p->numRead+=count;
-  p->availTokens-=count;
-}
-
-static inline void pinReadRepeat_bool_t(InputPort *p,
-                                        bool_t *dest,
-                                        int count) {
-#ifdef DEBUG
-  assert(pinAvailIn(p)>=count);
-#endif
-  pinReadRepeat_common(p,(char*)dest,count*sizeof(bool_t));
-  p->numRead+=count;
-  p->availTokens-=count;
-}
-
-static inline void pinReadRepeat_double(InputPort *p,
-                                        double *dest,
-                                        int count) {
-#ifdef DEBUG
-  assert(pinAvailIn(p)>=count);
-#endif
-  pinReadRepeat_common(p,(char*)dest,count*sizeof(double));
-  p->numRead+=count;
-  p->availTokens-=count;
-}
-
-
-
-static inline void pinWrite_int32_t(OutputPort *p, int32_t token) {
-#ifdef DEBUG
-  assert(pinAvailOut(p)>0);
-#endif
-  int32_t *ptr=(int32_t*) p->writePtr;
-
-  *ptr++=token;
-  if (ptr==(int32_t*) p->bufferEnd)
-    p->writePtr=p->bufferStart;
-  else
-    p->writePtr=(char*) ptr;
-  p->numWritten++;
-  p->availSpace--;
-}
-
-static inline void pinWrite_bool_t(OutputPort *p, bool_t token) {
-#ifdef DEBUG
-  assert(pinAvailOut(p)>0);
-#endif
-  bool_t *ptr=(bool_t*) p->writePtr;
-
-  *ptr++=token;
-  if (ptr==(bool_t*) p->bufferEnd)
-    p->writePtr=p->bufferStart;
-  else
-    p->writePtr=(char*) ptr;
-  p->numWritten++;
-  p->availSpace--;
-}
-
-static inline void pinWrite_double(OutputPort *p, double token) {
-#ifdef DEBUG
-  assert(pinAvailOut(p)>0);
-#endif
-  double *ptr=(double*) p->writePtr;
-
-  *ptr++=token;
-  if (ptr==(double*) p->bufferEnd)
-    p->writePtr=p->bufferStart;
-  else
-    p->writePtr=(char*) ptr;
-  p->numWritten++;
-  p->availSpace--;
-}
-
-
-static inline void pinWriteRepeat_common(OutputPort *p, 
-                                         char *src, 
-                                         int count) {
-  char *dest=p->writePtr;
-  int left=p->bufferEnd-dest;
-  if (count>=left) {
-    // The end of the circular buffer is crossed
-    MEMCPY(dest,src,left);
-    src+=left;
-    dest=p->bufferStart;
-    count-=left;
-  }
-  MEMCPY(dest,src,count);
-  p->writePtr=dest+count;
-}
-
-static inline void pinWriteRepeat_int32_t(OutputPort *p, 
-                                          int32_t *src, 
-                                          int count) {
-#ifdef DEBUG
-  assert(pinAvailOut(p)>=count);
-#endif
-  pinWriteRepeat_common(p,(char*)src,count*sizeof(int32_t));
-  p->numWritten+=count;
-  p->availSpace-=count;
-}
-
-static inline void pinWriteRepeat_bool_t(OutputPort *p, 
-                                         int32_t *src, 
-                                         int count) {
-#ifdef DEBUG
-  assert(pinAvailOut(p)>=count);
-#endif
-  pinWriteRepeat_common(p,(char*)src,count*sizeof(bool_t));
-  p->numWritten+=count;
-  p->availSpace-=count;
-}
-
-static inline void pinWriteRepeat_double(OutputPort *p, 
-                                         double *src, 
-                                         int count) {
-#ifdef DEBUG
-  assert(pinAvailOut(p)>=count);
-#endif
-  pinWriteRepeat_common(p,(char*)src,count*sizeof(double));
-  p->numWritten+=count;
-  p->availSpace-=count;
-}
-
-
+extern void trace(int level, const char*,...);
 extern int rangeError(int x, int y, const char *filename, int line);
 extern void runtimeError(AbstractActorInstance*, const char *format,...);
-extern void trace(int level, const char*,...);
-extern void actionTrace(AbstractActorInstance *instance,
-            int localActionIndex,
-            char *actionName);
-extern void wakeup_waitingList(LIST *list);
+extern AbstractActorInstance *createActorInstance(ActorClass *actorClass);
+extern OutputPort *createOutputPort(AbstractActorInstance *pInstance,
+                             const char *portName,
+							 int numberOfReaders);
+extern InputPort *createInputPort(AbstractActorInstance *pInstance,
+                           const char *portName,
+						   int capacity);
+extern void connectPorts(OutputPort *outputPort, InputPort *inputPort);
+extern int executeNetwork(int argc, char *argv[],AbstractActorInstance **instances, int numInstances);
+extern void setParameter(AbstractActorInstance *pInstance,
+                  const char *key,
+                  const char *value);
 
-/** This function has to be called once by every thread executed within the runtime.
- * It registers the thread id of that thread, so it can be queried later. */
-extern void register_thread_id(void);
+#define ART_INPUT(index) &(context->input[index])
+#define ART_OUTPUT(index) &(context->output[index])
 
-/** Returns an array containing all thread ids of the currently existing threads.
- * The array has been allocated via malloc() and must be freed by the caller via free(). */
-extern void get_thread_ids(int* count, pid_t** threadIds);
+#define ART_ACTION_CONTEXT(numInputs, numOutputs)	\
+  typedef struct art_action_context {			\
+    int fired;						\
+    int loop;						\
+    LocalInputPort input[numInputs];			\
+    LocalOutputPort output[numOutputs];			\
+  } art_action_context_t;
 
-extern void wakeup_src();
-extern void wakeup_sink();
-extern void stop_runtime();
+#define ART_ACTION(name, thistype)					\
+  static void name(art_action_context_t *context, thistype *thisActor)	
 
-#ifdef __cplusplus
-}
-#endif
+#define ART_ACTION_SCHEDULER(name)				\
+  static const int *name(AbstractActorInstance *pBase,		\
+			 int maxloops)
+
+#define ART_ACTION_SCHEDULER_ENTER(numInputs, numOutputs)		\
+  art_action_context_t theContext;					\
+  art_action_context_t *context = &theContext;				\
+  context->fired = 0;							\
+  {									\
+    int i;								\
+    for (i = 0 ; i < numInputs ; i++) {					\
+      /* cpu is not used in actors */					\
+      /* shared is not used in actors */				\
+      context->input[i].pos = pBase->input[i].local->pos;		\
+      context->input[i].available = pBase->input[i].local->available;	\
+      context->input[i].buffer = pBase->input[i].buffer;		\
+      context->input[i].capacity = pBase->input[i].capacity;		\
+      /* writer is not used in actors */				\
+    }									\
+    for (i = 0 ; i < numOutputs ; i++) {				\
+      /* cpu is not used in actors */					\
+      /* shared is not used in actors */				\
+      context->output[i].pos = pBase->output[i].local->pos;		\
+      context->output[i].available = pBase->output[i].local->available;	\
+      context->output[i].buffer = pBase->output[i].buffer;		\
+      context->output[i].capacity = pBase->output[i].capacity;	\
+      /* readers is not used in actors */				\
+      /* reader is not used in actors */				\
+    }									\
+  }
+
+#define ART_ACTION_SCHEDULER_LOOP					\
+  for (context->loop = 0 ; context->loop < maxloops ; context->loop++)
+
+#define ART_ACTION_SCHEDULER_LOOP_TOP
+
+#define ART_ACTION_SCHEDULER_LOOP_BOTTOM
+
+#define ART_ACTION_SCHEDULER_EXIT(numInputs, numOutputs)		\
+  if (context->fired){							\
+    int i;								\
+    pBase->fired = context->fired;					\
+    for (i = 0 ; i < numInputs ; i++) {					\
+      pBase->input[i].local->pos = context->input[i].pos;		\
+      pBase->input[i].local->count =					\
+	pBase->input[i].local->available - context->input[i].available;	\
+      pBase->input[i].local->available = context->input[i].available;	\
+    }									\
+    for (i = 0 ; i < numOutputs ; i++) {				\
+      pBase->output[i].local->pos = context->output[i].pos;		\
+      pBase->output[i].local->count =					\
+	pBase->output[i].local->available - context->output[i].available; \
+      pBase->output[i].local->available = context->output[i].available; \
+    }									\
+  }
+
+#define ART_FIRE_ACTION(name)			\
+  name(context, thisActor)
+
+#define ART_ACTION_ENTER(name, index)		\
+  context->fired++;
+
+#define ART_ACTION_EXIT(name, index)
+
+#define FIFO_TYPE int32_t
+#include "actors-fifo.h"
+#undef FIFO_TYPE 
+#define FIFO_TYPE bool_t
+#include "actors-fifo.h"
+#undef FIFO_TYPE 
+#define FIFO_TYPE double
+#include "actors-fifo.h"
+#undef FIFO_TYPE 
+
+
 
 #endif
