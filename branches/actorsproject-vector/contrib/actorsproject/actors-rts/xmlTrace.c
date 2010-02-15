@@ -64,9 +64,9 @@ void xmlDeclareNetwork(FILE *f,
     const AbstractActorInstance *instance=actors[i];
     const ActorClass            *actorClass=instance->actor;
     int                          numInputs=actorClass->numInputPorts;
-    const InputPort             *inputs=instance->inputPort;
+    const InputPort             *inputs=instance->input;
     int                          numOutputs=actorClass->numOutputPorts;
-    const OutputPort            *outputs=instance->outputPort;
+    const OutputPort            *outputs=instance->output;
     int                          numActions=actorClass->numActions;
     const ActionDescription     *actions=actorClass->actionDescriptions;
     int                          firstAction=instance->firstActionIndex;
