@@ -198,6 +198,22 @@
       <xs:attribute name="kind" use="required" type="xs:NCName"/>
       <xs:attribute name="name" type="xs:NCName"/>
       <xs:attribute name="value"/>
+      <xs:attribute name="boundsHeight"/>
+      <xs:attribute name="boundsWidth"/>
+      <xs:attribute name="viewPositionX"/>
+      <xs:attribute name="viewPositionY"/>
+      <xs:attribute name="color"/>
+      <xs:attribute name="scale"/>
+      <xs:attribute name="x"/>
+      <xs:attribute name="y"/>
+      <xs:attribute name="horizontalScrollBar"/>
+      <xs:attribute name="verticalScrollBar"/>
+      <xs:attribute name="manAdj"/>
+      <xs:attribute name="severity"/>
+      <xs:attribute name="subject"/>
+      <xs:attribute name="text-end-line"/>
+      <xs:attribute name="xmlns:sch"/>
+      <xs:attribute name="xmlns:cal"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="Expr">

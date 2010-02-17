@@ -6,12 +6,154 @@
  * This file is part of Actors model compiler.                      
  */                                                             
 
+import java.util.AbstractCollection;
+import java.util.AbstractList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.io.File; 
 import java.io.FileNotFoundException; 
 import java.io.PrintStream; 
 
 aspect MergeActors {
+	public void Start.mergeActors(String name, int[] schedule) {
+		getSpecification().mergeActors(name,schedule);
+	}
+
+	public void Specification.mergeActors(String name, int[] schedule) {
+		for (Element e : getElements()) {
+			e.mergeActors(name,schedule);
+		}
+	}
+
+	public void Element.mergeActors(String name, int[] schedule) {
+	}
+
+	public void ComplexElement.mergeActors(String name, int[] schedule) {
+		for (Element e : getElements()) {
+			e.mergeActors(name,schedule);
+		}
+	}
+
+	public void XDF.mergeActors(String name, int[] schedule) {
+		Instance mergeInstance = new Instance(new List<Attribute>(),new List<Element>());
+		addElement(mergeInstance);
+		mergeInstance.isMerged(true);
+		mergeInstance.addAttribute(new id(new AttrValue(unfix(name))));
+		// UID
+		Note uid = new Note(new List<Attribute>(), new List<Element>());
+		uid.addAttribute(new _kind(new AttrValue(unfix("UID"))));
+		uid.addAttribute(new _value(new AttrValue(unfix(name))));
+		mergeInstance.addElement(uid);
+		// instanceHierarchy
+		Note hier = new Note(new List<Attribute>(), new List<Element>());
+		hier.addAttribute(new _kind(new AttrValue(unfix("instanceHierarchy"))));
+		mergeInstance.addElement(hier);
+		// Class
+		Class clazz = new Class(new List<Attribute>(), new List<Element>());
+		clazz.addAttribute(new _name(new AttrValue(unfix(name))));
+		mergeInstance.addElement(clazz);
+		// sourceLoaded
+		Note source = new Note(new List<Attribute>(), new List<Element>());
+		source.addAttribute(new _kind(new AttrValue(unfix("sourceLoaded"))));
+		source.addAttribute(new _value(new AttrValue(unfix("true"))));
+		mergeInstance.addElement(source);
+		// className
+		Note cName = new Note(new List<Attribute>(), new List<Element>());
+		cName.addAttribute(new _kind(new AttrValue(unfix("className"))));
+		cName.addAttribute(new _value(new AttrValue(unfix(name))));
+		mergeInstance.addElement(cName);
+		// Create merged actor instance
+		int varIx = 0;
+		xlimAST.Start xlimInstance = new xlimAST.Start();
+		xlimInstance.init(name);
+
+		// Remove connections between now merged actors. Replace
+		// pinRead/pinWrite with accesses to circular buffer.
+		for (Connection c : getConnections()) {
+			if (Arrays.binarySearch(schedule,c.getDest().getIndex()) > -1 &&
+				Arrays.binarySearch(schedule,c.getSource().getIndex()) > -1) {
+				// Connection between two mergeable instances, replace with internal buffer
+				// First, create circular buffer to use instead of FIFO
+				xlimInstance.addStateVar("buf_"+varIx,c.getBufSize());
+				System.out.print(""+varIx+":"+xlimInstance.getDesign().getNumElement());
+				xlimInstance.addStateVar("inIx_"+varIx);
+				xlimInstance.addStateVar("outIx_"+varIx);
+				// System.out.println(":"+xlimInstance.getDesign().getNumElement());
+				// Replace references to FIFO with internal circular
+				// buffer instead.
+				xlimInstance.replaceBuffer(c.getSource().xlimInstance(),
+										   c.getDest().xlimInstance(),
+										   c.getSourcePort(),
+										   c.getDestinationPort(),
+										   varIx,
+										   c.getBufSize());
+				varIx++;
+				// xlimInstance.prettyPrint("",System.out);
+				// Remove superfluous connection
+				c.remove_me = true;
+				c.is$Final(false);
+			} else if (Arrays.binarySearch(schedule,c.getDest().getIndex()) > -1) {
+				c.setDestPort(unfix(c.getDest().className()+"_"+c.dstPort()));
+				c.setDest(unfix(name));
+			} else if (Arrays.binarySearch(schedule,c.getSource().getIndex()) > -1) {
+				c.setSourcePort(unfix(c.getSource().className()+"_"+c.srcPort()));
+				c.setSource(unfix(name));
+			}
+		}
+
+		// Populate instance with actions
+		for (int i=0; i<schedule.length; i++) {
+			// System.out.println("Testing instance: "+getInstance(schedule[i]).name());
+			if (!getInstance(schedule[i]).isMerged()) {
+				// System.out.println("  Adding");
+				xlimInstance.populate(getInstance(schedule[i]).xlimInstance());
+				getInstance(schedule[i]).isMerged(true);
+			}
+		}
+
+		// Find out which ports there are left in the merged actor,
+		// then create new decisions for when to run the merged actor
+		// List<String> 
+		// for (Co
+
+		// Create new action scheduler
+		xlimInstance.addActionScheduler();
+		for (int i=0; i<schedule.length; i++) {
+			// System.out.println("Testing instance: "+getInstance(schedule[i]).name());
+			// System.out.println("  Adding");
+			xlimInstance.addActionSchedule(getInstance(schedule[i]).
+											xlimInstance().actionScheduler());
+		}
+
+		// Extract (remaining) ports from merge instance and use to
+		// popuplate xdf instance. Necessary for C code generation?
+		HashSet<xlimAST.actor_port> xlimPorts = 
+			xlimInstance.getPorts(new HashSet<xlimAST.actor_port>());
+		Actor actor = new Actor(new List<Attribute>(),new List<Element>());
+		mergeInstance.addElement(actor);
+		actor.addAttribute(new _kind(new AttrValue(unfix(name))));
+		for (xlimAST.actor_port xp : xlimPorts) {
+			String pDir = xp.dir().equals("in") ? "Input" : "Output";
+			Port p = new Port();
+			actor.addElement(p);
+			p.setAttributeList(new List<Attribute>().add(new _kind(pDir)).
+							   add(new _name(xp.name())));
+			Type type = new Type();
+			p.setElementList(new List<Element>().add(type));
+			type.setAttributeList(new List<Attribute>().
+								  add(new _name(xp.type())));
+		}
+
+
+		// Insert XLIM instance into this XDF tree
+		mergeInstance.xlimInstance(xlimInstance);
+		// try {
+		// 	xlimInstance.prettyPrint("",new PrintStream(new File(name+".xlim")));
+		// } catch (FileNotFoundException e) {
+		// 	System.out.println("Could not print to file: "+name());
+		// } 
+	}
+
 	void Element.mergeActors() {}
 	public void Start.mergeActors() {
 		getSpecification().mergeActors();
@@ -95,37 +237,9 @@ aspect MergeActors {
 	public boolean Instance.isMerged() {
 		return isMerged;
 	}
-}
-
-aspect Misc {
-	syn HashSet<Connection> Element.getConnections(HashSet<Connection> set) = set;
-	eq XDF.getConnections(HashSet<Connection> set) {		
-		for (Element e : getElements()) {
-			set = e.getConnections(set);
-		}
-		return set;
-	}
-	eq Connection.getConnections(HashSet<Connection> set) {
-		set.add(this);
-		return set;
-	}
-
-	public HashSet<Instance> XDF.getInstances() {
-		return getInstances(new HashSet<Instance>());
-	}
-	syn HashSet<Instance> Element.getInstances(HashSet<Instance> inst) = inst;
-	eq XDF.getInstances(HashSet<Instance> inst) {
-		for (Element e : getElements()) {
-			inst = e.getInstances(inst);
-		}
-		return inst;
-	}
-	eq Instance.getInstances(HashSet<Instance> inst) {
-		inst.add(this);
-		return inst;
-	}
 
 }
+
 
 aspect Rewrites {
 	boolean Connection.remove_me = false;

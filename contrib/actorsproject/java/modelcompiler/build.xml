@@ -13,7 +13,7 @@
 
   <property name="javacc.home" value="${tools}/javacc-4.0"/>
 
-  <property name="builddir" value="."/>
+  <property name="builddir" value="${user.dir}"/>
 
   <!--   compile sources -->
     <target name="build" depends="gen">
@@ -39,6 +39,7 @@
 	</ant>
   </target>
 
+
   <!-- remove generated source files and .class files -->
   <target name="clean" depends="cleanGen">
     <!-- delete all .class files recursively -->
@@ -47,13 +48,10 @@
     </delete>
   </target>
 
-<!--   <target name="jar" depends="build"> -->
-<!--     <jar destfile="X3DCompiler.jar" basedir="." includes="**/*.class" excludes="test/**"> -->
-<!--       <manifest> -->
-<!-- 	<attribute name="Main-Class" value="GenOntology"/> -->
-<!--       </manifest> -->
-<!--     </jar> -->
-<!--   </target> -->
+  <target name="jar" depends="build">
+    <jar destfile="ModelCompiler.jar" basedir="." includes="**/*.class" excludes="test/**">
+    </jar>
+  </target>
 
   <!-- remove generated source files and their .class files -->
   <target name="cleanGen">

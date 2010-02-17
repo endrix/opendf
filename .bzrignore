@@ -1,0 +1,9 @@
+contrib/actorsproject/java/xdfAST
+contrib/actorsproject/java/xlimAST
+contrib/actorsproject/java/javadoc
+contrib/actorsproject/java/classes
+contrib/actorsproject/actors-make/classes
+contrib/actorsproject/actors-make/opendf.jar
+contrib/actorsproject/actors-rts/libactors-rts.so.1.0
+contrib/actorsproject/java/actorsproject.jar
+contrib/actorsproject/java/classifierAST

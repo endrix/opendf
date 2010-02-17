@@ -14,6 +14,51 @@ import eu.actorsproject.xlim.XlimDesign;
 import eu.actorsproject.xlim.decision.ModeScheduler;
 import eu.actorsproject.xlim.decision.ActionSchedule;
 
+aspect Classification {
+	public String Instance.classification() {
+		if (!name().startsWith("art_")) {
+			// No need trying to analyze system actors
+			// System.out.println("Trying to analyze: "+name());
+			ActorClassifier ac = new ActorClassifier();
+			ac.initSession(null);
+			XlimDesign xlim = ac.read(new File(cwd+name()+".xlim"));
+			ModeScheduler modeScheduler = new ModeScheduler();
+			ActionSchedule actionSchedule = modeScheduler.getActionSchedule(xlim);
+			xlimInstance().setActionSchedule(actionSchedule);
+			if (actionSchedule.isDeterministic()) {
+				if (actionSchedule.hasStaticSchedule()) {
+					return "CSDF";
+				} else {
+					return "DDF";
+				}
+			}
+		}
+		return "non-deterministic";
+	}
+
+	public String Instance.classificationNew(String directory) {
+		if (!name().startsWith("art_")) {
+			// No need trying to analyze system actors
+			// System.out.println("Trying to analyze: "+name());
+			ActorClassifier ac = new ActorClassifier();
+			ac.initSession(null);
+			XlimDesign xlim = ac.read(new File(directory+name()+".xlim"));
+       			ModeScheduler modeScheduler = new ModeScheduler();
+		      	ActionSchedule actionSchedule = modeScheduler.getActionSchedule(xlim);
+			xlimInstance(directory).setActionSchedule(actionSchedule);
+		     	if (actionSchedule.isDeterministic()) {
+		         	if (actionSchedule.hasStaticSchedule()) {
+				return "CSDF";
+		   			} else {
+		      			return "DDF";
+				}
+	     		}
+		}
+      		return "non-deterministic";
+	}
+}
+
+
 aspect SSR {
 
 	void ASTNode.genSSR(java.io.PrintStream out) {
@@ -30,31 +75,63 @@ aspect SSR {
 
 }
 
+
 aspect CSDF {
 	syn lazy boolean  Instance.isCSDF() {
-		if (!name().startsWith("art_")) {
-			// No need trying to analyze system actors
-			System.out.println("Trying to analyze: "+name());
-			ActorClassifier ac = new ActorClassifier();
-			ac.initSession(null);
-			XlimDesign xlim = ac.read(new File(name()+".xlim"));
-			ModeScheduler modeScheduler = new ModeScheduler();
-			ActionSchedule actionSchedule = modeScheduler.getActionSchedule(xlim);
-			return actionSchedule.isDeterministic();
+		return classification().equals("CSDF");
+		// if (!name().startsWith("art_")) {
+		// 	// No need trying to analyze system actors
+		// 	System.out.println("Trying to analyze: "+name());
+		// 	ActorClassifier ac = new ActorClassifier();
+		// 	ac.initSession(null);
+		// 	XlimDesign xlim = ac.read(new File(cwd+name()+".xlim"));
+		// 	ModeScheduler modeScheduler = new ModeScheduler();
+		// 	ActionSchedule actionSchedule = modeScheduler.getActionSchedule(xlim);
+		// 	return actionSchedule.isDeterministic();
+		// }
+		// return false;
+	}
+
+	syn boolean XDF.isSDF() {
+		boolean sdf = true;
+		for (Instance inst : getInstances()) {
+			sdf &= inst.isSDF();
 		}
-		return false;
+		return sdf;
 	}
 
 	syn boolean Instance.isSDF() = xlimInstance().isSDF();
 
-	syn lazy xlimAST.Start Instance.xlimInstance() {
+	private xlimAST.Start Instance.xlimInstance;
+	public void Instance.xlimInstance(xlimAST.Start inst) {
+		xlimInstance = inst;
+	}
+	public xlimAST.Start Instance.xlimInstance() {
+		if (xlimInstance != null) {
+			return xlimInstance;
+		}
 		try {
  			System.out.println("Trying to open: "+name());
-			xlimAST.XmlParser parser = new xlimAST.XmlParser(new FileReader(name()+".xlim"));
+			xlimAST.XmlParser parser = new xlimAST.XmlParser(new FileReader(cwd+name()+".xlim"));
+			xlimInstance = parser.Start();
+			return xlimInstance;
+		} catch (FileNotFoundException e) {
+			System.out.println(cwd+ name()+".xlim not found");
+ 			// e.printStackTrace();
+		} catch (Exception e) {
+ 			e.printStackTrace();			
+		}
+		return new xlimAST.EmptyStart();
+	}
+
+	syn lazy xlimAST.Start Instance.xlimInstance(String directory) {
+		try {
+// 			System.out.println("Trying to open: "+name());
+			xlimAST.XmlParser parser = new xlimAST.XmlParser(new FileReader(directory+name()+".xlim"));
 			return parser.Start();
 		} catch (Exception e) {
 			System.out.println( name()+".xlim not found");
- 			e.printStackTrace();
+ 			// e.printStackTrace();
 			return new xlimAST.EmptyStart();
 		}
 	}
@@ -119,6 +196,14 @@ aspect ActorLookup {
 		}		
 	}
 
+	void Connection.setSourcePort(String src) {
+		for (Attribute a : getAttributes()) {
+			if (a instanceof src_port) {
+				a.getAttrValue().setLITERAL(src);
+			}
+		}		
+	}
+
 	syn Instance Connection.getDest() = root().getInstance(dest());
 	
 	String Connection.dest() {
@@ -128,6 +213,22 @@ aspect ActorLookup {
 			}
 		}
 		return "";
+	}
+
+	void Connection.setDest(String dst) {
+		for (Attribute a : getAttributes()) {
+			if (a instanceof dst) {
+				a.getAttrValue().setLITERAL(dst);
+			}
+		}		
+	}
+
+	void Connection.setDestPort(String dst) {
+		for (Attribute a : getAttributes()) {
+			if (a instanceof dst_port) {
+				a.getAttrValue().setLITERAL(dst);
+			}
+		}		
 	}
 
 	String Connection.dstPort() {
@@ -174,6 +275,8 @@ aspect misc {
 
 	syn String ComplexElement.name() = "";
 	eq Instance.name() = getUIDNote().value();
+	eq Port.name() = fix(getName());
+	eq Class.name() = fix(getName());
 
 	Note Instance.getUIDNote() {
 		for (Element e : getElements()) {
@@ -193,7 +296,7 @@ aspect misc {
 	}
 
 	syn String Element.kind() = "";
-	eq Note.kind() {
+	eq ComplexElement.kind() {
 		for (Attribute a : getAttributes()) {
 // 			System.out.println("   checking: "+a);
 			if (a.isKind()) {
@@ -247,6 +350,17 @@ aspect misc {
 			return "\""+s+"\"";
 		}
 		return s;
+	}
+
+	static String ASTNode.cwd;
+	public void Start.setCWD(String s) {
+		String sep = System.getProperty("file.separator");
+		if (s.indexOf(sep) > -1) {
+			cwd = s.substring(0,s.lastIndexOf(sep)+1);
+		} else {
+			cwd = "./";
+		}
+		System.out.println(cwd);
 	}
 }
 

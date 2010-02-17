@@ -16,6 +16,7 @@ public class XdfParser {
 			XmlParser parser = new XmlParser(r);
 
 			ast = parser.Start();
+			ast.setCWD(args[0]);
 		} catch (ParseException e) {
 			System.out.println(e.getMessage());
 		}

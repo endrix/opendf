@@ -47,40 +47,55 @@ PARSER_END(XmlParser)
  | <XsiNoNamespaceSchemaLocation		: "xsi:noNamespaceSchemaLocation">
  | <XmlnsXsi		: "xmlns:xsi">
  | <Output		: "Output" >
+ | <severity		: "severity" >
+ | <viewPositionY		: "viewPositionY" >
+ | <viewPositionX		: "viewPositionX" >
  | <Class		: "Class" >
  | <Op		: "Op" >
  | <Parameter		: "Parameter" >
+ | <boundsHeight		: "boundsHeight" >
  | <QID		: "QID" >
  | <_text_end_line		: "text-end-line" >
+ | <verticalScrollBar		: "verticalScrollBar" >
+ | <subject		: "subject" >
  | <Connection		: "Connection" >
  | <Note		: "Note" >
  | <_text_begin_line		: "text-begin-line" >
  | <_name		: "name" >
  | <from		: "from" >
+ | <xmlnssch		: "xmlns:sch" >
  | <Instance		: "Instance" >
+ | <horizontalScrollBar		: "horizontalScrollBar" >
  | <Entry		: "Entry" >
  | <dst_port		: "dst-port" >
  | <Guards		: "Guards" >
  | <src		: "src" >
  | <_ID		: "ID" >
  | <Action		: "Action" >
+ | <color		: "color" >
  | <Import		: "Import" >
  | <Port		: "Port" >
  | <literal_kind		: "literal-kind" >
+ | <manAdj		: "manAdj" >
  | <Transition		: "Transition" >
  | <assignable		: "assignable" >
  | <initial_state		: "initial-state" >
  | <ActionTags		: "ActionTags" >
+ | <scale		: "scale" >
  | <Args		: "Args" >
  | <dst		: "dst" >
+ | <boundsWidth		: "boundsWidth" >
  | <id		: "id" >
  | <Expr		: "Expr" >
  | <_port		: "port" >
  | <_text_begin_col		: "text-begin-col" >
+ | <y		: "y" >
+ | <x		: "x" >
  | <src_port		: "src-port" >
  | <_text_end_col		: "text-end-col" >
  | <_value		: "value" >
  | <Decl		: "Decl" >
+ | <xmlnscal		: "xmlns:cal" >
  | <Input		: "Input" >
  | <_kind		: "kind" >
  | <Stmt		: "Stmt" >
@@ -195,6 +210,9 @@ PARSER_END(XmlParser)
     | < RBRACE               : "}"    >
     | < LBRACKET             : "["    >
     | < RBRACKET             : "]"    >
+    | < LPAR                 : "("    >
+    | < RPAR                 : ")"    >
+    | < DOT                  : "."    >
     | < SEMICOLON            : ";"    >
     | < LTSLASH              : "</"    > : DEFAULT
     | < LTBANG               : "<!"    > : DEFAULT
@@ -378,21 +396,36 @@ void Attribute()  : {}
  | XsiNoNamespaceSchemaLocation()
  | XmlnsXsi()
   | _to()
+  | horizontalScrollBar()
   | literal_kind()
+  | xmlnscal()
+  | subject()
   | src()
+  | manAdj()
   | _kind()
   | _text_begin_col()
+  | y()
   | _port()
+  | x()
   | dst_port()
   | initial_state()
+  | boundsWidth()
   | id()
+  | viewPositionY()
+  | verticalScrollBar()
+  | viewPositionX()
   | _value()
+  | severity()
+  | color()
   | from()
   | _text_end_line()
   | _text_end_col()
+  | xmlnssch()
   | src_port()
   | assignable()
   | _text_begin_line()
+  | scale()
+  | boundsHeight()
   | dst()
   | _name()
   | __DefaultAttribute__() 
@@ -409,6 +442,18 @@ void Output() #Output : {}
    <Output> AttributeList()
   ( <GT> ElementList()  "</" <Output>  ">" | ElementList() "/>" )
 }
+void severity() #severity : {}
+{
+  <severity> "=" AttrValue()
+}
+void viewPositionY() #viewPositionY : {}
+{
+  <viewPositionY> "=" AttrValue()
+}
+void viewPositionX() #viewPositionX : {}
+{
+  <viewPositionX> "=" AttrValue()
+}
 void Class() #Class : {}
 {
    <Class> AttributeList()
@@ -424,6 +469,10 @@ void Parameter() #Parameter : {}
    <Parameter> AttributeList()
   ( <GT> ElementList()  "</" <Parameter>  ">" | ElementList() "/>" )
 }
+void boundsHeight() #boundsHeight : {}
+{
+  <boundsHeight> "=" AttrValue()
+}
 void QID() #QID : {}
 {
    <QID> AttributeList()
@@ -432,6 +481,14 @@ void QID() #QID : {}
 void _text_end_line() #_text_end_line : {}
 {
   <_text_end_line> "=" AttrValue()
+}
+void verticalScrollBar() #verticalScrollBar : {}
+{
+  <verticalScrollBar> "=" AttrValue()
+}
+void subject() #subject : {}
+{
+  <subject> "=" AttrValue()
 }
 void Connection() #Connection : {}
 {
@@ -455,10 +512,18 @@ void from() #from : {}
 {
   <from> "=" AttrValue()
 }
+void xmlnssch() #xmlnssch : {}
+{
+  <xmlnssch> "=" AttrValue()
+}
 void Instance() #Instance : {}
 {
    <Instance> AttributeList()
   ( <GT> ElementList()  "</" <Instance>  ">" | ElementList() "/>" )
+}
+void horizontalScrollBar() #horizontalScrollBar : {}
+{
+  <horizontalScrollBar> "=" AttrValue()
 }
 void Entry() #Entry : {}
 {
@@ -488,6 +553,10 @@ void Action() #Action : {}
    <Action> AttributeList()
   ( <GT> ElementList()  "</" <Action>  ">" | ElementList() "/>" )
 }
+void color() #color : {}
+{
+  <color> "=" AttrValue()
+}
 void Import() #Import : {}
 {
    <Import> AttributeList()
@@ -501,6 +570,10 @@ void Port() #Port : {}
 void literal_kind() #literal_kind : {}
 {
   <literal_kind> "=" AttrValue()
+}
+void manAdj() #manAdj : {}
+{
+  <manAdj> "=" AttrValue()
 }
 void Transition() #Transition : {}
 {
@@ -520,6 +593,10 @@ void ActionTags() #ActionTags : {}
    <ActionTags> AttributeList()
   ( <GT> ElementList()  "</" <ActionTags>  ">" | ElementList() "/>" )
 }
+void scale() #scale : {}
+{
+  <scale> "=" AttrValue()
+}
 void Args() #Args : {}
 {
    <Args> AttributeList()
@@ -528,6 +605,10 @@ void Args() #Args : {}
 void dst() #dst : {}
 {
   <dst> "=" AttrValue()
+}
+void boundsWidth() #boundsWidth : {}
+{
+  <boundsWidth> "=" AttrValue()
 }
 void id() #id : {}
 {
@@ -546,6 +627,14 @@ void _text_begin_col() #_text_begin_col : {}
 {
   <_text_begin_col> "=" AttrValue()
 }
+void y() #y : {}
+{
+  <y> "=" AttrValue()
+}
+void x() #x : {}
+{
+  <x> "=" AttrValue()
+}
 void src_port() #src_port : {}
 {
   <src_port> "=" AttrValue()
@@ -562,6 +651,10 @@ void Decl() #Decl : {}
 {
    <Decl> AttributeList()
   ( <GT> ElementList()  "</" <Decl>  ">" | ElementList() "/>" )
+}
+void xmlnscal() #xmlnscal : {}
+{
+  <xmlnscal> "=" AttrValue()
 }
 void Input() #Input : {}
 {
