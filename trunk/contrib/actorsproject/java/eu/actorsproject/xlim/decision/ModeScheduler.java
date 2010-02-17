@@ -13,6 +13,7 @@ import eu.actorsproject.xlim.XlimModule;
 import eu.actorsproject.xlim.XlimStateCarrier;
 import eu.actorsproject.xlim.XlimStateVar;
 import eu.actorsproject.xlim.XlimTaskModule;
+import eu.actorsproject.xlim.XlimTopLevelPort;
 import eu.actorsproject.xlim.absint.AbstractValue;
 import eu.actorsproject.xlim.absint.Evaluator;
 import eu.actorsproject.xlim.absint.Interval;
@@ -89,7 +90,7 @@ public class ModeScheduler {
 		
 		// Enumerate state space
 		StateEnumeration<Interval> stateEnum=enumerateStateSpace(design);
-		printResult(stateEnum);
+		// printResult(stateEnum);
 	}
 	
 	/**
@@ -300,12 +301,31 @@ public class ModeScheduler {
 			System.out.println("Schedule may terminate");
 		else
 			System.out.println("Schedule repeats indefinitely");
+
+
+		// System.out.println("Port signatures");
+		// SchedulingPhase sp = actionSchedule.getInitialPhase();
+		// int mode = 0;
+		// do {
+		// 	System.out.println("  Mode: "+mode++);
+		// 	PortSignature ps = sp.hasStaticPortSignature();
+		// 	if (ps != null) {
+		// 		for (XlimTopLevelPort port : ps.getPorts()) {
+		// 			System.out.println("    "+port.getSourceName()+" "+ps.getPortRate(port));
+		// 		}
+		// 	}
+		// } while ((sp = actionSchedule.getPhase(actionSchedule.getRepresenter(sp))) != null);
 		
 		if (actionSchedule.isDeterministic() && actionSchedule.hasStaticSchedule()) {
 			System.out.println("\n<!-- static schedule -->");
 			XmlPrinter printer=new XmlPrinter(System.out);
 			actionSchedule.printStaticSchedule(printer);
 		}
+
+		// Generate action schedule XML for use by other tools
+		StringBuffer as = new StringBuffer();
+		as.append("<actionSchedule class=\"");
+		as.append(actionSchedule.hasStaticSchedule()?"static":"dynamic");
 	}
 
 	/**

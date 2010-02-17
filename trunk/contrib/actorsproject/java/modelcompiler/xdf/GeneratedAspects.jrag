@@ -67,6 +67,21 @@ aspect PrettyPrinter {
     }
   }
 
+  public void severity.prettyPrint(String indent, PrintStream pStream) {
+    pStream.print(" severity=");
+       getAttrValue().prettyPrint(indent,pStream);
+  }
+
+  public void viewPositionY.prettyPrint(String indent, PrintStream pStream) {
+    pStream.print(" viewPositionY=");
+       getAttrValue().prettyPrint(indent,pStream);
+  }
+
+  public void viewPositionX.prettyPrint(String indent, PrintStream pStream) {
+    pStream.print(" viewPositionX=");
+       getAttrValue().prettyPrint(indent,pStream);
+  }
+
   public void Class.prettyPrint(String ind, PrintStream pStream) {
     pStream.print(ind+"<Class ");
     for (int i=0; i<getNumAttribute(); i++) {
@@ -118,6 +133,11 @@ aspect PrettyPrinter {
     }
   }
 
+  public void boundsHeight.prettyPrint(String indent, PrintStream pStream) {
+    pStream.print(" boundsHeight=");
+       getAttrValue().prettyPrint(indent,pStream);
+  }
+
   public void QID.prettyPrint(String ind, PrintStream pStream) {
     pStream.print(ind+"<QID ");
     for (int i=0; i<getNumAttribute(); i++) {
@@ -137,6 +157,16 @@ aspect PrettyPrinter {
 
   public void _text_end_line.prettyPrint(String indent, PrintStream pStream) {
     pStream.print(" text-end-line=");
+       getAttrValue().prettyPrint(indent,pStream);
+  }
+
+  public void verticalScrollBar.prettyPrint(String indent, PrintStream pStream) {
+    pStream.print(" verticalScrollBar=");
+       getAttrValue().prettyPrint(indent,pStream);
+  }
+
+  public void subject.prettyPrint(String indent, PrintStream pStream) {
+    pStream.print(" subject=");
        getAttrValue().prettyPrint(indent,pStream);
   }
 
@@ -189,6 +219,11 @@ aspect PrettyPrinter {
        getAttrValue().prettyPrint(indent,pStream);
   }
 
+  public void xmlnssch.prettyPrint(String indent, PrintStream pStream) {
+    pStream.print(" xmlns:sch=");
+       getAttrValue().prettyPrint(indent,pStream);
+  }
+
   public void Instance.prettyPrint(String ind, PrintStream pStream) {
     pStream.print(ind+"<Instance ");
     for (int i=0; i<getNumAttribute(); i++) {
@@ -204,6 +239,11 @@ aspect PrettyPrinter {
        }
        pStream.println(ind+"</Instance> ");
     }
+  }
+
+  public void horizontalScrollBar.prettyPrint(String indent, PrintStream pStream) {
+    pStream.print(" horizontalScrollBar=");
+       getAttrValue().prettyPrint(indent,pStream);
   }
 
   public void Entry.prettyPrint(String ind, PrintStream pStream) {
@@ -284,6 +324,11 @@ aspect PrettyPrinter {
     }
   }
 
+  public void color.prettyPrint(String indent, PrintStream pStream) {
+    pStream.print(" color=");
+       getAttrValue().prettyPrint(indent,pStream);
+  }
+
   public void Import.prettyPrint(String ind, PrintStream pStream) {
     pStream.print(ind+"<Import ");
     for (int i=0; i<getNumAttribute(); i++) {
@@ -320,6 +365,11 @@ aspect PrettyPrinter {
 
   public void literal_kind.prettyPrint(String indent, PrintStream pStream) {
     pStream.print(" literal-kind=");
+       getAttrValue().prettyPrint(indent,pStream);
+  }
+
+  public void manAdj.prettyPrint(String indent, PrintStream pStream) {
+    pStream.print(" manAdj=");
        getAttrValue().prettyPrint(indent,pStream);
   }
 
@@ -367,6 +417,11 @@ aspect PrettyPrinter {
     }
   }
 
+  public void scale.prettyPrint(String indent, PrintStream pStream) {
+    pStream.print(" scale=");
+       getAttrValue().prettyPrint(indent,pStream);
+  }
+
   public void Args.prettyPrint(String ind, PrintStream pStream) {
     pStream.print(ind+"<Args ");
     for (int i=0; i<getNumAttribute(); i++) {
@@ -386,6 +441,11 @@ aspect PrettyPrinter {
 
   public void dst.prettyPrint(String indent, PrintStream pStream) {
     pStream.print(" dst=");
+       getAttrValue().prettyPrint(indent,pStream);
+  }
+
+  public void boundsWidth.prettyPrint(String indent, PrintStream pStream) {
+    pStream.print(" boundsWidth=");
        getAttrValue().prettyPrint(indent,pStream);
   }
 
@@ -421,6 +481,16 @@ aspect PrettyPrinter {
        getAttrValue().prettyPrint(indent,pStream);
   }
 
+  public void y.prettyPrint(String indent, PrintStream pStream) {
+    pStream.print(" y=");
+       getAttrValue().prettyPrint(indent,pStream);
+  }
+
+  public void x.prettyPrint(String indent, PrintStream pStream) {
+    pStream.print(" x=");
+       getAttrValue().prettyPrint(indent,pStream);
+  }
+
   public void src_port.prettyPrint(String indent, PrintStream pStream) {
     pStream.print(" src-port=");
        getAttrValue().prettyPrint(indent,pStream);
@@ -451,6 +521,11 @@ aspect PrettyPrinter {
        }
        pStream.println(ind+"</Decl> ");
     }
+  }
+
+  public void xmlnscal.prettyPrint(String indent, PrintStream pStream) {
+    pStream.print(" xmlns:cal=");
+       getAttrValue().prettyPrint(indent,pStream);
   }
 
   public void Input.prettyPrint(String ind, PrintStream pStream) {

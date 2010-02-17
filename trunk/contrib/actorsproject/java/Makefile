@@ -20,10 +20,13 @@ javadir?=$(datarootdir)/java
 
 
 # Source files
-JAVA_FILES=$(shell find $(srcdir)/eu/actorsproject -name *.java)
-JASTADD_FILES=$(shell find $(srcdir)/modelcompiler -name *.jrag -name *.ast -name *.jjt -name *.java)
+JAVA_FILES=$(shell find $(srcdir)/eu/actorsproject $(srcdir)/modelcompiler -name *.java)
+AST_FILES=$(shell find $(srcdir)/modelcompiler -name *.ast)
+JJT_FILES=$(shell find $(srcdir)/modelcompiler -name *.jjt)
+JRAG_FILES=$(shell find $(srcdir)/modelcompiler -name *.jrag)
+JASTADD_FILES=$(AST_FILES) $(JJT_FILES) $(JRAG_FILES)
 
-.PHONY: all clean install uninstall
+.PHONY: all clean install uninstall jastadd
 
 all: actorsproject.jar
 

@@ -1,0 +1,16 @@
+/* -*-Java-*- */                                         
+
+/*
+ * Copyright (C) 2009  Anders Nilsson <anders.nilsson@cs.lth.se>
+ *                                                              
+ * This file is part of Actors model compiler.                      
+ */                                                             
+
+aspect Misc {
+	syn design Start.getDesign() = (design) getSpecification().getElement(0);
+	eq EmptyStart.getDesign() = new design(new List<Attribute>(),new List<Element>());
+
+	public void EmptyStart.prettyPrint(String indent, PrintStream pStream) {}
+
+
+}

@@ -48,6 +48,7 @@ aspect Misc {
 		return kind().equals("action");
 	}
 
+
 	syn String module.kind() {
 		for (int i=0; i<getNumAttribute(); i++) {
 			Attribute a = getAttribute(i);
@@ -58,7 +59,29 @@ aspect Misc {
 		return "";
 	}
 
-	syn String Element.name() = "anonymous";
+	syn String actor_port.dir() {
+		for (int i=0; i<getNumAttribute(); i++) {
+			Attribute a = getAttribute(i);
+			if (a instanceof dir) {
+				return fix(a.getAttrValue().getLITERAL());
+			}
+		}
+		return "";
+	}
+
+	syn String actor_port.type() {
+		for (int i=0; i<getNumAttribute(); i++) {
+			Attribute a = getAttribute(i);
+			if (a instanceof typeName) {
+				return fix(a.getAttrValue().getLITERAL());
+			}
+		}
+		return "";
+	}
+
+	syn String ASTNode.name() = "";
+	eq Start.name() = getSpecification().name();
+	eq Specification.name() = getDesign().name();
 	eq ComplexElement.name() {
 		for (int i=0; i<getNumAttribute(); i++) {
 			Attribute a = getAttribute(i);

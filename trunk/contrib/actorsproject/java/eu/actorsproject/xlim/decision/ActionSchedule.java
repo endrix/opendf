@@ -39,11 +39,13 @@ package eu.actorsproject.xlim.decision;
 
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
 
 import eu.actorsproject.util.MergeFindPartition;
 import eu.actorsproject.util.XmlPrinter;
+import eu.actorsproject.xlim.XlimTopLevelPort;
 
 /**
  * Represents all possible action schedules of the actor
@@ -132,6 +134,40 @@ public class ActionSchedule {
 		}
 	}
 	
+	public LinkedList<Integer> getPortPattern(String portName) {
+		Map<DecisionTree,Integer> visited=new HashMap<DecisionTree,Integer>();
+		LinkedList<Integer> pattern = new LinkedList<Integer>();
+		// Repeat until we find an infinite loop or termination
+		DecisionTree nextRep=getRepresenter(mInitialPhase);
+		int phaseId=0;
+		while (nextRep!=null) {
+			boolean portFoundInPhase = false;
+			DecisionTree rep=nextRep;
+			visited.put(rep, phaseId);
+			
+			nextRep=getRepresenter(mPhases.get(rep));
+			Integer visitedId=visited.get(nextRep);
+			int nextId=(visitedId!=null)? visitedId : phaseId+1;
+			
+			PortSignature ps = mPhases.get(rep).hasStaticPortSignature();
+			if (ps != null) {
+				for (XlimTopLevelPort port : ps.getPorts()) {
+					if (port.getSourceName().equals(portName)) {
+						pattern.add(ps.getPortRate(port));
+						portFoundInPhase = true;
+					}
+				}			
+			}
+			if (!portFoundInPhase) {
+				pattern.add(0);
+			}
+			if (nextId<=phaseId)
+				break;
+			++phaseId;
+		}		
+		return pattern;
+	}
+
 	private DecisionTree getRepresenter(SchedulingPhase phase) {
 		DecisionTree aLeaf=phase.getLeaves().get(0);
 		Set<DecisionTree> mode=mModes.find(aLeaf);

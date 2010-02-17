@@ -1,0 +1,327 @@
+/* -*-Java-*- */                                         
+
+/*
+ * Copyright (C) 2009  Anders Nilsson <anders.nilsson@cs.lth.se>
+ *                                                              
+ * This file is part of Actors model compiler.                      
+ */                                                             
+
+import java.util.HashSet;
+import java.io.File; 
+import java.io.FileNotFoundException; 
+import java.io.PrintStream; 
+
+
+aspect Instances {
+	syn HashSet<Instance> ASTNode.getInstances(HashSet<Instance> inst) = inst;
+	eq Start.getInstances(HashSet<Instance> inst) = getSpecification().getInstances(inst);
+	eq Specification.getInstances(HashSet<Instance> inst) {
+		for (Element e : getElements()) {
+			inst = e.getInstances(inst);
+		}
+		return inst;
+	}
+	eq XDF.getInstances(HashSet<Instance> inst) {
+		for (Element e : getElements()) {
+			inst = e.getInstances(inst);
+		}
+		return inst;
+	}
+	eq Instance.getInstances(HashSet<Instance> inst) {
+		inst.add(this);
+		return inst;
+	}
+
+	syn Instance XDF.getInstance(int index) {
+		for (Instance i : getInstances(new HashSet<Instance>())) {
+			if (i.getIndex() == index) {
+				return i;
+			}
+		}
+		return null;
+	}
+}
+
+aspect Misc {
+	syn HashSet<Port> ASTNode.getPorts(HashSet<Port> inst) = inst;
+	eq Start.getPorts(HashSet<Port> inst) {
+		Specification sp = getSpecification();
+		if (sp != null) {
+			return sp.getPorts(inst);
+		}
+		return inst;
+	}
+	eq Specification.getPorts(HashSet<Port> inst) {
+		for (Element e : getElements()) {
+			inst = e.getPorts(inst);
+		}
+		return inst;
+	}
+	eq XDF.getPorts(HashSet<Port> inst) {
+		for (Element e : getElements()) {
+			inst = e.getPorts(inst);
+		}
+		return inst;
+	}
+	eq Port.getPorts(HashSet<Port> inst) {
+		inst.add(this);
+		return inst;
+	}
+	public HashSet<xlimAST.actor_port>  Instance.getPorts() {
+		HashSet<xlimAST.actor_port> set = new HashSet<xlimAST.actor_port>();
+		return xlimInstance().getPorts(set);
+	}
+
+	public HashSet<xlimAST.actor_port>  Instance.getPorts(String directory) {
+		HashSet<xlimAST.actor_port> set = new HashSet<xlimAST.actor_port>();
+		return xlimInstance(directory).getPorts(set);
+	}
+
+	syn HashSet<Connection> ASTNode.getConnections(HashSet<Connection> set) = set;
+	eq Start.getConnections(HashSet<Connection> set) = getSpecification().getConnections(set);
+	eq XDF.getConnections(HashSet<Connection> set) {		
+		for (Element e : getElements()) {
+			set = e.getConnections(set);
+		}
+		return set;
+	}
+	eq Specification.getConnections(HashSet<Connection> set) {
+	  for (Element e : getElements()) {
+	    set = e.getConnections(set);
+	  }
+	  return set;
+	}
+	eq Connection.getConnections(HashSet<Connection> set) {
+		set.add(this);
+		return set;
+	}
+
+	public HashSet<Connection> XDF.getConnections() {
+		return getConnections(new HashSet<Connection>());
+	}
+
+	public HashSet<Instance> XDF.getInstances() {
+		return getInstances(new HashSet<Instance>());
+	}
+	
+//	public HashSet<Connection> Start.getConnections(HashSet<Connection> set) {
+//	  return getSpecification().getConnections(set);
+//	}
+
+	int Instance.index; // Each actor in a network needs to have a
+						// unique index used in the schedule
+	public int Instance.getIndex() {return index;}
+	public void Instance.setIndex(int index) {this.index = index;}
+
+	int Connection.bufSize; // If both connected actors are CSDF,
+							// bufSize states the minimum size of the
+							// internal buffer to avoid deadlock. For
+							// other types of actors it can be used as
+							// a design parameter to the runtime
+							// system.
+	public int Connection.getBufSize() {return bufSize;}
+	public void Connection.setBufSize(int bufSize) {this.bufSize = bufSize;}
+
+	
+	public Attribute.Attribute(String value) {this(new AttrValue(unfix(value)));}
+	public _kind._kind(String value) {this(new AttrValue(unfix(value)));}
+	public _name._name(String value) {this(new AttrValue(unfix(value)));}
+
+
+	public String Instance.className() {
+		for (Element e : getElements()) {
+			if (e instanceof Class) {
+				return ((Class) e).name();
+			}
+		}
+		return "";
+	}
+}
+aspect KarlErik {
+
+  public Note ComplexElement.getMCNote() {
+    for (Element e: getElements()) {
+      if (e.kind().equals("MC")) {
+	return (Note)e;
+      }
+    }
+    return null;
+  }
+
+  public void ComplexElement.setMCNote(Note note) {
+    addChild(note);
+  }
+
+  public HashSet<Port> Instance.getInports(HashSet<Port> hs) {
+    for (Element e: getElements()) {
+      if(e instanceof Actor) {
+	Actor act = (Actor)e;
+	for (Element f: act.getElements()) {
+	  if (f instanceof Port) {
+	    Port p = (Port)f;
+//	    System.out.println("Kind = " + p.kind());
+//	    if (p.kind().equals("Input")) {
+	    for (Attribute a: p.getAttributes()) {
+	      System.out.println("isKind " + a.isKind() + " literal " + a.getAttrValue().getLITERAL());
+	      if ((a.isKind()) && (a.getAttrValue().getLITERAL().equals("\"Input\""))) {
+	      hs.add(p);
+	      }
+	    }
+	  }
+	}
+      }
+    }
+    return hs;
+  }
+
+  public HashSet<Port> Instance.getOutports(HashSet<Port> hs ) {
+    for (Element e: getElements()) {
+      if(e instanceof Actor) {
+	Actor act = (Actor)e;
+	for (Element f: act.getElements()) {
+	  if (f instanceof Port) {
+	    Port p = (Port)f;
+//	    System.out.println("Kind = " + p.kind());
+//	    if (p.kind().equals("Output")) {
+	    for (Attribute a: p.getAttributes()) {
+	      System.out.println("isKind " + a.isKind() + " literal " + a.getAttrValue().getLITERAL());
+	      if ((a.isKind()) && (a.getAttrValue().getLITERAL().equals("\"Output\""))) {
+	      hs.add(p);
+	      }
+	    }
+	  }
+	}
+      }
+    }
+    return hs;
+  }
+
+  public HashSet<Parameter> Instance.getParameters(HashSet<Parameter> hs) {
+    for (Element e: getElements()) {
+      if (e instanceof Parameter) {
+	Parameter par = (Parameter)e;
+	hs.add(par);
+      }
+    }
+    return hs;
+  }
+
+  public String Parameter.getName() {
+    for (Attribute a: getAttributes()) {
+      if (a instanceof _name) {
+	return a.getAttrValue().getLITERAL();
+      }
+    }
+    return "";
+  }
+
+ public String Parameter.getValue() {
+    for (Element e: getElements()) {
+      if (e instanceof Expr) {
+	Expr exp = (Expr)e;
+	for (Attribute a: exp.getAttributes()) {
+	  if (a instanceof _value) {
+	    return a.getAttrValue().getLITERAL();
+	  }
+	}
+      }
+    }
+    return "";
+ }
+
+ public void Parameter.setValue(String val) {
+    for (Element e: getElements()) {
+      if (e instanceof Expr) {
+	Expr exp = (Expr)e;
+	for (Attribute a: exp.getAttributes()) {
+	  if (a instanceof _value) {
+	    a.getAttrValue().setLITERAL(val);
+	  }
+	}
+      }
+    }
+ }
+
+
+  public String Connection.getSourcePort() {
+    for (Attribute a: getAttributes()) {
+      if (a instanceof src_port) {
+	return a.getAttrValue().getLITERAL();
+      }
+    }
+    return "";
+  }
+
+  public String Connection.getDestinationPort() {
+    for (Attribute a: getAttributes()) {
+      if (a instanceof dst_port) {
+	return a.getAttrValue().getLITERAL();
+      }
+    }
+    return "";
+  }
+
+ public String Connection.getSrc() {
+    for (Attribute a: getAttributes()) {
+      if (a instanceof src) {
+	return a.getAttrValue().getLITERAL();
+      }
+    }
+    return "";
+  }
+
+  public String Connection.getDestination() {
+    for (Attribute a: getAttributes()) {
+      if (a instanceof dst) {
+	return a.getAttrValue().getLITERAL();
+      }
+    }
+    return "";
+  }
+
+  public String Port.getName() {
+    for (Attribute a: getAttributes()) {
+      if (a instanceof _name) {
+	return a.getAttrValue().getLITERAL();
+      }
+    }
+    return "";
+  }
+
+  public String Class.getName() {
+    for (Attribute a: getAttributes()) {
+      if (a instanceof _name) {
+	return a.getAttrValue().getLITERAL();
+      }
+    }
+    return "";
+  }
+
+  public String Instance.getId() {
+    for (Attribute a: getAttributes()) {
+      if (a instanceof id) {
+	return a.getAttrValue().getLITERAL();
+      }
+    }
+    return "";
+  }
+
+
+}
+
+aspect XlimInstance {
+	syn xlimAST.Start ASTNode.getXlimInstance(String name) = null; 
+	eq Start.getXlimInstance(String name) = getSpecification().getXlimInstance(name);
+	eq Specification.getXlimInstance(String name) = getElement(0).getXlimInstance(name);
+	eq XDF.getXlimInstance(String name) {
+		for (Instance i : getInstances()) {
+			// System.out.println("  Comparing: "+i.name()+" "+name);
+			if (i.name().equals(name)) {
+				// System.out.println("    Found");
+				return i.xlimInstance();
+			}
+		}
+		return null;
+	}
+}
+
