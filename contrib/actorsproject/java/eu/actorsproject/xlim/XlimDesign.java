@@ -41,6 +41,7 @@ import java.util.List;
 
 import eu.actorsproject.util.XmlElement;
 import eu.actorsproject.xlim.dependence.CallGraph;
+import eu.actorsproject.xlim.util.BagOfTranslationOptions;
 
 
 public interface XlimDesign extends XmlElement {
@@ -62,5 +63,6 @@ public interface XlimDesign extends XmlElement {
 	void removeTask(XlimTaskModule task);
 	
 	CallGraph createCallGraph();
-	CallGraph getCallGraph();	
+	CallGraph getCallGraph();
+    BagOfTranslationOptions getTranslationOptions();
 }

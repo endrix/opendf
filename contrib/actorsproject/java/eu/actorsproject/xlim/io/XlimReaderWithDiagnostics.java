@@ -69,6 +69,7 @@ import eu.actorsproject.xlim.XlimInstruction;
 import eu.actorsproject.xlim.XlimOutputPort;
 import eu.actorsproject.xlim.XlimTypeArgument;
 import eu.actorsproject.xlim.XlimTypeKind;
+import eu.actorsproject.xlim.util.BagOfTranslationOptions;
 import eu.actorsproject.xlim.util.Session;
 
 /**
@@ -289,6 +290,9 @@ public class XlimReaderWithDiagnostics implements IXlimReader {
 			case TYPEDEF_TAG:
 				readTypeDef(child,context);
 				break;
+			case NOTE_TAG:
+				readNote(child,parent);
+				break;
 			default:
 				unhandledTag(child);
 			}
@@ -428,6 +432,21 @@ public class XlimReaderWithDiagnostics implements IXlimReader {
 				context.enterTask(task);
 				mModuleHandler.readContainerModule(taskElement,context,task);
 				context.leaveTask();
+			}
+		}
+		
+		protected void readNote(XlimElement note, XlimDesign design) {
+			String kind=getRequiredAttribute("kind",note);
+
+			if (kind.equals("option")) {
+				String name=getRequiredAttribute("name",note);
+				String value=getRequiredAttribute("value", note);
+				BagOfTranslationOptions options=design.getTranslationOptions();
+				
+				options.setValue(name, value);
+				
+				// match end
+				checkThatEmpty(note);
 			}
 		}
 	}
