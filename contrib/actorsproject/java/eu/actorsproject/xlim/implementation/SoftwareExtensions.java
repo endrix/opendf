@@ -38,12 +38,18 @@
 package eu.actorsproject.xlim.implementation;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import eu.actorsproject.xlim.XlimOperation;
 import eu.actorsproject.xlim.XlimOutputPort;
 import eu.actorsproject.xlim.XlimSource;
+import eu.actorsproject.xlim.XlimTopLevelPort;
 import eu.actorsproject.xlim.XlimType;
+import eu.actorsproject.xlim.decision.PortSignature;
+import eu.actorsproject.xlim.io.ReaderContext;
+import eu.actorsproject.xlim.io.XlimAttributeList;
 import eu.actorsproject.xlim.type.FixIntegerTypeRule;
 import eu.actorsproject.xlim.type.IntegerTypeRule;
 import eu.actorsproject.xlim.type.Signature;
@@ -126,8 +132,40 @@ class YieldOperationKind extends OperationKind {
 	
 	@Override
 	public String getAttributeDefinitions(XlimOperation op) {
-		return super.getAttributeDefinitions(op) + " removable=\"no\"";
-	}	
+		PortSignature portSignature=(PortSignature) op.getGenericAttribute();
+		String portNames="";
+		String rates="";
+		String delimiter="";
+		
+		for (XlimTopLevelPort port: portSignature.getPorts()) {
+			int rate=portSignature.getPortRate(port);
+			portNames += delimiter + port.getName();
+			rates += delimiter + rate;
+			delimiter="|";
+		}
+		
+		return super.getAttributeDefinitions(op) 
+		       + " portName=\"" + portNames + "\" value=\"" +rates + "\" removable=\"no\"";
+	}
+	
+	@Override
+	public void setAttributes(XlimOperation op,
+			                  XlimAttributeList attributes, 
+			                  ReaderContext context) {
+		// Set port attribute
+		String portName=getRequiredAttribute("portName",attributes);
+		long value=getRequiredIntegerAttribute("value",attributes);
+		
+		XlimTopLevelPort port=context.getTopLevelPort(portName);
+		if (port!=null) {
+			Map<XlimTopLevelPort,Integer> portMap=Collections.singletonMap(port,(int) value);
+			PortSignature portSignature=new PortSignature(portMap);
+			op.setGenericAttribute(portSignature);
+		}
+		else {
+			throw new RuntimeException("No such port: \""+portName+"\"");
+		}
+	}
 }
 
 class YieldOperation extends Operation {
@@ -157,6 +195,7 @@ class YieldOperation extends Operation {
 		return false;
 	}
 
+	
 	/**
 	 * @return additional attributes to show up in debug printouts
 	 */
