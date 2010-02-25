@@ -38,6 +38,8 @@
 package eu.actorsproject.xlim.util;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 import eu.actorsproject.xlim.XlimFactory;
 import eu.actorsproject.xlim.XlimOperation;
@@ -82,8 +84,14 @@ public class Session {
 	protected InstructionSet mInstructionSet;
 	protected XlimFactory mXlimFactory;
 	protected ReaderPlugIn mReaderPlugIn;
+	protected SessionOptions mSessionOptions;
 	
 	protected Session() {
+		mSessionOptions=new SessionOptions();
+	}
+	
+	public static BagOfTranslationOptions getSessionOptions() {
+		return sSingletonSession.mSessionOptions;
 	}
 	
 	public static TypeFactory getTypeFactory() {
@@ -172,4 +180,28 @@ public class Session {
 			return new TypeArgument(name,type);
 		}
 	}	
+
+	protected class SessionOptions extends BagOfTranslationOptions {
+
+		private Map<String,TranslationOption> mOptions=new HashMap<String,TranslationOption>();
+		
+		@Override
+		public void registerOption(TranslationOption option) {
+			mOptions.put(option.getName(),option);
+		}
+		
+		@Override
+		public TranslationOption getOption(String optionName) {
+			return mOptions.get(optionName);
+		}
+
+		@Override
+		protected Object getOverriddenValue(String optionName) {
+			TranslationOption option=getOption(optionName);
+			if (option!=null)
+				return option.getDefaultValue();
+			else
+				return null;
+		}
+	}
 }

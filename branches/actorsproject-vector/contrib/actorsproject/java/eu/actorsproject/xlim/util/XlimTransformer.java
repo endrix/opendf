@@ -56,17 +56,18 @@ public class XlimTransformer {
 	
 	protected boolean mDoCopyPropagation=true;
 	protected boolean mDoDeadCodeRemoval=true;
-	protected boolean mGenerateBlockingWaits=true;
 	protected boolean mDoCodeMotion=true;
 	protected boolean mTransformToNativeTypes=true;
 	protected boolean mReduceBitWidth=true;
 	
 	public void transform(XlimDesign design) {
+		BagOfTranslationOptions options=design.getTranslationOptions();
+		
 		if (mDoCopyPropagation)
 			copyPropagate(design);
 		if (mDoDeadCodeRemoval)
 			deadCodeElimination(design);
-		if (mGenerateBlockingWaits)
+		if (options.getBooleanValue("generate-blocking-waits"))
 			mBlockingWaitGenerator.generateBlockingWaits(design);
 		if (mDoDeadCodeRemoval)
 			deadCodeElimination(design);

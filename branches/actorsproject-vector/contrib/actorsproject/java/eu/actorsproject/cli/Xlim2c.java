@@ -41,6 +41,7 @@ import java.io.File;
 import java.io.PrintStream;
 
 import eu.actorsproject.xlim.XlimDesign;
+import eu.actorsproject.xlim.util.BooleanTranslationOption;
 import eu.actorsproject.xlim.util.XlimTransformer;
 import eu.actorsproject.xlim.xlim2c.CCodeGenerator;
 
@@ -48,6 +49,10 @@ public class Xlim2c extends XlimNorm {
 	
 	protected XlimTransformer mTransformer;
 	protected CCodeGenerator mCodeGen; 
+	
+	public Xlim2c() {
+		mSessionOptions.registerOption(new BooleanTranslationOption("generate-blocking-waits", true));
+	}
 	
 	/**
 	 * @param input   input file (XLIM)
