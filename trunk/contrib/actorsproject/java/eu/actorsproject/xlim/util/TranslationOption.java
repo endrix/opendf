@@ -1,5 +1,5 @@
 /* 
- * Copyright (c) Ericsson AB, 2009
+ * Copyright (c) Ericsson AB, 2010
  * Author: Carl von Platen (carl.von.platen@ericsson.com)
  * All rights reserved.
  *
@@ -35,35 +35,32 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package eu.actorsproject.xlim;
+package eu.actorsproject.xlim.util;
 
-import java.util.List;
+public abstract class TranslationOption {
 
-import eu.actorsproject.util.XmlElement;
-import eu.actorsproject.xlim.dependence.CallGraph;
-import eu.actorsproject.xlim.util.BagOfTranslationOptions;
-
-
-public interface XlimDesign extends XmlElement {
-	String getName();
-	List<? extends XlimTopLevelPort> getInputPorts();
-	List<? extends XlimTopLevelPort> getOutputPorts();
-	List<? extends XlimTopLevelPort> getInternalPorts();
-	List<? extends XlimStateVar> getStateVars();
-	List<? extends XlimTaskModule> getTasks();
+	private String mName;
+	private Object mDefaultValue;
 	
-	XlimTaskModule getActionScheduler();
+	public TranslationOption(String optionName, Object defaultValue) {
+		mName=optionName;
+		mDefaultValue=defaultValue;
+	}
 	
-	XlimTopLevelPort addTopLevelPort(String name, XlimTopLevelPort.Direction dir, XlimType type);
-	XlimStateVar addStateVar(String sourceName, XlimInitValue initValue);
-	XlimTaskModule addTask(String kind, String name, boolean autostart);
+	public String getName() {
+		return mName;
+	}
 	
-	void removeTopLevelPort(XlimTopLevelPort port);
-	void removeStateVar(XlimStateVar stateVar);
-	void removeTask(XlimTaskModule task);
+	/**
+	 * @return default value of option
+	 */
+	public Object getDefaultValue() {
+		return mDefaultValue;
+	}
 	
-	CallGraph createCallGraph();
-	CallGraph getCallGraph();
-	
-	BagOfTranslationOptions getTranslationOptions();
+	/**
+	 * @param value  option value to be set
+	 * @return       object representing the value (or null if incorrect value)
+	 */
+	public abstract Object checkValue(String value);
 }
