@@ -1,5 +1,5 @@
 /* 
- * Copyright (c) Ericsson AB, 2009
+ * Copyright (c) Ericsson AB, 2010
  * Author: Carl von Platen (carl.von.platen@ericsson.com)
  * All rights reserved.
  *
@@ -35,35 +35,20 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package eu.actorsproject.xlim;
+package eu.actorsproject.xlim.util;
 
-import java.util.List;
+/**
+ * @author ecarvon
+ *
+ */
+public class BooleanTranslationOption extends TranslationOption {
 
-import eu.actorsproject.util.XmlElement;
-import eu.actorsproject.xlim.dependence.CallGraph;
-import eu.actorsproject.xlim.util.BagOfTranslationOptions;
-
-
-public interface XlimDesign extends XmlElement {
-	String getName();
-	List<? extends XlimTopLevelPort> getInputPorts();
-	List<? extends XlimTopLevelPort> getOutputPorts();
-	List<? extends XlimTopLevelPort> getInternalPorts();
-	List<? extends XlimStateVar> getStateVars();
-	List<? extends XlimTaskModule> getTasks();
+	public BooleanTranslationOption(String name, boolean defaultValue) {
+		super(name, new Boolean(defaultValue));
+	}
 	
-	XlimTaskModule getActionScheduler();
-	
-	XlimTopLevelPort addTopLevelPort(String name, XlimTopLevelPort.Direction dir, XlimType type);
-	XlimStateVar addStateVar(String sourceName, XlimInitValue initValue);
-	XlimTaskModule addTask(String kind, String name, boolean autostart);
-	
-	void removeTopLevelPort(XlimTopLevelPort port);
-	void removeStateVar(XlimStateVar stateVar);
-	void removeTask(XlimTaskModule task);
-	
-	CallGraph createCallGraph();
-	CallGraph getCallGraph();
-	
-	BagOfTranslationOptions getTranslationOptions();
+	@Override
+	public Object checkValue(String value) {
+		return Boolean.valueOf(value);
+	}
 }

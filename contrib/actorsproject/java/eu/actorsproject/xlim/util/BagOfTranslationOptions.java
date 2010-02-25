@@ -1,5 +1,5 @@
 /* 
- * Copyright (c) Ericsson AB, 2009
+ * Copyright (c) Ericsson AB, 2010
  * Author: Carl von Platen (carl.von.platen@ericsson.com)
  * All rights reserved.
  *
@@ -35,35 +35,53 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package eu.actorsproject.xlim;
+package eu.actorsproject.xlim.util;
 
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
-import eu.actorsproject.util.XmlElement;
-import eu.actorsproject.xlim.dependence.CallGraph;
-import eu.actorsproject.xlim.util.BagOfTranslationOptions;
+/**
+ * Container for TranslationOptions and their values 
+ */
+public abstract class BagOfTranslationOptions {
 
+	protected Map<String,Object> mValues=new HashMap<String,Object>();
 
-public interface XlimDesign extends XmlElement {
-	String getName();
-	List<? extends XlimTopLevelPort> getInputPorts();
-	List<? extends XlimTopLevelPort> getOutputPorts();
-	List<? extends XlimTopLevelPort> getInternalPorts();
-	List<? extends XlimStateVar> getStateVars();
-	List<? extends XlimTaskModule> getTasks();
+	public Object getValue(String optionName) {
+		Object value=mValues.get(optionName);
+		if (value==null)
+			value=getOverriddenValue(optionName);
+		return value;
+	}
 	
-	XlimTaskModule getActionScheduler();
+	public boolean getBooleanValue(String optionName) {
+		Object value=getValue(optionName);
+		if (value!=null && value instanceof Boolean)
+			return (Boolean) value;
+		else
+			throw new IllegalArgumentException("No such boolean-valued option: "+optionName);
+	}
 	
-	XlimTopLevelPort addTopLevelPort(String name, XlimTopLevelPort.Direction dir, XlimType type);
-	XlimStateVar addStateVar(String sourceName, XlimInitValue initValue);
-	XlimTaskModule addTask(String kind, String name, boolean autostart);
+	public void setValue(String optionName, String value) {
+		TranslationOption option=getOption(optionName);
+		if (option!=null) {
+			Object o=option.checkValue(value);
+			if (o!=null)
+				mValues.put(optionName, o);
+			else
+				throw new IllegalArgumentException("Illegal value for option \""+optionName+"\": \""+value+"\"");
+		}
+		else
+			throw new IllegalArgumentException("No such option: "+optionName);
+			
+	}
 	
-	void removeTopLevelPort(XlimTopLevelPort port);
-	void removeStateVar(XlimStateVar stateVar);
-	void removeTask(XlimTaskModule task);
+	public void registerOption(TranslationOption option) {
+		// Override for SessionOptions
+		throw new UnsupportedOperationException();
+	}
 	
-	CallGraph createCallGraph();
-	CallGraph getCallGraph();
+	public abstract TranslationOption getOption(String optionName);
 	
-	BagOfTranslationOptions getTranslationOptions();
+	protected abstract Object getOverriddenValue(String optionName);
 }

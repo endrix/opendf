@@ -53,11 +53,15 @@ import eu.actorsproject.xlim.XlimTopLevelPort;
 import eu.actorsproject.xlim.XlimType;
 import eu.actorsproject.xlim.XlimTopLevelPort.Direction;
 import eu.actorsproject.xlim.dependence.CallGraph;
+import eu.actorsproject.xlim.util.BagOfTranslationOptions;
+import eu.actorsproject.xlim.util.Session;
+import eu.actorsproject.xlim.util.TranslationOption;
 
 class Design implements XlimDesign {
 
 	private String mName;
 	private CallGraph mCallGraph;
+	private BagOfTranslationOptions mTranslationOptions;
 	
 	protected ArrayList<XlimTopLevelPort> mInputPorts, mOutputPorts, mInternalPorts;
 	protected ArrayList<XlimStateVar> mStateVars;
@@ -72,6 +76,7 @@ class Design implements XlimDesign {
 		mStateVars = new ArrayList<XlimStateVar>();
 		mTasks = new ArrayList<XlimTaskModule>();
 		mChildren = new ArrayList<XmlElement>();
+		mTranslationOptions=new TranslationUnitOptions();
 	}
 
 	@Override
@@ -197,5 +202,23 @@ class Design implements XlimDesign {
 	@Override
 	public CallGraph getCallGraph() {
 		return mCallGraph;
+	}
+
+	public BagOfTranslationOptions getTranslationOptions() {
+		return mTranslationOptions;
+	}
+	
+	class TranslationUnitOptions extends BagOfTranslationOptions {
+		
+		@Override
+		public TranslationOption getOption(String optionName) {
+			return Session.getSessionOptions().getOption(optionName);
+		}
+
+		@Override
+		protected Object getOverriddenValue(String optionName) {
+			// TODO Auto-generated method stub
+			return Session.getSessionOptions().getValue(optionName);
+		}
 	}
 }

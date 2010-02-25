@@ -45,9 +45,10 @@ import eu.actorsproject.xlim.implementation.BasicXlimOperations;
 import eu.actorsproject.xlim.implementation.RealOperations;
 import eu.actorsproject.xlim.implementation.SoftwareExtensions;
 import eu.actorsproject.xlim.io.IXlimReader;
-import eu.actorsproject.xlim.io.XlimReader;
+import eu.actorsproject.xlim.io.XlimReaderWithDiagnostics;
 import eu.actorsproject.xlim.type.BasicXlimTypes;
 import eu.actorsproject.xlim.type.RealTypeFeature;
+import eu.actorsproject.xlim.util.BooleanTranslationOption;
 import eu.actorsproject.xlim.util.Session;
 import eu.actorsproject.xlim.util.XlimTransformer;
 import eu.actorsproject.xlim.xlim2c.CCodeGenerator;
@@ -59,6 +60,7 @@ public class Xlim2c extends Session {
 	protected CCodeGenerator mCodeGen; 
 	
 	public Xlim2c() {
+		mSessionOptions.registerOption(new BooleanTranslationOption("generate-blocking-waits", true));
 		register(new BasicXlimTypes());
 		register(new BasicXlimOperations());
 		register(new SoftwareExtensions());
@@ -70,11 +72,11 @@ public class Xlim2c extends Session {
 	protected void initSession(String args[]) {
 		// Constructions of fields after initialization of session
 		super.initSession(args);
-		mReader = new XlimReader();
+		mReader = new XlimReaderWithDiagnostics();
 		mTransformer = new XlimTransformer();
 		mCodeGen = new CCodeGenerator();
 	}
-	
+
 	public void compile(File input, PrintStream output) {
 		XlimDesign design=null;
 		
