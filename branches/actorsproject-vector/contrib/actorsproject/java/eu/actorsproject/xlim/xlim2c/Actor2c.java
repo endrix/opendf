@@ -68,8 +68,8 @@ public class Actor2c extends OutputGenerator {
 	private XlimDesign mDesign;
 	private File mSourceFile;
     private CSymbolTable mSymbols;
-    private OperationGenerator mTaskGeneratorPlugIn;
-     
+    private Task2c mTaskGenerator;
+    
 	protected static final String sTranslatorVersion="0.6 (June 3, 2009)";
 	protected static final String sIncludedHeaderFile="actors-rts.h";
 	protected static final String sActorClassType="ActorClass";
@@ -91,7 +91,7 @@ public class Actor2c extends OutputGenerator {
 		mSymbols=new CSymbolTable();
 		mSymbols.createActorClassName(sourceFile.getName());
 		mSymbols.declareActorScope(design);
-		mTaskGeneratorPlugIn=plugIn;
+		mTaskGenerator= new Task2c(mDesign,mSymbols,plugIn,this);
 	}
 	
 	public void translate() {
@@ -504,8 +504,7 @@ public class Actor2c extends OutputGenerator {
 	}
 		
 	protected void generateBody(XlimTaskModule task) {
-		Task2c gen = new Task2c(mDesign,mSymbols,mTaskGeneratorPlugIn,this);
-		gen.translateTask(task);
+		mTaskGenerator.translateTask(task);
 	}
 	
 	
