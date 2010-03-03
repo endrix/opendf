@@ -53,10 +53,10 @@ ENDCOPYRIGHT
     <design name="{@name}">
       <xsl:apply-templates select="Port"/>
       <xsl:apply-templates select="//Decl//Type[@name='List']" mode="typedef"/>
-      <xsl:apply-templates select="//Decl//Note[@kind='exprType']" mode="typedef"/>
-      <xsl:apply-templates select="//Stmt//Note[@kind='exprType']/Type[@name='List']" mode="typedef"/>      
-      <xsl:apply-templates select="//Output//Note[@kind='exprType']/Type[@name='List']" mode="typedef"/>      
-      <xsl:apply-templates select="//Output/Type[@name='List']" mode="typedef"/>            
+      <xsl:apply-templates select="//Decl//Note[@kind='exprType']//Type[@name='List']" mode="typedef"/>
+      <xsl:apply-templates select="//Stmt//Note[@kind='exprType']//Type[@name='List']" mode="typedef"/>      
+      <xsl:apply-templates select="//Output//Note[@kind='exprType']//Type[@name='List']" mode="typedef"/>      
+      <xsl:apply-templates select="//Output//Type[@name='List']" mode="typedef"/>            
 
       <xsl:apply-templates select="Decl[ @kind='Variable' ]"/>
       <xsl:apply-templates select="Action"/>
