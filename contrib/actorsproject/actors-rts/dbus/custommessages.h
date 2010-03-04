@@ -47,6 +47,7 @@
 #define MSG_REPORT_HAPPINESS        (1002)
 #define MSG_CPU_CATEGORY            (1003)
 #define MSG_QUALITY_LEVELS          (1004)
+#define MSG_ADDTO_GROUP             (1008)
 //#define MSG_CLIENT_HAPPINESS        (1002)
 //#define MSG_CLIENT_CPU_CATEGORY     (1003)
 //#define MSG_CLIENT_QUALITY_LEVELS   (1004)

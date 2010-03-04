@@ -8,6 +8,9 @@
 #include <semaphore.h>
 #include <pthread.h>
 #include <limits.h>
+#ifdef TRACE
+#include "xmlTrace.h"
+#endif
 
 #define DEFAULT_FIFO_LENGTH	4096
 
@@ -44,6 +47,13 @@ static int arg_loopmax = INT_MAX;
 #define FLAG_TIMING      0x01
 #define FLAG_SINGLE_CPU  0x02
 
+#ifdef RM
+#define MAX_ACTOR_NUM    256
+static pthread_mutex_t threadIdsMutex;
+static int             numberOfCreatedThreads = 0;
+static pid_t           threadIds[MAX_ACTOR_NUM];
+#endif
+
 typedef unsigned long long time_base_t;
 typedef unsigned long long art_timer_t;
 typedef struct {
@@ -77,6 +87,9 @@ typedef struct cpu_runtime_data {
   void *actor_data;
   int *has_affected;
   statistics_t statistics;
+#ifdef TRACE
+  FILE *file;
+#endif
 } cpu_runtime_data_t;
 
 /*
@@ -100,12 +113,18 @@ int rangeError(int x, int y, const char *filename, int line) {
 static inline unsigned long long READ_TIMER()
 {
   unsigned long long result;
+#if defined(__i386__)
   __asm__ __volatile__ ("rdtsc" : "=A" (result));
+#else
+  struct timeval tim;
+  gettimeofday(&tim, NULL);
+  result=tim.tv_sec*1000000+tim.tv_usec;
+#endif  
   return result;
 }
 
 static void add_timer(art_timer_t *timer,
-		      time_base_t *tb)
+          time_base_t *tb)
 {
   long long tmp;
 
@@ -114,7 +133,126 @@ static void add_timer(art_timer_t *timer,
   *tb = tmp;
 }
 
-/* 
+#ifdef TRACE
+void actionTrace(AbstractActorInstance *instance,
+                 int localActionIndex,
+                 char *actionName)
+{
+  if (instance->file)
+    xmlTraceAction(instance->file,instance->firstActionIndex + localActionIndex);
+}
+
+unsigned int timestamp()
+{
+  static unsigned long long init=0;
+  unsigned long long now=0;
+
+  if(!init){
+    init=READ_TIMER();
+  }else{
+    now=READ_TIMER() - init;
+  }
+  return (unsigned int)now;
+}
+
+void index_action(cpu_runtime_data_t *runtime, int numInstances, char *name)
+{
+  int i,j,k=0;
+  FILE *netfile;
+  int firstActionIndex = 0;
+  AbstractActorInstance **instances = (AbstractActorInstance **) malloc(numInstances * sizeof(AbstractActorInstance *));
+
+  for (i = 0 ; i < runtime->cpu_count ; i++) {
+    char filename[32];
+    cpu_runtime_data_t *cpu = &runtime[i];
+    sprintf(filename,"trace_%d.xml",i);
+    cpu->file=xmlCreateTrace(filename);
+    for(j=0; j<cpu->actors; j++)
+    {
+      AbstractActorInstance *pInstance=cpu->actor[j];
+      pInstance->firstActionIndex=firstActionIndex;
+      firstActionIndex += pInstance->actor->numActions;
+      pInstance->file=cpu->file;
+      instances[k++]=pInstance;
+    }
+  }
+
+  netfile=xmlCreateTrace("net_trace.xml");
+  xmlDeclareNetwork(netfile,name,instances,numInstances);
+  xmlCloseTrace(netfile);
+
+}
+#endif
+
+#ifdef RM
+// if gettid() is not available in the system headers, but we have
+// __NR_gettid, then create a gettid() ourselves: e.g. on ubuntu 7.10
+#include <linux/unistd.h>
+extern void add_thread_to_group(int tid);
+void register_thread_id()
+{
+  int i;
+  pthread_mutex_lock(&threadIdsMutex);
+  // this is gettid(), which does not exist everywhere
+  pid_t my_tid = syscall(__NR_gettid);
+  /*
+    make sure it's not registered before
+  */
+  for(i=0; i<numberOfCreatedThreads; i++)
+  {
+    if(my_tid == threadIds[i])
+    {
+      printf("Thread ID %d already registered!\n",my_tid);
+      pthread_mutex_unlock(&threadIdsMutex);
+      return;
+    }
+  }
+  threadIds[numberOfCreatedThreads] = my_tid;
+  numberOfCreatedThreads++;
+  pthread_mutex_unlock(&threadIdsMutex);
+
+  add_thread_to_group((int)my_tid); 
+}
+
+void unregister_thread_id(void)
+{
+  int i = 0;
+  // this is gettid(), which does not exist everywhere
+  pid_t my_tid = syscall(__NR_gettid);
+
+  pthread_mutex_lock(&threadIdsMutex);
+
+  for (i=0; i<numberOfCreatedThreads; i++)
+  {
+    if (threadIds[i] == my_tid)
+    {
+      if (i<numberOfCreatedThreads-1)
+      {
+        threadIds[i] = threadIds[numberOfCreatedThreads-1];
+      }
+      numberOfCreatedThreads--;
+      break;
+    }
+  }
+  pthread_mutex_unlock(&threadIdsMutex);
+}
+
+void get_thread_ids(int* count, pid_t** theThreadIds)
+{
+  if ((count == NULL) || (theThreadIds == NULL))
+  {
+    return;
+  }
+  pthread_mutex_lock(&threadIdsMutex);
+  *count = numberOfCreatedThreads;
+  *theThreadIds = (pid_t*)malloc(numberOfCreatedThreads * sizeof(pid_t));
+  memcpy(*theThreadIds, threadIds, numberOfCreatedThreads * sizeof(pid_t));
+
+  pthread_mutex_unlock(&threadIdsMutex);
+}
+#endif
+
+/*
  * Create runtime instances for all needed special cases
  */
 
@@ -326,7 +464,6 @@ static int index_nodes(ActorInstance_1_t **instance,
 		       int numInstances)
 {
   int i;
-
   for (i = 0 ; i < numInstances ; i++) {
     int j;
     
@@ -767,6 +904,11 @@ static void run_destructors(cpu_runtime_data_t *runtime)
   int i, j;
 
   for (i = 0 ; i < runtime[0].cpu_count ; i++) {
+#ifdef TRACE
+  cpu_runtime_data_t *cpu = &runtime[i];
+  if(cpu->file)
+    xmlCloseTrace(cpu->file);
+#endif
     for (j = 0 ; j < runtime[i].actors ; j++) {
       AbstractActorInstance *actor = runtime[i].actor[j];
 
@@ -815,6 +957,7 @@ static void run_threads(cpu_runtime_data_t *runtime,
 		   run_with_affinity,
 		   &runtime[i]);
   }
+
   for (i = 0 ; i < runtime->cpu_count ; i++) {
     pthread_join(runtime[i].thread, NULL);
   }
@@ -866,7 +1009,7 @@ int executeNetwork(int argc,
   cpu_runtime_data_t *runtime_data;
   int arg_print_info = 0;
   int arg_fifo_size = DEFAULT_FIFO_LENGTH;
-  
+
   for (i = 1 ; i < argc ; i++) {
     if (strcmp(argv[i], "--timing") == 0) {
       flags |= FLAG_TIMING;
@@ -905,6 +1048,15 @@ int executeNetwork(int argc,
 				    arg_fifo_size);
   }
   if (result == 0) {
+#ifdef TRACE
+    index_action(runtime_data, numInstances, argv[0]);
+#endif
+
+#ifdef RM
+  pthread_mutex_init(&threadIdsMutex, 0);
+  register_thread_id();
+#endif
+
     if (nr_of_cpus(&used_cpus) == 1) {
       flags |= FLAG_SINGLE_CPU;
     }
@@ -933,6 +1085,9 @@ int executeNetwork(int argc,
   if (result == 0) {
     deallocate_network(runtime_data);
   }
+#ifdef RM
+  pthread_mutex_destroy(&threadIdsMutex);
+#endif
   exit(result);
 }
 
