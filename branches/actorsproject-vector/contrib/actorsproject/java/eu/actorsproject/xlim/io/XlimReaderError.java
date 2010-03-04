@@ -1,5 +1,5 @@
 /* 
- * Copyright (c) Ericsson AB, 2009
+ * Copyright (c) Ericsson AB, 2010
  * Author: Carl von Platen (carl.von.platen@ericsson.com)
  * All rights reserved.
  *
@@ -37,52 +37,22 @@
 
 package eu.actorsproject.xlim.io;
 
-import java.util.HashMap;
-
-import eu.actorsproject.xlim.XlimOutputPort;
-import eu.actorsproject.xlim.XlimSource;
-import eu.actorsproject.xlim.XlimStateVar;
-import eu.actorsproject.xlim.XlimTaskModule;
-import eu.actorsproject.xlim.XlimTopLevelPort;
-
-
 /**
- * Symbol table, which is produced by the XlimReader
+ * @author ecarvon
+ *
  */
-public class ReaderContext {
-	protected HashMap<String,XlimTopLevelPort> mTopLevelPorts=new HashMap<String,XlimTopLevelPort>();
-	protected HashMap<String,XlimTaskModule> mTasks=new HashMap<String,XlimTaskModule>();
-	protected HashMap<String,XlimStateVar> mStateVars=new HashMap<String,XlimStateVar>();
-	protected HashMap<String,XlimTypeDef> mTypeDefs=new HashMap<String,XlimTypeDef>();
-	protected HashMap<String,XlimOutputPort> mOutputPorts;
+public class XlimReaderError extends RuntimeException {
+
+	private static final long serialVersionUID = -2414603757678442307L;
+
+	private XlimLocation mLocation;
 	
-	public XlimTopLevelPort getTopLevelPort(String name) {
-		return mTopLevelPorts.get(name);
+	public XlimReaderError(String message, XlimLocation location) {
+		super(message);
+		mLocation=location;
 	}
-	
-	public XlimTaskModule getTask(String name) {
-		return mTasks.get(name);
-	}
-	
-	public XlimStateVar getStateVar(String name) {
-		return mStateVars.get(name);
-	}
-	
-	public XlimSource getSource(String name) {
-		if (mOutputPorts!=null) {
-			XlimOutputPort port=mOutputPorts.get(name);
-			if (port!=null)
-				return port;
-		}
-		XlimStateVar stateVar=mStateVars.get(name);
-		if (stateVar!=null) {
-			return stateVar;
-		}
-		else
-			return null;
-	}	
-	
-	public XlimTypeDef getTypeDef(String name) {
-		return mTypeDefs.get(name);
+
+	public XlimLocation getLocation() {
+		return mLocation;
 	}
 }
