@@ -43,8 +43,8 @@ ifeq ($(EDF), y)
 CFLAGS += -DEDF
 endif
 
-ifeq ($(BAREBONE), y)
-CFLAGS += -DBAREBONE
+ifeq ($(TRACE), y)
+CFLAGS += -DTRACE
 endif
 
 CFLAGS += -O3
@@ -63,6 +63,10 @@ OBJECTS=actors-rts.o \
 
 ifeq ($(EDF),y)
 OBJECTS += edf_syscall.o
+endif
+
+ifeq ($(TRACE),y)
+OBJECTS += xmlTrace.o
 endif
 
 ifeq ($(RM), y)

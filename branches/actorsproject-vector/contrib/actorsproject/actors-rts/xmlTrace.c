@@ -83,7 +83,7 @@ void xmlDeclareNetwork(FILE *f,
       const char *name=actorClass->inputPortDescriptions[j].name;
 
       fprintf(f, "    <input id=\"%d\" name=\"%s\" source=\"%d\"/>\n", 
-	      firstInput+j, name, inputs[j].cid);
+	      firstInput+j, name, inputs[j].writer->index);
     }
 
     // <output>
@@ -93,7 +93,7 @@ void xmlDeclareNetwork(FILE *f,
       const char *name=actorClass->outputPortDescriptions[j].name;
 
       fprintf(f, "    <output id=\"%d\" name=\"%s\"/>\n", 
-	      outputs[j].cid, name);
+	      outputs[j].index, name);
     }
 
     // <action>
@@ -126,7 +126,7 @@ void xmlDeclareNetwork(FILE *f,
 	int prd=actions[j].production[p];
 	if (prd)
 	  fprintf(f, "      <produces count=\"%d\" port=\"%d\"/>\n",
-		  prd, outputs[p].cid);
+		  prd, outputs[p].index);
       }
 
       fprintf(f, "    </action>\n");
@@ -138,7 +138,7 @@ void xmlDeclareNetwork(FILE *f,
   fprintf(f, "</network>\n");
 }
 
-extern unsigned int timestamp(char* buf);
+extern unsigned int timestamp();
 void xmlTraceAction(FILE *f, int actionIndex) {
   static unsigned int step = 0;
 

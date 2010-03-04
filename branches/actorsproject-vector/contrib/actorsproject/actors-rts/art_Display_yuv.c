@@ -54,7 +54,7 @@
 #include "SDL/SDL.h"
 #endif
 
-ART_ACTION_CONTEXT(1, 0);
+ART_ACTION_CONTEXT(1, 1);
 
 #define IN0_In               ART_INPUT(0)
 
@@ -73,6 +73,8 @@ typedef struct {
   int                   comp;
   int                   start;
   int                   startTime;
+  int                   now;
+  int                   lastFrames;
   int                   totFrames;
   int                   fp;
   int                   ppf;
@@ -90,7 +92,6 @@ typedef struct {
   SDL_Surface           *image;
 #endif
 } ActorInstance_art_Display_yuv;
-
 
 /*To make sure that you are bounding your inputs in the range of 0 & 255*/
 #define SATURATE8(x) ((unsigned int) x <= 255 ? x : (x < 0 ? 0: 255))
@@ -205,6 +206,10 @@ static const int exitcode_block_In_1[] = {
   EXITCODE_BLOCK(1), 0, 1
 };
 
+static const int exitcode_block_Out_1[] = {
+  EXITCODE_BLOCK(1), 0, 1
+};
+
 ART_ACTION_SCHEDULER(art_Display_yuv_action_scheduler)
 {
   const int *result = EXIT_CODE_YIELD;
@@ -213,7 +218,11 @@ ART_ACTION_SCHEDULER(art_Display_yuv_action_scheduler)
   int32_t start=thisActor->start;
   int32_t count=thisActor->count;
   int32_t comp=thisActor->comp;
+#ifdef RM
+  ART_ACTION_SCHEDULER_ENTER(1, 1);
+#else
   ART_ACTION_SCHEDULER_ENTER(1, 0);
+#endif
 
   ART_ACTION_SCHEDULER_LOOP {
     ART_ACTION_SCHEDULER_LOOP_TOP;
@@ -287,10 +296,45 @@ ART_ACTION_SCHEDULER(art_Display_yuv_action_scheduler)
       thisActor->totFrames++;	
       thisActor->mby=0;
     }
+#ifdef RM
+      {
+      struct timeb tb;
+      int now;
+      int32_t happiness;
+      ftime(&tb);
+      now = tb.time*1000 + tb.millitm;
+      if(now - thisActor->now >= 1000)
+      {
+        //report action
+        int frame_per_sec = thisActor->totFrames - thisActor->lastFrames;
+        //if(frame_per_sec>=FRAMES_PER_SECOND)
+        //  happiness=100;
+        //else
+        //  happiness = 100*frame_per_sec/FRAMES_PER_SECOND;
+        happiness=frame_per_sec;
+        thisActor->now = now;
+        thisActor->lastFrames  = thisActor->totFrames;
+        int space=pinAvailOut_int32_t(ART_OUTPUT(0));
+        if(space>=1){
+          ART_ACTION_ENTER("report",3);
+          pinWrite_int32_t(ART_OUTPUT(0),happiness);
+        }
+        else
+        {
+          result=exitcode_block_Out_1;
+          goto out;
+        }
+      }
+      }
+#endif
     ART_ACTION_SCHEDULER_LOOP_BOTTOM;
   }
 out:
+#ifdef RM
+  ART_ACTION_SCHEDULER_EXIT(1, 1);
+#else
   ART_ACTION_SCHEDULER_EXIT(1, 0);
+#endif
   return result;
 } 
 
@@ -306,8 +350,10 @@ static void art_Display_yuv_constructor(AbstractActorInstance *pBase) {
 	thisActor->comp=0;
 	thisActor->start=0;
 	
-	thisActor->startTime=tb.time*1000+tb.millitm;
-	thisActor->totFrames=0;
+  thisActor->startTime=tb.time*1000+tb.millitm;
+  thisActor->now=thisActor->startTime;
+  thisActor->totFrames=0;
+  thisActor->lastFrames=0;
 #ifdef FB
 	/* size of video memory in bytes */
 	long int screensize;
@@ -412,6 +458,10 @@ static const PortDescription inputPortDescriptions[]={
   {"In", sizeof(int32_t)}
 };
 
+static const PortDescription outputPortDescriptions[]={
+  {"Out", sizeof(int32_t)}
+};
+
 static const int portRate_1[] = {
   1
 };
@@ -423,7 +473,10 @@ static const int portRate_0[] = {
 static const ActionDescription actionDescriptions[] = {
   {"read", portRate_1, 0},
   {"done.comp", portRate_0, 0},
-  {"done.mb", portRate_0, 0}
+  {"done.mb", portRate_0, 0},
+#ifdef RM  
+  {"report", portRate_0,portRate_1}
+#endif
 };
 
 ActorClass ActorClass_art_Display_yuv = INIT_ActorClass(
@@ -434,6 +487,11 @@ ActorClass ActorClass_art_Display_yuv = INIT_ActorClass(
   art_Display_yuv_action_scheduler,
   art_Display_yuv_destructor,
   1, inputPortDescriptions,
+#ifdef RM 
+  1, outputPortDescriptions,
+  4, actionDescriptions
+#else
   0, 0,
   3, actionDescriptions
+#endif  
 );

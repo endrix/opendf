@@ -47,6 +47,11 @@
 #endif
 #include <assert.h>
 
+/* make the header usable from C++ */
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 // LEGACY
 #define INPUT_PORT(ignore, index) ART_INPUT(index)
 #define OUTPUT_PORT(ignore, index) ART_OUTPUT(index) 
@@ -55,6 +60,7 @@
 #if defined(__i386__)
 
 #define CACHE_LINE_SIZE 128
+
 #define mb()    asm volatile("mfence":::"memory")
 #define rmb()   asm volatile("lfence":::"memory")
 #define wmb()   asm volatile("sfence" ::: "memory")
@@ -62,7 +68,11 @@
 #elif defined(__arm__)
 
 #define CACHE_LINE_SIZE 64
-#error Not implemented yet
+
+//#error Not implemented yet
+#define mb()
+#define rmb()
+#define wmb()
 
 #endif
 
@@ -149,6 +159,10 @@ struct AbstractActorInstance {
   int terminated;
   long long nloops;
   unsigned long long total;
+#ifdef TRACE
+  int firstActionIndex;
+  FILE *file;
+#endif
 };
 
 typedef struct {
@@ -183,7 +197,7 @@ struct ActorClass {
 #define INIT_ActorClass(aClassName,              \
                         instance_t,              \
                         ctor,                    \
-			setParam,                \
+                        setParam,                \
                         sched,	                 \
                         dtor,                    \
                         nInputs, inputDescr,	 \
@@ -220,6 +234,9 @@ extern int						log_level;
 extern void trace(int level, const char*,...);
 extern int rangeError(int x, int y, const char *filename, int line);
 extern void runtimeError(AbstractActorInstance*, const char *format,...);
+extern void actionTrace(AbstractActorInstance *instance,
+            int localActionIndex,
+            char *actionName);
 extern AbstractActorInstance *createActorInstance(ActorClass *actorClass);
 extern OutputPort *createOutputPort(AbstractActorInstance *pInstance,
                              const char *portName,
@@ -306,8 +323,14 @@ extern void setParameter(AbstractActorInstance *pInstance,
 #define ART_FIRE_ACTION(name)			\
   name(context, thisActor)
 
+#ifdef TRACE
+#define ART_ACTION_ENTER(name, index)   \
+  context->fired++; \
+  actionTrace((AbstractActorInstance*)thisActor,index,#name)
+#else
 #define ART_ACTION_ENTER(name, index)		\
-  context->fired++;
+  context->fired++
+#endif
 
 #define ART_ACTION_EXIT(name, index)
 
@@ -321,6 +344,8 @@ extern void setParameter(AbstractActorInstance *pInstance,
 #include "actors-fifo.h"
 #undef FIFO_TYPE 
 
-
+#ifdef __cplusplus
+}
+#endif
 
 #endif

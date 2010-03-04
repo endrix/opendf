@@ -29,12 +29,16 @@ static void *EXECUTE_NETWORK(cpu_runtime_data_t *runtime,
   DECLARE_TIMEBASE(t3);
   statistics_t statistics;
 
+#ifdef RM
+  register_thread_id();
+#endif
+
 //  printf("START#%d %s %s %p\n", this_cpu, __DATE__, __TIME__, runtime);
   old_sleep = malloc(runtime->cpu_count * sizeof(*old_sleep));
   for (i  = 0 ; i < runtime->cpu_count ; i++) {
     old_sleep[i] = 0;
   }
-    
+
   this_balance = 0;
   cpu[this_cpu].starved = 0;
   CLEAR_TIMER(&statistics.prefire);
@@ -175,6 +179,9 @@ static void *EXECUTE_NETWORK(cpu_runtime_data_t *runtime,
 		// Only wake it once for each sleep
 		cpu[this_cpu].has_affected[i] = 0;
 		old_sleep[i] = current_sleep;
+#ifdef TRACE
+    xmlTraceWakeup(cpu[this_cpu].file,i);
+#endif
 	      }
 	    }
 	  }
@@ -257,7 +264,9 @@ static void *EXECUTE_NETWORK(cpu_runtime_data_t *runtime,
 	ADD_TIMER(&statistics.sync_blocked, &t1);
 
 	if (terminate) { goto done; }
-
+#ifdef TRACE
+   xmlTraceStatus(cpu[this_cpu].file,0);
+#endif
 	sem_wait(cpu[this_cpu].sem);
 	statistics.nsleep++;
 	
@@ -267,6 +276,9 @@ static void *EXECUTE_NETWORK(cpu_runtime_data_t *runtime,
 	MUTEX_LOCK();
 	(*cpu[this_cpu].sleep)++;
       }
+#ifdef TRACE
+      xmlTraceStatus(cpu[this_cpu].file,1);
+#endif
       sleepers--;
       cpu[this_cpu].starved = 1;
       MUTEX_UNLOCK();

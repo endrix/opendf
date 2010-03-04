@@ -53,8 +53,15 @@ extern "C" {
 #define MAX_ACTOR_NUM       256
 #define DEFAULT_FIFO_LENGTH 256
 
+
+
 extern int log_level;
 // extern void trace(int level, const char*,...);
+extern void register_thread_id(void);
+extern void get_thread_ids(int* count, pid_t** threadIds);
+extern void set_cpu_category(int category);
+extern void reset_quality_level();
+extern void set_quality_levels(int quality, int bandwidth, int granularity);
 
 #ifdef __cplusplus
 }
