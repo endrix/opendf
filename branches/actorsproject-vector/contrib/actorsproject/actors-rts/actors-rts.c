@@ -528,7 +528,7 @@ static cpu_runtime_data_t *allocate_network(
   OutputPort *output_p;
   int i, j, k;
 
-  /* Set fifo capacity */
+  /* Set fifo capacity of inputs (when unspecified) and outputs (max) */
   for (i = 0 ; i < numInstances ; i++) {
     for (j = 0 ; j < instance[i]->actorClass->numInputPorts ; j++) {
       if (instance[i]->input[j].capacity == 0) {
@@ -543,6 +543,18 @@ static cpu_runtime_data_t *allocate_network(
     }
   }
       
+  /* now set capacity of inputs to that of their output */
+  /* 
+   * TODO: we might want a scheme, in which we keep a smaller capacity
+   * on individual inputs. Then remove this loop, but the implementation
+   * of the FIFO then has to separate the concepts of capacity and buffer size
+   */
+  for (i = 0 ; i < numInstances ; i++) {
+    for (j = 0 ; j < instance[i]->actorClass->numInputPorts ; j++) {
+      instance[i]->input[j].capacity = instance[i]->input[j].output->capacity;
+    }
+  }
+  
   /* Count number of inputs and outputs and needed buffer space */
   num_outputs = 0;
   num_inputs = 0;
