@@ -67,7 +67,6 @@ import eu.actorsproject.xlim.XlimType;
 import eu.actorsproject.xlim.XlimOperation;
 import eu.actorsproject.xlim.XlimInstruction;
 import eu.actorsproject.xlim.XlimOutputPort;
-import eu.actorsproject.xlim.XlimTypeArgument;
 import eu.actorsproject.xlim.XlimTypeKind;
 import eu.actorsproject.xlim.util.BagOfTranslationOptions;
 import eu.actorsproject.xlim.util.Session;
@@ -178,10 +177,14 @@ public class XlimReaderWithDiagnostics implements IXlimReader {
 			String typeName=getRequiredAttribute("typeName", element);
 			
 			if (typeName!=null) {
-				XlimType type=context.getTypeDef(typeName);
-				
-				if (type==null) {
-					try {
+	
+				try {
+					XlimTypeDef typeDef=context.getTypeDef(typeName);
+					
+					if (typeDef!=null) {
+						return typeDef.getType(mPlugIn, context);
+					}
+					else {
 						XlimTypeKind typeKind=mPlugIn.getTypeKind(typeName);
 
 						if (typeKind!=null) {
@@ -191,29 +194,31 @@ public class XlimReaderWithDiagnostics implements IXlimReader {
 								// Special fix for legacy "int" type with "size" attribute
 								try {
 									int size=Integer.valueOf(sizeAttribute);
-									type=typeKind.createType(size);
+									return typeKind.createType(size);
 								} catch (NumberFormatException ex) {
 									reportWarning(element, "Expecting integer attribute, found: size=\""
 											      +sizeAttribute+"\"");
-									type=typeKind.createType();
+									return typeKind.createType();
 								}
 							}
 							else {
-								type=typeKind.createType();
+								return typeKind.createType();
 							}
 						}
 						else {
 							reportError(element, "Unsupported type: typeName=\""+typeName+"\"");
 						}
-					} catch (RuntimeException ex) {
-						reportError(element, ex.getMessage());
 					}
+				} 
+				catch (XlimReaderError err) {
+					reportError(err);
 				}
-				// else: we have a typedef of that name
-				return type;
+				catch (RuntimeException ex) {
+					reportError(element, ex.getMessage());
+				}
 			}
-			else
-				return null; // no typeName
+			
+			return null; // error
 		}
 		
 		protected void unhandledTag(XlimElement element) {
@@ -393,9 +398,10 @@ public class XlimReaderWithDiagnostics implements IXlimReader {
 		protected void readTypeDef(XlimElement typeDefElement,
 				                   MutableReaderContext context) {
 			String name=getRequiredAttribute("name",typeDefElement);
-			XlimType type=mTypeHandler.readType(typeDefElement, context);
-			if (name!=null && type!=null) {
-				context.addTypeDef(name,type);
+			XlimTypeElement typeElement=mTypeHandler.readType(typeDefElement, context);
+			if (name!=null) {
+				XlimTypeDef typeDef=new XlimTypeDef(name,typeElement, typeDefElement.getLocation());
+				context.addTypeDef(name,typeDef);
 			}
 		}
 		
@@ -512,12 +518,12 @@ public class XlimReaderWithDiagnostics implements IXlimReader {
 		}
 	}
 
-	protected class TypeHandler extends ElementHandler<List<XlimTypeArgument>,Object> {
+	protected class TypeHandler extends ElementHandler<XlimTypeElement,Object> {
 		
-		public XlimType readType(XlimElement parent, MutableReaderContext context) {
+		public XlimTypeElement readType(XlimElement parent, MutableReaderContext context) {
 			Iterator<XlimElement> pType=parent.getElements().iterator();
 			boolean typeTagFound=false;
-			XlimType result=null;
+			XlimTypeElement result=null;
 			
 			while (pType.hasNext()) {
 				XlimElement typeElement=pType.next();
@@ -530,18 +536,10 @@ public class XlimReaderWithDiagnostics implements IXlimReader {
 					typeTagFound=true;
 					
 					String typeName=getRequiredAttribute("name", typeElement);
+					
 					if (typeName!=null) {
-						result=context.getTypeDef(typeName);
-						if (result!=null) {
-							// it was a typedef: there should be no enclosed elements
-							checkThatEmpty(typeElement);
-						}
-						else {
-							// it was a built-in type name/type constructor: create type
-							List<XlimTypeArgument> typeArguments=new ArrayList<XlimTypeArgument>();
-							processChildren(typeElement,context,typeArguments,null);
-							result=createType(typeElement,typeName,typeArguments);
-						}
+						result=new XlimTypeElement(typeName, typeElement.getLocation());
+						processChildren(typeElement,context,result,null);
 					}
 					// else: no "name" attribute (error already reported)
 				}
@@ -557,44 +555,23 @@ public class XlimReaderWithDiagnostics implements IXlimReader {
 			
 			return result;
 		}
-		
-		
-		private XlimType createType(XlimElement typeElement, 
-				                    String typeName,
-				                    List<XlimTypeArgument> typeArguments) {
-			
-			try {
-				XlimTypeKind typeKind=mPlugIn.getTypeKind(typeName);
-				if (typeKind!=null)
-					return typeKind.createType(typeArguments);
-				else
-					reportError(typeElement, 
-							"Unsupported type: typeName=\""+typeName+"\"");
-			} catch (RuntimeException ex) {
-				reportError(typeElement, ex.getMessage());
-			}
-			
-			return null;
-		}
-		
+				
 		protected void processChild(XlimElement child, 
                                     MutableReaderContext context,
-                                    List<XlimTypeArgument> typeArguments,
+                                    XlimTypeElement typeElement,
                                     Object dummy) {
 			XlimTag tag=getTag(child);
 			if (tag==XlimTag.VALUEPAR_TAG || tag==XlimTag.TYPEPAR_TAG) {
 				String name=getRequiredAttribute("name", child);
-				XlimTypeArgument arg=null;
 				
 				if (tag==XlimTag.VALUEPAR_TAG) {
 					String value=getRequiredAttribute("value", child);
-					arg=mPlugIn.createTypeArgument(name,value);					
+					typeElement.addValuePar(name,value);					
 				}
 				else {
-					XlimType type=readType(child,context);
-					arg=mPlugIn.createTypeArgument(name,type);
+					XlimTypeElement type=readType(child,context);
+					typeElement.addTypePar(name,type);
 				}
-				typeArguments.add(arg);
 			}
 			else {
 				unhandledTag(child);
@@ -1033,6 +1010,14 @@ public class XlimReaderWithDiagnostics implements IXlimReader {
 		System.err.println(formatDiagnostic(atElement, "warning: "+message));
 	}
 
+	public void reportError(XlimReaderError err) {
+		System.err.println(formatDiagnostic(err.getLocation(), "error: "+err.getMessage()));
+		mNumErrors++;
+		if (mNumErrors>mErrorLimit) {
+			throw new RuntimeException("Too many errors, make fewer!");
+		}
+	}
+	
 	public void reportError(XlimElement atElement, String message) {
 		System.err.println(formatDiagnostic(atElement, "error: "+message));
 		mNumErrors++;
