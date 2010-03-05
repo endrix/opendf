@@ -38,6 +38,7 @@
 package eu.actorsproject.xlim.type;
 
 
+import java.util.Collections;
 import java.util.List;
 
 import eu.actorsproject.xlim.XlimType;
@@ -100,6 +101,22 @@ public abstract class UnparametricType extends TypeKind implements XlimType {
 		return false;
 	}
 	
+	@Override
+	public String getTypeDefName() {
+		// Pointless to typedef Unparametric types (not supported)
+		return null;
+	}
+
+	@Override
+	public void setTypeDefName(String name) {
+		// Pointless to typedef Unparametric types (not supported)
+		throw new UnsupportedOperationException();
+	}
+
+	public Iterable<TypeArgument> getTypeArguments() {
+		return Collections.emptyList();
+	}
+
 	@Override
 	public XlimType getTypeParameter(String name) {
 		throw new UnsupportedOperationException();

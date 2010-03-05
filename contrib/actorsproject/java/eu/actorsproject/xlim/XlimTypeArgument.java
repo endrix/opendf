@@ -54,6 +54,11 @@ public interface XlimTypeArgument {
 	boolean isValueParameter();
 	
 	/**
+	 * @return true if the type argument is a type
+	 */
+	boolean isTypeParameter();
+	
+	/**
 	 * @return the value of a value paramter (non-type type argument)
 	 * 
 	 * Provided that isValueParameter() returns true, getValue() should

@@ -37,11 +37,14 @@
 
 package eu.actorsproject.xlim.type;
 
+import java.util.Collections;
+
 import eu.actorsproject.xlim.XlimType;
 
 class IntegerType implements XlimType {
 	private TypeKind mIntegerTypeKind;
 	private int mSize;
+	private String mTypeDefName;
 	
 	IntegerType(TypeKind integerTypeKind, int size) {
 		mIntegerTypeKind=integerTypeKind;
@@ -112,6 +115,10 @@ class IntegerType implements XlimType {
 		return false;
 	}
 	
+	public Iterable<TypeArgument> getTypeArguments() {
+		return Collections.singletonList(new TypeArgument("size", String.valueOf(mSize)));
+	}
+	
 	@Override
 	public XlimType getTypeParameter(String name) {
 		throw new UnsupportedOperationException();
@@ -131,5 +138,15 @@ class IntegerType implements XlimType {
 			return mSize;
 		else
 			throw new IllegalArgumentException("no such value parameter: "+name);
+	}
+	
+	@Override
+	public String getTypeDefName() {
+		return mTypeDefName;
+	}
+
+	@Override
+	public void setTypeDefName(String name) {
+		mTypeDefName=name;
 	}
 }

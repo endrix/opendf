@@ -40,6 +40,8 @@
  */
 package eu.actorsproject.xlim;
 
+import eu.actorsproject.xlim.type.TypeArgument;
+
 /**
  * @author ecarvon
  *
@@ -92,6 +94,11 @@ public interface XlimType {
 	String getZero();
 
 	/**
+	 * @return collection of type arguments (possibly empty)
+	 */
+	Iterable<TypeArgument> getTypeArguments();
+	
+	/**
 	 * @param name
 	 * @return the type parameter of the given name
 	 * 
@@ -116,6 +123,17 @@ public interface XlimType {
 	 */
 	int getIntegerParameter(String name);
 
+	/**
+	 * @return the name of (a unique) typeDef that has been associated with this type
+	 *         (null if no such name)
+	 */
+	String getTypeDefName();
+	
+	/**
+	 * @param name of typeDef that is to be associated with this type
+	 */
+	void setTypeDefName(String name);
+	
 	// TODO: should be support these methods?
 	int getSize();
 	long minValue();

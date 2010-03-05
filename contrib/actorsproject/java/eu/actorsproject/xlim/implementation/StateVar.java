@@ -148,6 +148,7 @@ class StateVar implements XlimStateVar, StateLocation {
 		String attributes="name=\"" + getUniqueId() + "\"";
 		if (mSourceName!=null)
 			attributes+=" sourceName=\"" + mSourceName + "\"";
+		attributes += " " + getType().getAttributeDefinitions();
 		return attributes;
 	}
 
