@@ -37,6 +37,8 @@
 
 package eu.actorsproject.xlim.type;
 
+import java.util.ArrayList;
+
 import eu.actorsproject.xlim.XlimType;
 import eu.actorsproject.xlim.XlimTypeKind;
 
@@ -46,6 +48,7 @@ public class ListType implements XlimType {
 	private TypeKind mListTypeCtor;
 	private XlimType mElementType;
 	private int mNumElements;
+	private String mTypeDefName;
 	
 	public ListType(TypeKind listTypeCtor, XlimType elementType, int numElements) {
 		mListTypeCtor=listTypeCtor;
@@ -65,7 +68,10 @@ public class ListType implements XlimType {
 	
 	@Override
 	public String getAttributeDefinitions() {
-		return "typeName=\"List\"";
+		if (mTypeDefName!=null)
+			return "typeName=\"" + mTypeDefName + "\"";
+		else
+			return "typeName=\"List\"";
 	}
 
 	@Override
@@ -111,6 +117,13 @@ public class ListType implements XlimType {
 		throw new UnsupportedOperationException("ListType.minValue()");
 	}	
 	
+	public Iterable<TypeArgument> getTypeArguments() {
+		ArrayList<TypeArgument> args=new ArrayList<TypeArgument>(2);
+		args.add(new TypeArgument("type", mElementType));
+		args.add(new TypeArgument("size", String.valueOf(mNumElements)));
+		return args;
+	}
+	
 	@Override
 	public XlimType getTypeParameter(String name) {
 		if (name.equals("type"))
@@ -138,5 +151,15 @@ public class ListType implements XlimType {
 	@Override
 	public String toString() {
 		return "List(type:"+mElementType+",size="+mNumElements+")";
+	}
+	
+	@Override
+	public String getTypeDefName() {
+		return mTypeDefName;
+	}
+
+	@Override
+	public void setTypeDefName(String name) {
+		mTypeDefName=name;
 	}
 }

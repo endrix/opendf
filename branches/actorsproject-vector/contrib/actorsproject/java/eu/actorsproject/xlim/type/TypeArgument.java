@@ -71,6 +71,11 @@ public class TypeArgument implements XlimTypeArgument {
 	}
 
 	@Override
+	public boolean isTypeParameter() {
+		return mType!=null;
+	}
+	
+	@Override
 	public String getValue() {
 		return mValue;
 	}
