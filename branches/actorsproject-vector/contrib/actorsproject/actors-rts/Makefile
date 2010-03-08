@@ -85,7 +85,7 @@ includedir?=$(prefix)/include
 libdir?=$(exec_prefix)/lib
 datarootdir?=$(prefix)/share
 datadir?=$(datarootdir)
-#ARMDBUSDIR=$HOME/work/actor/arm-rm/usr/local
+#ARMDBUSDIR=$(HOME)/work/actor/arm-rm/usr/local
 
 ifeq ($(RM), y)
 #LDLIBS=-lpthread -lc -L$(ARMDBUSDIR)/lib -ldbus-1 $(ARMDBUSDIR)/lib/libgcc_s.so.1 $(ARMDBUSDIR)/lib/libstdc++.so.6
