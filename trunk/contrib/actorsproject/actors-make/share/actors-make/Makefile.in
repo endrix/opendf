@@ -16,7 +16,7 @@ include @datadir@/actors-make/definitions.mk
 # srcdir=/home/me/MPEG4_SP_Decoder
 
 # Target architecture prefix of gcc and binutils (default is none)
-# target=arm-none-linux-gnueabi
+# target=arm-none-linux-gnueabi-
 
 # Generate debug code
 # DEBUG=Y

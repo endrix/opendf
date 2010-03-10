@@ -55,7 +55,7 @@ endif
 ifdef MERGE
 override MODEL_DEPEND = $(MODEL)_new.xdf 
 else
-override MODEL_DEPEND = $(MODEL).xdf $(XLIM_FILES)
+override MODEL_DEPEND = $(MODEL).xdf
 endif
 
 #
@@ -80,7 +80,7 @@ $(EXE): $(OBJECTS)
 # Preserve generated C files (make otherwise considers them temporary files)
 .SECONDARY: $(ACTOR_C_FILES)
 
-%.c : %.xlim $(MODEL).c
+%.c : %.xlim
 	$(XLIM2C) $< $@
 
 #
