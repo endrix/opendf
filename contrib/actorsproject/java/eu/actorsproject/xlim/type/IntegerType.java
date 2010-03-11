@@ -37,11 +37,14 @@
 
 package eu.actorsproject.xlim.type;
 
+import java.util.Collections;
+
 import eu.actorsproject.xlim.XlimType;
 
 class IntegerType implements XlimType {
 	private TypeKind mIntegerTypeKind;
 	private int mSize;
+	private String mTypeDefName;
 	
 	IntegerType(TypeKind integerTypeKind, int size) {
 		mIntegerTypeKind=integerTypeKind;
@@ -85,9 +88,18 @@ class IntegerType implements XlimType {
 	
 	@Override
 	public boolean isZero(String s) {
-		return Long.valueOf(s)==0;
+		try {
+			return Long.valueOf(s)==0;
+		} catch (NumberFormatException ex) {
+			return false;
+		}
 	}
 	
+	@Override
+	public String getZero() {
+		return "0";
+	}
+
 	@Override
 	public boolean isBoolean() {
 		return false;
@@ -96,5 +108,45 @@ class IntegerType implements XlimType {
 	@Override
 	public boolean isInteger() {
 		return true;
+	}
+	
+	@Override
+	public boolean isList() {
+		return false;
+	}
+	
+	public Iterable<TypeArgument> getTypeArguments() {
+		return Collections.singletonList(new TypeArgument("size", String.valueOf(mSize)));
+	}
+	
+	@Override
+	public XlimType getTypeParameter(String name) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public String getValueParameter(String name) {
+		if (name.equals("size"))
+			return Integer.toString(mSize);
+		else
+			throw new IllegalArgumentException("no such value parameter: "+name);
+	}
+	
+	@Override
+	public int getIntegerParameter(String name) {
+		if (name.equals("size"))
+			return mSize;
+		else
+			throw new IllegalArgumentException("no such value parameter: "+name);
+	}
+	
+	@Override
+	public String getTypeDefName() {
+		return mTypeDefName;
+	}
+
+	@Override
+	public void setTypeDefName(String name) {
+		mTypeDefName=name;
 	}
 }

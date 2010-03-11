@@ -64,16 +64,16 @@ void xmlDeclareNetwork(FILE *f,
     const AbstractActorInstance *instance=actors[i];
     const ActorClass            *actorClass=instance->actor;
     int                          numInputs=actorClass->numInputPorts;
-    const ActorPort             *inputs=instance->inputPort;
+    const InputPort             *inputs=instance->input;
     int                          numOutputs=actorClass->numOutputPorts;
-    const ActorPort             *outputs=instance->outputPort;
+    const OutputPort            *outputs=instance->output;
     int                          numActions=actorClass->numActions;
     const ActionDescription     *actions=actorClass->actionDescriptions;
     int                          firstAction=instance->firstActionIndex;
     int j;
 
     fprintf(f, "  <actor id=\"%d\" class=\"%s\">\n",
-	    instance->aid, actorClass->name);
+	    i, actorClass->name);
 
     // <input>
     // id is a running index 0,1,2... (unique among input ports)
@@ -83,7 +83,7 @@ void xmlDeclareNetwork(FILE *f,
       const char *name=actorClass->inputPortDescriptions[j].name;
 
       fprintf(f, "    <input id=\"%d\" name=\"%s\" source=\"%d\"/>\n", 
-	      firstInput+j, name, inputs[j].cid);
+	      firstInput+j, name, inputs[j].writer->index);
     }
 
     // <output>
@@ -93,7 +93,7 @@ void xmlDeclareNetwork(FILE *f,
       const char *name=actorClass->outputPortDescriptions[j].name;
 
       fprintf(f, "    <output id=\"%d\" name=\"%s\"/>\n", 
-	      outputs[j].cid, name);
+	      outputs[j].index, name);
     }
 
     // <action>
@@ -126,7 +126,7 @@ void xmlDeclareNetwork(FILE *f,
 	int prd=actions[j].production[p];
 	if (prd)
 	  fprintf(f, "      <produces count=\"%d\" port=\"%d\"/>\n",
-		  prd, outputs[p].cid);
+		  prd, outputs[p].index);
       }
 
       fprintf(f, "    </action>\n");
@@ -138,7 +138,19 @@ void xmlDeclareNetwork(FILE *f,
   fprintf(f, "</network>\n");
 }
 
+extern unsigned int timestamp();
 void xmlTraceAction(FILE *f, int actionIndex) {
   static unsigned int step = 0;
-  fprintf(f, "<trace action=\"%d\" step=\"%u\"/>\n", actionIndex, step++);
+
+  fprintf(f, "<trace timestamp=\"%u\" action=\"%d\" step=\"%u\"/>\n", timestamp(0),actionIndex, step++);
+}
+
+void xmlTraceStatus(FILE *f, int status) {
+
+  fprintf(f, "<cpu timestamp=\"%u\" status=\"%d\"/>\n", timestamp(0),status);
+}
+
+void xmlTraceWakeup(FILE *f, int whom) {
+
+  fprintf(f, "<cpu timestamp=\"%u\" wakeup=\"%d\"/>\n", timestamp(0),whom);
 }

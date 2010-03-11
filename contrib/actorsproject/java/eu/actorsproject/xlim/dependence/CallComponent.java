@@ -41,7 +41,6 @@ import java.util.Collections;
 import java.util.List;
 
 import eu.actorsproject.util.XmlElement;
-import eu.actorsproject.xlim.XlimStateCarrier;
 import eu.actorsproject.xlim.absint.AbstractDomain;
 import eu.actorsproject.xlim.absint.Context;
 
@@ -86,8 +85,9 @@ public class CallComponent implements DependenceComponent {
 		// Copy the actual inputs to the formal inputs...
 		for (ValueNode inputInCaller: mInputsInCaller) {
 			T aValue=callerContext.get(inputInCaller);
-			XlimStateCarrier carrier=inputInCaller.getStateCarrier();
-			ValueNode inputInCallee=ddg.getInputValue(carrier);
+			Location location=inputInCaller.getLocation();
+			assert(location!=null && location.isStateLocation());
+			ValueNode inputInCallee=ddg.getInputValue(location.asStateLocation());
 			result.put(inputInCallee, aValue);
 		}
 			
@@ -108,8 +108,9 @@ public class CallComponent implements DependenceComponent {
 		
 		//Copy the outputs from callee to the caller context
 		for (ValueNode outputInCaller: mOutputsInCaller) {
-			XlimStateCarrier carrier=outputInCaller.getStateCarrier();
-			ValueNode outputInCallee=ddg.getOutputValue(carrier);
+			Location location=outputInCaller.getLocation();
+			assert(location!=null && location.isStateLocation());
+			ValueNode outputInCallee=ddg.getOutputValue(location.asStateLocation());
 			T aValue=outputContext.get(outputInCallee);
 			if (callerContext.put(outputInCaller, aValue))
 				changed=true;

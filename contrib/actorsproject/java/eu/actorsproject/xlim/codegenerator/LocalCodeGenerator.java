@@ -41,6 +41,7 @@ import eu.actorsproject.util.OutputGenerator;
 import eu.actorsproject.xlim.XlimBlockElement;
 import eu.actorsproject.xlim.XlimBlockModule;
 import eu.actorsproject.xlim.XlimContainerModule;
+import eu.actorsproject.xlim.XlimDesign;
 import eu.actorsproject.xlim.XlimIfModule;
 import eu.actorsproject.xlim.XlimInputPort;
 import eu.actorsproject.xlim.XlimInstruction;
@@ -59,6 +60,7 @@ import eu.actorsproject.xlim.XlimType;
  */
 public abstract class LocalCodeGenerator implements ExpressionTreeGenerator {
 	
+	protected XlimDesign mDesign;
 	protected SymbolTable mActorScope;
 	protected LocalSymbolTable mLocalSymbols;
 	protected OperationGenerator mPlugIn;
@@ -67,9 +69,11 @@ public abstract class LocalCodeGenerator implements ExpressionTreeGenerator {
 	private BlockElementVisitor mVisitor;
 
 	
-	public LocalCodeGenerator(SymbolTable topLevelSymbols, 
+	public LocalCodeGenerator(XlimDesign design,
+			                  SymbolTable topLevelSymbols, 
 			                  OperationGenerator plugIn, 
 			                  OutputGenerator output) {
+		mDesign = design;
 		mActorScope = topLevelSymbols;
 		mLocalSymbols = new LocalSymbolTable();
 		mPlugIn = plugIn;
@@ -79,22 +83,33 @@ public abstract class LocalCodeGenerator implements ExpressionTreeGenerator {
 
 	public void translateTask(XlimTaskModule task) {
 		storageAllocation(task);
-		generateCode(task);
+		declareTemporaries(task);
+		generateBlockElements(task);
 	}
 	
 	protected void storageAllocation(XlimTaskModule task) {
 		LocalStorageAllocation storageAllocation=new LocalStorageAllocation(mLocalSymbols, mPlugIn);
+		LocalStorageAssignment storageAssignment=new LocalStorageAssignment(mLocalSymbols);
+		
 		storageAllocation.allocateStorage(task);
+		storageAssignment.coalesceLiveRanges(task);
 	}
 	
-	protected void generateCode(XlimContainerModule m) {
+	protected void declareTemporaries(XlimContainerModule m) {
 		LocalScope scope=mLocalSymbols.getScope(m);
 		if (scope!=null) {
 			generateDeclaration(scope);
 		}
-		
+	}
+	
+	protected void generateBlockElements(XlimContainerModule m) {
 		for (XlimBlockElement child: m.getChildren())
 			child.accept(mVisitor, null);
+	}
+	
+	protected void generateCode(XlimContainerModule m) {
+		declareTemporaries(m);
+		generateBlockElements(m);
 	}
 
 	protected abstract void generateDeclaration(LocalScope scope);
@@ -163,7 +178,7 @@ public abstract class LocalCodeGenerator implements ExpressionTreeGenerator {
 	}
 	
 	protected void generateExpression(XlimSource source) {
-		XlimOutputPort port=source.isOutputPort();
+		XlimOutputPort port=source.asOutputPort();
 		
 		if (port!=null) {
 			TemporaryVariable temp=mLocalSymbols.getTemporaryVariable(port);
@@ -183,7 +198,7 @@ public abstract class LocalCodeGenerator implements ExpressionTreeGenerator {
 			}
 		}
 		else
-			print(source.isStateVar());
+			print(source.asStateVar());
 	}
 
 	
@@ -197,7 +212,7 @@ public abstract class LocalCodeGenerator implements ExpressionTreeGenerator {
 	}
 
 	protected boolean isUseful(XlimOperation op) {
-		return (op.isReferenced() || op.mayModifyState() || op.isRemovable()==false);
+		return (op.isReferenced() || op.modifiesLocation() || op.isRemovable()==false);
 	}
 	
 	protected boolean needsElse(XlimIfModule m) {
@@ -224,6 +239,10 @@ public abstract class LocalCodeGenerator implements ExpressionTreeGenerator {
 	}
 	
 	protected void visitPhiNodes(Iterable<? extends XlimInstruction> phiNodes, int fromPath) {
+		// TODO: phi-nodes should be top-sorted in dependence order
+		// When we start coalescing storage locations, we will be in trouble otherwise.
+		// Cyclic dependence is also possible, say t1=phi(t0,t2), t2=phi(t0,t1), in which
+		// case we must introduce a temporary (noop).
 		for (XlimInstruction phi: phiNodes) {
 			TemporaryVariable dest=mLocalSymbols.getTemporaryVariable(phi.getOutputPort(0));
 			XlimInputPort input=phi.getInputPort(fromPath);

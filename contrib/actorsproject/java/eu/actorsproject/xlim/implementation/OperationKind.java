@@ -63,9 +63,18 @@ public class OperationKind {
 		return mKindAttribute;
 	}
 	
-	public boolean mayAccessState(Operation op) {
+	public boolean dependsOnLocation(Operation op) {
 		for (int i=0; i<op.getNumInputPorts(); ++i)
-			if (op.getInputPort(i).getSource().isStateVar()!=null)
+			if (op.getInputPort(i).dependsOnLocation())
+				return true;
+		return false;
+	}
+	
+	public boolean modifiesLocation(Operation op) {
+		// The default implementation just checks if 
+		// a local aggreagate (with a location) is defined
+		for (int i=0; i<op.getNumOutputPorts(); ++i)
+			if (op.getOutputPort(i).hasLocation())
 				return true;
 		return false;
 	}
@@ -81,12 +90,23 @@ public class OperationKind {
 		return "kind=\"" + mKindAttribute + "\"";
 	}
 	
-	protected Long getIntegerAttribute(String name, XlimAttributeList attributes) {
+	protected String getRequiredAttribute(String name, XlimAttributeList attributes) {
 		String value=attributes.getAttributeValue(name);
 		if (value!=null)
-			return Long.valueOf(value);
+			return value;
 		else
-			return null;
+			throw new RuntimeException("Operation kind=\""+mKindAttribute
+					                   +"\" missing attribute \""+name+"\"");
+	}
+	
+	protected Long getRequiredIntegerAttribute(String name, XlimAttributeList attributes) {
+		String value=getRequiredAttribute(name, attributes);
+		try {
+			return Long.valueOf(value);
+		} catch (NumberFormatException ex) {
+			throw new RuntimeException("Expecting integer attribute, found: "+name
+					                   +"=\""+value+"\"");
+		}
 	}
 	
 	public void setAttributes(XlimOperation op,
@@ -246,12 +266,12 @@ public class OperationKind {
 		String result=op.getKind()+": ";
 		
 		if (op.getNumInputPorts()==1)
-			result += op.getInputPort(0).getSource().getSourceType();
+			result += op.getInputPort(0).getSource().getType();
 		else {
 			String delimiter="";
 			result += "(";
 			for (XlimInputPort input: op.getInputPorts()) {
-				result += delimiter+input.getSource().getSourceType();
+				result += delimiter+input.getSource().getType();
 				delimiter=",";
 			}
 			result += ")";

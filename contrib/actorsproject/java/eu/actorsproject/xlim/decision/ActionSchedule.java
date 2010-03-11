@@ -152,7 +152,7 @@ public class ActionSchedule {
 			PortSignature ps = mPhases.get(rep).hasStaticPortSignature();
 			if (ps != null) {
 				for (XlimTopLevelPort port : ps.getPorts()) {
-					if (port.getSourceName().equals(portName)) {
+					if (port.getName().equals(portName)) {
 						pattern.add(ps.getPortRate(port));
 						portFoundInPhase = true;
 					}

@@ -35,90 +35,96 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package eu.actorsproject.xlim.dependence;
+package eu.actorsproject.xlim.implementation;
 
-import java.util.Collections;
+import java.util.AbstractList;
+import java.util.List;
 
-import eu.actorsproject.util.XmlElement;
 import eu.actorsproject.xlim.XlimInitValue;
-import eu.actorsproject.xlim.XlimStateCarrier;
-import eu.actorsproject.xlim.XlimStateVar;
-import eu.actorsproject.xlim.XlimTopLevelPort;
 import eu.actorsproject.xlim.XlimType;
+import eu.actorsproject.xlim.util.Session;
 
 /**
- * StateValueNode node is the common base of value nodes that represent state
- * (ports and state variables)
- *  
- * StateValueNodes model data dependence that is caused by operations on
- * ports and state variables, both true dependence ("read-after-write") and
- * artificial dependence ("write-after-write" and "write-after-read").
+ * Represents an initial value (of a state variable) that
+ * is a List of N identical elements. Useful for a compact
+ * representation of certain large initializers, zero
+ * initializers in particular.
  */
-public abstract class StateValueNode extends ValueNode {
+public class RepeatedInitValue implements XlimInitValue {
 
-	private static int mNextId;
-	private int mUniqueId;
+	private XlimInitValue mElement;
+	private int mRepeatFactor;
+	private XlimType mType;
 	
-	public StateValueNode() {
-		mUniqueId=mNextId++;
+	public RepeatedInitValue(XlimInitValue element, int repeatFactor) {
+		mElement=element;
+		mRepeatFactor=repeatFactor;
+		mType=Session.getTypeFactory().createList(element.getType(), repeatFactor);
 	}
-	
+
 	@Override
-	public String getUniqueId() {
-		return "v"+mUniqueId; 
+	public XlimType getType() {
+		return mType;
 	}
-	
+
 	@Override
 	public XlimType getScalarType() {
-		XlimStateCarrier carrier=getStateCarrier();
-		XlimTopLevelPort port=carrier.isPort();
-		if (port!=null)
-			return port.getType();
-		else {
-			XlimStateVar stateVar=carrier.isStateVar();
-			XlimInitValue initValue=stateVar.getInitValue();
-			return initValue.getScalarType();
-		}
-	}
-	
-	@Override
-	public XlimType getCommonElementType() {
-		XlimStateCarrier carrier=getStateCarrier();
-		XlimTopLevelPort port=carrier.isPort();
-		if (port!=null)
-			return port.getType();
-		else {
-			XlimStateVar stateVar=carrier.isStateVar();
-			XlimInitValue initValue=stateVar.getInitValue();
-			return initValue.getCommonElementType();
-		}
+		return null; // not a scalar type
 	}
 
 	@Override
+	public String getScalarValue() {
+		return null; // not a scalar value
+	}
+
+	@Override
+	public boolean isZero() {
+		return mElement.isZero();
+	}
+
+	@Override
+	public int totalNumberOfElements() {
+		return mRepeatFactor*mElement.totalNumberOfElements();
+	}
+
+	@Override
+	public XlimType getCommonElementType() {
+		return mElement.getCommonElementType();
+	}
+
+	@Override
+	public XlimType setCommonElementType(XlimType t) {
+		XlimType childT=mElement.setCommonElementType(t);
+		mType=Session.getTypeFactory().createList(childT, mRepeatFactor);
+		return mType;
+	}
+	
+	@Override
 	public String getTagName() {
-		return "StateValueNode";
+		return "initValue";
 	}
 	
 	@Override
 	public String getAttributeDefinitions() {
-		XlimStateCarrier carrier=getStateCarrier();
-		String name=carrier.getSourceName();
-		String source="";
-		
-		if (name!=null)
-			name = " name=\"" + name + "\"";
-		else
-			name="";
-		
-		XlimStateVar stateVar=carrier.isStateVar();
-		if (stateVar!=null)
-			source = " source=\"" + stateVar.getUniqueId() + "\"";
-		
-		return "valueId=\"" + getUniqueId() + "\"" + name + source;
+		return "typeName=\"List\"";
 	}
-
+	
 	@Override
-	public Iterable<? extends XmlElement> getChildren() {
-		return Collections.emptyList();
+	public List<XlimInitValue> getChildren() {
+		return new RepeatList();
+	}
+	
+	class RepeatList extends AbstractList<XlimInitValue> {
+		@Override
+		public XlimInitValue get(int index) {
+			if (index<0 || index>=mRepeatFactor)
+				throw new IndexOutOfBoundsException();
+			return mElement;
+		}
+
+		@Override
+		public int size() {
+			return mRepeatFactor;
+		}
 	}
 }

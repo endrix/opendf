@@ -64,6 +64,5 @@ public interface XlimDesign extends XmlElement {
 	
 	CallGraph createCallGraph();
 	CallGraph getCallGraph();
-	
-	BagOfTranslationOptions getTranslationOptions();
+    BagOfTranslationOptions getTranslationOptions();
 }

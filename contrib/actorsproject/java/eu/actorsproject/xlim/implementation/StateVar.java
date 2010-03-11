@@ -39,12 +39,15 @@ package eu.actorsproject.xlim.implementation;
 
 import eu.actorsproject.util.XmlElement;
 import eu.actorsproject.xlim.XlimInitValue;
+import eu.actorsproject.xlim.XlimSource;
 import eu.actorsproject.xlim.XlimStateVar;
 import eu.actorsproject.xlim.XlimType;
+import eu.actorsproject.xlim.dependence.Location;
+import eu.actorsproject.xlim.dependence.StateLocation;
 
 import java.util.Collections;
 
-class StateVar implements XlimStateVar {
+class StateVar implements XlimStateVar, StateLocation {
 
 	private static int sNextUniqueId;
 	
@@ -64,31 +67,59 @@ class StateVar implements XlimStateVar {
 	}
 
 	@Override
-	public String getSourceName() {
-		return mSourceName;
+	public boolean isStateLocation() {
+		return true;  // yes, it's a StateLocation (see Location)
+	}
+	
+	@Override
+	public StateLocation asStateLocation() {
+		return this;  // yes, it's a StateLocation (see Location)
 	}
 
 	@Override
-	public OutputPort isOutputPort() {
-		return null; // not an OutputPort (see XlimSource)
+	public boolean hasSource() {
+		return true; // yes, it has a source (see Location)
 	}
 
 	@Override
-	public StateVar isStateVar() {
+	public XlimSource getSource() {
+		return this; // yes, it has a source (see Location)
+	}
+
+	@Override
+	public boolean hasLocation() {
+		return true; // yes, it has a location (see XlimSource)
+	}
+	
+	@Override
+	public Location getLocation() {
+		return this; // yes, it has a location (see XlimSource)
+	}
+
+	@Override
+	public StateVar asStateVar() {
 		return this; // yes, it's a StateVar (see XlimSource)
 	}
 
 	@Override
-	public TopLevelPort isPort() {
-		return null;
+	public OutputPort asOutputPort() {
+		return null; // not an OutputPort (see XlimSource)
 	}
 
 	@Override
-	public XlimType getSourceType() {
-		XlimType type=mInitValue.getScalarType();
-		if (type==null)
-			throw new IllegalStateException("Aggregate state variable cannot be used as source");
-		return type;
+	public TopLevelPort asActorPort() {
+		return null; // not an actor port (see StateLocation)
+	}
+
+	@Override
+	public boolean isModified() {
+		// For now assume that all statevars are modified at some point
+		// TODO: identify immutable statevars
+		return true;
+	}
+	@Override
+	public XlimType getType() {
+		return mInitValue.getType();
 	}
 	
 	@Override
@@ -100,10 +131,25 @@ class StateVar implements XlimStateVar {
 	public String getUniqueId() {
 		return "s"+mUniqueId;
 	}
+	
+
+	@Override
+	public String getSourceName() {
+		return mSourceName;
+	}
+
+	@Override
+	public String getDebugName() {
+		return (mSourceName!=null)? mSourceName : getUniqueId();
+	}
 
 	@Override
 	public String getAttributeDefinitions() {
-		return "name=\"" + getUniqueId() + "\" sourceName=\"" + mSourceName + "\"";
+		String attributes="name=\"" + getUniqueId() + "\"";
+		if (mSourceName!=null)
+			attributes+=" sourceName=\"" + mSourceName + "\"";
+		attributes += " " + getType().getAttributeDefinitions();
+		return attributes;
 	}
 
 	@Override

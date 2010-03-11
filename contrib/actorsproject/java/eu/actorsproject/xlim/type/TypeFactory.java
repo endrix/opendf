@@ -38,23 +38,34 @@
 package eu.actorsproject.xlim.type;
 
 import eu.actorsproject.xlim.XlimType;
-import eu.actorsproject.xlim.io.XlimAttributeList;
 
 public interface TypeFactory {
 		
+	/**
+	 * @param typeName
+	 * @return TypeKind of the given typeName (or null if the type 
+	 *         doesn't exist/isn't registered with the TypeFactory)
+	 *         
+	 * The returned TypeKind represents an unparameteric type (kind T)
+	 * or type type constructor of a parametric type (kind typeArg->T).
+	 */
 	TypeKind getTypeKind(String typeName);
 	
 	XlimType leastUpperBound(XlimType t1, XlimType t2);
 	
-	// TODO: replace by create w parameter
+	// TODO: replace by create via getTypeKind
 	XlimType createInteger(int size);
 	
-	// TODO: replace by "plain" create
+	// TODO: replace by create via getTypeKind
 	XlimType createBoolean();
 	
+	// TODO: replace by create via getTypeKind
 	XlimType create(String typeName);
 	
-	XlimType create(String typeName, Object param);
-	
-	XlimType create(String typeName, XlimAttributeList attributes);	
+	/**
+	 * @param elementType  type parameter of List (element type)
+	 * @param size         length of List
+	 * @return             the instance List(type,size)
+	 */
+	XlimType createList(XlimType elementType, int size);
 }

@@ -44,7 +44,6 @@ import java.util.Map;
 import java.util.Set;
 
 import eu.actorsproject.util.XmlPrinter;
-import eu.actorsproject.xlim.XlimStateCarrier;
 import eu.actorsproject.xlim.absint.AbstractDomain;
 import eu.actorsproject.xlim.absint.AbstractValue;
 import eu.actorsproject.xlim.absint.BagOfConstraints;
@@ -54,7 +53,9 @@ import eu.actorsproject.xlim.absint.DemandContext;
 import eu.actorsproject.xlim.absint.StateMapping;
 import eu.actorsproject.xlim.absint.StateSummary;
 import eu.actorsproject.xlim.dependence.DependenceComponent;
+import eu.actorsproject.xlim.dependence.Location;
 import eu.actorsproject.xlim.dependence.ValueNode;
+import eu.actorsproject.xlim.dependence.StateLocation;
 
 /**
  * Drives the enumeration of abstract state-space:
@@ -105,6 +106,8 @@ public class StateEnumeration<T extends AbstractValue<T>> {
 	 * @param initialState  summary of the actor's initial state
 	 */
 	public void enumerateStateSpace() {	
+		int iterations=1;
+		
 		if (mTrace) {
 			mPrinter.println("<!-- decision tree -->");
 			mPrinter.printElement(mDecisionTree);
@@ -147,6 +150,7 @@ public class StateEnumeration<T extends AbstractValue<T>> {
 			}		
 
 			// Propagate state from 'root' to action nodes
+			iterations=iterations+1;
 			mDecisionTree.propagateState(newInputContext,this);
 
  			if (mTrace) {
@@ -158,6 +162,7 @@ public class StateEnumeration<T extends AbstractValue<T>> {
 		
 		if (mTrace) {
 			mPrinter.println("<!-- State-space enumeration complete -->");
+			mPrinter.println("<!-- Number of iterations: "+iterations+" -->");
 			mPrinter.println();
 			for (StateSummary<T> summary: mAbstractState.values()) {
 				mPrinter.println();
@@ -254,8 +259,9 @@ public class StateEnumeration<T extends AbstractValue<T>> {
 	private DemandContext<T> computeInitialState() {
 		DemandContext<T> initialState=new DemandContext<T>(mDomain);
 		for (ValueNode input: mMappingAtRoot.getValueNodes()) {
-			XlimStateCarrier carrier=input.getStateCarrier();
-			T aValue=mDomain.initialState(carrier);
+			Location location=input.getLocation();
+			assert(location!=null && location.isStateLocation());
+			T aValue=mDomain.initialState(location.asStateLocation());
 			initialState.put(input, aValue);
 		}
 		return initialState;
@@ -273,13 +279,13 @@ public class StateEnumeration<T extends AbstractValue<T>> {
 	}
 	
 	private DemandContext<T> createInputContext(Context<T> outputContext,
-			                                    Map<XlimStateCarrier,ValueNode> stateMapping) {
+			                                    Map<StateLocation,ValueNode> stateMapping) {
 		DemandContext<T> newInputContext=new DemandContext<T>(mDomain);
 		for (ValueNode inputNode: mMappingAtRoot.getValueNodes()) {
-			XlimStateCarrier carrier=inputNode.getStateCarrier();
-			assert(carrier!=null);
+			Location location=inputNode.getLocation();
+			assert(location!=null && location.isStateLocation());
 			
-			ValueNode outputNode=stateMapping.get(carrier);
+			ValueNode outputNode=stateMapping.get(location.asStateLocation());
 			if (outputNode==null) {
 				// actionNode transparent w.r.t. carrier (use input)
 				outputNode=inputNode; 

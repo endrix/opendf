@@ -57,7 +57,7 @@ public abstract class IntegerTypeRule extends TypeRule {
 	
 	@Override
 	public boolean matchesOutputs(List<? extends XlimOutputPort> outputs) {
-		return outputs.size()==1 && outputs.get(0).getType().getTypeName().equals("int");
+		return outputs.size()==1 && outputs.get(0).getType().isInteger();
 	}
 	
 	@Override
@@ -69,7 +69,8 @@ public abstract class IntegerTypeRule extends TypeRule {
 	public XlimType defaultOutputType(List<? extends XlimSource> inputs, int i) {
 		assert(i==0);
 		TypeFactory fact=Session.getTypeFactory();
-		return fact.create("int", defaultWidth(inputs));
+		TypeKind kind=fact.getTypeKind("int");
+		return kind.createType(defaultWidth(inputs));
 	}
 
 	protected abstract int defaultWidth(List<? extends XlimSource> inputs);
@@ -78,7 +79,8 @@ public abstract class IntegerTypeRule extends TypeRule {
 	public XlimType actualOutputType(XlimOperation op, int i) {
 		assert(i==0);
 		TypeFactory fact=Session.getTypeFactory();
-		return fact.create("int", actualWidth(op));
+		TypeKind kind=fact.getTypeKind("int");
+		return kind.createType(actualWidth(op));
 	}
 
 	protected abstract int actualWidth(XlimOperation op);

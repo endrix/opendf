@@ -69,18 +69,25 @@ public interface XlimInstruction extends XmlElement {
 	XlimOperation isOperation();
 	
 	/**
-	 * @return true if instruction may access (use or modify) state variables or ports,
-	 * either by the effect of the instruction itself (e.g. assign, pinPeek) or by
-	 * referring to a state variable via at least one input port.
+	 * @return true if instruction depends on (uses/reads) a location (state variables,
+	 * actor ports or local aggregates) -either by the effect of the instruction itself 
+	 * (e.g. varRef, pinPeek) or via at least one input port.
 	 */
-	boolean mayAccessState();
+	boolean dependsOnLocation();
+	
+	/**
+	 * @return true if instruction modifies (writes to) a location (state variables,
+	 * actor ports or local aggregates) -either by the effect of the instruction itself 
+	 * (e.g. assign, pinRead/Write) or by defining an aggregate output (that has a location)
+	 */
+	boolean modifiesLocation();
 	
 	/**
 	 * @return true if the operation modifies state (state variable or top-level port).
 	 * This is a property of the operation kind: pinRead, pinWrite, assign and taskCall
-	 * may modify state. Note that mayModifyState() implies mayAccessState()
+	 * may modify state. Note that mayModifyState() implies modifiesLocation()
 	 */
-	boolean mayModifyState();
+	boolean modifiesState();
 	
 	/**
 	 * @return true if the instruction has an output port that is referenced

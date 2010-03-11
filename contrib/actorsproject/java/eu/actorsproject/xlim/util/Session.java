@@ -44,12 +44,15 @@ import java.util.Map;
 import eu.actorsproject.xlim.XlimFactory;
 import eu.actorsproject.xlim.XlimOperation;
 import eu.actorsproject.xlim.XlimType;
+import eu.actorsproject.xlim.XlimTypeArgument;
+import eu.actorsproject.xlim.XlimTypeKind;
 import eu.actorsproject.xlim.implementation.DefaultXlimFactory;
 import eu.actorsproject.xlim.implementation.InstructionSet;
 import eu.actorsproject.xlim.implementation.OperationFactory;
 import eu.actorsproject.xlim.io.XlimAttributeList;
 import eu.actorsproject.xlim.io.ReaderContext;
 import eu.actorsproject.xlim.io.ReaderPlugIn;
+import eu.actorsproject.xlim.type.TypeArgument;
 import eu.actorsproject.xlim.type.TypeFactory;
 import eu.actorsproject.xlim.type.TypeSystem;
 
@@ -130,7 +133,6 @@ public class Session {
 		initInstructionSet();
 	}
 	
-	
 	protected void createTypeSystem() {
 		mTypeSystem=new TypeSystem();
 	}
@@ -145,7 +147,7 @@ public class Session {
 	protected void createReaderPlugIn() {
 		mReaderPlugIn=new DefaultReaderPlugIn();
 	}
-		
+	
 	private void initTypeSystem() {
 		for (XlimFeature p: mPlugIns)
 			p.initialize(mTypeSystem);
@@ -163,16 +165,24 @@ public class Session {
 		}
 
 		@Override
-		public XlimType getType(String typeName, XlimAttributeList attributes) {
-			return mTypeSystem.create(typeName, attributes);
+		public XlimTypeKind getTypeKind(String typeName) {
+			return mTypeSystem.getTypeKind(typeName);
 		}
 
 		@Override
 		public void setAttributes(XlimOperation op, XlimAttributeList attributes, ReaderContext context) {
 			mInstructionSet.setAttributes(op,attributes,context);
 		}
-	}
-	
+
+		public XlimTypeArgument createTypeArgument(String name, String value) {
+			return new TypeArgument(name,value);
+		}
+
+		public XlimTypeArgument createTypeArgument(String name, XlimType type) {
+			return new TypeArgument(name,type);
+		}
+	}	
+
 	protected class SessionOptions extends BagOfTranslationOptions {
 
 		private Map<String,TranslationOption> mOptions=new HashMap<String,TranslationOption>();
@@ -196,5 +206,4 @@ public class Session {
 				return null;
 		}
 	}
-
 }

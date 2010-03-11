@@ -77,7 +77,7 @@ public class Signature {
 			int N=inputs.size();
 			for (int i=0; i<N; ++i) {
 				TypePattern p=getPattern(i);
-				XlimType t=inputs.get(i).getSourceType();
+				XlimType t=inputs.get(i).getType();
 				if (p.match(t).matches()==false)
 					return false; // mismatch
 			}
@@ -96,7 +96,7 @@ public class Signature {
 
 		int N=inputs.size();
 		for (int i=0; i<N; ++i) {
-			XlimType t=inputs.get(i).getSourceType();
+			XlimType t=inputs.get(i).getType();
 			TypePattern p1=getPattern(i);
 			TypePattern p2=s.getPattern(i);
 			int comp=compareMatches(p1, p2, t);

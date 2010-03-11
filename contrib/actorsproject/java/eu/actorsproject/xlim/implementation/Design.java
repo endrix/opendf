@@ -44,6 +44,7 @@ import java.util.List;
 import java.util.ArrayList;
 
 
+import eu.actorsproject.util.ConcatenatedIterable;
 import eu.actorsproject.util.XmlElement;
 import eu.actorsproject.xlim.XlimDesign;
 import eu.actorsproject.xlim.XlimInitValue;
@@ -53,6 +54,7 @@ import eu.actorsproject.xlim.XlimTopLevelPort;
 import eu.actorsproject.xlim.XlimType;
 import eu.actorsproject.xlim.XlimTopLevelPort.Direction;
 import eu.actorsproject.xlim.dependence.CallGraph;
+import eu.actorsproject.xlim.io.BagOfTypeDefs;
 import eu.actorsproject.xlim.util.BagOfTranslationOptions;
 import eu.actorsproject.xlim.util.Session;
 import eu.actorsproject.xlim.util.TranslationOption;
@@ -66,7 +68,6 @@ class Design implements XlimDesign {
 	protected ArrayList<XlimTopLevelPort> mInputPorts, mOutputPorts, mInternalPorts;
 	protected ArrayList<XlimStateVar> mStateVars;
 	protected ArrayList<XlimTaskModule> mTasks;
-	protected ArrayList<XmlElement> mChildren;
 	
 	public Design(String name) {
 		mName = name;
@@ -75,7 +76,6 @@ class Design implements XlimDesign {
 		mInternalPorts = new ArrayList<XlimTopLevelPort>();
 		mStateVars = new ArrayList<XlimStateVar>();
 		mTasks = new ArrayList<XlimTaskModule>();
-		mChildren = new ArrayList<XmlElement>();
 		mTranslationOptions=new TranslationUnitOptions();
 	}
 
@@ -86,7 +86,20 @@ class Design implements XlimDesign {
 
 	@Override
 	public Iterable<? extends XmlElement> getChildren() {
-		return mChildren;
+		// Determine the typedefs that we need for this design
+		BagOfTypeDefs typeDefs=new BagOfTypeDefs();
+		typeDefs.addUsedTypes(this);
+		
+		// Add all of the XLIM elements
+		ArrayList<Iterable<? extends XmlElement>> children=
+			new ArrayList<Iterable<? extends XmlElement>>();
+		children.add(typeDefs);
+		children.add(mInputPorts);
+		children.add(mOutputPorts);
+		children.add(mInternalPorts);
+		children.add(mStateVars);
+		children.add(mTasks);
+		return new ConcatenatedIterable<XmlElement>(children);
 	}
 
 	@Override
@@ -135,7 +148,6 @@ class Design implements XlimDesign {
 	public XlimStateVar addStateVar(String sourceName, XlimInitValue initValue) {
 		XlimStateVar stateVar = new StateVar(sourceName,initValue);
 		mStateVars.add(stateVar);
-		mChildren.add(stateVar);
 		return stateVar;
 	}
 
@@ -143,7 +155,6 @@ class Design implements XlimDesign {
 	public XlimTaskModule addTask(String kind, String name, boolean isAutostart) {
 		XlimTaskModule task = new TaskModule(kind, name, isAutostart);
 		mTasks.add(task);
-		mChildren.add(task);
 		return task;
 	}
 
@@ -161,7 +172,6 @@ class Design implements XlimDesign {
 			mInternalPorts.add(port);
 			break;
 		}
-		mChildren.add(port);
 		return port;
 	}
 	
@@ -178,19 +188,16 @@ class Design implements XlimDesign {
 			mInternalPorts.remove(port);
 			break;
 		}
-		mChildren.remove(port);
 	}
 	
 	@Override
 	public void removeStateVar(XlimStateVar stateVar) {
 		mStateVars.remove(stateVar);
-		mChildren.remove(stateVar);
 	}
 	
 	@Override
 	public void removeTask(XlimTaskModule task) {
 		mTasks.remove(task);
-		mChildren.remove(task);
 	}
 	
 	@Override

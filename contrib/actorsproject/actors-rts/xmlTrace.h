@@ -67,4 +67,14 @@ void xmlDeclareNetwork(FILE *f,
  */
 void xmlTraceAction(FILE *f, int actionIndex);
 
+/*
+ * Generate CPU status 0-goto sleep 1-wakeup 
+ */
+void xmlTraceStatus(FILE *f, int status);
+
+/*
+ * wakeup to by from
+ */
+void xmlTraceWakeup(FILE *f, int whom);
+
 #endif /* xmlTrace_H_INCLUDED */

@@ -39,7 +39,6 @@ package eu.actorsproject.xlim.dependence;
 
 import eu.actorsproject.util.IntrusiveList;
 import eu.actorsproject.util.XmlElement;
-import eu.actorsproject.xlim.XlimStateCarrier;
 import eu.actorsproject.xlim.XlimType;
 
 public abstract class ValueNode implements XmlElement {
@@ -89,22 +88,23 @@ public abstract class ValueNode implements XmlElement {
 	}
 	
 	/**
-	 * @return the stateful resource (port/state variable), which corresponds to
-	 *         by this usage (null for values that correspond to OutputPorts)
+	 * @return true iff this ValueNode has an associated location
+	 *         (=the ValueNode represents a side effect or 
+	 *         the creation of a local location).
 	 */
-	public abstract XlimStateCarrier getStateCarrier();
+	public abstract boolean hasLocation();
 	
 	/**
-	 * @return type of scalar value, null for aggregate values
+	 * @return the location, which a side-effect acts on (null, if 
+	 *         this ValueNode neither represent a side effect nor
+	 *         the creation of a new location).
 	 */
-	public abstract XlimType getScalarType();
+	public abstract Location getLocation();
 	
 	/**
-	 * @return the unique element type of an scalar/array/matrix kind of initializer,
-	 *         that is a multi-dimensional structure with a consistent element type,
-	 *         null for structures (records?) with varying element types.
+	 * @return the type of the value
 	 */
-	public abstract XlimType getCommonElementType();
+	public abstract XlimType getType();
 	
 	/**
 	 * @return the dominating definition, which is superseded by this ValueNode

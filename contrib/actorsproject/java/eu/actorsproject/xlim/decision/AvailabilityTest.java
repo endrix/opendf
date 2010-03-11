@@ -105,7 +105,7 @@ public class AvailabilityTest extends AtomicCondition {
 	@Override
 	public String getAttributeDefinitions() {
 		return super.getAttributeDefinitions()
-		       + " port=\"" + getPort().getSourceName() 
+		       + " port=\"" + getPort().getName() 
 		       + "\" size=\"" + mNumTokens + "\"";
 	}
 }

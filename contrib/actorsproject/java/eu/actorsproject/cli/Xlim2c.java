@@ -41,92 +41,74 @@ import java.io.File;
 import java.io.PrintStream;
 
 import eu.actorsproject.xlim.XlimDesign;
-import eu.actorsproject.xlim.implementation.BasicXlimOperations;
-import eu.actorsproject.xlim.implementation.RealOperations;
-import eu.actorsproject.xlim.implementation.SoftwareExtensions;
-import eu.actorsproject.xlim.io.IXlimReader;
-import eu.actorsproject.xlim.io.XlimReaderWithDiagnostics;
-import eu.actorsproject.xlim.type.BasicXlimTypes;
-import eu.actorsproject.xlim.type.RealTypeFeature;
 import eu.actorsproject.xlim.util.BooleanTranslationOption;
-import eu.actorsproject.xlim.util.Session;
 import eu.actorsproject.xlim.util.XlimTransformer;
 import eu.actorsproject.xlim.xlim2c.CCodeGenerator;
 
-public class Xlim2c extends Session {
+public class Xlim2c extends XlimNorm {
 	
-	protected IXlimReader mReader; 
 	protected XlimTransformer mTransformer;
 	protected CCodeGenerator mCodeGen; 
 	
 	public Xlim2c() {
 		mSessionOptions.registerOption(new BooleanTranslationOption("generate-blocking-waits", true));
-		register(new BasicXlimTypes());
-		register(new BasicXlimOperations());
-		register(new SoftwareExtensions());
-		register(new RealTypeFeature());
-		register(new RealOperations());
+	}
+	
+	/**
+	 * @param input   input file (XLIM)
+	 * @param output  output file (C)
+	 * @return true if there were errors, false for successful compilation
+	 */
+	public boolean compile(File input, PrintStream output) {
+		XlimDesign design=read(input);
+		if (mHasErrors==false)
+			generateOutput(design,output);
+		return mHasErrors;
 	}
 	
 	@Override
 	protected void initSession(String args[]) {
 		// Constructions of fields after initialization of session
 		super.initSession(args);
-		mReader = new XlimReaderWithDiagnostics();
 		mTransformer = new XlimTransformer();
 		mCodeGen = new CCodeGenerator();
 	}
 
-	public void compile(File input, PrintStream output) {
-		XlimDesign design=null;
-		
-		try {
-			design=mReader.read(input);
-		} catch (Exception ex) {
-			String message=ex.getMessage();
-			if (message==null)
-				message="Exception: "+ex.toString();
-			reportError(message);
-			fatalError("Error reading "+input.getPath());
-		}
+	
+	@Override
+	protected void generateOutput(XlimDesign design, PrintStream output) {
 		design.createCallGraph();
 		mTransformer.transform(design);
-		mCodeGen.generateCode(design, input, output);
+		mCodeGen.generateCode(design, mInputFile, output);
 	}
 	
-	private void compile(String args[]) {
+	@Override
+	protected void parseCommandLine(String args[]) {
 		if (args.length!=2) {
-			fatalError("Usage: Xlim2c input-file.xlim output-file.c");
+			printHelp();
+			if (args.length==0)
+				reportError("Missing input file");
+			else
+				reportError("Too many files/command-line arguments");
 		}
-		
-		File input=new File(args[0]);
-		if (!input.canRead()) {
-			fatalError("Unable to open file for reading: "+args[0]);
+		else {
+			setInputFile(args[0]);
+			setOutputFile(args[1]);
 		}
-	
-		PrintStream output=null;
-		try {
-			output=new PrintStream(args[1]);
-		} catch (Exception ex) {
-			fatalError("Unable to open file for writing: "+args[1]+"\n"+ex.toString());
-		}
-		
-		compile(input,output);
 	}
 	
-	protected void reportError(String message) {
-		System.err.println(message);
+	@Override
+	protected void printHelp() {
+		String myName=getClass().getSimpleName();
+		System.out.println("\nUsage: "+myName+" input-file.xlim output-file.c");
+		System.out.println("\nTranslates XLIM into C\n");
 	}
 	
-	protected void fatalError(String message) {
-		reportError(message);
-		System.err.println();
-		System.exit(2);
-	}
 	
 	public static void main(String[] args) {
 		Xlim2c compilerSession=new Xlim2c();
-		compilerSession.initSession(args);
-		compilerSession.compile(args);
+		compilerSession.runFromCommandLine(args);
+		if (compilerSession.mHasErrors)
+			System.exit(1);
 	}
 }

@@ -52,8 +52,8 @@ class MutableReaderContext extends ReaderContext {
 	private XlimTaskModule mCurrentTask;
 	
 	public void addTopLevelPort(XlimTopLevelPort port) {
-		if (mTopLevelPorts.put(port.getSourceName(),port)!=null)
-			throw new IllegalArgumentException("Multiple definitions of toplevel port "+port.getSourceName());
+		if (mTopLevelPorts.put(port.getName(),port)!=null)
+			throw new IllegalArgumentException("Multiple definitions of toplevel port "+port.getName());
 	}
 	
 	public void addTask(XlimTaskModule task) {
@@ -65,6 +65,16 @@ class MutableReaderContext extends ReaderContext {
 	public void addStateVar(String identifier, XlimStateVar stateVar) {
 		if (mStateVars.put(identifier,stateVar)!=null)
 			throw new IllegalArgumentException("Multiple definitions of source "+identifier);
+	}
+	
+	public void addTypeDef(String identifier, XlimTypeDef typeDef) {
+		XlimTypeDef oldTypeDef=mTypeDefs.get(identifier);
+		
+		if (oldTypeDef==null)
+			mTypeDefs.put(identifier, typeDef);
+		else if (typeDef.equals(oldTypeDef)==false)
+			throw new IllegalArgumentException("Multiple definitions of type "+identifier);
+		// else: multiple definitions of identical types (front end sometimes does that)
 	}
 	
 	public void enterTask(XlimTaskModule task) {
@@ -86,6 +96,6 @@ class MutableReaderContext extends ReaderContext {
 		if (mCurrentTask.getPortRate(port)==0)
 			mCurrentTask.setPortRate(port, rate);
 		else
-			throw new IllegalArgumentException("Multiple definitions of port rate: "+port.getSourceName());
+			throw new IllegalArgumentException("Multiple definitions of port rate: "+port.getName());
 	}	
 }

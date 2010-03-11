@@ -50,20 +50,20 @@ import eu.actorsproject.xlim.XlimLoopModule;
 import eu.actorsproject.xlim.XlimModule;
 import eu.actorsproject.xlim.XlimOperation;
 import eu.actorsproject.xlim.XlimPhiContainerModule;
-import eu.actorsproject.xlim.XlimStateCarrier;
 import eu.actorsproject.xlim.XlimTaskModule;
-import eu.actorsproject.xlim.dependence.StatePhiOperator;
+import eu.actorsproject.xlim.dependence.Location;
+import eu.actorsproject.xlim.dependence.SideEffectPhiOperator;
 import eu.actorsproject.xlim.dependence.ValueNode;
 
 public class KilledStateProperty {
 
-	protected Map<XlimContainerModule,Set<XlimStateCarrier>> mKilled;
-	protected Map<XlimModule,Set<XlimStateCarrier>> mKilledInParent;
+	protected Map<XlimContainerModule,Set<Location>> mKilled;
+	protected Map<XlimModule,Set<Location>> mKilledInParent;
 	protected ElementVisitor mElementVisitor;
 	
 	protected KilledStateProperty() {
-		mKilled=new HashMap<XlimContainerModule,Set<XlimStateCarrier>>();
-		mKilledInParent=new HashMap<XlimModule,Set<XlimStateCarrier>>();
+		mKilled=new HashMap<XlimContainerModule,Set<Location>>();
+		mKilledInParent=new HashMap<XlimModule,Set<Location>>();
 		mElementVisitor=new ElementVisitor();
 	}
 	
@@ -73,7 +73,7 @@ public class KilledStateProperty {
 	 */
 	public static KilledStateProperty analyze(XlimTaskModule task) {
 		KilledStateProperty result=new KilledStateProperty();
-		Set<XlimStateCarrier> empty=Collections.emptySet();
+		Set<Location> empty=Collections.emptySet();
 		result.mKilledInParent.put(task,empty);
 		result.computeKilled(task);
 		return result;
@@ -83,7 +83,7 @@ public class KilledStateProperty {
 	 * @param elem an XlimBlockElement (operation or module)
 	 * @return Set of state carriers that are defined in 'elem'
 	 */
-	public Set<XlimStateCarrier> killed(XlimBlockElement elem) {
+	public Set<Location> killed(XlimBlockElement elem) {
 		return elem.accept(mElementVisitor, null);
 	}
 	
@@ -92,12 +92,12 @@ public class KilledStateProperty {
 	 * @return Set of state carriers that are defined on the path from
 	 *         the entry of m's parent to the entry of m.
 	 */
-	public Set<XlimStateCarrier> killedInParent(XlimModule m) {
+	public Set<Location> killedInParent(XlimModule m) {
 		return mKilledInParent.get(m);
 	}
 	
-	private Set<XlimStateCarrier> computeKilled(XlimContainerModule m) {
-		Set<XlimStateCarrier> killed=new HashSet<XlimStateCarrier>();
+	private Set<Location> computeKilled(XlimContainerModule m) {
+		Set<Location> killed=new HashSet<Location>();
 		for (XlimBlockElement elem: m.getChildren())
 			killed.addAll(elem.accept(mElementVisitor, killed));
 		mKilled.put(m, killed);
@@ -105,27 +105,27 @@ public class KilledStateProperty {
 	}
 	
 	private class ElementVisitor 
-		implements XlimBlockElement.Visitor<Set<XlimStateCarrier>,Set<XlimStateCarrier>> {
+		implements XlimBlockElement.Visitor<Set<Location>,Set<Location>> {
 
 		@Override
-		public Set<XlimStateCarrier> visitBlockModule(XlimBlockModule m, 
-				                                      Set<XlimStateCarrier> killedInParent) {
+		public Set<Location> visitBlockModule(XlimBlockModule m, 
+				                              Set<Location> killedInParent) {
 			if (killedInParent!=null)
-				mKilledInParent.put(m, new HashSet<XlimStateCarrier>(killedInParent));
+				mKilledInParent.put(m, new HashSet<Location>(killedInParent));
 				
-			Set<XlimStateCarrier> result=mKilled.get(m);
+			Set<Location> result=mKilled.get(m);
 			if (result==null)
 				result=computeKilled(m);
 			return result;
 		}
 
 		@Override
-		public Set<XlimStateCarrier> visitIfModule(XlimIfModule m, 
-                                                   Set<XlimStateCarrier> killedInParent) {
+		public Set<Location> visitIfModule(XlimIfModule m, 
+                                           Set<Location> killedInParent) {
 			if (killedInParent!=null) {
-				mKilledInParent.put(m, new HashSet<XlimStateCarrier>(killedInParent));
+				mKilledInParent.put(m, new HashSet<Location>(killedInParent));
 				// No state carriers killed between entry of If to test/then/else
-				Set<XlimStateCarrier> empty=Collections.emptySet();
+				Set<Location> empty=Collections.emptySet();
 				visitSubModule(m.getTestModule(), empty);
 				visitSubModule(m.getThenModule(), empty);
 				visitSubModule(m.getElseModule(), empty);
@@ -134,11 +134,11 @@ public class KilledStateProperty {
 		}
 
 		@Override
-		public Set<XlimStateCarrier> visitLoopModule(XlimLoopModule m, 
-                                                   Set<XlimStateCarrier> killedInParent) {
-			Set<XlimStateCarrier> result=visitPhiContainer(m);
+		public Set<Location> visitLoopModule(XlimLoopModule m, 
+                                             Set<Location> killedInParent) {
+			Set<Location> result=visitPhiContainer(m);
 			if (killedInParent!=null) {
-				mKilledInParent.put(m, new HashSet<XlimStateCarrier>(killedInParent));
+				mKilledInParent.put(m, new HashSet<Location>(killedInParent));
 				// State with phi:s in the loop are killed from entry of loop
 				// to the Test/Body modules
 				visitSubModule(m.getTestModule(), result);
@@ -147,28 +147,28 @@ public class KilledStateProperty {
 			return result;
 		}
 
-		private Set<XlimStateCarrier> visitPhiContainer(XlimPhiContainerModule m) {
-			Set<XlimStateCarrier> result=new HashSet<XlimStateCarrier>();
-			for (StatePhiOperator phi: m.getStatePhiOperators()) {
-				XlimStateCarrier carrier=phi.getOutput().getStateCarrier();
+		private Set<Location> visitPhiContainer(XlimPhiContainerModule m) {
+			Set<Location> result=new HashSet<Location>();
+			for (SideEffectPhiOperator phi: m.getStatePhiOperators()) {
+				Location carrier=phi.getOutput().getLocation();
 				result.add(carrier);
 			}
 			return result;
 		}
 		
 		private void visitSubModule(XlimContainerModule m, 
-				                    Set<XlimStateCarrier> killedInParent) {
+				                    Set<Location> killedInParent) {
 			mKilledInParent.put(m, killedInParent);
 			computeKilled(m);
 		}
 		
 		@Override
-		public Set<XlimStateCarrier> visitOperation(XlimOperation op,
-				                                    Set<XlimStateCarrier> killedInParent) {
-			if (op.mayModifyState()) {
-				Set<XlimStateCarrier> result=new HashSet<XlimStateCarrier>();
+		public Set<Location> visitOperation(XlimOperation op,
+				                            Set<Location> killedInParent) {
+			if (op.modifiesLocation()) {
+				Set<Location> result=new HashSet<Location>();
 				for (ValueNode output: op.getValueOperator().getOutputValues()) {
-					XlimStateCarrier carrier=output.getStateCarrier();
+					Location carrier=output.getLocation();
 					if (carrier!=null)
 						result.add(carrier);
 				}

@@ -97,9 +97,9 @@ public class LocalSymbolTable {
 	
 	/**
 	 * Allocate a temporary variable for port if it not already exists
-	 * @param port   an OutputPort
-	 * @param module greatest descendant: temporary is created in the scope of
-	 *               "module" or an enclosing scope (depending on references)
+	 * @param port     an OutputPort
+	 * @param module   temporary is created in the scope of
+	 *                 "module" or an enclosing scope (depending on references)
 	 */
 
 	public void createTemporaryVariable(XlimOutputPort port, XlimModule module) {

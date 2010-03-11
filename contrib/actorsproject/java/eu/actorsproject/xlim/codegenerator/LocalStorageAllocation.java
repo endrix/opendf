@@ -45,6 +45,8 @@ import eu.actorsproject.xlim.XlimInstruction;
 import eu.actorsproject.xlim.XlimLoopModule;
 import eu.actorsproject.xlim.XlimModule;
 import eu.actorsproject.xlim.XlimOperation;
+import eu.actorsproject.xlim.XlimOutputPort;
+import eu.actorsproject.xlim.XlimPhiContainerModule;
 import eu.actorsproject.xlim.XlimTaskModule;
 import eu.actorsproject.xlim.dependence.PhiOperator;
 import eu.actorsproject.xlim.dependence.TestOperator;
@@ -80,7 +82,6 @@ public class LocalStorageAllocation implements XlimBlockElement.Visitor<Object,X
 		}
 		for (XlimBlockElement child: m.getChildren())
 			child.accept(this, inScopeOfModule);
-
 	}
 	
 	@Override
@@ -88,46 +89,65 @@ public class LocalStorageAllocation implements XlimBlockElement.Visitor<Object,X
 		allocateStorage(m,inScopeOfModule);
 		return null;
 	}
-	
+		
 	@Override
 	public Object visitIfModule(XlimIfModule m, XlimModule inScopeOfModule)  {
 		// test-module belongs to scope of parent
 		allocateStorage(m.getTestModule(),inScopeOfModule);
+		
 		// then-module creates its own scope
 		allocateStorage(m.getThenModule(),null);
+		
 		// else-module creates its own scope
 		allocateStorage(m.getElseModule(),null);
+		
 		// phi-nodes belong to scope of parent
-		for (XlimInstruction phi: m.getPhiNodes())
-			visitPhiNode(phi,inScopeOfModule); 
+		visitPhiNodes(m,inScopeOfModule);
+		
 		return null;
 	}
 	
 	@Override
 	public Object visitLoopModule(XlimLoopModule m, XlimModule inScopeOfModule)  {
+		// phi-nodes belong to scope of parent
+		visitPhiNodes(m,inScopeOfModule);
+		
 		// test-and body modules belong to scope of loop
 		mLocalSymbols.createScope(m);
 		allocateStorage(m.getTestModule(),inScopeOfModule);		
 		allocateStorage(m.getBodyModule(), m);
-		// phi-nodes belong to scope of parent
-		for (XlimInstruction phi: m.getPhiNodes())
-			visitPhiNode(phi,inScopeOfModule);
+		
+		return null;
+	}
+
+    private void visitPhiNodes(XlimPhiContainerModule m, XlimModule inScopeOfModule) {
+    	for (XlimInstruction phi: m.getPhiNodes()) {
+    		createTemporary(phi.getOutputPort(0),inScopeOfModule);
+    	}
+    }
+    
+	@Override
+	public Object visitOperation(XlimOperation op, XlimModule inScopeOfModule) {
+		// Just allocate storage for statements
+		// -expressions don't need temporaries.
+		if (mustBeStatement(op)) {
+			// Create temporaries for output ports
+			for (XlimOutputPort port: op.getOutputPorts())
+				createTemporary(port,inScopeOfModule);			
+		}
 		return null;
 	}
 	
-	@Override
-	public Object visitOperation(XlimOperation op, XlimModule inScopeOfModule) {
-		if (mustBeStatement(op))
-			for (int i=0; i<op.getNumOutputPorts(); ++i)
-				mLocalSymbols.createTemporaryVariable(op.getOutputPort(i),inScopeOfModule);
-		return null;
+	protected void createTemporary(XlimOutputPort output, XlimModule inScopeOfModule) {
+		mLocalSymbols.createTemporaryVariable(output, inScopeOfModule);
 	}
 	
 	protected boolean mustBeStatement(XlimOperation op) {
 		
 		if (op.getNumOutputPorts()!=1   // generateExpression can only handle scalars
 			|| op.isReferenced()==false // Also print out unreferenced stuff (someone else should remove!)
-			|| op.mayAccessState()      // operation may access state, make it a statement
+			|| op.dependsOnLocation()   // operation depends on a side effect, make it a statement
+			|| op.modifiesLocation()      // operation has a side effect
 			|| mPlugIn.hasGenerateExpression(op)==false) // handler can't generate expressions
 			return true;  // make it a statement!
 		else {
@@ -154,11 +174,19 @@ public class LocalStorageAllocation implements XlimBlockElement.Visitor<Object,X
 			return false; 
 		}
 	}
-		
-	protected void visitPhiNode(XlimInstruction phi, XlimModule inScopeOfModule) {
-		mLocalSymbols.createTemporaryVariable(phi.getOutputPort(0), inScopeOfModule);
-	}
 	
+	/**
+	 * RealUseInModule is used to identify a multiple and non-local uses of values
+	 * (which implies that we need a temporary variable)
+	 * 
+	 * It finds the module, in which a value is used: 
+	 * - The enclosing module of an operation that uses the value
+	 * - The predecessor of a phi-node that corresponds to the use
+	 *   (the then- or else-module of an If-module, the pre-header or the body of a loop)
+	 * - The test module that uses the value as a condition (the "decision" attribute)
+	 * - null (signifying no module/not a "real" use) for control dependences
+	 *   (the dependence from condition to phi-nodes)
+	 */
 	private static class RealUseInModule implements ValueOperator.Visitor<XlimModule,ValueUsage> {
 
 		public XlimModule visitOperation(XlimOperation xlimOp, ValueUsage use) {

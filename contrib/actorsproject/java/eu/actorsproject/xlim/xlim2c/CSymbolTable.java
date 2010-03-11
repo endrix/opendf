@@ -118,7 +118,7 @@ public class CSymbolTable extends AbstractSymbolTable {
 	
 	@Override
 	public String getReference(XlimTopLevelPort port) {
-		return getTargetName(port)+"("+getActorInstanceReference()+")";
+		return getTargetName(port);
 	}
 	
 	@Override
@@ -163,13 +163,13 @@ public class CSymbolTable extends AbstractSymbolTable {
 		case out:  prefix=sOutputPortPrefix; break;
 		default:   prefix=sInternalPortPrefix;
 		}
-    	return prefix + index + "_" + createCName(port.getSourceName());
+    	return prefix + index + "_" + createCName(port.getName());
     }
     
 	@Override
     protected String createTargetName(XlimStateVar stateVar, int index) {
 		String id=stateVar.getUniqueId();
-		String cName=createCName(stateVar.getSourceName());
+		String cName=createCName(stateVar.getDebugName());
 		if (cName.isEmpty())
 			return id;
 		else

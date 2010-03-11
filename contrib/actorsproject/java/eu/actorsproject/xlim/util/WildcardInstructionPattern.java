@@ -121,7 +121,7 @@ public class WildcardInstructionPattern extends WildcardPattern {
 	}
 	
 	protected XlimInstruction matchedInstruction(XlimSource matchedRoot) {
-		return matchedRoot.isOutputPort().getParent();
+		return matchedRoot.asOutputPort().getParent();
 	}
 	
 	@Override

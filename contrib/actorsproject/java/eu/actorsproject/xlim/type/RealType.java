@@ -55,9 +55,18 @@ class RealType extends UnparametricType {
 
 	@Override
 	public boolean isZero(String s) {
-		return Double.doubleToRawLongBits(Double.valueOf(s))==0;
+		try {
+			return Double.doubleToRawLongBits(Double.valueOf(s))==0;
+		} catch (NumberFormatException ex) {
+			return false;
+		}
 	}
 	
+	@Override
+	public String getZero() {
+		return "0.0";
+	}
+
 	@Override
 	public long minValue() {
 		// FIXME: -Inf as long, but is it useful...?

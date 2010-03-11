@@ -37,14 +37,51 @@
 
 package eu.actorsproject.xlim;
 
+import eu.actorsproject.xlim.dependence.Location;
+
 /**
  * @author ecarvon
  * An XlimSource object represents an output port or a state variable, 
  * both of which may constitute the source of an input port
  */
 public interface XlimSource {
-	XlimStateVar isStateVar();
-	XlimOutputPort isOutputPort();
+	/**
+	 * @return unique identifier (no connection to source)
+	 */
 	String getUniqueId();
-	XlimType getSourceType();
+	
+	/**
+	 * @return type of the state variable or output port
+	 */
+	XlimType getType();
+	
+	
+	/**
+	 * @return true iff the source is associated with a location
+	 * 
+	 * This is the case for output ports that represent local aggregates
+	 * and for all state variables (but not for scalar output ports)
+	 */
+	boolean hasLocation();
+	
+	/**
+	 * @return the location that is associated with the source (possibly null)
+	 */
+	Location getLocation();
+	
+	/**
+	 * @return state variable (or null if not a state variable)
+	 */
+	XlimStateVar asStateVar();
+	
+	/**
+	 * @return output port (or null if not an output port)
+	 */
+	XlimOutputPort asOutputPort();
+	
+	/**
+	 * @return a string that describes the location for the purposes of debug printouts
+	 *         and diagnostics (neither guaranteed to be unique nor a legal C/CAL idententifier)
+	 */
+	String getDebugName();
 }

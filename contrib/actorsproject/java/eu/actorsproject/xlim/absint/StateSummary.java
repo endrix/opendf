@@ -43,7 +43,7 @@ import java.util.Iterator;
 import java.util.Map;
 
 import eu.actorsproject.util.XmlElement;
-import eu.actorsproject.xlim.XlimStateCarrier;
+import eu.actorsproject.xlim.dependence.StateLocation;
 
 /**
  * Summarizes the abstract state at a certain program point,
@@ -52,7 +52,7 @@ import eu.actorsproject.xlim.XlimStateCarrier;
 public class StateSummary<T extends AbstractValue<T>> implements XmlElement {
 
 	private String mName;
-	private HashMap<XlimStateCarrier,T> mValueMap=new HashMap<XlimStateCarrier,T>();
+	private HashMap<StateLocation,T> mValueMap=new HashMap<StateLocation,T>();
 	
 	/**
 	 * Creates an empty, unnamed StateSummary
@@ -72,7 +72,7 @@ public class StateSummary<T extends AbstractValue<T>> implements XmlElement {
 	 * @param carrier a state variable or an actor port
 	 * @return the abstract value that is associated with 'carrier'
 	 */
-	public T get(XlimStateCarrier carrier) {
+	public T get(StateLocation carrier) {
 		return mValueMap.get(carrier);
 	}
 	
@@ -80,7 +80,7 @@ public class StateSummary<T extends AbstractValue<T>> implements XmlElement {
 	 * @param carrier a state variable or an actor port
 	 * @return true iff 'carrier' is associate with a value (possibly null)
 	 */
-	public boolean hasValue(XlimStateCarrier carrier) {
+	public boolean hasValue(StateLocation carrier) {
 		return mValueMap.containsKey(carrier);
 	}
 
@@ -92,7 +92,7 @@ public class StateSummary<T extends AbstractValue<T>> implements XmlElement {
 	 * @param newValue new value (null represents "top")
 	 * @return true iff state summary was updated
 	 */
-	public boolean add(XlimStateCarrier carrier, T newValue) {
+	public boolean add(StateLocation carrier, T newValue) {
 		T oldValue=mValueMap.get(carrier);
 		if (oldValue!=null) {
 			// carrier has a (non-null) value already:
@@ -137,9 +137,9 @@ public class StateSummary<T extends AbstractValue<T>> implements XmlElement {
 	
 	private class EntryIterator implements Iterator<XmlElement> {
 
-		Iterator<Map.Entry<XlimStateCarrier, T>> mIterator;
+		Iterator<Map.Entry<StateLocation, T>> mIterator;
 		
-		EntryIterator(Iterator<Map.Entry<XlimStateCarrier, T>> p) {
+		EntryIterator(Iterator<Map.Entry<StateLocation, T>> p) {
 			mIterator=p;
 		}
 		
@@ -157,9 +157,9 @@ public class StateSummary<T extends AbstractValue<T>> implements XmlElement {
 	}
 	
 	private class XmlAdaptor implements XmlElement {
-		Map.Entry<XlimStateCarrier, T> mEntry;
+		Map.Entry<StateLocation, T> mEntry;
 		
-		XmlAdaptor(Map.Entry<XlimStateCarrier, T> entry) {
+		XmlAdaptor(Map.Entry<StateLocation, T> entry) {
 			mEntry=entry;
 		}
 		
@@ -170,13 +170,13 @@ public class StateSummary<T extends AbstractValue<T>> implements XmlElement {
 		
 		@Override
 		public String getAttributeDefinitions() {
-			XlimStateCarrier carrier=mEntry.getKey();
-			String name=carrier.getSourceName();
+			StateLocation carrier=mEntry.getKey();
+			String name=carrier.getDebugName();
 
 			String attributes=(name!=null)?
 				attributes=" sourceName=\""+name+"\"" : "";
-			if (carrier.isStateVar()!=null)
-				attributes+=" source=\"" + carrier.isStateVar().getUniqueId() + "\"";
+			if (carrier.asStateVar()!=null)
+				attributes+=" source=\"" + carrier.asStateVar().getUniqueId() + "\"";
 			return attributes;
 		}
 

@@ -38,22 +38,36 @@
 package eu.actorsproject.xlim.type;
 
 
+import java.util.List;
+
 import eu.actorsproject.xlim.XlimType;
-import eu.actorsproject.xlim.io.XlimAttributeList;
+import eu.actorsproject.xlim.XlimTypeArgument;
 
 /**
  * Type kind, which is common to all integer types
  */
 class IntegerTypeKind extends ParametricTypeKind {
+	
 	IntegerTypeKind() {
 		super("int");
 	}
 	
-	@Override
-	protected Integer getParameter(XlimAttributeList attributes) {
-		return getIntegerAttribute("size",attributes);
-	}
 	
+	/**
+	 * @param size
+	 * @return an instance of int with the given size attribute
+	 *         
+	 * This method supports legacy XLIM, which doesn't deal with parametric types
+	 * other than int(size), which has an explicit size attribute in XLIM.
+	 */
+	
+	@Override
+	public XlimType createType(int size) {
+		Integer typeParameter=size;
+		return createAndCache(typeParameter);
+	}
+
+
 	@Override
 	protected XlimType create(Object param) {
 		if (param instanceof Integer) {
@@ -73,4 +87,18 @@ class IntegerTypeKind extends ParametricTypeKind {
 		else
 			return intT2;
 	}
+
+
+	@Override
+	protected Object getParameter(List<XlimTypeArgument> typeArgList) {
+		if (typeArgList.size()==1) {
+			XlimTypeArgument arg=typeArgList.get(0);
+			
+			if (arg.getName().equals("size") && arg.isValueParameter()) {
+				String size=arg.getValue();
+				return Integer.valueOf(size);
+			}
+		}
+		throw new IllegalArgumentException("Type \"int\" requires an Integer \"size\" parameter");
+	}	
 }
