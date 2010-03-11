@@ -187,7 +187,7 @@ public class ActionSchedulerParser {
 
 		@Override
 		public Classification visitOperation(XlimOperation op, Object dummyArg) {
-			if (op.mayModifyState())
+			if (op.modifiesState())
 				if (op.getCallSite()!=null)
 					return Classification.TaskCall;
 				else
@@ -267,7 +267,7 @@ public class ActionSchedulerParser {
 		}
 		
 		public Condition parse(XlimSource src, ValueNode value) {
-			XlimOutputPort port=src.isOutputPort();
+			XlimOutputPort port=src.asOutputPort();
 			if (port!=null) {
 				XlimOperation op=port.getParent().isOperation();
 				if (op!=null) {

@@ -43,36 +43,60 @@ import java.util.List;
 
 import eu.actorsproject.xlim.XlimInitValue;
 import eu.actorsproject.xlim.XlimType;
+import eu.actorsproject.xlim.util.Session;
 
 class InitValueList implements XlimInitValue {
 
 	private ArrayList<XlimInitValue> mChildren;
+	private XlimType mType;
 	private XlimType mCommonElementType;
 	private int mNumElements;
 	private boolean mIsZero;
 	
 	public InitValueList(Collection<? extends XlimInitValue> children) {
 		mChildren = new ArrayList<XlimInitValue>(children);
+		XlimType childT=null;
 		
 		// Find total number of elements and a possible common element type
-		if (!mChildren.isEmpty())
-			mCommonElementType=mChildren.get(0).getCommonElementType();
-		mIsZero=true;
+		if (!mChildren.isEmpty()) {
+			XlimInitValue firstChild=mChildren.get(0);
+			mCommonElementType=firstChild.getCommonElementType();
+			childT=firstChild.getType();
+		}
 		
+		// Comupute the following properties
+		// mIsZero            = true iff all elements are zero
+		// mCommonElementType = possible common element type (a scalar type)
+		// mNumElements       = total number of elements
+		// childT             = common type of children (possibly a List-type)
+		mIsZero=true;
 		for (XlimInitValue initValue: mChildren) {
 			XlimType t=initValue.getCommonElementType();
 			int n=initValue.totalNumberOfElements();
+			
 			if (t!=mCommonElementType && n!=0)
 				mCommonElementType=null;
 			if (initValue.isZero()==false)
 				mIsZero=false;
 			mNumElements+=n;
+			if (initValue.getType()!=childT)
+				childT=null;
 		}
+		
+		// TODO: we might not be able to assert this property
+		// if (childT!=null) ...
+		assert(childT!=null);
+		mType=Session.getTypeFactory().createList(childT, mChildren.size());
 	}
 	
 	@Override
 	public List<? extends XlimInitValue> getChildren() {
 		return mChildren;
+	}
+
+	
+	public XlimType getType() {
+		return mType;
 	}
 
 	@Override
@@ -91,8 +115,21 @@ class InitValueList implements XlimInitValue {
 	}
 
 	@Override
-	public void setCommonElementType(XlimType t) {
+	public XlimType setCommonElementType(XlimType t) {
+		XlimType childT=null;
+		for (XlimInitValue initValue: mChildren) {
+			XlimType newChildT=initValue.setCommonElementType(t);
+			if (childT==null)
+				childT=newChildT;
+			else {
+				assert(childT==newChildT);
+			}
+		}
+		assert(childT!=null);
+		
 		mCommonElementType=t;
+		mType=Session.getTypeFactory().createList(childT, mChildren.size());
+		return mType;
 	}
 	
 	@Override

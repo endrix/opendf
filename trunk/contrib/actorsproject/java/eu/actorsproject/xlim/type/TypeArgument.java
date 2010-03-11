@@ -35,10 +35,53 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package eu.actorsproject.xlim;
+package eu.actorsproject.xlim.type;
 
-public interface XlimStateCarrier {
-	XlimStateVar isStateVar();
-	XlimTopLevelPort isPort();
-	String getSourceName();
+import eu.actorsproject.xlim.XlimType;
+import eu.actorsproject.xlim.XlimTypeArgument;
+
+/**
+ * Represents a named argument to a type constructor:
+ * either a type or a (non-type) value
+ */
+public class TypeArgument implements XlimTypeArgument {
+
+	private String mName;
+	private XlimType mType;
+	private String mValue;
+	
+	public TypeArgument(String name, XlimType type) {
+		mName=name;
+		mType=type;
+	}
+	
+	public TypeArgument(String name, String value) {
+		mName=name;
+		mValue=value;
+	}
+
+	@Override
+	public String getName() {
+		return mName;
+	}
+	
+	@Override
+	public boolean isValueParameter() {
+		return mValue!=null;
+	}
+
+	@Override
+	public boolean isTypeParameter() {
+		return mType!=null;
+	}
+	
+	@Override
+	public String getValue() {
+		return mValue;
+	}
+		
+	@Override
+	public XlimType getType() {
+		return mType;
+	}
 }

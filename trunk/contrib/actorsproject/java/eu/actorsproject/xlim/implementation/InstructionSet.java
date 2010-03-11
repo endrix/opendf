@@ -153,12 +153,12 @@ public class InstructionSet implements OperationFactory {
                              List<? extends XlimOutputPort> outputs) {
 		String result=name+": ";
 		if (inputs.size()==1)
-			result += inputs.get(0).getSourceType();
+			result += inputs.get(0).getType();
 		else {
 			String delimiter="";
 			result += "(";
 			for (XlimSource source: inputs) {
-				result += delimiter+source.getSourceType();
+				result += delimiter+source.getType();
 				delimiter=",";
 			}
 			result += ")";

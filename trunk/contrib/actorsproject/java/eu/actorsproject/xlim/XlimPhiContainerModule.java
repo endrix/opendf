@@ -37,14 +37,14 @@
 
 package eu.actorsproject.xlim;
 
-import eu.actorsproject.xlim.dependence.StatePhiOperator;
+import eu.actorsproject.xlim.dependence.SideEffectPhiOperator;
 
 /**
  * Represents loops and if-modules (that contain phi-nodes)
  */
 public interface XlimPhiContainerModule extends XlimModule {
 	Iterable<? extends XlimPhiNode> getPhiNodes();
-	Iterable<? extends StatePhiOperator> getStatePhiOperators();
+	Iterable<? extends SideEffectPhiOperator> getStatePhiOperators();
 	
 	@Override
 	XlimContainerModule getParentModule();

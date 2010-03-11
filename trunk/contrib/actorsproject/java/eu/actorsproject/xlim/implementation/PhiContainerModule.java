@@ -47,10 +47,10 @@ import eu.actorsproject.xlim.XlimInstruction;
 import eu.actorsproject.xlim.XlimOutputPort;
 import eu.actorsproject.xlim.XlimPhiContainerModule;
 import eu.actorsproject.xlim.XlimSource;
-import eu.actorsproject.xlim.XlimStateCarrier;
 import eu.actorsproject.xlim.dependence.FixupContext;
+import eu.actorsproject.xlim.dependence.Location;
 import eu.actorsproject.xlim.dependence.PhiOperator;
-import eu.actorsproject.xlim.dependence.StatePhiOperator;
+import eu.actorsproject.xlim.dependence.SideEffectPhiOperator;
 import eu.actorsproject.xlim.dependence.ValueNode;
 import eu.actorsproject.xlim.dependence.ValueUsage;
 
@@ -63,14 +63,14 @@ abstract class PhiContainerModule extends AbstractModule
 	private ContainerModule mParent;
 	private TestModule mTestModule;
 	private PhiList<PhiNode> mPhiNodes;
-	private PhiList<StatePhiOperator> mStatePhis; // state variables/ports
+	private PhiList<SideEffectPhiOperator> mStatePhis; // state variables/ports
 	
 	protected PhiContainerModule(ContainerModule parent) {
 		super(parent);
 		mParent=parent;
 		mTestModule = new TestModule(this);
 		mPhiNodes=new PhiList<PhiNode>();
-		mStatePhis=new PhiList<StatePhiOperator>();
+		mStatePhis=new PhiList<SideEffectPhiOperator>();
 	}
 	
 	@Override
@@ -96,7 +96,7 @@ abstract class PhiContainerModule extends AbstractModule
 		return mPhiNodes;
 	}
 	
-	public Iterable<? extends StatePhiOperator> getStatePhiOperators() {
+	public Iterable<? extends SideEffectPhiOperator> getStatePhiOperators() {
 		return mStatePhis;
 	}
 	
@@ -130,7 +130,7 @@ abstract class PhiContainerModule extends AbstractModule
 		mTestModule.removeReferences();
 		for (PhiNode phi: mPhiNodes)
 			phi.removeReferences();
-		for (StatePhiOperator phi: mStatePhis)
+		for (SideEffectPhiOperator phi: mStatePhis)
 			phi.removeReferences();
 	}
 	
@@ -139,7 +139,7 @@ abstract class PhiContainerModule extends AbstractModule
 		// Substitute StateValueNodes (definitions/phi-nodes) 
 		// in the operations that use them
 		// so that this module can be moved
-		for (StatePhiOperator phi: mStatePhis) {
+		for (SideEffectPhiOperator phi: mStatePhis) {
 			ValueNode output=phi.getOutput();
 			ValueNode domDef=output.getDominatingDefinition();
 			output.substitute(domDef);
@@ -158,29 +158,29 @@ abstract class PhiContainerModule extends AbstractModule
 	}
 	
 	/**
-	 * Creates phi-nodes (StatePhiOperator) for each of the stateful 
-	 * resources in 'newCarriers' 
-	 * @param newCarriers  
+	 * Creates phi-nodes for each of the locations 
+	 * @param newLocations  
 	 */
-	protected void createStatePhiOperators(Set<XlimStateCarrier> newCarriers) {
+	protected void createStatePhiOperators(Set<Location> newLocations) {
 		// Don't create new phi-noces if there already are there
 		if (mStatePhis.isEmpty()==false) {
-			newCarriers=new HashSet<XlimStateCarrier>(newCarriers);  // copy
-			for (StatePhiOperator phi: mStatePhis) {
-				XlimStateCarrier carrier=phi.getOutput().getStateCarrier();
-				newCarriers.remove(carrier);
+			newLocations=new HashSet<Location>(newLocations);  // copy
+			for (SideEffectPhiOperator phi: mStatePhis) {
+				Location loc=phi.getOutput().getLocation();
+				assert(loc!=null);
+				newLocations.remove(loc);
 			}
 		}
 		
 		// Create new phi-nodes
 		boolean isLoop=isLoop();
-		for (XlimStateCarrier carrier: newCarriers) {
-			StatePhiOperator phi=new StatePhiOperator(this,carrier,isLoop);
+		for (Location loc: newLocations) {
+			SideEffectPhiOperator phi=new SideEffectPhiOperator(this,loc,isLoop);
 			mStatePhis.addLast(phi);
 		}
 	}
 
-	protected void removeStatePhiOperator(StatePhiOperator phiNode) {
+	protected void removeStatePhiOperator(SideEffectPhiOperator phiNode) {
 		// Check that this is one of my guys
 		if (phiNode.getParentModule()!=this)
 			throw new IllegalArgumentException("phi-node not contained in module");
@@ -207,7 +207,7 @@ abstract class PhiContainerModule extends AbstractModule
 			// stateful resource.
 			// Implementation of such support is complicated by the need of resolving
 			// the other (unpatched) path of the phi-node.
-			String firstName=context.getNewValues().iterator().next().getSourceName();
+			String firstName=context.getNewValues().iterator().next().getDebugName();
 			throw new UnsupportedOperationException("Patch requires new phi-node: "+firstName);
 		}
 	}

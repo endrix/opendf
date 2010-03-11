@@ -38,8 +38,9 @@
 package eu.actorsproject.xlim.absint;
 
 
-import eu.actorsproject.xlim.XlimStateCarrier;
+import eu.actorsproject.xlim.dependence.Location;
 import eu.actorsproject.xlim.dependence.ValueNode;
+import eu.actorsproject.xlim.dependence.StateLocation;
 
 /**
  * Represents a mapping from state variables/actor ports to value nodes
@@ -96,16 +97,16 @@ public class StateMapping {
 		
 		// TODO: is this method used, apart from createContext?
 		for (ValueNode valueNode: getValueNodes()) {
-			XlimStateCarrier carrier=valueNode.getStateCarrier();
-			assert(carrier!=null);
+			StateLocation location=valueNode.getLocation().asStateLocation();
+			assert(location!=null);
 			
-			T aValue=summary.get(carrier);
+			T aValue=summary.get(location.asStateLocation());
 			// Should we do the update for a null value?
 			// Yes, if the null value means "top" (summary.hasValue)
 			// Yes, if the context doesn't already contain a mapping for that value
 			// (in the latter case we use "top" to represent missing values, but
 			//  we don't want to overwrite values for which we have information)
-			if (aValue!=null || summary.hasValue(carrier) || context.hasValue(valueNode)==false)
+			if (aValue!=null || summary.hasValue(location) || context.hasValue(valueNode)==false)
 				if (context.put(valueNode, aValue))
 					changed=true;
 		}
@@ -142,14 +143,14 @@ public class StateMapping {
 		boolean changed=false;
 		
 		for (ValueNode valueNode: getValueNodes()) {
-			XlimStateCarrier carrier=valueNode.getStateCarrier();
-			assert(carrier!=null);
+			StateLocation location=valueNode.getLocation().asStateLocation();
+			assert(location!=null);
 			
 			// Possibly filter out ports from the summary
-			if (updatePorts || carrier.isStateVar()!=null) {
+			if (updatePorts || location.asStateVar()!=null) {
 				assert(context.hasValue(valueNode));
 				T aValue=context.get(valueNode);
-				if (summary.add(carrier, aValue))
+				if (summary.add(location, aValue))
 					changed=true;
 			}
 		}
@@ -157,10 +158,17 @@ public class StateMapping {
 		return changed;
 	}
 	
+	/**
+	 * @param valueNodes
+	 * @return true iff all valueNodes are side effects on StateLocations
+	 *         (actor ports and state variables)
+	 */
 	private static boolean haveStateCarriers(Iterable<ValueNode> valueNodes) {
-		for (ValueNode valueNode: valueNodes)
-			if (valueNode.getStateCarrier()==null)
+		for (ValueNode valueNode: valueNodes) {
+			Location location=valueNode.getLocation();
+			if (location==null || location.isStateLocation()==false)
 				return false;
+		}
 		return true;
 	}
 }

@@ -39,6 +39,7 @@ package eu.actorsproject.xlim.io;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.List;
 import java.util.HashMap;
 import java.util.ArrayList;
@@ -66,6 +67,7 @@ import eu.actorsproject.xlim.XlimType;
 import eu.actorsproject.xlim.XlimOperation;
 import eu.actorsproject.xlim.XlimInstruction;
 import eu.actorsproject.xlim.XlimOutputPort;
+import eu.actorsproject.xlim.XlimTypeKind;
 import eu.actorsproject.xlim.util.BagOfTranslationOptions;
 import eu.actorsproject.xlim.util.Session;
 
@@ -79,6 +81,7 @@ public class XlimReaderWithDiagnostics implements IXlimReader {
 	protected XlimFactory mFactory;
 	protected HashMap<String,XlimTag> mTags;
 	protected int mNumErrors;
+	protected int mErrorLimit=42;
 	
 	/* tag constants */
 	protected enum XlimTag {
@@ -92,7 +95,11 @@ public class XlimReaderWithDiagnostics implements IXlimReader {
 		OPERATION_TAG("operation"),
 		PHI_TAG("PHI"),
 		PORT_TAG("port"),
-		NOTE_TAG("note");
+		NOTE_TAG("note"),
+		TYPEDEF_TAG("typeDef"),
+		TYPE_TAG("type"),
+		VALUEPAR_TAG("valuePar"),
+		TYPEPAR_TAG("typePar");
 		
 		private String mTagName;
 		
@@ -166,26 +173,61 @@ public class XlimReaderWithDiagnostics implements IXlimReader {
 			return value;
 		}
 		
-		protected XlimType getType(XlimElement element) {
-			XlimType type=null;
+		protected XlimType getType(XlimElement element, ReaderContext context) {
 			String typeName=getRequiredAttribute("typeName", element);
 			
 			if (typeName!=null) {
-				XlimAttributeList attributes=element.getAttributes();
+	
 				try {
-				    type=mPlugIn.getType(typeName,attributes);
-				    if (type==null)
-						reportError(element, "Unsupported or incomplete type: typeName=\""+typeName+"\"");
-				} catch (RuntimeException ex) {
+					XlimTypeDef typeDef=context.getTypeDef(typeName);
+					
+					if (typeDef!=null) {
+						return typeDef.getType(mPlugIn, context);
+					}
+					else {
+						XlimTypeKind typeKind=mPlugIn.getTypeKind(typeName);
+
+						if (typeKind!=null) {
+							String sizeAttribute=element.getAttributeValue("size");				
+
+							if (sizeAttribute!=null) {
+								// Special fix for legacy "int" type with "size" attribute
+								try {
+									int size=Integer.valueOf(sizeAttribute);
+									return typeKind.createType(size);
+								} catch (NumberFormatException ex) {
+									reportWarning(element, "Expecting integer attribute, found: size=\""
+											      +sizeAttribute+"\"");
+									return typeKind.createType();
+								}
+							}
+							else {
+								return typeKind.createType();
+							}
+						}
+						else {
+							reportError(element, "Unsupported type: typeName=\""+typeName+"\"");
+						}
+					}
+				} 
+				catch (XlimReaderError err) {
+					reportError(err);
+				}
+				catch (RuntimeException ex) {
 					reportError(element, ex.getMessage());
 				}
 			}
-			return type;
+			
+			return null; // error
 		}
 		
 		protected void unhandledTag(XlimElement element) {
 			String tagName=element.getTagName();
 			reportWarning(element, "Unknown/unhandled tag <"+tagName+">");
+		}
+		
+		protected boolean isEmpty(XlimElement element) {
+			return element.getElements().iterator().hasNext()==false;
 		}
 		
 		protected void checkThatEmpty(XlimElement element) {
@@ -203,10 +245,12 @@ public class XlimReaderWithDiagnostics implements IXlimReader {
 
 		private InitValueHandler mInitValueHandler;
 		private ModuleHandler mModuleHandler;
+		private TypeHandler mTypeHandler;
 		
 		public DesignHandler() {
 			mInitValueHandler=new InitValueHandler();
 			mModuleHandler=new ModuleHandler();
+			mTypeHandler=new TypeHandler();
 		}
 
 		public XlimDesign readDesign(XlimElement rootElement) {
@@ -248,6 +292,9 @@ public class XlimReaderWithDiagnostics implements IXlimReader {
 				readTaskElement(child,context,parent);
 				tasks.add(child);
 				break;
+			case TYPEDEF_TAG:
+				readTypeDef(child,context);
+				break;
 			case NOTE_TAG:
 				readNote(child,parent);
 				break;
@@ -261,7 +308,7 @@ public class XlimReaderWithDiagnostics implements IXlimReader {
 				                     XlimDesign design) {
 			String name=getRequiredAttribute("name",portElement);
 			String dir=getRequiredAttribute("dir",portElement);
-			XlimType type=getType(portElement);
+			XlimType type=getType(portElement,context);
 			XlimTopLevelPort.Direction direction=XlimTopLevelPort.Direction.in;
 			if (dir!=null) {
 				if (dir.equals("in"))
@@ -287,7 +334,7 @@ public class XlimReaderWithDiagnostics implements IXlimReader {
                                         MutableReaderContext context,
                                         XlimDesign design) {
 			String name=getRequiredAttribute("name", portElement);
-			XlimType type=getType(portElement);
+			XlimType type=getType(portElement,context);
 			
 			if (name!=null && type!=null) {
 			    XlimTopLevelPort port=design.addTopLevelPort(name,XlimTopLevelPort.Direction.internal,type);
@@ -305,7 +352,24 @@ public class XlimReaderWithDiagnostics implements IXlimReader {
 		protected void readStateVar(XlimElement stateVarElement,
                                     MutableReaderContext context,
                                     XlimDesign design) {
-			XlimInitValue initValue=mInitValueHandler.readInitValue(stateVarElement);
+			XlimInitValue initValue=null;
+			
+			if (isEmpty(stateVarElement)) {
+				// <stateVar> with no <initValue>: create a zero initializer
+				String typeName=stateVarElement.getAttributeValue("typeName");
+				if (typeName!=null) {
+					XlimType type=getType(stateVarElement, context);
+					if (type!=null)
+						initValue=createZeroInitializer(type);
+				}
+				else {
+					reportError(stateVarElement,
+							    "Attribute \"typeName\" required in <stateVar> with no <initValue>");
+				}
+			}
+			else
+				initValue=mInitValueHandler.readInitValue(stateVarElement,context);
+			
 			String sourceName=stateVarElement.getAttributeValue("sourceName");
 			String name=getRequiredAttribute("name",stateVarElement);
 			if (name!=null) {
@@ -318,7 +382,30 @@ public class XlimReaderWithDiagnostics implements IXlimReader {
 			}
 		}
 
-		public void readTaskElement(XlimElement taskElement,
+		protected XlimInitValue createZeroInitializer(XlimType type) {
+		
+			if (type.isList()) {
+				XlimInitValue zeroElement=createZeroInitializer(type.getTypeParameter("type"));
+				int numElements=type.getIntegerParameter("size");
+				return mFactory.createInitValue(zeroElement, numElements);
+			}
+			else {
+				String zeroValue=type.getZero();
+				return mFactory.createInitValue(zeroValue, type);
+			}
+		}
+		
+		protected void readTypeDef(XlimElement typeDefElement,
+				                   MutableReaderContext context) {
+			String name=getRequiredAttribute("name",typeDefElement);
+			XlimTypeElement typeElement=mTypeHandler.readType(typeDefElement, context);
+			if (name!=null) {
+				XlimTypeDef typeDef=new XlimTypeDef(name,typeElement, typeDefElement.getLocation());
+				context.addTypeDef(name,typeDef);
+			}
+		}
+		
+		protected void readTaskElement(XlimElement taskElement,
                                     MutableReaderContext context,
                                     XlimDesign design) {
 			String kind=getRequiredAttribute("kind",taskElement);
@@ -376,17 +463,19 @@ public class XlimReaderWithDiagnostics implements IXlimReader {
 	 */
 	protected class InitValueHandler extends ElementHandler<List<XlimInitValue>, Object> {
 		
-		public XlimInitValue readInitValue(XlimElement element) {
+		public XlimInitValue readInitValue(XlimElement element, MutableReaderContext context) {
 			ArrayList<XlimInitValue> initValues=new ArrayList<XlimInitValue>();
-			processChildren(element,null,initValues,null);
+			processChildren(element,context,initValues,null);
 			if (initValues.size()==1)
 				return initValues.get(0);
-			else
+			else if (!initValues.isEmpty())
 				return mFactory.createInitValue(initValues);
+			else
+				return null; // Error
 		}
 		
 		protected void processChild(XlimElement child, 
-                                    MutableReaderContext dummyContext, 
+                                    MutableReaderContext context, 
                                     List<XlimInitValue> initValues, 
                                     Object dummy) {
 
@@ -395,10 +484,10 @@ public class XlimReaderWithDiagnostics implements IXlimReader {
 				String typeName=getRequiredAttribute("typeName",child);
 				if (typeName!=null) {
 					if (typeName.equals("List")) {
-						initValue=createAggregate(child);
+						initValue=createAggregate(child,context);
 					}
 					else {
-						initValue=createScalar(child);
+						initValue=createScalar(child,context);
 					}
 					if (initValue!=null)
 						initValues.add(initValue);
@@ -408,23 +497,88 @@ public class XlimReaderWithDiagnostics implements IXlimReader {
 				unhandledTag(child);
 		}
 
-		protected XlimInitValue createScalar(XlimElement element) {
-			XlimType type=getType(element);
+		protected XlimInitValue createScalar(XlimElement element, ReaderContext context) {
+			XlimType type=getType(element,context);
 			String value=getRequiredAttribute("value",element);			
 			checkThatEmpty(element);
-			if (value!=null)
+			if (value!=null && type!=null)
 				return mFactory.createInitValue(value,type);
 			else
-				return null;
+				return null; // Error
 		}
 		
-		protected XlimInitValue createAggregate(XlimElement element) {
+		protected XlimInitValue createAggregate(XlimElement element, 
+				                                MutableReaderContext context) {
 			List<XlimInitValue> aggregate=new ArrayList<XlimInitValue>();
-			processChildren(element,null,aggregate,null);
-			return mFactory.createInitValue(aggregate);
+			processChildren(element,context,aggregate,null);
+			if (!aggregate.isEmpty())
+				return mFactory.createInitValue(aggregate);
+			else
+				return null; // Error
 		}
 	}
 
+	protected class TypeHandler extends ElementHandler<XlimTypeElement,Object> {
+		
+		public XlimTypeElement readType(XlimElement parent, MutableReaderContext context) {
+			Iterator<XlimElement> pType=parent.getElements().iterator();
+			boolean typeTagFound=false;
+			XlimTypeElement result=null;
+			
+			while (pType.hasNext()) {
+				XlimElement typeElement=pType.next();
+				
+				if (typeTagFound) {
+					reportWarning(typeElement, 
+						    "Unhandled element <"+typeElement.getTagName()+"> follows <type>");
+				}
+				else if (getTag(typeElement)==XlimTag.TYPE_TAG) {
+					typeTagFound=true;
+					
+					String typeName=getRequiredAttribute("name", typeElement);
+					
+					if (typeName!=null) {
+						result=new XlimTypeElement(typeName, typeElement.getLocation());
+						processChildren(typeElement,context,result,null);
+					}
+					// else: no "name" attribute (error already reported)
+				}
+				else {					
+					reportWarning(typeElement, 
+							    "Expected <type> element, found unhandled element <"+typeElement.getTagName()+">");
+				}
+			}
+			
+			if (typeTagFound==false) {
+				reportError(parent,"Expecting a <type> element");
+			}
+			
+			return result;
+		}
+				
+		protected void processChild(XlimElement child, 
+                                    MutableReaderContext context,
+                                    XlimTypeElement typeElement,
+                                    Object dummy) {
+			XlimTag tag=getTag(child);
+			if (tag==XlimTag.VALUEPAR_TAG || tag==XlimTag.TYPEPAR_TAG) {
+				String name=getRequiredAttribute("name", child);
+				
+				if (tag==XlimTag.VALUEPAR_TAG) {
+					String value=getRequiredAttribute("value", child);
+					typeElement.addValuePar(name,value);					
+				}
+				else {
+					XlimTypeElement type=readType(child,context);
+					typeElement.addTypePar(name,type);
+				}
+			}
+			else {
+				unhandledTag(child);
+			}
+		}
+	}
+	
 	protected class ModuleHandler extends ElementHandler<XlimContainerModule,Object> {
 
 		private OperationHandler mOperationHandler;
@@ -502,9 +656,13 @@ public class XlimReaderWithDiagnostics implements IXlimReader {
 					reportError(note, "No such port: "+name);
 				try {
 					context.setPortRate(port, Integer.valueOf(rate));
-				} catch (RuntimeException ex) {
+				} catch (NumberFormatException ex) {
+					reportError(note, "Expecting integer attribute, found: value=\""
+						      +rate+"\"");
+			    } catch (RuntimeException ex) {
 					reportError(note, ex.getMessage());
 				}
+				
 				
 				// match end
 				checkThatEmpty(note);
@@ -654,14 +812,16 @@ public class XlimReaderWithDiagnostics implements IXlimReader {
 						processInputPort(sourceId,child,context,arg1,arg2);
 					}
 					else if (dir.equals("out")) {
-						XlimType type=getType(child);
-						XlimOutputPort port=mFactory.createOutputPort(type);
-						try {
-							context.addOutputPort(sourceId, port);
-						} catch (RuntimeException ex) {
-							reportError(child, ex.getMessage());
+						XlimType type=getType(child,context);
+						if (type!=null) {
+							XlimOutputPort port=mFactory.createOutputPort(type);
+							try {
+								context.addOutputPort(sourceId, port);
+							} catch (RuntimeException ex) {
+								reportError(child, ex.getMessage());
+							}
+							processOutputPort(port,child,arg1,arg2);
 						}
-						processOutputPort(port,child,arg1,arg2);
 					}
 					else
 						reportError(child,"Unexpected attribute dir=\""+dir+"\"");
@@ -815,7 +975,7 @@ public class XlimReaderWithDiagnostics implements IXlimReader {
 		private boolean belongsToPath(XlimSource source, XlimModule dominator) {
 			if (source!=null && dominator!=null) {
 				XlimModule defInModule=null;
-				XlimOutputPort port=source.isOutputPort();
+				XlimOutputPort port=source.asOutputPort();
 				if (port!=null) {
 					XlimInstruction instr=port.getParent();
 					if (instr!=null)
@@ -850,9 +1010,20 @@ public class XlimReaderWithDiagnostics implements IXlimReader {
 		System.err.println(formatDiagnostic(atElement, "warning: "+message));
 	}
 
+	public void reportError(XlimReaderError err) {
+		System.err.println(formatDiagnostic(err.getLocation(), "error: "+err.getMessage()));
+		mNumErrors++;
+		if (mNumErrors>mErrorLimit) {
+			throw new RuntimeException("Too many errors, make fewer!");
+		}
+	}
+	
 	public void reportError(XlimElement atElement, String message) {
 		System.err.println(formatDiagnostic(atElement, "error: "+message));
 		mNumErrors++;
+		if (mNumErrors>mErrorLimit) {
+			throw new RuntimeException("Too many errors, make fewer!");
+		}
 	}
 
 	public void reportFatalError(XlimElement atElement, String message) {

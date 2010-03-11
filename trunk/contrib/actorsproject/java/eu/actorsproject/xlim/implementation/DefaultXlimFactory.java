@@ -67,4 +67,8 @@ public class DefaultXlimFactory implements XlimFactory {
 	public XlimInitValue createInitValue(List<? extends XlimInitValue> aggregate) {
 		return new InitValueList(aggregate);
 	}
+
+	public XlimInitValue createInitValue(XlimInitValue initValue, int repeatFactor) {
+		return new RepeatedInitValue(initValue, repeatFactor);
+	}
 }

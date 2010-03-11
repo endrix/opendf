@@ -40,12 +40,12 @@ package eu.actorsproject.xlim.absint;
 import eu.actorsproject.xlim.XlimInputPort;
 import eu.actorsproject.xlim.XlimOperation;
 import eu.actorsproject.xlim.XlimOutputPort;
-import eu.actorsproject.xlim.XlimStateCarrier;
 import eu.actorsproject.xlim.XlimStateVar;
-import eu.actorsproject.xlim.XlimTopLevelPort;
 import eu.actorsproject.xlim.XlimType;
+import eu.actorsproject.xlim.dependence.Location;
 import eu.actorsproject.xlim.dependence.ValueNode;
 import eu.actorsproject.xlim.dependence.ValueOperator;
+import eu.actorsproject.xlim.dependence.StateLocation;
 import eu.actorsproject.xlim.util.OperationHandler;
 import eu.actorsproject.xlim.util.OperationPlugIn;
 
@@ -124,13 +124,14 @@ public class Evaluator {
 	 * Handy support routines
 	 */
 	
-	protected ValueNode findValueNode(XlimStateCarrier carrier,
+	protected ValueNode findValueNode(Location location,
 			                          Iterable<? extends ValueNode> valueNodes) {
+		assert(location!=null);
 		for (ValueNode value: valueNodes) {
-			if (value.getStateCarrier()==carrier)
+			if (value.getLocation()==location)
 				return value;
 		}
-		throw new IllegalArgumentException("No such state access: "+carrier.getSourceName());
+		throw new IllegalArgumentException("No such location: "+location.getDebugName());
 	}
 	
 	
@@ -159,12 +160,19 @@ public class Evaluator {
 			ValueOperator valueOp=op.getValueOperator();
 			
 			for (ValueNode outputValue: valueOp.getOutputValues()) {
-				XlimType type=outputValue.getCommonElementType();
+				XlimType type=elementType(outputValue);
 				T universe=domain.getUniverse(type);
 				if (context.put(outputValue, universe))
 					changed=true;
 			}
 			return changed;
+		}
+		
+		private XlimType elementType(ValueNode outputValue) {
+			XlimType type=outputValue.getType();
+			while (type.isList())
+				type=type.getTypeParameter("type");
+			return type;
 		}
 	}
 	
@@ -254,11 +262,11 @@ public class Evaluator {
                                             Context<T> context,
                                             AbstractDomain<T> domain) {
 			XlimInputPort in1=op.getInputPort(0);
-			int width1=in1.getSource().getSourceType().getSize();
+			int width1=in1.getSource().getType().getSize();
 			T aValue1=context.get(in1.getValue());
 			
 			XlimInputPort in2=op.getInputPort(1);
-			int width2=in1.getSource().getSourceType().getSize();
+			int width2=in1.getSource().getType().getSize();
 			T aValue2=context.get(in2.getValue());
 			
 			if (aValue1!=null && aValue2!=null) {
@@ -361,7 +369,7 @@ public class Evaluator {
                                             Context<T> context,
                                             AbstractDomain<T> domain) {
 			XlimInputPort in1=op.getInputPort(0);
-			int width1=in1.getSource().getSourceType().getSize();
+			int width1=in1.getSource().getType().getSize();
 			T aValue1=context.get(in1.getValue());
 			T aValue2=context.get(op.getInputPort(1).getValue());
 			
@@ -502,8 +510,13 @@ public class Evaluator {
 		public <T extends AbstractValue<T>> boolean evaluate(XlimOperation op,
                 Context<T> context,
                 AbstractDomain<T> domain) {
-			XlimStateVar stateVar=op.getStateVarAttribute();
-			ValueNode newValueNode=findValueNode(stateVar,op.getValueOperator().getOutputValues());
+			Location location=op.getLocation();
+			assert(location.hasSource());
+			// TODO: We don't support local vectors yet
+			XlimStateVar stateVar=location.getSource().asStateVar();
+			assert(stateVar!=null);
+			
+			ValueNode newValueNode=findValueNode(location,op.getValueOperator().getOutputValues());
 			XlimType elementType=stateVar.getInitValue().getCommonElementType();
 			T result;
 			
@@ -518,7 +531,7 @@ public class Evaluator {
 				// Binary variant is assignment of aggregate: v[op0]:=op1
 				// Value of aggregate is join(oldValue,newValue)
 				// that is: the value represents any/all elements of the aggregate
-				ValueNode oldValueNode=findValueNode(stateVar,op.getValueOperator().getInputValues());
+				ValueNode oldValueNode=findValueNode(location,op.getValueOperator().getInputValues());
 				ValueNode rhsNode=op.getInputPort(1).getValue();
 				T oldValue=context.get(oldValueNode);
 				T rhsValue=context.get(rhsNode);
@@ -545,8 +558,12 @@ public class Evaluator {
 		evaluateScalar(XlimOperation op, Context<T> context, AbstractDomain<T> domain) {
 			// Implements indexed access of aggregate: v[op0]
 			// Current value of aggregate represents any/all elements
-			XlimStateCarrier carrier=op.getStateVarAttribute();
-			ValueNode oldValueNode=findValueNode(carrier,op.getValueOperator().getInputValues());
+			
+			Location location=op.getLocation();
+			assert(location.hasSource());
+			// TODO: We don't support local vectors yet!
+			assert(location.getSource().asStateVar()!=null);
+			ValueNode oldValueNode=findValueNode(location,op.getValueOperator().getInputValues());
 			return context.get(oldValueNode);
 		}		
 	}
@@ -569,8 +586,8 @@ public class Evaluator {
 				                                             Context<T> context, 
 				                                             AbstractDomain<T> domain) {
 			boolean changed=false;
-			XlimStateCarrier port=op.getPortAttribute();
-			ValueNode portNodeIn=findValueNode(port, op.getValueOperator().getInputValues());
+			StateLocation location=op.getPortAttribute().asStateLocation();
+			ValueNode portNodeIn=findValueNode(location, op.getValueOperator().getInputValues());
 			T aValue=context.get(portNodeIn);
 			
 			ValueNode resultNode=op.getOutputPort(0).getValue();
@@ -584,7 +601,7 @@ public class Evaluator {
 			if (mModifiesPort) {
 				// We recycle the same value to represent the updated
 				// port value (i.e. rest of the stream readable from the port)
-				ValueNode portNodeOut=findValueNode(port, op.getValueOperator().getOutputValues());
+				ValueNode portNodeOut=findValueNode(location, op.getValueOperator().getOutputValues());
 				if (context.put(portNodeOut, aValue))
 					changed=true;
 			}
@@ -606,10 +623,10 @@ public class Evaluator {
 				                                             AbstractDomain<T> domain) {
 			// Here, we assume that the value of an output port represents
 			// all values that can be written to the port
-			XlimTopLevelPort port=op.getPortAttribute();
-			XlimType portType=port.getType();
-			ValueNode valueNodeIn=findValueNode(port, op.getValueOperator().getInputValues());
-			ValueNode valueNodeOut=findValueNode(port, op.getValueOperator().getOutputValues());
+			StateLocation location=op.getPortAttribute().asStateLocation();
+			XlimType portType=location.getType();
+			ValueNode valueNodeIn=findValueNode(location, op.getValueOperator().getInputValues());
+			ValueNode valueNodeOut=findValueNode(location, op.getValueOperator().getOutputValues());
 			T oldValue=context.get(valueNodeIn);
 			T newValue=context.get(op.getInputPort(0).getValue());
 			

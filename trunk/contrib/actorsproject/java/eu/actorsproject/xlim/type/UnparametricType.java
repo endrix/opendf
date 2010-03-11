@@ -38,8 +38,11 @@
 package eu.actorsproject.xlim.type;
 
 
+import java.util.Collections;
+import java.util.List;
+
 import eu.actorsproject.xlim.XlimType;
-import eu.actorsproject.xlim.io.XlimAttributeList;
+import eu.actorsproject.xlim.XlimTypeArgument;
 
 /**
  * An unparamteric type is both a TypeKind (type constructor etc.) and
@@ -57,15 +60,22 @@ public abstract class UnparametricType extends TypeKind implements XlimType {
 	}
 	
 	@Override
-	public XlimType createType(Object param) {
-		throw new UnsupportedOperationException("Type "+getTypeName()+" takes no parameter");
+	public XlimType createType(int size) {
+		if (size==getSize())
+			return createType();
+		else
+			throw new IllegalArgumentException("Type "+getTypeName()+" has size=\""+getSize()
+					                           +"\" inconsisten attribute size=\""+size+"\" provided");
 	}
-	
+
 	@Override
-	public XlimType createTypeFromAttributes(XlimAttributeList attributes) {
-		return this;
+	public XlimType createType(List<XlimTypeArgument> typeArg) {
+		if (typeArg.isEmpty())
+			return createType();
+		else
+			throw new IllegalArgumentException("Type "+getTypeName()+" takes no parameter");
 	}
-	
+		
 	@Override
 	public TypeKind getTypeKind() {
 		return this;
@@ -86,6 +96,42 @@ public abstract class UnparametricType extends TypeKind implements XlimType {
 		return false;
 	}
 
+	@Override
+	public boolean isList() {
+		return false;
+	}
+	
+	@Override
+	public String getTypeDefName() {
+		// Pointless to typedef Unparametric types (not supported)
+		return null;
+	}
+
+	@Override
+	public void setTypeDefName(String name) {
+		// Pointless to typedef Unparametric types (not supported)
+		throw new UnsupportedOperationException();
+	}
+
+	public Iterable<TypeArgument> getTypeArguments() {
+		return Collections.emptyList();
+	}
+
+	@Override
+	public XlimType getTypeParameter(String name) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public String getValueParameter(String name) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public int getIntegerParameter(String name) {
+		throw new UnsupportedOperationException();
+	}
+	
 	@Override
 	XlimType createLub(XlimType t1, XlimType t2) {
 		assert(hasPromotionFrom(t1.getTypeKind()) 

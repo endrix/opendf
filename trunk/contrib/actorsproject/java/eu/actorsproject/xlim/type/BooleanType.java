@@ -61,7 +61,16 @@ class BooleanType extends UnparametricType {
 	
 	@Override
 	public boolean isZero(String s) {
-		return Long.valueOf(s)==0;
+		try {
+			return Long.valueOf(s)==0;
+		} catch (NumberFormatException ex) {
+			return false;
+		}
+	}
+	
+	@Override
+	public String getZero() {
+		return "0";
 	}
 	
 	@Override

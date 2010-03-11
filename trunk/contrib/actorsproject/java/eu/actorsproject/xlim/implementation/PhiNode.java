@@ -131,12 +131,18 @@ class PhiNode extends Linkage<PhiNode> implements XlimPhiNode, Instruction, PhiO
 	}
 	
 	@Override
-	public boolean mayAccessState() {
-		return (mInputs.get(0).isStateAccess() || mInputs.get(1).isStateAccess());
+	public boolean dependsOnLocation() {
+		return (mInputs.get(0).dependsOnLocation() || mInputs.get(1).dependsOnLocation());
 	}
 	
+	
+	public boolean modifiesLocation() {
+		// may define a new location
+		return mOutput.hasLocation();
+	}
+
 	@Override
-	public boolean mayModifyState() {
+	public boolean modifiesState() {
 		return false;
 	}
 	

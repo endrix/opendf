@@ -44,6 +44,7 @@ import eu.actorsproject.xlim.XlimPhiNode;
 import eu.actorsproject.xlim.XlimSource;
 import eu.actorsproject.xlim.XlimTaskModule;
 import eu.actorsproject.xlim.XlimType;
+import eu.actorsproject.xlim.dependence.ValueNode;
 
 public class CopyPropagation extends XlimTraversal<Object,Object> {
 
@@ -101,23 +102,54 @@ public class CopyPropagation extends XlimTraversal<Object,Object> {
 		public boolean supports(XlimOperation op) {
 			return (op.getNumOutputPorts()==1
 					&& op.getNumInputPorts()==1
-					&& checkSource(op.getInputPort(0).getSource(),
-							       op.getOutputPort(0).getType()));
+					&& okToPropagate(op.getInputPort(0).getSource(), 
+							         op.getOutputPort(0).getValue()));
 		}
 
-		private boolean checkSource(XlimSource source, XlimType resultT) {
-			XlimType sourceT=source.getSourceType();
-
-			// FIXME: shouldn't we copy other types as well, at least when unparameterized/identical
-			return source.isOutputPort()!=null
-			       && sourceT.isInteger()==resultT.isInteger()
+		private boolean okToPropagate(XlimSource source, ValueNode output) {
+			XlimType sourceT=source.getType();
+			XlimType resultT=output.getType();
+			
+			if (sourceT.isList()) {
+				assert(resultT.isList());
+				assert(source.hasLocation() && output.hasLocation());
+				
+				// Don't propagate copy if
+				// a) source/result types are not the same, or 
+				// b) the location of the source is modified, or
+				// c) the location of the output is modified
+				return sourceT==resultT 
+				       && source.getLocation().isModified()==false
+				       && output.getLocation().isModified()==false;
+			}
+			else if (sourceT.isInteger()){
+				// Integer source and result,
+				// result at least as wide as source
+				// not a reference to a state variable
+				
+				// TODO: isn't it a problem if a propagated source
+				// is used in a bitwise op instead of a wider result, since
+				// it might be subject to zero extension?
+				// Proposed solution: don't propagate "narrow" source until 
+				// after transformation to native types (then it will be wider).
+				// Alternatively: check that the result is not used in a bitop.
+				// Or even: add explicit zero-extension operations
+				return source.asOutputPort()!=null
+			       && resultT.isInteger()
 			       && sourceT.getSize()<=resultT.getSize();
+			}
+			else {
+				// source and result of same type,
+				// not a reference to a state variable
+				return source.asOutputPort()!=null
+				   && sourceT==resultT;
+			}
 		}
-		
+				
 		@Override
 		public void removeCopy(XlimOperation op) {
 			XlimOutputPort oldPort=op.getOutputPort(0);
-			XlimOutputPort newPort=op.getInputPort(0).getSource().isOutputPort();
+			XlimOutputPort newPort=op.getInputPort(0).getSource().asOutputPort();
 			oldPort.substitute(newPort);
 			if (mTrace)
 				System.out.println("// CopyPropagation: substituting " + newPort.getUniqueId()

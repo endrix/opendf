@@ -44,14 +44,15 @@ import eu.actorsproject.xlim.type.TypeFactory;
 public class NativeTypesDefault implements NativeTypePlugIn {
 	protected XlimTypeKind mIntTypeKind;
 	protected XlimType mInt8, mInt16, mInt32, mInt64;
+	protected TypeFactory mTypeFact;
 	
 	public NativeTypesDefault() {
-		TypeFactory typeFact=Session.getTypeFactory();
-		mIntTypeKind=typeFact.getTypeKind("int");
-		mInt8=typeFact.createInteger(8);
-		mInt16=typeFact.createInteger(16);
-		mInt32=typeFact.createInteger(32);
-		mInt64=typeFact.createInteger(64);
+		mTypeFact=Session.getTypeFactory();
+		mIntTypeKind=mTypeFact.getTypeKind("int");
+		mInt8=mTypeFact.createInteger(8);
+		mInt16=mTypeFact.createInteger(16);
+		mInt32=mTypeFact.createInteger(32);
+		mInt64=mTypeFact.createInteger(64);
 	}
 
 	@Override
@@ -74,7 +75,7 @@ public class NativeTypesDefault implements NativeTypePlugIn {
 	}
 
 	protected XlimType nativeType(XlimType type, XlimType smallestInt) {
-		if (type.getTypeKind()==mIntTypeKind) {
+		if (type.isInteger()) {
 			assert(type.isInteger());
 			int width=type.getSize();
 			assert(width<=64);
@@ -90,6 +91,11 @@ public class NativeTypesDefault implements NativeTypePlugIn {
 				return mInt32;
 			else
 				return mInt64;
+		}
+		else if (type.isList()) {
+			XlimType elementT=nativeElementType(type.getTypeParameter("type"));
+			int size=type.getIntegerParameter("size");
+			return mTypeFact.createList(elementT, size);
 		}
 		else
 			return type;

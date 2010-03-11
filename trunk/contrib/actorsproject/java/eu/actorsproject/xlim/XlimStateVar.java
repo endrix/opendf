@@ -38,12 +38,36 @@
 package eu.actorsproject.xlim;
 
 import eu.actorsproject.util.XmlElement;
+import eu.actorsproject.xlim.dependence.StateLocation;
 
 /**
  * @author ecarvon
  *
  */
-public interface XlimStateVar extends XmlElement, XlimSource, XlimStateCarrier {
+public interface XlimStateVar extends XmlElement, XlimSource {
+	/**
+	 * @return unique identifier (no connection to source)
+	 */
+	String getUniqueId();
+	
+	/**
+	 * @return the name used in the source code (or null if 
+	 *         the state variable is compiler generated).
+	 */
 	String getSourceName();
+	
+	/**
+	 * @return the type of the state variable
+	 */
+	XlimType getType();
+	
+	/**
+	 * @return the initializer of the state variable
+	 */
 	XlimInitValue getInitValue();
+	
+	/**
+	 * @return the location, by which the state variable is represented
+	 */
+	StateLocation asStateLocation();
 }

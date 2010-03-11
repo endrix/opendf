@@ -49,7 +49,7 @@ public class RealTypeFeature extends XlimFeature {
 	@Override
 	public void initialize(TypeSystem typeSystem) {
 		TypeKind intKind=typeSystem.getTypeKind("int");
-		XlimType int32_t=typeSystem.create("int",32);
+		XlimType int32_t=intKind.createType(32);
 		TypeKind realKind=new RealType();
 		
 		typeSystem.addTypeKind(realKind);

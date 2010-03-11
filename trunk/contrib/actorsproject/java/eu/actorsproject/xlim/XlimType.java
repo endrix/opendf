@@ -40,18 +40,103 @@
  */
 package eu.actorsproject.xlim;
 
+import eu.actorsproject.xlim.type.TypeArgument;
+
 /**
  * @author ecarvon
  *
  */
 public interface XlimType {
+	/**
+	 * @return the name of the type/type constructor
+	 * 
+	 * For parametric types the name of the type constructor (e.g. int, List)
+	 * is returned. For unparametric types the type and the type constructor
+	 * have the same name (e.g. bool, real). 
+	 */
 	String getTypeName();
+	
+	/**
+	 * @return the XlimTypeKind of the type, by which new instances can
+	 *         be created.
+	 * TODO: Confusing name? the TypeKind is actually the type constructor
+	 */
 	XlimTypeKind getTypeKind();
+	
+	/**
+	 * @return true for the bool type, false for all other types
+	 */
+	boolean isBoolean();
+	
+	/**
+	 * @return true for instances of int, false for all other types
+	 */
+	boolean isInteger();
+	
+	
+	/**
+	 * @return true for instances of List, false for all other types
+	 */
+	boolean isList();
+
+	/**
+	 * @param value
+	 * @return true if 'value' represents zero in this type
+	 * 
+	 * Only applicable to scalar types, will return false for aggregates
+	 */
+	boolean isZero(String value);
+	
+	
+	/**
+	 * @return a representation of the zero in this type (there might be several)
+	 */
+	String getZero();
+
+	/**
+	 * @return collection of type arguments (possibly empty)
+	 */
+	Iterable<TypeArgument> getTypeArguments();
+	
+	/**
+	 * @param name
+	 * @return the type parameter of the given name
+	 * 
+	 * Only applicable to parameteric types that have a type parameter 'name'.
+	 */
+	XlimType getTypeParameter(String name);
+	
+	/**
+	 * @param name
+	 * @return the value parameter of the given name
+	 * 
+	 * Only applicable to parameteric types that have a value parameter 'name'.
+	 */
+	String getValueParameter(String name);
+	
+	/**
+	 * @param name
+	 * @return the integer value parameter of the given name
+	 * 
+	 * Only applicable to parameteric types that have an integer value 
+	 * parameter 'name'.
+	 */
+	int getIntegerParameter(String name);
+
+	/**
+	 * @return the name of (a unique) typeDef that has been associated with this type
+	 *         (null if no such name)
+	 */
+	String getTypeDefName();
+	
+	/**
+	 * @param name of typeDef that is to be associated with this type
+	 */
+	void setTypeDefName(String name);
+	
+	// TODO: should be support these methods?
 	int getSize();
 	long minValue();
 	long maxValue();
 	String getAttributeDefinitions();
-	boolean isZero(String value);
-	boolean isBoolean();
-	boolean isInteger();
 }

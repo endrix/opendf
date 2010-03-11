@@ -41,6 +41,7 @@ import java.util.List;
 
 import eu.actorsproject.xlim.XlimInputPort;
 import eu.actorsproject.xlim.XlimOperation;
+import eu.actorsproject.xlim.XlimOutputPort;
 import eu.actorsproject.xlim.XlimSource;
 import eu.actorsproject.xlim.XlimType;
 import eu.actorsproject.xlim.type.CastTypeRule;
@@ -68,7 +69,7 @@ public class BasicXlimOperations extends XlimFeature {
 	public void initialize(InstructionSet instructionSet) {
 		addPortOperations(instructionSet);
 		addStateVarOperations(instructionSet);
-		addCast(instructionSet);
+		addGenericOperations(instructionSet);
 		addTaskCall(instructionSet);
 		addBooleanOperations(instructionSet);
 		addIntegerOperations(instructionSet);
@@ -83,6 +84,7 @@ public class BasicXlimOperations extends XlimFeature {
 		TypeFactory fact=Session.getTypeFactory();
 		TypeKind intTypeKind=fact.getTypeKind("int");
 		XlimType boolType=fact.create("bool");
+		boolean mayHaveRepeat=true;
 		
 		/*
 		 * Operations found in XLIM spec 1.0 (September 18, 2007)
@@ -90,16 +92,16 @@ public class BasicXlimOperations extends XlimFeature {
 		
 		// pinRead: void -> PortType
 		OperationKind pinRead=new PortOperationKind("pinRead",
-                new PinReadTypeRule(null),
+                new PinReadTypeRule(null, mayHaveRepeat),
                 "portName", 
                 true /* modifies port */, 
                 null /* no size */);
 		s.registerOperation(pinRead);
 		
 		// pinWrite: T -> void, T assignable to port
-		Signature scalarWildCard=new Signature(new WildCardTypePattern());
+		Signature wildCard=new Signature(new WildCardTypePattern());
 		OperationKind pinWrite=new PortOperationKind("pinWrite",
-                new PinWriteTypeRule(scalarWildCard),
+                new PinWriteTypeRule(wildCard, mayHaveRepeat),
                 "portName", 
                 true /* modifies port */, 
                 null /* no size */);
@@ -111,7 +113,7 @@ public class BasicXlimOperations extends XlimFeature {
 		
 		// pinPeek: integer -> PortType
 		OperationKind pinPeek=new PortOperationKind("pinPeek",
-                new PinReadTypeRule(new Signature(intTypeKind)),
+                new PinReadTypeRule(new Signature(intTypeKind), mayHaveRepeat),
                 "portName", 
                 false /* doesn't modify port */, 
                 null /* no size */);
@@ -141,7 +143,7 @@ public class BasicXlimOperations extends XlimFeature {
 		// assign: T -> void
 		TypePattern wildcardPattern=new WildCardTypePattern();
 		Signature scalarWildCard=new Signature(wildcardPattern);
-		OperationKind assign1=new StateVarOperationKind("assign", 
+		OperationKind assign1=new LocationOperationKind("assign", 
                                                         new AssignTypeRule(scalarWildCard),
                                                         true, /* modifies state */
                                                         "target");
@@ -149,8 +151,8 @@ public class BasicXlimOperations extends XlimFeature {
 		
 		// assign: (integer,T) -> void
 		Signature assign2Signature=new Signature(intTypeKind,wildcardPattern);
-		OperationKind assign2=new StateVarOperationKind("assign", 
-                new AssignTypeRule(assign2Signature),
+		OperationKind assign2=new LocationOperationKind("assign", 
+                new IndexedAssignTypeRule(assign2Signature),
                 true, /* modifies state */
                 "target");
 		s.registerOperation(assign2);
@@ -160,7 +162,7 @@ public class BasicXlimOperations extends XlimFeature {
 		 */
 		
 		// var_ref: integer -> T
-		OperationKind var_ref=new StateVarOperationKind("var_ref", 
+		OperationKind var_ref=new LocationOperationKind("var_ref", 
                 new VarRefTypeRule(new Signature(intTypeKind)),
                 false, /* modifies state */
                 "name");
@@ -169,13 +171,27 @@ public class BasicXlimOperations extends XlimFeature {
 
 
 	/**
-	 * Adds taskCall to 's'
+	 * Adds cast and the generic versions of noop and $select
 	 */
 
-	private void addCast(InstructionSet s) {
+	private void addGenericOperations(InstructionSet s) {
 		// cast: S->T, S converts to T
 		OperationKind cast=new OperationKind("cast", new CastTypeRule());
 		s.registerOperation(cast);
+		
+		// noop: T->T (exact type match required)
+		OperationKind noop=new OperationKind("noop", new GenericNoopTypeRule());
+		s.registerOperation(noop);
+		
+		// $select: (bool,T,T)->T (exact type match required)
+		TypeFactory fact=Session.getTypeFactory();
+		TypeKind boolKind=fact.getTypeKind("bool");
+		TypePattern wildcard=new WildCardTypePattern();
+		Signature ternarySignature=new Signature(boolKind, wildcard, wildcard);
+		
+		OperationKind selector=new OperationKind("$selector", 
+				new GenericSelectorTypeRule(ternarySignature));
+		s.registerOperation(selector);
 	}
 
 	/**
@@ -238,16 +254,6 @@ public class BasicXlimOperations extends XlimFeature {
 		// $ne: (bool,bool) -> bool
 		OperationKind ne=new OperationKind("$ne", binaryRule);
 		s.registerOperation(ne);
-		
-		// noop: bool -> bool
-		OperationKind noop=new OperationKind("noop", unaryRule);
-		s.registerOperation(noop);
-		
-		// $selector: (bool,bool,bool) -> bool
-		Signature ternarySignature=new Signature(boolKind, boolKind, boolKind);
-		OperationKind selector=new OperationKind("$selector", 
-				new FixOutputTypeRule(ternarySignature, boolType));
-		s.registerOperation(selector);
 	}
 	
 	/**
@@ -347,6 +353,92 @@ public class BasicXlimOperations extends XlimFeature {
 	}
 }
 
+/**
+ * Generic TypeRule for noop: T->T (exact type match required)
+ * It is used for bool and real but int, which is parametric in size,
+ * uses a more specific type rule.
+ */
+class GenericNoopTypeRule extends TypeRule {
+
+	public GenericNoopTypeRule() {
+		super(new Signature(new WildCardTypePattern()));
+	}
+
+	@Override
+	public int defaultNumberOfOutputs() {
+		return 1;
+	}
+
+	@Override
+	public XlimType defaultOutputType(List<? extends XlimSource> inputs, int i) {
+		assert(i==0);
+		return inputs.get(0).getType();
+	}
+	
+	@Override
+	public XlimType actualOutputType(XlimOperation op, int i) {
+		return op.getInputPort(0).getSource().getType();
+	}
+
+	@Override
+	public boolean matchesOutputs(List<? extends XlimOutputPort> outputs) {
+		return outputs.size()==1;
+	}
+	
+	@Override
+	public boolean typecheck(XlimOperation op) {
+		XlimType outT=op.getOutputPort(0).getType();
+		if (outT!=null) {
+			XlimType inT=op.getInputPort(0).getSource().getType();
+			return inT==outT;
+		}
+		else
+			return false;
+	}
+}
+
+/**
+ * Generic TypeRule for $select: (bool,T,T)->T (exact type match required)
+ * It is used for bool and real but int, which is parametric in size,
+ * uses a more specific type rule.
+ */
+class GenericSelectorTypeRule extends TypeRule {
+
+	public GenericSelectorTypeRule(Signature signature) {
+		super(signature);
+	}
+	
+	@Override
+	public int defaultNumberOfOutputs() {
+		return 1;
+	}
+
+	@Override
+	public XlimType defaultOutputType(List<? extends XlimSource> inputs, int i) {
+		assert(i==0 && inputs.size()==3);
+		XlimType t1=inputs.get(1).getType();
+		XlimType t2=inputs.get(2).getType();
+		return (t1==t2)? t1 : null;
+	}
+	
+	@Override
+	public XlimType actualOutputType(XlimOperation op, int i) {
+		assert(i==0 && op.getNumInputPorts()==3);
+		XlimType t1=op.getInputPort(1).getSource().getType();
+		XlimType t2=op.getInputPort(2).getSource().getType();
+		return (t1==t2)? t1 : null;
+	}
+
+	@Override
+	public boolean matchesOutputs(List<? extends XlimOutputPort> outputs) {
+		return outputs.size()==1;
+	}
+
+	@Override
+	public boolean typecheck(XlimOperation op) {
+		return actualOutputType(op,0)==op.getOutputPort(0).getType();
+	}	
+}
 
 class LiteralIntegerTypeRule extends IntegerTypeRule {
 
@@ -394,7 +486,7 @@ class WidestInputTypeRule extends IntegerTypeRule {
 	protected int defaultWidth(List<? extends XlimSource> inputs) {
 		int widest=0;
 		for (XlimSource source: inputs) {
-			int w=source.getSourceType().getSize();
+			int w=source.getType().getSize();
 			if (w>widest)
 				widest=w;
 		}
@@ -405,7 +497,7 @@ class WidestInputTypeRule extends IntegerTypeRule {
 	protected int actualWidth(XlimOperation op) {
 		int widest=0;
 		for (XlimInputPort input: op.getInputPorts()) {
-			int w=input.getSource().getSourceType().getSize();
+			int w=input.getSource().getType().getSize();
 			if (w>widest)
 				widest=w;
 		}
@@ -448,7 +540,7 @@ class MulTypeRule extends IntegerTypeRule {
 	protected int defaultWidth(List<? extends XlimSource> inputs) {
 		int width=0;
 		for (XlimSource source: inputs)
-			width += source.getSourceType().getSize();
+			width += source.getType().getSize();
 		return (width>mMaxWidth)? mMaxWidth : width;
 	}
 
@@ -457,7 +549,7 @@ class MulTypeRule extends IntegerTypeRule {
 	protected int actualWidth(XlimOperation op) {
 		int width=0;
 		for (XlimInputPort input: op.getInputPorts())
-			width += input.getSource().getSourceType().getSize();
+			width += input.getSource().getType().getSize();
 		return width;
 	}
 }
@@ -476,7 +568,7 @@ class FirstInputTypeRule extends IntegerTypeRule {
 	
 	@Override
 	public XlimType defaultOutputType(List<? extends XlimSource> inputs, int i) {
-		return inputs.get(0).getSourceType();
+		return inputs.get(0).getType();
 	}
 
 	@Override
@@ -487,7 +579,7 @@ class FirstInputTypeRule extends IntegerTypeRule {
 	@Override
 	public XlimType actualOutputType(XlimOperation op, int i) {
 		assert(i==0);
-		return op.getInputPort(0).getSource().getSourceType();
+		return op.getInputPort(0).getSource().getType();
 	}
 
 	@Override

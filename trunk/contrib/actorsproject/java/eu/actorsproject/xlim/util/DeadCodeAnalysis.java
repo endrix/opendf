@@ -43,12 +43,13 @@ import java.util.HashSet;
 import eu.actorsproject.xlim.XlimDesign;
 import eu.actorsproject.xlim.XlimOperation;
 import eu.actorsproject.xlim.XlimPhiNode;
-import eu.actorsproject.xlim.XlimStateCarrier;
 import eu.actorsproject.xlim.XlimTaskModule;
 import eu.actorsproject.xlim.dependence.CallNode;
 import eu.actorsproject.xlim.dependence.CallSite;
 import eu.actorsproject.xlim.dependence.DataDependenceGraph;
+import eu.actorsproject.xlim.dependence.Location;
 import eu.actorsproject.xlim.dependence.ValueNode;
+import eu.actorsproject.xlim.dependence.StateLocation;
 
 
 public class DeadCodeAnalysis {
@@ -113,8 +114,8 @@ class UsefulCodeWorkList  {
 		// Add output values of all actor ports
 		CallNode callNode=task.getCallNode();
 		DataDependenceGraph ddg=callNode.getDataDependenceGraph();
-		for (XlimStateCarrier carrier: ddg.getModifiedState())
-			if (carrier.isPort()!=null)
+		for (StateLocation carrier: ddg.getModifiedState())
+			if (carrier.asActorPort()!=null)
 				markUseful(ddg.getOutputValue(carrier));
 		// Add operations with removable="no"
 		mTaskTraversal.addNonRemovableOperations(task);
@@ -133,9 +134,12 @@ class UsefulCodeWorkList  {
 		@Override
 		public Object visitInitial(ValueNode v, CallNode callNode, Object dummyArg) {
 			// Initial values (of tasks): mark corresponding input of all callers
-			XlimStateCarrier carrier=v.getStateCarrier();
+			Location loc=v.getLocation();
+			assert(loc!=null && loc.isStateLocation());
+			StateLocation stateLoc=loc.asStateLocation();
+			
 			for (CallSite callSite: callNode.getCallers()) {
-				ValueNode input=callSite.getInputValue(carrier);
+				ValueNode input=callSite.getInputValue(stateLoc);
 				markUseful(input);
 			}
 			return null;
@@ -143,12 +147,14 @@ class UsefulCodeWorkList  {
 
 		@Override
 		public Object visitCall(ValueNode v, CallSite callSite, Object dummyArg) {
+			Location loc=v.getLocation();
+			assert(loc!=null && loc.isStateLocation());
+			
 			// For taskCalls: mark corresponding output value of the called task and its task module
 			CallNode callee=callSite.getCallee();
 			DataDependenceGraph g=callee.getDataDependenceGraph();
-			XlimStateCarrier carrier=v.getStateCarrier();
 			
-			markUseful(g.getOutputValue(carrier));
+			markUseful(g.getOutputValue(loc.asStateLocation()));
 			return null;
 		}
 

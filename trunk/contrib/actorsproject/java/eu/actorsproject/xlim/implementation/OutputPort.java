@@ -43,10 +43,13 @@ import java.util.Collections;
 import eu.actorsproject.util.XmlElement;
 import eu.actorsproject.xlim.XlimInstruction;
 import eu.actorsproject.xlim.XlimOutputPort;
-import eu.actorsproject.xlim.XlimStateCarrier;
+import eu.actorsproject.xlim.XlimSource;
 import eu.actorsproject.xlim.XlimType;
+import eu.actorsproject.xlim.dependence.Location;
+import eu.actorsproject.xlim.dependence.StateLocation;
 import eu.actorsproject.xlim.dependence.ValueNode;
 import eu.actorsproject.xlim.dependence.ValueOperator;
+import eu.actorsproject.xlim.dependence.ValueUsage;
 
 class OutputPort extends ValueNode implements XlimOutputPort {
 
@@ -55,23 +58,21 @@ class OutputPort extends ValueNode implements XlimOutputPort {
 	private XlimType mType;
 	private Instruction mParent;
 	private int mUniqueId;
+	private Location mLocation;
 	
 	public OutputPort(XlimType type) {
 		mType=type;
 		mUniqueId=sNextUniqueId++;
 		mParent=null;
+		if (type.isList())
+			mLocation=new LocalLocation();
 	}
 	
 	@Override
 	public ValueOperator getDefinition() {
 		return mParent.getValueOperator();
 	}
-		
-	@Override
-	public XlimStateCarrier getStateCarrier() {
-		return null; // null for OutputPorts
-	}
-
+	
 	@Override
 	public ValueNode getDominatingDefinition() {
 		return null; // null for OutputPorts
@@ -108,22 +109,6 @@ class OutputPort extends ValueNode implements XlimOutputPort {
 	}
 	
 	@Override
-	public XlimType getScalarType() {
-		return mType;
-	}
-	
-	@Override
-	public XlimType getCommonElementType() {
-		return mType;
-	}
-	
-	@Override
-	public XlimType getSourceType() {
-		return mType;
-	}
-	
-	
-	@Override
 	public XlimType actualOutputType() {
 		Operation op=mParent.isOperation();
 		if (op==null) {
@@ -141,12 +126,22 @@ class OutputPort extends ValueNode implements XlimOutputPort {
 	}
 
 	@Override
-	public OutputPort isOutputPort() {
+	public boolean hasLocation() {
+		return mLocation!=null;
+	}
+	
+	@Override
+	public Location getLocation() {
+		return mLocation;
+	}
+	
+	@Override
+	public OutputPort asOutputPort() {
 		return this; // yes, it's an OutputPort (see XlimSource)
 	}
 
 	@Override
-	public StateVar isStateVar() {
+	public StateVar asStateVar() {
 		return null; // not a StateVar (see XlimSource)
 	}
 
@@ -155,6 +150,11 @@ class OutputPort extends ValueNode implements XlimOutputPort {
 		return "t"+mUniqueId;
 	}
 	
+	
+	public String getDebugName() {
+		return getUniqueId();
+	}
+
 	@Override
 	public String getAttributeDefinitions() {
 		return "dir=\"out\" source=\"" + getUniqueId() + "\" " + mType.getAttributeDefinitions();
@@ -174,4 +174,66 @@ class OutputPort extends ValueNode implements XlimOutputPort {
 	public ValueNode getValue() {
 		return this;
 	}	
+	
+	/**
+	 * Output ports of aggregate type (i.e. List/vector) have an associated
+	 * LocalLocation. In this way, they can be treated much like state variables.
+	 * In particular, the location can be modified (using elementwise assign).
+	 * 
+	 * If there are modifications, there will be several ValueNodes corresponding
+	 * to this location: the value corresponding to the OutputPort, one value per
+	 * side effect and additional values joining side effects on different paths
+	 * in the control flowgraph (like phi-nodes).
+	 * 
+	 * Unmodified local aggregates are treated just like scalars: the OutputPort
+	 * is the only definition of the value. Multiple (complete) definitions of 
+	 * local variables are represented as distinct values/OutputPorts with 
+	 * phi-nodes added when necessary.
+	 */
+	private class LocalLocation implements Location {
+
+		@Override
+		public XlimType getType() {
+			return mType;
+		}
+		
+		@Override
+		public boolean hasSource() {
+			return true;
+		}
+		
+		@Override
+		public XlimSource getSource() {
+			return OutputPort.this;
+		}
+		
+		@Override
+		public boolean isStateLocation() {
+			return false;
+		}
+
+		@Override
+		public StateLocation asStateLocation() {
+			return null;
+		}
+
+		@Override
+		public boolean isModified() {
+			// Traverse all the uses and look for an operator
+			// that produces an output to this location
+			// (if it exists that would be an element-wise assign)
+			for (ValueUsage use: getUses()) {
+				ValueOperator op=use.usedByOperator();
+				for (ValueNode output: op.getOutputValues())
+					if (output.hasLocation() && output.getLocation()==this)
+						return true;
+			}
+			return false;  // no modification
+		}
+		
+		@Override
+		public String getDebugName() {
+			return getUniqueId();
+		}
+	}
 }

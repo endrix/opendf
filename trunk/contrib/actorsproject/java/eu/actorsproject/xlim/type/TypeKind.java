@@ -39,10 +39,11 @@ package eu.actorsproject.xlim.type;
 
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.List;
 
 import eu.actorsproject.xlim.XlimType;
+import eu.actorsproject.xlim.XlimTypeArgument;
 import eu.actorsproject.xlim.XlimTypeKind;
-import eu.actorsproject.xlim.io.XlimAttributeList;
 
 public abstract class TypeKind implements TypePattern, XlimTypeKind {
 	
@@ -65,19 +66,19 @@ public abstract class TypeKind implements TypePattern, XlimTypeKind {
 		mSpecificConversions=new ArrayList<TypeConversion>();
 	}
 	
-	public String getTypeName() {
-		return mTypeName;
-	}
-	
 	@Override
 	public abstract XlimType createType();
 	
-	
 	@Override
-	public abstract XlimType createType(Object param);
-	
-	public abstract XlimType createTypeFromAttributes(XlimAttributeList attributes);
-	
+	public abstract XlimType createType(int size);
+
+	@Override
+	public abstract XlimType createType(List<XlimTypeArgument> typeArg);
+
+	public String getTypeName() {
+		return mTypeName;
+	}
+		
 	public void setDefaultTypePromotion(TypeConversion tp) {
 		if (mDefaultPromotion!=null)
 			throw new IllegalStateException("Default promotion already set");
@@ -258,15 +259,7 @@ public abstract class TypeKind implements TypePattern, XlimTypeKind {
 		
 		return mAncestors;
 	}
-		
-	protected Integer getIntegerAttribute(String name, XlimAttributeList attributes) {
-		String value=attributes.getAttributeValue(name);
-		if (value!=null)
-			return Integer.valueOf(value);
-		else
-			return null;
-	}
-	
+			
 	@Override
 	public String toString() {
 		return mTypeName;

@@ -139,7 +139,7 @@ class YieldOperationKind extends OperationKind {
 		
 		for (XlimTopLevelPort port: portSignature.getPorts()) {
 			int rate=portSignature.getPortRate(port);
-			portNames += delimiter + port.getSourceName();
+			portNames += delimiter + port.getName();
 			rates += delimiter + rate;
 			delimiter="|";
 		}
@@ -153,23 +153,19 @@ class YieldOperationKind extends OperationKind {
 			                  XlimAttributeList attributes, 
 			                  ReaderContext context) {
 		// Set port attribute
-		String portName=attributes.getAttributeValue("portName");
-		Long value=getIntegerAttribute("value",attributes);
+		String portName=getRequiredAttribute("portName",attributes);
+		long value=getRequiredIntegerAttribute("value",attributes);
 		
 		XlimTopLevelPort port=context.getTopLevelPort(portName);
-		if (port!=null) 
-			if (value!=null) {
-				Map<XlimTopLevelPort,Integer> portMap=Collections.singletonMap(port,(int)(long) value);
-				PortSignature portSignature=new PortSignature(portMap);
-				op.setGenericAttribute(portSignature);
-			}
-			else {
-				throw new RuntimeException("Expecting \"value\" attribute");
-			}
+		if (port!=null) {
+			Map<XlimTopLevelPort,Integer> portMap=Collections.singletonMap(port,(int) value);
+			PortSignature portSignature=new PortSignature(portMap);
+			op.setGenericAttribute(portSignature);
+		}
 		else {
 			throw new RuntimeException("No such port: \""+portName+"\"");
 		}
-	}	
+	}
 }
 
 class YieldOperation extends Operation {
@@ -199,6 +195,7 @@ class YieldOperation extends Operation {
 		return false;
 	}
 
+	
 	/**
 	 * @return additional attributes to show up in debug printouts
 	 */

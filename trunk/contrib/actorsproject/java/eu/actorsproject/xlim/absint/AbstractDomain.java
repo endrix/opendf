@@ -39,9 +39,9 @@ package eu.actorsproject.xlim.absint;
 
 import eu.actorsproject.xlim.XlimOperation;
 import eu.actorsproject.xlim.XlimPhiNode;
-import eu.actorsproject.xlim.XlimStateCarrier;
 import eu.actorsproject.xlim.XlimType;
-import eu.actorsproject.xlim.dependence.StatePhiOperator;
+import eu.actorsproject.xlim.dependence.SideEffectPhiOperator;
+import eu.actorsproject.xlim.dependence.StateLocation;
 
 public interface AbstractDomain<T> {
 	
@@ -85,7 +85,7 @@ public interface AbstractDomain<T> {
 	 * @param context    a mapping from value nodes to abstract values
 	 * @return true iff the context was updated
 	 */
-	boolean evaluate(StatePhiOperator phi, Context<T> context);
+	boolean evaluate(SideEffectPhiOperator phi, Context<T> context);
 	
 	/**
 	 * Evaluates a phi-operator in the given context
@@ -100,5 +100,5 @@ public interface AbstractDomain<T> {
 	 * @param carrier  a state variable or an actor port
 	 * @return         the abstraction of the initial value of 'carrier'
 	 */
-	T initialState(XlimStateCarrier carrier);
+	T initialState(StateLocation carrier);
 }

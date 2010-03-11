@@ -53,6 +53,7 @@ import eu.actorsproject.xlim.XlimOperation;
 import eu.actorsproject.xlim.XlimOutputPort;
 import eu.actorsproject.xlim.XlimSource;
 import eu.actorsproject.xlim.XlimType;
+import eu.actorsproject.xlim.XlimTypeKind;
 import eu.actorsproject.xlim.dependence.FixupContext;
 import eu.actorsproject.xlim.type.TypeFactory;
 import eu.actorsproject.xlim.util.Session;
@@ -215,7 +216,8 @@ abstract class ContainerModule extends AbstractModule implements XlimContainerMo
 	public XlimOperation addLiteral(long value) {
 		int width=LiteralIntegerTypeRule.actualWidth(value);
 		TypeFactory typeFact=Session.getTypeFactory();
-		XlimType intType=typeFact.create("int", width);
+		XlimTypeKind intKind=typeFact.getTypeKind("int");
+		XlimType intType=intKind.createType(width);
 		Operation op = createLiteral(intType, this);
 		op.setIntegerValueAttribute(value);
 		mChildren.add(op);

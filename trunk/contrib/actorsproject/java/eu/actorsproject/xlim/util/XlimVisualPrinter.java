@@ -52,12 +52,12 @@ import eu.actorsproject.xlim.XlimOperation;
 import eu.actorsproject.xlim.XlimOutputPort;
 import eu.actorsproject.xlim.XlimPhiContainerModule;
 import eu.actorsproject.xlim.XlimPhiNode;
-import eu.actorsproject.xlim.XlimSource;
 import eu.actorsproject.xlim.XlimStateVar;
 import eu.actorsproject.xlim.XlimTaskModule;
 import eu.actorsproject.xlim.XlimTestModule;
 import eu.actorsproject.xlim.XlimTopLevelPort;
 import eu.actorsproject.xlim.XlimType;
+import eu.actorsproject.xlim.dependence.Location;
 
 /**
  * Translates XLIM into "human readable" form
@@ -91,13 +91,13 @@ public class XlimVisualPrinter extends OutputGenerator {
 	}
 
 	public void printPort(XlimTopLevelPort port) {
-		println(port.getTagName()+"<"+port.getType()+","+port.getDirection()+"> "+port.getSourceName()+";");
+		println(port.getTagName()+" "+port.getType()+" "+port.getName()+"; // dir="+port.getDirection());
 	}
 	
 	public void printStateVar(XlimStateVar stateVar) {
 		XlimInitValue initValue=stateVar.getInitValue();
 		XlimType elementType=initValue.getCommonElementType();
-		print("stateVar<"+elementType+"> "+getSourceName(stateVar));
+		print("stateVar "+elementType+" "+stateVar.getDebugName());
 		
 		if (initValue.getScalarType()!=null) {
 			println("="+initValue.getScalarValue()+";");
@@ -145,9 +145,19 @@ public class XlimVisualPrinter extends OutputGenerator {
 		increaseIndentation();
 		println("// kind=\""+task.getKind()+"\"");
 		println("// autostart=\""+(task.isAutostart()? "yes" : "no")+"\"");
+		printInitialValues(task);
 		printContainerModule(task);
+		printFinalValues(task);
 		decreaseIndentation();
 		println("}");
+	}
+	
+	protected void printInitialValues(XlimTaskModule task) {
+		// Override to print initial values
+	}
+	
+	protected void printFinalValues(XlimTaskModule task) {
+		// Override to print final values
 	}
 	
 	public void printBlockModule(XlimBlockModule module) {
@@ -160,7 +170,7 @@ public class XlimVisualPrinter extends OutputGenerator {
 	
 	public void printIfModule(XlimIfModule ifModule) {
 		XlimTestModule testModule=ifModule.getTestModule();
-		String decision=getSourceName(testModule.getDecision());
+		String decision=testModule.getDecision().getDebugName();
 		
 		println("// test module, decision=\""+decision+"\"");
 		printContainerModule(testModule);
@@ -170,7 +180,7 @@ public class XlimVisualPrinter extends OutputGenerator {
 		decreaseIndentation();
 		println("else {");
 		increaseIndentation();
-		printContainerModule(ifModule.getThenModule());
+		printContainerModule(ifModule.getElseModule());
 		decreaseIndentation();
 		println("}");
 		printPhiNodes(ifModule);
@@ -178,7 +188,7 @@ public class XlimVisualPrinter extends OutputGenerator {
 	
 	public void printLoopModule(XlimLoopModule loopModule) {
 		XlimTestModule testModule=loopModule.getTestModule();
-		String decision=getSourceName(testModule.getDecision());
+		String decision=testModule.getDecision().getDebugName();
 		
 		println("loop {");
 		increaseIndentation();
@@ -194,17 +204,16 @@ public class XlimVisualPrinter extends OutputGenerator {
 		println("}");
 	}
 	
-	private void printPhiNodes(XlimPhiContainerModule module) {
+	protected void printPhiNodes(XlimPhiContainerModule module) {
 		for (XlimPhiNode phi: module.getPhiNodes()) {
 			XlimOutputPort out=phi.getOutputPort(0);
 			println(out.getType()+" "+out.getUniqueId()+"=phi("+
-					getSourceName(phi.getInputPort(0).getSource())+","+
-					getSourceName(phi.getInputPort(1).getSource())+");");
+					phi.getInputPort(0).getSource().getDebugName()+","+
+					phi.getInputPort(1).getSource().getDebugName()+");");
 		}
 	}
 	
-	private void printOperation(XlimOperation op) {
-		String delimiter;
+	protected void printOutputs(XlimOperation op) {
 		int N=op.getNumOutputPorts();
 		if (N>=1) {
 			if (N==1) {
@@ -212,7 +221,7 @@ public class XlimVisualPrinter extends OutputGenerator {
 				print(out.getType()+" "+out.getUniqueId()+"=");
 			}
 			else {
-				delimiter="(";
+				String delimiter="(";
 				for (XlimOutputPort out: op.getOutputPorts()) {
 					print(delimiter+out.getUniqueId()+":"+out.getType());
 					delimiter=",";
@@ -220,16 +229,18 @@ public class XlimVisualPrinter extends OutputGenerator {
 				print(")=");	
 			}
 		}
-		print(op.getKind()+"(");
-		delimiter="";
+	}
+	
+	protected void printInputs(XlimOperation op) {
+		String delimiter="";
 		XlimTopLevelPort port=op.getPortAttribute();
 		if (port!=null) {
-			print(delimiter+port.getSourceName());
+			print(delimiter+port.getName());
 			delimiter=",";
 		}
-		XlimStateVar stateVar=op.getStateVarAttribute();
-		if (stateVar!=null) {
-			print(delimiter+getSourceName(stateVar));
+		Location location=op.getLocation();
+		if (location!=null) {
+			print(delimiter+"location="+location.getDebugName());
 			delimiter=",";
 		}
 		XlimTaskModule task=op.getTaskAttribute();
@@ -243,23 +254,24 @@ public class XlimVisualPrinter extends OutputGenerator {
 			delimiter=",";
 		}
 		for (XlimInputPort in: op.getInputPorts()) {
-			print(delimiter+getSourceName(in.getSource()));
+			print(delimiter+in.getSource().getDebugName());
 			delimiter=",";
 		}
-		println(");");
 	}
 	
-	
-	private String getSourceName(XlimSource source) {
-		XlimStateVar stateVar=source.isStateVar();
-		if (stateVar!=null) {
-			String sourceName=stateVar.getSourceName();
-			if (sourceName!=null)
-				return sourceName;
-		}
-		return source.getUniqueId();
+	protected void printComment(XlimOperation op) {
+		// Override to print operation comment
 	}
 	
+	protected void printOperation(XlimOperation op) {
+		printOutputs(op);
+		print(op.getKind()+"(");
+		printInputs(op);
+		print(");");
+		printComment(op);
+		println();
+	}
+		
 	public void printContainerModule(XlimContainerModule module) {
 		for (XlimBlockElement element: module.getChildren()) {
 			element.accept(mVisitor, null);
