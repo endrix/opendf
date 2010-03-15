@@ -49,7 +49,12 @@ override LDLIBS += `gtk-config --libs`
 endif
 
 ifdef SDL
+ifdef ARM
+ARMDIR=$(HOME)/work/actor/arm/usr/local
+override LDLIBS  += -L$(ARMDIR)/lib -lSDL -lts
+else
 override LDLIBS  += `sdl-config --libs`
+endif
 endif
 
 ifdef MERGE
