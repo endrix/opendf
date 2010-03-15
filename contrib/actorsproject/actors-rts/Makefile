@@ -19,6 +19,13 @@ else
 REAL_NAME=$(BASENAME).a
 endif
 
+ifeq ($(ARM),y)
+export CC=arm-none-linux-gnueabi-gcc
+export LD=arm-none-linux-gnueabi-ld
+export CXX=arm-none-linux-gnueabi-g++
+ARMDIR=$(HOME)/work/actor/arm/usr/local
+endif
+
 ifneq "$(PROFILE)" ""
 CFLAGS += -pg -fno-omit-frame-pointer
 endif
@@ -32,7 +39,11 @@ CFLAGS += `gtk-config --cflags` -DGTK
 endif
 
 ifeq ($(SDL), y)
+ifeq ($(ARM), y)
+CFLAGS += -I$(ARMDIR)/include/SDL -D_GNU_SOURCE=1 -D_REENTRANT -DSDL
+else
 CFLAGS += `sdl-config --cflags` -DSDL
+endif	
 endif
 
 ifeq ($(RM), y)
