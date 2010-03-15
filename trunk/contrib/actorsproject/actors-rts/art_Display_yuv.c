@@ -51,7 +51,8 @@
 #elif defined GTK
 #include <gtk/gtk.h>
 #elif defined SDL
-#include "SDL/SDL.h"
+//#include "SDL/SDL.h"
+#include "SDL.h"
 #endif
 
 ART_ACTION_CONTEXT(1, 1);
@@ -288,11 +289,11 @@ ART_ACTION_SCHEDULER(art_Display_yuv_action_scheduler)
       comp=0;
       start=0;
       thisActor->mbx+=16;
-    } while (thisActor->mbx<16*WIDTH_IN_MB);
+    } while (thisActor->mbx<IMAGE_WIDTH);
     
     thisActor->mbx=0;
     thisActor->mby+=16;
-    if (thisActor->mby>=16*HEIGHT_IN_MB){
+    if (thisActor->mby>=IMAGE_HEIGHT){
       thisActor->totFrames++;	
       thisActor->mby=0;
     }
