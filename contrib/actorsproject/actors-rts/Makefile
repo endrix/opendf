@@ -19,6 +19,13 @@ else
 REAL_NAME=$(BASENAME).a
 endif
 
+ifeq ($(ARM),y)
+export CC=arm-none-linux-gnueabi-gcc
+export LD=arm-none-linux-gnueabi-ld
+export CXX=arm-none-linux-gnueabi-g++
+ARMDIR=$(HOME)/work/actor/arm/usr/local
+endif
+
 ifneq "$(PROFILE)" ""
 CFLAGS += -pg -fno-omit-frame-pointer
 endif
@@ -32,7 +39,11 @@ CFLAGS += `gtk-config --cflags` -DGTK
 endif
 
 ifeq ($(SDL), y)
+ifeq ($(ARM), y)
+CFLAGS += -I$(ARMDIR)/include/SDL -D_GNU_SOURCE=1 -D_REENTRANT -DSDL
+else
 CFLAGS += `sdl-config --cflags` -DSDL
+endif	
 endif
 
 ifeq ($(RM), y)
@@ -85,18 +96,23 @@ includedir?=$(prefix)/include
 libdir?=$(exec_prefix)/lib
 datarootdir?=$(prefix)/share
 datadir?=$(datarootdir)
-#ARMDBUSDIR=$(HOME)/work/actor/arm-rm/usr/local
 
 ifeq ($(RM), y)
-#LDLIBS=-lpthread -lc -L$(ARMDBUSDIR)/lib -ldbus-1 $(ARMDBUSDIR)/lib/libgcc_s.so.1 $(ARMDBUSDIR)/lib/libstdc++.so.6
+ifeq ($(ARM),y)
+LDLIBS=-lpthread -lc -L$(ARMDIR)/lib -ldbus-1 $(ARMDIR)/lib/libgcc_s.so.1 $(ARMDIR)/lib/libstdc++.so.6
+else
 LDLIBS=-lpthread -lc -ldbus-1 /lib/libgcc_s.so.1 /usr/lib/libstdc++.so.6
+endif
 else
 LDLIBS=-lpthread -lc
 endif	
 
 ifeq ($(RM), y)
-#CXX_INCLUDES = -I$(srcdir)/dbus -I$(ARMDBUSDIR)/include/dbus-1.0 -I$(ARMDBUSDIR)/lib/dbus-1.0/include
+ifeq ($(ARM),y)
+CXX_INCLUDES = -I$(srcdir)/dbus -I$(ARMDIR)/include/dbus-1.0 -I$(ARMDIR)/lib/dbus-1.0/include
+else
 CXX_INCLUDES = -I$(srcdir)/dbus -I/usr/include/dbus-1.0 -I/usr/lib/dbus-1.0/include
+endif
 endif
 
 .PHONY: all uninstall clean
