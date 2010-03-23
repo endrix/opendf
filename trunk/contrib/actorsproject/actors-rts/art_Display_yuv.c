@@ -162,7 +162,10 @@ static void display_mb(ActorInstance_art_Display_yuv *thisActor){
 					b = (t+buv)>>8;
 #if defined FB
 					rgb565 = RGB565(SATURATE8(r),SATURATE8(g),SATURATE8(b));
-					location = (thisActor->mbx+kk+thisActor->vinfo.xoffset) * (thisActor->vinfo.bits_per_pixel/8) + (thisActor->mby+jj+thisActor->vinfo.yoffset) * thisActor->finfo.line_length;
+					location = (thisActor->mbx+kk+thisActor->vinfo.xoffset) *
+                     (thisActor->vinfo.bits_per_pixel>>3) +
+                     (thisActor->mby+jj+thisActor->vinfo.yoffset) *
+                      thisActor->finfo.line_length;
 					*((unsigned short int*)(thisActor->fbp + location)) = rgb565;
 #elif defined GTK
 					xy = (thisActor->mby+jj) * thisActor->width;
