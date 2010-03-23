@@ -52,7 +52,8 @@ static void constructor(AbstractActorInstance *pBase)
   ActorInstance_art_Sink *thisActor = (ActorInstance_art_Sink*)pBase;
 
   if (thisActor->filename == NULL) {
-    runtimeError(pBase,"Parameter not set: fileName");
+	thisActor->file = stdout;  
+    //runtimeError(pBase,"Parameter not set: fileName");
   } else {
     thisActor->file = fopen(thisActor->filename, "w");
     if (thisActor->file == NULL) {
