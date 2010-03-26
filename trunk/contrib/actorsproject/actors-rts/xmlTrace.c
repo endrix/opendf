@@ -37,6 +37,8 @@
 
 #include "xmlTrace.h"
 
+static pthread_mutex_t xmlMutex;
+
 FILE *xmlCreateTrace(const char *fileName) {
   FILE *f=fopen(fileName, "w");
   if (f!=0) {
@@ -141,8 +143,11 @@ void xmlDeclareNetwork(FILE *f,
 extern unsigned int timestamp();
 void xmlTraceAction(FILE *f, int actionIndex) {
   static unsigned int step = 0;
-
-  fprintf(f, "<trace timestamp=\"%u\" action=\"%d\" step=\"%u\"/>\n", timestamp(0),actionIndex, step++);
+  int localstep;
+  pthread_mutex_lock(&xmlMutex);
+  localstep = step++;
+  pthread_mutex_unlock(&xmlMutex);
+  fprintf(f, "<trace timestamp=\"%u\" action=\"%d\" step=\"%u\"/>\n", timestamp(0),actionIndex, localstep);
 }
 
 void xmlTraceStatus(FILE *f, int status) {
