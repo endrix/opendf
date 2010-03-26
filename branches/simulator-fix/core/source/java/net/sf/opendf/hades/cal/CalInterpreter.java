@@ -135,7 +135,7 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 			
 			setupAssertionHandling();
 			
-			setupPortTypeChecking();
+			//setupPortTypeChecking();
 			
 			warnBigBuffers = -1;
 			String bufferSizeWarning = System.getProperty("CalBufferWarning");
@@ -207,6 +207,22 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 				}
 			}
 			
+			for (PortDecl pd : actor.getInputPorts()) {
+				TypeExpr te = pd.getType();
+				TypeSystem ts = theConfiguration.getTypeSystem();
+				Type type =  (ts != null) ? ts.evaluate(te, myInterpreter) : null;
+				MosesInputChannel ic = inputPortMap.get(pd.getName());
+				ic.setType(type);
+			}
+			
+			for (PortDecl pd : actor.getOutputPorts()) {
+				TypeExpr te = pd.getType();
+				TypeSystem ts = theConfiguration.getTypeSystem();
+				Type type =  (ts != null) ? ts.evaluate(te, myInterpreter) : null;
+				MosesOutputChannel ic = outputPortMap.get(pd.getName());
+				ic.setType(type);
+			}
+			
 			ai = new ActorInterpreter(actor, theConfiguration,
 					this.actorEnv, inputPortMap, outputPortMap);
 			
@@ -223,7 +239,7 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 		catch (Exception e) {
 			throw new RuntimeException("Failed to initialize actor '" + actor.getName() + "':" + e.getMessage(), e);
 		}
-	}
+	}	
 	
 	private void checkFinalizer(Environment env) {
 		try {
@@ -550,25 +566,7 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 		actor = (Actor)deepCopy(a);
 		
 		this.instantiationEnv = outsideEnv;		
-		
-		// FIXME -- Start of hack (Johan Eker)
-		// Here I create an en environment for the sole purpose 
-		// of instantiating an Executor, which is used for calculating 
-		// the types of the output ports. I somehow expect there is
-		// a more elegant way. 
-	
-		setupConstantEnvironment(loader);		
-		EnvironmentWrapper ew = new EnvironmentWrapper(this.instantiationEnv, constantEnv);
-		
-		Decl[] decls = actor.getStateVars();
-		DynamicEnvironmentFrame constantEnv = new DynamicEnvironmentFrame(ew);
-		constantEnv.bind("this", this, null); 
-		// disallow writing to cached environment
-		this.actorEnv = createActorStateEnvironment(constantEnv);
-		this.myInterpreter = new Executor(theConfiguration, this.actorEnv);
-		// --- End of hack
-		
-		
+				
 		PortDecl[] pd = actor.getInputPorts();
 		inputPortMap = new HashMap();
 		for (int i = 0; i < pd.length; i++) {
@@ -580,10 +578,10 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 		pd = actor.getOutputPorts();
 		outputPortMap = new HashMap();
 		for (int i = 0; i < pd.length; i++) {
-			TypeExpr te = pd[i].getType();
-			TypeSystem ts = theConfiguration.getTypeSystem();
-			Type type =  (ts != null) ? ts.evaluate(te, myInterpreter) : null;
-			MosesOutputChannel moc = createOutputChannel(pd[i].getName(), type);
+			// TypeExpr te = pd[i].getType();
+			// TypeSystem ts = theConfiguration.getTypeSystem();
+			// Type type =  (ts != null) ? ts.evaluate(te, myInterpreter) : null;
+			MosesOutputChannel moc = createOutputChannel(pd[i].getName(), null);
 			outputPortMap.put(pd[i].getName(), moc);
 			outputs.addConnector(pd[i].getName(), moc);
 		}
@@ -1325,6 +1323,10 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 			return 1;
 		}
 		
+		public void setType(Type t) {
+			type = t;
+		}
+		
 		public InputChannel getChannel(int n) {
 			if (n != 0) {
 				throw new RuntimeException("Getting channel >0 from SingleInputPort.");
@@ -1428,10 +1430,12 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 		}
 		
 		protected void addToken (Object token) {
-			tokens.add(token);
+			Object convertedToken = (type == null) ? token : type.convert(token);
+			
+			tokens.add(convertedToken);
 			try {
 				if (listener != null) {
-					listener.notify(token);
+					listener.notify(convertedToken);
 				}
 			} catch (Exception e) {e.printStackTrace(); System.out.println("Uh-oh");}
 			tokensQueued += 1;
@@ -1463,6 +1467,7 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 		protected int tokensRead;
 		protected String name;
 		protected int  bufferSize;
+		protected Type type;
 		
 		protected TokenListener listener;
 		
@@ -1542,6 +1547,10 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 		    return type;
 		}
 		
+		public void setType(Type t) {
+			type = t;
+		}
+		
 		public Collection<Object>  getBlockingSources() {
 			return blockingSources;
 		}
@@ -1551,12 +1560,14 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 		//
 		
 		public void put(Object a) {
+			Object convertedA = (type == null) ? a : type.convert(a);
+			
 			try {
 				if (listener != null) {
-					listener.notify(a);
+					listener.notify(convertedA);
 				}
 			} catch (Exception e) {}
-			tokens.add(a);
+			tokens.add(convertedA);
 		}
 		
 		//
