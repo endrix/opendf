@@ -6,7 +6,7 @@
     gen             - generates java files
     genClean        - removes all generated files and their class files
   -->
-<project name="Actors model compiler" default="build" basedir=".">
+<project name="Actors model compiler" default="gen" basedir=".">
 
   <!-- "tools" is the directory where generators and libraries are located. -->
   <property name="tools" value="./tools"/>
