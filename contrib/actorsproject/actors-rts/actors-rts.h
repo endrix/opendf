@@ -76,7 +76,8 @@ extern "C" {
 
 #endif
 
-#define COPY(a) a
+#define COPY(a)       (a)
+#define MEMCPY(d,s,c) (memcpy(d,s,c))
 
 #define RANGECHK(X,B) ((unsigned)(X)<(unsigned)(B)?(X):RANGEERR(X,B))
 #define RANGEERR(X,B) (rangeError((X),(B),__FILE__,__LINE__))
