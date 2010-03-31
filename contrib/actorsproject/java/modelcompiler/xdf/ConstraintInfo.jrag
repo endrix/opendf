@@ -19,7 +19,7 @@ aspect ConstraintInfo {
 		System.out.println("Number of actors: "+numActors());
 		System.out.println("Number of FIFOs: "+numFIFOs());
 		System.out.println();
-		for (Instance i : getInstances(new HashSet<Instance>())) {
+		for (Instance i : getInstances(new LinkedList<Instance>())) {
 			System.out.println(i.name()+" "+i.classification());
 			for (xlimAST.actor_port p : i.getPorts()) {
 				System.out.println(p.name()+" "+p.tokenPattern());

@@ -10,6 +10,7 @@ import xdfAST.Instance;
 import xdfAST.Port;
 import xdfAST.Start;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.io.PrintStream;
 import java.io.FileNotFoundException;
 
@@ -17,7 +18,7 @@ public class ManageXDF extends XdfParser {
 	public static void main(String args[]) {
 		Start ast = parse(args);
 
-		HashSet<Instance> s = ast.getInstances(new HashSet<Instance>());
+		LinkedList<Instance> s = ast.getInstances(new LinkedList<Instance>());
  		System.out.println("\n\n");
 
 		for (Instance i: s){

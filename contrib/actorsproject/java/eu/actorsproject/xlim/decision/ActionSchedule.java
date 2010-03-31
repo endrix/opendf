@@ -46,6 +46,12 @@ import java.util.Set;
 import eu.actorsproject.util.MergeFindPartition;
 import eu.actorsproject.util.XmlPrinter;
 import eu.actorsproject.xlim.XlimTopLevelPort;
+import eu.actorsproject.util.XmlElement;
+import eu.actorsproject.xlim.XlimBlockElement;
+import eu.actorsproject.xlim.XlimContainerModule;
+import eu.actorsproject.xlim.XlimModule;
+import eu.actorsproject.xlim.XlimOperation;
+import eu.actorsproject.xlim.XlimTaskModule;
 
 /**
  * Represents all possible action schedules of the actor
@@ -133,6 +139,43 @@ public class ActionSchedule {
 			printer.println("<mode id=\""+phaseId+"\" terminate=\"yes\"/>");
 		}
 	}
+
+  public LinkedList<Object> getActionList() {
+		Map<DecisionTree,Integer> visited=new HashMap<DecisionTree,Integer>();
+		LinkedList<Object> actions = new LinkedList<Object>();
+		DecisionTree nextRep=getRepresenter(mInitialPhase);
+		int phaseId=0;
+		while (nextRep!=null) {
+			boolean portFoundInPhase = false;
+			DecisionTree rep=nextRep;
+			visited.put(rep, phaseId);
+			
+			nextRep=getRepresenter(mPhases.get(rep));
+			Integer visitedId=visited.get(nextRep);
+			int nextId=(visitedId!=null)? visitedId : phaseId+1;
+
+			LinkedList<String> actionNames = new LinkedList<String>();
+			for (DecisionTree l: mModes.find(rep)) {
+			  ActionNode actNode = (ActionNode)l;
+			  XlimContainerModule xcm = (XlimContainerModule)(l.getModule());
+			  for (XlimBlockElement element: xcm.getChildren()) {
+			    if (element instanceof XlimOperation) {
+			      XlimOperation op = (XlimOperation) element;
+			      XlimTaskModule task = op.getTaskAttribute();
+			      if (task != null) {
+				actionNames.add(task.getName());
+			      }
+			    }
+			  }
+			}
+			actions.add(actionNames);
+			if (nextId<=phaseId)
+				break;
+			++phaseId;
+		}
+		return actions;
+  }		       
+
 	
 	public LinkedList<Integer> getPortPattern(String portName) {
 		Map<DecisionTree,Integer> visited=new HashMap<DecisionTree,Integer>();
@@ -161,6 +204,7 @@ public class ActionSchedule {
 			if (!portFoundInPhase) {
 				pattern.add(0);
 			}
+
 			if (nextId<=phaseId)
 				break;
 			++phaseId;

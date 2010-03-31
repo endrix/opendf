@@ -12,6 +12,7 @@ import eu.actorsproject.xlim.decision.ActionSchedule;
 
 aspect Merge {
 	private static int design.nameIndex = 0;
+	static int ASTNode.tmpIndex = 0;
 	
 	public void Start.merge(Start dest, String srcPort, String dstPort) {
 		getSpecification().getDesign().merge(dest.getSpecification().getDesign(),
@@ -27,11 +28,11 @@ aspect Merge {
 		List<Element> eList = getElements();
 		stateVar var = new stateVar();		
 		initValue init = new initValue();
-		init.setAttributeList(new List().add(new size(new AttrValue("\"32\""))).
-							  add(new typeName(new AttrValue("\"int\""))).
-							  add(new value(new AttrValue("\"0\""))));
-		var.setAttributeList(new List().add(new name(new AttrValue(varName))).
-							 add(new sourceName(new AttrValue(varName))));
+		init.setAttributeList(new List().add(new _size(new AttrValue("\"32\""))).
+							  add(new _typeName(new AttrValue("\"int\""))).
+							  add(new _value(new AttrValue("\"0\""))));
+		var.setAttributeList(new List().add(new _name(new AttrValue(varName))).
+							 add(new _sourceName(new AttrValue(varName))));
 		var.addElement(init);
 		eList.insertChild(var,0);
 		// Re-set pinWrite with shared variable
@@ -56,10 +57,10 @@ aspect Merge {
 		for (module m : dst.getActions(new HashSet<module>())) {
 			m.setInVar(ix,dstPort,bufSize);
 		}		
-		src.getSpecification().getDesign().removePort(fix(srcPort));
-		dst.getSpecification().getDesign().removePort(fix(dstPort));
-		src.actionScheduler().removePort(srcPort);
-		dst.actionScheduler().removePort(dstPort);
+		src.getSpecification().getDesign().removePort(fix(srcPort),ix);
+		dst.getSpecification().getDesign().removePort(fix(dstPort),ix);
+		src.actionScheduler().removePort(srcPort,ix);
+		dst.actionScheduler().removePort(dstPort,ix);
 		// src.actionScheduler().manglePinAvail(srcPort,name());
 	}
 	
@@ -68,15 +69,17 @@ aspect Merge {
 	public Version.Version(String value) {super(new AttrValue(unfix(value)));}
 	public autostart.autostart(String value) {super(new AttrValue(unfix(value)));}
 	public decision.decision(String value) {super(new AttrValue(unfix(value)));}
-	public dir.dir(String value) {super(new AttrValue(unfix(value)));}
-	public kind.kind(String value) {super(new AttrValue(unfix(value)));}
-	public name.name(String value) {super(new AttrValue(unfix(value)));}
-	public size.size(String value) {super(new AttrValue(unfix(value)));}
+	public _dir._dir(String value) {super(new AttrValue(unfix(value)));}
+	public _kind._kind(String value) {super(new AttrValue(unfix(value)));}
+	public _name._name(String value) {super(new AttrValue(unfix(value)));}
+	public portName.portName(String value) {super(new AttrValue(unfix(value)));}
+	public qualifier.qualifier(String value) {super(new AttrValue(unfix(value)));}
+	public _size._size(String value) {super(new AttrValue(unfix(value)));}
 	public target.target(String value) {super(new AttrValue(unfix(value)));}
 	public source.source(String value) {super(new AttrValue(unfix(value)));}
-	public sourceName.sourceName(String value) {super(new AttrValue(unfix(value)));}
-	public typeName.typeName(String value) {super(new AttrValue(unfix(value)));}
-	public value.value(String value) {super(new AttrValue(unfix(value)));}
+	public _sourceName._sourceName(String value) {super(new AttrValue(unfix(value)));}
+	public _typeName._typeName(String value) {super(new AttrValue(unfix(value)));}
+	public _value._value(String value) {super(new AttrValue(unfix(value)));}
 
 	public void Start.init(String name) {
 		Specification spec = new Specification();
@@ -84,31 +87,40 @@ aspect Merge {
 		xmlHead.setAttributeList(new List<Attribute>().add(new Version("1.0")).
 								 add(new Encoding("UTF-8")));
 		spec.setXmlHeader(xmlHead);
-		design d = new design(new List<Attribute>().add(new name(name)),new List<Element>());
+		design d = new design(new List<Attribute>().add(new _name(name)),new List<Element>());
 		spec.setElementList(new List<Element>().add(d));
 		setSpecification(spec);
+		
+		// Turn of blocking-waits generation in xlim2c, otherwise it
+		// will crasch.
+		note option = new note();
+		d.addElement(option);
+		option.setAttributeList(new List<Attribute>().
+								add(new _kind("option")).
+								add(new _name("generate-blocking-waits")).
+								add(new _value("false")));
 	}
 
-	public void Start.addStateVar(String name, int size) {
-		getSpecification().getDesign().addStateVar(name,size);
+	public void Start.addStateVar(String name, int bufSize, String typeName, String size) {
+		getSpecification().getDesign().addStateVar(name,bufSize,typeName,size);
 	}
-	public void design.addStateVar(String name, int size) {
+	public void design.addStateVar(String name, int bufSize, String typeName, String size) {
 		stateVar sVar = new stateVar();
 		// addElement(sVar);
 		getElements().insertChild(sVar,0);
-		sVar.setAttributeList(new List<Attribute>().add(new name(name)).
-							  add(new sourceName(name)));
+		sVar.setAttributeList(new List<Attribute>().add(new _name(name)).
+							  add(new _sourceName(name)));
 		sVar.setElementList(new List<Element>());
 		initValue list = new initValue();
-		list.setAttributeList(new List<Attribute>().add(new typeName("List")));
+		list.setAttributeList(new List<Attribute>().add(new _typeName("List")));
 		List<Element> eList = new List<Element>();
 		sVar.addElement(list);
 		initValue iVal = new initValue();
 		iVal.setElementList(new List<Element>());
-		iVal.setAttributeList(new List<Attribute>().add(new size("32")).
-							  add(new typeName("int")).
-							  add(new value("0")));
-		for (int i=0; i<size; i++) {
+		iVal.setAttributeList(new List<Attribute>().add(new _size(size)).
+							  add(new _typeName(typeName)).
+							  add(new _value("0")));
+		for (int i=0; i<bufSize; i++) {
 			eList.add(iVal);
 		}
 		list.setElementList(eList);
@@ -121,27 +133,27 @@ aspect Merge {
 		stateVar sVar = new stateVar();
 		// addElement(sVar);
 		getElements().insertChild(sVar,0);
-		sVar.setAttributeList(new List<Attribute>().add(new name(name)).
-							  add(new sourceName(name)));
+		sVar.setAttributeList(new List<Attribute>().add(new _name(name)).
+							  add(new _sourceName(name)));
 		initValue list = new initValue();
 		list.setAttributeList(new List<Attribute>().
-							  add(new size("32")).
-							  add(new typeName("int")).
-							  add(new value("1")));
+							  add(new _size("32")).
+							  add(new _typeName("int")).
+							  add(new _value("0")));
 		sVar.setElementList(new List<Element>().add(list));
 		// System.out.println("Adding statevar");
 		// sVar.prettyPrint("",System.out);
 		// System.out.println(getNumElement());
 	}
 
-	public void Start.populate(Start instance) {
-		getDesign().populate(instance);
+	public void Start.populate(Start instance, String prefix) {
+		getDesign().populate(instance,prefix);
 	}
 
-	public void design.populate(Start instance) {
+	public void design.populate(Start instance, String prefix) {
 		// Before populating merged instance, mangle names for
 		// uniqueness in source instance.
-		instance.mangleNames();
+		instance.mangleNames(prefix);
 		for (Element e : instance.getDesign().getElements()) {
 			if (!e.isActionScheduler()) {
 				addElement(e);
@@ -156,100 +168,176 @@ aspect Merge {
 		// once.
 		operation oneLit = new operation();
 		operations.add(oneLit);
-		oneLit.setAttributeList(new List<Attribute>().add(new kind("$literal_Integer")).
-								add(new value("1")));
+		oneLit.setAttributeList(new List<Attribute>().add(new _kind("$literal_Integer")).
+								add(new _value("1")));
 		List<Element> litList = new List<Element>();
 		oneLit.setElementList(litList);
 		port litPort = new port();
 		litPort.setElementList(new List<Element>());
-		litPort.setAttributeList(new List<Attribute>().add(new dir("out")).
-								 add(new size("32")).add(new source("one_"+ix)).
-								 add(new typeName("int")));
+		litPort.setAttributeList(new List<Attribute>().add(new _dir("out")).
+								 add(new _size("32")).add(new source("one_"+tmpIndex)).
+								 add(new _typeName("int")));
 		litList.add(litPort);
+		//***********************
 		// First, increase buffer out index
+		//***********************
 		operation addOp = new operation();
 		operations.add(addOp);
-		addOp.setAttributeList(new List<Attribute>().add(new kind("$add")));
+		addOp.setAttributeList(new List<Attribute>().add(new _kind("$add")));
 		List<Element> addElements = new List<Element>();
 		addOp.setElementList(addElements);
-		addElements.add(new port(new List<Attribute>().add(new dir("in")).
-								 add(new source("one_"+ix)),new List<Element>())).
-			add(new port(new List<Attribute>().add(new dir("in")).
+		addElements.add(new port(new List<Attribute>().add(new _dir("in")).
+								 add(new source("one_"+tmpIndex)),new List<Element>())).
+			add(new port(new List<Attribute>().add(new _dir("in")).
 						 add(new source(bufName+ix)),new List<Element>())).
-			add(new port(new List<Attribute>().add(new dir("out")).
-						 add(new size("32")).add(new source(bufName+ix)).
-						 add(new typeName("int")),
+			add(new port(new List<Attribute>().add(new _dir("out")).
+						 add(new _size("32")).add(new source(bufName+ix+"_add")).
+						 add(new _typeName("int")),
 						 new List<Element>()));
 
+		//***********************
 		// Test if index should wrap to 0
+		//***********************
 		module ifm = new module();
 		operations.add(ifm);
-		ifm.setAttributeList(new List<Attribute>().add(new kind("if")));
+		ifm.setAttributeList(new List<Attribute>().add(new _kind("if")));
 		List<Element> ifmElements = new List<Element>();
 		ifm.setElementList(ifmElements);
 		module testm = new module();
 		ifm.addElement(testm);
-		testm.setAttributeList(new List<Attribute>().add(new decision("decision_"+ix)).
-							   add(new kind("test")));
+		testm.setAttributeList(new List<Attribute>().add(new decision("decision_"+tmpIndex)).
+							   add(new _kind("test")));
 		List<Element> testmElements = new List<Element>();
 		testm.setElementList(testmElements);
+		//***********************
 		// Buffer size literal
+		//***********************
 		operation sizeLit = new operation();
 		testmElements.add(sizeLit);
-		sizeLit.setAttributeList(new List<Attribute>().add(new kind("$literal_Integer")).
-								 add(new value(Integer.toString(bufSize))));
+		sizeLit.setAttributeList(new List<Attribute>().add(new _kind("$literal_Integer")).
+								 add(new _value(Integer.toString(bufSize))));
 		List<Element> sizeLitList = new List<Element>();
 		sizeLit.setElementList(sizeLitList);
 		port sizeLitPort = new port();
 		sizeLitPort.setElementList(new List<Element>());
-		sizeLitPort.setAttributeList(new List<Attribute>().add(new dir("out")).
-									 add(new size("32")).add(new source("bufSize_"+ix)).
-									 add(new typeName("int")));
+		sizeLitPort.setAttributeList(new List<Attribute>().add(new _dir("out")).
+									 add(new _size("32")).add(new source("bufSize_"+ix)).
+									 add(new _typeName("int")));
 		sizeLitList.add(sizeLitPort);
+		//***********************
 		// outIx >= bufSize?
+		//***********************
 		List<Element> geqElements = new List<Element>();
-		operation geq = new operation(new List<Attribute>().add(new kind("$ge")),
+		operation geq = new operation(new List<Attribute>().add(new _kind("$ge")),
 									  geqElements);
 		testmElements.add(geq);
-		geqElements.add(new port(new List<Attribute>().add(new dir("in")).
-								 add(new source(bufName+ix)),new List<Element>())).
-			add(new port(new List<Attribute>().add(new dir("in")).
-						 add(new source("bufSize_"+ix)),new List<Element>())).
-			add(new port(new List<Attribute>().add(new dir("out")).
-						 add(new source("decision_"+ix)).add(new typeName("bool")),
+		geqElements.add(new port(new List<Attribute>().add(new _dir("in")).
+								 add(new source(bufName+ix+"_add")),
+								 new List<Element>())).
+			add(new port(new List<Attribute>().add(new _dir("in")).
+						 add(new source("bufSize_"+ix)),
+						 new List<Element>())).
+			add(new port(new List<Attribute>().add(new _dir("out")).
+						 add(new source("decision_"+tmpIndex)).add(new _typeName("bool")),
 						 new List<Element>()));
 		//***********************
 		// then module
 		//***********************
 		module thenm = new module();
 		ifm.addElement(thenm);
-		thenm.setAttributeList(new List<Attribute>().add(new kind("then")));
+		thenm.setAttributeList(new List<Attribute>().add(new _kind("then")));
 		List<Element> thenmElements = new List<Element>();
 		thenm.setElementList(thenmElements);
 		// zero literal
 		operation zeroLit = new operation();
 		thenmElements.add(zeroLit);
-		zeroLit.setAttributeList(new List<Attribute>().add(new kind("$literal_Integer")).
-								 add(new value("0")));
+		zeroLit.setAttributeList(new List<Attribute>().add(new _kind("$literal_Integer")).
+								 add(new _value("0")));
 		List<Element> zeroLitList = new List<Element>();
 		zeroLit.setElementList(zeroLitList);
 		port zeroLitPort = new port();
 		zeroLitPort.setElementList(new List<Element>());
-		zeroLitPort.setAttributeList(new List<Attribute>().add(new dir("out")).
-									 add(new size("32")).add(new source("zeroLit_"+ix)).
-									 add(new typeName("int")));
+		zeroLitPort.setAttributeList(new List<Attribute>().add(new _dir("out")).
+									 add(new _size("32")).
+									 add(new source("zeroLit_"+tmpIndex)).
+									 add(new _typeName("int")));
 		zeroLitList.add(zeroLitPort);
+		//***********************
 		// outIx = 0
+		//***********************
 		List<Element> assignElements = new List<Element>();
+		// operation assign = new operation(new List<Attribute>().
+		// 								 add(new _kind("assign")).
+		// 								 add(new target(bufName+ix)),
+		// 								 assignElements);
 		operation assign = new operation(new List<Attribute>().
-										 add(new kind("assign")).
-										 add(new target(bufName+ix)),
+										 add(new _kind("noop")),
 										 assignElements);
 		thenmElements.add(assign);
-		assignElements.add(new port(new List<Attribute>().add(new dir("in")).
-						 add(new source("zeroLit_"+ix)),new List<Element>()));
+		assignElements.add(new port(new List<Attribute>().add(new _dir("in")).
+						 add(new source("zeroLit_"+tmpIndex)),new List<Element>()));
+		assignElements.add(new port(new List<Attribute>().add(new _dir("out")).
+									add(new _size("32")).
+									add(new source(bufName+ix+"_then")).
+									add(new _typeName("int")),new List<Element>()));
+		//***********************
+		// else module
+		//***********************
+		module elsem = new module();
+		ifm.addElement(elsem);
+		elsem.setAttributeList(new List<Attribute>().add(new _kind("else")));
+		List<Element> elsemElements = new List<Element>();
+		elsem.setElementList(elsemElements);
+		operation noop = new operation();
+		elsemElements.add(noop);
+		noop.setAttributeList(new List<Attribute>().add(new _kind("noop")));
+		port noopIn = new port();
+		noop.addElement(noopIn);
+		noopIn.setAttributeList(new List<Attribute>().add(new _dir("in")).
+								add(new source(bufName+ix+"_add")));
+		port noopOut = new port();
+		noop.addElement(noopOut);
+		noopOut.setAttributeList(new List<Attribute>().add(new _dir("out")).
+								 add(new _size("32")).
+								 add(new source(bufName+ix+"_else")).
+								 add(new _typeName("int")));
+
+		//***********************
+		// PHI 
+		//***********************
+		PHI phi = new PHI();
+		ifm.addElement(phi);
+		port phiIn1 = new port();
+		phi.addElement(phiIn1);
+		phiIn1.setAttributeList(new List<Attribute>().add(new _dir("in")).
+								add(new qualifier("then")).
+								add(new source(bufName+ix+"_then")));
+		port phiIn2 = new port();
+		phi.addElement(phiIn2);
+		phiIn2.setAttributeList(new List<Attribute>().add(new _dir("in")).
+								add(new qualifier("else")).
+								add(new source(bufName+ix+"_else")));
+		port phiOut1 = new port();
+		phi.addElement(phiOut1);
+		phiOut1.setAttributeList(new List<Attribute>().add(new _dir("out")).
+								 add(new _size("32")).
+								 add(new source(bufName+ix+"_res")).
+								 add(new _typeName("int")));
+		//***********************
+		// Write back to state var 	  
+		//***********************
+		operation wBack = new operation();
+		operations.add(wBack);
+		wBack.setAttributeList(new List<Attribute>().add(new _kind("assign")).
+							   add(new target(bufName+ix)));
+		port wPort = new port();
+		wBack.addElement(wPort);
+		wPort.setAttributeList(new List<Attribute>().add(new _dir("in")).
+							   add(new source(bufName+ix+"_res")));
+
 		// Finished. Return list
 		// System.out.println("increaseBufferIx "+operations.getNumChild());
+		tmpIndex++;
 		return operations;
 	}
 
@@ -309,8 +397,8 @@ aspect Actions {
 	}
 	void Element.setOutVar(String varName, String srcPort){}
 	void operation.setOutVar(String varName, String srcPort) {
-		if (kind().equals("pinWrite")) {
-			setAttributeList(new List().add(new kind(new AttrValue("\"assign\""))).
+		if (kind().equals("pinWrite") && portName().equals(srcPort)) {
+			setAttributeList(new List().add(new _kind(new AttrValue("\"assign\""))).
 							 add(new target(new AttrValue(varName))));
 		}
 	}
@@ -318,28 +406,32 @@ aspect Actions {
 		List<Element> eList = new List<Element>();
 		for (Element e : getElements()) {
 			eList.add(e);
+			// e.prettyPrint(" ",System.out);
+			// System.out.println(e);
 			for (Element ee : e.setOutVar(ix, srcPort, bufSize)) {
 				eList.add(ee);
 			}
 		}
 		setElementList(eList);
-		return null;
+		return new List<Element>();
 	}
 	List<Element> Element.setOutVar(int ix, String srcPort, int bufSize) {return new List<Element>();}
 	List<Element> operation.setOutVar(int ix, String srcPort, int bufSize) {
-		if (kind().equals("pinWrite")) {
-			setAttributeList(new List().add(new kind(new AttrValue("\"assign\""))).
+		if (kind().equals("pinWrite") && portName().equals(srcPort)) {
+			setAttributeList(new List().add(new _kind(new AttrValue("\"assign\""))).
 							 add(new target("buf_"+ix)));
 			port indexPort = new port();
-			indexPort.setAttributeList(new List().add(new dir(new AttrValue("\"in\""))).
+			indexPort.setAttributeList(new List().add(new _dir(new AttrValue("\"in\""))).
 									 add(new source("outIx_"+ix)));
 			getElements().insertChild(indexPort,0);
 			// prettyPrint("",System.out);
 			// OK, so then add operations to increase buffer index,
 			// mod size.
+			System.out.println("** replaced pinWrite");
 			return increaseBufferIx(ix,bufSize,"outIx_");
 		}
 		// Not done anything so return empty list
+		// System.out.println("** nothing");
 		return new List<Element>();
 	}
 
@@ -352,12 +444,12 @@ aspect Actions {
 	void operation.setInVar(String varName, String srcPort) {
 		if (kind().equals("pinRead")) {
 			String src = getElement(0).source();
-			setAttributeList(new List().add(new kind(new AttrValue("\"noop\""))));
+			setAttributeList(new List().add(new _kind(new AttrValue("\"noop\""))));
 			port newInPort = new port();
-			newInPort.setAttributeList(new List().add(new dir(new AttrValue("\"in\""))).
+			newInPort.setAttributeList(new List().add(new _dir(new AttrValue("\"in\""))).
 									 add(new source(new AttrValue(varName))));
 // 			port newOutPort = new port();
-// 			newOutPort.setAttributeList(new List().add(new dir(new AttrValue("\"out\""))).
+// 			newOutPort.setAttributeList(new List().add(new _dir(new AttrValue("\"out\""))).
 // 										add(new size(new AttrValue("\"32\""))).
 // 										add(new source(new AttrValue(srcPort))));
  			addElement(newInPort);
@@ -386,11 +478,11 @@ aspect Actions {
 	}
 	List<Element> operation.setInVar(int ix, String srcPort, int bufSize) {
 		// System.out.println("operation.setInvar");
-		if (kind().equals("pinRead")) {
-			setAttributeList(new List().add(new kind("var_ref")).
-							 add(new name("buf_"+ix)));
+		if (kind().equals("pinRead") && portName().equals(srcPort)) {
+			setAttributeList(new List().add(new _kind("var_ref")).
+							 add(new _name("buf_"+ix)));
 			port indexPort = new port();
-			indexPort.setAttributeList(new List().add(new dir("in")).
+			indexPort.setAttributeList(new List().add(new _dir("in")).
 									 add(new source("inIx_"+ix)));
 			getElements().insertChild(indexPort,0);
 			// prettyPrint("",System.out);
@@ -432,10 +524,10 @@ aspect ActionScheduler {
 
 	void Element.addTaskCall(module m) {}
 	void module.addTaskCall(module m) {
-		System.out.println("Looking in: "+kind());
+		// System.out.println("Looking in: "+kind());
 		if (hasTaskCall()) {
 			operation o = new operation();
-			o.setAttributeList(new List().add(new kind(new AttrValue("\"taskCall\""))).
+			o.setAttributeList(new List().add(new _kind(new AttrValue("\"taskCall\""))).
 							   add(new target(new AttrValue(unfix(m.name())))));
 			addElement(o);
 		} else {
@@ -459,80 +551,208 @@ aspect ActionScheduler {
 	}
 
 	// Replace any access to this port with boolean true
-	void Element.removePort(String portName) {}
-	void ComplexElement.removePort(String portName) {
+	void Element.removePort(String portName, int ix) {}
+	void ComplexElement.removePort(String portName, int ix) {
 		for (Element e: getElements()) {
-			e.removePort(portName);
+			e.removePort(portName, ix);
 		}
 	}
-	void operation.removePort(String portName) {
+	void operation.removePort(String portName, int ix) {
 		if (kind().equals("pinAvail")) {
-			setAttributeList(new List<Attribute>().add(new kind("$literal_Integer")).
-							 add(new value("65535")));
+			setAttributeList(new List<Attribute>().add(new _kind("$literal_Integer")).
+							 add(new _value("65535")));
+		} else if (kind().equals("pinPeek") && portName.equals(portName())) {
+			setAttributeList(new List<Attribute>().add(new _kind("var_ref")).
+							 add(new _name("buf_"+ix)));			
 		}
 	}
-	void actor_port.removePort(String portName) {
-		System.out.println("Looking for: "+portName+" found "+name());
+	void actor_port.removePort(String portName, int ix) {
+		// System.out.println("Looking for: "+portName+" found "+name());
 		if (name().equals(portName)) {
 			remove_me = true;
 			is$Final(false);
 		}
 	}
-	void note.removePort(String portName) {
-		System.out.println("Looking for: "+portName+" found "+name());
+	void note.removePort(String portName, int ix) {
+		// System.out.println("Looking for: "+portName+" found "+name());
 		if (name().equals(portName)) {
 			remove_me = true;
 			is$Final(false);
 		}
 	}
 
-	public void Start.addActionScheduler() {
+	public module Start.addActionScheduler(HashSet<xdfAST.Port> ports) {
 		module actionSchedule = new module();
 		actionSchedule.setAttributeList(new List<Attribute>().add(new autostart("true")).
-								add(new kind("action-scheduler")).
-								add(new name("action-scheduler")).
-								add(new sourceName("action-scheduler")));
+								add(new _kind("action-scheduler")).
+								add(new _name("action-scheduler")).
+								add(new _sourceName("action-scheduler")));
 		operation trueLiteral = new operation();
 		module loop = new module();
 		actionSchedule.setElementList(new List<Element>().add(trueLiteral).add(loop));
 		trueLiteral.setAttributeList(new List<Attribute>().
-									 add(new kind("$literal_Integer")).
-									 add(new value("1")));
+									 add(new _kind("$literal_Integer")).
+									 add(new _value("1")));
 		List<Element> trueLiteralList = new List<Element>();
 		trueLiteral.setElementList(trueLiteralList);
 		port trueLiteralPort = new port();
 		trueLiteralPort.setElementList(new List<Element>());
-		trueLiteralPort.setAttributeList(new List<Attribute>().add(new dir("out")).
-									 add(new size("1")).add(new source("trueLiteral")).
-									 add(new typeName("bool")));
+		trueLiteralPort.setAttributeList(new List<Attribute>().add(new _dir("out")).
+									 add(new _size("1")).add(new source("trueLiteral")).
+									 add(new _typeName("bool")));
 		trueLiteralList.add(trueLiteralPort);
-		loop.setAttributeList(new List<Attribute>().add(new kind("loop")));
+		loop.setAttributeList(new List<Attribute>().add(new _kind("loop")));
 		loop.setElementList(new List<Element>());
 		// Add decision and body elements to the loop
 		module decision = new module();
 		loop.addElement(decision);
 		decision.setAttributeList(new List<Attribute>().
 								  add(new decision("trueLoop")).
-								  add(new kind("test")));
+								  add(new _kind("test")));
 		decision.setElementList(new List<Element>());
 		operation nopDecision = new operation();
 		decision.addElement(nopDecision);
-		nopDecision.setAttributeList(new List<Attribute>().add(new kind("noop")));
+		nopDecision.setAttributeList(new List<Attribute>().add(new _kind("noop")));
 		nopDecision.setElementList(new List<Element>().
 								   add(new port(new List<Attribute>().
-												add(new dir("in")).
+												add(new _dir("in")).
 												add(new source("trueLiteral")),
 												new List<Element>())).
 								   add(new port(new List<Attribute>().
-												add(new dir("out")).
-												add(new size("1")).
+												add(new _dir("out")).
+												add(new _size("1")).
 												add(new source("trueLoop")).
-												add(new typeName("bool")),
+												add(new _typeName("bool")),
 												new List<Element>())));
 		module body = new module();
 		loop.addElement(body);
-		body.setAttributeList(new List<Attribute>().add(new kind("body")));
+		body.setAttributeList(new List<Attribute>().add(new _kind("body")));
+
+		// Add initial test on all input/output ports 
+		int portIx = 0;
+		String prevPort = null;
+		for (xdfAST.Port port : ports) {
+			operation numToken = new operation();
+			body.addElement(numToken);
+			numToken.setAttributeList(new List<Attribute>().
+									  add(new _kind("$literal_Integer")).
+									  add(new _value(String.valueOf(port.bufSize()))));
+			port numPort = new port();
+			numToken.addElement(numPort);
+			numPort.setAttributeList(new List<Attribute>().
+									 add(new _dir("out")).
+									 add(new _size("32")).
+									 add(new source(port.name()+"_size")).
+									 add(new _typeName("int")));
+			operation portNum = new operation();
+			body.addElement(portNum);
+			portNum.setAttributeList(new List<Attribute>().
+									 add(new _kind("pinAvail")).
+									 add(new portName(port.name())));
+			port numAvail = new port();
+			portNum.addElement(numAvail);
+			numAvail.setAttributeList(new List<Attribute>().
+									 add(new _dir("out")).
+									 add(new _size("32")).
+									 add(new source(port.name()+"_avail")).
+									 add(new _typeName("int")));
+			operation comp = new operation();
+			body.addElement(comp);
+			// if (port.isInputPort()) {
+			// 	comp.setAttributeList(new List<Attribute>().
+			// 						  add(new _kind("$lt")));
+			// } else {
+				comp.setAttributeList(new List<Attribute>().
+									  add(new _kind("$gt")));
+			// }
+			port inSize = new port();
+			comp.addElement(inSize);
+			inSize.setAttributeList(new List<Attribute>().
+									add(new _dir("in")).
+									add(new source(port.name()+"_size")));
+			port inAvail = new port();
+			comp.addElement(inAvail);
+			inAvail.setAttributeList(new List<Attribute>().
+									 add(new _dir("in")).
+									 add(new source(port.name()+"_avail")));
+			port compRes = new port();
+			comp.addElement(compRes);
+			compRes.setAttributeList(new List<Attribute>().
+									 add(new _dir("out")).
+									 add(new _size("1")).
+									 add(new source(port.name()+"_res")).
+									 add(new _typeName("bool")));
+
+			// Now time to create the if-statement
+			module ifStmt = new module();
+			body.addElement(ifStmt);
+			ifStmt.addAttribute(new _kind("if"));
+			module ifDecision = new module();
+			ifStmt.addElement(ifDecision);
+			ifDecision.setAttributeList(new List<Attribute>().
+										add(new decision("portcond_"+portIx)).
+										add(new _kind("test")));
+			operation condCopy = new operation();
+			ifDecision.addElement(condCopy);
+			condCopy.addAttribute(new _kind("noop"));
+			port noopP = new port();
+			condCopy.addElement(noopP);
+			noopP.setAttributeList(new List<Attribute>().
+								   add(new _dir("in")).
+								   add(new source(port.name()+"_res")));
+			noopP = new port();
+			condCopy.addElement(noopP);
+			noopP.setAttributeList(new List<Attribute>().
+								   add(new _dir("out")).
+								   add(new _size("1")).
+								   add(new source("portcond_"+portIx)).
+								   add(new _typeName("bool")));
+			module ifThen = new module();
+			ifStmt.addElement(ifThen);
+			ifThen.addAttribute(new _kind("then"));
+			operation yield = new operation();
+			ifThen.addElement(yield);
+			yield.setAttributeList(new List<Attribute>().
+								   add(new _kind("yield")).
+								   add(new portName(port.name())).
+								   add(new _value(String.valueOf(port.bufSize()))));
+			module ifElse = new module();
+			ifStmt.addElement(ifElse);
+			ifElse.addAttribute(new _kind("else"));
+			body = ifElse;
+		
+			// if (prevPort != null) {
+			// 	operation and = new operation();
+			// 	body.addElement(and);
+			// 	and.setAttributeList(new List<Attribute>().
+			// 						 add(new _kind("$and")));
+			// 	port andIn1 = new port();
+			// 	and.addElement(andIn1);
+			// 	andIn1.setAttributeList(new List<Attribute>().
+			// 							add(new _dir("in")).
+			// 							add(new source(prevPort)));
+			// 	port andIn2 = new port();
+			// 	and.addElement(andIn2);
+			// 	andIn2.setAttributeList(new List<Attribute>().
+			// 							add(new _dir("in")).
+			// 							add(new source(port.name()+"_res")));
+			// 	port andOut = new port();
+			// 	and.addElement(andOut);
+			// 	andOut.setAttributeList(new List<Attribute>().
+			// 							add(new _dir("out")).
+			// 							add(new size("1")).
+			// 							add(new source(port.name()+"_res2")).
+			// 							add(new _typeName("bool")));
+			// 	prevPort = port.name()+"_res2";
+			// } else {
+			// 	prevPort = port.name()+"_res";
+			// }
+			portIx++;
+		}
+
+		// Attach new action scheduler to the tree
 		getSpecification().getDesign().addElement(actionSchedule);
+		return body;
 	}
 
 	public void Element.addActionSchedule(module schedule) {}
@@ -540,7 +760,7 @@ aspect ActionScheduler {
 		actionScheduler().addActionSchedule(schedule);
 	}
 	public void module.addActionSchedule(module schedule) {
-		if (kind().equals("body")) {
+		if (kind().equals("body") || kind().equals("else")) {
 			for (Element e : schedule.getActionSchedulerBody().getElements()) {
 				addElement(e);
 			} 
@@ -577,19 +797,23 @@ aspect Classification {
 		return actionSchedule;
 	}
 
+	public LinkedList<Object> ASTNode.getActionList() {
+	  return getActionSchedule().getActionList();
+	}
+
 	public LinkedList<Integer> actor_port.tokenPattern() {
 		return getActionSchedule().getPortPattern(name());
 	}
 }
 
 aspect Misc {
-	void Start.mangleNames() {
-		getSpecification().getDesign().mangleNames();
+	void Start.mangleNames(String prefix) {
+		getSpecification().getDesign().mangleNames(prefix);
 	}
-	void design.mangleNames() {
-		// System.out.println("* Mangling: "+name());
-		mangleNames(name()+"_");
-	}
+	// void design.mangleNames(String prefix) {
+	// 	// System.out.println("* Mangling: "+name());
+	// 	mangleNames(prefix+"_");
+	// }
 	
 	void Element.mangleNames(String prefix) {}
 	void Attribute.mangleNames(String prefix) {}
@@ -603,14 +827,14 @@ aspect Misc {
 	}
 	void design.mangleNames(String prefix) {
 		for (Element e : getElements()) {
-			e.mangleNames(prefix);
+			e.mangleNames(prefix+"_");
 		}
 	}
 	// void decision.mangleNames(String prefix) {
 	// 	// System.out.println("* Mangling decision");
 	// 	getAttrValue().setLITERAL(unfix(prefix+fix(getAttrValue().getLITERAL())));
 	// }
-	void name.mangleNames(String prefix) {
+	void _name.mangleNames(String prefix) {
 		// System.out.println("* Mangling name");
 		getAttrValue().setLITERAL(unfix(prefix+fix(getAttrValue().getLITERAL())));
 	}
@@ -629,9 +853,14 @@ aspect Misc {
 	}
 	void source.mangleNames(String prefix) {
 		// System.out.println("* Mangling source");
-		AttrValue attr = getAttrValue();
-		if (attr.getLITERAL().contains("pinAvail")) {
+		String attr = getAttrValue().getLITERAL();
+		if (attr.contains("pinAvail") || attr.equals("currentState")) {
 			getAttrValue().setLITERAL(unfix(prefix+fix(getAttrValue().getLITERAL())));
+		} 
+	}
+	void stateVar.mangleNames(String prefix) {
+		if (name().equals("currentState")) {
+			super.mangleNames(prefix);			
 		}
 	}
 	void target.mangleNames(String prefix) {

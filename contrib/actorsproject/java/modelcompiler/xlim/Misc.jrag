@@ -12,5 +12,42 @@ aspect Misc {
 
 	public void EmptyStart.prettyPrint(String indent, PrintStream pStream) {}
 
+	syn String Attribute.value() = fix(getAttrValue().getLITERAL());
+
+	syn actor_port ASTNode.getPort(String portName) = null;
+	eq ComplexElement.getPort(String portName) {
+		for (Element e: getElements()) {
+			if (e.getPort(portName)!=null) {
+				return e.getPort(portName);
+			}
+		}
+		return null;
+	}
+	eq Start.getPort(String portName) = getSpecification().getPort(portName);
+	eq Specification.getPort(String portName) = getElement(0).getPort(portName);
+	eq actor_port.getPort(String portName) {
+		if (name().equals(portName)) {
+			return this;
+		}
+		return null;
+	}
+
+	syn String actor_port.typeName() {
+		for (Attribute a : getAttributes()) {
+			if (a instanceof _typeName) {
+				return a.value();
+			}
+		}
+		return "";
+	}
+
+	syn String actor_port.size() {
+		for (Attribute a : getAttributes()) {
+			if (a instanceof _size) {
+				return a.value();
+			}
+		}
+		return "0";
+	}
 
 }

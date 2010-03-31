@@ -52,7 +52,7 @@ aspect Misc {
 	syn String module.kind() {
 		for (int i=0; i<getNumAttribute(); i++) {
 			Attribute a = getAttribute(i);
-			if (a instanceof kind) {
+			if (a instanceof _kind) {
 				return fix(a.getAttrValue().getLITERAL());
 			}
 		}
@@ -62,7 +62,7 @@ aspect Misc {
 	syn String actor_port.dir() {
 		for (int i=0; i<getNumAttribute(); i++) {
 			Attribute a = getAttribute(i);
-			if (a instanceof dir) {
+			if (a instanceof _dir) {
 				return fix(a.getAttrValue().getLITERAL());
 			}
 		}
@@ -72,7 +72,7 @@ aspect Misc {
 	syn String actor_port.type() {
 		for (int i=0; i<getNumAttribute(); i++) {
 			Attribute a = getAttribute(i);
-			if (a instanceof typeName) {
+			if (a instanceof _typeName) {
 				return fix(a.getAttrValue().getLITERAL());
 			}
 		}
@@ -85,11 +85,21 @@ aspect Misc {
 	eq ComplexElement.name() {
 		for (int i=0; i<getNumAttribute(); i++) {
 			Attribute a = getAttribute(i);
-			if (a instanceof name) {
+			if (a instanceof _name) {
 				return fix(a.getAttrValue().getLITERAL());
 			}
 		}
 		return super.name();
+	}
+
+	syn String operation.portName() {
+		for (int i=0; i<getNumAttribute(); i++) {
+			Attribute a = getAttribute(i);
+			if (a instanceof portName) {
+				return fix(a.getAttrValue().getLITERAL());
+			}
+		}
+		return "";
 	}
 
 	public void Element.setName(String name) {}
@@ -99,7 +109,7 @@ aspect Misc {
 		}
 	}
 	void Attribute.setName(String name) {}
-	void name.setName(String name) {
+	void _name.setName(String name) {
 		getAttrValue().setLITERAL(unfix(name));
 	}
 
@@ -138,7 +148,7 @@ aspect Misc {
 	}
 
 	syn boolean Attribute.isKind() = false;
-	eq kind.isKind() = true;
+	eq _kind.isKind() = true;
 
 	syn String Element.source() = "";
 	eq ComplexElement.source() {

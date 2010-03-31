@@ -23,27 +23,31 @@ public class MergeActors extends XdfParser {
 		Start ast = parse(args);
 		XDF xdf = (XDF) ast.getSpecification().getElement(0);
 		LinkedList<Instance> instances = new LinkedList<Instance>();
-		LinkedList<Integer> maxBufSizes = new LinkedList<Integer>();
+		// LinkedList<Integer> maxBufSizes = new LinkedList<Integer>();
 		int instanceIndex = 0;
 
-		for (Instance i : xdf.getInstances(new HashSet<Instance>())) {
+		for (Instance i : xdf.getInstances(new LinkedList<Instance>())) {
 			// System.out.println(i.name()+" "+i.classification());
+			i.setIndex(++instanceIndex);
 			if (i.classification().equals("CSDF")) {
 				// Phony example just to try merging, this condition
 				// by no means ensure that the actors may be merged.
-				i.setIndex(++instanceIndex);
 				// System.out.println("   Adding "+i.name()+" "+i.getIndex());
 				instances.add(i);
 			}
 		}
-		int[] schedule = new int[instances.size()];
-		int ix = 0;
-		for (Connection c : ast.getConnections(new HashSet<Connection>())) {
-			if (c.getDest().isCSDF() && c.getSource().isCSDF()) {
-				c.setBufSize(3); //Phony implementation just for testing
-				schedule[ix++] = c.getSource().getIndex();
-				schedule[ix++] = c.getDest().getIndex();
-			}
+		int[] schedule = {1,1,2,3,2,3,1,1,2,2,3,3,4,4,4,5,5};
+		int ix = 0,ixx = 0;
+		int[] rates = {2,2,2,2,2,2,2,2,2,2,2,2,2,2,1,1,1,1,1,1,1};
+		for (Connection c : ast.getConnections(new LinkedList<Connection>())) {
+			c.setBufSize(rates[ixx++]);
+			// if (c.getDest().isCSDF() && c.getSource().isCSDF()) {
+				// c.setBufSize(3); //Phony implementation just for testing
+			// 	schedule[ix++] = c.getSource().getIndex();
+			// 	schedule[ix++] = c.getDest().getIndex();
+			// } else {
+				// c.setBufSize(2);
+			// }
 		}
 		System.out.println("Added "+ix+" actors to schedule");
 

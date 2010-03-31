@@ -10,7 +10,7 @@ import xdfAST.Start;
 import xdfAST.Instance;
 import xdfAST.XDF;
 import java.util.Arrays;
-import java.util.HashSet;
+import java.util.LinkedList;
 import java.io.PrintStream;
 import java.io.FileNotFoundException;
 
@@ -22,7 +22,7 @@ public class ConstraintInfo extends XdfParser {
 		System.out.println("Number of actors: "+xdf.numActors());
 		System.out.println("Number of FIFOs: "+xdf.numFIFOs());
 		System.out.println();
-		for (Instance i : xdf.getInstances(new HashSet<Instance>())) {
+		for (Instance i : xdf.getInstances(new LinkedList<Instance>())) {
 			System.out.println(i.name()+" "+i.classification());
 			for (xlimAST.actor_port p : i.getPorts()) {
 				// System.out.println("  "+p.name()+" "+Arrays.toString(p.tokenPattern()));
