@@ -13,11 +13,19 @@ include @datadir@/actors-make/definitions.mk
 # ------------------------------------------------------
 
 # Source directory (default is current directory)
-# srcdir=/home/me/MPEG4_SP_Decoder
+# export srcdir=/home/me/MPEG4_SP_Decoder
+
+# Additional libraries
+# override LDLIBS += -lmylib1 -mylib2
+export LDLIBS
+
+# Additional C-files to be compiled (and included in linking)
+# override C_FILES += foo.c bar.c
+export C_FILES
 
 # Target architecture prefix of gcc and binutils (default is none)
 ifeq ($(ARM),y)
-target=arm-none-linux-gnueabi-
+export target=arm-none-linux-gnueabi-
 endif
 
 # Generate debug code

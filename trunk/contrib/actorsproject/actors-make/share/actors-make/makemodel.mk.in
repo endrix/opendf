@@ -74,10 +74,19 @@ endif
 
 ACTOR_C_FILES=$(XLIM_FILES:.xlim=.c)
 PAR_FILES=$(XLIM_FILES:.xlim=.par)
-OBJECTS=$(ACTOR_C_FILES:.c=.o) $(MODEL).o
+EXTRA_OBJECTS=$(C_FILES:.c=.o)
+OBJECTS=$(ACTOR_C_FILES:.c=.o) $(EXTRA_OBJECTS) $(MODEL).o
 
 $(EXE): $(OBJECTS)
 	$(CC) -g $^ $(LDFLAGS) $(LDLIBS) -o $@
+
+#
+# Rule for additional C files
+#
+
+$(EXTRA_OBJECTS) : %.o : $(srcdir)/%.c
+	$(CC) -c -O3 -Wall $(CPPFLAGS) $(CFLAGS) -o $@ $<
+
 
 #
 # Implicit rules .xlim -> .c -> .o
@@ -143,6 +152,9 @@ $(MODEL).xdf: $(srcdir)/$(MODEL).nl $(SUB_NETWORKS)
 
 .PHONY: clean
 
+# C files to clean (filter out C_FILES in case srcdir is current directory)
+CLEAN_C_FILES=$(filter-out $(C_FILES),$(wildcard *.c))
+
 clean:
 	rm -f $(EXE) $(MODEL).xdf $(MODEL).depend $(MODEL).timestamp \
-            *.par *.xlim *.c *.o
+            *.par *.xlim $(CLEAN_C_FILES) *.o

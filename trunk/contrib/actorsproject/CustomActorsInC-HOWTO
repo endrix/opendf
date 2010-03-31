@@ -1,0 +1,222 @@
+How to Write Custom Actors in C
+===============================
+
+1. Background
+
+The CAL simulator allows references to Java code. In this way, it is
+possible to write actors that use system calls. The C generation tools
+don't support this feature. Instead, a collection of "system actors"
+are provided for the common use-case of file I/O (art_Source_bin,
+art_Source_txt, art_Sink_bin, art_Sink_txt). A system actor, which
+displays video frames, is also provided (art_Display). The system
+actors are provided as part of the ACTORS run-time (libactors-rts).
+
+This HOWTO describes how to write your own actor in C, thus supporting
+use-cases that were not anticipated when designing the ACTORS
+run-time.
+
+
+2. To generate a "skeleton" C file
+
+To illustrate the idea, we use the fib.nl network, which is provided
+as an example of how to use the C generation tools. Start by copying
+the fib.nl itself, the required CAL files and the Makefile into an
+empty working directory (see README, 4. "Using actors-make" for 
+details).
+
+Build the ./fib binary, like so:
+
+  $ make fib
+
+and execute it:
+
+  $ ./fib
+
+The output of fib is produced by the art_Sink_txt system actor. Let's
+assume we want to replace that actor by another one, which we are
+going to write in C.
+
+We start by writing a "dummy" actor in CAL. The purpose of this
+exercise its to get a "skeleton" in C, which we can later edit. It is
+essential that the "dummy" actor contains all the actions that we are
+going to need, that the token consumption and production rates are
+correct and that the appropriate guards are provided. The actual
+effect of the actions are not important, however, since we are going
+to replace that code anyway.
+
+To be concrete, let's start out from the following CAL actor
+
+  // MySink.cal
+  actor MySink() int In ==> :
+
+      action In:[x] ==>
+      end
+
+  end
+
+Next, edit the network file (fib.nl), substituting MySink for
+art_Sink_txt. The line
+
+  sink = art_Sink_txt();
+
+thus becomes
+
+  sink = MySink();
+
+Now do a rebuild:
+
+  $ make fib
+
+As a result, the "dummy" actor MySink.cal will be translated into the
+"skeleton" C file, which will be our starting point. The build files
+are located in the subdirectory compiled/fib and the C file we are
+looking for is MySink_0.c.
+
+
+3. Customizing the actor
+
+First copy the C file to the current directory, which contains the
+rest of the source. In doing so, we will change its name to
+art_MySink.c (for reasons that will soon be explained):
+
+  $ cp compiled/fib/MySink_0.c art_MySink.c
+
+Also change the name of the "dummy" CAL file, MySink.cal, so that it
+matches the C file:
+
+  $ mv MySink.cal art_MySink.cal
+
+Further, again edit the network file (fib.nl) so that it refers to the 
+new actor. The line
+
+  sink = MySink();
+
+thus becomes
+
+  sink = art_MySink();
+
+The prefix "art_" (ACTORS run-time) is what signifies system
+actors. The C generation tools handle them differently from other
+actors in that no C code is generated from the CAL code. It is instead
+assumed that the code will provided in some other way. For system
+actors, the object code is in the ACTORS run-time (libactors-rts). We
+could also use this mechanism to inject code that we compile directly
+from C. This is infact exactly what we will do!
+
+Next, we modify art_MySink.c. Say, we want to do a printf. The code
+that implements the action looks (something) like this
+
+  ART_ACTION(MySink_0_a0_actionAtLine_3,ActorInstance_MySink_0) {
+    int32_t t0;
+    ART_ACTION_ENTER(MySink_0_a0_actionAtLine_3,0);
+    t0=pinRead_int32_t(IN0_In);
+    ART_ACTION_EXIT(MySink_0_a0_actionAtLine_3,0);
+  }
+
+The only effect of the action is that it reads one token from the
+input port "In". The value, which is read, ends up in the variable
+"t0". We add the following line:
+
+  printf("art_MySink: %d\n", t0);
+
+We will have to do one more edit. Near the top of art_MySink.c is the
+declaration of the ActorClass struct:
+
+  ActorClass ActorClass_MySink_0 = INIT_ActorClass(
+    "MySink",
+    ActorInstance_MySink_0,
+    MySink_0_constructor,
+    0, /* no setParam */
+    MySink_0_action_scheduler,
+    0, /* no destructor */
+    1, inputPortDescriptions,
+    0, 0,
+    1, actionDescriptions
+  );
+
+This is the interface, which the actor publishes. We need to change
+its name, so that it matches the new name of the actor (otherwise we
+will get an error when linking the code). Change the first two lines,
+so that they read: 
+
+  ActorClass ActorClass_art_MySink = INIT_ActorClass(
+    "art_MySink",
+
+Save the file. When rebuilding fib, we inject the custom C file by
+setting the C_FILES variable:
+
+  $ make C_FILES=art_MySink.c fib
+
+When we execute the binary (./fib) we should get the following output:
+
+  art_MySink: 0
+  art_MySink: 1
+  art_MySink: 1
+  art_MySink: 2
+  art_MySink: 3
+  art_MySink: 5
+  ...
+  art_MySink: 1836311903
+ 
+As can be seen, we are actually executing the code that we added to
+the C file.
+
+
+4. Summary
+
+How to write a custom actor in C (in 83 easy steps ;-)
+   a) Start out from a top-level network with a "dummy" actor that has
+      the intended set of actions, each with correct
+      consumption/production rates and guards (but not necessarily any
+      useful behavior other than that).
+
+   b) Build the network in order to get the "skeleton" C file.
+
+   c) Copy the generated C file to the directory that contains the
+      source (CAL and NL files) and rename it so that it has the
+      prefix "art_" but not the suffix "_0".
+
+   d) Rename the "dummy" CAL file so that it also has an "art_"
+      prefix. 
+
+   e) Change the name of the actor in the NL file so that it matches
+      the new name of the actor (with "art_" prefix).
+
+   f) Modify the C file as appropriate. In addition to editing the
+      actions, the name of the ActionClass struct needs to be changed
+      (again with "art_" prefix, but no "_0" suffix).
+
+   g) Rebuild the network with the variable C_FILES set to the name of
+      the C file. Execute the resulting binary.
+
+
+5. Troubleshooting
+
+If you run into trouble, always do a clean rebuild (do "make clean")
+after fixing the problem. There are outstanding bugs that result in
+corrupt dependences (after "make clean" they will be re-generated).
+It is particularly the case of an unsuccessful "elaboration" of the
+network that causes this (e.g. when an actor is missing).
+
+
+"undefined reference to ActorClass_art_MySink"
+
+If the linker complains about this, check that
+a) you have included the customized C code (variable C_FILES)
+b) you have renamed the ActorClass struct
+
+
+"lassName_0"
+
+If the C generation tools appear to try compiling an actor, called
+lassName_0, the "dummy" actor probably has the wrong name. The "dummy"
+actor is required for the elaboration of the network and this is an
+indication of an elaboration that went wrong. Make a clean rebuild
+after renaming the "dummy" actor! (better error handling in this
+situation is on the to-do list).
+
+
+"art_MySink.c needed to make art_MySink.o"
+
+If make complains about this, the file name given by C_FILES probably
+doesn't match the name of the customized C file.
