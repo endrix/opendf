@@ -89,9 +89,26 @@ aspect PrettyPrinter {
     }
   }
 
-  public void sourceName.prettyPrint(String indent, PrintStream pStream) {
+  public void _sourceName.prettyPrint(String indent, PrintStream pStream) {
     pStream.print(" sourceName=");
        getAttrValue().prettyPrint(indent,pStream);
+  }
+
+  public void type.prettyPrint(String ind, PrintStream pStream) {
+    pStream.print(ind+"<type ");
+    for (int i=0; i<getNumAttribute(); i++) {
+      getAttribute(i).prettyPrint(ind,pStream);
+    }
+    if (getNumElement() == 0) {
+       pStream.println("/> ");
+    } else {
+       pStream.println("> ");
+       String newInd = ind+"  ";
+       for (int i=0; i<getNumElement(); i++) {
+          getElement(i).prettyPrint(newInd,pStream);
+       }
+       pStream.println(ind+"</type> ");
+    }
   }
 
   public void PHI.prettyPrint(String ind, PrintStream pStream) {
@@ -111,7 +128,7 @@ aspect PrettyPrinter {
     }
   }
 
-  public void kind.prettyPrint(String indent, PrintStream pStream) {
+  public void _kind.prettyPrint(String indent, PrintStream pStream) {
     pStream.print(" kind=");
        getAttrValue().prettyPrint(indent,pStream);
   }
@@ -133,7 +150,41 @@ aspect PrettyPrinter {
     }
   }
 
-  public void typeName.prettyPrint(String indent, PrintStream pStream) {
+  public void typeDef.prettyPrint(String ind, PrintStream pStream) {
+    pStream.print(ind+"<typeDef ");
+    for (int i=0; i<getNumAttribute(); i++) {
+      getAttribute(i).prettyPrint(ind,pStream);
+    }
+    if (getNumElement() == 0) {
+       pStream.println("/> ");
+    } else {
+       pStream.println("> ");
+       String newInd = ind+"  ";
+       for (int i=0; i<getNumElement(); i++) {
+          getElement(i).prettyPrint(newInd,pStream);
+       }
+       pStream.println(ind+"</typeDef> ");
+    }
+  }
+
+  public void typePar.prettyPrint(String ind, PrintStream pStream) {
+    pStream.print(ind+"<typePar ");
+    for (int i=0; i<getNumAttribute(); i++) {
+      getAttribute(i).prettyPrint(ind,pStream);
+    }
+    if (getNumElement() == 0) {
+       pStream.println("/> ");
+    } else {
+       pStream.println("> ");
+       String newInd = ind+"  ";
+       for (int i=0; i<getNumElement(); i++) {
+          getElement(i).prettyPrint(newInd,pStream);
+       }
+       pStream.println(ind+"</typePar> ");
+    }
+  }
+
+  public void _typeName.prettyPrint(String indent, PrintStream pStream) {
     pStream.print(" typeName=");
        getAttrValue().prettyPrint(indent,pStream);
   }
@@ -211,12 +262,12 @@ aspect PrettyPrinter {
     }
   }
 
-  public void size.prettyPrint(String indent, PrintStream pStream) {
+  public void _size.prettyPrint(String indent, PrintStream pStream) {
     pStream.print(" size=");
        getAttrValue().prettyPrint(indent,pStream);
   }
 
-  public void dir.prettyPrint(String indent, PrintStream pStream) {
+  public void _dir.prettyPrint(String indent, PrintStream pStream) {
     pStream.print(" dir=");
        getAttrValue().prettyPrint(indent,pStream);
   }
@@ -226,7 +277,7 @@ aspect PrettyPrinter {
        getAttrValue().prettyPrint(indent,pStream);
   }
 
-  public void value.prettyPrint(String indent, PrintStream pStream) {
+  public void _value.prettyPrint(String indent, PrintStream pStream) {
     pStream.print(" value=");
        getAttrValue().prettyPrint(indent,pStream);
   }
@@ -273,7 +324,24 @@ aspect PrettyPrinter {
        getAttrValue().prettyPrint(indent,pStream);
   }
 
-  public void name.prettyPrint(String indent, PrintStream pStream) {
+  public void valuePar.prettyPrint(String ind, PrintStream pStream) {
+    pStream.print(ind+"<valuePar ");
+    for (int i=0; i<getNumAttribute(); i++) {
+      getAttribute(i).prettyPrint(ind,pStream);
+    }
+    if (getNumElement() == 0) {
+       pStream.println("/> ");
+    } else {
+       pStream.println("> ");
+       String newInd = ind+"  ";
+       for (int i=0; i<getNumElement(); i++) {
+          getElement(i).prettyPrint(newInd,pStream);
+       }
+       pStream.println(ind+"</valuePar> ");
+    }
+  }
+
+  public void _name.prettyPrint(String indent, PrintStream pStream) {
     pStream.print(" name=");
        getAttrValue().prettyPrint(indent,pStream);
   }

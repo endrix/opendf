@@ -56,6 +56,7 @@ aspect Classification {
 		}
       		return "non-deterministic";
 	}
+
 }
 
 
@@ -111,7 +112,7 @@ aspect CSDF {
 			return xlimInstance;
 		}
 		try {
- 			System.out.println("Trying to open: "+name());
+ 			System.out.println("Trying to open: "+name()+" "+getIndex());
 			xlimAST.XmlParser parser = new xlimAST.XmlParser(new FileReader(cwd+name()+".xlim"));
 			xlimInstance = parser.Start();
 			return xlimInstance;
@@ -273,7 +274,7 @@ aspect misc {
 		}
 	}
 
-	syn String ComplexElement.name() = "";
+	syn String Element.name() = "";
 	eq Instance.name() = getUIDNote().value();
 	eq Port.name() = fix(getName());
 	eq Class.name() = fix(getName());

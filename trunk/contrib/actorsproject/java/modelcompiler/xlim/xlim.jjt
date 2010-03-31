@@ -49,27 +49,31 @@ PARSER_END(XmlParser)
  | <portName		: "portName" >
  | <module		: "module" >
  | <note		: "note" >
- | <sourceName		: "sourceName" >
+ | <_sourceName		: "sourceName" >
+ | <type		: "type" >
  | <PHI		: "PHI" >
- | <kind		: "kind" >
+ | <_kind		: "kind" >
  | <initValue		: "initValue" >
- | <typeName		: "typeName" >
+ | <typeDef		: "typeDef" >
+ | <typePar		: "typePar" >
+ | <_typeName		: "typeName" >
  | <port		: "port" >
  | <decision		: "decision" >
  | <operation		: "operation" >
  | <design		: "design" >
  | <stateVar		: "stateVar" >
- | <size		: "size" >
- | <dir		: "dir" >
+ | <_size		: "size" >
+ | <_dir		: "dir" >
  | <source		: "source" >
- | <value		: "value" >
+ | <_value		: "value" >
  | <actor_port		: "actor-port" >
  | <qualifier		: "qualifier" >
  | <style		: "style" >
  | <removable		: "removable" >
  | <autostart		: "autostart" >
  | <target		: "target" >
- | <name		: "name" >
+ | <valuePar		: "valuePar" >
+ | <_name		: "name" >
 }// Reserved Words
 
 <DEFAULT, BOUNDS> TOKEN : /* LITERALS */
@@ -175,6 +179,9 @@ PARSER_END(XmlParser)
     | < RBRACE               : "}"    >
     | < LBRACKET             : "["    >
     | < RBRACKET             : "]"    >
+    | < LPAR                 : "("    >
+    | < RPAR                 : ")"    >
+    | < DOT                  : "."    >
     | < SEMICOLON            : ";"    >
     | < LTSLASH              : "</"    > : DEFAULT
     | < LTBANG               : "<!"    > : DEFAULT
@@ -279,14 +286,18 @@ void Element()  : {}
 {
  ( <LT> (
   design()
+  | typeDef()
   | module()
   | PHI()
   | port()
   | operation()
   | actor_port()
   | stateVar()
+  | typePar()
+  | type()
   | note()
   | initValue()
+  | valuePar()
   | __DefaultElement__() 
  )) 
  | SimpleElement()
@@ -342,19 +353,19 @@ void Attribute()  : {}
  | XmlnsXsi()
   | source()
   | style()
-  | name()
+  | _name()
   | removable()
-  | sourceName()
-  | dir()
-  | kind()
+  | _sourceName()
+  | _dir()
+  | _kind()
   | portName()
   | decision()
   | target()
   | qualifier()
-  | typeName()
-  | value()
+  | _typeName()
+  | _value()
   | autostart()
-  | size()
+  | _size()
   | __DefaultAttribute__() 
   
 }
@@ -378,27 +389,42 @@ void note() #note : {}
    <note> AttributeList()
   ( <GT> ElementList()  "</" <note>  ">" | ElementList() "/>" )
 }
-void sourceName() #sourceName : {}
+void _sourceName() #_sourceName : {}
 {
-  <sourceName> "=" AttrValue()
+  <_sourceName> "=" AttrValue()
+}
+void type() #type : {}
+{
+   <type> AttributeList()
+  ( <GT> ElementList()  "</" <type>  ">" | ElementList() "/>" )
 }
 void PHI() #PHI : {}
 {
    <PHI> AttributeList()
   ( <GT> ElementList()  "</" <PHI>  ">" | ElementList() "/>" )
 }
-void kind() #kind : {}
+void _kind() #_kind : {}
 {
-  <kind> "=" AttrValue()
+  <_kind> "=" AttrValue()
 }
 void initValue() #initValue : {}
 {
    <initValue> AttributeList()
   ( <GT> ElementList()  "</" <initValue>  ">" | ElementList() "/>" )
 }
-void typeName() #typeName : {}
+void typeDef() #typeDef : {}
 {
-  <typeName> "=" AttrValue()
+   <typeDef> AttributeList()
+  ( <GT> ElementList()  "</" <typeDef>  ">" | ElementList() "/>" )
+}
+void typePar() #typePar : {}
+{
+   <typePar> AttributeList()
+  ( <GT> ElementList()  "</" <typePar>  ">" | ElementList() "/>" )
+}
+void _typeName() #_typeName : {}
+{
+  <_typeName> "=" AttrValue()
 }
 void port() #port : {}
 {
@@ -424,21 +450,21 @@ void stateVar() #stateVar : {}
    <stateVar> AttributeList()
   ( <GT> ElementList()  "</" <stateVar>  ">" | ElementList() "/>" )
 }
-void size() #size : {}
+void _size() #_size : {}
 {
-  <size> "=" AttrValue()
+  <_size> "=" AttrValue()
 }
-void dir() #dir : {}
+void _dir() #_dir : {}
 {
-  <dir> "=" AttrValue()
+  <_dir> "=" AttrValue()
 }
 void source() #source : {}
 {
   <source> "=" AttrValue()
 }
-void value() #value : {}
+void _value() #_value : {}
 {
-  <value> "=" AttrValue()
+  <_value> "=" AttrValue()
 }
 void actor_port() #actor_port : {}
 {
@@ -465,7 +491,12 @@ void target() #target : {}
 {
   <target> "=" AttrValue()
 }
-void name() #name : {}
+void valuePar() #valuePar : {}
 {
-  <name> "=" AttrValue()
+   <valuePar> AttributeList()
+  ( <GT> ElementList()  "</" <valuePar>  ">" | ElementList() "/>" )
+}
+void _name() #_name : {}
+{
+  <_name> "=" AttrValue()
 }
