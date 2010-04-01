@@ -20,7 +20,7 @@ javadir?=$(datarootdir)/java
 
 
 # Source files
-JAVA_FILES=$(shell find $(srcdir)/eu/actorsproject $(srcdir)/modelcompiler -name *.java)
+JAVA_FILES=$(shell find $(srcdir)/eu/actorsproject  -name *.java)
 AST_FILES=$(shell find $(srcdir)/modelcompiler -name *.ast)
 JJT_FILES=$(shell find $(srcdir)/modelcompiler -name *.jjt)
 JRAG_FILES=$(shell find $(srcdir)/modelcompiler -name *.jrag)
@@ -32,8 +32,8 @@ all: actorsproject.jar
 
 actorsproject.jar: $(JAVA_FILES) $(JASTADD_FILES)
 	@mkdir -p classes
-	@ant -f $(srcdir)/modelcompiler/build.xml  -Dbuilddir=$(CURDIR)
 	@$(JAVAC) -classpath $(srcdir) -d classes $(JAVA_FILES)
+	@ant -f $(srcdir)/modelcompiler/build.xml  -Dbuilddir=$(CURDIR)
 	@$(JAR) -cf $@ -C classes . -C $(srcdir) COPYING
 
 clean:
