@@ -1,0 +1,40 @@
+network decoderTest() ==> :
+
+entities
+
+    source=art_Source_bin(fileName = "@datadir@/actors-test/MPEG4_SP_Decoder/input/parserTest/bits.bin");
+
+    decoder=orcc_decoder(ACCODED=2,
+                         ACPRED=1,
+                         ADDR_SZ=24,
+                         BTYPE_SZ=12,
+                         FCODE_MASK=448,
+                         FCODE_SHIFT=6,
+                         FOURMV=4,
+                         INTER=512,
+                         INTRA=1024,
+                         MAXH_IN_MB=69,
+                         MAXW_IN_MB=121,
+                         MB_COORD_SZ=8,
+                         MOTION=8,
+                         MV_SZ=9,
+                         NEWVOP=2048,
+                         QUANT_MASK=31,
+                         ROUND_TYPE=32,
+                         SAMPLE_COUNT_SZ=8,
+                         SAMPLE_SZ=13);
+
+    sinkVID=art_Sink_txt(fileName = "./output/decoderTest/VID.txt");
+
+    sinkWIDTH = art_Sink_txt(fileName = "./output/decoderTest/WIDTH.txt");
+
+    sinkHEIGHT = art_Sink_txt(fileName = "./output/decoderTest/HEIGHT.txt");
+
+structure
+
+    source.Out --> decoder.bits;
+
+    decoder.VID --> sinkVID.In;
+    decoder.WIDTH --> sinkWIDTH.In;
+    decoder.HEIGHT --> sinkHEIGHT.In;
+end

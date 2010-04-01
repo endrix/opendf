@@ -8,13 +8,13 @@
 #               actors-rts/clean     (etc.)
 
 # All sub-projects
-SUBPROJECTS=actors-rts java actors-make actors-test actors-tools
+SUBPROJECTS=actors-rts java actors-make actors-test actors-tools cal-examples
 
 # Sub-projects that are built
 BUILD=actors-rts java actors-make
 
 # Sub-projects that are installed
-INSTALL=actors-rts java actors-make actors-test actors-tools
+INSTALL=actors-rts java actors-make actors-test actors-tools cal-examples
 
 
 export SHELL=/bin/sh
