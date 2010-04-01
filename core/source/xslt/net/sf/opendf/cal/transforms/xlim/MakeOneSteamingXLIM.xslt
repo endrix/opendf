@@ -52,6 +52,12 @@ ENDCOPYRIGHT
  
     <design name="{@name}">
       <xsl:apply-templates select="Port"/>
+      <xsl:apply-templates select="//Decl//Type[@name='List']" mode="typedef"/>
+      <xsl:apply-templates select="//Decl//Note[@kind='exprType']//Type[@name='List']" mode="typedef"/>
+      <xsl:apply-templates select="//Stmt//Note[@kind='exprType']//Type[@name='List']" mode="typedef"/>      
+      <xsl:apply-templates select="//Output//Note[@kind='exprType']//Type[@name='List']" mode="typedef"/>      
+      <xsl:apply-templates select="//Output//Type[@name='List']" mode="typedef"/>            
+
       <xsl:apply-templates select="Decl[ @kind='Variable' ]"/>
       <xsl:apply-templates select="Action"/>
       <!-- The default template is to ignore the node so most notes will be ignored -->      
@@ -60,10 +66,78 @@ ENDCOPYRIGHT
       <xsl:call-template name="scheduler">
         <xsl:with-param name="actor" select="."/>
       </xsl:call-template>
-    </design>
-    
+    </design>   
   </xsl:template>
 
+  <xsl:template match="Type[@name='List']" mode="typedef">       
+      <typeDef name="{concat(@id, '$typedef')}">
+        <type name="List">            
+          <valuePar name="size" value="{./Entry[@name='size']/Expr/@value}"/>
+          <typePar name="type">
+             <xsl:apply-templates select="./Entry[@kind='Type']/Type" mode="definition"/>
+          </typePar>             
+        </type> 
+      </typeDef> 
+  </xsl:template>
+  
+  <xsl:template match="Type[@name='int']" mode="definition">      
+    <type name="int">
+      <valuePar name="size" value="{./Entry/Expr/@value}"/>
+    </type>    
+  </xsl:template>
+  
+  <xsl:template match="Type[@name='bool']" mode="definition">
+    <type name="bool"/>  
+  </xsl:template>
+
+  <xsl:template match="Type[@name='real']" mode="definition">
+    <type name="real"/>  
+  </xsl:template>
+  
+  <xsl:template match="Type[@name='List']" mode="definition">
+    <type name="{concat(@id, '$typedef')}"/>
+  </xsl:template>
+  
+  <xsl:template match="Type/Entry[@kind='Type']" mode="definition">
+    <xsl:apply-templates select="Entry[ @kind='Type' ]/Type"/>    
+  </xsl:template>
+  
+  <xsl:template match="Type[@name='int']">
+    <attr name="typeName" value="int"/>
+    <xsl:for-each select="Entry[@kind='Expr']">
+       <attr name="{@name}" value="{Expr/@value}"/>
+    </xsl:for-each>
+  </xsl:template>
+
+  <xsl:template match="Type[@name='bool']">
+    <attr name="typeName" value="bool"/>
+  </xsl:template>
+  
+  <xsl:template match="Type[@name='List']">
+    <attr name="typeName" value="{concat(@id, '$typedef')}"/>
+  </xsl:template>
+ 
+  <xsl:template match="Type" mode="init-var">
+    <xsl:choose>
+      <xsl:when test="Entry[ @kind='Type' ]">
+        <xsl:apply-templates select="Entry[ @kind='Type' ]/Type" mode="init-var"/>
+      </xsl:when>
+      
+      <xsl:otherwise>
+        <xsl:apply-templates select="."/>        
+      </xsl:otherwise>
+      
+    </xsl:choose>
+  </xsl:template>
+  
+  <xsl:template match="Type">
+    <!-- Missing type info, could be critical.
+    <xsl:message>
+      Error Here:<xsl:value-of select="."/>  
+    </xsl:message>
+    -->
+  </xsl:template>
+  
   <xsl:template match="Port">
 
     <xsl:variable name="name" select="@name"/>
@@ -83,6 +157,7 @@ ENDCOPYRIGHT
       <xsl:for-each select="$type-attrs/attr">
         <xsl:attribute name="{@name}"><xsl:value-of select="@value"/></xsl:attribute>
       </xsl:for-each>
+      <!--
       <xsl:choose>
         <xsl:when test="$dir = 'in'"/>
         <xsl:when test="../Action/Output[@port=$name][ count( Expr ) > 1]">
@@ -91,34 +166,15 @@ ENDCOPYRIGHT
           </xsl:message>
         </xsl:when>
         <xsl:otherwise>
-<!--          <xsl:attribute name="style">simple</xsl:attribute>-->
         </xsl:otherwise>
       </xsl:choose>
+      -->
     </actor-port>
 
   </xsl:template>
 
-  <xsl:template match="Type">
-    <!-- TODO: make this work properly for things other than multi-d lists -->
-    <xsl:choose>
-      <xsl:when test="Entry[ @kind='Type' ]">
-        <xsl:apply-templates select="Entry[ @kind='Type' ]/Type"/>
-      </xsl:when>
-      
-      <xsl:otherwise>
-        <attr name="typeName" value="{@name}"/>
-        <xsl:for-each select="Entry[@kind='Expr']">
-          <attr name="{@name}" value="{Expr/@value}"/>
-        </xsl:for-each>
-        <xsl:if test="@name='bool' and not(Entry[@name='size'])">
-          <attr name="size" value="1"/>
-        </xsl:if>
-      </xsl:otherwise>
-      
-    </xsl:choose>
-  </xsl:template>
 
-  <xsl:template match="Decl[ @kind='Variable']">
+  <xsl:template match="Decl[@kind='Variable']">
 
     <xsl:variable name="var-type-attrs">
       <xsl:apply-templates select="Type"/>
@@ -128,14 +184,19 @@ ENDCOPYRIGHT
       <xsl:when test="parent::Actor">
         <xsl:comment>Actor state variable <xsl:value-of select="@name"/></xsl:comment>
         <stateVar name="{@id}" sourceName="{@name}">
-          <xsl:apply-templates select="Expr" mode="init-state-var"/>
-          <xsl:if test="not( Expr )">
+          <xsl:for-each select="$var-type-attrs/attr">
+            <xsl:attribute name="{@name}"><xsl:value-of select="@value"/></xsl:attribute> 
+          </xsl:for-each>  
+          <xsl:apply-templates select="Expr" mode="init-var"/>
+          <!--
+          <xsl:if test="not( Expr )">            
             <initValue value="0">
               <xsl:for-each select="$var-type-attrs/attr">
-                <xsl:attribute name="{@name}"><xsl:value-of select="@value"/></xsl:attribute>
+                <xsl:attribute name="{@name}"><xsl:value-of select="@value"/></xsl:attribute> 
               </xsl:for-each>              
             </initValue>
           </xsl:if>
+          -->
         </stateVar>
       </xsl:when>
 
@@ -199,42 +260,28 @@ ENDCOPYRIGHT
   <!-- Any number of reads supported --> 
   <xsl:template match="Input">
     <xsl:variable name="port" select="@port"/>
-    <note kind="consumptionRates" name="{$port}" value="{count(Decl)}"/>          
+    <xsl:choose>    
+      <xsl:when test="Decl/Note[@kind='Repeat-applied']">    
+        <note kind="consumptionRates" name="{$port}" value="{Decl/Note[@kind='Repeat-applied']/@value * count(Decl) }"/>  
+      </xsl:when>
+      <xsl:otherwise>
+        <note kind="consumptionRates" name="{$port}" value="{count(Decl)}"/>       
+      </xsl:otherwise>
+    </xsl:choose>
+               
     <xsl:for-each select="Decl">
-      <xsl:variable name="type-attrs">
-        <xsl:apply-templates select="Type"/>
+      <xsl:variable name="type-info">
+        <xsl:apply-templates select="Type" mode="definition"/>
       </xsl:variable>
-      
-      <xsl:choose>      
-        <xsl:when test="./Type/@name = 'list'">
-          <stateVar name="{@id}">
-            <initValue typeName="List"/>
-          </stateVar> 
-          
-          <xsl:variable name="n" select="Type/Entry[@name='size']/Expr/@value"/>       
-          <xsl:variable name="here" select="."/>
-          <xsl:for-each select="1 to $n">          
-             <operation kind="pinRead" portName="{$here/../@port}" removable="no" style="simple">
-               <port source="{concat($here/@id, '$', $n)}" dir="out">
-                <xsl:for-each select="$type-attrs/attr">
-                  <xsl:attribute name="{$here/@name}"><xsl:value-of select="$here/@value"/></xsl:attribute>
-                </xsl:for-each>
-              </port>
-            </operation>
-          </xsl:for-each>
-        </xsl:when>  
-        
-        <xsl:otherwise>
-          <operation kind="pinRead" portName="{../@port}" removable="no" style="simple">
-            <port source="{@id}" dir="out">
-              <xsl:for-each select="$type-attrs/attr">
-                <xsl:attribute name="{@name}"><xsl:value-of select="@value"/></xsl:attribute>
-              </xsl:for-each>
-            </port>
-          </operation>
-        </xsl:otherwise>
-      </xsl:choose>
-      
+ 
+      <operation  kind="pinRead" portName="{../@port}" removable="no" style="simple">        
+      <port source="{@id}" dir="out">
+        <xsl:attribute name="typeName"><xsl:value-of select="$type-info/type/@name"/></xsl:attribute>
+        <xsl:for-each select="$type-info/type/valuePar">
+          <xsl:attribute name="{@name}"><xsl:value-of select="@value"/></xsl:attribute>
+        </xsl:for-each>
+      </port>
+      </operation>      
     </xsl:for-each>
       
   </xsl:template>
@@ -248,17 +295,26 @@ ENDCOPYRIGHT
         </xsl:otherwise>
       </xsl:choose>
     </xsl:variable>
-         
-    <operation kind="$literal_Integer" value="{count(Decl)}"> 
-      <port dir="out" size="32" source="{concat(./@id, '$',./@port, '$tokenCount')}" typeName="int"/> 
-    </operation> 
-    
+
+    <xsl:choose>    
+      <xsl:when test="Decl/Note[@kind='Repeat-applied']">    
+        <operation kind="$literal_Integer" value="{Decl/Note[@kind='Repeat-applied']/@value * count(Decl) }"> 
+          <port dir="out" size="32" source="{concat(./@id, '$',./@port, '$tokenCount')}" typeName="int"/> 
+        </operation>         
+      </xsl:when>
+      <xsl:otherwise>
+        <operation kind="$literal_Integer" value="{count(Decl)}"> 
+          <port dir="out" size="32" source="{concat(./@id, '$',./@port, '$tokenCount')}" typeName="int"/> 
+        </operation>         
+      </xsl:otherwise>
+    </xsl:choose>
+
     <operation kind="$ge"> 
       <port dir="in" source="{concat(./@port, '$pinAvail')}"/> 
       <port dir="in" source="{concat(./@id, '$',./@port, '$tokenCount')}"/> 
       <port dir="out" size="1" source="{concat(@id, '$ready')}" typeName="bool"/> 
-    </operation>
-    
+    </operation>            
+           
     <xsl:for-each select="Decl">
       <xsl:variable name="type-attrs">
         <xsl:apply-templates select="Type"/>
@@ -281,15 +337,33 @@ ENDCOPYRIGHT
   </xsl:template>
   
   <xsl:template match="Expr">
-    
-    <xsl:if test="not(Note[@kind='exprType'])">
-      <xsl:message>
-        <xsl:value-of select="@id"/> has no exprType
-      </xsl:message>
-    </xsl:if>
-    <!-- Get the type assigned by the expr evaluator -->
-    <xsl:variable name="type-attrs">
-      <xsl:apply-templates select="Note[@kind='exprType']/Type"/>
+ 
+    <xsl:variable name="type-attrs">      
+      <xsl:choose> 
+        <!-- Somewhat of a hack to force use the typedefs for lists -->
+        <xsl:when test="@kind='List' and ancestor::Decl">
+          <xsl:apply-templates select="ancestor::Decl/Type"/>
+        </xsl:when>
+
+        <xsl:when test="@kind='Let' and ./Expr[@kind='List'] and ancestor::Decl">         
+          <xsl:apply-templates select="ancestor::Decl/Type"/>
+        </xsl:when>
+        
+        <xsl:when test="Note[@kind='exprType']">
+          <!-- Get the type assigned by the expr evaluator -->    
+          <xsl:apply-templates select="Note[@kind='exprType']/Type"/>      
+        </xsl:when>
+        
+        <xsl:when test="@kind='Literal'">
+          <xsl:apply-templates select="."  mode="flatten-expr"/>
+        </xsl:when>  
+        
+        <xsl:otherwise>
+          <xsl:message>
+            <xsl:value-of select="@id"/> has no exprType
+          </xsl:message>
+        </xsl:otherwise>
+      </xsl:choose>
     </xsl:variable>
     
     <!-- Get the flattened version of this expression -->  
@@ -299,6 +373,9 @@ ENDCOPYRIGHT
     
     <!-- Copy all the preceding expressions -->
     <xsl:copy-of select="$expr/expr/(* | comment())"/>
+    
+    <!-- Copy all the preceding operations -->
+    <xsl:copy-of select="$expr/operation"/>
     
     <!-- Create the final expression -->
     <xsl:comment>Expr <xsl:value-of select="@id"/></xsl:comment>
@@ -310,7 +387,7 @@ ENDCOPYRIGHT
       
       <!-- Add the ports created by the flattener -->
       <xsl:for-each select="$expr/port">
-        <xsl:copy>
+        <xsl:copy>                
           <xsl:for-each select="@*">
             <xsl:attribute name="{name()}"><xsl:value-of select="."/></xsl:attribute>
           </xsl:for-each>
@@ -331,6 +408,30 @@ ENDCOPYRIGHT
     <!-- TODO fix hard-wired literal type -->
     <attr name="kind" value="$literal_Integer"/>
     <attr name="value" value="{@value}"/>
+    <xsl:choose>
+      <xsl:when test="@literal-kind='Integer'">
+        <port source="{@id}" dir="out" typeName="int" size="32"/>
+      </xsl:when>
+      <xsl:otherwise>
+        <port source="{@id}" dir="out" />        
+      </xsl:otherwise>
+    </xsl:choose>    
+  </xsl:template>
+  
+  <xsl:template match="Expr[@kind = 'List' ]" mode="flatten-expr">
+    <xsl:variable name="type-attrs">
+      <xsl:apply-templates select="ancestor::Decl/Type" mode="init-var"/>
+    </xsl:variable>
+    
+    <attr name="kind" value="$vcons"/>
+    <xsl:for-each select="./Expr">     
+      <xsl:apply-templates select="." />
+      <port dir="in" source="{./@id}">
+        <xsl:for-each select="$type-attrs/attr">
+          <xsl:attribute name="{@name}"><xsl:value-of select="@value"/></xsl:attribute>
+        </xsl:for-each>   
+      </port>
+    </xsl:for-each>
     <port source="{@id}" dir="out"/>
   </xsl:template>
   
@@ -367,18 +468,35 @@ ENDCOPYRIGHT
   </xsl:template>
   
   <xsl:template match="Expr[@kind = 'Var' ]" mode="flatten-expr">
-    <attr name="kind" value="noop"/>
-    <port source="{Note[@kind='var-used']/@true-source}" dir="in"/>
-    <port source="{@id}" dir="out"/>
+    <xsl:choose>
+      <xsl:when test="Note[@actor-scope='yes'] and Note[@scalar='no']">
+        <attr name="kind" value="noop"/>
+        <port source="{Note[@kind='var-used']/@decl-id}" dir="in"/>
+        <port source="{@id}" dir="out"/>        
+      </xsl:when>
+      <xsl:otherwise>
+        <attr name="kind" value="noop"/>
+        <port source="{Note[@kind='var-used']/@true-source}" dir="in"/>
+        <port source="{@id}" dir="out"/>        
+      </xsl:otherwise>      
+    </xsl:choose>
   </xsl:template>
 
   <xsl:template match="Expr[@kind = 'Indexer' ]" mode="flatten-expr">
     <expr>
-      <xsl:apply-templates select="." mode="generate-indexers"/>
+      <xsl:apply-templates select="." mode="generate-indexers"/> 
     </expr>
+    <xsl:variable name="target-name" select="Expr[@kind='Var']/@name"/>      
     <attr name="kind" value="var_ref"/>
-    <!-- Note that the true source for a memory is the original decl, not the previous writer -->
-    <attr name="name" value="{Expr/Note[@kind='var-used']/@decl-id}"/>
+    <xsl:choose>
+      <xsl:when test="Expr/Note[@actor-scope='yes']">
+        <!-- Note that the true source for a memory is the original decl, not the previous writer --> 
+        <attr name="name" value="{Expr/Note[@kind='var-used']/@decl-id}"/>        
+      </xsl:when>
+      <xsl:otherwise>
+        <attr name="name" value="{Expr/Note[@kind='var-used'][@name=$target-name]/@true-source}"/>  -
+      </xsl:otherwise>
+    </xsl:choose>
     <port source="{concat(Args/Expr[last()]/@id,'$ADDR')}" dir="in"/>
     <port source="{@id}" dir="out"/>
   </xsl:template>
@@ -391,12 +509,32 @@ ENDCOPYRIGHT
   
   <xsl:template match="Output">
     <xsl:apply-templates select="Expr"/>
+    <xsl:variable name="type-attrs">      
+      <xsl:apply-templates select="Type"/>
+    </xsl:variable>
     <xsl:for-each select="Expr">
-       <operation kind="pinWrite" portName="{../@port}" style="simple">
+      
+      <operation kind="cast">
         <port dir="in" source="{@id}"/>
+        <port dir="out" source="{concat(@id,'$output')}">
+          <xsl:for-each select="$type-attrs/attr">
+            <xsl:attribute name="{@name}"><xsl:value-of select="@value"/></xsl:attribute>
+          </xsl:for-each>          
+        </port>        
+      </operation>
+      
+      <operation kind="pinWrite" portName="{../@port}" style="simple">
+        <port dir="in" source="{concat(@id,'$output')}"/>
       </operation>
     </xsl:for-each>
-    <note kind="productionRates" name="{@port}" value="{count(Expr)}"/>    
+    <xsl:choose>
+      <xsl:when test="Note[@kind='Repeat-applied']">
+        <note kind="productionRates" name="{@port}" value="{count(Expr) * Note[@kind='Repeat-applied']/@value}"/>    
+      </xsl:when>
+      <xsl:otherwise>
+        <note kind="productionRates" name="{@port}" value="{count(Expr)}"/>    
+      </xsl:otherwise>              
+    </xsl:choose>
   </xsl:template>
 
   <xsl:template match="Stmt[ @kind='Assign' ]">
@@ -409,9 +547,22 @@ ENDCOPYRIGHT
     
     <xsl:comment>Statement <xsl:value-of select="@id"/></xsl:comment>
     
+    <xsl:variable name="target-name" select="@name"/>
+    
     <xsl:choose>
-      <!-- Indexed assign: must write a state variable -->
-      <xsl:when test="Args">
+      <!-- Indexed assign -->
+   
+      <xsl:when test="Args and Note[@actor-scope='no']" >
+        <!-- We treat element wise writes to local lists as read access to the list, not write -->
+        <xsl:apply-templates select="." mode="generate-indexers"/>
+        <xsl:comment>Assign values to local lists <xsl:value-of select="@name"/></xsl:comment>        
+        <operation kind="assign" target="{Note[@kind='var-used'][@name=$target-name][@mode='mutate']/@true-source}">
+          <port source="{concat(Args/Expr[last()]/@id,'$ADDR')}" dir="in"/>
+          <port source="{Expr/@id}" dir="in"/>
+        </operation>          
+      </xsl:when>
+      
+      <xsl:when test="Args" >
         <xsl:apply-templates select="." mode="generate-indexers"/>
         <xsl:comment>Write back actor state variable <xsl:value-of select="@name"/></xsl:comment>
         <operation kind="assign" target="{Note[@kind='varMod']/@decl-id}">
@@ -420,8 +571,16 @@ ENDCOPYRIGHT
         </operation>          
       </xsl:when>
 
+      <xsl:when test="Note[@actor-scope='yes'] and Note[@kind='var-used'][@mode='write'][@scalar='no']" >               
+        <xsl:comment>Assign global list <xsl:value-of select="@name"/></xsl:comment>        
+        <operation kind="assign" target="{Note[@kind='varMod']/@decl-id}">          
+          <port source="{Expr/@id}" dir="in"/>
+        </operation>          
+      </xsl:when>
+                      
       <!-- Scalar assignment: the Expr becomes the true-source for this variable -->
       <xsl:otherwise> 
+        <!-- FIX ME : introduce cast to match type of lhs -->
         <operation kind="noop">
           <port dir="in" source="{Expr/@id}"/>
           <port source="{@id}" dir="out">
@@ -631,12 +790,6 @@ ENDCOPYRIGHT
     <!-- Allocate an FSM state variable -->
     <xsl:variable name="nstates" select="count($actor/Note[@kind='state-enum'])"/>
     
-    <!--      <xsl:for-each select="$actor/Note[@kind='state-enum']">
-      <operation kind="$literal_Integer" value="{position()}">
-        <port source="{concat($actor/@id,'$fsm$',@name)}" dir="out" typeName="int" size="32"/>
-      </operation>
-    </xsl:for-each>
-    -->
     <xsl:variable name="stateEnumerations">
        <xsl:for-each select="$actor/Note[@kind='state-enum']">
             <operation kind="$literal_Integer" value="{position()}">
@@ -745,9 +898,19 @@ ENDCOPYRIGHT
 
             <xsl:for-each select="Output">
               <xsl:variable name="port" select="@port"/>
-                <operation kind="$literal_Integer" value="{count(Expr)}">
-                  <port source="{concat($actionId, '$', $port, '$exprCount')}" dir="out" typeName="int" size="32"/>
-                </operation>              
+                <xsl:choose>
+                  <xsl:when test="Note[@kind='Repeat-applied']">
+                    <operation kind="$literal_Integer" value="{count(Expr) * Note[@kind='Repeat-applied']/@value}">
+                      <port source="{concat($actionId, '$', $port, '$exprCount')}" dir="out" typeName="int" size="32"/>
+                    </operation>                                                      
+                  </xsl:when>
+                  <xsl:otherwise>
+                    <operation kind="$literal_Integer" value="{count(Expr)}">
+                      <port source="{concat($actionId, '$', $port, '$exprCount')}" dir="out" typeName="int" size="32"/>
+                    </operation>                                                      
+                  </xsl:otherwise>              
+                </xsl:choose>
+                            
                 <operation kind="$ge">                       
                   <port source="{concat(../../Port[@name=$port]/@id,'$status')}" dir="in"/>
                   <port source="{concat($actionId, '$', $port, '$exprCount')}" dir="in"/>
@@ -867,9 +1030,9 @@ ENDCOPYRIGHT
     
   </xsl:template>
 
-  <xsl:template match="Expr[ @kind='Literal' ]" mode="init-state-var">
-    <xsl:variable name="type-attrs">
-      <xsl:apply-templates select="ancestor::Decl/Type"/>
+  <xsl:template match="Expr[ @kind='Literal' ]" mode="init-var">
+     <xsl:variable name="type-attrs">
+        <xsl:apply-templates select="ancestor::Decl/Type" mode="init-var"/>
     </xsl:variable>
     <initValue value="{@value}">
       <xsl:for-each select="$type-attrs/attr">
@@ -878,9 +1041,9 @@ ENDCOPYRIGHT
     </initValue>
   </xsl:template>
 
-  <xsl:template match="*" mode="init-state-var">
+  <xsl:template match="*" mode="init-var">
     <initValue typeName="{@kind}">
-      <xsl:apply-templates select="Expr" mode="init-state-var"/>            
+      <xsl:apply-templates select="Expr" mode="init-var"/>            
     </initValue>
   </xsl:template>
 
@@ -965,31 +1128,23 @@ ENDCOPYRIGHT
        have Args and Note[@kind='dimension']. The size of the underlying
        scalar (in bits) must be provided. -->
   <xsl:template match="*" mode="generate-indexers">
-
-    <xsl:variable name="address-range" select="Note[@kind='dimension'][1]/@multiplier
-            * Note[@kind='dimension'][1]/@size"/>
-    <xsl:variable name="address-bits" select="ceiling( math:log($address-range) div math:log(2)) + 1"/>
+        
+    <xsl:variable name="address-bits" select="32"/>
     <xsl:variable name="last" select="concat(Args/Expr[last()]/@id,'$ADDR')"/>
 
     <!-- Construct the component expressions -->
     <xsl:apply-templates select="Args/Expr"/>
     <xsl:for-each select="Args/Expr">
       <xsl:variable name="pos" select="position()"/>
-      <xsl:variable name="const" select="../../Note[@kind='dimension'][@index=$pos]/@multiplier"/>
+      <xsl:variable name="const" select="../../Note[@kind='dimension'][@index=$pos][1]/@multiplier"/>
       <xsl:variable name="const-name" select="concat(@id,'$CONST')"/>
       <xsl:variable name="mul-name" select="concat(@id,'$MUL')"/>
       <xsl:variable name="this" select="concat(@id,'$ADDR')"/>
       <xsl:comment>Address multiplier for index <xsl:value-of select="$pos"/></xsl:comment>
-        <operation kind="$literal_Integer" value="{$const[1]}">
+        <operation kind="$literal_Integer" value="{$const}">
         <port source="{$const-name}" dir="out" typeName="int"
-          size="{ceiling( math:log($const[1]+ 1) div math:log(2)) + 1}"/>
-      </operation>
-      <!-- 
-      	TODO: In the above code I added access indexes for the const. For some reason
-      	there were several identical dimension notes for the same dimension. I believe this
-      	to be an error in the dimension transformation. The error was triggered when changing
-      	the stylesheet version from 1.1 to 2.0
-       -->
+          size="{$address-bits}"/>
+      </operation>    
       
       <operation kind="$mul">
         <port source="{$const-name}" dir="in"/>

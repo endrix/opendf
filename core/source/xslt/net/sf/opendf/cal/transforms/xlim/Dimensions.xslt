@@ -87,9 +87,21 @@ ENDCOPYRIGHT
     Annotate list assignment with dimension sizes.
   </xd:doc>
   <xsl:template match="Stmt[@kind='Assign'][ Args ]">
+
+    <!-- <xsl:variable name="decl-id" select="Note[@kind='varMod']/@decl-id"/>  -->
     
-    <xsl:variable name="decl-id" select="Note[@kind='varMod']/@decl-id"/>
-    
+    <xsl:variable name="decl-id">        
+        <xsl:choose>
+          <xsl:when test="Note[@kind='varMod']">
+            <xsl:value-of select="Note[@kind='varMod']/@decl-id"/>    
+          </xsl:when>
+          <xsl:otherwise>
+             <!-- Element-wise writes to local lists are treated as read (or better, side effects) -->  
+             <xsl:value-of select="Note[@kind='varRef']/@decl-id"/>       
+          </xsl:otherwise>
+        </xsl:choose>
+    </xsl:variable>    
+        
     <xsl:copy>
       <!-- Preserve the existing element information -->  
       <xsl:for-each select="@*">
@@ -98,8 +110,11 @@ ENDCOPYRIGHT
       
       <xsl:apply-templates/>
       
-      <xsl:apply-templates select="key('find-decl',$decl-id)/Expr/Note[@kind='exprType']/Type" mode="dimensions">
-        <xsl:with-param name="index">1</xsl:with-param>
+      
+<!--   <xsl:apply-templates select="key('find-decl',$decl-id)/Expr/Note[@kind='exprType']/Type" mode="dimensions"> -->
+      <xsl:apply-templates select="//Decl[@id=$decl-id]/Type" mode="dimensions"> 
+      
+      <xsl:with-param name="index">1</xsl:with-param>
       </xsl:apply-templates>
       
     </xsl:copy>

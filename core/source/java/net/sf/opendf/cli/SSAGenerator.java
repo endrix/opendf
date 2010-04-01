@@ -77,11 +77,13 @@ public class SSAGenerator extends XSLTTransformRunner
     // Cannot cache the transformers as they are returned from the method calls below. 
     private static String[] parserTransforms = {    
         "net/sf/opendf/cal/transforms/CanonicalizePortTags.xslt",
-        "net/sf/opendf/cal/transforms/AddInputTypes.xslt", 
+
+        "net/sf/opendf/cal/transforms/AddInputTypes.xslt",                  
         "net/sf/opendf/cal/transforms/ReplaceOld.xslt",
 
         //Replace Generators        
         "net/sf/opendf/cal/transforms/ReplaceConstantGenerators.xslt",
+        "net/sf/opendf/cal/transforms/AddID.xslt",
         "net/sf/opendf/cal/transforms/EvaluateConstantExpressions.xslt",
 
         // Convert repeats into multiple reads and writes        
@@ -89,17 +91,21 @@ public class SSAGenerator extends XSLTTransformRunner
         // "net/sf/opendf/cal/transforms/AnnotateConstantIndexers.xslt",        
         // "net/sf/opendf/cal/transforms/Scalarize.xslt", 
         // "net/sf/opendf/cal/transforms/AddID.xslt",
-                
-        "net/sf/opendf/cal/transforms/VariableAnnotator.xslt",
+         
+           "net/sf/opendf/cal/transforms/VariableAnnotator.xslt",
                 
 //         "net/sf/opendf/cal/transforms/ContextInfoAnnotator.xslt",
 //         "net/sf/opendf/cal/transforms/CanonicalizeOperators.xslt",
 //         "net/sf/opendf/cal/transforms/AnnotateFreeVars.xslt",
 //         "net/sf/opendf/cal/transforms/DependencyAnnotator.xslt",
 //         "net/sf/opendf/cal/transforms/VariableSorter.xslt"
+        
+         
     };
 
     private static String[] ssaTransforms = {
+    	
+    	
         "net/sf/opendf/cal/transforms/xlim/AnnotateActionQIDs.xslt",
         "net/sf/opendf/cal/transforms/xlim/CopyQIDToAction.xslt",
         "net/sf/opendf/cal/transforms/xlim/EnumerateStates.xslt",
@@ -263,6 +269,7 @@ public class SSAGenerator extends XSLTTransformRunner
             try
             {
                 final Node ecalmlNode = Elaborator.elaborateModel(this.configs, null, SSAGenerator.class.getClassLoader());
+                writeFile(new File(this.getRunDir(), prefix+".ecalml"), Util.createXML(ecalmlNode));
                 calmlNode = Elaborator.elabPostProcess(ecalmlNode, this.configs, null, SSAGenerator.class.getClassLoader());
             }catch (Exception e ){
                 throw new SubProcessException("Could not elaborate top model",e);
@@ -291,7 +298,7 @@ public class SSAGenerator extends XSLTTransformRunner
             // back to the user.
             XSLTProcessCallbacks.registerListener(XSLTProcessCallbacks.SEMANTIC_CHECKS, this.reportListener);
      
-            if (saveIntermediate) writeFile(new File(rundir, prefix+"._calml"), Util.createXML(calml));
+            if (saveIntermediate) writeFile(new File(rundir, prefix+".pecalml"), Util.createXML(calml));
             
             // Because this class may be subclassed, ensure that the obtained resources are located based on the classloader for the subclass
             final Node pcalml = Util.applyTransformsAsResources(calml, getParserTransforms(), locator);
