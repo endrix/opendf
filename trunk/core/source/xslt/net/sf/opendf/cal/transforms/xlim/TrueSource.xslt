@@ -64,7 +64,7 @@ ENDCOPYRIGHT
   </xd:doc>
 
   <xd:doc>Augment read notes to point to the true source.</xd:doc>
-  <xsl:template match="Note[ @kind='var-used' and @mode='read' ]">
+  <xsl:template match="Note[ @kind='var-used' and (@mode='read' or @mode='mutate') ]">
     
     <xsl:copy>
       <xsl:for-each select="@*">
@@ -95,7 +95,7 @@ ENDCOPYRIGHT
 
   <xd:doc>Augment write notes which have a last-child-modifier attribute to point to the true source,
       which is useful for implementing PHI.</xd:doc>
-  <xsl:template match="Note[ @kind='var-used' and @mode='write' ]">
+  <xsl:template match="Note[ @kind='var-used' and @mode='write']">
 
     <xsl:copy>
       <xsl:for-each select="@*">
@@ -148,25 +148,30 @@ ENDCOPYRIGHT
         <xsl:apply-templates select=".." mode="true-source">
           <xsl:with-param name="decl-id" select="$decl-id"/>
           <xsl:with-param name="modifier-id" select="Note[@kind='var-used']
-            [@mode='read'][@decl-id=$decl-id]/@preceding-sibling-modifier"/>
+            [(@mode='read' or @mode='mutate')][@decl-id=$decl-id]/@preceding-sibling-modifier"/>
         </xsl:apply-templates>
       </xsl:when>
 
       <!-- Backtrack to the local modifier -->
-           
-      <!-- Variable Decl is a true source -->
+         
+      <!--   
+         Variable Decl is a true source 
       <xsl:when test="Decl[@kind='Variable'][ @id = $modifier-id ]">
         <xsl:value-of select="$modifier-id"/>
       </xsl:when>
 
-      <!-- Decl inside an Input is a true source -->
+      Decl inside an Input is a true source
       <xsl:when test="Decl[ @id = $modifier-id ][ parent::Input ]">
         <xsl:value-of select="$modifier-id"/>
-      </xsl:when>
+      </xsl:when>  
+      -->
+      <xsl:when test="Decl[ @id = $modifier-id ]">
+        <xsl:value-of select="$modifier-id"/>
+      </xsl:when>           
           
       <!-- Flow control block PHI function is a true source -->
       <xsl:when test="Stmt[ @kind='If' or @kind='While' ][ @id=$modifier-id ]">
-        <xsl:value-of select="concat( $modifier-id, '$PHI$', $decl-id )"/>
+        <xsl:value-of select="concat( $modifier-id, '$PHI$', $decl-id)"/>
       </xsl:when>
 
       <!-- Assign is a true source -->
@@ -184,8 +189,8 @@ ENDCOPYRIGHT
         <!-- For debug trap missing modifier -->
         <xsl:if test="string-length( string( *[@id=$modifier-id]/Note[@kind='var-used']
           [@mode='write'][@decl-id=$decl-id]/@last-child-modifier ) ) = 0">
-          <xsl:message terminate="yes">
-            Fatal flaw in var-used notes: missing last-child-modifier
+          <xsl:message terminate="no">
+            Fatal flaw in var-used notes: missing last-child-modifier <xsl:value-of select="$decl-id"/>
           </xsl:message>
         </xsl:if>           
             

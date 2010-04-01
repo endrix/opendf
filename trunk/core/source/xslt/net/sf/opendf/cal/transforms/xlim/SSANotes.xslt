@@ -79,25 +79,41 @@ ENDCOPYRIGHT
     <xsl:for-each select="@*">
       <xsl:attribute name="{name()}"><xsl:value-of select="."/></xsl:attribute>
     </xsl:for-each>
-    
+
+<!--  
     <xsl:if test="$modifier/@id">
       <xsl:attribute name="last-child-modifier"><xsl:value-of select="$modifier/@id"/></xsl:attribute>
     </xsl:if>
-    
+-->
+
+	<xsl:choose> 
+      <xsl:when test="$modifier/@id">
+        <xsl:attribute name="last-child-modifier"><xsl:value-of select="$modifier/@id"/></xsl:attribute>
+      </xsl:when>
+
+      <xsl:otherwise>
+        <xsl:attribute name="no-last-child-modifier">true</xsl:attribute>
+      </xsl:otherwise>    
+    </xsl:choose>
+        
   </xsl:copy>
   
 </xsl:template>
 
 <xd:doc>Augment read notes to point to the most recent modifier in this scope (if there is one).</xd:doc>
 
-<xsl:template match="Note[ @kind='var-used' and @mode='read' ]">
+<xsl:template match="Note[ @kind='var-used' and (@mode='read' or @mode='mutate')]">
   <xsl:variable name="name" select="@name"/>
   <xsl:variable name="scope-id" select="@scope-id"/>
   
   <!-- Find the nearest preceding modifier of this variable in document order -->
+
   <xsl:variable name="modifier" select="../preceding-sibling::*[Note[@kind='var-used' and @name=$name
     and @scope-id=$scope-id and @mode='write']][ position() = 1 ]"/>
-
+ <!--
+  <xsl:variable name="modifier" select="preceding::*[Note[@kind='var-used' and @name=$name
+    and @scope-id=$scope-id and @mode='write']][ position() = 1 ]"/>
+-->  
   <xsl:copy>
     <xsl:for-each select="@*">
       <xsl:attribute name="{name()}"><xsl:value-of select="."/></xsl:attribute>
@@ -105,9 +121,21 @@ ENDCOPYRIGHT
 
     <!-- Make sure not to list the "then" block as a preceding modifier for a variable
          consumed in an "else" block -->
+<!--   
     <xsl:if test="$modifier/@id and not (../parent::Stmt[@kind='If'])">
       <xsl:attribute name="preceding-sibling-modifier"><xsl:value-of select="$modifier/@id"/></xsl:attribute>
     </xsl:if>
+-->    
+    <xsl:choose>
+      <xsl:when test="$modifier/@id and not (../parent::Stmt[@kind='If'])">
+        <xsl:attribute name="preceding-sibling-modifier"><xsl:value-of select="$modifier/@id"/></xsl:attribute>
+      </xsl:when>
+
+      <xsl:otherwise>
+        <xsl:attribute name="no-preceding-sibling-modifier">true</xsl:attribute>
+      </xsl:otherwise>    
+    </xsl:choose>
+    
     
   </xsl:copy>
 
