@@ -1,0 +1,1 @@
+../../gold/texture_16x16Test/f.txt
