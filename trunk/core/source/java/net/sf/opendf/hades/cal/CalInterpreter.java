@@ -40,6 +40,8 @@ ENDCOPYRIGHT
 package net.sf.opendf.hades.cal;
 
 
+import java.io.IOException;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -152,17 +154,13 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 				ignoreBufferBounds = true;
 			}
 			
-			globalTraceOn = false;
-			String globalTraceOnString = System.getProperty("CalFiringTrace");
-			if (globalTraceOnString != null && globalTraceOnString.trim().toLowerCase().equals("true")) {
-				globalTraceOn = true;
-			}
-			
 			bufferBlockRecord = false;
 			String bufferBlockRecordString = System.getProperty("CalBufferBlockRecord");
 			if (bufferBlockRecordString != null && bufferBlockRecordString.trim().toLowerCase().equals("true")) {
 				bufferBlockRecord = true;
 			}
+			
+			traceOutput = (Writer)s.getProperty(Scheduler.propTraceOutput);
 		
 			//
 			//  build environment
@@ -179,7 +177,6 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 			this.actorEnv = createActorStateEnvironment(constantEnv);
 			this.myInterpreter = new Executor(theConfiguration, this.actorEnv);
 			
-			hasTraceVar = false;
 			hasNDTrackerVar = false;
 			
 			if (decls != null) {
@@ -200,8 +197,6 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 					else
 						constantEnv.bind(var, value, type);
 					
-					if (traceVarName.equals(var))
-						hasTraceVar = true;
 					if (nondeterminismTrackerVarName.equals(var))
 						hasNDTrackerVar = true;
 				}
@@ -474,17 +469,6 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 	}
 	
 	protected void blockActor(String port) {
-		if (hasTraceVar) {
-			Object v = this.actorEnv.getByName(traceVarName);
-			if (theConfiguration.booleanValue(v)) {
-				Logging.user().info("<block actor='" 
-						           + actor.getName() 
-						           + "' port='"
-						           + port
-						           + "'/>");
-			}
-		}
-
 		if (!bufferBlockRecord)
 			return;
 
@@ -496,17 +480,6 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 	}
 	
 	protected void unblockActor(String port) {
-		if (hasTraceVar) {
-			Object v = this.actorEnv.getByName(traceVarName);
-			if (theConfiguration.booleanValue(v)) {
-				Logging.user().info("<unblock actor='" 
-						           + actor.getName() 
-						           + "' port='"
-						           + port
-						           + "'/>");
-			}
-		}
-
 		if (bufferBlockRecord) {
 			Collection<OutputBlockRecord> obr = getOBR();
 			obr.remove(myOBR);
@@ -819,17 +792,7 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 	}
 	
 	private boolean  isTraceOn() {
-		if (hasTraceVar) {
-			Object v = this.actorEnv.getByName(traceVarName);
-			if (theConfiguration.booleanValue(v)) {
-				return true;
-			}
-		}
-		if (globalTraceOn) {
-			return true;
-		}
-		
-		return false;
+		return traceOutput != null;
 	}
 	
 	private void beginWriteTrace(Action [] a, int i) {
@@ -840,7 +803,7 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 	
 	private void endWriteTrace(Action [] a, int i) {
 		IndentedTextBuffer txt = new IndentedTextBuffer();
-		txt.addLine("<Step actor='" + actor.getName() + "' action='" + a[i].getID() + "' hashCode='" + this.hashCode() + "'>");
+		txt.addLine("<Step actor='" + this.hashCode() + "' step='" + scheduler.currentEventCount() + "' action='" + a[i].getID() + "' actorClass='" + actor.getName() + "' time='" + scheduler.currentTime() + "'>");
 		txt.indent();
   		  actionXmlDescription(txt, a[i]);
   		  if (ndaStateSets != null && !ndaStateSets[savedCurrentState].isEmpty()) {
@@ -870,8 +833,13 @@ implements EventProcessor, LocationMap, StateChangeProvider {
   		  }
 	    txt.unindent();
 	    txt.addLine("</Step>");
-	      
-	    Logging.user().info(txt.getString());
+	    if (traceOutput != null) {
+	    	try {
+	    		traceOutput.write(txt.getString());
+	    		traceOutput.write("\n");
+	    	}
+	    	catch (IOException e) {}
+	    }
 	}
 	
 	private void  setupPortTypeChecking() {   // TYPEFIXME
@@ -1071,9 +1039,7 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 	protected DynamicEnvironmentFrame actorEnv;
 
 	
-	
-	private   boolean	  globalTraceOn; 
-	private   boolean     hasTraceVar;
+	private   Writer	  traceOutput; 
 	private   boolean     hasNDTrackerVar;
 	private   int         warnBigBuffers;
 	private   boolean     ignoreBufferBounds;

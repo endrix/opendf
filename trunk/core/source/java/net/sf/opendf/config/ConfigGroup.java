@@ -85,6 +85,7 @@ public abstract class ConfigGroup implements Cloneable
     public static final String SIM_BUFFER_RECORD = "sim.bbr";
     public static final String SIM_BUFFER_SIZE_WARNING = "sim.buffer.size.warning";
     public static final String SIM_TRACE = "sim.trace";
+    public static final String SIM_TRACEFILE = "sim.tracefile";
     public static final String SIM_TYPE_CHECK = "sim.types.check";
     public static final String ENABLE_ASSERTIONS = "assertions.enable";
     

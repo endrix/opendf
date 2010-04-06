@@ -41,9 +41,12 @@ package net.sf.opendf.cli;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.io.StringReader;
+import java.io.Writer;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -77,7 +80,9 @@ import net.sf.opendf.hades.simulation.StreamIOCallback;
 import net.sf.opendf.hades.util.NullInputStream;
 import net.sf.opendf.hades.util.NullOutputStream;
 import net.sf.opendf.util.logging.Logging;
+import net.sf.opendf.hades.des.schedule.Scheduler;
 import net.sf.opendf.hades.des.schedule.SchedulerObserver;
+import net.sf.opendf.hades.des.schedule.SimulationFinalizer;
 import net.sf.opendf.hades.des.EventProcessor;
 import net.sf.opendf.xslt.util.*;
 
@@ -104,6 +109,9 @@ public class PhasedSimulator {
     private boolean done;
     private boolean dusted;
     private boolean failed;
+    
+    private Writer traceOutput = null;
+    
     // A list of string identifiers used in the XML semantic checks to
     // identify issues.  Any id contained in this list will NOT be
     // displayed to the user.  Note that ids are hierarchical, thus a
@@ -168,8 +176,23 @@ public class PhasedSimulator {
 
         if (((ConfigBoolean)configs.get(ConfigGroup.SIM_BUFFER_IGNORE)).getValue().booleanValue())
             System.setProperty("CalBufferIgnoreBounds", "true");
-        if (((ConfigBoolean)configs.get(ConfigGroup.SIM_TRACE)).getValue().booleanValue())
-            System.setProperty("CalFiringTrace", "true");
+        
+        String tracefilename = ((ConfigFile)configs.get(ConfigGroup.SIM_TRACEFILE)).getValue();
+        if (tracefilename != null && !"".equals(tracefilename.trim())) {
+        	try {
+        		traceOutput = new OutputStreamWriter(new FileOutputStream(tracefilename));
+        	} 
+        	catch (IOException e) {
+        		traceOutput = null; // should be null anyway, this is for emphasis.
+        	}
+        } else {
+        	if (((ConfigBoolean)configs.get(ConfigGroup.SIM_TRACE)).getValue().booleanValue()) {
+        		traceOutput = new OutputStreamWriter(System.out);
+        	}
+        }
+        
+        
+        
         if (((ConfigBoolean)configs.get(ConfigGroup.ENABLE_ASSERTIONS)).getValue().booleanValue())
             System.setProperty("EnableAssertions", "true");
         if (((ConfigBoolean)configs.get(ConfigGroup.SIM_TYPE_CHECK)).getValue().booleanValue())
@@ -252,8 +275,28 @@ public class PhasedSimulator {
                 failed = true;
                 return false;
             }
+            
+            Map properties = new HashMap();
+            if (traceOutput != null) {
+            	properties.put(Scheduler.propTraceOutput, traceOutput);
+            }
 
-            sim = new SequentialSimulator(dec, classLoader, this.ioCallback);
+            sim = new SequentialSimulator(0, dec, classLoader, this.ioCallback, properties, false);
+            
+            if (traceOutput != null) {
+            	final Writer _traceOutput = traceOutput;
+            	
+            	sim.registerSimulationFinalizer(new SimulationFinalizer() {					
+					@Override
+					public void finalizeSimulation() {
+						try {
+							if (_traceOutput != null)
+								_traceOutput.close();
+						}
+						catch (IOException e) {}
+					}
+				});
+            }
         }
         catch (Throwable t)
         {
@@ -265,7 +308,6 @@ public class PhasedSimulator {
             return false;
         }
 
-        // No longer needed.
         XSLTProcessCallbacks.removeListener(XSLTProcessCallbacks.SEMANTIC_CHECKS, reportListener);
 
         return true;
@@ -369,6 +411,8 @@ public class PhasedSimulator {
         if( dusted ) throw new RuntimeException( "Already cleaned up" );
         */
         dusted = true;
+        
+        sim.finalizeSimulation();
 
         long endWallclockTime = System.currentTimeMillis();
         long wcTime = endWallclockTime - beginWallclockTime;
