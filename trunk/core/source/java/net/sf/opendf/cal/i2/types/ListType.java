@@ -71,6 +71,10 @@ public class ListType extends AbstractType implements Type {
 		}
 		return true;
 	}
+	
+	public Type getElementType() {
+		return this.tElement;	
+	}
 
 	// 
 	// Ctor
@@ -111,7 +115,7 @@ public class ListType extends AbstractType implements Type {
 		}
 
 		final static String vpSize = "size"; 
-		final static String tpElement = "element"; 
+		final static String tpElement = "type"; // used to be "element"
 	}
 
 
