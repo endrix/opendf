@@ -195,4 +195,6 @@ public interface Scheduler {
    */
   
   public ClassLoader  getClassLoader();
+  
+  public final String propTraceOutput = "traceOutput";
 }

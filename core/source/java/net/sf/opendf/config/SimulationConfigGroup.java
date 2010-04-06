@@ -105,12 +105,15 @@ public class SimulationConfigGroup extends ConfigGroup
                 false,
                 false
                 ));
-        registerConfig(SIM_TRACE, new ConfigBoolean(SIM_TRACE, "Sim Trace", 
-                "-trace",
-                "Generate a trace of simulation execution",
-                false,
-                false
-                ));
+        registerConfig(SIM_TRACE, new ConfigBoolean(SIM_TRACE, "Simulation trace", 
+        		"-trace",
+        		"Simulation trace on (deprecated and inactive)",
+        		false,
+        		false));
+        registerConfig(SIM_TRACEFILE, new ConfigFile(SIM_TRACEFILE, "Simulation Trace File", 
+                "-tracefile",
+                "File to store the trace of simulation execution", 
+                false));
         registerConfig(SIM_TYPE_CHECK, new ConfigBoolean(SIM_TYPE_CHECK, "Type Check", 
                 "-tc",
                 "Perform type checking during simulation",

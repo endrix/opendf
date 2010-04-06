@@ -58,6 +58,7 @@ import net.sf.opendf.hades.des.schedule.AbstractObservableScheduler;
 import net.sf.opendf.hades.des.schedule.Scheduler;
 import net.sf.opendf.hades.des.schedule.SchedulerObserver;
 import net.sf.opendf.hades.des.schedule.SimpleScheduler;
+import net.sf.opendf.hades.des.schedule.SimulationFinalizer;
 import net.sf.opendf.hades.util.NullInputStream;
 import net.sf.opendf.hades.util.NullOutputStream;
 
@@ -94,6 +95,15 @@ public class SequentialSimulator {
 		scheduler.finalizeSimulation();
 	}
 	
+	public void  registerSimulationFinalizer(SimulationFinalizer sf) {
+		scheduler.registerSimulationFinalizer(sf);
+	}
+
+
+	public void  unregisterSimulationFinalizer(SimulationFinalizer sf) {
+		scheduler.unregisterSimulationFinalizer(sf);
+	}
+
 	/**
 	 * if my default scheduler is observable then add a listener
 	 */

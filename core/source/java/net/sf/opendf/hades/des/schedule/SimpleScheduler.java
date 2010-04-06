@@ -77,7 +77,6 @@ public class SimpleScheduler extends AbstractObservableScheduler {
 	}
 	
 	public int execute() {
-//		System.out.println("Ex 1: " + events.size());
 		boolean ret;
 		try {
 			boolean weak = events.isNextWeak();
@@ -104,14 +103,13 @@ public class SimpleScheduler extends AbstractObservableScheduler {
             }
             
 			notifyException(e);
-//			System.out.println("Ex E: " + events.size());
 			return Scheduler.NOSTEP;
 		}
-//		System.out.println("Ex 2: " + events.size());
 		return ret ? Scheduler.STEP : Scheduler.NOSTEP;
 	}
 	
-	public void schedule(double tm, EventProcessor ep) {schedule(tm, 0, ep);
+	public void schedule(double tm, EventProcessor ep) {
+		schedule(tm, 0, ep);
 	}
 	
 	public void schedule(double tm, double precedence, EventProcessor ep) {
