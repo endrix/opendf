@@ -202,6 +202,22 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 				}
 			}
 			
+			for (PortDecl pd : actor.getInputPorts()) {
+				TypeExpr te = pd.getType();
+				TypeSystem ts = theConfiguration.getTypeSystem();
+				Type type =  (ts != null) ? ts.evaluate(te, myInterpreter) : null;
+				MosesInputChannel ic = inputPortMap.get(pd.getName());
+				ic.setType(type);
+			}
+			
+			for (PortDecl pd : actor.getOutputPorts()) {
+				TypeExpr te = pd.getType();
+				TypeSystem ts = theConfiguration.getTypeSystem();
+				Type type =  (ts != null) ? ts.evaluate(te, myInterpreter) : null;
+				MosesOutputChannel ic = outputPortMap.get(pd.getName());
+				ic.setType(type);
+			}
+			
 			ai = new ActorInterpreter(actor, theConfiguration,
 					this.actorEnv, inputPortMap, outputPortMap);
 			
@@ -1270,6 +1286,10 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 			return 1;
 		}
 		
+		public void setType(Type t) {
+			type = t;
+		}
+		
 		public InputChannel getChannel(int n) {
 			if (n != 0) {
 				throw new RuntimeException("Getting channel >0 from SingleInputPort.");
@@ -1373,10 +1393,12 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 		}
 		
 		protected void addToken (Object token) {
-			tokens.add(token);
+			Object convertedToken = (type == null) ? token : type.convert(token);
+			
+			tokens.add(convertedToken);
 			try {
 				if (listener != null) {
-					listener.notify(token);
+					listener.notify(convertedToken);
 				}
 			} catch (Exception e) {e.printStackTrace(); System.out.println("Uh-oh");}
 			tokensQueued += 1;
@@ -1408,6 +1430,7 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 		protected int tokensRead;
 		protected String name;
 		protected int  bufferSize;
+		protected Type type;
 		
 		protected TokenListener listener;
 		
@@ -1483,6 +1506,10 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 			return 1;
 		}
 		
+		public void setType(Type t) {
+			type = t;
+		}
+		
 		public Collection<Object>  getBlockingSources() {
 			return blockingSources;
 		}
@@ -1492,12 +1519,14 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 		//
 		
 		public void put(Object a) {
+			Object convertedA = (type == null) ? a : type.convert(a);
+			
 			try {
 				if (listener != null) {
-					listener.notify(a);
+					listener.notify(convertedA);
 				}
 			} catch (Exception e) {}
-			tokens.add(a);
+			tokens.add(convertedA);
 		}
 		
 		//
@@ -1526,11 +1555,13 @@ implements EventProcessor, LocationMap, StateChangeProvider {
 		public MosesOutputChannel(String name) {
 			this.name = name;
 			this.blocked = false;
+            this.type = null;
 			listener = null;
 		}
 		
 		protected TokenListener  listener;
 		protected String name;
+		protected Type type;
 		protected MyArrayList tokens = new MyArrayList();
 		
 		protected boolean  blocked;

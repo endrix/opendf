@@ -41,9 +41,14 @@ package net.sf.opendf.cal.i2;
 
 import net.sf.opendf.cal.ast.Decl;
 import net.sf.opendf.cal.ast.ExprLambda;
+import net.sf.opendf.cal.ast.TypeExpr;
+import net.sf.opendf.cal.i2.environment.DynamicEnvironmentFrame;
 import net.sf.opendf.cal.i2.environment.EnvironmentFrame;
 import net.sf.opendf.cal.i2.environment.LazyEnvironmentFrame;
+import net.sf.opendf.cal.i2.platform.DefaultTypedPlatform;
 import net.sf.opendf.cal.i2.types.Type;
+import net.sf.opendf.cal.i2.types.TypeSystem;
+import net.sf.opendf.cal.i2.util.Platform;
 
 /**
  * A LambdaFunction is a function object that is created as the result of evaluating
@@ -63,15 +68,19 @@ public class LambdaFunction implements Function
 					+ n + ", expected " + params.length + ".");
 
 		Object [] values = new Object[n];
-		Type [] types = new Type[n];
 
 		for (int i = 0; i < n; i++) {
+			if (parTypes[i] != null) {
+				values[i] = parTypes[i].convert(evaluator.getValue(i));
+			} else {
+				values[i] = evaluator.getValue(i);
+			}
+		
 			values[i] = evaluator.getValue(i);
-			types[i] = null;  // TYPEFIXME
 		}
 		evaluator.pop(n);
 		
-		Environment e = new EnvironmentFrame(this.env, params, values, types);
+		Environment e = new EnvironmentFrame(this.env, params, values, parTypes);
 		
 		Decl [] decls = lambda.getDecls();
 		
@@ -80,13 +89,31 @@ public class LambdaFunction implements Function
 		}
 		
 		evaluator.evaluate(this.lambda.getBody(), e);
+
+		if (this.lambda.getReturnTypeExpr() != null) {
+			evaluator.push(this.returnType.convert(evaluator.pop()));
+		}
 	}
 
 	public LambdaFunction(Environment env, ExprLambda lambda) {
 		this.lambda = lambda;
 		this.env = env;
+		
+		Platform thePlatform = DefaultTypedPlatform.thePlatform;
+		Configuration  theConfiguration  = thePlatform.configuration();
+		Executor myInterpreter = new Executor(theConfiguration, env);
+		TypeSystem ts = theConfiguration.getTypeSystem();
+		this.returnType =  (ts != null) ? ts.evaluate(lambda.getReturnTypeExpr(), myInterpreter) : null;
+
+		TypeExpr[] parTypeExpr = this.lambda.getParTypeExpr();
+		parTypes = new Type[parTypeExpr.length];
+		for (int i = 0; i < parTypes.length; i++) {
+			parTypes[i] = (ts != null) ? ts.evaluate(parTypeExpr[i], myInterpreter) : null;
+		}		
 	}
 
 	private ExprLambda  lambda;
 	private Environment env;
+	private Type returnType;
+	private Type[] parTypes;
 }
