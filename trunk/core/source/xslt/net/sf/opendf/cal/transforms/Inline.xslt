@@ -107,12 +107,29 @@
   </xsl:template>
 
 
-  <xsl:template match="Stmt[@kind='Call'][Expr[@kind='Let' and Expr[@kind='Var']]]">
+  <xsl:template match="Stmt[@kind='Call']">
     <xsl:param name="actor" select="UNDEFINED"/>
     
-    <xsl:variable name="args" select="Args/Expr[@kind='Let']"/>
-    <!-- get name of procedure -->        
-    <xsl:variable name="pname" select="Expr[@kind='Let']/Expr[@kind='Var']/@name"/>
+    <xsl:variable name="args" select="Args/Expr"/>
+    <!-- get name of procedure -->     
+    <xsl:variable name="pname">
+      <xsl:choose>
+        <xsl:when test="Expr[@kind='Let']/Expr[@kind='Var']/@name">
+          <xsl:value-of select="Expr[@kind='Let']/Expr[@kind='Var']/@name"/>
+        </xsl:when>
+        <xsl:when test="Expr[@kind='Var']/@name">
+          <xsl:value-of select="Expr[@kind='Var']/@name"/>
+        </xsl:when>
+      
+        <xsl:otherwise>
+           <xsl:message terminate="yes">
+             Unnamed procedure in Inline transformtion
+           </xsl:message> 
+        </xsl:otherwise>
+      </xsl:choose>
+    </xsl:variable>
+    
+    <!-- <xsl:variable name="pname" select="Expr[@kind='Let']/Expr[@kind='Var']/@name"/> -->
     
     <xsl:choose>
       <xsl:when test="$actor/Decl[@name=$pname]">
@@ -126,7 +143,7 @@
               <xsl:variable name="n" select="position()"/>
               <Decl kind="Variable" name="$param${$pname}${@name}">
                 <xsl:copy-of select="*"/>
-                <xsl:copy-of select="$args/Expr[$n]"/>
+                <xsl:copy-of select="$args[$n]"/>
               </Decl>
             </xsl:for-each>
             <xsl:apply-templates select="$proc/Stmt" mode="alpha-reduce">
