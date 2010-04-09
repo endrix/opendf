@@ -40,6 +40,7 @@ package eu.actorsproject.xlim.dependence;
 import java.util.Collections;
 
 import eu.actorsproject.util.Linkage;
+import eu.actorsproject.util.XmlAttributeFormatter;
 import eu.actorsproject.util.XmlElement;
 import eu.actorsproject.xlim.XlimModule;
 
@@ -146,7 +147,7 @@ public abstract class ValueUsage extends Linkage<ValueUsage> implements XmlEleme
 	}
 
 	@Override
-	public String getAttributeDefinitions() {
-		return mValue.getAttributeDefinitions();
+	public String getAttributeDefinitions(XmlAttributeFormatter formatter) {
+		return mValue.getAttributeDefinitions(formatter);
 	}
 }

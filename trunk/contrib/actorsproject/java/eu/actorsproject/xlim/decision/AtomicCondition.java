@@ -40,6 +40,7 @@ package eu.actorsproject.xlim.decision;
 import java.util.Collections;
 import java.util.Map;
 
+import eu.actorsproject.util.XmlAttributeFormatter;
 import eu.actorsproject.util.XmlElement;
 import eu.actorsproject.xlim.XlimOperation;
 import eu.actorsproject.xlim.XlimSource;
@@ -74,7 +75,7 @@ public class AtomicCondition extends Condition {
 	}
 
 	@Override
-	public String getAttributeDefinitions() {
+	public String getAttributeDefinitions(XmlAttributeFormatter formatter) {
 		return "decision=\""+getXlimSource().getUniqueId()+"\"";
 	}
 

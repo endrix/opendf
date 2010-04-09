@@ -37,6 +37,7 @@
 
 package eu.actorsproject.xlim.implementation;
 
+import eu.actorsproject.util.XmlAttributeFormatter;
 import eu.actorsproject.util.XmlElement;
 import eu.actorsproject.xlim.XlimSource;
 import eu.actorsproject.xlim.XlimTopLevelPort;
@@ -84,7 +85,7 @@ class TopLevelPort implements XlimTopLevelPort, StateLocation {
 	}
 
 	@Override
-	public String getAttributeDefinitions() {
+	public String getAttributeDefinitions(XmlAttributeFormatter formatter) {
 		String dir;
 		if (mDirection==Direction.internal)
 			dir = "";

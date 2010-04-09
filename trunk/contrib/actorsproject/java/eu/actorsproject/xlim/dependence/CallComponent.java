@@ -40,6 +40,7 @@ package eu.actorsproject.xlim.dependence;
 import java.util.Collections;
 import java.util.List;
 
+import eu.actorsproject.util.XmlAttributeFormatter;
 import eu.actorsproject.util.XmlElement;
 import eu.actorsproject.xlim.absint.AbstractDomain;
 import eu.actorsproject.xlim.absint.Context;
@@ -125,7 +126,7 @@ public class CallComponent implements DependenceComponent {
 	}
 	
 	@Override
-	public String getAttributeDefinitions() {
+	public String getAttributeDefinitions(XmlAttributeFormatter formatter) {
 		return "target=\"" + mCallee.getTask().getName() + "\"";
 	}
 

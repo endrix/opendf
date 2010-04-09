@@ -1,5 +1,5 @@
 /* 
- * Copyright (c) Ericsson AB, 2009
+ * Copyright (c) Ericsson AB, 2010
  * Author: Carl von Platen (carl.von.platen@ericsson.com)
  * All rights reserved.
  *
@@ -35,64 +35,50 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package eu.actorsproject.xlim.dependence;
+package eu.actorsproject.xlim.schedule;
 
-import java.util.Collections;
-
-import eu.actorsproject.util.XmlAttributeFormatter;
 import eu.actorsproject.util.XmlElement;
-import eu.actorsproject.xlim.XlimType;
 
 /**
- * SideEffect node is the common base of value nodes that represent side effects
- * (which act on actor ports, state variables or local aggregates)
- *  
- * StateValueNodes model data dependence that is caused by operations on
- * ports and state variables, both true dependence ("read-after-write") and
- * artificial dependence ("write-after-write" and "write-after-read").
+ * Represents a static sub-schedule of action firings. 
+ * The building blocks of the sub-schedule are
+ * (a) StaticPhase,     actions with the same consumption/production rate
+ *                      and the associated decisions to select among them.
+ * (b) StaticSequence,  a sequence of SubSchedules that is repeated a
+ *                      fixed number of times (including one)
+ *                      
+ * The StaticSubSequence can also be viewed as a (flattened) sequence
+ * consisting of StaticPhases only. In this view each StaticSequence is
+ * essentialy duplicated according to their repeat counts. 
  */
-public abstract class SideEffect extends ValueNode {
+public interface StaticSubSchedule extends XmlElement {
 
-	private static int mNextId;
-	private int mUniqueId;
-	
-	public SideEffect() {
-		mUniqueId=mNextId++;
-	}
-	
-	@Override
-	public boolean hasLocation() {
-		return true;
-	}
+	/**
+	 * @return number of sub-schedules in this StaticSubSchedule
+	 *         (0 in the case of a StaticPhase -it has no SubSchedules)
+	 */
+	int getNumberOfSubSchedules();
 
-	@Override
-	public String getUniqueId() {
-		return "v"+mUniqueId; 
-	}
+	/**
+	 * @return the repeat count of this StaticSubSchedule
+	 */
+	int getRepeatCount();
 	
-	@Override
-	public String getTagName() {
-		return "SideEffect";
-	}
-	
-	@Override
-	public XlimType getType() {
-		Location location=getLocation();
-		return location.getType();
-	}
-	
-	@Override
-	public String getAttributeDefinitions(XmlAttributeFormatter formatter) {
-		Location location=getLocation();
-		String name=location.getDebugName();
-		String source=(location.hasSource())?
-			" source=\"" + location.getSource().getUniqueId() + "\"" : "";
-		
-		return "valueId=\"" + getUniqueId() + "\" name=\"" + name + "\"" + source;
-	}
+	/**
+	 * @return iteration over the sub-schedules of this StaticSubSchedule
+	 *         (each sub-schedule appears once, regardless of the repeat count)
+	 */
+	Iterable<StaticSubSchedule> getSubSchedules();
 
-	@Override
-	public Iterable<? extends XmlElement> getChildren() {
-		return Collections.emptyList();
-	}
+	/**
+	 * @return number of StaticPhases in the SubSchedule
+	 *         (with duplication according to repeat counts)
+	 */
+	int getNumberOfPhases();
+	
+	/**
+	 * @return iteration over the phases of the schedule
+	 *         (phases may appear several times, according to repeat counts)
+	 */
+	Iterable<StaticPhase> getPhases(); 
 }

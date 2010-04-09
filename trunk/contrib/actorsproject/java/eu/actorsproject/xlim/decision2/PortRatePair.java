@@ -1,5 +1,5 @@
 /* 
- * Copyright (c) Ericsson AB, 2009
+ * Copyright (c) Ericsson AB, 2010
  * Author: Carl von Platen (carl.von.platen@ericsson.com)
  * All rights reserved.
  *
@@ -35,73 +35,49 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package eu.actorsproject.xlim.implementation;
+package eu.actorsproject.xlim.decision2;
+
+import java.util.Collections;
 
 import eu.actorsproject.util.XmlAttributeFormatter;
-import eu.actorsproject.xlim.XlimSource;
-import eu.actorsproject.xlim.XlimStateVar;
-import eu.actorsproject.xlim.dependence.Location;
-import eu.actorsproject.xlim.dependence.ValueNode;
-import eu.actorsproject.xlim.dependence.ValueOperator;
-import eu.actorsproject.xlim.dependence.ValueUsage;
+import eu.actorsproject.util.XmlElement;
+import eu.actorsproject.xlim.XlimTopLevelPort;
 
-class SourceValueUsage extends ValueUsage {
+/**
+ * Represents a (port,int) pair (consumption/production rate of a port)
+ */
+public class PortRatePair implements XmlElement {
+		
+	private XlimTopLevelPort mPort;
+	private int mRate;
 
-	private XlimSource mSource;
-	private ValueOperator mOperator;
-	
-	public SourceValueUsage(XlimSource source, ValueOperator op) {
-		super((source.asOutputPort()!=null)? source.asOutputPort().getValue() : null);
-		mSource=source;
-		mOperator=op;
+	public PortRatePair(XlimTopLevelPort port, int rate) {
+		mPort=port;
+		mRate=rate;
 	}
-	
+
+	public XlimTopLevelPort getPort() {
+		return mPort;
+	}
+
+	public int getRate() {
+		return mRate;
+	}
+
 	@Override
-	public boolean needsFixup() {
-		return mSource.hasLocation();
+	public String getTagName() {
+		return getPort().getDirection()==XlimTopLevelPort.Direction.in? "consumptionRates" : "productionRates";
 	}
-	
-	@Override
-	public Location getFixupLocation() {
-		return mSource.getLocation();
-	}
-	
-	@Override
-	public ValueOperator usedByOperator() {
-		return mOperator;
-	}
-	
-	@Override
-	public void setValue(ValueNode newValue) {
-		super.setValue(newValue);
-		if (newValue!=null) {
-			if (newValue.hasLocation()) {
-				Location location=newValue.getLocation();
-				assert(location.hasSource());
-				mSource=location.getSource();
-			}
-			else {
-				assert(newValue instanceof OutputPort);
-				mSource=(OutputPort) newValue;
-			}
-		}
-	}
-	
-	public XlimSource getSource() {
-		return mSource;
-	}
-	
+
 	@Override
 	public String getAttributeDefinitions(XmlAttributeFormatter formatter) {
-		XlimStateVar stateVar=mSource.asStateVar();
-		String source="source=\"" + mSource.getUniqueId() + "\"";
-		
-		if (stateVar!=null) {
-			String sourceName=stateVar.getDebugName();
-			if (sourceName!=null)
-				return "name=\"" + sourceName + "\" " + source;
-		}
-		
-		return source; 
+		String portName=getPort().getName();
+		int rate=getRate();
+		return "port=\""+portName+"\" tokenCount=\""+rate+"\"";
+	}
+
+	@Override
+	public Iterable<? extends XmlElement> getChildren() {
+		return Collections.emptyList();
 	}
 }

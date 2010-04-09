@@ -1,5 +1,5 @@
 /* 
- * Copyright (c) Ericsson AB, 2009
+ * Copyright (c) Ericsson AB, 2010
  * Author: Carl von Platen (carl.von.platen@ericsson.com)
  * All rights reserved.
  *
@@ -35,73 +35,55 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package eu.actorsproject.xlim.implementation;
+package eu.actorsproject.xlim.schedule;
+
+import java.util.HashSet;
+import java.util.Set;
 
 import eu.actorsproject.util.XmlAttributeFormatter;
-import eu.actorsproject.xlim.XlimSource;
-import eu.actorsproject.xlim.XlimStateVar;
-import eu.actorsproject.xlim.dependence.Location;
-import eu.actorsproject.xlim.dependence.ValueNode;
-import eu.actorsproject.xlim.dependence.ValueOperator;
-import eu.actorsproject.xlim.dependence.ValueUsage;
+import eu.actorsproject.util.XmlElement;
+import eu.actorsproject.xlim.decision2.DecisionTree;
 
-class SourceValueUsage extends ValueUsage {
+public abstract class BasicBlock implements XmlElement {
 
-	private XlimSource mSource;
-	private ValueOperator mOperator;
+	private Set<BasicBlock> mPredecessors=new HashSet<BasicBlock>();
+	private int mIdentifier;
 	
-	public SourceValueUsage(XlimSource source, ValueOperator op) {
-		super((source.asOutputPort()!=null)? source.asOutputPort().getValue() : null);
-		mSource=source;
-		mOperator=op;
+	public abstract DecisionTree getDecisionTree();
+	
+	public Iterable<? extends BasicBlock> getPredecessors() {
+		return mPredecessors;
 	}
 	
+	public abstract Iterable<? extends BasicBlock> getSuccessors();
+	
+	public enum Kind {
+		decisionNode,
+		actionNode,
+		terminalNode
+	}
+	
+	public abstract Kind getKind();
+
 	@Override
-	public boolean needsFixup() {
-		return mSource.hasLocation();
+	public String getTagName() {
+		return "basic-block";
 	}
 	
-	@Override
-	public Location getFixupLocation() {
-		return mSource.getLocation();
-	}
-	
-	@Override
-	public ValueOperator usedByOperator() {
-		return mOperator;
-	}
-	
-	@Override
-	public void setValue(ValueNode newValue) {
-		super.setValue(newValue);
-		if (newValue!=null) {
-			if (newValue.hasLocation()) {
-				Location location=newValue.getLocation();
-				assert(location.hasSource());
-				mSource=location.getSource();
-			}
-			else {
-				assert(newValue instanceof OutputPort);
-				mSource=(OutputPort) newValue;
-			}
-		}
-	}
-	
-	public XlimSource getSource() {
-		return mSource;
+	public int getIdentifier() {
+		return mIdentifier;
 	}
 	
 	@Override
 	public String getAttributeDefinitions(XmlAttributeFormatter formatter) {
-		XlimStateVar stateVar=mSource.asStateVar();
-		String source="source=\"" + mSource.getUniqueId() + "\"";
-		
-		if (stateVar!=null) {
-			String sourceName=stateVar.getDebugName();
-			if (sourceName!=null)
-				return "name=\"" + sourceName + "\" " + source;
-		}
-		
-		return source; 
+		return "kind=\""+getKind()+"\" id=\""+mIdentifier+"\"";
+	}
+	
+	void addPredecessor(BasicBlock p) {
+		mPredecessors.add(p);
+	}
+	
+	void setIdentifier(int identifier) {
+		mIdentifier=identifier;
 	}
 }

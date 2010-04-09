@@ -37,8 +37,10 @@
 
 package eu.actorsproject.cli;
 
+import eu.actorsproject.util.XmlPrinter;
 import eu.actorsproject.xlim.XlimDesign;
-import eu.actorsproject.xlim.decision.ModeScheduler;
+import eu.actorsproject.xlim.schedule.ActionSchedule;
+import eu.actorsproject.xlim.schedule.Classifier;
 import eu.actorsproject.xlim.util.CopyPropagation;
 import eu.actorsproject.xlim.util.DeadCodeAnalysis;
 import eu.actorsproject.xlim.util.DeadCodePlugIn;
@@ -61,6 +63,7 @@ public class ActorClassifier extends CheckXlim {
 	private CopyPropagation mCopyPropagation;
 	private DeadCodeAnalysis mDeadCodeAnalysis;
 	private DeadCodeRemoval mDeadCodeRemoval;
+	private XmlPrinter mPrinter=new XmlPrinter(System.out);
 	
 	@Override
 	public void initSession(String args[]) {
@@ -80,10 +83,11 @@ public class ActorClassifier extends CheckXlim {
 			deadCodeElimination(design);
 
 			// Then find the modes and and print classification
-			ModeScheduler modeScheduler=new ModeScheduler();
+			Classifier classifier=new Classifier(design);
 			System.out.println("Actor: "+design.getName());
 			System.out.println("File:  "+mInputFile.getPath());
-			modeScheduler.create(design);
+			ActionSchedule schedule=classifier.getActionSchedule();
+			schedule.printActionSchedule(mPrinter);
 			System.out.println();
 		}
 		return design;

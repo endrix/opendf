@@ -40,6 +40,7 @@ package eu.actorsproject.xlim.implementation;
 import java.util.Collections;
 
 
+import eu.actorsproject.util.XmlAttributeFormatter;
 import eu.actorsproject.util.XmlElement;
 import eu.actorsproject.xlim.XlimInstruction;
 import eu.actorsproject.xlim.XlimOutputPort;
@@ -156,7 +157,7 @@ class OutputPort extends ValueNode implements XlimOutputPort {
 	}
 
 	@Override
-	public String getAttributeDefinitions() {
+	public String getAttributeDefinitions(XmlAttributeFormatter formatter) {
 		return "dir=\"out\" source=\"" + getUniqueId() + "\" " + mType.getAttributeDefinitions();
 	}
 

@@ -41,6 +41,7 @@ import java.util.Collection;
 import java.util.ArrayList;
 import java.util.List;
 
+import eu.actorsproject.util.XmlAttributeFormatter;
 import eu.actorsproject.xlim.XlimInitValue;
 import eu.actorsproject.xlim.XlimType;
 import eu.actorsproject.xlim.util.Session;
@@ -143,7 +144,7 @@ class InitValueList implements XlimInitValue {
 		return mIsZero;
 	}
 
-	public String getAttributeDefinitions() {
+	public String getAttributeDefinitions(XmlAttributeFormatter formatter) {
 		return "typeName=\"List\"";
 	}
 

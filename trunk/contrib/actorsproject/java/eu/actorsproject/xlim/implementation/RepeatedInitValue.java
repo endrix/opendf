@@ -40,6 +40,7 @@ package eu.actorsproject.xlim.implementation;
 import java.util.AbstractList;
 import java.util.List;
 
+import eu.actorsproject.util.XmlAttributeFormatter;
 import eu.actorsproject.xlim.XlimInitValue;
 import eu.actorsproject.xlim.XlimType;
 import eu.actorsproject.xlim.util.Session;
@@ -105,7 +106,7 @@ public class RepeatedInitValue implements XlimInitValue {
 	}
 	
 	@Override
-	public String getAttributeDefinitions() {
+	public String getAttributeDefinitions(XmlAttributeFormatter formatter) {
 		return "typeName=\"List\"";
 	}
 	

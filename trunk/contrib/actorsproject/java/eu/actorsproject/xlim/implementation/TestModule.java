@@ -39,6 +39,7 @@ package eu.actorsproject.xlim.implementation;
 
 import java.util.Collections;
 
+import eu.actorsproject.util.XmlAttributeFormatter;
 import eu.actorsproject.util.XmlElement;
 import eu.actorsproject.xlim.XlimModule;
 import eu.actorsproject.xlim.XlimSource;
@@ -115,11 +116,11 @@ class TestModule extends ContainerModule implements XlimTestModule {
 	
 	
 	@Override
-	public String getAttributeDefinitions() {
+	public String getAttributeDefinitions(XmlAttributeFormatter formatter) {
 		if (mDecision!=null)
-			return super.getAttributeDefinitions() + " decision=\"" + getDecision().getUniqueId() + "\"";
+			return super.getAttributeDefinitions(formatter) + " decision=\"" + getDecision().getUniqueId() + "\"";
 		else
-			return super.getAttributeDefinitions();
+			return super.getAttributeDefinitions(formatter);
 	}	
 
 	/*
@@ -200,7 +201,7 @@ class TestModule extends ContainerModule implements XlimTestModule {
 		}
 
 		@Override
-		public String getAttributeDefinitions() {
+		public String getAttributeDefinitions(XmlAttributeFormatter formatter) {
 			return "";
 		}
 	}

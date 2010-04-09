@@ -42,6 +42,7 @@ import java.util.Collection;
 import java.util.Iterator;
 
 import eu.actorsproject.util.Linkage;
+import eu.actorsproject.util.XmlAttributeFormatter;
 import eu.actorsproject.util.XmlElement;
 import eu.actorsproject.xlim.XlimBlockElement;
 import eu.actorsproject.xlim.XlimModule;
@@ -270,7 +271,7 @@ class Operation extends Linkage<AbstractBlockElement>
 	}
 	
 	@Override
-	public String getAttributeDefinitions() {
+	public String getAttributeDefinitions(XmlAttributeFormatter formatter) {
 		return mKind.getAttributeDefinitions(this);
 	}
 

@@ -1,5 +1,5 @@
 /* 
- * Copyright (c) Ericsson AB, 2009
+ * Copyright (c) Ericsson AB, 2010
  * Author: Carl von Platen (carl.von.platen@ericsson.com)
  * All rights reserved.
  *
@@ -35,64 +35,27 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package eu.actorsproject.xlim.dependence;
+package eu.actorsproject.xlim.schedule;
 
-import java.util.Collections;
+import eu.actorsproject.xlim.absint.AbstractValue;
+import eu.actorsproject.xlim.absint.DemandContext;
+import eu.actorsproject.xlim.decision2.Condition;
+import eu.actorsproject.xlim.decision2.PortSignature;
 
-import eu.actorsproject.util.XmlAttributeFormatter;
-import eu.actorsproject.util.XmlElement;
-import eu.actorsproject.xlim.XlimType;
+public interface ConditionConstrainer<T extends AbstractValue<T>> {
 
-/**
- * SideEffect node is the common base of value nodes that represent side effects
- * (which act on actor ports, state variables or local aggregates)
- *  
- * StateValueNodes model data dependence that is caused by operations on
- * ports and state variables, both true dependence ("read-after-write") and
- * artificial dependence ("write-after-write" and "write-after-read").
- */
-public abstract class SideEffect extends ValueNode {
-
-	private static int mNextId;
-	private int mUniqueId;
-	
-	public SideEffect() {
-		mUniqueId=mNextId++;
-	}
-	
-	@Override
-	public boolean hasLocation() {
-		return true;
-	}
-
-	@Override
-	public String getUniqueId() {
-		return "v"+mUniqueId; 
-	}
-	
-	@Override
-	public String getTagName() {
-		return "SideEffect";
-	}
-	
-	@Override
-	public XlimType getType() {
-		Location location=getLocation();
-		return location.getType();
-	}
-	
-	@Override
-	public String getAttributeDefinitions(XmlAttributeFormatter formatter) {
-		Location location=getLocation();
-		String name=location.getDebugName();
-		String source=(location.hasSource())?
-			" source=\"" + location.getSource().getUniqueId() + "\"" : "";
-		
-		return "valueId=\"" + getUniqueId() + "\" name=\"" + name + "\"" + source;
-	}
-
-	@Override
-	public Iterable<? extends XmlElement> getChildren() {
-		return Collections.emptyList();
-	}
+	/**
+	 * @param cond                   Condition to be constrained
+	 * @param assertedValue          Value (false/true), to which the condition is constrained
+	 * @param context                Context, in which to constrain the condition
+	 * @param assertedPortSignature  an optional port signature (may be null). If given it
+	 *                               expresses a token-availability assertion.
+	 *                                
+	 * @return a new context, in which the condition is asserted, or null if the assertion lead
+	 *         to a contradiction.
+	 */
+	DemandContext<T> constrainCondition(Condition cond, 
+                                        boolean assertedValue, 
+	                                    DemandContext<T> context,
+			                            PortSignature assertedPortSignature);
 }

@@ -1,5 +1,5 @@
 /* 
- * Copyright (c) Ericsson AB, 2009
+ * Copyright (c) Ericsson AB, 2010
  * Author: Carl von Platen (carl.von.platen@ericsson.com)
  * All rights reserved.
  *
@@ -35,73 +35,82 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package eu.actorsproject.xlim.implementation;
+package eu.actorsproject.xlim.schedule;
+
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 import eu.actorsproject.util.XmlAttributeFormatter;
+import eu.actorsproject.util.XmlElement;
+import eu.actorsproject.xlim.XlimInputPort;
+import eu.actorsproject.xlim.XlimOperation;
+import eu.actorsproject.xlim.XlimOutputPort;
 import eu.actorsproject.xlim.XlimSource;
-import eu.actorsproject.xlim.XlimStateVar;
-import eu.actorsproject.xlim.dependence.Location;
-import eu.actorsproject.xlim.dependence.ValueNode;
-import eu.actorsproject.xlim.dependence.ValueOperator;
-import eu.actorsproject.xlim.dependence.ValueUsage;
+import eu.actorsproject.xlim.decision2.Condition;
 
-class SourceValueUsage extends ValueUsage {
+/**
+ * Represents the test that is performed by a DecisionNode
+ * in the ControlFlowGraph/ActionSchedule.
+ */
+public class TestElement implements XmlElement {
 
-	private XlimSource mSource;
-	private ValueOperator mOperator;
+	private Condition mCond;
+	private Set<XlimOperation> mChildren=new LinkedHashSet<XlimOperation>();
 	
-	public SourceValueUsage(XlimSource source, ValueOperator op) {
-		super((source.asOutputPort()!=null)? source.asOutputPort().getValue() : null);
-		mSource=source;
-		mOperator=op;
+	public TestElement(Condition cond) {
+		mCond=cond;
+		add(cond.getXlimSource());
 	}
 	
-	@Override
-	public boolean needsFixup() {
-		return mSource.hasLocation();
+	public Condition getCondition() {
+		return mCond;
 	}
 	
-	@Override
-	public Location getFixupLocation() {
-		return mSource.getLocation();
+	public XlimSource getXlimSource() {
+		return mCond.getXlimSource();
 	}
 	
-	@Override
-	public ValueOperator usedByOperator() {
-		return mOperator;
-	}
-	
-	@Override
-	public void setValue(ValueNode newValue) {
-		super.setValue(newValue);
-		if (newValue!=null) {
-			if (newValue.hasLocation()) {
-				Location location=newValue.getLocation();
-				assert(location.hasSource());
-				mSource=location.getSource();
+	/**
+	 * Adds all XlimOperators, which are used when evaluating the condition
+	 * 
+	 * @param source  XlimSource, which is used in the condition
+	 * 
+	 * Note: recursion terminates at phi-nodes and references to state variables.
+	 * Whereas this works for the side-effect free code that selects action
+	 * a more sophisticated machinery would be required in general.
+	 */
+	private void add(XlimSource source) {
+		XlimOutputPort output=source.asOutputPort();
+		
+		if (output!=null) {
+			XlimOperation op=output.getParent().isOperation();
+			
+			if (op!=null && mChildren.contains(op)==false) {
+				// First add inputs
+				for (XlimInputPort input: op.getInputPorts())
+					add(input.getSource());
+				
+				// then the operation itself
+				mChildren.add(op);
 			}
-			else {
-				assert(newValue instanceof OutputPort);
-				mSource=(OutputPort) newValue;
-			}
+			// else: already there or a phi-node (in loop header)
 		}
+		// else: a reference to a state variable
 	}
-	
-	public XlimSource getSource() {
-		return mSource;
+
+	@Override
+	public String getTagName() {
+		return "test";
 	}
 	
 	@Override
 	public String getAttributeDefinitions(XmlAttributeFormatter formatter) {
-		XlimStateVar stateVar=mSource.asStateVar();
-		String source="source=\"" + mSource.getUniqueId() + "\"";
-		
-		if (stateVar!=null) {
-			String sourceName=stateVar.getDebugName();
-			if (sourceName!=null)
-				return "name=\"" + sourceName + "\" " + source;
-		}
-		
-		return source; 
+		String id=mCond.getXlimSource().getUniqueId();
+		return "source=\""+id+"\"";
+	}
+
+	@Override
+	public Iterable<XlimOperation> getChildren() {
+		return mChildren;
 	}
 }

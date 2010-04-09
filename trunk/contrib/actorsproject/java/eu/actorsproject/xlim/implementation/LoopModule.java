@@ -40,6 +40,7 @@ package eu.actorsproject.xlim.implementation;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
+import eu.actorsproject.util.XmlAttributeFormatter;
 import eu.actorsproject.util.XmlElement;
 import eu.actorsproject.xlim.XlimBlockElement;
 import eu.actorsproject.xlim.XlimContainerModule;
@@ -100,7 +101,7 @@ class LoopModule extends PhiContainerModule implements XlimLoopModule {
 		return v.visitLoopModule(this, arg);
 	}
 	
-	public String getAttributeDefinitions() {
+	public String getAttributeDefinitions(XmlAttributeFormatter formatter) {
 		return "kind=\"loop\"";
 	}
 		

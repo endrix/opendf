@@ -42,6 +42,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import eu.actorsproject.util.XmlAttributeFormatter;
 import eu.actorsproject.util.XmlElement;
 import eu.actorsproject.xlim.dependence.StateLocation;
 
@@ -122,7 +123,7 @@ public class StateSummary<T extends AbstractValue<T>> implements XmlElement {
 	}
 	
 	@Override
-	public String getAttributeDefinitions() {
+	public String getAttributeDefinitions(XmlAttributeFormatter formatter) {
 		return (mName!=null)? "name=\"" + mName +"\"" : "";
 	}
 
@@ -169,7 +170,7 @@ public class StateSummary<T extends AbstractValue<T>> implements XmlElement {
 		}
 		
 		@Override
-		public String getAttributeDefinitions() {
+		public String getAttributeDefinitions(XmlAttributeFormatter formatter) {
 			StateLocation carrier=mEntry.getKey();
 			String name=carrier.getDebugName();
 
@@ -196,7 +197,7 @@ public class StateSummary<T extends AbstractValue<T>> implements XmlElement {
 		}
 		
 		@Override
-		public String getAttributeDefinitions() {
+		public String getAttributeDefinitions(XmlAttributeFormatter formatter) {
 			return "";
 		}
 

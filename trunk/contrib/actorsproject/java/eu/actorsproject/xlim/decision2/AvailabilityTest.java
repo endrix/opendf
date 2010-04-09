@@ -35,73 +35,88 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package eu.actorsproject.xlim.implementation;
+package eu.actorsproject.xlim.decision2;
+
+import java.util.Map;
 
 import eu.actorsproject.util.XmlAttributeFormatter;
-import eu.actorsproject.xlim.XlimSource;
-import eu.actorsproject.xlim.XlimStateVar;
-import eu.actorsproject.xlim.dependence.Location;
-import eu.actorsproject.xlim.dependence.ValueNode;
-import eu.actorsproject.xlim.dependence.ValueOperator;
-import eu.actorsproject.xlim.dependence.ValueUsage;
+import eu.actorsproject.xlim.XlimOperation;
+import eu.actorsproject.xlim.XlimOutputPort;
+import eu.actorsproject.xlim.XlimTopLevelPort;
 
-class SourceValueUsage extends ValueUsage {
+/**
+ * Represents the condition: pinAvail(port) >= numTokens
+ */
+public class AvailabilityTest extends AtomicCondition {
 
-	private XlimSource mSource;
-	private ValueOperator mOperator;
+	private XlimOperation mPinOperation;
+	private int mNumTokens;
 	
-	public SourceValueUsage(XlimSource source, ValueOperator op) {
-		super((source.asOutputPort()!=null)? source.asOutputPort().getValue() : null);
-		mSource=source;
-		mOperator=op;
+	public AvailabilityTest(XlimOutputPort condition,
+			                XlimOperation pinOperation,
+			                int numTokens) {
+		super(condition, condition.getValue());
+		mPinOperation=pinOperation;
+		mNumTokens=numTokens;
 	}
 	
 	@Override
-	public boolean needsFixup() {
-		return mSource.hasLocation();
+	public <Result, Arg> Result accept(Visitor<Result, Arg> visitor, Arg arg) {
+		return visitor.visitAvailabilityTest(this,arg);
+	}
+	
+	public XlimTopLevelPort getPort() {
+		return mPinOperation.getPortAttribute();
+	}
+	
+	public int getTokenCount() {
+		return mNumTokens;
+	}
+
+	@Override
+	public boolean testsAvailability() {
+		return true;
 	}
 	
 	@Override
-	public Location getFixupLocation() {
-		return mSource.getLocation();
+	public boolean isImpliedBy(PortSignature portSignature) {
+		int impliedRate=portSignature.getPortRate(getPort());
+		if (impliedRate>=mNumTokens)
+			return true;
+		else
+			return alwaysTrue();
 	}
+
+	@Override
+	public boolean mayTestTokenAbsence(PortSignature availableTokens) {
+		return availableTokens==null || isImpliedBy(availableTokens)==false;
+	}
+	
 	
 	@Override
-	public ValueOperator usedByOperator() {
-		return mOperator;
+	protected void findPinAvail(Map<XlimTopLevelPort, XlimOperation> pinAvailMap) {
+		pinAvailMap.put(getPort(), mPinOperation);
 	}
+
+	@Override
+	protected void updateDominatingTests(Map<XlimTopLevelPort, Integer> testsInAncestors) {
+		XlimTopLevelPort port=getPort();
+		Integer testedPortRate=testsInAncestors.get(port);
+		if (testedPortRate==null || testedPortRate<mNumTokens)
+			testsInAncestors.put(port, mNumTokens);
+	}
+	
+	/* XmlElement interface */
 	
 	@Override
-	public void setValue(ValueNode newValue) {
-		super.setValue(newValue);
-		if (newValue!=null) {
-			if (newValue.hasLocation()) {
-				Location location=newValue.getLocation();
-				assert(location.hasSource());
-				mSource=location.getSource();
-			}
-			else {
-				assert(newValue instanceof OutputPort);
-				mSource=(OutputPort) newValue;
-			}
-		}
+	public String getTagName() {
+		return "pinAvail";
 	}
-	
-	public XlimSource getSource() {
-		return mSource;
-	}
-	
+
 	@Override
 	public String getAttributeDefinitions(XmlAttributeFormatter formatter) {
-		XlimStateVar stateVar=mSource.asStateVar();
-		String source="source=\"" + mSource.getUniqueId() + "\"";
-		
-		if (stateVar!=null) {
-			String sourceName=stateVar.getDebugName();
-			if (sourceName!=null)
-				return "name=\"" + sourceName + "\" " + source;
-		}
-		
-		return source; 
+		return super.getAttributeDefinitions(formatter)
+		       + " port=\"" + getPort().getName() 
+		       + "\" size=\"" + mNumTokens + "\"";
 	}
 }

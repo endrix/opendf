@@ -41,6 +41,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 import eu.actorsproject.util.Linkage;
+import eu.actorsproject.util.XmlAttributeFormatter;
 import eu.actorsproject.util.XmlElement;
 import eu.actorsproject.xlim.XlimModule;
 import eu.actorsproject.xlim.XlimPhiContainerModule;
@@ -198,7 +199,7 @@ public class SideEffectPhiOperator extends Linkage<SideEffectPhiOperator> implem
 	}
 
 	@Override
-	public String getAttributeDefinitions() {
+	public String getAttributeDefinitions(XmlAttributeFormatter formatter) {
 		return "";
 	}
 	
