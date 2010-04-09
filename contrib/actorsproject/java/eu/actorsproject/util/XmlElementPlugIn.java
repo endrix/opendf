@@ -1,5 +1,5 @@
 /* 
- * Copyright (c) Ericsson AB, 2009
+ * Copyright (c) Ericsson AB, 2010
  * Author: Carl von Platen (carl.von.platen@ericsson.com)
  * All rights reserved.
  *
@@ -35,73 +35,40 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package eu.actorsproject.xlim.implementation;
+package eu.actorsproject.util;
 
-import eu.actorsproject.util.XmlAttributeFormatter;
-import eu.actorsproject.xlim.XlimSource;
-import eu.actorsproject.xlim.XlimStateVar;
-import eu.actorsproject.xlim.dependence.Location;
-import eu.actorsproject.xlim.dependence.ValueNode;
-import eu.actorsproject.xlim.dependence.ValueOperator;
-import eu.actorsproject.xlim.dependence.ValueUsage;
+/**
+ * Plug-in, which allows for customized formatting of XmlElements
+ */
+public class XmlElementPlugIn<T extends XmlElement> {
 
-class SourceValueUsage extends ValueUsage {
-
-	private XlimSource mSource;
-	private ValueOperator mOperator;
-	
-	public SourceValueUsage(XlimSource source, ValueOperator op) {
-		super((source.asOutputPort()!=null)? source.asOutputPort().getValue() : null);
-		mSource=source;
-		mOperator=op;
-	}
-	
-	@Override
-	public boolean needsFixup() {
-		return mSource.hasLocation();
-	}
-	
-	@Override
-	public Location getFixupLocation() {
-		return mSource.getLocation();
-	}
-	
-	@Override
-	public ValueOperator usedByOperator() {
-		return mOperator;
-	}
-	
-	@Override
-	public void setValue(ValueNode newValue) {
-		super.setValue(newValue);
-		if (newValue!=null) {
-			if (newValue.hasLocation()) {
-				Location location=newValue.getLocation();
-				assert(location.hasSource());
-				mSource=location.getSource();
-			}
-			else {
-				assert(newValue instanceof OutputPort);
-				mSource=(OutputPort) newValue;
-			}
-		}
-	}
-	
-	public XlimSource getSource() {
-		return mSource;
-	}
-	
-	@Override
-	public String getAttributeDefinitions(XmlAttributeFormatter formatter) {
-		XlimStateVar stateVar=mSource.asStateVar();
-		String source="source=\"" + mSource.getUniqueId() + "\"";
+	private Class<T> mClass;
 		
-		if (stateVar!=null) {
-			String sourceName=stateVar.getDebugName();
-			if (sourceName!=null)
-				return "name=\"" + sourceName + "\" " + source;
-		}
+	public XmlElementPlugIn(Class<T> c) {
+		mClass=c;
+	}
 		
-		return source; 
+	/**
+	 * @return the "greatest" super class, which this plug-in supports
+	 */
+	public final Class<T> getElementClass() {
+		return mClass;
+	}
+	
+	public String getTagName(T element) {
+		return element.getTagName();
+	}
+	
+	public boolean isEmpty(T element) {
+		return element.getChildren().iterator().hasNext()==false;
+	}
+	
+	public String getAttributeDefinitions(T element, XmlAttributeFormatter formatter) {
+		return element.getAttributeDefinitions(formatter);
+	}
+	
+	public void printChildren(T parent, XmlPrinter printer) {
+		for (XmlElement child: parent.getChildren())
+			printer.printElement(child);
 	}
 }

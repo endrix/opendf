@@ -37,6 +37,7 @@
 
 package eu.actorsproject.xlim.implementation;
 
+import eu.actorsproject.util.XmlAttributeFormatter;
 import eu.actorsproject.xlim.XlimInitValue;
 import eu.actorsproject.xlim.XlimType;
 import java.util.Collections;
@@ -94,7 +95,7 @@ class ScalarInitValue implements XlimInitValue {
 	}
 	
 	@Override
-	public String getAttributeDefinitions() {
+	public String getAttributeDefinitions(XmlAttributeFormatter formatter) {
 		return "value=\"" + mValue + "\" " + mType.getAttributeDefinitions();
 	}
 

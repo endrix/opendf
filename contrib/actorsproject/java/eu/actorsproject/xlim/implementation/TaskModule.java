@@ -39,6 +39,7 @@ package eu.actorsproject.xlim.implementation;
 
 import java.util.ArrayList;
 
+import eu.actorsproject.util.XmlAttributeFormatter;
 import eu.actorsproject.xlim.XlimTaskModule;
 import eu.actorsproject.xlim.XlimTopLevelPort;
 import eu.actorsproject.xlim.dependence.CallNode;
@@ -131,8 +132,8 @@ class TaskModule extends ContainerModule implements XlimTaskModule {
 	}
 	
 	@Override
-	public String getAttributeDefinitions() {
-		return super.getAttributeDefinitions()
+	public String getAttributeDefinitions(XmlAttributeFormatter formatter) {
+		return super.getAttributeDefinitions(formatter)
 			+ " name=\"" + mName + "\" autostart=\"" + mAutoStart + "\"";			
 	}	
 	

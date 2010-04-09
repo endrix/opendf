@@ -40,6 +40,7 @@ package eu.actorsproject.xlim.implementation;
 import java.util.HashSet;
 import java.util.Iterator;
 
+import eu.actorsproject.util.XmlAttributeFormatter;
 import eu.actorsproject.util.XmlElement;
 import eu.actorsproject.xlim.XlimBlockElement;
 import eu.actorsproject.xlim.XlimContainerModule;
@@ -107,7 +108,7 @@ class IfModule extends PhiContainerModule implements XlimIfModule {
 		return v.visitIfModule(this,arg);
 	}
 	
-	public String getAttributeDefinitions() {
+	public String getAttributeDefinitions(XmlAttributeFormatter formatter) {
 		return "kind=\"if\"";
 	}
 

@@ -35,7 +35,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package eu.actorsproject.xlim.decision;
+package eu.actorsproject.xlim.decision2;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,6 +50,7 @@ import eu.actorsproject.xlim.XlimTestModule;
 import eu.actorsproject.xlim.XlimTopLevelPort;
 import eu.actorsproject.xlim.absint.AbstractValue;
 import eu.actorsproject.xlim.absint.Context;
+import eu.actorsproject.xlim.dependence.ValueNode;
 
 /**
  * Represents the condition: c1 && c2 && ... && cn
@@ -69,6 +70,16 @@ public class Conjunction extends Condition {
 	}
 	
 	@Override
+	public Iterable<Condition> getTerms() {
+		return mConditions;
+	}
+	
+	@Override
+	public <Result, Arg> Result accept(Visitor<Result, Arg> visitor, Arg arg) {
+		return visitor.visitConjunction(this,arg);
+	}
+	
+	@Override
 	public void addTo(Conjunction conjunction) {
 		conjunction.mConditions.addAll(mConditions);
 	}
@@ -77,6 +88,15 @@ public class Conjunction extends Condition {
 		mConditions.add(condition);
 	}
 
+	@Override
+	public boolean testsAvailability() {
+		for (Condition cond: mConditions)
+			if (cond.testsAvailability())
+				return true;
+		return false;
+
+	}
+	
 	@Override
 	protected boolean alwaysTrue() {
 		for (Condition cond: mConditions)
@@ -113,9 +133,9 @@ public class Conjunction extends Condition {
 	}
 	
 	@Override
-	public boolean dependsOnInput(PortSignature availableTokens) {
+	public boolean mayTestTokenAbsence(PortSignature availableTokens) {
 		for (Condition cond: mConditions) {
-			if (cond.dependsOnInput(availableTokens))
+			if (cond.mayTestTokenAbsence(availableTokens))
 				return true;
 		}
 		return false;
@@ -180,6 +200,65 @@ public class Conjunction extends Condition {
 		}
 	}
 
+	/**
+	 * Reorders the terms so that potentially timing dependent ones goes last
+	 * @param leastCommonSignature  token availability that is required by all reachable actions
+	 * @param inputDependence       dependence on inputs required by terms (that look ahead)
+	 */
+	public void reorderTerms(PortSignature leastCommonSignature, 
+			                 Map<ValueNode,PortSignature> inputDependence) {
+		if (mayTestTokenAbsence(leastCommonSignature)) {
+			ArrayList<Condition> testFirst=new ArrayList<Condition>();
+			ArrayList<Condition> testLater=new ArrayList<Condition>();
+			ArrayList<Condition> testLast=new ArrayList<Condition>();
+			PortSignature lookAhead=inputDependence.get(getValue());
+			boolean testsReordered=false;
+			
+			for (Condition term: getTerms()) {
+				if (term.mayTestTokenAbsence(leastCommonSignature)) {
+					// This is a potentially timing-dependent AvailabilityTest
+					XlimTopLevelPort port=((AvailabilityTest) term).getPort();
+					if (lookAhead==null || lookAhead.getPortRate(port)==0) {
+						// AvailabilityTests, not needed for look-ahead, go *last*
+						testLast.add(term);
+					}
+					else {
+						// Availability test needed before look-ahead
+						testLater.add(term);
+						if (!testLast.isEmpty())
+							testsReordered=true; // order modified
+					}
+				}
+				else {
+					PortSignature requiredInputs=inputDependence.get(term.getValue());
+					
+					if (requiredInputs!=null
+						&& requiredInputs.isSubsetOf(leastCommonSignature)==false) {
+						// This condition needs to go *after* a pinAvail test that's done 
+						// "later" but not "last"
+						testLater.add(term);
+						if (!testLast.isEmpty())
+							testsReordered=true; // order modified
+					}
+					else {
+						// This condition can go *first*
+						testFirst.add(term);
+						if (!testLater.isEmpty() || !testLast.isEmpty())
+							testsReordered=true; // order modified
+					}
+				}
+			}
+			
+			if (testsReordered) {
+				// Put the tests in the new order
+				mConditions=testFirst;
+				mConditions.addAll(testLater);
+				mConditions.addAll(testLast); 
+			}
+			// else: no change
+		}
+	}
+	
 // TODO: needs fixing if we need this one (specialized Conjunctions have no ValueNode)
 //	@Override
 //	protected Condition specialize(Mode mode) {

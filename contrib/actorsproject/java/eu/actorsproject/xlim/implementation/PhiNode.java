@@ -43,6 +43,7 @@ import java.util.NoSuchElementException;
 
 
 import eu.actorsproject.util.Linkage;
+import eu.actorsproject.util.XmlAttributeFormatter;
 import eu.actorsproject.util.XmlElement;
 import eu.actorsproject.xlim.XlimModule;
 import eu.actorsproject.xlim.XlimOutputPort;
@@ -157,7 +158,7 @@ class PhiNode extends Linkage<PhiNode> implements XlimPhiNode, Instruction, PhiO
 	}
 	
 	@Override
-	public String getAttributeDefinitions() {
+	public String getAttributeDefinitions(XmlAttributeFormatter formatter) {
 		return "";
 	}
 

@@ -39,6 +39,7 @@ package eu.actorsproject.xlim.io;
 
 import java.util.Collections;
 
+import eu.actorsproject.util.XmlAttributeFormatter;
 import eu.actorsproject.util.XmlElement;
 import eu.actorsproject.xlim.XlimType;
 
@@ -112,7 +113,7 @@ public class XlimTypeDef implements XmlElement {
 	}
 
 	@Override
-	public String getAttributeDefinitions() {
+	public String getAttributeDefinitions(XmlAttributeFormatter formatter) {
 		return "name=\""+mName+"\"";
 	}	
 }

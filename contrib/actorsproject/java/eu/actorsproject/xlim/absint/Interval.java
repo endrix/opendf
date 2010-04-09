@@ -40,6 +40,7 @@ package eu.actorsproject.xlim.absint;
 import java.math.BigInteger;
 import java.util.Collections;
 
+import eu.actorsproject.util.XmlAttributeFormatter;
 import eu.actorsproject.util.XmlElement;
 
 
@@ -713,7 +714,7 @@ public class Interval implements Cloneable, AbstractValue<Interval> {
 	}
 	
 	@Override
-	public String getAttributeDefinitions() {
+	public String getAttributeDefinitions(XmlAttributeFormatter formatter) {
 		if (isEmpty())
 			return "";
 		else

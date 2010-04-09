@@ -37,6 +37,7 @@
 
 package eu.actorsproject.xlim.implementation;
 
+import eu.actorsproject.util.XmlAttributeFormatter;
 import eu.actorsproject.util.XmlElement;
 import eu.actorsproject.xlim.XlimInitValue;
 import eu.actorsproject.xlim.XlimSource;
@@ -144,7 +145,7 @@ class StateVar implements XlimStateVar, StateLocation {
 	}
 
 	@Override
-	public String getAttributeDefinitions() {
+	public String getAttributeDefinitions(XmlAttributeFormatter formatter) {
 		String attributes="name=\"" + getUniqueId() + "\"";
 		if (mSourceName!=null)
 			attributes+=" sourceName=\"" + mSourceName + "\"";

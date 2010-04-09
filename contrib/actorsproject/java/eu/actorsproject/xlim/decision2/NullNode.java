@@ -35,73 +35,50 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package eu.actorsproject.xlim.implementation;
+package eu.actorsproject.xlim.decision2;
 
-import eu.actorsproject.util.XmlAttributeFormatter;
-import eu.actorsproject.xlim.XlimSource;
-import eu.actorsproject.xlim.XlimStateVar;
-import eu.actorsproject.xlim.dependence.Location;
-import eu.actorsproject.xlim.dependence.ValueNode;
-import eu.actorsproject.xlim.dependence.ValueOperator;
-import eu.actorsproject.xlim.dependence.ValueUsage;
+import java.util.Collections;
+import java.util.Set;
 
-class SourceValueUsage extends ValueUsage {
+import eu.actorsproject.util.XmlElement;
 
-	private XlimSource mSource;
-	private ValueOperator mOperator;
+/**
+ * A NullNode represents an empty leaf in the decision tree.
+ * This is the place where we must block to avoid busy wait.
+ */
+public class NullNode extends DecisionTree {
 	
-	public SourceValueUsage(XlimSource source, ValueOperator op) {
-		super((source.asOutputPort()!=null)? source.asOutputPort().getValue() : null);
-		mSource=source;
-		mOperator=op;
+	@Override
+	public <Result, Arg> Result accept(Visitor<Result, Arg> visitor, Arg arg) {
+		return visitor.visitNullNode(this, arg);
+	}
+
+
+	@Override
+	public Set<ActionNode> reachableActionNodes() {
+		return Collections.emptySet();
+	}
+
+
+	@Override
+	public PortSignature getMode() {
+		return null;
 	}
 	
 	@Override
-	public boolean needsFixup() {
-		return mSource.hasLocation();
+	public PortSignature requiredPortSignature() {
+		return PortSignature.emptyPortSignature();
 	}
 	
+	/* XmlElement interface */
+
 	@Override
-	public Location getFixupLocation() {
-		return mSource.getLocation();
+	public String getTagName() {
+		return "nullNode";
 	}
-	
+
 	@Override
-	public ValueOperator usedByOperator() {
-		return mOperator;
-	}
-	
-	@Override
-	public void setValue(ValueNode newValue) {
-		super.setValue(newValue);
-		if (newValue!=null) {
-			if (newValue.hasLocation()) {
-				Location location=newValue.getLocation();
-				assert(location.hasSource());
-				mSource=location.getSource();
-			}
-			else {
-				assert(newValue instanceof OutputPort);
-				mSource=(OutputPort) newValue;
-			}
-		}
-	}
-	
-	public XlimSource getSource() {
-		return mSource;
-	}
-	
-	@Override
-	public String getAttributeDefinitions(XmlAttributeFormatter formatter) {
-		XlimStateVar stateVar=mSource.asStateVar();
-		String source="source=\"" + mSource.getUniqueId() + "\"";
-		
-		if (stateVar!=null) {
-			String sourceName=stateVar.getDebugName();
-			if (sourceName!=null)
-				return "name=\"" + sourceName + "\" " + source;
-		}
-		
-		return source; 
+	public Iterable<? extends XmlElement> getChildren() {
+		return Collections.emptyList();
 	}
 }

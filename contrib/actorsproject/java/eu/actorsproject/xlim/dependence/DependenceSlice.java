@@ -38,6 +38,8 @@
 package eu.actorsproject.xlim.dependence;
 
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -51,7 +53,7 @@ public class DependenceSlice {
 	private String mName;
 	private Map<CallNode,DependenceSlice> mCalleeSlices;
 	private HashSet<ValueNode> mInputValues;
-	private HashSet<ValueOperator> mValueOperators;
+	private LinkedHashSet<ValueOperator> mValueOperators;
 	private SliceExtractor mSliceExtractor;
 	
 	/**
@@ -64,7 +66,7 @@ public class DependenceSlice {
 		mName=name;
 		mCalleeSlices=calleeSlices;
 		mInputValues=new HashSet<ValueNode>();
-		mValueOperators=new HashSet<ValueOperator>();
+		mValueOperators=new LinkedHashSet<ValueOperator>();
 		mSliceExtractor=new SliceExtractor();
 	}
 	
@@ -87,6 +89,46 @@ public class DependenceSlice {
 	 */
 	public Set<ValueOperator> getValueOperators() {
 		return mValueOperators;
+	}
+
+	
+	/**
+	 * @return the value operators of this slice in a top-up partial order
+	 *         (ordered by data-dependence)
+	 */
+	public Iterable<ValueOperator> topDownOrder() {
+		return new Iterable<ValueOperator>() {
+			public Iterator<ValueOperator> iterator() {
+				return new TopDownIterator();
+			}
+		};
+	}
+	
+	private class TopDownIterator implements Iterator<ValueOperator> {
+		
+		private ValueOperator mOperators[];
+		private int mNext;
+		
+		TopDownIterator() {
+			mOperators=new ValueOperator[mValueOperators.size()];
+			mValueOperators.toArray(mOperators);
+			mNext=mOperators.length;
+		}
+
+		@Override
+		public boolean hasNext() {
+			return mNext>0;
+		}
+
+		@Override
+		public ValueOperator next() {
+			return mOperators[--mNext];
+		}
+
+		@Override
+		public void remove() {
+			throw new UnsupportedOperationException();
+		}
 	}
 	
 	/**

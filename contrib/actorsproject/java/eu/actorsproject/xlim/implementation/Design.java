@@ -45,6 +45,7 @@ import java.util.ArrayList;
 
 
 import eu.actorsproject.util.ConcatenatedIterable;
+import eu.actorsproject.util.XmlAttributeFormatter;
 import eu.actorsproject.util.XmlElement;
 import eu.actorsproject.xlim.XlimDesign;
 import eu.actorsproject.xlim.XlimInitValue;
@@ -103,7 +104,7 @@ class Design implements XlimDesign {
 	}
 
 	@Override
-	public String getAttributeDefinitions() {
+	public String getAttributeDefinitions(XmlAttributeFormatter formatter) {
 		return "name=\"" + mName + "\"";
 	}
 

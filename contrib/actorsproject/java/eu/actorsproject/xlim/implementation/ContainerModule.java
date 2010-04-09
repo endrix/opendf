@@ -44,6 +44,7 @@ import java.util.List;
 
 import eu.actorsproject.util.IntrusiveList;
 import eu.actorsproject.util.Linkage;
+import eu.actorsproject.util.XmlAttributeFormatter;
 import eu.actorsproject.xlim.XlimBlockElement;
 import eu.actorsproject.xlim.XlimBlockModule;
 import eu.actorsproject.xlim.XlimContainerModule;
@@ -98,7 +99,7 @@ abstract class ContainerModule extends AbstractModule implements XlimContainerMo
 	}
 		
 	@Override
-	public String getAttributeDefinitions() {
+	public String getAttributeDefinitions(XmlAttributeFormatter formatter) {
 		String mutex="";
 		
 		if (mMutex)

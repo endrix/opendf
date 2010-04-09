@@ -39,6 +39,7 @@ package eu.actorsproject.xlim.decision;
 
 import java.util.Map;
 
+import eu.actorsproject.util.XmlAttributeFormatter;
 import eu.actorsproject.xlim.XlimOperation;
 import eu.actorsproject.xlim.XlimOutputPort;
 import eu.actorsproject.xlim.XlimTopLevelPort;
@@ -103,8 +104,8 @@ public class AvailabilityTest extends AtomicCondition {
 	}
 
 	@Override
-	public String getAttributeDefinitions() {
-		return super.getAttributeDefinitions()
+	public String getAttributeDefinitions(XmlAttributeFormatter formatter) {
+		return super.getAttributeDefinitions(formatter)
 		       + " port=\"" + getPort().getName() 
 		       + "\" size=\"" + mNumTokens + "\"";
 	}

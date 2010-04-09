@@ -1,5 +1,5 @@
 /* 
- * Copyright (c) Ericsson AB, 2009
+ * Copyright (c) Ericsson AB, 2010
  * Author: Carl von Platen (carl.von.platen@ericsson.com)
  * All rights reserved.
  *
@@ -35,27 +35,68 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * Represents an XLIM (XML) element
- */
 package eu.actorsproject.util;
 
 /**
- * @author ecarvon
- *
+ * Container for customized attribute formatters (XmlAttributeFormatter.PlugIn)
  */
-public interface XmlElement {
+public class XmlAttributeFormatter {
+
+	public static abstract class PlugIn<T> {
+		private Class<T> mClass;
+		
+		public PlugIn(Class<T> c) {
+			mClass=c;
+		}
+		
+		/**
+		 * @return the "greatest" super class, which this plug-in supports
+		 */
+		public final Class<T> getAttributeClass() {
+			return mClass;
+		}
+		
+		/**
+		 * @param value
+		 * @return formatted representation of 'value'
+		 */
+		public abstract String getAttributeValue(T value);
+	}
+	
 	/**
-	 * @return the tag name of this element
+	 * @param o
+	 * @return true if there is a custom formatter for objetcs of value's class
 	 */
-	String getTagName();
+	public boolean hasCustomFormatter(Object value) {
+		return getCustomFormatter(value)!=null;
+	}
+	
 	/**
-	 * @return elements enclosed in this element
+	 * @param attributeName  
+	 * @param attributeValue
+	 * @return the string attributeName="attribute value", where the attribute value
+	 *         is formatted by a custom formatter (if present) or the toString() method
+	 *         otherwise.
 	 */
-	Iterable<? extends XmlElement> getChildren();
-	/**
-	 * @param formatter TODO
-	 * @return string of attribute="value" pairs
-	 */
-	String getAttributeDefinitions(XmlAttributeFormatter formatter);
+	public<T> String getAttributeDefinition(String attributeName, T attributeValue) {
+		PlugIn<? super T> plugIn=getCustomFormatter(attributeValue);
+		String value;
+		if (plugIn!=null) {
+			value=plugIn.getAttributeValue(attributeValue);
+		}
+		else {
+			value=attributeValue.toString();
+		}
+		return attributeName+"=\""+value+"\"";
+	}
+	
+	public String addAttributeDefinition(String otherDefinitions, String attributeName, Object attributeValue) {
+		String def=getAttributeDefinition(attributeName, attributeValue);
+		String optSpace=(otherDefinitions!=null && !otherDefinitions.isEmpty())? " " : "";
+		return otherDefinitions+optSpace+def;
+	}
+	
+	protected<T> PlugIn<? super T> getCustomFormatter(T attributeValue) {
+		return null;
+	}
 }

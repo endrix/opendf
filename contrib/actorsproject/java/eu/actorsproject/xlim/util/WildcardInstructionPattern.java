@@ -88,6 +88,10 @@ public class WildcardInstructionPattern extends WildcardPattern {
 	}
 	
 	
+	public boolean matches(XlimInstruction instr) {
+		return matchesAtRoot(instr) && matchesSubPatterns(instr);
+	}
+	
 	@Override
 	protected boolean matchesSubPatterns(XlimInstruction instr) {
 		if (mSubPatterns==null)
@@ -117,6 +121,14 @@ public class WildcardInstructionPattern extends WildcardPattern {
 		else {
 			XlimInstruction instr=matchedInstruction(matchedRoot);
 			return mSubPatterns.get(i).matchedInstruction(instr.getInputPort(i).getSource());
+		}
+	}
+	
+	public XlimInstruction getOperand(int i, XlimInstruction matchedInstruction) {
+		if (mSubPatterns==null)
+			throw new UnsupportedOperationException("Pattern has no subpatterns");
+		else {
+			return mSubPatterns.get(i).matchedInstruction(matchedInstruction.getInputPort(i).getSource());
 		}
 	}
 	

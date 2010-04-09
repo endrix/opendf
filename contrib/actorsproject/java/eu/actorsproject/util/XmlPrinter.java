@@ -39,34 +39,62 @@ package eu.actorsproject.util;
 
 import java.io.PrintStream;
 
-import eu.actorsproject.xlim.XlimDesign;
-import java.util.Iterator;
+import java.util.ArrayList;
+import java.util.List;
 
 public class XmlPrinter extends OutputGenerator {
 
+	private static XmlAttributeFormatter sEmptyFormatter=new XmlAttributeFormatter();
+	private XmlAttributeFormatter mAttributeFormatter=sEmptyFormatter;
+	private List<XmlAttributeFormatter.PlugIn> mAttributeFormatterPlugIns;
+	private List<XmlElementPlugIn<? extends XmlElement>> mElementPlugIns=
+		new ArrayList<XmlElementPlugIn<? extends XmlElement>>();
+	private XmlElementPlugIn<XmlElement> mDefaultElementPlugIn=
+		new XmlElementPlugIn<XmlElement>(XmlElement.class);
+	
 	public XmlPrinter(PrintStream sink) {
 		super(sink);
 	}
 	
+	/**
+	 * Prints an XML document (including XML declaration)
+	 * @param document
+	 */
 	public void printDocument(XmlElement document) {
 		println(xmlDeclaration());
 		printElement(document);
 	}
 	
-	public void printElement(XmlElement element) {
-		Iterator<? extends XmlElement> pChild=element.getChildren().iterator();
-		boolean empty=!pChild.hasNext();
+	/**
+	 * Prints an XML element (and its enclosed elements)
+	 * @param element
+	 */
+	public<T extends XmlElement> void printElement(T element) {
+		XmlElementPlugIn<? super T> plugIn=getElementPlugIn(element);
+		boolean empty=plugIn.isEmpty(element);
+		String tagName=plugIn.getTagName(element);
+		String attributes=plugIn.getAttributeDefinitions(element, mAttributeFormatter);
 		
-		println(startTag(element,empty));
+		println(startTag(tagName,attributes,empty));
+		
 		increaseIndentation();
-		while (pChild.hasNext())
-			printElement(pChild.next());
+		plugIn.printChildren(element, this);
 		decreaseIndentation();
 		if (!empty) {
 			println("</"+element.getTagName()+">");
 		}
 	}
 	
+	private String startTag(String tagName, String attributes, boolean empty) {
+		String space=attributes.length()!=0? " " : "";
+		String end=empty? "/>" : ">";
+		return "<" + tagName + space + attributes + end; 
+	}
+	
+	/**
+	 * Prints an XML comment
+	 * @param s
+	 */
 	public void printComment(String s) {
 		println("<!-- "+s+" -->");
 	}
@@ -75,11 +103,54 @@ public class XmlPrinter extends OutputGenerator {
 		return "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>";
 	}
 	
-	protected String startTag(XmlElement element, boolean isEmpty) {
-		String attributes=element.getAttributeDefinitions();
-		String space=attributes.length()!=0? " " : "";
-		String start="<" + element.getTagName(); 
-		String end=isEmpty? "/>" : ">";
-		return start+space+attributes+end;
+
+	/**
+	 * Registers a custom attribute formatter for type T
+	 * @param plugIn
+	 * 
+	 * Note: The applicability of plug-ins is simply tested in order of registration,
+	 * thus register a specialized plug-in/subclass before a more general one/super class.
+	 */
+	public<T> void register(XmlAttributeFormatter.PlugIn<T> plugIn) {
+		
+		if (mAttributeFormatter==sEmptyFormatter) {
+			mAttributeFormatter=new CustomAttributeFormatter();
+			mAttributeFormatterPlugIns=new ArrayList<XmlAttributeFormatter.PlugIn>();
+		}
+		mAttributeFormatterPlugIns.add(plugIn);
+	}
+	
+	/**
+	 * Registers a custom element formatter for type T
+	 * @param plugIn
+	 * 
+	 * Note: The applicability of plug-ins is simply tested in order of registration,
+	 * thus register a specialized plug-in/subclass before a more general one/super class.
+	 */
+	public<T extends XmlElement> void register(XmlElementPlugIn<T> plugIn) {
+		mElementPlugIns.add(plugIn);
+	}
+	
+	private<T extends XmlElement> XmlElementPlugIn<? super T> getElementPlugIn(T element) {
+		for (XmlElementPlugIn plugIn: mElementPlugIns) {
+			if (plugIn.getElementClass().isInstance(element))  {
+				// Since the attribute-class is checked, this should be type safe
+				return plugIn;
+			}
+		}
+		return mDefaultElementPlugIn;
+	}
+	
+	private class CustomAttributeFormatter extends XmlAttributeFormatter {
+		@Override
+		protected<T> PlugIn<? super T> getCustomFormatter(T attributeValue) {
+			for (XmlAttributeFormatter.PlugIn plugIn: mAttributeFormatterPlugIns) {
+				if (plugIn.getAttributeClass().isInstance(attributeValue)) {
+					// Since the attribute-class is checked, this should be type safe 
+					return plugIn;
+				}
+			}
+			return null;
+		}
 	}
 }
