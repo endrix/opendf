@@ -158,7 +158,7 @@ class OutputPort extends ValueNode implements XlimOutputPort {
 
 	@Override
 	public String getAttributeDefinitions(XmlAttributeFormatter formatter) {
-		return "dir=\"out\" source=\"" + getUniqueId() + "\" " + mType.getAttributeDefinitions();
+		return "dir=\"out\" source=\"" + getUniqueId() + "\" " + mType.getAttributeDefinitions(formatter);
 	}
 
 	@Override

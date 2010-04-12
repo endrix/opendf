@@ -41,6 +41,7 @@ package eu.actorsproject.xlim.type;
 import java.util.Collections;
 import java.util.List;
 
+import eu.actorsproject.util.XmlAttributeFormatter;
 import eu.actorsproject.xlim.XlimType;
 import eu.actorsproject.xlim.XlimTypeArgument;
 
@@ -82,8 +83,8 @@ public abstract class UnparametricType extends TypeKind implements XlimType {
 	}
 			
 	@Override
-	public String getAttributeDefinitions() {
-		return "typeName=\"" + getTypeName() + "\"";
+	public String getAttributeDefinitions(XmlAttributeFormatter formatter) {
+		return formatter.getAttributeDefinition("typeName", this, getTypeName());
 	}
 		
 	@Override

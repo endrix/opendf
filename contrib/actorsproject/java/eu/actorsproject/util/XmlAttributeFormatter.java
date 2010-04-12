@@ -89,18 +89,19 @@ public class XmlAttributeFormatter {
 	 * 
 	 * @return the string attributeName="attribute value", where the attribute value
 	 *         is formatted by a custom formatter (if present).
-	 *         Otherwise defaultValue.toString() is used.
+	 *         Otherwise defaultValue.toString() is used (empty string for null default value).
 	 */
 	public<T> String getAttributeDefinition(String attributeName, T attributeValue, Object defaultValue) {
 		PlugIn<? super T> plugIn=getCustomFormatter(attributeValue);
-		String value;
-		if (plugIn!=null) {
+		String value=null;
+		if (plugIn!=null)
 			value=plugIn.getAttributeValue(attributeValue);
-		}
-		else {
+		else if (defaultValue!=null)
 			value=defaultValue.toString();
-		}
-		return attributeName+"=\""+value+"\"";
+		if (value!=null)
+			return attributeName+"=\""+value+"\"";
+		else
+			return "";
 	}
 	
 	/**

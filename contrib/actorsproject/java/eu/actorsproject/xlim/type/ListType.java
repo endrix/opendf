@@ -39,6 +39,7 @@ package eu.actorsproject.xlim.type;
 
 import java.util.ArrayList;
 
+import eu.actorsproject.util.XmlAttributeFormatter;
 import eu.actorsproject.xlim.XlimType;
 import eu.actorsproject.xlim.XlimTypeKind;
 
@@ -67,11 +68,11 @@ public class ListType implements XlimType {
 	}
 	
 	@Override
-	public String getAttributeDefinitions() {
-		if (mTypeDefName!=null)
-			return "typeName=\"" + mTypeDefName + "\"";
-		else
-			return "typeName=\"List\"";
+	public String getAttributeDefinitions(XmlAttributeFormatter formatter) {
+		// Return typeName="List" if we haven't set any typeDefName and the
+		// formatter doesn't know what to do...
+		String result=formatter.getAttributeDefinition("typeName", this, mTypeDefName);
+		return result.isEmpty()? "typeName=\"List\"" : result; 
 	}
 
 	@Override

@@ -92,4 +92,8 @@ public class ReaderContext {
 	public XlimTypeDef getTypeDef(String name) {
 		return mTypeDefs.get(name);
 	}
+	
+	public Map<String,XlimTypeDef> getOriginalTypeDefs() {
+		return Collections.unmodifiableMap(mTypeDefs);
+	}
 }

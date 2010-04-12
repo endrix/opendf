@@ -40,6 +40,7 @@
  */
 package eu.actorsproject.xlim;
 
+import eu.actorsproject.util.XmlAttributeFormatter;
 import eu.actorsproject.xlim.type.TypeArgument;
 
 /**
@@ -138,5 +139,9 @@ public interface XlimType {
 	int getSize();
 	long minValue();
 	long maxValue();
-	String getAttributeDefinitions();
+	/**
+	 * @param formatter An attribute formatter
+	 * @return  the attributes describing this type generated according to the formatter
+	 */
+	String getAttributeDefinitions(XmlAttributeFormatter formatter);
 }

@@ -77,7 +77,7 @@ public class XmlPrinter extends OutputGenerator {
 		
 		println(startTag(tagName,attributes,empty));
 		
-		increaseIndentation();
+ 		increaseIndentation();
 		plugIn.printChildren(element, this);
 		decreaseIndentation();
 		if (!empty) {

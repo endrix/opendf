@@ -46,6 +46,11 @@ import java.util.List;
 public interface XlimTypeKind {
 
 	/**
+	 * @return the name of the type that is constructed
+	 */
+	String getTypeName();
+	
+	/**
 	 * @return (unparametric) type (=result of a nullary type constructor).
 	 * 
 	 * This method fails for parametric type kind (arg->type).

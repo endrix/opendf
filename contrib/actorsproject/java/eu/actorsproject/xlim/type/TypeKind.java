@@ -75,6 +75,7 @@ public abstract class TypeKind implements TypePattern, XlimTypeKind {
 	@Override
 	public abstract XlimType createType(List<XlimTypeArgument> typeArg);
 
+	@Override
 	public String getTypeName() {
 		return mTypeName;
 	}
