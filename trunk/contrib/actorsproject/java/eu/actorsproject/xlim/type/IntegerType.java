@@ -39,6 +39,7 @@ package eu.actorsproject.xlim.type;
 
 import java.util.Collections;
 
+import eu.actorsproject.util.XmlAttributeFormatter;
 import eu.actorsproject.xlim.XlimType;
 
 class IntegerType implements XlimType {
@@ -67,7 +68,14 @@ class IntegerType implements XlimType {
 	}
 	
 	@Override
-	public String getAttributeDefinitions() {
+	public String getAttributeDefinitions(XmlAttributeFormatter formatter) {
+		// If we have a custom formatter and it returns non-empty definition, use it!
+		if (formatter.hasCustomFormatter(this)) {
+			String result=formatter.getAttributeDefinition("typeName", this, null);
+			if (result.isEmpty()==false)
+				return  result;
+		}
+		// else: use typeName/size definition
 		return "typeName=\"int\" size=\"" + mSize + "\"";
 	}
 	

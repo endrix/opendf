@@ -1,5 +1,5 @@
 /* 
- * Copyright (c) Ericsson AB, 2009
+ * Copyright (c) Ericsson AB, 2010
  * Author: Carl von Platen (carl.von.platen@ericsson.com)
  * All rights reserved.
  *
@@ -35,113 +35,94 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package eu.actorsproject.xlim.implementation;
-
-import eu.actorsproject.util.XmlAttributeFormatter;
-import eu.actorsproject.util.XmlElement;
-import eu.actorsproject.xlim.XlimSource;
-import eu.actorsproject.xlim.XlimTopLevelPort;
-import eu.actorsproject.xlim.XlimType;
-import eu.actorsproject.xlim.dependence.StateLocation;
+package eu.actorsproject.xlim.io;
 
 import java.util.Collections;
 
-class TopLevelPort implements XlimTopLevelPort, StateLocation {
+import eu.actorsproject.util.XmlAttributeFormatter;
+import eu.actorsproject.util.XmlElement;
+import eu.actorsproject.xlim.XlimType;
 
+/**
+ * An XlimTypeElement, which is a reference to a type definition
+ */
+
+public class XlimTypeReference extends XlimTypeElement {
 	private String mName;
-	private Direction mDirection;
-	private XlimType mType;
+	private XlimLocation mLocation;
+	private XlimTypeDef mTypeDef;
 	
-	public TopLevelPort(String name, XlimTopLevelPort.Direction dir, XlimType type) {
-		mName = name;
-		mDirection = dir;
-		mType = type;
+	/**
+	 * Create an unresolved XlimTypeElement   
+	 * @param name      Name of (built-in) type or typeDef
+	 * @param location  Location in XLIM file
+	 */
+	public XlimTypeReference(String name, XlimLocation location) {
+		mName=name;
+		mLocation=location;
+	}
+	
+	/**
+	 * Create a XlimTypeElement, which is a reference to a typeDef
+	 * @param typeDef
+	 */
+	public XlimTypeReference(XlimTypeDef typeDef) {
+		mName=typeDef.getName();
+		mLocation=null;
+		mTypeDef=typeDef;
 	}
 	
 	@Override
-	public Direction getDirection() {
-		return mDirection;
+	public XlimType createType(ReaderPlugIn plugIn, ReaderContext context) {
+		if (mTypeDef==null) {
+			mTypeDef=context.getTypeDef(mName);
+		
+			if (mTypeDef==null)
+				throw new XlimReaderError("Unsupported Type: "+mName, mLocation);
+		}
+		
+		return mTypeDef.getType();
 	}
 
 	@Override
 	public XlimType getType() {
-		return mType;
+		assert(mTypeDef!=null);
+		return mTypeDef.getType();
 	}
-
-	@Override
-	public void setType(XlimType t) {
-		mType=t;
+	
+	public XlimTypeDef getTypeDef() {
+		assert(mTypeDef!=null);
+		return mTypeDef;
 	}
-
 	
 	@Override
-	public String getName() {
-		return mName;
+	public String getTagName() {
+		return "type";
 	}
-
-	@Override
-	public String getDebugName() {
-		return mName;
-	}
-
-	@Override
-	public String getAttributeDefinitions(XmlAttributeFormatter formatter) {
-		String dir;
-		if (mDirection==Direction.internal)
-			dir = "";
-		else
-			dir = "dir=\"" + mDirection + "\" ";
-		return "name=\"" + mName +"\" " + dir + mType.getAttributeDefinitions(formatter);
-	}
-
+		
 	@Override
 	public Iterable<? extends XmlElement> getChildren() {
 		return Collections.emptyList();
 	}
 
 	@Override
-	public String getTagName() {
-		if (mDirection==Direction.internal)
-			return "internal-port";
+	public String getAttributeDefinitions(XmlAttributeFormatter formatter) {
+		return formatter.getAttributeDefinition("name",getType(),mName);
+	}
+	
+	@Override
+	public boolean equals(Object o) {
+		if (o instanceof XlimTypeReference) {
+			XlimTypeReference other=(XlimTypeReference) o;
+			
+			return (mName.equals(other.mName));
+		}
 		else
-			return "actor-port";
+			return false;
 	}
 	
-	
-	@Override
-	public boolean isStateLocation() {
-		return true;  // yes, it's a StateLocation (see Location)
-	}
-
-	@Override
-	public StateLocation asStateLocation() {
-		return this;  // yes, it's a StateLocation (see Location)
-	}
-	
-	@Override
-	public TopLevelPort asActorPort() {
-		return this;  // yes, it's an actor port (see StateLocation)
-	}
-
-	@Override
-	public StateVar asStateVar() {
-		return null;  // no, it's not a state variable (see StateLocation)
-	}
-	
-
-	@Override
-	public boolean hasSource() {
-		return false; // no, it hasn't any source (see Location)
-	}
-
-	@Override
-	public XlimSource getSource() {
-		return null; // no, it hasn't any source (see Location)
-	}
-	
-	@Override
-	public boolean isModified() {
-		// assuming that the port is at all used, it is modified
-		return true; 
+	@Override 
+	public int hashCode() {
+		return mName.hashCode();
 	}
 }

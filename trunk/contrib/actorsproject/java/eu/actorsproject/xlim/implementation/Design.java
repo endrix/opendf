@@ -88,13 +88,12 @@ class Design implements XlimDesign {
 	@Override
 	public Iterable<? extends XmlElement> getChildren() {
 		// Determine the typedefs that we need for this design
-		BagOfTypeDefs typeDefs=new BagOfTypeDefs();
-		typeDefs.addUsedTypes(this);
+		BagOfTypeDefs typeDefBag=new BagOfTypeDefs();
 		
 		// Add all of the XLIM elements
 		ArrayList<Iterable<? extends XmlElement>> children=
 			new ArrayList<Iterable<? extends XmlElement>>();
-		children.add(typeDefs);
+		children.add(typeDefBag.createTypeDefs(this));
 		children.add(mInputPorts);
 		children.add(mOutputPorts);
 		children.add(mInternalPorts);

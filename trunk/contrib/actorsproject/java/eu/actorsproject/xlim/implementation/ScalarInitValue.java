@@ -96,7 +96,7 @@ class ScalarInitValue implements XlimInitValue {
 	
 	@Override
 	public String getAttributeDefinitions(XmlAttributeFormatter formatter) {
-		return "value=\"" + mValue + "\" " + mType.getAttributeDefinitions();
+		return "value=\"" + mValue + "\" " + mType.getAttributeDefinitions(formatter);
 	}
 
 	@Override

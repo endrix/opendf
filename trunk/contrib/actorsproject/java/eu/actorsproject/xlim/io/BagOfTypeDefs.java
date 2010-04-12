@@ -38,8 +38,9 @@
 package eu.actorsproject.xlim.io;
 
 import java.util.HashSet;
-import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.Map;
 
 import eu.actorsproject.xlim.XlimDesign;
 import eu.actorsproject.xlim.XlimOperation;
@@ -53,33 +54,33 @@ import eu.actorsproject.xlim.util.XlimTraversal;
 /**
  * Container of used types, from which the set of required XlimTypeDefs can be generated
  */
-public class BagOfTypeDefs implements Iterable<XlimTypeDef> {
+public class BagOfTypeDefs {
 
 	private LinkedHashSet<XlimType> mUsedTypes=new LinkedHashSet<XlimType>();
 	private HashSet<XlimType> mNeedsTypeDef=new HashSet<XlimType>(); 
 	private FindAllTypeDefs mFindAllTypeDefs=new FindAllTypeDefs();
-
-
-	@Override
-	public Iterator<XlimTypeDef> iterator() {
-		return new TypedefIterator();
-	}
-
-	public void addUsedTypes(XlimDesign design) {
+	
+	public Iterable<XlimTypeDef> createTypeDefs(XlimDesign design) {
 		for (XlimStateVar s: design.getStateVars())
 			addUsedType(s.getType());
 		mFindAllTypeDefs.traverse(design, null);
 		
-		// Allocate typedef names
+		// Allocate typedefs
 		int i=0;
+		Map<XlimType,XlimTypeDef> typeDefs=new LinkedHashMap<XlimType,XlimTypeDef>();
 		for (XlimType t: mUsedTypes) {
 			String name=null;
 			if (mNeedsTypeDef.contains(t)) {
 				name="typedef"+i;
 				++i;
+				
+				XlimTypeElement typeElement=createTypeElement(t, typeDefs);
+				typeDefs.put(t, new XlimTypeDef(name, typeElement, null));
 			}
 			t.setTypeDefName(name);
-		}
+		}	
+		
+		return typeDefs.values();
 	}
 	
 	private void addUsedType(XlimType type) {
@@ -103,31 +104,32 @@ public class BagOfTypeDefs implements Iterable<XlimTypeDef> {
 		}
 	}
 
-	private XlimTypeElement createTypeElement(XlimType type) {
+	private XlimTypeElement createTypeElement(XlimType type, Map<XlimType,XlimTypeDef> typeDefs) {
 		// Create a <type> element with possible parameters
-		XlimTypeElement typeElement=new XlimTypeElement(type.getTypeName(), null);
+		XlimTypeConstruction typeConstruction=new XlimTypeConstruction(type);
 		
 		for (TypeArgument arg: type.getTypeArguments()) {
 			if (arg.isValueParameter())
-				typeElement.addValuePar(arg.getName(), arg.getValue());
+				typeConstruction.addValuePar(arg.getName(), arg.getValue());
 			else {
-				typeElement.addTypePar(arg.getName(), createTypeReference(arg.getType()));
+				typeConstruction.addTypePar(arg.getName(), 
+						                    createTypeReference(arg.getType(),typeDefs));
 			}
 		}
 		
-		return typeElement;
+		return typeConstruction;
 	}
 
-	private XlimTypeElement createTypeReference(XlimType type) {
-		String typeDef=type.getTypeDefName();
+	private XlimTypeElement createTypeReference(XlimType type, Map<XlimType,XlimTypeDef> typeDefs) {
+		XlimTypeDef typeDef=typeDefs.get(type);
 		
 		if (typeDef!=null) {
 			// Has a typeDef
-			return new XlimTypeElement(typeDef, null);
+			return new XlimTypeReference(typeDef);
 		}
 		else {
 			// Create a <type> element with possible parameters
-			return createTypeElement(type);
+			return createTypeElement(type,typeDefs);
 		}
 	}
 	
@@ -150,45 +152,4 @@ public class BagOfTypeDefs implements Iterable<XlimTypeDef> {
 				addUsedType(p.getType());
 		}
 	}
-
-	private class TypedefIterator implements Iterator<XlimTypeDef> {
-
-		Iterator<XlimType> mIterator;
-		XlimType mNext;
-		
-		TypedefIterator() {
-			mIterator=mUsedTypes.iterator();
-			mNext=skip();
-		}
-		
-		@Override
-		public boolean hasNext() {
-			return mNext!=null;
-		}
-
-		@Override
-		public XlimTypeDef next() {
-			assert(mNext!=null);
-			XlimTypeElement typeElement=createTypeElement(mNext);
-			String name=mNext.getTypeDefName();
-			
-			mNext=skip();
-			return new XlimTypeDef(name, typeElement, null);
-		}
-
-		XlimType skip() {
-			while (mIterator.hasNext()) {
-				XlimType next=mIterator.next();
-				if (mNeedsTypeDef.contains(next))
-					return next;
-			}
-			return null;
-		}
-		
-		@Override
-		public void remove() {
-			throw new UnsupportedOperationException();			
-		}
-	}
-	
 }

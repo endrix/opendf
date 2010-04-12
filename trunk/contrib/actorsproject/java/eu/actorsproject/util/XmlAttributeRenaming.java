@@ -35,57 +35,39 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package eu.actorsproject.xlim.util;
+package eu.actorsproject.util;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import eu.actorsproject.util.XmlAttributeFormatter;
-import eu.actorsproject.util.XmlPrinter;
-import eu.actorsproject.xlim.XlimStateVar;
-
 /**
- * Provides a mechanism of renaming XLIM attributes corresponding to
- * actor ports, state variables, tasks/actions, types and output ports (of operations). 
- * Renaming is done when printing XLIM via an XmlAttributeFormatter. 
+ * @author ecarvon
+ *
  */
-public class AttributeRenaming {
+public class XmlAttributeRenaming<T> extends XmlAttributeFormatter.PlugIn<T> {
 
-	private Map<XlimStateVar,String> mStateVarMap=new HashMap<XlimStateVar,String>();
+	private Map<T,String> mMapping;
 	
-	public void registerPlugIns(XmlPrinter printer) {
-		printer.register(new StateVarPlugIn());
+	public XmlAttributeRenaming(Class<T> c) {
+		super(c);
+		mMapping=new HashMap<T,String>();
+	}
+
+	public XmlAttributeRenaming(Class<T> c, Map<T,String> mapping) {
+		super(c);
+		mMapping=mapping;
+	}
+	
+	@Override
+	public String getAttributeValue(T value) {
+		return mMapping.get(value);
 	}
 	
 	/**
-	 * @param s      a state variable
-	 * @param newId  new identifier ("source") to be used when referring to 's'.
+	 * @param attr      an attribute (of type T)
+	 * @param newValue  new value string
 	 */
-	public void rename(XlimStateVar s, String newId) {
-		mStateVarMap.put(s, newId);
-	}
-	
-	/**
-	 * Renames state variables according to mapping
-	 * 
-	 * @param map    a mapping from state variables to identifiers
-	 */
-	public void renameAll(Map<XlimStateVar,String> mapping) {
-		mStateVarMap.putAll(mapping);
-	}
-	
-	protected class StateVarPlugIn extends XmlAttributeFormatter.PlugIn<XlimStateVar> {
-		
-		public StateVarPlugIn() {
-			super(XlimStateVar.class);
-		}
-
-		@Override
-		public String getAttributeValue(XlimStateVar s) {
-			String id=mStateVarMap.get(s);
-			if (id==null)
-				id=s.getUniqueId();
-			return id;
-		}
+	public void rename(T attr, String newValue) {
+		mMapping.put(attr, newValue);
 	}
 }

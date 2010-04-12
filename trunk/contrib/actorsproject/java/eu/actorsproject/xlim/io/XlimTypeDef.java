@@ -70,6 +70,16 @@ public class XlimTypeDef implements XmlElement {
 		mState=State.Initial;
 	}
 	
+	public String getName() {
+		return mName;
+	}
+	
+	/**
+	 * Determines the type of this XlimTypeDef
+	 * @param plugIn   Reader plug-in, by which built-in types are resolved
+	 * @param context  Reader context, by which other type definitions are resolved
+	 * @return
+	 */
 	public XlimType getType(ReaderPlugIn plugIn, ReaderContext context) {
 		if (mState==State.Initial) {
 			mState=State.CreatingType;
@@ -81,6 +91,20 @@ public class XlimTypeDef implements XmlElement {
 			throw new XlimReaderError("Cyclic definition of type "+mName, mLocation);
 		}
 		// else: type has been created (if erroneous/null it won't help to create it again)
+		return mType;
+	}
+	
+	public XlimType getType() {
+		if (mState==State.Initial) {
+			mState=State.CreatingType;
+			mType=mTypeElement.getType();
+			assert(mType!=null);
+			mState=State.TypeCreated;
+		}
+		else if (mState==State.CreatingType) {
+			throw new IllegalStateException("Cyclic definition of type "+mName);
+		}
+		
 		return mType;
 	}
 	
@@ -114,6 +138,6 @@ public class XlimTypeDef implements XmlElement {
 
 	@Override
 	public String getAttributeDefinitions(XmlAttributeFormatter formatter) {
-		return "name=\""+mName+"\"";
+		return formatter.getAttributeDefinition("name", getType(), mName);
 	}	
 }

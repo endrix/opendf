@@ -535,7 +535,7 @@ public class XlimReaderWithDiagnostics implements IXlimReader {
 		}
 	}
 
-	protected class TypeHandler extends ElementHandler<XlimTypeElement,Object> {
+	protected class TypeHandler extends ElementHandler<XlimTypeConstruction,Object> {
 		
 		public XlimTypeElement readType(XlimElement parent, MutableReaderContext context) {
 			Iterator<XlimElement> pType=parent.getElements().iterator();
@@ -555,8 +555,18 @@ public class XlimReaderWithDiagnostics implements IXlimReader {
 					String typeName=getRequiredAttribute("name", typeElement);
 					
 					if (typeName!=null) {
-						result=new XlimTypeElement(typeName, typeElement.getLocation());
-						processChildren(typeElement,context,result,null);
+						XlimTypeKind typeCtor=mPlugIn.getTypeKind(typeName);
+						XlimLocation location=typeElement.getLocation();
+						if (typeCtor!=null) {
+							XlimTypeConstruction tc=new XlimTypeConstruction(typeCtor, location);
+							processChildren(typeElement,context,tc,null);
+							result=tc;
+						}
+						else {
+							result=new XlimTypeReference(typeName, location);
+							checkThatEmpty(typeElement);
+						}
+						
 					}
 					// else: no "name" attribute (error already reported)
 				}
@@ -575,7 +585,7 @@ public class XlimReaderWithDiagnostics implements IXlimReader {
 				
 		protected void processChild(XlimElement child, 
                                     MutableReaderContext context,
-                                    XlimTypeElement typeElement,
+                                    XlimTypeConstruction parent,
                                     Object dummy) {
 			XlimTag tag=getTag(child);
 			if (tag==XlimTag.VALUEPAR_TAG || tag==XlimTag.TYPEPAR_TAG) {
@@ -583,11 +593,11 @@ public class XlimReaderWithDiagnostics implements IXlimReader {
 				
 				if (tag==XlimTag.VALUEPAR_TAG) {
 					String value=getRequiredAttribute("value", child);
-					typeElement.addValuePar(name,value);					
+					parent.addValuePar(name,value);					
 				}
 				else {
 					XlimTypeElement type=readType(child,context);
-					typeElement.addTypePar(name,type);
+					parent.addTypePar(name,type);
 				}
 			}
 			else {
