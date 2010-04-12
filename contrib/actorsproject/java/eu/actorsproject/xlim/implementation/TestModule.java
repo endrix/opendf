@@ -117,10 +117,16 @@ class TestModule extends ContainerModule implements XlimTestModule {
 	
 	@Override
 	public String getAttributeDefinitions(XmlAttributeFormatter formatter) {
-		if (mDecision!=null)
-			return super.getAttributeDefinitions(formatter) + " decision=\"" + getDecision().getUniqueId() + "\"";
-		else
-			return super.getAttributeDefinitions(formatter);
+		String attributes=super.getAttributeDefinitions(formatter);
+		
+		if (mDecision!=null) {
+			XlimSource decision=getDecision();
+			attributes=formatter.addAttributeDefinition(attributes,
+					                                    "decision",
+					                                    decision,
+					                                    decision.getUniqueId());
+		}
+		return attributes;
 	}	
 
 	/*

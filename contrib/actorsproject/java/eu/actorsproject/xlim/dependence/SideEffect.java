@@ -41,6 +41,7 @@ import java.util.Collections;
 
 import eu.actorsproject.util.XmlAttributeFormatter;
 import eu.actorsproject.util.XmlElement;
+import eu.actorsproject.xlim.XlimSource;
 import eu.actorsproject.xlim.XlimType;
 
 /**
@@ -85,10 +86,14 @@ public abstract class SideEffect extends ValueNode {
 	public String getAttributeDefinitions(XmlAttributeFormatter formatter) {
 		Location location=getLocation();
 		String name=location.getDebugName();
-		String source=(location.hasSource())?
-			" source=\"" + location.getSource().getUniqueId() + "\"" : "";
+		String attributes="valueId=\"" + getUniqueId() + "\" name=\"" + name + "\"";
 		
-		return "valueId=\"" + getUniqueId() + "\" name=\"" + name + "\"" + source;
+		if (location.hasSource()) {
+			XlimSource source=location.getSource();
+			return formatter.addAttributeDefinition(attributes,"source",source,source.getUniqueId());
+		}
+		else
+			return attributes;
 	}
 
 	@Override

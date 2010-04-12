@@ -40,6 +40,7 @@ package eu.actorsproject.xlim.implementation;
 import java.util.ArrayList;
 import java.util.List;
 
+import eu.actorsproject.util.XmlAttributeFormatter;
 import eu.actorsproject.xlim.XlimInputPort;
 import eu.actorsproject.xlim.XlimOperation;
 import eu.actorsproject.xlim.XlimOutputPort;
@@ -86,7 +87,7 @@ public class OperationKind {
 		return false;
 	}
 	
-	protected String getAttributeDefinitions(XlimOperation operation) {
+	protected String getAttributeDefinitions(XlimOperation operation, XmlAttributeFormatter formatter) {
 		return "kind=\"" + mKindAttribute + "\"";
 	}
 	

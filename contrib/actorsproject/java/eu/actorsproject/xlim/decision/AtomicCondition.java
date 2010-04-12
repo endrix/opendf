@@ -76,7 +76,8 @@ public class AtomicCondition extends Condition {
 
 	@Override
 	public String getAttributeDefinitions(XmlAttributeFormatter formatter) {
-		return "decision=\""+getXlimSource().getUniqueId()+"\"";
+		XlimSource source=getXlimSource();
+		return formatter.getAttributeDefinition("decision",source,source.getUniqueId());
 	}
 
 	@Override

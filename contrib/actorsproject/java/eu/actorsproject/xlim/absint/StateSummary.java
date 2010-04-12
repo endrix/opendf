@@ -44,6 +44,7 @@ import java.util.Map;
 
 import eu.actorsproject.util.XmlAttributeFormatter;
 import eu.actorsproject.util.XmlElement;
+import eu.actorsproject.xlim.XlimStateVar;
 import eu.actorsproject.xlim.dependence.StateLocation;
 
 /**
@@ -176,8 +177,10 @@ public class StateSummary<T extends AbstractValue<T>> implements XmlElement {
 
 			String attributes=(name!=null)?
 				attributes=" sourceName=\""+name+"\"" : "";
-			if (carrier.asStateVar()!=null)
-				attributes+=" source=\"" + carrier.asStateVar().getUniqueId() + "\"";
+			XlimStateVar stateVar=carrier.asStateVar();
+			if (stateVar!=null) {
+				attributes=formatter.addAttributeDefinition(attributes, "source", stateVar, stateVar.getUniqueId());
+			}
 			return attributes;
 		}
 

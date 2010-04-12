@@ -123,8 +123,26 @@ public class XlimReaderWithDiagnostics implements IXlimReader {
 		}
 	}
 	
+	/**
+	 * Parses an XLIM document
+	 * @param file  File to read
+	 * @return      XlimDesign object (or null if file had fatal errors)
+	 */
 	@Override
 	public XlimDesign read(File file) throws IOException {
+		MutableReaderContext context = new MutableReaderContext();
+		return read(file,context);
+	}
+
+	/**
+	 * Parses an XLIM document
+	 * @param file    File to read
+	 * @param context Symbol table of the file read
+	 *                (allows for look-up of XLIM identifiers)
+	 * @return      XlimDesign object (or null if file had fatal errors)
+	 */
+	@Override
+	public XlimDesign read(File file, MutableReaderContext context) throws IOException {
 		XlimDocument document=null;
 		try {
 			document=XmlEventDocument.read(file);
@@ -134,10 +152,10 @@ public class XlimReaderWithDiagnostics implements IXlimReader {
 		
 		DesignHandler designHandler=new DesignHandler();
 		int numErrors=mNumErrors;
-		XlimDesign design=designHandler.readDesign(document.getRootElement());
+		XlimDesign design=designHandler.readDesign(document.getRootElement(), context);
 		return (numErrors==mNumErrors)? design : null; 
 	}
-
+	
 	/**
 	 * Base class for XLIM-element parsers
 	 */
@@ -253,11 +271,10 @@ public class XlimReaderWithDiagnostics implements IXlimReader {
 			mTypeHandler=new TypeHandler();
 		}
 
-		public XlimDesign readDesign(XlimElement rootElement) {
+		public XlimDesign readDesign(XlimElement rootElement, MutableReaderContext context) {
 			if (getTag(rootElement)!=XlimTag.DESIGN_TAG) {
 				reportFatalError(rootElement, "Expecting <design> element, found <"+rootElement.getTagName()+">");
 			}
-			MutableReaderContext context = new MutableReaderContext();
 			String name=getRequiredAttribute("name",rootElement);
 			if (name==null)
 				name=""; // Error recovery: give it an empty name

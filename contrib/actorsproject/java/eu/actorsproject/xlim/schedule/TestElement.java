@@ -105,8 +105,8 @@ public class TestElement implements XmlElement {
 	
 	@Override
 	public String getAttributeDefinitions(XmlAttributeFormatter formatter) {
-		String id=mCond.getXlimSource().getUniqueId();
-		return "source=\""+id+"\"";
+		XlimSource source=mCond.getXlimSource();
+		return formatter.getAttributeDefinition("source", source, source.getUniqueId());
 	}
 
 	@Override

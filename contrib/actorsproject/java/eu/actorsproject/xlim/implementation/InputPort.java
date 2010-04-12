@@ -70,7 +70,8 @@ class InputPort implements XlimInputPort {
 
 	@Override
 	public String getAttributeDefinitions(XmlAttributeFormatter formatter) {
-		return "dir=\"in\" source=\"" + getSource().getUniqueId() + "\"";
+		XlimSource source=getSource();
+		return "dir=\"in\" "+formatter.getAttributeDefinition("source",source, source.getUniqueId());
 	}
 
 	@Override

@@ -272,7 +272,7 @@ class Operation extends Linkage<AbstractBlockElement>
 	
 	@Override
 	public String getAttributeDefinitions(XmlAttributeFormatter formatter) {
-		return mKind.getAttributeDefinitions(this);
+		return mKind.getAttributeDefinitions(this, formatter);
 	}
 
 

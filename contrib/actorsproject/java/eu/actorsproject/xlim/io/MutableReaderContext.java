@@ -47,7 +47,7 @@ import eu.actorsproject.xlim.XlimTopLevelPort;
 /**
  * ReaderContext with modifyable contents
  */
-class MutableReaderContext extends ReaderContext {
+public class MutableReaderContext extends ReaderContext {
 
 	private XlimTaskModule mCurrentTask;
 	
