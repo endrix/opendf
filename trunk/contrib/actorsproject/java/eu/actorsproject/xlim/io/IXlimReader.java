@@ -47,5 +47,19 @@ import eu.actorsproject.xlim.XlimDesign;
  */
 public interface IXlimReader {
 
+	/**
+	 * Parses an XLIM document
+	 * @param file    File to read
+	 * @return      XlimDesign object (or null if file had fatal errors)
+	 */
 	XlimDesign read(File f) throws IOException;
+	
+	/**
+	 * Parses an XLIM document
+	 * @param file    File to read
+	 * @param context Symbol table of the file read
+	 *                (allows for look-up of XLIM identifiers)
+	 * @return      XlimDesign object (or null if file had fatal errors)
+	 */
+	XlimDesign read(File f, MutableReaderContext context) throws IOException;
 }

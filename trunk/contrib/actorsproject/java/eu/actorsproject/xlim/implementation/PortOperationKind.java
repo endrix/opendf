@@ -41,6 +41,7 @@ import java.util.Collection;
 import java.util.List;
 
 
+import eu.actorsproject.util.XmlAttributeFormatter;
 import eu.actorsproject.xlim.XlimOperation;
 import eu.actorsproject.xlim.XlimOutputPort;
 import eu.actorsproject.xlim.XlimSource;
@@ -103,10 +104,10 @@ class PortOperationKind extends OperationKind {
 	}
 	
 	@Override
-	public String getAttributeDefinitions(XlimOperation op) {
+	public String getAttributeDefinitions(XlimOperation op, XmlAttributeFormatter formatter) {
 		XlimTopLevelPort port=op.getPortAttribute();
 		assert(port!=null);
-		String result=super.getAttributeDefinitions(op)
+		String result=super.getAttributeDefinitions(op, formatter)
 			+" "+mPortAttributeName+"=\""+port.getName()+"\"";
 		if (mIntAttributeName!=null) {
 			Long l=op.getIntegerValueAttribute();

@@ -42,6 +42,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import eu.actorsproject.util.XmlAttributeFormatter;
 import eu.actorsproject.xlim.XlimOperation;
 import eu.actorsproject.xlim.XlimOutputPort;
 import eu.actorsproject.xlim.XlimSource;
@@ -131,7 +132,7 @@ class YieldOperationKind extends OperationKind {
 	}
 	
 	@Override
-	public String getAttributeDefinitions(XlimOperation op) {
+	public String getAttributeDefinitions(XlimOperation op, XmlAttributeFormatter formatter) {
 		PortSignature portSignature=(PortSignature) op.getGenericAttribute();
 		String portNames="";
 		String rates="";
@@ -144,7 +145,7 @@ class YieldOperationKind extends OperationKind {
 			delimiter="|";
 		}
 		
-		return super.getAttributeDefinitions(op) 
+		return super.getAttributeDefinitions(op, formatter) 
 		       + " portName=\"" + portNames + "\" value=\"" +rates + "\" removable=\"no\"";
 	}
 	

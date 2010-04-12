@@ -146,7 +146,7 @@ class StateVar implements XlimStateVar, StateLocation {
 
 	@Override
 	public String getAttributeDefinitions(XmlAttributeFormatter formatter) {
-		String attributes="name=\"" + getUniqueId() + "\"";
+		String attributes=formatter.getAttributeDefinition("name",this,getUniqueId());
 		if (mSourceName!=null)
 			attributes+=" sourceName=\"" + mSourceName + "\"";
 		attributes += " " + getType().getAttributeDefinitions();

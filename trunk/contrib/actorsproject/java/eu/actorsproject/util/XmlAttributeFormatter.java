@@ -79,19 +79,52 @@ public class XmlAttributeFormatter {
 	 *         otherwise.
 	 */
 	public<T> String getAttributeDefinition(String attributeName, T attributeValue) {
+		return getAttributeDefinition(attributeName,attributeValue,attributeValue);
+	}
+	
+	/**
+	 * @param attributeName  
+	 * @param attributeValue
+	 * @param defaultValue   value to convert toString, if formatter not present
+	 * 
+	 * @return the string attributeName="attribute value", where the attribute value
+	 *         is formatted by a custom formatter (if present).
+	 *         Otherwise defaultValue.toString() is used.
+	 */
+	public<T> String getAttributeDefinition(String attributeName, T attributeValue, Object defaultValue) {
 		PlugIn<? super T> plugIn=getCustomFormatter(attributeValue);
 		String value;
 		if (plugIn!=null) {
 			value=plugIn.getAttributeValue(attributeValue);
 		}
 		else {
-			value=attributeValue.toString();
+			value=defaultValue.toString();
 		}
 		return attributeName+"=\""+value+"\"";
 	}
 	
-	public String addAttributeDefinition(String otherDefinitions, String attributeName, Object attributeValue) {
-		String def=getAttributeDefinition(attributeName, attributeValue);
+	/**
+	 * Adds the attributeName="attribute value" to 'otherDefinitions' with proper spacing.
+	 * @param otherDefinitions  Attribute definitions appearing prior to this one
+	 * @param attributeName
+	 * @param attributeValue
+	 * @return concatenated string
+	 */
+	public<T> String addAttributeDefinition(String otherDefinitions, String attributeName, T attributeValue) {
+		return addAttributeDefinition(otherDefinitions,attributeName,attributeValue,attributeValue);
+	}
+	
+	/**
+	 * Adds the attributeName="attribute value" to 'otherDefinitions' with proper spacing.
+	 * @param otherDefinitions  Attribute definitions appearing prior to this one
+	 * @param attributeName
+	 * @param attributeValue
+	 * @return concatenated string
+	 */
+	public<T> String addAttributeDefinition(String otherDefinitions, 
+			                             String attributeName, T attributeValue,
+			                             Object defaultValue) {
+		String def=getAttributeDefinition(attributeName, attributeValue, defaultValue);
 		String optSpace=(otherDefinitions!=null && !otherDefinitions.isEmpty())? " " : "";
 		return otherDefinitions+optSpace+def;
 	}

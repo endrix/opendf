@@ -1,5 +1,5 @@
 /* 
- * Copyright (c) Ericsson AB, 2009
+ * Copyright (c) Ericsson AB, 2010
  * Author: Carl von Platen (carl.von.platen@ericsson.com)
  * All rights reserved.
  *
@@ -35,73 +35,57 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package eu.actorsproject.xlim.implementation;
+package eu.actorsproject.xlim.util;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import eu.actorsproject.util.XmlAttributeFormatter;
-import eu.actorsproject.xlim.XlimSource;
+import eu.actorsproject.util.XmlPrinter;
 import eu.actorsproject.xlim.XlimStateVar;
-import eu.actorsproject.xlim.dependence.Location;
-import eu.actorsproject.xlim.dependence.ValueNode;
-import eu.actorsproject.xlim.dependence.ValueOperator;
-import eu.actorsproject.xlim.dependence.ValueUsage;
 
-class SourceValueUsage extends ValueUsage {
+/**
+ * Provides a mechanism of renaming XLIM attributes corresponding to
+ * actor ports, state variables, tasks/actions, types and output ports (of operations). 
+ * Renaming is done when printing XLIM via an XmlAttributeFormatter. 
+ */
+public class AttributeRenaming {
 
-	private XlimSource mSource;
-	private ValueOperator mOperator;
+	private Map<XlimStateVar,String> mStateVarMap=new HashMap<XlimStateVar,String>();
 	
-	public SourceValueUsage(XlimSource source, ValueOperator op) {
-		super((source.asOutputPort()!=null)? source.asOutputPort().getValue() : null);
-		mSource=source;
-		mOperator=op;
+	public void registerPlugIns(XmlPrinter printer) {
+		printer.register(new StateVarPlugIn());
 	}
 	
-	@Override
-	public boolean needsFixup() {
-		return mSource.hasLocation();
+	/**
+	 * @param s      a state variable
+	 * @param newId  new identifier ("source") to be used when referring to 's'.
+	 */
+	public void rename(XlimStateVar s, String newId) {
+		mStateVarMap.put(s, newId);
 	}
 	
-	@Override
-	public Location getFixupLocation() {
-		return mSource.getLocation();
+	/**
+	 * Renames state variables according to mapping
+	 * 
+	 * @param map    a mapping from state variables to identifiers
+	 */
+	public void renameAll(Map<XlimStateVar,String> mapping) {
+		mStateVarMap.putAll(mapping);
 	}
 	
-	@Override
-	public ValueOperator usedByOperator() {
-		return mOperator;
-	}
-	
-	@Override
-	public void setValue(ValueNode newValue) {
-		super.setValue(newValue);
-		if (newValue!=null) {
-			if (newValue.hasLocation()) {
-				Location location=newValue.getLocation();
-				assert(location.hasSource());
-				mSource=location.getSource();
-			}
-			else {
-				assert(newValue instanceof OutputPort);
-				mSource=(OutputPort) newValue;
-			}
-		}
-	}
-	
-	public XlimSource getSource() {
-		return mSource;
-	}
-	
-	@Override
-	public String getAttributeDefinitions(XmlAttributeFormatter formatter) {
-		XlimStateVar stateVar=mSource.asStateVar();
-		String source=formatter.getAttributeDefinition("source",mSource,mSource.getUniqueId());
+	protected class StateVarPlugIn extends XmlAttributeFormatter.PlugIn<XlimStateVar> {
 		
-		if (stateVar!=null) {
-			String sourceName=stateVar.getDebugName();
-			if (sourceName!=null)
-				return "name=\"" + sourceName + "\" " + source;
+		public StateVarPlugIn() {
+			super(XlimStateVar.class);
 		}
-		
-		return source; 
+
+		@Override
+		public String getAttributeValue(XlimStateVar s) {
+			String id=mStateVarMap.get(s);
+			if (id==null)
+				id=s.getUniqueId();
+			return id;
+		}
 	}
 }

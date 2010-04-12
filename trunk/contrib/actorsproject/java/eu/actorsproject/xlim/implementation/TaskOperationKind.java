@@ -41,6 +41,7 @@ import java.util.Collection;
 import java.util.List;
 
 
+import eu.actorsproject.util.XmlAttributeFormatter;
 import eu.actorsproject.xlim.XlimOperation;
 import eu.actorsproject.xlim.XlimOutputPort;
 import eu.actorsproject.xlim.XlimSource;
@@ -91,14 +92,14 @@ public class TaskOperationKind extends OperationKind {
 	}
 	
 	@Override
-	public String getAttributeDefinitions(XlimOperation op) {
+	public String getAttributeDefinitions(XlimOperation op, XmlAttributeFormatter formatter) {
 		XlimTaskModule task=op.getTaskAttribute();
 		if (task!=null) {
 			String name=task.getName();
 			if (name!=null)
-				return super.getAttributeDefinitions(op)+" "+mAttributeName+"=\""+name+"\"";
+				return super.getAttributeDefinitions(op, formatter)+" "+mAttributeName+"=\""+name+"\"";
 		}
-		return super.getAttributeDefinitions(op);
+		return super.getAttributeDefinitions(op, formatter);
 	}
 	
 	@Override

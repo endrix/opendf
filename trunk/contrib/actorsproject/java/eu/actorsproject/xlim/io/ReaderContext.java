@@ -37,7 +37,10 @@
 
 package eu.actorsproject.xlim.io;
 
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import eu.actorsproject.xlim.XlimOutputPort;
 import eu.actorsproject.xlim.XlimSource;
@@ -52,8 +55,8 @@ import eu.actorsproject.xlim.XlimTopLevelPort;
 public class ReaderContext {
 	protected HashMap<String,XlimTopLevelPort> mTopLevelPorts=new HashMap<String,XlimTopLevelPort>();
 	protected HashMap<String,XlimTaskModule> mTasks=new HashMap<String,XlimTaskModule>();
-	protected HashMap<String,XlimStateVar> mStateVars=new HashMap<String,XlimStateVar>();
-	protected HashMap<String,XlimTypeDef> mTypeDefs=new HashMap<String,XlimTypeDef>();
+	protected HashMap<String,XlimStateVar> mStateVars=new LinkedHashMap<String,XlimStateVar>();
+	protected HashMap<String,XlimTypeDef> mTypeDefs=new LinkedHashMap<String,XlimTypeDef>();
 	protected HashMap<String,XlimOutputPort> mOutputPorts;
 	
 	public XlimTopLevelPort getTopLevelPort(String name) {
@@ -66,6 +69,10 @@ public class ReaderContext {
 	
 	public XlimStateVar getStateVar(String name) {
 		return mStateVars.get(name);
+	}
+	
+	public Map<String,XlimStateVar> getOriginalStateVars() {
+		return Collections.unmodifiableMap(mStateVars);
 	}
 	
 	public XlimSource getSource(String name) {
