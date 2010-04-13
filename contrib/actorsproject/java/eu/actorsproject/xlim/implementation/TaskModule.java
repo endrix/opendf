@@ -133,8 +133,10 @@ class TaskModule extends ContainerModule implements XlimTaskModule {
 	
 	@Override
 	public String getAttributeDefinitions(XmlAttributeFormatter formatter) {
-		return super.getAttributeDefinitions(formatter)
-			+ " name=\"" + mName + "\" autostart=\"" + mAutoStart + "\"";			
+		String definitions=super.getAttributeDefinitions(formatter);
+		
+		definitions=formatter.addAttributeDefinition(definitions, "name", this, mName);
+		return formatter.addAttributeDefinition(definitions,"autostart",mAutoStart);
 	}	
 	
 	@Override
