@@ -37,89 +37,55 @@
 
 package eu.actorsproject.xlim.schedule;
 
-import java.util.ArrayList;
-import java.util.Collections;
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+import java.util.Iterator;
 
-import eu.actorsproject.util.XmlAttributeFormatter;
-import eu.actorsproject.util.XmlElement;
 import eu.actorsproject.util.XmlPrinter;
-import eu.actorsproject.xlim.decision2.PortSignature;
 
 /**
- * A collection of actions with identical consumption/production rates ("a phase")
+ * Implements iteration over StaticPhases and XLIM print-out
  */
-public class StaticPhase implements StaticSubSchedule {
 
-	private PortSignature mPortSignature;
-	private BasicBlock mActionSelection;
-	
-	public StaticPhase(PortSignature portSignature, BasicBlock actionSelection) {
-		mPortSignature=portSignature;
-		mActionSelection=actionSelection;
-	}
-	
-	public PortSignature getPortSignature() {
-		return mPortSignature;
-	}
-	
-	public BasicBlock getActionSelection() {
-		return mActionSelection;
-	}
+public class PhasePrinter {
 
-	public void printXlim(XmlPrinter printer) {
-		// TODO: the actual output goes here!
-		printer.printComment("Here should be the XLIM of a StaticPhase");
-	}
-	/*
-	 * Implementation of StaticSubSchedule
+	private Iterator<StaticPhase> mPhase;
+	private ByteArrayOutputStream mOutput;
+	private XmlPrinter mPrinter;
+	
+	/**
+	 * @param phases     the sequence of phase (may be infinite)
 	 */
-	
-	@Override
-	public int getNumberOfPhases() {
-		return 1;
-	}
-
-	@Override
-	public Iterable<StaticPhase> getPhases() {
-		return Collections.singleton(this);
-	}
-
-	@Override
-	public int getRepeatCount() {
-		return 1;
+	public PhasePrinter(Iterable<StaticPhase> phases) {
+		mPhase=phases.iterator();
+		mOutput=new ByteArrayOutputStream();
+		mPrinter=new XmlPrinter(new PrintStream(mOutput));
 	}
 	
-	@Override
-	public int getNumberOfSubSchedules() {
-		return 0;
-	}
-
-	@Override
-	public Iterable<StaticSubSchedule> getSubSchedules() {
-		return Collections.emptyList();
-	}
-
-
-	/*
-	 * Implementation of XmlElement
+	/**
+	 * @return true (if there are additional phases)
+	 * 
+	 * In the case of indefintely repeating action schedules, true is always returned.
 	 */
+	public boolean hasNext() {
+		return mPhase.hasNext();
+	}
 	
-	@Override
-	public String getTagName() {
-		return "staticPhase";
+	/**
+	 * Print the next phase as XLIM and advance the phase iterator
+	 * @return XLIM sequence as a String
+	 */
+	public String printNextPhase() {
+		StaticPhase phase=mPhase.next();
+		mOutput.reset();
+		phase.printXlim(mPrinter);
+		return mOutput.toString();
 	}
-
-	@Override
-	public String getAttributeDefinitions(XmlAttributeFormatter formatter) {
-		return "";
-	}
-
-	@Override
-	public Iterable<XmlElement> getChildren() {
-		ArrayList<XmlElement> children=new ArrayList<XmlElement>();
-		for (XmlElement child: mPortSignature.asXmlElements())
-			children.add(child);
-		children.add(mActionSelection);
-		return children;
+	
+	/**
+	 * @return the XmlPrinter that is associated with this PhasePrinter
+	 */
+	public XmlPrinter getPrinter() {
+		return mPrinter;
 	}
 }

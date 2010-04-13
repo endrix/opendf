@@ -39,7 +39,10 @@ package eu.actorsproject.xlim.schedule;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
+import java.util.Map;
 
+import eu.actorsproject.util.ConcatenatedIterable;
 import eu.actorsproject.util.XmlAttributeFormatter;
 import eu.actorsproject.util.XmlElement;
 
@@ -95,6 +98,43 @@ public class StaticActionSchedule {
 	public StaticSubSchedule getRepeatedSchedule() {
 		return mRepeatedSchedule;
 	}
+
+	/**
+	 * @return iteration over the phases of the schedule
+	 *         (a possible initial schedule, possibly followed 
+	 *          by an indefinitely repeated schedule).
+	 */
+	public Iterable<StaticPhase> getPhases() {
+		if (repeatsForever()) {
+			RepeatedIterable repeatedIterable=new RepeatedIterable();
+
+			if (hasInitialSchedule()) {
+				return new ConcatenatedIterable<StaticPhase>(mInitialSchedule.getPhases(),
+						                                     repeatedIterable);
+			}
+			else
+				return repeatedIterable;
+		}
+		else
+			return mInitialSchedule.getPhases();
+	}
+
+	/**
+	 * @param idRenaming mapping from "old" to "new" XLIM identifiers
+	 * @return PhasePrinter of the StaticSchedule
+	 * 
+	 * The set of XLIM identifiers that may be renamed are references to
+	 * a) The ports of the actor (port names)
+	 * b) The state variables ("source"/"target" references)
+	 * c) Actions/TaskModules ("target" names)
+	 * d) Type definitions ("typeName")
+	 * The name of OutputPorts of operations are also renamed so that they
+	 * associate each use with a unique definition that dominates the use.
+	 */
+	public PhasePrinter getPhasePrinter(Map<String,String> idRenaming) {
+		return new PhasePrinter(getPhases());
+	}
+	
 	
 	/**
 	 * @return the XML representation of the StaticActionSchedule
@@ -109,6 +149,40 @@ public class StaticActionSchedule {
 		}
 		else
 			return mInitialSchedule;
+	}
+	
+	private class RepeatedIterable implements Iterable<StaticPhase> {
+
+		public Iterator<StaticPhase> iterator() {
+			return new RepeatedIterator();
+		}
+	}
+	
+	private class RepeatedIterator implements Iterator<StaticPhase> {
+		
+		private Iterator<StaticPhase> mPhase;
+		
+		RepeatedIterator() {
+			mPhase=mRepeatedSchedule.getPhases().iterator();
+		}
+
+		@Override
+		public boolean hasNext() {
+			return true;
+		}
+
+		@Override
+		public StaticPhase next() {
+			// Restart from beginning at end of period
+			if (mPhase.hasNext()==false)
+				mPhase=mRepeatedSchedule.getPhases().iterator();
+			return mPhase.next();
+		}
+
+		@Override
+		public void remove() {
+			throw new UnsupportedOperationException();
+		}
 	}
 	
 	private class ForeverElement implements XmlElement {
