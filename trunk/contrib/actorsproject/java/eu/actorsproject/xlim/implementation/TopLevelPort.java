@@ -86,12 +86,10 @@ class TopLevelPort implements XlimTopLevelPort, StateLocation {
 
 	@Override
 	public String getAttributeDefinitions(XmlAttributeFormatter formatter) {
-		String dir;
-		if (mDirection==Direction.internal)
-			dir = "";
-		else
-			dir = "dir=\"" + mDirection + "\" ";
-		return "name=\"" + mName +"\" " + dir + mType.getAttributeDefinitions(formatter);
+		String result=formatter.getAttributeDefinition("name", this, mName);
+		if (mDirection!=Direction.internal)
+			result=formatter.addAttributeDefinition(result,"dir",mDirection);
+		return result + " " + mType.getAttributeDefinitions(formatter);
 	}
 
 	@Override

@@ -107,12 +107,12 @@ class PortOperationKind extends OperationKind {
 	public String getAttributeDefinitions(XlimOperation op, XmlAttributeFormatter formatter) {
 		XlimTopLevelPort port=op.getPortAttribute();
 		assert(port!=null);
-		String result=super.getAttributeDefinitions(op, formatter)
-			+" "+mPortAttributeName+"=\""+port.getName()+"\"";
+		String result=super.getAttributeDefinitions(op, formatter);
+		
+		result=formatter.addAttributeDefinition(result, mPortAttributeName,port, port.getName());
 		if (mIntAttributeName!=null) {
 			Long l=op.getIntegerValueAttribute();
-			if (l!=null)
-				result+=" "+mIntAttributeName+"=\""+l+"\"" ;
+			result=formatter.addAttributeDefinition(result, mIntAttributeName, l);
 		}
 		if (op.hasBlockingStyle())
 			result+=" style=\"blocking\"";
