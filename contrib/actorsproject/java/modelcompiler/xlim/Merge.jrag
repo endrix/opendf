@@ -6,9 +6,13 @@
  * This file is part of Actors model compiler.                      
  */                                                             
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
-import eu.actorsproject.xlim.decision.ActionSchedule;
+import eu.actorsproject.xlim.schedule.ActionSchedule;
+import eu.actorsproject.xlim.schedule.PhasePrinter;
+import eu.actorsproject.xlim.schedule.StaticActionSchedule;
+import eu.actorsproject.xlim.schedule.StaticPhase;
 
 aspect Merge {
 	private static int design.nameIndex = 0;
@@ -755,36 +759,52 @@ aspect ActionScheduler {
 		return body;
 	}
 
-	public void Element.addActionSchedule(module schedule) {}
-	public void Start.addActionSchedule(module schedule) {
-		actionScheduler().addActionSchedule(schedule);
-	}
-	public void module.addActionSchedule(module schedule) {
-		if (kind().equals("body") || kind().equals("else")) {
-			for (Element e : schedule.getActionSchedulerBody().getElements()) {
-				addElement(e);
-			} 
-		} else {
-			for ( Element e : getElements()) {
-				e.addActionSchedule(schedule);
-			}
-		}
-	}
+	// public void Element.addActionSchedule(module schedule) {}
+	// public void Start.addActionSchedule(module schedule) {
+	// 	actionScheduler().addActionSchedule(schedule);
+	// }
+	// public void module.addActionSchedule(module schedule) {
+	// 	if (kind().equals("body") || kind().equals("else")) {
+	// 		for (Element e : schedule.getActionSchedulerBody().getElements()) {
+	// 			addElement(e);
+	// 		} 
+	// 	} else {
+	// 		for ( Element e : getElements()) {
+	// 			e.addActionSchedule(schedule);
+	// 		}
+	// 	}
+	// }
 
-	syn module Element.getActionSchedulerBody() = null;
-	eq ComplexElement.getActionSchedulerBody() {
-		for (Element e : getElements()) {
-			if (e.getActionSchedulerBody() != null) {
-				return e.getActionSchedulerBody();
-			}
-		}
-		return null;
+	// syn module Element.getActionSchedulerBody() = null;
+	// eq ComplexElement.getActionSchedulerBody() {
+	// 	for (Element e : getElements()) {
+	// 		if (e.getActionSchedulerBody() != null) {
+	// 			return e.getActionSchedulerBody();
+	// 		}
+	// 	}
+	// 	return null;
+	// }
+	// eq module.getActionSchedulerBody() {
+	// 	if (kind().equals("body")) {
+	// 		return this;
+	// 	} 
+	// 	return super.getActionSchedulerBody();
+	// }
+
+	public void module.addActorPhase(String phaseXlim) {
+		ActorPhase ap = new ActorPhase();
+		ap.setPhase(phaseXlim);
+		addElement(ap);
 	}
-	eq module.getActionSchedulerBody() {
-		if (kind().equals("body")) {
-			return this;
-		} 
-		return super.getActionSchedulerBody();
+}
+
+aspect ActorPhase {
+	String ActorPhase.phase;
+	public void ActorPhase.setPhase(String phase) {this.phase = phase;}
+	public String ActorPhase.getPhase() {return phase;}
+
+	public void ActorPhase.prettyPrint(String ind, PrintStream pStream) {
+		pStream.print(phase);
 	}
 }
 
@@ -797,13 +817,35 @@ aspect Classification {
 		return actionSchedule;
 	}
 
-	public LinkedList<Object> ASTNode.getActionList() {
-	  return getActionSchedule().getActionList();
+	// public LinkedList<Object> ASTNode.getActionList() {
+	//   return getActionSchedule().getActionList();
+	// }
+
+	// public LinkedList<Integer> actor_port.tokenPattern() {
+	// 	return getActionSchedule().getPortPattern(name());
+	// }
+	public Iterable<StaticPhase> ASTNode.getPhases() {
+		return getActionSchedule().getStaticSchedule().getRepeatedSchedule().getPhases();
 	}
 
-	public LinkedList<Integer> actor_port.tokenPattern() {
-		return getActionSchedule().getPortPattern(name());
+	public PhasePrinter ASTNode.getPhasePrinter() {
+		if (getActionSchedule().isStatic()) {
+			StaticActionSchedule sas = getActionSchedule().getStaticSchedule();
+			if (!sas.hasInitialSchedule() && sas.repeatsForever()) {
+				return sas.getPhasePrinter(nameMap);
+			} else {
+				System.out.println("Static schedule is not really static.");		   
+			}
+		} else {
+			System.out.println("Can not create PhasePrinter for non-static actors.");
+		}
+		return null;
 	}
+
+}
+
+aspect NameMap {
+	static HashMap<String,String> ASTNode.nameMap = new HashMap<String,String>();
 }
 
 aspect Misc {

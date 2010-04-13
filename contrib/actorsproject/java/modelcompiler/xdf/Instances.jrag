@@ -78,9 +78,10 @@ aspect Misc {
 		return xlimInstance(directory).getPorts(set);
 	}
 
-	public LinkedList<Object> Instance.getActionList() {
-	  return xlimInstance().getActionList();
-	}
+	// public LinkedList<Object> Instance.getActionList() {
+	//   return xlimInstance().getActionList();
+	// }
+	// Replaced with getPhases() in xlim.
 
 	syn boolean Port.isInputPort() = kind().equals("Input");
 
