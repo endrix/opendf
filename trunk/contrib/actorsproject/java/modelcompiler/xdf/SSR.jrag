@@ -11,51 +11,56 @@ import java.io.FileReader;
 import java.util.HashSet;
 import eu.actorsproject.cli.ActorClassifier;
 import eu.actorsproject.xlim.XlimDesign;
-import eu.actorsproject.xlim.decision.ModeScheduler;
-import eu.actorsproject.xlim.decision.ActionSchedule;
+// import eu.actorsproject.xlim.decision.ModeScheduler;
+// import eu.actorsproject.xlim.decision.ActionSchedule;
+import eu.actorsproject.xlim.schedule.ActionSchedule;
+import eu.actorsproject.xlim.schedule.Classifier;
 
 aspect Classification {
 	public String Instance.classification() {
+		return classification("./");
+	}
+
+	public String Instance.classification(String dir) {
 		if (!name().startsWith("art_")) {
 			// No need trying to analyze system actors
 			// System.out.println("Trying to analyze: "+name());
 			ActorClassifier ac = new ActorClassifier();
 			ac.initSession(null);
-			XlimDesign xlim = ac.read(new File(cwd+name()+".xlim"));
-			ModeScheduler modeScheduler = new ModeScheduler();
-			ActionSchedule actionSchedule = modeScheduler.getActionSchedule(xlim);
+			XlimDesign xlim = ac.read(new File(dir+name()+".xlim"));
+			// ModeScheduler modeScheduler = new ModeScheduler();
+			Classifier classifier = new Classifier(xlim);
+			ActionSchedule actionSchedule = classifier.getActionSchedule();
 			xlimInstance().setActionSchedule(actionSchedule);
-			if (actionSchedule.isDeterministic()) {
-				if (actionSchedule.hasStaticSchedule()) {
-					return "CSDF";
-				} else {
-					return "DDF";
-				}
+			if (actionSchedule.isStatic()) {
+				return "CSDF";
+			} else {
+				return "DDF";
 			}
 		}
 		return "non-deterministic";
 	}
 
-	public String Instance.classificationNew(String directory) {
-		if (!name().startsWith("art_")) {
-			// No need trying to analyze system actors
-			// System.out.println("Trying to analyze: "+name());
-			ActorClassifier ac = new ActorClassifier();
-			ac.initSession(null);
-			XlimDesign xlim = ac.read(new File(directory+name()+".xlim"));
-       			ModeScheduler modeScheduler = new ModeScheduler();
-		      	ActionSchedule actionSchedule = modeScheduler.getActionSchedule(xlim);
-			xlimInstance(directory).setActionSchedule(actionSchedule);
-		     	if (actionSchedule.isDeterministic()) {
-		         	if (actionSchedule.hasStaticSchedule()) {
-				return "CSDF";
-		   			} else {
-		      			return "DDF";
-				}
-	     		}
-		}
-      		return "non-deterministic";
-	}
+	// public String Instance.classificationNew(String directory) {
+	// 	if (!name().startsWith("art_")) {
+	// 		// No need trying to analyze system actors
+	// 		// System.out.println("Trying to analyze: "+name());
+	// 		ActorClassifier ac = new ActorClassifier();
+	// 		ac.initSession(null);
+	// 		XlimDesign xlim = ac.read(new File(directory+name()+".xlim"));
+    //    			ModeScheduler modeScheduler = new ModeScheduler();
+	// 	      	ActionSchedule actionSchedule = modeScheduler.getActionSchedule(xlim);
+	// 		xlimInstance(directory).setActionSchedule(actionSchedule);
+	// 	     	if (actionSchedule.isDeterministic()) {
+	// 	         	if (actionSchedule.hasStaticSchedule()) {
+	// 			return "CSDF";
+	// 	   			} else {
+	// 	      			return "DDF";
+	// 			}
+	//      		}
+	// 	}
+    //   		return "non-deterministic";
+	// }
 
 }
 

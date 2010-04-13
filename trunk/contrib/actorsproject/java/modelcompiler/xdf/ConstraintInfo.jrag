@@ -22,7 +22,7 @@ aspect ConstraintInfo {
 		for (Instance i : getInstances(new LinkedList<Instance>())) {
 			System.out.println(i.name()+" "+i.classification());
 			for (xlimAST.actor_port p : i.getPorts()) {
-				System.out.println(p.name()+" "+p.tokenPattern());
+				// System.out.println(p.name()+" "+p.tokenPattern());
 			}
 		}
 	}

@@ -96,10 +96,10 @@ aspect MergeActors {
 				c.remove_me = true;
 				c.is$Final(false);
 			} else if (Arrays.binarySearch(schedule,c.getDest().getIndex()) > -1) {
-				c.setDestPort(unfix(c.getDest().className()+"_"+c.dstPort()));
+				c.setDestPort(unfix(c.getDest().name()+"_"+c.dstPort()));
 				c.setDest(unfix(name));
 			} else if (Arrays.binarySearch(schedule,c.getSource().getIndex()) > -1) {
-				c.setSourcePort(unfix(c.getSource().className()+"_"+c.srcPort()));
+				c.setSourcePort(unfix(c.getSource().name()+"_"+c.srcPort()));
 				c.setSource(unfix(name));
 			}
 		}
@@ -144,8 +144,10 @@ aspect MergeActors {
 		mports = mergeInstance.getOutports(mports);
 		xlimAST.module body = xlimInstance.addActionScheduler(mports);
 		for (int i=0; i<schedule.length; i++) {
-			body.addActionSchedule(getInstance(schedule[i]).
-											xlimInstance().actionScheduler());
+			// body.addActionSchedule(getInstance(schedule[i]).
+			// 								xlimInstance().actionScheduler());
+			body.addActorPhase(getInstance(schedule[i]).xlimInstance().
+							   getPhasePrinter().printNextPhase());
 		}
 
 		// Detach superfluous instances from xdf

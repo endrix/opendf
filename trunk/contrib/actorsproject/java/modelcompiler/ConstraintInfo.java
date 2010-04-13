@@ -26,7 +26,7 @@ public class ConstraintInfo extends XdfParser {
 			System.out.println(i.name()+" "+i.classification());
 			for (xlimAST.actor_port p : i.getPorts()) {
 				// System.out.println("  "+p.name()+" "+Arrays.toString(p.tokenPattern()));
-				System.out.println("  "+p.name()+" "+p.tokenPattern());
+				// System.out.println("  "+p.name()+" "+p.tokenPattern());
 			}
 		}
 	}
