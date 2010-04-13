@@ -93,13 +93,14 @@ public class TaskOperationKind extends OperationKind {
 	
 	@Override
 	public String getAttributeDefinitions(XlimOperation op, XmlAttributeFormatter formatter) {
+		String definitions=super.getAttributeDefinitions(op, formatter);
 		XlimTaskModule task=op.getTaskAttribute();
 		if (task!=null) {
-			String name=task.getName();
-			if (name!=null)
-				return super.getAttributeDefinitions(op, formatter)+" "+mAttributeName+"=\""+name+"\"";
+			definitions=formatter.addAttributeDefinition(definitions, 
+					                                     mAttributeName, task, 
+					                                     task.getName());
 		}
-		return super.getAttributeDefinitions(op, formatter);
+		return definitions;
 	}
 	
 	@Override
