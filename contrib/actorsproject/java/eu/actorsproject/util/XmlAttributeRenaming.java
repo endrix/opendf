@@ -70,4 +70,8 @@ public class XmlAttributeRenaming<T> extends XmlAttributeFormatter.PlugIn<T> {
 	public void rename(T attr, String newValue) {
 		mMapping.put(attr, newValue);
 	}
+	
+	public boolean isEmpty() {
+		return mMapping.isEmpty();
+	}
 }
