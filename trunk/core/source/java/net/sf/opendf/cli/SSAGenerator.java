@@ -269,7 +269,7 @@ public class SSAGenerator extends XSLTTransformRunner
             try
             {
                 final Node ecalmlNode = Elaborator.elaborateModel(this.configs, null, SSAGenerator.class.getClassLoader());
-                writeFile(new File(this.getRunDir(), prefix+".ecalml"), Util.createXML(ecalmlNode));
+                if (this.isPreserveFiles()) writeFile(new File(this.getRunDir(), prefix+".ecalml"), Util.createXML(ecalmlNode));
                 calmlNode = Elaborator.elabPostProcess(ecalmlNode, this.configs, null, SSAGenerator.class.getClassLoader());
             }catch (Exception e ){
                 throw new SubProcessException("Could not elaborate top model",e);
