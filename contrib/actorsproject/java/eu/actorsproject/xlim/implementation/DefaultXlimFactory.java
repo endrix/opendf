@@ -42,6 +42,7 @@ import java.util.List;
 import eu.actorsproject.xlim.XlimFactory;
 import eu.actorsproject.xlim.XlimInitValue;
 import eu.actorsproject.xlim.XlimType;
+import eu.actorsproject.xlim.io.ReaderContext;
 
 /**
  * @author ecarvon
@@ -49,8 +50,8 @@ import eu.actorsproject.xlim.XlimType;
  */
 public class DefaultXlimFactory implements XlimFactory {
 	@Override
-	public Design createDesign(String name) {
-		return new Design(name);
+	public Design createDesign(String name, ReaderContext symbolTable) {
+		return new Design(name, symbolTable);
 	}
 
 	@Override

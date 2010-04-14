@@ -117,7 +117,7 @@ public class Classifier {
 		if (mActionSchedule==null) {
 			ControlFlowGraph cfg=getControlFlowGraph();
 			
-			mActionSchedule=ActionSchedule.create(cfg);
+			mActionSchedule=ActionSchedule.create(cfg, mDesign.getSymbolTable());
 		}
 		return mActionSchedule;
 	}

@@ -41,11 +41,13 @@ import java.util.List;
 
 import eu.actorsproject.util.XmlElement;
 import eu.actorsproject.xlim.dependence.CallGraph;
+import eu.actorsproject.xlim.io.ReaderContext;
 import eu.actorsproject.xlim.util.BagOfTranslationOptions;
 
 
 public interface XlimDesign extends XmlElement {
 	String getName();
+	ReaderContext getSymbolTable();
 	List<? extends XlimTopLevelPort> getInputPorts();
 	List<? extends XlimTopLevelPort> getOutputPorts();
 	List<? extends XlimTopLevelPort> getInternalPorts();

@@ -42,12 +42,14 @@ package eu.actorsproject.xlim;
 
 import java.util.List;
 
+import eu.actorsproject.xlim.io.ReaderContext;
+
 // TODO: reconsider the overall design of how XLIM is created
 // Whereas the current design works well for the XlimReader, it's awkward when patching...
 
 public interface XlimFactory {
 
-	XlimDesign createDesign(String name);
+	XlimDesign createDesign(String name, ReaderContext originalSymbols);
 	
 	/**
 	 * @param value

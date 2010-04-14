@@ -45,6 +45,8 @@ import java.util.Map;
 import eu.actorsproject.util.ConcatenatedIterable;
 import eu.actorsproject.util.XmlAttributeFormatter;
 import eu.actorsproject.util.XmlElement;
+import eu.actorsproject.xlim.io.ReaderContext;
+import eu.actorsproject.xlim.util.XlimAttributeRenaming;
 
 /**
  * Represents a Static action schedule. It consists of at least one of
@@ -56,18 +58,24 @@ public class StaticActionSchedule {
 
 	private StaticSubSchedule mInitialSchedule;
 	private StaticSubSchedule mRepeatedSchedule;
-	
+	private ReaderContext     mOriginalSymbols;
 	/**
 	 * @param initialSchedule   the initial schedule (or null if none)
 	 * @param repeatedSchedule  the repeated schedule (or null if none)
+	 * @param originalSymbols   a ReaderContext, which allows for symbol look-up
+	 *                          in terms of original names (as given in input file)
 	 * 
-	 * One, but not both, of these components can be left out (null)
+	 * One, but not both, of the schedules can be left out (null)
+	 * The originalSymbols can be left out (null) unless renaming of attributes in
+	 * print-outs is required.
 	 */
 	public StaticActionSchedule(StaticSubSchedule initialSchedule, 
-			                    StaticSubSchedule repeatedSchedule) {
+			                    StaticSubSchedule repeatedSchedule,
+			                    ReaderContext originalSymbols) {
 		assert(initialSchedule!=null || repeatedSchedule!=null);
 		mInitialSchedule = initialSchedule;
 		mRepeatedSchedule = repeatedSchedule;
+		mOriginalSymbols = originalSymbols;
 	}
 		
 	/**
@@ -121,6 +129,7 @@ public class StaticActionSchedule {
 
 	/**
 	 * @param idRenaming mapping from "old" to "new" XLIM identifiers
+	 *                   (if null or empty no renaming will be performed)
 	 * @return PhasePrinter of the StaticSchedule
 	 * 
 	 * The set of XLIM identifiers that may be renamed are references to
@@ -132,7 +141,20 @@ public class StaticActionSchedule {
 	 * associate each use with a unique definition that dominates the use.
 	 */
 	public PhasePrinter getPhasePrinter(Map<String,String> idRenaming) {
-		return new PhasePrinter(getPhases());
+		XlimAttributeRenaming attributeRenaming=null;
+		
+		if (mOriginalSymbols!=null) {
+			attributeRenaming=new XlimAttributeRenaming();
+			attributeRenaming.useOriginalNames(mOriginalSymbols);
+			if (idRenaming!=null)
+				attributeRenaming.rename(mOriginalSymbols, idRenaming);
+		}
+		else { 
+			// We can't do renaming, assert that we don't want to!
+			assert(idRenaming==null || idRenaming.isEmpty());
+		}
+		
+		return new XlimPhasePrinter(getPhases(),attributeRenaming,true /* rename outputs */);
 	}
 	
 	

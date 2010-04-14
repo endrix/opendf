@@ -47,7 +47,8 @@ import java.util.Set;
 
 import eu.actorsproject.util.XmlAttributeFormatter;
 import eu.actorsproject.util.XmlElement;
-import eu.actorsproject.xlim.XlimOperation;
+import eu.actorsproject.util.XmlPrinter;
+import eu.actorsproject.xlim.XlimBlockElement;
 import eu.actorsproject.xlim.decision2.ActionNode;
 import eu.actorsproject.xlim.decision2.Condition;
 import eu.actorsproject.xlim.decision2.DecisionNode;
@@ -323,6 +324,12 @@ public class ControlFlowGraph implements XmlElement {
 				mTestElement=new TestElement(mDecision.getCondition());
 			return Collections.singleton(mTestElement);
 		}
+
+		@Override
+		void printPhase(XlimPhasePrinter printer) {
+			// TODO: the actual output goes here!
+			printer.getPrinter().printComment("Here should be the XLIM of a ");
+		}
 	}
 	
 	protected class ActionBlock extends BasicBlock {
@@ -372,9 +379,16 @@ public class ControlFlowGraph implements XmlElement {
 		}
 		
 		@Override
-		public Iterable<? extends XmlElement> getChildren() {
+		public Iterable<? extends XlimBlockElement> getChildren() {
 			return mAction.getChildren();
-		}		
+		}	
+		
+		@Override
+		void printPhase(XlimPhasePrinter printer) {
+			for (XlimBlockElement element: getChildren()) {
+				printer.printBlockElement(element);
+			}
+		}
 	}
 	
 	protected class TerminalBlock extends BasicBlock {
@@ -402,6 +416,12 @@ public class ControlFlowGraph implements XmlElement {
 
 		public Iterable<? extends XmlElement> getChildren() {
 			return Collections.emptyList();
+		}
+		
+		@Override
+		void printPhase(XlimPhasePrinter printer) {
+			// TODO: the actual output goes here!
+			printer.getPrinter().printComment("Here should be the XLIM of a TerminalNode");
 		}
 	}
 }
