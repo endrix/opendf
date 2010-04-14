@@ -215,8 +215,10 @@
     <xsl:choose>
       <xsl:when test="@name = $S/substitution/@name">
         <xsl:variable name="varName" select="@name"/>
-        <Stmt kind="Assign" name="{$S/substitution[@name=$varName]/@new-name}">
-          <xsl:copy-of select="*"/>
+        <Stmt kind="Assign" name="{$S/substitution[@name=$varName]/@new-name}">        
+             <xsl:apply-templates mode="alpha-reduce">
+              <xsl:with-param name="S" select="$S"/>
+            </xsl:apply-templates>
         </Stmt>
       </xsl:when>
       <xsl:otherwise>
