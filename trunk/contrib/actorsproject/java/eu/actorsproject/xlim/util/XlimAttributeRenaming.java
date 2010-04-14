@@ -46,6 +46,7 @@ import eu.actorsproject.xlim.XlimTaskModule;
 import eu.actorsproject.xlim.XlimTopLevelPort;
 import eu.actorsproject.xlim.XlimType;
 import eu.actorsproject.xlim.io.ReaderContext;
+import eu.actorsproject.xlim.io.ReaderPlugIn;
 import eu.actorsproject.xlim.io.XlimTypeDef;
 
 /**
@@ -70,6 +71,8 @@ public class XlimAttributeRenaming {
 		new XmlAttributeRenaming<XlimType>(XlimType.class);
 	
 	/**
+	 * Rename XLIM identifiers according to the given mapping
+	 * 
 	 * @param originalIds  Original identifiers (a ReaderContext)
 	 * @param mapping      mapping from "original" to "new" identifiers
 	 */
@@ -104,6 +107,28 @@ public class XlimAttributeRenaming {
 					}
 				}
 			}
+		}
+	}
+
+	/**
+	 * Use the original names (as read from file) for StateVariables and typeDefs
+	 * (By default shorter/more readable names are used in print-outs)
+	 * 
+	 * @param originalIds  Original identifiers (a ReaderContext)
+	 */
+	public void useOriginalNames(ReaderContext originalIds) {
+		// "rename" StateVars
+		Map<String,XlimStateVar> originalStateVars=originalIds.getOriginalStateVars();
+		for (Map.Entry<String,XlimStateVar> entry: originalStateVars.entrySet()) {
+			mStateVarPlugIn.rename(entry.getValue(), entry.getKey());
+		}
+		
+		// "rename" TypeDefs
+		Map<String,XlimTypeDef> originalTypeDefs=originalIds.getOriginalTypeDefs();
+		ReaderPlugIn readerPlugIn=Session.getReaderPlugIn();
+		for (Map.Entry<String,XlimTypeDef> entry: originalTypeDefs.entrySet()) {
+			XlimType type=entry.getValue().getType(readerPlugIn,originalIds);
+			mTypePlugIn.rename(type, entry.getKey());
 		}
 	}
 	

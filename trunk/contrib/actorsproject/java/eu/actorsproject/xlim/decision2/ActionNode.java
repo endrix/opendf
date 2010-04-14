@@ -175,7 +175,7 @@ public class ActionNode extends DecisionTree {
 	}
 
 	@Override
-	public Iterable<? extends XmlElement> getChildren() {
+	public Iterable<? extends XlimBlockElement> getChildren() {
 		return mAction.getChildren();
 	}
 }

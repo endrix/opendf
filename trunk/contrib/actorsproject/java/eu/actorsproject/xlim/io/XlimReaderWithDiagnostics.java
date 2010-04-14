@@ -278,7 +278,7 @@ public class XlimReaderWithDiagnostics implements IXlimReader {
 			String name=getRequiredAttribute("name",rootElement);
 			if (name==null)
 				name=""; // Error recovery: give it an empty name
-			XlimDesign design=mFactory.createDesign(name);
+			XlimDesign design=mFactory.createDesign(name,context);
 			List<XlimElement> taskElements=new ArrayList<XlimElement>();
 			
 			// First declare all top-level constructs

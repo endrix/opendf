@@ -56,6 +56,7 @@ import eu.actorsproject.xlim.XlimType;
 import eu.actorsproject.xlim.XlimTopLevelPort.Direction;
 import eu.actorsproject.xlim.dependence.CallGraph;
 import eu.actorsproject.xlim.io.BagOfTypeDefs;
+import eu.actorsproject.xlim.io.ReaderContext;
 import eu.actorsproject.xlim.util.BagOfTranslationOptions;
 import eu.actorsproject.xlim.util.Session;
 import eu.actorsproject.xlim.util.TranslationOption;
@@ -63,6 +64,7 @@ import eu.actorsproject.xlim.util.TranslationOption;
 class Design implements XlimDesign {
 
 	private String mName;
+	private ReaderContext mSymbolTable;
 	private CallGraph mCallGraph;
 	private BagOfTranslationOptions mTranslationOptions;
 	
@@ -70,8 +72,9 @@ class Design implements XlimDesign {
 	protected ArrayList<XlimStateVar> mStateVars;
 	protected ArrayList<XlimTaskModule> mTasks;
 	
-	public Design(String name) {
+	public Design(String name, ReaderContext symbolTable) {
 		mName = name;
+		mSymbolTable=symbolTable;
 		mInputPorts = new ArrayList<XlimTopLevelPort>();
 		mOutputPorts = new ArrayList<XlimTopLevelPort>();
 		mInternalPorts = new ArrayList<XlimTopLevelPort>();
@@ -112,6 +115,10 @@ class Design implements XlimDesign {
 		return mName;
 	}
 
+	@Override
+	public ReaderContext getSymbolTable() {
+		return mSymbolTable;
+	}
 
 	@Override
 	public List<? extends XlimTopLevelPort> getInputPorts() {

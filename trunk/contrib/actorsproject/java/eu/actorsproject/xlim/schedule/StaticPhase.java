@@ -42,7 +42,6 @@ import java.util.Collections;
 
 import eu.actorsproject.util.XmlAttributeFormatter;
 import eu.actorsproject.util.XmlElement;
-import eu.actorsproject.util.XmlPrinter;
 import eu.actorsproject.xlim.decision2.PortSignature;
 
 /**
@@ -66,10 +65,6 @@ public class StaticPhase implements StaticSubSchedule {
 		return mActionSelection;
 	}
 
-	public void printXlim(XmlPrinter printer) {
-		// TODO: the actual output goes here!
-		printer.printComment("Here should be the XLIM of a StaticPhase");
-	}
 	/*
 	 * Implementation of StaticSubSchedule
 	 */

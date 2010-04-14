@@ -86,4 +86,6 @@ public abstract class BasicBlock implements XmlElement {
 	void setIdentifier(int identifier) {
 		mIdentifier=identifier;
 	}
+	
+	abstract void printPhase(XlimPhasePrinter printer);
 }

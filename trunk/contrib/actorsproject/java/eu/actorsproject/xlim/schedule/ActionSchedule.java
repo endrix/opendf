@@ -51,6 +51,7 @@ import eu.actorsproject.xlim.decision2.DecisionNode;
 import eu.actorsproject.xlim.decision2.DecisionTree;
 import eu.actorsproject.xlim.decision2.NullNode;
 import eu.actorsproject.xlim.decision2.PortSignature;
+import eu.actorsproject.xlim.io.ReaderContext;
 
 /**
  * Represents all possible action schedules of the actor
@@ -59,21 +60,29 @@ public class ActionSchedule {
 
 	private ControlFlowGraph mControlFlowGraph;
 	private MergeFindPartition<BasicBlock> mPartition;
+	private ReaderContext mOriginalSymbols;
 	private StaticActionSchedule mStaticSchedule;
 	private boolean mHasStaticSchedule;
 	private boolean mIsTimingDependent;
 	
-	protected ActionSchedule(ControlFlowGraph controlFlowGraph) {
+	protected ActionSchedule(ControlFlowGraph controlFlowGraph,
+			                 ReaderContext originalSymbols) {
 		mControlFlowGraph=controlFlowGraph;
 		mPartition=new MergeFindPartition<BasicBlock>();
+		mOriginalSymbols=originalSymbols;
 	}
 	
 	/**
 	 * @param controlFlowGraph
+	 * @param originalSymbols   a ReaderContext, which allows for symbol look-up
+	 *                          in terms of original names (as given in input file).
+	 *                          May be null, but then no renaming of identifiers
+	 *                          will be done in XLIM print-outs.
 	 * @return an action schedule that is constructed from the control-flow graph
 	 */
-	public static ActionSchedule create(ControlFlowGraph controlFlowGraph) {
-		ActionSchedule result=new ActionSchedule(controlFlowGraph);
+	public static ActionSchedule create(ControlFlowGraph controlFlowGraph,
+			                            ReaderContext originalSymbols) {
+		ActionSchedule result=new ActionSchedule(controlFlowGraph, originalSymbols);
 		result.createInitialPartition();
 		// TODO: substitute mergePhases() for checkPhases() once we got
 		// the DecisionTree right (merge them, if there is more than one)
@@ -194,7 +203,7 @@ public class ActionSchedule {
 			initialSchedule=new StaticSequence(phases, 1);
 		}
 		
-		return new StaticActionSchedule(initialSchedule,repeatedSchedule);
+		return new StaticActionSchedule(initialSchedule,repeatedSchedule,mOriginalSymbols);
 	}
 	
 	private String yesOrNo(boolean p) {

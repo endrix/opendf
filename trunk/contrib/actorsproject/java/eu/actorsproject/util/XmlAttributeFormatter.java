@@ -96,7 +96,7 @@ public class XmlAttributeFormatter {
 		String value=null;
 		if (plugIn!=null)
 			value=plugIn.getAttributeValue(attributeValue);
-		else if (defaultValue!=null)
+		if (value==null && defaultValue!=null)
 			value=defaultValue.toString();
 		if (value!=null)
 			return attributeName+"=\""+value+"\"";
