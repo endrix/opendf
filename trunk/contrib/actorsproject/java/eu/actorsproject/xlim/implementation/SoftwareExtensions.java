@@ -88,6 +88,10 @@ public class SoftwareExtensions extends XlimFeature {
 		// yield: void -> void
 		OperationKind yield=new YieldOperationKind("yield", new VoidTypeRule(null));
 		s.registerOperation(yield);
+		
+		// valloc void -> T
+		OperationKind valloc=new OperationKind("$valloc", new VAllocTypeRule());
+		s.registerOperation(valloc);
 	}
 }
 
@@ -114,6 +118,37 @@ class SignExtendTypeRule extends IntegerTypeRule {
 			return t.getSize();
 		else
 			throw new IllegalArgumentException("signExtend: not possible to deduce width");
+	}
+}
+
+/**
+ * Checks: void -> T (any type T)
+ * $valloc is used for (undefined) initial values
+ */
+class VAllocTypeRule extends TypeRule {
+
+	public VAllocTypeRule() {
+		super(null);  // null-ary/no inputs
+	}
+
+	@Override
+	public int defaultNumberOfOutputs() {
+		return 1;
+	}
+
+	@Override
+	public XlimType defaultOutputType(List<? extends XlimSource> inputs, int i) {
+		return null;  // Can't say, must be provided
+	}
+
+	@Override
+	public boolean matchesOutputs(List<? extends XlimOutputPort> outputs) {
+		return outputs.size()==1; // Only requirement is that there be a single output
+	}
+	
+	@Override
+	public XlimType actualOutputType(XlimOperation op, int i) {
+		return op.getOutputPort(i).getType(); // Actual type is "declared type"
 	}
 }
 
