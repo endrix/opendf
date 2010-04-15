@@ -809,11 +809,11 @@ aspect ActorPhase {
 }
 
 aspect Classification {
-	static ActionSchedule ASTNode.actionSchedule;
+	ActionSchedule Start.actionSchedule;
 	public void Start.setActionSchedule(ActionSchedule as) {
 		actionSchedule = as;
 	}
-	public ActionSchedule ASTNode.getActionSchedule() {
+	public ActionSchedule Start.getActionSchedule() {
 		return actionSchedule;
 	}
 
@@ -824,15 +824,29 @@ aspect Classification {
 	// public LinkedList<Integer> actor_port.tokenPattern() {
 	// 	return getActionSchedule().getPortPattern(name());
 	// }
-	public Iterable<StaticPhase> ASTNode.getPhases() {
-		return getActionSchedule().getStaticSchedule().getRepeatedSchedule().getPhases();
-	}
+	// public Iterable<StaticPhase> ASTNode.getPhases() {
+	// 	return getActionSchedule().getStaticSchedule().getRepeatedSchedule().getPhases();
+	// }
 
-	public PhasePrinter ASTNode.getPhasePrinter() {
-		if (getActionSchedule().isStatic()) {
+	PhasePrinter Start.phasePrinter;
+
+	public PhasePrinter Start.getPhasePrinter() {
+		if (phasePrinter != null) {
+			System.out.println("PhasePrinter is cached");
+			return phasePrinter;
+		} else if (getActionSchedule().isStatic()) {			
 			StaticActionSchedule sas = getActionSchedule().getStaticSchedule();
+			System.out.println("schedules: "+getActionSchedule()+" "+ sas);
 			if (!sas.hasInitialSchedule() && sas.repeatsForever()) {
-				return sas.getPhasePrinter(nameMap);
+				try {
+					phasePrinter = sas.getPhasePrinter(nameMap);
+				} catch (IllegalArgumentException e) {
+					// System.out.println(nameMap.values());
+					System.out.println(nameMap.keySet());
+					System.out.println(e.getMessage());
+					e.printStackTrace();
+				}
+				return phasePrinter;
 			} else {
 				System.out.println("Static schedule is not really static.");		   
 			}
@@ -845,7 +859,10 @@ aspect Classification {
 }
 
 aspect NameMap {
-	static HashMap<String,String> ASTNode.nameMap = new HashMap<String,String>();
+	HashMap<String,String> Start.nameMap = new HashMap<String,String>();
+	
+	syn HashMap<String,String> ASTNode.nameMap() = getParent().nameMap();
+	eq Start.nameMap() = nameMap;
 }
 
 aspect Misc {
@@ -872,17 +889,30 @@ aspect Misc {
 			e.mangleNames(prefix+"_");
 		}
 	}
+	void type.mangleNames(String prefix) {
+		for (Element e : getElements()) {
+			e.mangleNames(prefix+"_");
+		}
+	}
 	// void decision.mangleNames(String prefix) {
 	// 	// System.out.println("* Mangling decision");
 	// 	getAttrValue().setLITERAL(unfix(prefix+fix(getAttrValue().getLITERAL())));
 	// }
 	void _name.mangleNames(String prefix) {
 		// System.out.println("* Mangling name");
-		getAttrValue().setLITERAL(unfix(prefix+fix(getAttrValue().getLITERAL())));
+		String origName = fix(getAttrValue().getLITERAL());
+		String newName = prefix+origName;
+		// System.out.println("Adding mapping: "+origName+" -> "+newName);
+		nameMap().put(origName,newName);
+		getAttrValue().setLITERAL(unfix(newName));
 	}
 	void portName.mangleNames(String prefix) {
 		// System.out.println("* Mangling portName");
-		getAttrValue().setLITERAL(unfix(prefix+fix(getAttrValue().getLITERAL())));
+		String origName = fix(getAttrValue().getLITERAL());
+		String newName = prefix+origName;
+		// System.out.println("Adding mapping: "+origName+" -> "+newName);
+		nameMap().put(origName,newName);
+		getAttrValue().setLITERAL(unfix(newName));
 	}
 	void operation.mangleNames(String prefix) {
 		if (!kind().equals("var_ref")) {
@@ -897,7 +927,12 @@ aspect Misc {
 		// System.out.println("* Mangling source");
 		String attr = getAttrValue().getLITERAL();
 		if (attr.contains("pinAvail") || attr.equals("currentState")) {
-			getAttrValue().setLITERAL(unfix(prefix+fix(getAttrValue().getLITERAL())));
+			String origName = fix(getAttrValue().getLITERAL());
+			String newName = prefix+origName;
+			// System.out.println("Adding mapping: "+origName+" -> "+newName);
+			nameMap().put(origName,newName);
+			getAttrValue().setLITERAL(unfix(newName));
+			// getAttrValue().setLITERAL(unfix(prefix+fix(getAttrValue().getLITERAL())));
 		} 
 	}
 	void stateVar.mangleNames(String prefix) {
@@ -909,7 +944,12 @@ aspect Misc {
 		// System.out.println("* Mangling target");
 		AttrValue attr = getAttrValue();
 		if (attr.getLITERAL().contains("actionAtLine")) {
-			getAttrValue().setLITERAL(unfix(prefix+fix(getAttrValue().getLITERAL())));
+			String origName = fix(getAttrValue().getLITERAL());
+			String newName = prefix+origName;
+			// System.out.println("Adding mapping: "+origName+" -> "+newName);
+			nameMap().put(origName,newName);
+			getAttrValue().setLITERAL(unfix(newName));
+			// getAttrValue().setLITERAL(unfix(prefix+fix(getAttrValue().getLITERAL())));
 		}
 	}
 

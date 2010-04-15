@@ -146,6 +146,8 @@ aspect MergeActors {
 		for (int i=0; i<schedule.length; i++) {
 			// body.addActionSchedule(getInstance(schedule[i]).
 			// 								xlimInstance().actionScheduler());
+			System.out.println("Adding action schedule for: "+
+							   getInstance(schedule[i]).xlimInstance().name());
 			body.addActorPhase(getInstance(schedule[i]).xlimInstance().
 							   getPhasePrinter().printNextPhase());
 		}
