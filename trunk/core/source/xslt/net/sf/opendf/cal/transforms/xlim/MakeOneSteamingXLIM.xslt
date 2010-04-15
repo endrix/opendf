@@ -344,6 +344,31 @@ ENDCOPYRIGHT
         <xsl:when test="@kind='List' and ancestor::Decl">
           <xsl:apply-templates select="ancestor::Decl/Type"/>
         </xsl:when>
+     
+        <xsl:when test="@kind='Indexer'">
+          <xsl:variable name="name" select="Expr[@kind='Var']/@name"/>
+          <xsl:variable name="decl-id" select="Expr[@kind='Var']/Note[@kind='var-used' and @name=$name]/@decl-id"/>
+          <xsl:variable name="nrOfIndices" select="count(Args/Expr)" />
+          <xsl:choose>
+            <xsl:when test="$nrOfIndices=1">
+              <xsl:apply-templates select="//Decl[@id=$decl-id]/Type/Entry[@kind='Type']/Type"/>              
+            </xsl:when>
+            <xsl:when test="$nrOfIndices=2">
+              <xsl:variable name="type1" select="//Decl[@id=$decl-id]/Type/Entry[@kind='Type']/Type"/>              
+              <xsl:apply-templates select="$type1/Entry[@kind='Type']/Type"/>              
+            </xsl:when>
+            <xsl:when test="$nrOfIndices=3">
+              <xsl:variable name="type1" select="//Decl[@id=$decl-id]/Type/Entry[@kind='Type']/Type"/>              
+              <xsl:variable name="type2" select="$type1/Entry[@kind='Type']/Type"/>              
+              <xsl:apply-templates select="$type2/Entry[@kind='Type']/Type"/>                            
+            </xsl:when>
+            <xsl:otherwise> 
+              <xsl:message terminate="yes">
+                more than 3 level indices not supported
+              </xsl:message>
+            </xsl:otherwise>            
+          </xsl:choose>  
+        </xsl:when>
 
         <xsl:when test="@kind='Let' and ./Expr[@kind='List'] and ancestor::Decl">         
           <xsl:apply-templates select="ancestor::Decl/Type"/>
