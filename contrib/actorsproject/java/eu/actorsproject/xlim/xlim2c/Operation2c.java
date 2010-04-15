@@ -100,7 +100,8 @@ public class Operation2c implements OperationGenerator {
 		new PinAvailGenerator("pinAvail","pinAvail",true),
 		new YieldGenerator("yield"),
 		new SignExtendGenerator("signExtend"),
-		new VConsGenerator("$vcons")
+		new VConsGenerator("$vcons"),
+		new VAllocGenerator()
 	};
 	
 	public Operation2c() {
@@ -1016,3 +1017,16 @@ class YieldGenerator extends BasicGenerator {
 	}
 }
 
+class VAllocGenerator extends BasicGenerator {
+	
+	public VAllocGenerator() {
+		super("$valloc");
+	}
+
+	@Override
+	public void generateStatement(XlimOperation op, ExpressionTreeGenerator gen) {
+		// Do nothing!
+		// Since generateExpression() returns false, a temporary variable will
+		// be allocated for the result. We leave that variable uninitialzed!
+	}
+}
