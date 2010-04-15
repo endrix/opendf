@@ -49,6 +49,7 @@ import eu.actorsproject.util.XmlAttributeFormatter;
 import eu.actorsproject.util.XmlElement;
 import eu.actorsproject.util.XmlPrinter;
 import eu.actorsproject.xlim.XlimBlockElement;
+import eu.actorsproject.xlim.XlimSource;
 import eu.actorsproject.xlim.decision2.ActionNode;
 import eu.actorsproject.xlim.decision2.Condition;
 import eu.actorsproject.xlim.decision2.DecisionNode;
@@ -326,9 +327,38 @@ public class ControlFlowGraph implements XmlElement {
 		}
 
 		@Override
-		void printPhase(XlimPhasePrinter printer) {
-			// TODO: the actual output goes here!
-			printer.getPrinter().printComment("Here should be the XLIM of a ");
+		void printPhase(XlimPhasePrinter phasePrinter) {
+			// Evaluate the condition
+			XlimSource source=mDecision.getCondition().getXlimSource();
+			phasePrinter.printSource(source);
+			
+			// Start of if-module <module kind="if">
+			XmlPrinter xmlPrinter=phasePrinter.getPrinter();
+			xmlPrinter.println("<module kind=\"if\">");
+			xmlPrinter.increaseIndentation();
+			
+			// Test-module <module kind="test" decision="$source"/>
+			// TODO: source should be renamed
+			String decisionDef="decision=\""+source.getUniqueId()+"\"";
+			xmlPrinter.println("<module kind=\"test\" "+decisionDef+"/>");
+			
+			// Then-module
+			xmlPrinter.println("<module kind=\"then\">");
+			xmlPrinter.increaseIndentation();
+			getNode(mDecision.getChild(true)).printPhase(phasePrinter);
+			xmlPrinter.decreaseIndentation();
+			xmlPrinter.println("</module>");
+			
+			// Else-module
+			xmlPrinter.println("<module kind=\"else\">");
+			xmlPrinter.increaseIndentation();
+			getNode(mDecision.getChild(false)).printPhase(phasePrinter);
+			xmlPrinter.decreaseIndentation();
+			xmlPrinter.println("</module>");
+			
+			// End of if-module </module>
+			xmlPrinter.decreaseIndentation();
+			xmlPrinter.println("</module>");
 		}
 	}
 	
