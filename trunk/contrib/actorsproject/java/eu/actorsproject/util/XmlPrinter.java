@@ -103,7 +103,13 @@ public class XmlPrinter extends OutputGenerator {
 		return "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>";
 	}
 	
-
+	/**
+	 * @return the attribute formatter of the printer
+	 */
+	public XmlAttributeFormatter getAttributeFormatter() {
+		return mAttributeFormatter;
+	}
+	
 	/**
 	 * Registers a custom attribute formatter for type T
 	 * @param plugIn

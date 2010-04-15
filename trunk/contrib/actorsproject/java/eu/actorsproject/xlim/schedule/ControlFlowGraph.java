@@ -339,20 +339,25 @@ public class ControlFlowGraph implements XmlElement {
 			
 			// Test-module <module kind="test" decision="$source"/>
 			// TODO: source should be renamed
-			String decisionDef="decision=\""+source.getUniqueId()+"\"";
+			XmlAttributeFormatter formatter=xmlPrinter.getAttributeFormatter();
+			String decisionDef=formatter.getAttributeDefinition("decision", source, source.getUniqueId());
 			xmlPrinter.println("<module kind=\"test\" "+decisionDef+"/>");
 			
 			// Then-module
 			xmlPrinter.println("<module kind=\"then\">");
 			xmlPrinter.increaseIndentation();
+			phasePrinter.enterScope();
 			getNode(mDecision.getChild(true)).printPhase(phasePrinter);
+			phasePrinter.leaveScope();
 			xmlPrinter.decreaseIndentation();
 			xmlPrinter.println("</module>");
 			
 			// Else-module
 			xmlPrinter.println("<module kind=\"else\">");
 			xmlPrinter.increaseIndentation();
+			phasePrinter.enterScope();
 			getNode(mDecision.getChild(false)).printPhase(phasePrinter);
+			phasePrinter.leaveScope();
 			xmlPrinter.decreaseIndentation();
 			xmlPrinter.println("</module>");
 			

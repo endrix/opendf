@@ -37,9 +37,15 @@
 
 package eu.actorsproject.xlim.schedule;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
+import eu.actorsproject.util.XmlAttributeFormatter;
+import eu.actorsproject.util.XmlAttributeRenaming;
 import eu.actorsproject.xlim.XlimBlockElement;
 import eu.actorsproject.xlim.XlimBlockModule;
 import eu.actorsproject.xlim.XlimIfModule;
@@ -56,6 +62,9 @@ public class XlimPhasePrinter extends PhasePrinter {
 
 	private BlockElementVisitor mBlockElementVisitor=new BlockElementVisitor();
 	private Set<XlimOperation> mPrintedOperations=new HashSet<XlimOperation>();
+	private Set<XlimOperation> mCurrentScope;
+	private Deque<Set<XlimOperation>> mScopes=new ArrayDeque<Set<XlimOperation>>();
+	private OutputPortRenaming mOutputPortRenaming;
 	
 	/**
 	 * @param phases             the sequence of phase (may be infinite)
@@ -67,31 +76,73 @@ public class XlimPhasePrinter extends PhasePrinter {
 			                XlimAttributeRenaming attributeRenaming,
 			                boolean renameOutputs) {
 		super(phases);
+		if (renameOutputs) {
+			mOutputPortRenaming=new OutputPortRenaming();
+			mPrinter.register(mOutputPortRenaming);
+		}
 		if (attributeRenaming!=null)
 			attributeRenaming.registerPlugIns(mPrinter);
-		// TODO: if renameOutputs, create/register plug-in for XlimOutputPorts
 	}
 	
 	@Override
 	protected void printPhase(StaticPhase phase) {
-		// TODO: the actual output goes here!
+		assert(mCurrentScope==null);
 		BasicBlock actionSelection=phase.getActionSelection();
+	
+		// Allocate a (topmost) scope
+		mCurrentScope=new HashSet<XlimOperation>();
 		actionSelection.printPhase(this);
+		
+		// remove scope again
+		removeCurrentScope();
+		mCurrentScope=null;
 	}
 
+	/**
+	 * Creates a new scope and pushes the old scope on a stack.
+	 * Scopes are used to give XlimOutputPorts unique names 
+	 * -even if evaluated multiple times in different scopes.
+	 */
+	public void enterScope() {
+		mScopes.push(mCurrentScope);
+		mCurrentScope=new HashSet<XlimOperation>();
+	}
+	
+	/**
+	 * "Forgets" all evaluations in current scope and pops stack of scopes. 
+	 * Scopes are used to give XlimOutputPorts unique names 
+	 * -even if evaluated multiple times in different scopes.
+	 */
+	public void leaveScope() {
+		removeCurrentScope();
+		mCurrentScope=mScopes.pop();
+	}
+	
+	private void removeCurrentScope() {
+		if (mOutputPortRenaming!=null) {
+			for (XlimOperation op: mCurrentScope) {
+				mOutputPortRenaming.removeAll(op.getOutputPorts());
+			}
+		}
+		mPrintedOperations.removeAll(mCurrentScope);
+	}
+	
 	/**
 	 * Prints an XLIM "block element" (=an operation in this context)
 	 * @param blockElement
 	 * 
 	 * Called back from BasicBlock.printPhase()
 	 */
-	void printBlockElement(XlimBlockElement blockElement) {
+	public void printBlockElement(XlimBlockElement blockElement) {
 		blockElement.accept(mBlockElementVisitor, null);
 	}
 	
-	void printOperation(XlimOperation op) {
+	private void printOperation(XlimOperation op) {
 		// Unless op is already printed, print it!
 		if (mPrintedOperations.add(op)) {
+			// Also add to current scope
+			mCurrentScope.add(op);
+			
 			// First make sure that we have printed all operations, 
 			// on which 'op' depends
 			for (XlimInputPort input: op.getInputPorts()) {
@@ -101,7 +152,7 @@ public class XlimPhasePrinter extends PhasePrinter {
 		}
 	}
 	
-	void printSource(XlimSource source) {
+	public void printSource(XlimSource source) {
 		XlimOutputPort output=source.asOutputPort();
 		if (output!=null) {
 			XlimInstruction instr=output.getParent();
@@ -131,6 +182,31 @@ public class XlimPhasePrinter extends PhasePrinter {
 		public Object visitLoopModule(XlimLoopModule m, Object arg) {
 			// We just handle operations in this context
 			throw new UnsupportedOperationException();			
+		}
+	}
+	
+	private class OutputPortRenaming extends XmlAttributeFormatter.PlugIn<XlimOutputPort> {
+
+		private Map<XlimOutputPort,Integer> mMapping=new HashMap<XlimOutputPort,Integer>();
+		private int mNextId;
+
+		public OutputPortRenaming() {
+			super(XlimOutputPort.class);
+		}
+
+		@Override
+		public String getAttributeValue(XlimOutputPort port) {
+			Integer index=mMapping.get(port);
+			if (index==null) {
+				index=mNextId++;
+				mMapping.put(port,index);
+			}
+			return "temp"+index;
+		}
+		
+		void removeAll(Iterable<? extends XlimOutputPort> ports) {
+			for (XlimOutputPort port: ports)
+				mMapping.remove(port);
 		}
 	}
 }
