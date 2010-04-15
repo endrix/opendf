@@ -102,7 +102,8 @@ public class XlimAttributeRenaming {
 						}
 						else {
 							// Perhaps we should let this pass, but keep it for now to check the mapping
-							throw new IllegalArgumentException("Identifier "+oldId+" not found");
+							// throw new IllegalArgumentException("Identifier "+old
+															   // Id+" not found");
 						}
 					}
 				}

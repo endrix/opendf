@@ -147,7 +147,7 @@ aspect Misc {
 
 	syn Connection ASTNode.connection() = null;
 	eq Port.connection() {
-		System.out.println("  "+name()+" "+kind());
+		// System.out.println("  "+name()+" "+kind());
 		return getParent().connection(null,name());
 	}
 
@@ -160,16 +160,16 @@ aspect Misc {
 	eq Instance.connection(String actor, String port) = 
 		getParent().connection(name(),port);
 	eq XDF.connection(String actor, String port) {
-		System.out.println("Looking for "+actor+":"+port);
+		// System.out.println("Looking for "+actor+":"+port);
 		for (Connection c : getConnections()) {			
-			System.out.println("   Checking "+c.getDestination()+":"+
-							   c.getDestinationPort());
-			System.out.println("   Checking "+c.getSrc()+":"+c.getSourcePort());
+			// System.out.println("   Checking "+c.getDestination()+":"+
+			// 				   c.getDestinationPort());
+			// System.out.println("   Checking "+c.getSrc()+":"+c.getSourcePort());
 			if (c.getDestination().equals(actor) && 
 				c.getDestinationPort().equals(port) ||
 				c.getSrc().equals(actor) && 
 				c.getSourcePort().equals(port)) {
-				System.out.println("    Found it!");
+				// System.out.println("    Found it!");
 				return c;
 			}
 		}
@@ -204,7 +204,7 @@ aspect KarlErik {
 //	    System.out.println("Kind = " + p.kind());
 //	    if (p.kind().equals("Input")) {
 	    for (Attribute a: p.getAttributes()) {
-	      System.out.println("isKind " + a.isKind() + " literal " + a.getAttrValue().getLITERAL());
+	      // System.out.println("isKind " + a.isKind() + " literal " + a.getAttrValue().getLITERAL());
 	      if ((a.isKind()) && (a.getAttrValue().getLITERAL().equals("\"Input\""))) {
 	      hs.add(p);
 	      }
@@ -226,7 +226,7 @@ aspect KarlErik {
 //	    System.out.println("Kind = " + p.kind());
 //	    if (p.kind().equals("Output")) {
 	    for (Attribute a: p.getAttributes()) {
-	      System.out.println("isKind " + a.isKind() + " literal " + a.getAttrValue().getLITERAL());
+	      // System.out.println("isKind " + a.isKind() + " literal " + a.getAttrValue().getLITERAL());
 	      if ((a.isKind()) && (a.getAttrValue().getLITERAL().equals("\"Output\""))) {
 	      hs.add(p);
 	      }
