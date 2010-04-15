@@ -60,6 +60,8 @@ import eu.actorsproject.xlim.util.XlimAttributeRenaming;
 
 public class XlimPhasePrinter extends PhasePrinter {
 
+	private static int sNextId; // For renaming of OutputPorts
+	
 	private BlockElementVisitor mBlockElementVisitor=new BlockElementVisitor();
 	private Set<XlimOperation> mPrintedOperations=new HashSet<XlimOperation>();
 	private Set<XlimOperation> mCurrentScope;
@@ -188,8 +190,7 @@ public class XlimPhasePrinter extends PhasePrinter {
 	private class OutputPortRenaming extends XmlAttributeFormatter.PlugIn<XlimOutputPort> {
 
 		private Map<XlimOutputPort,Integer> mMapping=new HashMap<XlimOutputPort,Integer>();
-		private int mNextId;
-
+		
 		public OutputPortRenaming() {
 			super(XlimOutputPort.class);
 		}
@@ -198,7 +199,7 @@ public class XlimPhasePrinter extends PhasePrinter {
 		public String getAttributeValue(XlimOutputPort port) {
 			Integer index=mMapping.get(port);
 			if (index==null) {
-				index=mNextId++;
+				index=sNextId++;
 				mMapping.put(port,index);
 			}
 			return "temp"+index;
