@@ -106,7 +106,7 @@ public class BagOfTypeDefs {
 
 	private XlimTypeElement createTypeElement(XlimType type, Map<XlimType,XlimTypeDef> typeDefs) {
 		// Create a <type> element with possible parameters
-		XlimTypeConstruction typeConstruction=new XlimTypeConstruction(type);
+		XlimTypeElement typeConstruction=new XlimTypeElement(type);
 		
 		for (TypeArgument arg: type.getTypeArguments()) {
 			if (arg.isValueParameter())
@@ -125,7 +125,7 @@ public class BagOfTypeDefs {
 		
 		if (typeDef!=null) {
 			// Has a typeDef
-			return new XlimTypeReference(typeDef);
+			return new XlimTypeElement(typeDef);
 		}
 		else {
 			// Create a <type> element with possible parameters

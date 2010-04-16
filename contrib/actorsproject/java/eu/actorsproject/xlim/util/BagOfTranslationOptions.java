@@ -76,6 +76,10 @@ public abstract class BagOfTranslationOptions {
 			
 	}
 	
+	public boolean hasOption(String optionName) {
+	    return getOption(optionName)!=null;	
+	}
+	
 	public void registerOption(TranslationOption option) {
 		// Override for SessionOptions
 		throw new UnsupportedOperationException();

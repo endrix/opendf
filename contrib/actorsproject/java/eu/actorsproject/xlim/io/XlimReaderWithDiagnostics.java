@@ -200,7 +200,7 @@ public class XlimReaderWithDiagnostics implements IXlimReader {
 					XlimTypeDef typeDef=context.getTypeDef(typeName);
 					
 					if (typeDef!=null) {
-						return typeDef.getType(mPlugIn, context);
+						return typeDef.createType(mPlugIn, context);
 					}
 					else {
 						XlimTypeKind typeKind=mPlugIn.getTypeKind(typeName);
@@ -466,11 +466,13 @@ public class XlimReaderWithDiagnostics implements IXlimReader {
 				String value=getRequiredAttribute("value", note);
 				BagOfTranslationOptions options=design.getTranslationOptions();
 				
-				options.setValue(name, value);
-				
-				// match end
-				checkThatEmpty(note);
+				if (options.hasOption(name))
+				    options.setValue(name, value);
+				else
+					reportWarning(note,"Unknown option: "+name);
 			}
+			// match end
+			checkThatEmpty(note);
 		}
 	}
 
@@ -535,7 +537,7 @@ public class XlimReaderWithDiagnostics implements IXlimReader {
 		}
 	}
 
-	protected class TypeHandler extends ElementHandler<XlimTypeConstruction,Object> {
+	protected class TypeHandler extends ElementHandler<XlimTypeElement,Object> {
 		
 		public XlimTypeElement readType(XlimElement parent, MutableReaderContext context) {
 			Iterator<XlimElement> pType=parent.getElements().iterator();
@@ -555,18 +557,9 @@ public class XlimReaderWithDiagnostics implements IXlimReader {
 					String typeName=getRequiredAttribute("name", typeElement);
 					
 					if (typeName!=null) {
-						XlimTypeKind typeCtor=mPlugIn.getTypeKind(typeName);
 						XlimLocation location=typeElement.getLocation();
-						if (typeCtor!=null) {
-							XlimTypeConstruction tc=new XlimTypeConstruction(typeCtor, location);
-							processChildren(typeElement,context,tc,null);
-							result=tc;
-						}
-						else {
-							result=new XlimTypeReference(typeName, location);
-							checkThatEmpty(typeElement);
-						}
-						
+						result=new XlimTypeElement(typeName,location);
+						processChildren(typeElement,context,result,null);
 					}
 					// else: no "name" attribute (error already reported)
 				}
@@ -585,7 +578,7 @@ public class XlimReaderWithDiagnostics implements IXlimReader {
 				
 		protected void processChild(XlimElement child, 
                                     MutableReaderContext context,
-                                    XlimTypeConstruction parent,
+                                    XlimTypeElement parent,
                                     Object dummy) {
 			XlimTag tag=getTag(child);
 			if (tag==XlimTag.VALUEPAR_TAG || tag==XlimTag.TYPEPAR_TAG) {

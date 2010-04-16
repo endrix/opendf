@@ -42,6 +42,7 @@ import java.util.Collections;
 import eu.actorsproject.util.XmlAttributeFormatter;
 import eu.actorsproject.util.XmlElement;
 import eu.actorsproject.xlim.XlimType;
+import eu.actorsproject.xlim.util.Session;
 
 /**
  * Represents an XLIM typedef element
@@ -53,7 +54,6 @@ public class XlimTypeDef implements XmlElement {
 	private String mName;
 	private XlimLocation mLocation;
 	private XlimTypeElement mTypeElement;
-	private XlimType mType;
 	
 	private enum State {
 		Initial,
@@ -75,37 +75,60 @@ public class XlimTypeDef implements XmlElement {
 	}
 	
 	/**
+	 * @return true if the typedef is resolved, in which case createType() is
+	 *         guaranteed to return a proper (non-null) type
+	 */
+	public boolean isResolved() {
+		return mTypeElement!=null && mTypeElement.getType()!=null;
+	}
+	
+	/**
 	 * Determines the type of this XlimTypeDef
 	 * @param plugIn   Reader plug-in, by which built-in types are resolved
 	 * @param context  Reader context, by which other type definitions are resolved
 	 * @return
 	 */
-	public XlimType getType(ReaderPlugIn plugIn, ReaderContext context) {
+	public XlimType createType(ReaderPlugIn plugIn, ReaderContext context) {
 		if (mState==State.Initial) {
+			XlimType type=null;
+			
 			mState=State.CreatingType;
-			if (mTypeElement!=null)
-				mType=mTypeElement.createType(plugIn, context);
+			if (mTypeElement!=null) {
+				try {
+					type=mTypeElement.createType(plugIn, context);
+				}
+				finally {
+					mState=State.TypeCreated;
+				}
+			}
 			mState=State.TypeCreated;
+			return type;
 		}
 		else if (mState==State.CreatingType) {
 			throw new XlimReaderError("Cyclic definition of type "+mName, mLocation);
 		}
-		// else: type has been created (if erroneous/null it won't help to create it again)
-		return mType;
+		else {
+			// TypeCreated
+			return mTypeElement.getType();
+		}
 	}
 	
-	public XlimType getType() {
+	public XlimType createType() {
 		if (mState==State.Initial) {
-			mState=State.CreatingType;
-			mType=mTypeElement.getType();
-			assert(mType!=null);
-			mState=State.TypeCreated;
+			ReaderPlugIn readerPlugIn=Session.getReaderPlugIn();
+
+			mState=State.TypeCreated; // No context = we can't loop
+			XlimType type=mTypeElement.createType(readerPlugIn,null);
+
+			return type;
 		}
 		else if (mState==State.CreatingType) {
 			throw new IllegalStateException("Cyclic definition of type "+mName);
 		}
-		
-		return mType;
+		else {
+			// TypeCreated
+			return mTypeElement.getType();
+		}
 	}
 	
 	@Override
@@ -138,6 +161,6 @@ public class XlimTypeDef implements XmlElement {
 
 	@Override
 	public String getAttributeDefinitions(XmlAttributeFormatter formatter) {
-		return formatter.getAttributeDefinition("name", getType(), mName);
+		return formatter.getAttributeDefinition("name", createType(), mName);
 	}	
 }

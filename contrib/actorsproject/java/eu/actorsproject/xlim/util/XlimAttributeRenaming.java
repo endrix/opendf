@@ -98,7 +98,7 @@ public class XlimAttributeRenaming {
 					else {
 						XlimTypeDef typeDef=originalIds.getTypeDef(oldId);
 						if (typeDef!=null) {
-							mTypePlugIn.rename(typeDef.getType(), newId);
+							mTypePlugIn.rename(typeDef.createType(), newId);
 						}
 						else {
 							// Perhaps we should let this pass, but keep it for now to check the mapping
@@ -128,8 +128,14 @@ public class XlimAttributeRenaming {
 		Map<String,XlimTypeDef> originalTypeDefs=originalIds.getOriginalTypeDefs();
 		ReaderPlugIn readerPlugIn=Session.getReaderPlugIn();
 		for (Map.Entry<String,XlimTypeDef> entry: originalTypeDefs.entrySet()) {
-			XlimType type=entry.getValue().getType(readerPlugIn,originalIds);
-			mTypePlugIn.rename(type, entry.getKey());
+			XlimTypeDef typeDef=entry.getValue();
+			if (typeDef.isResolved()) {
+				XlimType type=typeDef.createType(readerPlugIn,originalIds);
+				mTypePlugIn.rename(type, entry.getKey());
+			}
+			// else: typeDef is not resolved, which means it isn't used
+			// unused typedefs are skipped (the front end might create spooky ones)
+
 		}
 	}
 	
