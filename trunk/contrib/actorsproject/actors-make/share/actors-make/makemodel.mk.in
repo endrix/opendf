@@ -48,9 +48,15 @@ ifdef GTK
 override LDLIBS += `gtk-config --libs`
 endif
 
-ifdef SDL
 ifdef ARM
 ARMDIR=$(HOME)/work/actor/arm/usr/local
+override  LDLIBS += -L$(ARMDIR)/lib -lxml2 -lz
+else
+override  LDLIBS += `xml2-config --libs`
+endif
+
+ifdef SDL
+ifdef ARM
 override LDLIBS  += -L$(ARMDIR)/lib -lSDL -lts
 else
 override LDLIBS  += `sdl-config --libs`
