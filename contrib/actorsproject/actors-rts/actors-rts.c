@@ -11,6 +11,7 @@
 #ifdef TRACE
 #include "xmlTrace.h"
 #endif
+#include "xmlParser.h"
 
 #define DEFAULT_FIFO_LENGTH	4096
 
@@ -514,6 +515,71 @@ static int set_affinity(ActorInstance_1_t **instance,
       }
     }
   }
+  return result;
+}
+
+static void set_instance_affinity(ActorInstance_1_t *instance,int numInstances)
+{
+  int i;
+  char instanceName[128];
+  sprintf(instanceName,"%s_%d",instance->actorClass->name,instance->index);
+  for(i=0; i<numInstances; i++)
+  {
+    if(!instanceAfinity[i].flag)
+    if(strcmp(instanceName,instanceAfinity[i].name)==0)
+    {
+      instance->affinity = instanceAfinity[i].affinity;
+      instanceAfinity[i].flag=1;
+      break;
+    }
+  }
+}
+
+static void set_instance_fifo(ActorInstance_1_t **instance,ConnectID *connect,int numInstances)
+{
+  int i,j;
+
+  for(i=0; i<numInstances; i++)
+  {
+    char instanceName[128];
+    sprintf(instanceName,"%s_%d",instance[i]->actorClass->name,instance[i]->index);
+    if(strcmp(instanceName,connect->dst)==0)
+    {
+      for (j = 0 ; j < instance[i]->actorClass->numInputPorts ; j++)
+      {
+        if (strcmp(instance[i]->actorClass->inputPortDescriptions[j].name,
+                   connect->dst_port)  == 0) {
+          instance[i]->input[j].capacity = connect->size;
+          printf("%s.%s => %d\n",connect->dst,connect->dst_port,connect->size);
+          return;
+        }
+      }
+    }
+  }
+}
+
+static int set_config(ActorInstance_1_t **instance,
+      int numInstances,
+      char *filename)
+{
+  int result = 1;
+  int numConnects;
+
+  numConnects = xmlParser(filename, numInstances);
+  if(numConnects >= 0)
+  {
+    int i;
+    // Set actor instance infinity
+    for(i=0; i<numInstances; i++)
+      set_instance_affinity(instance[i],numInstances);
+
+    //Set input ports fifo size
+    for(i=0; i<numConnects; i++)
+      set_instance_fifo(instance,&connects[i],numInstances);
+  }
+
+  if(numConnects>=0)
+    result = 0;
 
   return result;
 }
@@ -1009,6 +1075,7 @@ int executeNetwork(int argc,
   cpu_runtime_data_t *runtime_data;
   int arg_print_info = 0;
   int arg_fifo_size = DEFAULT_FIFO_LENGTH;
+  char *filename=0;
 
   for (i = 1 ; i < argc ; i++) {
     if (strcmp(argv[i], "--timing") == 0) {
@@ -1023,6 +1090,9 @@ int executeNetwork(int argc,
     } else if (strncmp(argv[i], "--loopmax=", 10) == 0) {
       arg_loopmax = atoi(&argv[i][10]);
       printf("FIFO=%d\n", arg_fifo_size);
+    } else if (strncmp(argv[i], "--cfile=", 8) == 0) {
+      filename = &argv[i][8];
+      printf("Filename=%s\n", filename);
     } else if (strncmp(argv[i], "-", 1) == 0) {
       printf("Invalid flag '%s'\n", argv[i]);
       exit(1);
@@ -1033,10 +1103,17 @@ int executeNetwork(int argc,
     // Assign command line affinity
     for (i = 1 ; i < argc ; i++) {
       if (strncmp(argv[i], "--affinity", 10) == 0) {
-	set_affinity(instance_1, numInstances, &argv[i][10]);
+        set_affinity(instance_1, numInstances, &argv[i][10]);
       }
     }
   }
+
+  if (result == 0) {
+    // Assign affinity and other params from config file
+    if (filename)
+      set_config(instance_1, numInstances, filename);
+  }
+
   if (result == 0) {
     result = check_network(instance_1, numInstances, &used_cpus, &flags);
   }
