@@ -384,7 +384,7 @@ static void art_Display_yuv_constructor(AbstractActorInstance *pBase) {
     printf("%dx%d, %dbpp\n", thisActor->vinfo.xres, thisActor->vinfo.yres, thisActor->vinfo.bits_per_pixel );
 
     /* Figure out the size of the video memory in bytes */
-    screensize = thisActor->vinfo.xres * thisActor->vinfo.yres * thisActor->vinfo.bits_per_pixel / 8;
+    screensize = thisActor->vinfo.xres * thisActor->vinfo.yres * thisActor->vinfo.bits_per_pixel>>3;
 
     /* Map the device to memory */
     thisActor->fbp = (char *)mmap(0, screensize, PROT_READ | PROT_WRITE, MAP_SHARED,
@@ -428,7 +428,7 @@ void art_Display_yuv_destructor(AbstractActorInstance *pBase)
 	totTime = tb.time*1000 + tb.millitm - thisActor->startTime;
 #ifdef FB
 	if(thisActor->fbp){
-		int screensize = thisActor->vinfo.xres * thisActor->vinfo.yres * thisActor->vinfo.bits_per_pixel / 8;
+		int screensize = thisActor->vinfo.xres * thisActor->vinfo.yres * thisActor->vinfo.bits_per_pixel >> 3;
     	munmap(thisActor->fbp, screensize);
 	}
 	if(thisActor->fbfd)
