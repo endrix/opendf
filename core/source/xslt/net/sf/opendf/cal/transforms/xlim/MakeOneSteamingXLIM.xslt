@@ -48,8 +48,8 @@ ENDCOPYRIGHT
             
   <xsl:template match="Actor">
     
-    <xsl:comment>Actor <xsl:value-of select="@name"/></xsl:comment>
- 
+    <xsl:comment>Actor <xsl:value-of select="@name"/>
+    </xsl:comment>
     <design name="{@name}">
       <xsl:apply-templates select="Port"/>
       <xsl:apply-templates select="//Decl//Type[@name='List']" mode="typedef"/>
@@ -214,8 +214,9 @@ ENDCOPYRIGHT
       </xsl:when>
       
       <xsl:otherwise>
-        <xsl:comment>Local variable <xsl:value-of select="@name"/> is not initialized</xsl:comment>
-        <operation kind="$literal_Integer" value="0">
+        <xsl:comment>Local variable <xsl:value-of select="@name"/> is not initialized
+        </xsl:comment>
+        <operation kind="$valloc">
           <port source="{@id}" dir="out">
             <xsl:for-each select="$var-type-attrs/attr">
               <xsl:attribute name="{@name}"><xsl:value-of select="@value"/></xsl:attribute>
