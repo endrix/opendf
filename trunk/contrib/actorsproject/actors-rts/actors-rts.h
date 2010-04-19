@@ -155,7 +155,6 @@ struct AbstractActorInstance {
   OutputPort *output;
   int inputs;
   InputPort *input;
-  int fireable;
   int fired;
   int terminated;
   long long nloops;
@@ -278,10 +277,17 @@ extern void setParameter(AbstractActorInstance *pInstance,
     for (i = 0 ; i < numInputs ; i++) {					\
       /* cpu is not used in actors */					\
       /* shared is not used in actors */				\
-      context->input[i].pos = pBase->input[i].local->pos;		\
-      context->input[i].available = pBase->input[i].local->available;	\
-      context->input[i].buffer = pBase->input[i].buffer;		\
-      context->input[i].capacity = pBase->input[i].capacity;		\
+      InputPort *input=pBase->input+i;                                  \
+      int available=input->local->available;	                        \
+      if (pBase->cpu_index==input->writer->cpu) {                       \
+        /* make use of latest local production when on same CPU */      \
+        available += input->writer->local->count;                       \
+        input->local->available=available;                              \
+      }                                                                 \
+      context->input[i].available = available;                          \
+      context->input[i].pos = input->local->pos;		        \
+      context->input[i].buffer = input->buffer;		                \
+      context->input[i].capacity = input->capacity;		        \
       /* writer is not used in actors */				\
     }									\
     for (i = 0 ; i < numOutputs ; i++) {				\
@@ -290,7 +296,7 @@ extern void setParameter(AbstractActorInstance *pInstance,
       context->output[i].pos = pBase->output[i].local->pos;		\
       context->output[i].available = pBase->output[i].local->available;	\
       context->output[i].buffer = pBase->output[i].buffer;		\
-      context->output[i].capacity = pBase->output[i].capacity;	\
+      context->output[i].capacity = pBase->output[i].capacity;	        \
       /* readers is not used in actors */				\
       /* reader is not used in actors */				\
     }									\

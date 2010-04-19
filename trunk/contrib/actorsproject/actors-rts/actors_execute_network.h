@@ -59,7 +59,6 @@ static void *EXECUTE_NETWORK(cpu_runtime_data_t *runtime,
     // Determine how much data can be read/written and cache the values
     // since we need to use read/write barriers
     for (i = 0 ; i < actors ; i++) {
-      actor[i]->fireable = 0;
       actor[i]->fired = 0;
       if (!actor[i]->terminated) {
 	for (j = 0 ; j < actor[i]->inputs ; j++) {
@@ -68,9 +67,6 @@ static void *EXECUTE_NETWORK(cpu_runtime_data_t *runtime,
 	    atomic_get(&actor[i]->input[j].shared->count));
 	  actor[i]->input[j].local->available = available;
 	  actor[i]->input[j].local->count = 0;
-	  if (available) { 
-	    actor[i]->fireable = 1; 
-	  }
 	}
 	for (j = 0 ; j < actor[i]->outputs ; j++) {
 	  int max_unconsumed = 0;
@@ -84,9 +80,6 @@ static void *EXECUTE_NETWORK(cpu_runtime_data_t *runtime,
 	  available = actor[i]->output[j].capacity - max_unconsumed;
 	  actor[i]->output[j].local->available = available;
 	  actor[i]->output[j].local->count = 0;
-	  if (available) { 
-	    actor[i]->fireable = 1;	
-	  }
 	}
       }
     }
@@ -96,7 +89,7 @@ static void *EXECUTE_NETWORK(cpu_runtime_data_t *runtime,
     READ_BARRIER(); 
     ADD_TIMER(&statistics.read_barrier, &t1);
     for (i = 0 ; i < actors ; i++) {
-      if (actor[i]->fireable) {
+      if (!actor[i]->terminated) {
 	const int *result;
 	INIT_TIMEBASE(&t3);
 	result = actor[i]->actor->action_scheduler(actor[i], loopmax);
@@ -137,6 +130,7 @@ static void *EXECUTE_NETWORK(cpu_runtime_data_t *runtime,
 	  int count = output->local->count;
 
 	  if (count) {
+	    output->local->count=0;
 	    atomic_set(&output->shared->count,
 		       atomic_get(&output->shared->count) + count);
 	    for (k = 0 ; k < output->readers ; k++) {
