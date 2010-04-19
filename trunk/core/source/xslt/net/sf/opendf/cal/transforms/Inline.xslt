@@ -139,7 +139,7 @@
         
         <xsl:variable name="result">
           <Stmt kind="Block">
-            <xsl:for-each select="$proc/Decl[@kind='Parameter']">
+            <xsl:for-each select="$proc/Decl">
               <xsl:variable name="n" select="position()"/>
               <Decl kind="Variable" name="$param${$pname}${@name}">
                 <xsl:copy-of select="*"/>
@@ -148,7 +148,7 @@
             </xsl:for-each>
             <xsl:apply-templates select="$proc/Stmt" mode="alpha-reduce">
               <xsl:with-param name="S">
-                <xsl:for-each select="$proc/Decl[@kind='Parameter']">
+                <xsl:for-each select="$proc/Decl">
                   <substitution name="{@name}" new-name="$param${$pname}${@name}"/>
                 </xsl:for-each>
               </xsl:with-param>
