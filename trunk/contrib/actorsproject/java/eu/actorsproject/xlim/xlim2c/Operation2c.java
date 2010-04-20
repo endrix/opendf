@@ -109,6 +109,7 @@ public class Operation2c implements OperationGenerator {
 		mGenerators=new OperationPlugIn<BasicGenerator>(null); 
 		for (BasicGenerator generator: sGenerators)
 			register(generator);
+		registerEtsiApi();
 	}
 		
 	protected void register(BasicGenerator generator) {
@@ -142,6 +143,25 @@ public class Operation2c implements OperationGenerator {
 	@Override
 	public void generateCopy(XlimSource source, XlimSource dest, ExpressionTreeGenerator gen) {
 		BasicGenerator.generateCopy(source,dest,gen);
+	}
+	
+	private void registerEtsiApi() {
+		String etsiApi[]={"ETSI_norm_s",   "ETSI_abs_s",     "ETSI_negate",
+				          "ETSI_saturate", "ETSI_extract_h", "ETSI_extract_l",
+				          "ETSI_norm_l",   "ETSI_L_abs",     "ETSI_L_negate",
+				          "ETSI_round",    "ETSI_deposit_h", "ETSI_deposit_l",
+				          "ETSI_typecast16_32",
+				          "ETSI_add",      "ETSI_sub",        "ETSI_mult", 
+				          "ETSI_div_s",    "ETSI_shr",        "ETSI_shl", 
+				          "ETSI_shr_r",    "ETSI_mult_r",
+				          "ETSI_L_add",    "ETSI_L_sub",     "ETSI_L_mult", 
+				          "ETSI_L_shr",    "ETSI_L_shl",     "ETSI_L_shr_r",
+                          "ETSI_L_mac",    "ETSI_L_msu",     "ETSI_Mpy_32_16",
+                          "ETSI_Div_32",   "ETSI_Mpy_32"};
+		for (String opName: etsiApi) {
+			String functionName=opName;
+			register(new ApiCallGenerator(opName, functionName, true /* has generate expression */));
+		}
 	}
 }
 
