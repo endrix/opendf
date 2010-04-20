@@ -118,9 +118,12 @@ void parseConnection(xmlNode *cur_node)
     if(size)
       connects[_numConnects].size = atoi(size);
 
-    xmlFree(size);
+    if(connects[_numConnects].dst &&
+       connects[_numConnects].dst_port &&
+       size)
+      _numConnects++;
 
-    _numConnects++;
+    xmlFree(size);
   }
 }
 
@@ -243,7 +246,7 @@ int xmlParser(char *filename, int numInstances)
   if(_numInstances != numInstances)
   {
     printf("error: instance number in config file (%d) DOESN'T match network (%d)\n",_numInstances,numInstances);
-    retval = -1;
+    _numConnects = -1;
   }
 
   // --------------------------------------------------------------------------
