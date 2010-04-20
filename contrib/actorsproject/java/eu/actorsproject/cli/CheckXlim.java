@@ -41,6 +41,7 @@ import java.io.File;
 
 import eu.actorsproject.xlim.XlimDesign;
 import eu.actorsproject.xlim.implementation.BasicXlimOperations;
+import eu.actorsproject.xlim.implementation.EtsiOperations;
 import eu.actorsproject.xlim.implementation.ListOperations;
 import eu.actorsproject.xlim.implementation.RealOperations;
 import eu.actorsproject.xlim.implementation.SoftwareExtensions;
@@ -74,6 +75,7 @@ public class CheckXlim extends Session {
 		register(new RealTypeFeature());
 		register(new RealOperations());
 		register(new ListOperations());
+		register(new EtsiOperations());
 	}
 	
 	@Override
