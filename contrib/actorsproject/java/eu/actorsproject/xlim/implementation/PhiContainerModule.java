@@ -44,6 +44,7 @@ import java.util.Set;
 import eu.actorsproject.util.IntrusiveList;
 import eu.actorsproject.util.Linkage;
 import eu.actorsproject.xlim.XlimInstruction;
+import eu.actorsproject.xlim.XlimModule;
 import eu.actorsproject.xlim.XlimOutputPort;
 import eu.actorsproject.xlim.XlimPhiContainerModule;
 import eu.actorsproject.xlim.XlimSource;
@@ -175,11 +176,30 @@ abstract class PhiContainerModule extends AbstractModule
 		// Create new phi-nodes
 		boolean isLoop=isLoop();
 		for (Location loc: newLocations) {
-			SideEffectPhiOperator phi=new SideEffectPhiOperator(this,loc,isLoop);
-			mStatePhis.addLast(phi);
+			if (phiNodeNeeded(loc)) {
+				SideEffectPhiOperator phi=new SideEffectPhiOperator(this,loc,isLoop);
+				mStatePhis.addLast(phi);
+			}
 		}
 	}
 
+	private boolean phiNodeNeeded(Location loc) {
+		if (loc.isStateLocation())
+			return true;  // create phi for state variables and actor ports
+		else {
+			XlimSource source=loc.getSource();
+			assert(source!=null && source.asOutputPort()!=null);
+			XlimOutputPort output=source.asOutputPort();
+			XlimModule createdInModule=output.getParent().getParentModule();
+			XlimModule parent=getParentModule();
+			
+			// Create a phi for a "local" location if it's created in
+			// an ancestor of the loop/if-module 
+			// (otherwise it's local to this module and should not escape)
+			return parent.leastCommonAncestor(createdInModule)==createdInModule;
+		}
+	}
+	
 	protected void removeStatePhiOperator(SideEffectPhiOperator phiNode) {
 		// Check that this is one of my guys
 		if (phiNode.getParentModule()!=this)
