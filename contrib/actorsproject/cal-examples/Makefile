@@ -16,7 +16,7 @@ endif
 
 DEST_DIR=$(datadir)/cal-examples
 
-EXAMPLES=rvcDemo
+EXAMPLES=rvcDemo pipelineDemo
 
 # Files that need to be modified when installed (excluding .in suffix)
 IN_FILES=Makefile $(TESTS:%=%.nl) decoderDemo.nl
