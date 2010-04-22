@@ -72,13 +72,13 @@ INSTALL_H=actors-rts.h actors-fifo.h actors-config.h dll.h
 INSTALL_SYSACTORS=art_DDRModel.cal art_Display_yuv.cal art_Sink_yuv.cal \
                   art_Sink_bin.cal art_Sink_txt.cal art_Sink_real.cal \
                   art_Source_bin.cal art_Source_txt.cal art_Source_real.cal \
-                  art_DBus_test.cal
+                  art_DBus_test.cal art_consumer.cal art_producer.cal
 
 OBJECTS=actors-rts.o \
         art_Sink_bin.o art_Sink_txt.o art_Sink_real.o \
-	art_Source_bin.o art_Source_txt.o art_Source_real.o \
-        art_DDRModel.o art_Display_yuv.o xmlParser.o
-#        xmlTrace.o
+	    art_Source_bin.o art_Source_txt.o art_Source_real.o \
+        art_DDRModel.o art_Display_yuv.o xmlParser.o \
+        art_consumer.o art_producer.o
 
 ifeq ($(EDF),y)
 OBJECTS += edf_syscall.o
