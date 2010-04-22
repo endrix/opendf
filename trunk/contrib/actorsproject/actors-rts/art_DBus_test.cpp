@@ -141,6 +141,9 @@ void SystemActorDBusHandler::handleDBusSignal(DBusMessage* message)
    fprintf(stderr, "DBUS received signal %p\n", message);
    if (dbus_message_is_signal(message, ACTRM_INTERFACE_NAME, "changeContinuous"))
    {
+   }
+   else if (dbus_message_is_signal(message, ACTRM_INTERFACE_NAME, "changeQualityLevel"))
+   {
       char* receiverName = 0;
       dbus_uint32_t newValue = 0;
       DBusMessageIter args;
@@ -152,14 +155,8 @@ void SystemActorDBusHandler::handleDBusSignal(DBusMessage* message)
          dbus_message_iter_get_basic(&args, &newValue);
          fprintf(stderr, "signal for %s, new value is %d my name is %s\n", receiverName, newValue, dbus_bus_get_unique_name(m_connection));
          putNextOutgoingValue(newValue);
-#warning unsynchronized access to execState
-//          wakeup_waitingList(m_baseActorInstance->list);
       }
-//      dbus_message_unref(message);
-   }
-   else if (dbus_message_is_signal(message, ACTRM_INTERFACE_NAME, "changeQualityLevel"))
-   {
-
+      dbus_message_unref(message);
    }
    else
    {
