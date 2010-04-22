@@ -79,7 +79,7 @@ public class EtsiOperations extends XlimFeature {
 		
 		// Unary operations: int->int32
 		String unaryOps32[]={"ETSI_norm_l", "ETSI_L_abs", "ETSI_L_negate",
-				             "ETSI_round",  "ETSI_deposit_h", "ETSI_deposit_l",
+				             "ETSI_round",  "ETSI_L_deposit_h", "ETSI_L_deposit_l",
 				             "ETSI_typecast16_32"};
 		registerAll(unaryOps32, new FixIntegerTypeRule(unary,32), s);
 		
