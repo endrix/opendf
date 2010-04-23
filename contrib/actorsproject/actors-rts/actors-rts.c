@@ -1,6 +1,7 @@
 #define _GNU_SOURCE
 #include <stdarg.h>
 #include <stdlib.h>
+#include <errno.h>
 #include <strings.h>
 #include <string.h>
 #include <sched.h>
@@ -1146,6 +1147,72 @@ static void show_result(cpu_runtime_data_t *cpu,
   }
 }
 
+static void generate_config(FILE *f, 
+                            cpu_runtime_data_t *cpu,
+			    int with_complexity,
+			    int with_bandwidth) {
+  int i,j,k;
+
+  fprintf(f,"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+  fprintf(f,"<Configuration>\n");
+  fprintf(f,"  <Partitioning>\n");
+  for (i = 0 ; i < cpu->cpu_count ; i++) {
+    fprintf(f,"    <Partition id=\"%u\">\n", i);
+    for (j = 0 ; j < cpu[i].actors ; j++) {
+      AbstractActorInstance *actor=cpu[i].actor[j];
+      if (with_complexity)
+	fprintf(f,"      <Instance name=\"%s\" complexity=\"%Lu\"/>\n",
+		actor->name, actor->total);
+      else
+	fprintf(f,"      <Instance name=\"%s\"/>\n",actor->name);
+    }
+    fprintf(f,"    </Partition>\n");
+  }
+
+  for (i = 0 ; i < cpu->cpu_count ; i++) {
+    for (j = 0 ; j < cpu[i].actors ; j++) {
+      AbstractActorInstance *producer=cpu[i].actor[j];
+
+      for (k=0; k<producer->outputs; ++k) {
+	OutputPort *output=producer->output + k;
+	const char *outputPortName=
+	  producer->actor->outputPortDescriptions[k].name;
+	int r;
+
+	for (r=0; r<output->readers; ++r) {
+	  InputPort *input=output->reader[r];
+	  AbstractActorInstance *consumer=input->actor;
+	  const char *inputPortName=0;
+	  int s;
+
+	  for (s=0; s<consumer->inputs; ++s)
+	    if (consumer->input + s == input) {
+	      inputPortName=consumer->actor->inputPortDescriptions[s].name;
+	      break;
+	    }
+
+	  fprintf(f,"    <Connection src=\"%s\" src-port=\"%s\" "
+		  "dst=\"%s\" dst-port=\"%s\" size=\"%u\"",
+		  producer->name, outputPortName,
+		  consumer->name, inputPortName,
+		  input->capacity);
+
+	  if (with_bandwidth) {
+	    fprintf(f," bandwidth=\"%u\"/>\n",
+		    atomic_get(&input->shared->count));
+	  }
+	  else {
+	    fprintf(f,"/>\n");
+	  }
+	}
+      }
+    }
+  }
+  fprintf(f,"  </Partitioning>\n");
+  fprintf(f,"  <Scheduling type=\"RoundRobin\"/>\n");
+  fprintf(f,"</Configuration>\n");
+}
+
 static void show_usage(char *name) {
   printf("Usage: %s [OPTION...]\n", name);
   printf("Executes network %s using the ACTORS run-time system\n", name);
@@ -1155,12 +1222,21 @@ static void show_usage(char *name) {
          "--cfile=FILE            Sets affinity and/or FIFO capacities as\n"
          "                        specified in the configuration file\n"
          "--fifosize=N            Sets the default FIFO size (1024 tokens)\n"
+	 "--generate=FILE         Generate configuration file from current\n"
+         "                        execution (also see --with_complexity and\n"
+	 "                        --width_bandwidth)\n"
          "--help                  Display this help list\n"
          "--info                  List actors and their affinity\n"
          "--loopmax=N             Restrict the maximum number of action\n"
          "                        firings per actor\n"
          "--single_cpu            Execute on a single CPU core\n"
-         "--timing                Collect and display timing statistics\n");
+	 "--statistic             Display run-time statistics\n"
+         "--timing                Collect and display timing statistics\n"
+	 "--with_complexity       Output per-actor complexity (cycles) in\n"
+         "                        configuration file (see --generate)\n"
+	 "--with_bandwidth        Output per-connection bandwidth (#tokens)\n"
+         "                        in configuration file (see --generate).\n"
+	 "                        Note: wraps around at 4G tokens\n");
 }
 
 int executeNetwork(int argc, 
@@ -1178,14 +1254,20 @@ int executeNetwork(int argc,
   int arg_print_info = 0;
   int arg_fifo_size = DEFAULT_FIFO_LENGTH;
   char *filename=0;
-  int statistics=0;
+  int show_statistics=0;
   int affinity_is_set=0;
+  int show_timing=0;
+  const char *generateFileName=0;
+  FILE *generateFile=0;
+  int with_complexity=0;
+  int with_bandwidth=0;
 
   for (i = 1 ; i < argc ; i++) {
     if (strcmp(argv[i], "--timing") == 0) {
+      show_timing=1;
       flags |= FLAG_TIMING;
     } else if (strcmp(argv[i], "--statistics") == 0) {
-      statistics=1;
+      show_statistics=1;
     } else if (strcmp(argv[i], "--single_cpu") == 0) {
       flags |= FLAG_SINGLE_CPU;
     } else if (strncmp(argv[i], "--affinity", 10) == 0) {
@@ -1195,10 +1277,15 @@ int executeNetwork(int argc,
       arg_fifo_size = atoi(&argv[i][11]);
     } else if (strncmp(argv[i], "--loopmax=", 10) == 0) {
       arg_loopmax = atoi(&argv[i][10]);
-      printf("FIFO=%d\n", arg_fifo_size);
     } else if (strncmp(argv[i], "--cfile=", 8) == 0) {
       filename = &argv[i][8];
-      printf("Filename=%s\n", filename);
+    } else if (strncmp(argv[i], "--generate=", 11) == 0) {
+      generateFileName = &argv[i][11];    
+    } else if (strcmp(argv[i], "--with_complexity") == 0) {
+      flags |= FLAG_TIMING;
+      with_complexity=1;
+    } else if (strcmp(argv[i], "--with_bandwidth") == 0) {
+      with_bandwidth=1;
     } else if (strcmp(argv[i], "--help") == 0) {
       show_usage(argv[0]);
       exit(0);
@@ -1207,6 +1294,12 @@ int executeNetwork(int argc,
       exit(1);
     }
   }
+
+  if (!generateFileName && (with_bandwidth || with_complexity)) {
+    printf("--with_bandwidth and --with_complexity requires --generate\n");
+    exit(1);
+  }
+
   result = index_nodes(instance_1, numInstances); 
   if (result == 0) {
     // Assign command line affinity
@@ -1223,6 +1316,15 @@ int executeNetwork(int argc,
     if (filename) {
       set_config(instance_1, numInstances, filename);
       affinity_is_set=1;
+    }
+  }
+
+  if (result==0 && generateFileName) {
+    generateFile=fopen(generateFileName,"w");
+    if (!generateFile) {
+      printf("Cannot create file \"%s\": %s\n", 
+	     generateFileName, strerror(errno));
+      exit(1);
     }
   }
 
@@ -1270,8 +1372,16 @@ int executeNetwork(int argc,
     run_destructors(runtime_data);
   }
   if (result == 0) {
-    show_result(runtime_data, statistics, flags & FLAG_TIMING);
+    show_result(runtime_data, show_statistics, show_timing);
   }
+
+  if (result==0 && generateFile) {
+    generate_config(generateFile, 
+		    runtime_data, 
+		    with_complexity, 
+		    with_bandwidth);
+  }
+
   if (result == 0) {
     deallocate_network(runtime_data);
   }
