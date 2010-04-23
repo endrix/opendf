@@ -928,6 +928,14 @@ static cpu_runtime_data_t *allocate_network(
 	  actor->output = instance[j]->output_list;
 	  actor->inputs = instance[j]->actorClass->numInputPorts;
 	  actor->input = instance[j]->input_list;
+	  actor->fired=0;
+	  actor->terminated=0;
+	  actor->nloops=0;
+	  actor->total=0;
+#ifdef TRACE
+	  actor->firstActionIndex=0;
+	  actor->file=0;
+#endif
 	  for (k = 0 ; k < actor->outputs ; k++) {
 	    OutputPort *output = &actor->output[k];
 
@@ -1032,6 +1040,7 @@ static void run_threads(cpu_runtime_data_t *runtime,
 static void show_result(cpu_runtime_data_t *cpu)
 {
   int i;
+  int nonEmptyFifos=0;
 
   printf("### Statistics ###\n");
   
@@ -1059,6 +1068,46 @@ static void show_result(cpu_runtime_data_t *cpu)
       
   }
   
+  // Report non-empty FIFOs
+  for (i = 0 ; i < cpu->cpu_count ; i++) {
+    int j;
+
+    for (j = 0 ; j < cpu[i].actors ; j++) {
+      AbstractActorInstance *consumer=cpu[i].actor[j];
+      int k;
+
+      for (k=0; k<consumer->inputs; ++k) {
+	InputPort *input=consumer->input + k;
+	const OutputPort *output=input->writer;
+	int balance=atomic_get(&output->shared->count)
+	  - atomic_get(&input->shared->count);
+
+	if (balance!=0) {
+	  AbstractActorInstance *producer=output->actor;
+	  const char *outputPortName="<unknown port>";
+	  const char *inputPortName=
+	    consumer->actor->inputPortDescriptions[k].name;
+	  int s;
+
+	  if (nonEmptyFifos==0)
+	    printf("\nNot all fifos are empty at exit:\n");
+	  ++nonEmptyFifos;
+
+	  for (s=0; s<producer->outputs; ++s) {
+	    if (producer->output +s == output) {
+	      outputPortName=producer->actor->outputPortDescriptions[s].name;
+	      break;
+	    }
+	  }
+
+	  printf("%s.%s to %s.%s contains %u tokens (capacity: %u)\n",
+		 producer->name, outputPortName,
+		 consumer->name, inputPortName,
+		 balance, input->capacity);
+	}
+      }
+    }
+  }
 }
 
 int executeNetwork(int argc, 
