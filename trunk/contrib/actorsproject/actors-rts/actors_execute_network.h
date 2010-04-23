@@ -205,7 +205,7 @@ static void *EXECUTE_NETWORK(cpu_runtime_data_t *runtime,
       sleepers++;
       balance += this_balance;
       this_balance = 0;
-      if (sleepers == runtime->cpu_count && balance == 0) { 
+      if (sleepers == runtime->cpu_count) { 
 	// Only terminate when all threads are starved
 	int do_terminate = 1;
 	for (i = 0 ; i < runtime->cpu_count ; i++) { 
