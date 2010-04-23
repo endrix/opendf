@@ -34,11 +34,13 @@ public class MergeActors extends XdfParser {
 				// by no means ensure that the actors may be merged.
 				// System.out.println("   Adding "+i.name()+" "+i.getIndex());
 				instances.add(i);
+			} else {
+				System.out.println("Instance "+i.name()+" not CSDF?");
 			}
 		}
-		int[] schedule = {1,1,2,3,2,3,1,1,2,2,3,3,4,4,4,5,5};
+		int[] schedule = {1,2,1,3,2,1,3,2,1,4,4,5,3,2,3,4,5};
 		int ix = 0,ixx = 0;
-		int[] rates = {2,2,2,2,2,2,2,2,2,2,2,2,2,2,1,1,1,1,1,1,1};
+		int[] rates = {1,1,1,1,1,1,1,1,1,1,1,1,2,2,1,1,1,1,1,1,1};
 		for (Connection c : ast.getConnections(new LinkedList<Connection>())) {
 			c.setBufSize(rates[ixx++]);
 			// if (c.getDest().isCSDF() && c.getSource().isCSDF()) {
