@@ -8,8 +8,14 @@ import java.io.PushbackReader;
 import net.sf.opendf.execution.harness.Token;
 import net.sf.opendf.execution.harness.TokenSource;
 
-public class BytesTokenSource implements TokenSource {
-	
+/**
+ * This token source comes in the form of a stream of bytes. It is, of course, untimed.
+ * 
+ * @author jwj
+ *
+ */
+
+public class BytesTokenSource extends AbstractUntimedTokenSource implements TokenSource {
 
 	@Override
 	public void close() throws IOException {
@@ -27,11 +33,6 @@ public class BytesTokenSource implements TokenSource {
 		bufferFull = true;
 		eos = (buffer < 0);
 		return !eos;
-	}
-
-	@Override
-	public double nextInputTime(double currentTime) throws IOException {
-		return currentTime;
 	}
 
 	@Override

@@ -8,6 +8,7 @@ import java.util.Map;
 
 import net.sf.opendf.execution.harness.io.BytesTokenSink;
 import net.sf.opendf.execution.harness.io.BytesTokenSource;
+import net.sf.opendf.execution.harness.io.NullTokenSink;
 import net.sf.opendf.execution.harness.io.TimedJSONTokenSink;
 import net.sf.opendf.execution.harness.io.TimedJSONTokenSource;
 import net.sf.opendf.execution.harness.io.UntimedJSONTokenSink;
@@ -22,10 +23,19 @@ public class Harness {
 	
 	
 	public void  execute1() {
+		Status s = presentInputs();
+		
+		
+		
+		
+		
+	}
+	
+	public Status  presentInputs() {
+		
 		Status s = getStatus();
 		
-		
-		
+		return s;
 	}
 
 	
@@ -195,6 +205,7 @@ public class Harness {
 		sinkFormats.put("timedJSON", new TimedJSONTokenSink.Factory());
 		sinkFormats.put("untimedJSON", new UntimedJSONTokenSink.Factory());
 		sinkFormats.put("bytes", new BytesTokenSink.Factory());
+		sinkFormats.put("null", new NullTokenSink.Factory());
 	}
 	
 	
