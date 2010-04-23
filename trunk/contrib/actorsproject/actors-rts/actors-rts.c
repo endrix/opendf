@@ -1110,6 +1110,23 @@ static void show_result(cpu_runtime_data_t *cpu)
   }
 }
 
+static void show_usage(char *name) {
+  printf("Usage: %s [OPTION...]\n", name);
+  printf("Executes network %s using the ACTORS run-time system\n", name);
+  printf("\nOptions:\n"
+         "--affinityN=actorlist   Sets the affinity of specified actors to\n"
+         "                        core number N\n"
+         "--cfile=FILE            Sets affinity and/or FIFO capacities as\n"
+         "                        specified in the configuration file\n"
+         "--fifosize=N            Sets the default FIFO size (1024 tokens)\n"
+         "--help                  Display this help list\n"
+         "--info                  List actors and their affinity\n"
+         "--loopmax=N             Restrict the maximum number of action\n"
+         "                        firings per actor\n"
+         "--single_cpu            Execute on a single CPU core\n"
+         "--timing                Collect and display timing statistics\n");
+}
+
 int executeNetwork(int argc, 
 		   char *argv[],
 		   AbstractActorInstance **instance, 
@@ -1142,8 +1159,11 @@ int executeNetwork(int argc,
     } else if (strncmp(argv[i], "--cfile=", 8) == 0) {
       filename = &argv[i][8];
       printf("Filename=%s\n", filename);
-    } else if (strncmp(argv[i], "-", 1) == 0) {
-      printf("Invalid flag '%s'\n", argv[i]);
+    } else if (strcmp(argv[i], "--help") == 0) {
+      show_usage(argv[0]);
+      exit(0);
+    } else {
+      printf("Invalid command-line argument '%s'\n", argv[i]);
       exit(1);
     }
   }
