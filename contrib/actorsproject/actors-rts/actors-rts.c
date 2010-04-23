@@ -1230,11 +1230,11 @@ static void show_usage(char *name) {
          "--loopmax=N             Restrict the maximum number of action\n"
          "                        firings per actor\n"
          "--single_cpu            Execute on a single CPU core\n"
-	 "--statistic             Display run-time statistics\n"
+	 "--statistics            Display run-time statistics\n"
          "--timing                Collect and display timing statistics\n"
-	 "--with_complexity       Output per-actor complexity (cycles) in\n"
+	 "--with-complexity       Output per-actor complexity (cycles) in\n"
          "                        configuration file (see --generate)\n"
-	 "--with_bandwidth        Output per-connection bandwidth (#tokens)\n"
+	 "--with-bandwidth        Output per-connection bandwidth (#tokens)\n"
          "                        in configuration file (see --generate).\n"
 	 "                        Note: wraps around at 4G tokens\n");
 }
@@ -1281,10 +1281,10 @@ int executeNetwork(int argc,
       filename = &argv[i][8];
     } else if (strncmp(argv[i], "--generate=", 11) == 0) {
       generateFileName = &argv[i][11];    
-    } else if (strcmp(argv[i], "--with_complexity") == 0) {
+    } else if (strcmp(argv[i], "--with-complexity") == 0) {
       flags |= FLAG_TIMING;
       with_complexity=1;
-    } else if (strcmp(argv[i], "--with_bandwidth") == 0) {
+    } else if (strcmp(argv[i], "--with-bandwidth") == 0) {
       with_bandwidth=1;
     } else if (strcmp(argv[i], "--help") == 0) {
       show_usage(argv[0]);
