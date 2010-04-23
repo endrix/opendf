@@ -22,7 +22,7 @@ import static net.sf.opendf.execution.transport.PacketConstants.*;
  * @author jwj
  *
  */
-public class TimedJSONTokenSource implements TokenSource {
+public class TimedJSONTokenSource extends AbstractTimedTokenSource implements TokenSource {
 	
 
 	@Override

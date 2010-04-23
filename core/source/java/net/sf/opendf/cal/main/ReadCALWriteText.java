@@ -103,6 +103,7 @@ public class ReadCALWriteText {
         catch (Exception e)
         {
             System.err.println(e.getMessage());
+            e.printStackTrace();
             System.exit(-1);
         }
 

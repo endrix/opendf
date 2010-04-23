@@ -14,7 +14,7 @@ import net.sf.opendf.execution.harness.TokenSource;
  * @author jwj
  *
  */
-public class ForgetfulTokenSourceDecorator implements TokenSource {
+public class ForgetfulTokenSourceDecorator extends AbstractUntimedTokenSource implements TokenSource {
 
 	@Override
 	public void close() throws IOException {
@@ -24,11 +24,6 @@ public class ForgetfulTokenSourceDecorator implements TokenSource {
 	@Override
 	public boolean hasToken() throws IOException {
 		return delegate.hasToken();
-	}
-
-	@Override
-	public double nextInputTime(double currentTime) throws IOException {
-		return currentTime;
 	}
 
 	@Override

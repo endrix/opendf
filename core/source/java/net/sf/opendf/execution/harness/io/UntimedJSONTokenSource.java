@@ -12,7 +12,7 @@ import net.sf.opendf.execution.harness.TokenSource;
 import net.sf.opendf.util.json.JSONLib;
 
 
-public class UntimedJSONTokenSource implements TokenSource {
+public class UntimedJSONTokenSource extends AbstractUntimedTokenSource implements TokenSource {
 	
 
 	@Override
@@ -32,11 +32,6 @@ public class UntimedJSONTokenSource implements TokenSource {
 		eos = (buffer == null);
 		
 		return !eos;
-	}
-
-	@Override
-	public double nextInputTime(double currentTime) throws IOException {
-		return currentTime;
 	}
 
 	@Override

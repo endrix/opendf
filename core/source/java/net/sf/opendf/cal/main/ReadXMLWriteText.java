@@ -59,6 +59,7 @@ public class ReadXMLWriteText {
         int argNo = 0;
         boolean niceInput = false;
         boolean quiet = false;
+        boolean debug = false;
         boolean xformsAreResource = false;
         for ( ; (argNo < args.length) && (args[argNo].charAt(0) == '-'); argNo++) {
             if (args[argNo].equals("-n")) {
@@ -69,6 +70,8 @@ public class ReadXMLWriteText {
             }
             else if (args[argNo].equals("-r")) {
                 xformsAreResource = true;
+            } else if (args[argNo].equals("-d")) {
+            	debug = true;
             }
             else {
                 printUsage();
@@ -87,36 +90,45 @@ public class ReadXMLWriteText {
         }
         //doc = Util.applyTransforms(doc, xfs);
         //String result = Util.createTXT(Util.createTransformer(args[args.length -1]), doc);
-        Node doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(new File(args[argNo + 0]));
-        Transformer txform;
-        if (xformsAreResource)
-        {
-            doc = Util.applyTransformsAsResources(doc, xfs, new ClassLoaderStreamLocator(ReadXMLWriteText.class.getClassLoader()));
-            java.io.InputStream is = Util.class.getClassLoader().getResourceAsStream(args[args.length -1]);
-            txform = Util.createTransformer(is);
+        try {
+	        Node doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(new File(args[argNo + 0]));
+	        Transformer txform;
+	        if (xformsAreResource)
+	        {
+	            doc = Util.applyTransformsAsResources(doc, xfs, new ClassLoaderStreamLocator(ReadXMLWriteText.class.getClassLoader()));
+	            java.io.InputStream is = Util.class.getClassLoader().getResourceAsStream(args[args.length -1]);
+	            txform = Util.createTransformer(is);
+	        }
+	        else
+	        {
+	            doc = Util.applyTransforms(doc, xfs);
+	            txform = Util.createTransformer(args[args.length -1]);
+	        }
+	        String result = Util.createTXT(txform, doc);
+	        OutputStream os = null;
+	        boolean closeStream = false;
+	        if (".".equals(args[argNo + 1])) {
+	            os = System.out;
+	        } else {
+	            os = new FileOutputStream(args[argNo + 1]);
+	            closeStream = true;
+	        }
+	        PrintWriter pw = new PrintWriter(os);
+	        pw.print(result);
+	        if (closeStream)
+	            pw.close();
+	        else
+	            pw.flush();
+	        if (!quiet)
+	            Logging.user().info("Done.");        
         }
-        else
-        {
-            doc = Util.applyTransforms(doc, xfs);
-            txform = Util.createTransformer(args[args.length -1]);
+        catch (Exception e) {
+        	if (debug) {
+        		System.err.println("Transformation error: " + e.getMessage());
+        		e.printStackTrace();
+        	}
+        	throw e;
         }
-        String result = Util.createTXT(txform, doc);
-        OutputStream os = null;
-        boolean closeStream = false;
-        if (".".equals(args[argNo + 1])) {
-            os = System.out;
-        } else {
-            os = new FileOutputStream(args[argNo + 1]);
-            closeStream = true;
-        }
-        PrintWriter pw = new PrintWriter(os);
-        pw.print(result);
-        if (closeStream)
-            pw.close();
-        else
-            pw.flush();
-        if (!quiet)
-            Logging.user().info("Done.");        
     }
 
     static private void printUsage() {

@@ -92,7 +92,7 @@ public class ExecutionController {
 		Map m = new HashMap();
 		m.put(fieldPacket, packetResponse);
 		m.put(fieldResponse, responseDone);
-		m.put(fieldNSteps, nSteps);
+		m.put(fieldNSteps, nSteps);					// FIXME: also add total number of steps
 		m.put(fieldActive, scheduler.hasEvent());
 		m.put(fieldTime, scheduler.currentTime());
 		m.put(fieldNextEventTime, scheduler.hasEvent() ? scheduler.nextEventTime() : scheduler.currentTime());
