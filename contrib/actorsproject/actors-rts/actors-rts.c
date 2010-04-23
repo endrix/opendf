@@ -1083,7 +1083,8 @@ static void show_result(cpu_runtime_data_t *cpu,
 	printf("sync_sleep:    %12Lu\n", cpu[i].statistics.sync_sleep);
 	printf("total:         %12Lu\n", cpu[i].statistics.total);
       }
-      printf("nsleep:        %12Lu times\n", cpu[i].statistics.nsleep);
+      // subtract one from nsleep not to count the last time (termination)
+      printf("nsleep:        %12Lu times\n", cpu[i].statistics.nsleep-1);
       printf("nloops:        %12Lu\n", cpu[i].statistics.nloops);
 
       if (show_timing)
@@ -1352,7 +1353,6 @@ int executeNetwork(int argc,
     if (nr_of_cpus(&used_cpus) == 1) {
       flags |= FLAG_SINGLE_CPU;
     }
-    printf("Flags: %d\n", flags);
     switch (flags) {
       case 0: {
 	run_threads(runtime_data, multi_cpu_execute_network);
