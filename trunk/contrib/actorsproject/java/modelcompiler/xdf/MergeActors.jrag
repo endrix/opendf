@@ -8,6 +8,7 @@
 
 import java.util.AbstractCollection;
 import java.util.AbstractList;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.io.File; 
@@ -34,7 +35,11 @@ aspect MergeActors {
 		}
 	}
 
-	public void XDF.mergeActors(String name, int[] schedule) {
+	public void XDF.mergeActors(String name, int[] sched) {
+		ArrayList<Integer> schedule = new ArrayList<Integer>();
+		for (int i=0; i<sched.length; i++) {
+			schedule.add(sched[i]);
+		}
 		Instance mergeInstance = new Instance(new List<Attribute>(),new List<Element>());
 		addElement(mergeInstance);
 		mergeInstance.isMerged(true);
@@ -70,17 +75,29 @@ aspect MergeActors {
 		// Remove connections between now merged actors. Replace
 		// pinRead/pinWrite with accesses to circular buffer.
 		for (Connection c : getConnections()) {
-			if (Arrays.binarySearch(schedule,c.getDest().getIndex()) > -1 &&
-				Arrays.binarySearch(schedule,c.getSource().getIndex()) > -1) {
+			System.out.println("Connection "+c.getDest().name()+
+							   "("+c.getDest().getIndex()+")"+"->"
+							   +c.getSource().name()+"("+c.getSource().getIndex()+")"+
+							   schedule.contains(c.getDest().getIndex())+" "+ 
+							   schedule.contains(c.getSource().getIndex()));
+			if (schedule.contains(c.getDest().getIndex()) &&
+				schedule.contains(c.getSource().getIndex())) {
+				System.out.println("    Replace!");
 				// Connection between two mergeable instances, replace with internal buffer
 				// First, create circular buffer to use instead of FIFO
 				xlimAST.Start srcXlim = c.getSource().xlimInstance();
 				String typeName = srcXlim.getPort(c.getSourcePort()).typeName();
-				String size = srcXlim.getPort(c.getSourcePort()).size();
-				xlimInstance.addStateVar("buf_"+varIx,c.getBufSize(),typeName,size);
-				System.out.print(""+varIx+":"+xlimInstance.getDesign().getNumElement());
-				xlimInstance.addStateVar("inIx_"+varIx);
-				xlimInstance.addStateVar("outIx_"+varIx);
+				String size = srcXlim.getPort(c.getSourcePort()).size();				
+				// System.out.print(""+varIx+":"+xlimInstance.getDesign().getNumElement());
+				// System.out.println(c.getBufSize());
+				if (c.getBufSize() > 1) {
+					// Doesn't make sense for scalar buffers
+					xlimInstance.addStateVar("buf_"+varIx,c.getBufSize(),typeName,size);
+					xlimInstance.addStateVar("inIx_"+varIx);
+					xlimInstance.addStateVar("outIx_"+varIx);
+				} else {
+					xlimInstance.addStateVar("buf_"+varIx);
+				}
 				// System.out.println(":"+xlimInstance.getDesign().getNumElement());
 				// Replace references to FIFO with internal circular
 				// buffer instead.
@@ -95,19 +112,19 @@ aspect MergeActors {
 				// Remove superfluous connection
 				c.remove_me = true;
 				c.is$Final(false);
-			} else if (Arrays.binarySearch(schedule,c.getDest().getIndex()) > -1) {
+			} else if (schedule.contains(c.getDest().getIndex())) {
 				c.setDestPort(unfix(c.getDest().name()+"_"+c.dstPort()));
 				c.setDest(unfix(name));
-			} else if (Arrays.binarySearch(schedule,c.getSource().getIndex()) > -1) {
+			} else if (schedule.contains(c.getSource().getIndex())) {
 				c.setSourcePort(unfix(c.getSource().name()+"_"+c.srcPort()));
 				c.setSource(unfix(name));
 			}
 		}
 
 		// Populate instance with actions
-		for (int i=0; i<schedule.length; i++) {
+		for (int i : schedule) {
 			// System.out.println("Testing instance: "+getInstance(schedule[i]).name());
-			Instance inst = getInstance(schedule[i]);
+			Instance inst = getInstance(i);
 			if (!inst.isMerged()) {
 				// System.out.println("  Adding");
 				System.out.println("Populating: "+inst.name());
@@ -143,18 +160,18 @@ aspect MergeActors {
 		HashSet<Port> mports = mergeInstance.getInports(new HashSet<Port>());
 		mports = mergeInstance.getOutports(mports);
 		xlimAST.module body = xlimInstance.addActionScheduler(mports);
-		for (int i=0; i<schedule.length; i++) {
+		for (int i : schedule) {
 			// body.addActionSchedule(getInstance(schedule[i]).
 			// 								xlimInstance().actionScheduler());
 			System.out.println("Adding action schedule for: "+
-							   getInstance(schedule[i]).xlimInstance().name());
-			body.addActorPhase(getInstance(schedule[i]).xlimInstance().
+							   getInstance(i).xlimInstance().name());
+			body.addActorPhase(getInstance(i).xlimInstance().
 							   getPhasePrinter().printNextPhase());
 		}
 
 		// Detach superfluous instances from xdf
-		for (int i=0; i<schedule.length; i++) {
-			detachFromXdf(getInstance(schedule[i]));
+		for (int i : schedule) {
+			detachFromXdf(getInstance(i));
 		}
 
 

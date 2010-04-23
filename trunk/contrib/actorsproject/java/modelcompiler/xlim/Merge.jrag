@@ -55,6 +55,7 @@ aspect Merge {
 
 	public void Start.replaceBuffer(Start src, Start dst, String srcPort, String dstPort, 
 									int ix, int bufSize) {
+		System.out.println("Replacing "+src.name()+":"+srcPort+"->"+dst.name()+":"+dstPort);
 		for (module m : src.getActions(new HashSet<module>())) {
 			m.setOutVar(ix,srcPort,bufSize);
 		}		
@@ -424,15 +425,20 @@ aspect Actions {
 		if (kind().equals("pinWrite") && portName().equals(srcPort)) {
 			setAttributeList(new List().add(new _kind(new AttrValue("\"assign\""))).
 							 add(new target("buf_"+ix)));
-			port indexPort = new port();
-			indexPort.setAttributeList(new List().add(new _dir(new AttrValue("\"in\""))).
-									 add(new source("outIx_"+ix)));
-			getElements().insertChild(indexPort,0);
-			// prettyPrint("",System.out);
-			// OK, so then add operations to increase buffer index,
-			// mod size.
-			System.out.println("** replaced pinWrite");
-			return increaseBufferIx(ix,bufSize,"outIx_");
+			if (bufSize > 1) {
+				// Scalar buffers does not need this
+				port indexPort = new port();
+				indexPort.setAttributeList(new List().add(new _dir(new AttrValue("\"in\""))).
+										   add(new source("outIx_"+ix)));
+				getElements().insertChild(indexPort,0);
+				// prettyPrint("",System.out);
+				// OK, so then add operations to increase buffer index,
+				// mod size.
+				System.out.println("** replaced pinWrite");
+				return increaseBufferIx(ix,bufSize,"outIx_");
+			} else {
+				return new List<Element>();
+			}
 		}
 		// Not done anything so return empty list
 		// System.out.println("** nothing");
@@ -483,16 +489,26 @@ aspect Actions {
 	List<Element> operation.setInVar(int ix, String srcPort, int bufSize) {
 		// System.out.println("operation.setInvar");
 		if (kind().equals("pinRead") && portName().equals(srcPort)) {
-			setAttributeList(new List().add(new _kind("var_ref")).
-							 add(new _name("buf_"+ix)));
-			port indexPort = new port();
-			indexPort.setAttributeList(new List().add(new _dir("in")).
-									 add(new source("inIx_"+ix)));
-			getElements().insertChild(indexPort,0);
-			// prettyPrint("",System.out);
-			// OK, so then add operations to increase buffer index,
-			// mod size.
-			return increaseBufferIx(ix,bufSize,"inIx_");
+			if (bufSize > 1) {
+				setAttributeList(new List().add(new _kind("var_ref")).
+								 add(new _name("buf_"+ix)));
+				// Scalar buffers does not need this
+				port indexPort = new port();
+				indexPort.setAttributeList(new List().add(new _dir("in")).
+										   add(new source("inIx_"+ix)));
+				getElements().insertChild(indexPort,0);
+				// prettyPrint("",System.out);
+				// OK, so then add operations to increase buffer index,
+				// mod size.
+				return increaseBufferIx(ix,bufSize,"inIx_");
+			} else {
+				setAttributeList(new List().add(new _kind("noop")));
+				port inPort = new port();
+				inPort.setAttributeList(new List().add(new _dir("in")).
+										   add(new source("buf_"+ix)));
+				getElements().insertChild(inPort,0);
+				return new List<Element>();
+			}
 		}
 		// Not done anything so return empty list
 		// System.out.println("operation.setInvar return empty list");
