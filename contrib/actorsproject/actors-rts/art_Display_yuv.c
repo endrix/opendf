@@ -60,8 +60,6 @@ ART_ACTION_CONTEXT(1, 1);
 #define IN0_In               ART_INPUT(0)
 
 #define MB_SIZE (6*64)
-#define IMAGE_WIDTH				176
-#define IMAGE_HEIGHT			144
 
 typedef struct {
   AbstractActorInstance base;
@@ -87,7 +85,7 @@ typedef struct {
 #elif defined GTK
   GtkWidget             *window;
   GtkWidget             *darea;
-  guchar                rgbbuf[IMAGE_WIDTH*IMAGE_HEIGHT*3];
+  guchar                *rgbbuf;
 #elif defined SDL
   SDL_Surface           *screen;
   SDL_Surface           *image;
@@ -101,8 +99,6 @@ typedef struct {
 #define RGB565(r, g, b) ((r >> 3) << 11)| ((g >> 2) << 5)| ((b >> 3) << 0)
 #define RGB555(r, g, b) ((r >> 3) << 10)| ((g >> 3) << 5)| ((b >> 3) << 0)
 
-#define WIDTH_IN_MB         11
-#define HEIGHT_IN_MB        9
 
 #define START_Y 0
 #define START_U (4*64)
@@ -292,11 +288,11 @@ ART_ACTION_SCHEDULER(art_Display_yuv_action_scheduler)
       comp=0;
       start=0;
       thisActor->mbx+=16;
-    } while (thisActor->mbx<IMAGE_WIDTH);
+    } while (thisActor->mbx<thisActor->width);
     
     thisActor->mbx=0;
     thisActor->mby+=16;
-    if (thisActor->mby>=IMAGE_HEIGHT){
+    if (thisActor->mby>=thisActor->height){
       thisActor->totFrames++;	
       thisActor->mby=0;
     }
@@ -345,7 +341,12 @@ out:
 static void art_Display_yuv_constructor(AbstractActorInstance *pBase) {
 	ActorInstance_art_Display_yuv	*thisActor=(ActorInstance_art_Display_yuv*) pBase;
 	struct timeb tb;
+	int width=thisActor->width;
+	int height=thisActor->height;
 
+	if (width==0 || height==0) {
+	  runtimeError(pBase, "Width and/or height parameter not set\n");
+	}
 	ftime(&tb);
 	memset(thisActor->macroBlock,0,MB_SIZE);	
 	thisActor->mbx=0;
@@ -399,22 +400,23 @@ static void art_Display_yuv_constructor(AbstractActorInstance *pBase) {
 	gdk_rgb_init();
 	thisActor->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	thisActor->darea = gtk_drawing_area_new();
- 	gtk_drawing_area_size(GTK_DRAWING_AREA(thisActor->darea), IMAGE_WIDTH, IMAGE_HEIGHT);
- 	gtk_container_add(GTK_CONTAINER(thisActor->window),thisActor->darea);
+	thisActor->rgbbuf=malloc(3*width*height*sizeof(guchar));
+	gtk_drawing_area_size(GTK_DRAWING_AREA(thisActor->darea), width, height);
+	gtk_container_add(GTK_CONTAINER(thisActor->window),thisActor->darea);
 	gtk_window_set_title(GTK_WINDOW(thisActor->window),thisActor->title);
-	thisActor->ppf=0;
+ 	thisActor->ppf=0;
 #elif defined SDL
 	//Start SDL
 	SDL_Init(SDL_INIT_VIDEO);
 	atexit(SDL_Quit);
-    thisActor->screen = SDL_SetVideoMode(IMAGE_WIDTH, IMAGE_HEIGHT, 24, SDL_HWSURFACE|SDL_DOUBLEBUF);
+	thisActor->screen = SDL_SetVideoMode(width, height, 24, SDL_HWSURFACE|SDL_DOUBLEBUF);
 	thisActor->image = SDL_CreateRGBSurface(SDL_SWSURFACE,
-	                             IMAGE_WIDTH, IMAGE_HEIGHT,
-	                             thisActor->screen->format->BitsPerPixel,
-                                 thisActor->screen->format->Rmask,
-                                 thisActor->screen->format->Gmask,
-                                 thisActor->screen->format->Bmask,
-                                 thisActor->screen->format->Amask);
+	                  width, height,
+	                  thisActor->screen->format->BitsPerPixel,
+                          thisActor->screen->format->Rmask,
+                          thisActor->screen->format->Gmask,
+                          thisActor->screen->format->Bmask,
+                          thisActor->screen->format->Amask);
 #endif
 
 }
@@ -444,6 +446,7 @@ void art_Display_yuv_destructor(AbstractActorInstance *pBase)
 
 }
 
+
 void art_Display_yuv_setParam(AbstractActorInstance *pBase,
 		              const char *paramName, 
 			      const char *value) {
@@ -452,10 +455,12 @@ void art_Display_yuv_setParam(AbstractActorInstance *pBase,
 
   if(strcmp(paramName,"title") == 0)
     thisActor->title = value;
-  else if(strcmp(paramName,"height") == 0)
+  else if(strcmp(paramName,"height") == 0) {
     thisActor->height = atoi(value);
-  else if(strcmp(paramName,"width") == 0)	
+  }
+  else if(strcmp(paramName,"width") == 0) {
     thisActor->width = atoi(value);
+  }
 }
 
 static const PortDescription inputPortDescriptions[]={

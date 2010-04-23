@@ -71,6 +71,15 @@ typedef struct {
   long long nloops;
 } statistics_t;
 
+static struct {
+  int num_outputs;
+  int num_inputs;
+  int global_bytes;
+  int local_bytes;
+  int shared_bytes;
+  int buffer_bytes;
+} memory_statistics;
+
 typedef struct cpu_runtime_data {
   struct cpu_runtime_data *cpu; /* Pointer to first element in this list */
   int cpu_count;
@@ -587,7 +596,8 @@ static int set_config(ActorInstance_1_t **instance,
 static int check_network(ActorInstance_1_t **instance,
 			 int numInstances,
 			 cpu_set_t *used_cpus,
-			 int *flags)
+			 int *flags,
+			 int affinity_is_set)
 {
   int result = 0;
   int i;
@@ -598,11 +608,14 @@ static int check_network(ActorInstance_1_t **instance,
     // Check that we have processor affinity, else force single CPU mode
     if (instance[i]->affinity == -1) {
       if (!(*flags & FLAG_SINGLE_CPU)) {
-	printf("Forcing single CPU mode!\n");
+	printf("Forcing single CPU mode:%s\n", 
+               affinity_is_set? "" : " no affinity/configuration specified");
 	*flags |= FLAG_SINGLE_CPU;
       }
-      printf("No affinity %s/%d\n", instance[i]->actorClass->name,
-	     instance[i]->index);
+      if (affinity_is_set)
+	printf("No affinity %s/%d\n", instance[i]->actorClass->name,
+	      instance[i]->index);
+      // else: don't bitch about every actor!
       instance[i]->affinity = 0;
     }
   }
@@ -795,13 +808,12 @@ static cpu_runtime_data_t *allocate_network(
   shared_bytes = 
     cache_bytes(sizeof(*result[0].sleep))+
     cache_bytes((num_outputs + num_inputs) * sizeof(SharedContext));
-  printf("n_out=%d n_in=%d global=%d local=%d shared=%d buf=%d\n",
-	 num_outputs,
-	 num_inputs,
-	 global_bytes,
-	 local_bytes * nr_of_cpus(used_cpus),
-	 shared_bytes * nr_of_cpus(used_cpus),
-	 buffer_bytes);
+  memory_statistics.num_outputs=num_outputs;
+  memory_statistics.num_inputs=num_inputs;
+  memory_statistics.global_bytes=global_bytes;
+  memory_statistics.local_bytes=local_bytes * nr_of_cpus(used_cpus);
+  memory_statistics.shared_bytes=shared_bytes * nr_of_cpus(used_cpus);
+  memory_statistics.buffer_bytes=buffer_bytes;
   result = malloc(sizeof(*result) * nr_of_cpus(used_cpus));
   buffer_p = cache_aligned_calloc(
     buffer_bytes +
@@ -876,8 +888,6 @@ static cpu_runtime_data_t *allocate_network(
       void *cpu_shared_p, *cpu_local_p, *cpu_actor_data;
 
       cpu++;
-      printf("Allocating for cpu #%d (%d)\n", i, cpu);
-
       /* Get cpu data */
       cpu_shared_p = shared_p;
       shared_p += shared_bytes;
@@ -1037,35 +1047,61 @@ static void run_threads(cpu_runtime_data_t *runtime,
   }
 }
 
-static void show_result(cpu_runtime_data_t *cpu)
+static void show_result(cpu_runtime_data_t *cpu, 
+                        int show_statistics, 
+			int show_timing)
 {
   int i;
   int nonEmptyFifos=0;
 
-  printf("### Statistics ###\n");
-  
-  for (i = 0 ; i < cpu->cpu_count ; i++) {
-    int j;
-
-    printf("%d prefire:        %Lu\n", i, cpu[i].statistics.prefire);
-    printf("%d read_barrier:   %Lu\n", i, cpu[i].statistics.read_barrier);
-    printf("%d fire:           %Lu\n", i, cpu[i].statistics.fire);
-    printf("%d write_barrier:  %Lu\n", i, cpu[i].statistics.write_barrier);
-    printf("%d postfire:       %Lu\n", i, cpu[i].statistics.postfire);
-    printf("%d sync_unblocked: %Lu\n", i, cpu[i].statistics.sync_unblocked);
-    printf("%d sync_blocked:   %Lu\n", i, cpu[i].statistics.sync_blocked);
-    printf("%d sync_sleep:     %Lu\n", i, cpu[i].statistics.sync_sleep);
-    printf("%d total:          %Lu\n", i, cpu[i].statistics.total);
-    printf("%d nsleep:         %Lu\n", i, cpu[i].statistics.nsleep);
-    printf("%d nloops:         %Lu\n", i, cpu[i].statistics.nloops);
-    for (j = 0 ; j < cpu[i].actors ; j++) { 
-      printf("actor[%d,%d] name,nloops,total: %s,%Ld,%Lu\n", i, j, 
-	     cpu[i].actor[j]->name,
-	     cpu[i].actor[j]->nloops,
-	     cpu[i].actor[j]->total);
+  if (show_statistics || show_timing) {
+    printf("### Statistics ###\n");
+    
+    if (show_statistics) {
+      printf("Memory usage:\n");
+      printf("Global memory: %12u bytes\n", memory_statistics.global_bytes);
+      printf("Local memory:  %12u\n", memory_statistics.local_bytes);
+      printf("Shared memory: %12u\n", memory_statistics.shared_bytes);
+      printf("Buffers:       %12u\n", memory_statistics.buffer_bytes);
+      printf("  #outputs:    %12u\n", memory_statistics.num_outputs);
+      printf("  #inputs:     %12u\n", memory_statistics.num_inputs);
     }
-    printf("\n");
-      
+
+    for (i = 0 ; i < cpu->cpu_count ; i++) {
+      int j;
+
+      printf("\nCPU%d:\n", i);
+      if (show_timing) {
+	printf("prefire:       %12Lu cycles\n", cpu[i].statistics.prefire);
+	printf("read_barrier:  %12Lu\n", cpu[i].statistics.read_barrier);
+	printf("fire:          %12Lu\n", cpu[i].statistics.fire);
+	printf("write_barrier: %12Lu\n", cpu[i].statistics.write_barrier);
+	printf("postfire:      %12Lu\n", cpu[i].statistics.postfire);
+	printf("sync_unblocked:%12Lu\n", cpu[i].statistics.sync_unblocked);
+	printf("sync_blocked:  %12Lu\n", cpu[i].statistics.sync_blocked);
+	printf("sync_sleep:    %12Lu\n", cpu[i].statistics.sync_sleep);
+	printf("total:         %12Lu\n", cpu[i].statistics.total);
+      }
+      printf("nsleep:        %12Lu times\n", cpu[i].statistics.nsleep);
+      printf("nloops:        %12Lu\n", cpu[i].statistics.nloops);
+
+      if (show_timing)
+	printf("%-32s  nloops timing (cycles)\n", "actor");
+      else
+	printf("%-32s  nloops\n", "actor");
+      for (j = 0 ; j < cpu[i].actors ; j++) { 
+	if (show_timing)
+	  printf("%-32s %7Ld %12Lu\n",
+	         cpu[i].actor[j]->name,
+		 cpu[i].actor[j]->nloops,
+		 cpu[i].actor[j]->total);
+	else
+	  printf("%-32s %7Ld\n",
+	         cpu[i].actor[j]->name,
+		 cpu[i].actor[j]->nloops);
+
+      }
+    }
   }
   
   // Report non-empty FIFOs
@@ -1142,10 +1178,14 @@ int executeNetwork(int argc,
   int arg_print_info = 0;
   int arg_fifo_size = DEFAULT_FIFO_LENGTH;
   char *filename=0;
+  int statistics=0;
+  int affinity_is_set=0;
 
   for (i = 1 ; i < argc ; i++) {
     if (strcmp(argv[i], "--timing") == 0) {
       flags |= FLAG_TIMING;
+    } else if (strcmp(argv[i], "--statistics") == 0) {
+      statistics=1;
     } else if (strcmp(argv[i], "--single_cpu") == 0) {
       flags |= FLAG_SINGLE_CPU;
     } else if (strncmp(argv[i], "--affinity", 10) == 0) {
@@ -1173,18 +1213,22 @@ int executeNetwork(int argc,
     for (i = 1 ; i < argc ; i++) {
       if (strncmp(argv[i], "--affinity", 10) == 0) {
         set_affinity(instance_1, numInstances, &argv[i][10]);
+	affinity_is_set=1;
       }
     }
   }
 
   if (result == 0) {
     // Assign affinity and other params from config file
-    if (filename)
+    if (filename) {
       set_config(instance_1, numInstances, filename);
+      affinity_is_set=1;
+    }
   }
 
   if (result == 0) {
-    result = check_network(instance_1, numInstances, &used_cpus, &flags);
+    result = check_network(instance_1, numInstances, &used_cpus, &flags, 
+                           affinity_is_set);
   }
   if (arg_print_info) {
     info_network(instance_1, numInstances, &used_cpus);
@@ -1226,7 +1270,7 @@ int executeNetwork(int argc,
     run_destructors(runtime_data);
   }
   if (result == 0) {
-    show_result(runtime_data);
+    show_result(runtime_data, statistics, flags & FLAG_TIMING);
   }
   if (result == 0) {
     deallocate_network(runtime_data);
