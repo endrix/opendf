@@ -1,6 +1,0 @@
-actor process(int affinity) int In ==> int Out:
-
-      action In:[i] ==> Out:[i]
-      end
-
-end

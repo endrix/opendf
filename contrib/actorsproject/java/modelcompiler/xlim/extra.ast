@@ -1,9 +1,0 @@
-// -*-Java-*- 
-
-// Used as replacement for removed nodes in the AST
-EmptyStart:Start ::=;
-
-// Dummy node to hold a string representation of the action scheduler
-// for one actor 'phase'. prettyPrint() will just dump this string.
-ActorPhase:operation ::=;
-

@@ -1,1 +1,0 @@
-../../gold/acdcTest/signed.txt

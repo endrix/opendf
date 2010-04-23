@@ -1,7 +1,0 @@
-#! /bin/sh
-: ${ACTORS_JAVADIR:=@javadir@}
-: ${ACTORSPROJ_JAR:=${ACTORS_JAVADIR}/actorsproject.jar}
-: ${ACTORS_CLASSPATH:=${ACTORSPROJ_JAR}}
-
-${JAVA:-java} ${JFLAGS:--Xmx1G} -classpath $ACTORS_CLASSPATH \
-              ConstraintInfo "$@"

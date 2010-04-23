@@ -1,1 +1,0 @@
-../../gold/parserTest/MV_Y.txt
