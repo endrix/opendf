@@ -153,7 +153,7 @@ public class Operation2c implements OperationGenerator {
 				          "ETSI_typecast16_32",
 				          "ETSI_add",      "ETSI_sub",        "ETSI_mult", 
 				          "ETSI_div_s",    "ETSI_shr",        "ETSI_shl", 
-				          "ETSI_shr_r",    "ETSI_mult_r",
+				          "ETSI_shr_r",    "ETSI_mult_r",    "ETSI_L_Comp",
 				          "ETSI_L_add",    "ETSI_L_sub",     "ETSI_L_mult", 
 				          "ETSI_L_shr",    "ETSI_L_shl",     "ETSI_L_shr_r",
                           "ETSI_L_mac",    "ETSI_L_msu",     "ETSI_Mpy_32_16",
