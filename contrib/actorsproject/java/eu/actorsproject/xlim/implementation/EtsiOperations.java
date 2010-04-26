@@ -38,18 +38,9 @@
 package eu.actorsproject.xlim.implementation;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
-import eu.actorsproject.util.XmlAttributeFormatter;
-import eu.actorsproject.xlim.XlimOperation;
-import eu.actorsproject.xlim.XlimOutputPort;
-import eu.actorsproject.xlim.XlimSource;
-import eu.actorsproject.xlim.XlimType;
-import eu.actorsproject.xlim.io.ReaderContext;
-import eu.actorsproject.xlim.io.XlimAttributeList;
 import eu.actorsproject.xlim.type.FixIntegerTypeRule;
-import eu.actorsproject.xlim.type.FixOutputTypeRule;
 import eu.actorsproject.xlim.type.Signature;
 import eu.actorsproject.xlim.type.TypeFactory;
 import eu.actorsproject.xlim.type.TypeKind;
@@ -90,7 +81,7 @@ public class EtsiOperations extends XlimFeature {
 		
 		// Binary operations: (int,int)->int32
 		String binaryOps32[]={"ETSI_L_add", "ETSI_L_sub", "ETSI_L_mult", 
-				              "ETSI_L_shr", "ETSI_L_shl", "ETSI_L_shr_r"};
+				              "ETSI_L_shr", "ETSI_L_shl", "ETSI_L_shr_r", "ETSI_L_Comp"};
 		registerAll(binaryOps32, new FixIntegerTypeRule(binary,16), s);
 		
 		// Ternary operations: (int,int,int)->int32
