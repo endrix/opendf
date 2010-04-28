@@ -1,0 +1,11 @@
+actor art_DBus_test() int In 
+              ==> int Out :
+
+  int count:=0;
+
+  data: action In:[d] ==> Out:[d]
+  guard count>0
+  do
+    count:=count-1; 
+  end
+end
