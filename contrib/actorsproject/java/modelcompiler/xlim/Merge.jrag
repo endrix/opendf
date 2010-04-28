@@ -9,10 +9,13 @@
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
+import eu.actorsproject.xlim.XlimTopLevelPort;
+import eu.actorsproject.xlim.decision2.PortSignature;
 import eu.actorsproject.xlim.schedule.ActionSchedule;
 import eu.actorsproject.xlim.schedule.PhasePrinter;
 import eu.actorsproject.xlim.schedule.StaticActionSchedule;
 import eu.actorsproject.xlim.schedule.StaticPhase;
+import eu.actorsproject.xlim.schedule.StaticSubSchedule;
 
 aspect Merge {
 	private static int design.nameIndex = 0;
@@ -832,14 +835,54 @@ aspect Classification {
 	public ActionSchedule Start.getActionSchedule() {
 		return actionSchedule;
 	}
+	public ActionSchedule ASTNode.getActionSchedule() {
+		return getParent().getActionSchedule();
+	}
 
 	// public LinkedList<Object> ASTNode.getActionList() {
 	//   return getActionSchedule().getActionList();
 	// }
 
-	// public LinkedList<Integer> actor_port.tokenPattern() {
-	// 	return getActionSchedule().getPortPattern(name());
-	// }
+	public LinkedList<Integer> actor_port.tokenPattern() {
+		if (getActionSchedule().isStatic()) {			
+			StaticActionSchedule sas = getActionSchedule().getStaticSchedule();
+			System.out.println("schedules: "+getActionSchedule()+" "+ sas);
+			if (!sas.hasInitialSchedule() && sas.repeatsForever()) {
+				// try {
+				LinkedList<Integer> pattern = new LinkedList<Integer>();
+				for (StaticSubSchedule sub : sas.getRepeatedSchedule().getSubSchedules()) {
+					for (StaticPhase phase : sub.getPhases()) {
+						PortSignature sig = phase.getPortSignature();
+						boolean inPattern = false;
+						for (XlimTopLevelPort port : sig.getPorts()) {
+							if (port.getName().equals(name())) {
+								inPattern = true;
+								pattern.add(sig.getPortRate(port));
+								System.out.println(name()+": "+sig.getPortRate(port));
+							}
+						}
+						if (!inPattern) {
+							pattern.add(0);
+						}
+					}
+				}
+				return pattern;
+				// } catch (IllegalArgumentException e) {
+				// 	// System.out.println(nameMap.values());
+				// 	System.out.println(nameMap.keySet());
+				// 	System.out.println(e.getMessage());
+				// 	e.printStackTrace();
+				// }
+				// return phasePrinter;
+			} else {
+				System.out.println("Static schedule is not really static.");		   
+			}		
+		} else {
+			System.out.println("Can not create port pattern for non-static actors.");
+		}
+		return new LinkedList<Integer>();
+	}
+
 	// public Iterable<StaticPhase> ASTNode.getPhases() {
 	// 	return getActionSchedule().getStaticSchedule().getRepeatedSchedule().getPhases();
 	// }

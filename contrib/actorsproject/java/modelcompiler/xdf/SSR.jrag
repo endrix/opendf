@@ -31,7 +31,7 @@ aspect Classification {
 			// ModeScheduler modeScheduler = new ModeScheduler();
 			Classifier classifier = new Classifier(xlim);
 			ActionSchedule actionSchedule = classifier.getActionSchedule();
-			xlimInstance().setActionSchedule(actionSchedule);
+			xlimInstance(dir).setActionSchedule(actionSchedule);
 			if (actionSchedule.isStatic()) {
 				return "CSDF";
 			} else {
