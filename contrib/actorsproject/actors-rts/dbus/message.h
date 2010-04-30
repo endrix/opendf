@@ -52,52 +52,40 @@ enum Category
 {
   /**Invalid category.*/
   CategoryNone = 0,
+
   /**A generic ``Low'' category.*/
   CategoryLow = 1,
+
   /**A generic ``Medium'' category.*/
   CategoryMedium = 2,
+
   /**A generic ``High'' category.*/
   CategoryHigh = 3
 };
 
-enum ResourceId
+/**A mapping from threadGroup Ids to an amount (relative) of Bandwidth.  
+   The amount must be an integer value 0...100.*/
+typedef std::map<unsigned int, unsigned int> BandwidthDistributionMap;
+
+/**A struct representing one service level of an application, i.e. 
+ * the QoS and the required resources. It is used in announceServiceLevels(). 
+ * In bindings that need a separate name, arrays of ServiceLevel should be 
+ * called ServiceLevelList.*/
+struct ServiceLevel
 {
 
-  /**Invalid resource.*/
-  ResourceNone = 0,
+  /**This one indicates the quality of this level. It is an integer value 
+   * ranging from 0 (worst) to 100 (best).*/
+  unsigned int qualityOfService;
 
-  /**The CPU bandwidth resource. This value will be inpreted relative to the maximum
-  CPU bandwidth value for this application.*/
-  ResourceCPUBandwidth = 1,
+  /**Number of entries in the BWDistribution map.*/
+  unsigned int bWDistributionsCount;
 
-  /**The CPU granularity resource. This will be an absolute time value
-  in microseconds which specifies during which time the requested
-  CPU bandwidth should be provided.*/
-  ResourceCPUGranularity = 2
+  /**This is a map of resource identifikations to their required amount,
+   * e.g. array of: threadGroup TID needs n percentage of total bandwidth.*/
+  BandwidthDistributionMap bWDistribution;
 };
 
-/**A mapping from resource Ids to an amount (absolute or relative) of them.  The amount must be an integer value.*/
-typedef std::map<ResourceId, unsigned int> ResourceDemand;
-
-
-/**A struct representing one quality level of an application, i.e.
-   the quality and the required resources.
-   It is used in announceQualityLevels().
-   In bindings that need a separate name, arrays of QualityLevel
-   should be called QualityLevelList.*/
-struct QualityLevel
-{
-   /**This one indicates the quality of this level. It is an integer value
-      ranging from 0 (worst) to 100 (best).*/
-   unsigned int quality;
-
-   /**Number of entries in the resourceDemands map.*/
-   unsigned int resourceDemandCount;
-
-   /**This is a map of resource identifikations to their required amount,
-      e.g. ResourceCPUBandwidth or ResourceCPUGranularity.*/
-   ResourceDemand resourceDemands;
-};
 
 class Message;
 
@@ -165,21 +153,6 @@ class CategoryMessage : public Message
       Category m_category;
    private:
       CategoryMessage();
-};
-
-/** This message is sent from the dbus handler to the resourcemanager whenever a client application
-announces its quality levels. */
-class QualityLevelsMessage : public Message
-{
-   public:
-      QualityLevelsMessage(int id,
-                           const std::vector<QualityLevel>& levels)
-            : Message(id)
-            , m_qualityLevels(levels){}
-
-      const std::vector<QualityLevel>& getQualityLevels() const {return m_qualityLevels;}
-   protected:
-      std::vector<QualityLevel> m_qualityLevels;
 };
 #endif
 
