@@ -58,6 +58,33 @@
 
 #define ACTRM_INTERFACE_NAME "eu.actorsproject.ResourceManagerInterface"
 
+#define MAX_LEVELS          10
+#define MAX_DISTRIBUTIONS   10
+
+typedef struct {
+  int     groupID;
+  int     bandwidth;
+}BWDistribution;
+
+typedef struct {
+  int     qualityOfService;
+  int     bwDistributionsCount;	  
+  BWDistribution bwDistributions[MAX_DISTRIBUTIONS];
+  int     granularity;
+} SLevel;
+
+typedef struct {
+  int     currentServiceLevel;	
+  int     granularity;
+  int     serviceLevelsCount;
+  SLevel  levels[MAX_LEVELS];
+} SLevels;
+
+static AbstractActorInstance *dbusInstance;
+static Category category = CategoryHigh;
+static SLevels slevels = {0,2500,1,{100,1,{21,80}}};
+
+
 class SystemActorDBusHandler : public GenericDBusHandler
 {
    public:
@@ -66,7 +93,7 @@ class SystemActorDBusHandler : public GenericDBusHandler
       void registerApp();
       void reportHappiness(int happiness);
       void announceCPUCategory(Category category);
-      void announceQualityLevels(std::vector<QualityLevel>& qualityLevels);
+      void announceServiceLevels();
       void addThreadToGroup(int tid);
 
 
@@ -78,7 +105,7 @@ class SystemActorDBusHandler : public GenericDBusHandler
       void handleRegisterClient(const Message* msg);
       void handleReportHappiness(const IntMessage* msg);
       void handleAnnounceCPUCategory(const CategoryMessage *msg);
-      void handleAnnounceQualityLevels(const QualityLevelsMessage *msg);
+      void handleAnnounceServiceLevels(const Message* msg);
       void handleAddThreadToGroup(const IntMessage* msg);
 
       std::string m_name;
@@ -96,7 +123,7 @@ SystemActorDBusHandler::SystemActorDBusHandler(AbstractActorInstance* base, cons
    addMessageHandler(MSG_REGISTER_CLIENT, MAKE_MESSAGE_DELEGATE(this, &SystemActorDBusHandler::handleRegisterClient));
    addMessageHandler(MSG_REPORT_HAPPINESS, MAKE_MESSAGE_DELEGATE(this, &SystemActorDBusHandler::handleReportHappiness));
    addMessageHandler(MSG_CPU_CATEGORY, MAKE_MESSAGE_DELEGATE(this, &SystemActorDBusHandler::handleAnnounceCPUCategory));
-   addMessageHandler(MSG_QUALITY_LEVELS, MAKE_MESSAGE_DELEGATE(this, &SystemActorDBusHandler::handleAnnounceQualityLevels));
+   addMessageHandler(MSG_SERVICE_LEVELS, MAKE_MESSAGE_DELEGATE(this, &SystemActorDBusHandler::handleAnnounceServiceLevels));
    addMessageHandler(MSG_ADDTO_GROUP, MAKE_MESSAGE_DELEGATE(this, &SystemActorDBusHandler::handleAddThreadToGroup));
 }
 
@@ -142,7 +169,7 @@ void SystemActorDBusHandler::handleDBusSignal(DBusMessage* message)
    if (dbus_message_is_signal(message, ACTRM_INTERFACE_NAME, "changeContinuous"))
    {
    }
-   else if (dbus_message_is_signal(message, ACTRM_INTERFACE_NAME, "changeQualityLevel"))
+   else if (dbus_message_is_signal(message, ACTRM_INTERFACE_NAME, "changeServiceLevel"))
    {
       char* receiverName = 0;
       dbus_uint32_t newValue = 0;
@@ -173,66 +200,67 @@ void SystemActorDBusHandler::handleDBusSignal(DBusMessage* message)
    }
 }
 
-void SystemActorDBusHandler::announceQualityLevels(std::vector<QualityLevel>& qualityLevels)
+void SystemActorDBusHandler::announceServiceLevels()
 {
-   this->postMessage(new QualityLevelsMessage(MSG_QUALITY_LEVELS,qualityLevels));
+   this->postMessage(new Message(MSG_SERVICE_LEVELS));
 }
 
-void SystemActorDBusHandler::handleAnnounceQualityLevels(const QualityLevelsMessage *qualityLevelsMsg)
+void SystemActorDBusHandler::handleAnnounceServiceLevels(const Message* serviceLevelsMsg)
 {
    bool result;
-   int value;
    DBusMessageIter args1;
    DBusMessage* message = 0;
-   std::vector<QualityLevel> qualityLevels;
 
-   assert(qualityLevelsMsg);
+   assert(serviceLevelsMsg);
 
-   message = dbus_message_new_method_call(ACTRM_INTERFACE_NAME, "/", ACTRM_INTERFACE_NAME, "announceQualityLevels");
+   message = dbus_message_new_method_call(ACTRM_INTERFACE_NAME, "/", ACTRM_INTERFACE_NAME, "announceServiceLevels");
    dbus_message_iter_init_append(message, &args1);
-   qualityLevels = qualityLevelsMsg->getQualityLevels();
-   value = 0;
-   dbus_message_iter_append_basic(&args1, ((int) 'u'), &value);
-   value = qualityLevels.size();
-   dbus_message_iter_append_basic(&args1, ((int) 'u'), &value);
+   
+   //current service level
+   dbus_message_iter_append_basic(&args1, ((int) 'u'), &slevels.currentServiceLevel);
+   //global granularity
+   dbus_message_iter_append_basic(&args1, ((int) 'u'), &slevels.granularity);
+   //service level count
+   dbus_message_iter_append_basic(&args1, ((int) 'u'), &slevels.serviceLevelsCount);
+   //service levels
+
+   DBusMessageIter args2;
+   dbus_message_iter_open_container(&args1, DBUS_TYPE_ARRAY, "(uua{uu})", &args2);
+   for(int i=0; i<slevels.serviceLevelsCount;i++)
    {
-      DBusMessageIter args2;
-      dbus_message_iter_open_container(&args1, DBUS_TYPE_ARRAY, "(uua{uu})", &args2);
-      for (std::vector<QualityLevel>::const_iterator it = qualityLevels.begin(); it != qualityLevels.end(); ++it)
-      {
-         const QualityLevel& qualityLevelsTmp = *it;
-         {
-            DBusMessageIter args3;
-            dbus_message_iter_open_container(&args2, DBUS_TYPE_STRUCT, NULL, &args3);
-            dbus_message_iter_append_basic(&args3, ((int) 'u'), &qualityLevelsTmp.quality);
-            dbus_message_iter_append_basic(&args3, ((int) 'u'), &qualityLevelsTmp.resourceDemandCount);
-            {
-               DBusMessageIter args4;
-               dbus_message_iter_open_container(&args3, DBUS_TYPE_ARRAY, "{uu}", &args4);
-               for(ResourceDemand::const_iterator it = qualityLevelsTmp.resourceDemands.begin(); it != qualityLevelsTmp.resourceDemands.end(); ++it)
-               {
-                  const ResourceId& tmpKey = it->first;
-                  const unsigned int& tmpValue = it->second;
-                  DBusMessageIter args5;
-                  dbus_message_iter_open_container(&args4, DBUS_TYPE_DICT_ENTRY, NULL, &args5);
-                  dbus_message_iter_append_basic(&args5, ((int) 'u'), &tmpKey);
-                  dbus_message_iter_append_basic(&args5, ((int) 'u'), &tmpValue);
-                  dbus_message_iter_close_container(&args4, &args5);
-               }
-               dbus_message_iter_close_container(&args3, &args4);
-            }
-            dbus_message_iter_close_container(&args2, &args3);
-         }
-      }
-      dbus_message_iter_close_container(&args1, &args2);
+	   SLevel *slevel = &slevels.levels[i];
+	   DBusMessageIter args3;
+	   dbus_message_iter_open_container(&args2, DBUS_TYPE_STRUCT, NULL, &args3);
+	   //quality of service 
+       dbus_message_iter_append_basic(&args3, ((int) 'u'), &slevel->qualityOfService);
+	   //BW distrinution aount
+	   dbus_message_iter_append_basic(&args3, ((int) 'u'), &slevel->bwDistributionsCount);
+
+	   DBusMessageIter args4;
+	   dbus_message_iter_open_container(&args3, DBUS_TYPE_ARRAY, "{uu}", &args4);
+	   for (int j=0; j<slevel->bwDistributionsCount; j++)
+	   {
+		   BWDistribution *bw=&slevel->bwDistributions[j];
+           DBusMessageIter args5;
+		   dbus_message_iter_open_container(&args4, DBUS_TYPE_STRUCT, NULL, &args5);
+		   //group ID
+		   dbus_message_iter_append_basic(&args5, ((int) 'u'), &bw->groupID);
+		   //bandwidth
+		   dbus_message_iter_append_basic(&args5, ((int) 'u'), &bw->bandwidth);
+		   dbus_message_iter_close_container(&args4, &args5);
+	   }
+       dbus_message_iter_close_container(&args3, &args4);
+       dbus_message_iter_close_container(&args2, &args3);
    }
+   dbus_message_iter_close_container(&args1, &args2);
+
    // handle the reply
    dbus_uint32_t replies = 0; 
    result = dbus_connection_send(m_connection, message, &replies);
    if(result==false)
       fprintf(stderr, "dbus_connection_send failed\n");
    else
-      fprintf(stderr, "dbus_connection_send announceQualityLevels\n");
+      fprintf(stderr, "dbus_connection_send announceServiceLevels\n");
    dbus_connection_flush(m_connection);
    dbus_message_unref(message);
 }
@@ -559,21 +587,6 @@ action_scheduler_exit:
    return exitCode;
 }
 
-#define MAX_LEVELS 10
-typedef struct {
-  int     quality;
-  int     bandwidth;
-  int     granularity;
-} QLevel;
-
-typedef struct {
-  int     num;
-  QLevel  qlevel[MAX_LEVELS];
-} QLevels;
-
-static AbstractActorInstance *dbusInstance;
-static Category category = CategoryHigh;
-static QLevels qlevels = {1,100,100,2500};
 
 void set_cpu_category(int cat)
 {
@@ -593,17 +606,9 @@ void set_cpu_category(int cat)
   }
 }
 
-void reset_quality_level()
+void reset_service_level()
 {
-  qlevels.num = 0;
-}
-
-void set_quality_level(int quality, int bandwidth, int granularity)
-{
-  qlevels.qlevel[qlevels.num].quality = quality;
-  qlevels.qlevel[qlevels.num].bandwidth = bandwidth;
-  qlevels.qlevel[qlevels.num].granularity = granularity;
-  qlevels.num++;
+  slevels.serviceLevelsCount = 0;
 }
 
 static void constructor(AbstractActorInstance *pBase) {
@@ -626,18 +631,8 @@ static void constructor(AbstractActorInstance *pBase) {
    //announce cpu category
    thisActor->dbusHandler->announceCPUCategory(category);
 
-   //announce quality levels;
-   std::vector<QualityLevel> levels;
-   QualityLevel level;
-   for(i=0; i<qlevels.num; i++)
-   {
-     level.quality=qlevels.qlevel[i].quality;
-     level.resourceDemandCount=2;
-     level.resourceDemands[ResourceCPUBandwidth]=qlevels.qlevel[i].bandwidth;
-     level.resourceDemands[ResourceCPUGranularity]=qlevels.qlevel[i].granularity;
-     levels.push_back(level);
-   }
-   thisActor->dbusHandler->announceQualityLevels(levels);
+   //announce service levels;
+   thisActor->dbusHandler->announceServiceLevels();
 
    dbusInstance = pBase;
 }
