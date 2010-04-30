@@ -28,44 +28,44 @@ ARMDIR=$(HOME)/work/actor/arm/usr/local
 endif
 
 ifneq "$(PROFILE)" ""
-CFLAGS += -pg -fno-omit-frame-pointer
+override CFLAGS += -pg -fno-omit-frame-pointer
 endif
 
 ifeq ($(FB), y)
-CFLAGS += -DFB
+override CFLAGS += -DFB
 endif
 
 ifeq ($(GTK), y)
-CFLAGS += `gtk-config --cflags` -DGTK
+override CFLAGS += `gtk-config --cflags` -DGTK
 endif
 
 ifeq ($(SDL), y)
 ifeq ($(ARM), y)
-CFLAGS += -I$(ARMDIR)/include/SDL -D_GNU_SOURCE=1 -D_REENTRANT -DSDL
+override CFLAGS += -I$(ARMDIR)/include/SDL -D_GNU_SOURCE=1 -D_REENTRANT -DSDL
 else
-CFLAGS += `sdl-config --cflags` -DSDL
+override CFLAGS += `sdl-config --cflags` -DSDL
 endif
 endif
 
 ifeq ($(ARM), y)
-CFLAGS += -I$(ARMDIR)/include/libxml2
+override CFLAGS += -I$(ARMDIR)/include/libxml2
 else
-CFLAGS += `xml2-config --cflags`
+override CFLAGS += `xml2-config --cflags`
 endif
 
 ifeq ($(RM), y)
-CFLAGS += -DRM
+override CFLAGS += -DRM
 endif
 
 ifeq ($(EDF), y)
-CFLAGS += -DEDF
+override CFLAGS += -DEDF
 endif
 
 ifeq ($(TRACE), y)
-CFLAGS += -DTRACE
+override CFLAGS += -DTRACE
 endif
 
-CFLAGS += -O3
+override CFLAGS += -O3
 #CFLAGS += -g
 
 INSTALL_H=actors-rts.h actors-fifo.h actors-config.h dll.h
@@ -107,19 +107,19 @@ datadir?=$(datarootdir)
 
 ifeq ($(RM), y)
 ifeq ($(ARM),y)
-LDLIBS=-lpthread -lc -L$(ARMDIR)/lib -ldbus-1 $(ARMDIR)/lib/libgcc_s.so.1 $(ARMDIR)/lib/libstdc++.so.6
+override LDLIBS += -lpthread -lc -L$(ARMDIR)/lib -ldbus-1 $(ARMDIR)/lib/libgcc_s.so.1 $(ARMDIR)/lib/libstdc++.so.6
 else
-LDLIBS=-lpthread -lc -ldbus-1 /lib/libgcc_s.so.1 /usr/lib/libstdc++.so.6
+override LDLIBS += -lpthread -lc -ldbus-1 /lib/libgcc_s.so.1 /usr/lib/libstdc++.so.6
 endif
 else
-LDLIBS=-lpthread -lc
+override LDLIBS += -lpthread -lc
 endif	
 
 ifeq ($(RM), y)
 ifeq ($(ARM),y)
-CXX_INCLUDES = -I$(srcdir)/dbus -I$(ARMDIR)/include/dbus-1.0 -I$(ARMDIR)/lib/dbus-1.0/include
+override CXX_INCLUDES += -I$(srcdir)/dbus -I$(ARMDIR)/include/dbus-1.0 -I$(ARMDIR)/lib/dbus-1.0/include
 else
-CXX_INCLUDES = -I$(srcdir)/dbus -I/usr/include/dbus-1.0 -I/usr/lib/dbus-1.0/include
+override CXX_INCLUDES += -I$(srcdir)/dbus -I/usr/include/dbus-1.0 -I/usr/lib/dbus-1.0/include
 endif
 endif
 

@@ -74,8 +74,8 @@ void xmlDeclareNetwork(FILE *f,
     int                          firstAction=instance->firstActionIndex;
     int j;
 
-    fprintf(f, "  <actor id=\"%d\" class=\"%s\">\n",
-	    i, actorClass->name);
+    fprintf(f, "  <actor id=\"%d\" class=\"%s\" instance-name=\"%s\">\n",
+	    i, actorClass->name, instance->name);
 
     // <input>
     // id is a running index 0,1,2... (unique among input ports)
