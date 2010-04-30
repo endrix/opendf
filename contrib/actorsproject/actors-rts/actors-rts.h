@@ -159,10 +159,8 @@ struct AbstractActorInstance {
   int terminated;
   long long nloops;
   unsigned long long total;
-#ifdef TRACE
   int firstActionIndex;
   FILE *file;
-#endif
 };
 
 typedef struct {
