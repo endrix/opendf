@@ -242,7 +242,7 @@ void SystemActorDBusHandler::handleAnnounceServiceLevels(const Message* serviceL
 	   {
 		   BWDistribution *bw=&slevel->bwDistributions[j];
            DBusMessageIter args5;
-		   dbus_message_iter_open_container(&args4, DBUS_TYPE_STRUCT, NULL, &args5);
+		   dbus_message_iter_open_container(&args4, DBUS_TYPE_DICT_ENTRY, NULL, &args5);
 		   //group ID
 		   dbus_message_iter_append_basic(&args5, ((int) 'u'), &bw->groupID);
 		   //bandwidth
