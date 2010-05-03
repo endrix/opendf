@@ -532,7 +532,7 @@ static void set_instance_affinity(ActorInstance_1_t *instance,int numInstances)
 {
   int i;
   char instanceName[128];
-  sprintf(instanceName,"%s_%d",instance->actorClass->name,instance->index);
+  sprintf(instanceName,"%s/%d",instance->actorClass->name,instance->index);
   for(i=0; i<numInstances; i++)
   {
     if(!instanceAfinity[i].flag)
