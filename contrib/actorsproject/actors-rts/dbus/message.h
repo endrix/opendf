@@ -71,20 +71,20 @@ typedef std::map<unsigned int, unsigned int> BandwidthDistributionMap;
  * the QoS and the required resources. It is used in announceServiceLevels(). 
  * In bindings that need a separate name, arrays of ServiceLevel should be 
  * called ServiceLevelList.*/
-struct ServiceLevel
-{
-
-  /**This one indicates the quality of this level. It is an integer value 
-   * ranging from 0 (worst) to 100 (best).*/
-  unsigned int qualityOfService;
-
-  /**Number of entries in the BWDistribution map.*/
-  unsigned int bWDistributionsCount;
-
-  /**This is a map of resource identifikations to their required amount,
-   * e.g. array of: threadGroup TID needs n percentage of total bandwidth.*/
-  BandwidthDistributionMap bWDistribution;
-};
+//struct ServiceLevel
+//{
+//
+//  /**This one indicates the quality of this level. It is an integer value 
+//   * ranging from 0 (worst) to 100 (best).*/
+//  unsigned int qualityOfService;
+//
+//  /**Number of entries in the BWDistribution map.*/
+//  unsigned int bWDistributionsCount;
+//
+//  /**This is a map of resource identifikations to their required amount,
+//   * e.g. array of: threadGroup TID needs n percentage of total bandwidth.*/
+//  BandwidthDistributionMap bWDistribution;
+//};
 
 
 class Message;
@@ -123,17 +123,18 @@ class Message
       Message();
 };
 
-
 /** This is a simple message, which additionally to the message id can also carry an arbitrary integer value; */
 class IntMessage : public Message
 {
    public:
       /** Create a new message object of the type IntMessage. The message is initialized using
        the given id and the the int value of this message is set to \a value . */
-      IntMessage(int id, int value):Message(id), m_value(value)                                {}
+      IntMessage(int id, int value)
+		  : Message(id) 
+		  , m_value(value){}
 
       /** Return the integer value of this message. */
-      int getValue() const                                                                     {return m_value;}
+      int getValue() const {return m_value;}
    protected:
       int m_value;
    private:
@@ -153,6 +154,24 @@ class CategoryMessage : public Message
       Category m_category;
    private:
       CategoryMessage();
+};
+/** This message is sent from the dbus handler to the resourcemanager whenever a client application
+adds thread to a particular group. */
+class AddThreadMessage : public Message
+{
+   public:
+      AddThreadMessage(int id, int tid, int group)
+            : Message(id)
+            , m_tid(tid)
+			, m_group(group){}
+
+      int getTid() const {return m_tid;}
+      int getGroup() const {return m_group;}
+   protected:
+      int m_tid;
+	  int m_group;
+   private:
+      AddThreadMessage();
 };
 #endif
 

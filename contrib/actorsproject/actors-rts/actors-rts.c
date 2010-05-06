@@ -13,6 +13,7 @@
 #include "xmlTrace.h"
 #endif
 #include "xmlParser.h"
+#include "internal.h"
 
 #define DEFAULT_FIFO_LENGTH	4096
 
@@ -50,10 +51,9 @@ static int arg_loopmax = INT_MAX;
 #define FLAG_SINGLE_CPU  0x02
 
 #ifdef RM
-#define MAX_ACTOR_NUM    256
 static pthread_mutex_t threadIdsMutex;
 static int             numberOfCreatedThreads = 0;
-static pid_t           threadIds[MAX_ACTOR_NUM];
+static ThreadID        threadIDs[MAX_ACTOR_NUM];
 #endif
 
 typedef unsigned long long time_base_t;
@@ -199,30 +199,31 @@ void index_action(cpu_runtime_data_t *runtime, int numInstances, char *name)
 // if gettid() is not available in the system headers, but we have
 // __NR_gettid, then create a gettid() ourselves: e.g. on ubuntu 7.10
 #include <linux/unistd.h>
-extern void add_thread_to_group(int tid);
-void register_thread_id()
+extern void add_thread_to_group(int tid,int index);
+void register_thread_id(int index)
 {
   int i;
   pthread_mutex_lock(&threadIdsMutex);
   // this is gettid(), which does not exist everywhere
   pid_t my_tid = syscall(__NR_gettid);
-  /*
-    make sure it's not registered before
-  */
+  // make sure it's not registered before
   for(i=0; i<numberOfCreatedThreads; i++)
   {
-    if(my_tid == threadIds[i])
+	if(my_tid == threadIDs[i].id)  
     {
       printf("Thread ID %d already registered!\n",my_tid);
       pthread_mutex_unlock(&threadIdsMutex);
       return;
     }
   }
-  threadIds[numberOfCreatedThreads] = my_tid;
+
+  threadIDs[numberOfCreatedThreads].id=my_tid;
+  threadIDs[numberOfCreatedThreads].cpu=index;
+
   numberOfCreatedThreads++;
   pthread_mutex_unlock(&threadIdsMutex);
 
-  add_thread_to_group((int)my_tid); 
+  add_thread_to_group(my_tid,index); 
 }
 
 void unregister_thread_id(void)
@@ -235,11 +236,12 @@ void unregister_thread_id(void)
 
   for (i=0; i<numberOfCreatedThreads; i++)
   {
-    if (threadIds[i] == my_tid)
+    if (threadIDs[i].id == my_tid)
     {
       if (i<numberOfCreatedThreads-1)
       {
-        threadIds[i] = threadIds[numberOfCreatedThreads-1];
+		threadIDs[i].id = threadIDs[numberOfCreatedThreads-1].id;
+		threadIDs[i].cpu = threadIDs[numberOfCreatedThreads-1].cpu;
       }
       numberOfCreatedThreads--;
       break;
@@ -248,18 +250,15 @@ void unregister_thread_id(void)
   pthread_mutex_unlock(&threadIdsMutex);
 }
 
-void get_thread_ids(int* count, pid_t** theThreadIds)
+int get_thread_ids(ThreadID **theThreadIDs)
 {
-  if ((count == NULL) || (theThreadIds == NULL))
+  if (theThreadIDs == NULL)
   {
-    return;
+    return 0;
   }
-  pthread_mutex_lock(&threadIdsMutex);
-  *count = numberOfCreatedThreads;
-  *theThreadIds = (pid_t*)malloc(numberOfCreatedThreads * sizeof(pid_t));
-  memcpy(*theThreadIds, threadIds, numberOfCreatedThreads * sizeof(pid_t));
+  *theThreadIDs=threadIDs;
 
-  pthread_mutex_unlock(&threadIdsMutex);
+  return numberOfCreatedThreads;
 }
 #endif
 
@@ -1347,7 +1346,8 @@ int executeNetwork(int argc,
 
 #ifdef RM
   pthread_mutex_init(&threadIdsMutex, 0);
-  register_thread_id();
+  //register this main thread ID on cpu 0
+  register_thread_id(0);
 #endif
 
     if (nr_of_cpus(&used_cpus) == 1) {

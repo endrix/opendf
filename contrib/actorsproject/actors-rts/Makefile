@@ -66,7 +66,7 @@ override CFLAGS += -DTRACE
 endif
 
 override CFLAGS += -O3
-#CFLAGS += -g
+#override CFLAGS += -g
 
 INSTALL_H=actors-rts.h actors-fifo.h actors-config.h dll.h
 INSTALL_SYSACTORS=art_DDRModel.cal art_Display_yuv.cal art_Sink_yuv.cal \
