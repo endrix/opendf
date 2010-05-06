@@ -17,13 +17,12 @@
 static void *EXECUTE_NETWORK(cpu_runtime_data_t *runtime,
 			     int loopmax)
 {
-  int i, j, k, fired;
+  int i, j, k, fired, quiescent;
   int *old_sleep;
   AbstractActorInstance **actor = runtime->actor;
   int actors = runtime->actors;
   cpu_runtime_data_t *cpu = runtime->cpu;
   int this_cpu = runtime->cpu_index;
-  int this_balance;
   DECLARE_TIMEBASE(t1);
   DECLARE_TIMEBASE(t2);
   DECLARE_TIMEBASE(t3);
@@ -39,8 +38,8 @@ static void *EXECUTE_NETWORK(cpu_runtime_data_t *runtime,
     old_sleep[i] = 0;
   }
 
-  this_balance = 0;
-  cpu[this_cpu].starved = 0;
+  cpu[this_cpu].quiescent_at = 0;
+  quiescent = 1;
   CLEAR_TIMER(&statistics.prefire);
   CLEAR_TIMER(&statistics.read_barrier);
   CLEAR_TIMER(&statistics.fire);
@@ -122,7 +121,6 @@ static void *EXECUTE_NETWORK(cpu_runtime_data_t *runtime,
 	    atomic_set(&input->shared->count, 
 		       atomic_get(&input->shared->count) + count);
 	    cpu[this_cpu].has_affected[wcpu] = 1;
-	    this_balance -= count;
 	  }
 	}
 	for (j = 0 ; j < actor[i]->outputs ; j++) {
@@ -135,7 +133,6 @@ static void *EXECUTE_NETWORK(cpu_runtime_data_t *runtime,
 		       atomic_get(&output->shared->count) + count);
 	    for (k = 0 ; k < output->readers ; k++) {
 	      cpu[this_cpu].has_affected[output->reader[k]->cpu] = 1;
-	      this_balance += count;
 	    }
 	  }
 	}
@@ -143,17 +140,8 @@ static void *EXECUTE_NETWORK(cpu_runtime_data_t *runtime,
     }
     ADD_TIMER(&statistics.postfire, &t1);
 
-    if (this_balance > 2000000000 || this_balance < -2000000000) {
-      MUTEX_LOCK();
-      balance += this_balance;
-      this_balance = 0;
-      MUTEX_UNLOCK();
-    }
-    
-    if (fired) {  
-      if (cpu[this_cpu].starved != 0) {
-	cpu[this_cpu].starved = 0;
-      }
+    if (fired) {
+      quiescent = 0;
 
       // Check if we should wake up someone
       for (i = 0 ; i < runtime->cpu_count ; i++) { 
@@ -187,72 +175,90 @@ static void *EXECUTE_NETWORK(cpu_runtime_data_t *runtime,
       int sleep = 1;
 
       MUTEX_LOCK();
-      // Possible scenarios:
-      //   1. Active CPU connected to this CPU that will eventually 
-      //      generate data for us. At some point in the future
-      //      that CPU will find that this CPU is sleeping, 
-      //      either in the active loop wakeup or at point 3 below.
+      // Sleep/wake-up logic, possible scenarios:
+      //   1. An active thread/CPU, which is connected to this one
+      //      will wake this thread up from its active loop
       //
-      //   2. CPU about to go to sleep (blocking on the mutex we hold) 
-      //      but has yet unseen communication with this CPU will wake 
-      //      this CPU when they enter this part (i.e. their #3).
+      //   2. This thread missed out on the most recent update 
+      //      (post-fire) when in its pre-fire. We won't get any
+      //      wake-up, since we were active at that time.
+      //      Either:
+      //      a) The other thread is about to sleep, but is
+      //         currently blocked on the mutex.
+      //      b) The other thread beat us to the mutex and has
+      //         already gone to sleep.
       //
-      //   3. We have data for sleeping CPU, we will have to wake them up.
+      //   So we have to:
+      //   * Wake up sleeping threads, if we have data for them
+      //   * Check if we received data from a thread, which is now
+      //     sleeping.
       //
-      //   4. We have got data from a sleeping CPU, we should not 
-      //      go to sleep.
-      //
-      sleepers++;
-      balance += this_balance;
-      this_balance = 0;
-      if (sleepers == runtime->cpu_count) { 
-	// Only terminate when all threads are starved
-	int do_terminate = 1;
-	for (i = 0 ; i < runtime->cpu_count ; i++) { 
-	  if (cpu[i].starved == 0) {
-	    sem_post(cpu[i].sem);
-	    do_terminate = 0;
-	  }
-	}
-	if (do_terminate) {
-	  terminate = 1; 
-	}
-      } else {
-	// Check if some sleepers need to be awoken
-	for (i = 0 ; i < runtime->cpu_count ; i++) { 
-	  if (i == this_cpu) {
-	    // Should not need to consider ourself
-	  } else {
-	    int current_sleep = *cpu[i].sleep;
+      //   Since we hold the mutex, the other threads don't have
+      //   the chance of changing (sleep) status behind our back.
 
-	    if (current_sleep != old_sleep[i]) {
-	      if ((current_sleep & 1) == 0) {
-		// Thread is active, no need to wake it
+      for (i = 0 ; i < runtime->cpu_count ; i++) { 
+	if (i != this_cpu) {
+	  // Should not need to consider ourself
+	  int current_sleep = *cpu[i].sleep;
+
+	  if (current_sleep != old_sleep[i]) {
+	    if ((current_sleep & 1) == 0) {
+	      // Thread is active, no need to wake it
+	      old_sleep[i] = current_sleep;
+	    } else {	  
+	      if (cpu[this_cpu].has_affected[i]) {
+		// We have data for some sleeping thread
+		sem_post(cpu[i].sem);
+		// Only wake it once for each sleep
+		cpu[this_cpu].has_affected[i] = 0;
 		old_sleep[i] = current_sleep;
-	      } else {	  
-		if (cpu[this_cpu].has_affected[i]) {
-		  // We have data for some sleeping thread
-		  sem_post(cpu[i].sem);
-		  // Only wake it once for each sleep
-		  cpu[this_cpu].has_affected[i] = 0;
-		  old_sleep[i] = current_sleep;
-		}
-		if (cpu[i].has_affected[this_cpu]) {
-		  // Sleeping thread has data for us, since thread is
-		  // sleeping and we hold mutex, we can safely access 
-		  // their state to indicate that we have seen 
-		  // their data
-		  cpu[i].has_affected[this_cpu] = 0;
-		  sleep = 0;
-		}
+	      }
+	      if (cpu[i].has_affected[this_cpu]) {
+		// Sleeping thread has data for us, since thread is
+		// sleeping and we hold mutex, we can safely access 
+		// their state to indicate that we have seen 
+		// their data
+		cpu[i].has_affected[this_cpu] = 0;
+		sleep = 0;
 	      }
 	    }
 	  }
 	}
       }
+
       if (sleep) {
-	// This will be entered, unless some sleeping thread generated
-	// data for us while we were preparing to sleep.
+	// Termination logic:
+	// In order to not only sleep, but also terminate,
+        // we require that:
+        // a) All CPUs sleep
+        // b) each of the CPUs have done a "quiescent" round, 
+        //    in which no tokens are produced/consumed.
+	//
+	// In particular we must avoid terminating when there is a
+	// pending wake-up (a is true, but not b)
+	sleepers++;
+	if (!quiescent) {
+	  curr_sleep_event++;
+	  quiescent = 1;
+	}
+	
+	cpu[this_cpu].quiescent_at=curr_sleep_event;
+
+	if (sleepers == runtime->cpu_count) { 
+	  // Only terminate when all threads are starved
+	  int do_terminate = 1;
+	  for (i = 0 ; i < runtime->cpu_count ; i++) { 
+	    if (cpu[i].quiescent_at != curr_sleep_event) {
+	      sem_post(cpu[i].sem);
+	      do_terminate = 0;
+	    }
+	  }
+	  if (do_terminate) {
+	    terminate = 1; 
+	  }
+	}
+
+	// Here we go to sleep (possibly even terminate)
 	(*cpu[this_cpu].sleep)++;
 	MUTEX_UNLOCK();
 	ADD_TIMER(&statistics.sync_blocked, &t1);
@@ -261,7 +267,7 @@ static void *EXECUTE_NETWORK(cpu_runtime_data_t *runtime,
 #ifdef TRACE
    xmlTraceStatus(cpu[this_cpu].file,0);
 #endif
-	sem_wait(cpu[this_cpu].sem);
+        sem_wait(cpu[this_cpu].sem);
 	statistics.nsleep++;
 	
 	if (terminate) { goto done; }
@@ -269,12 +275,11 @@ static void *EXECUTE_NETWORK(cpu_runtime_data_t *runtime,
 	ADD_TIMER(&statistics.sync_sleep, &t1);
 	MUTEX_LOCK();
 	(*cpu[this_cpu].sleep)++;
+	sleepers--;
       }
 #ifdef TRACE
       xmlTraceStatus(cpu[this_cpu].file,1);
 #endif
-      sleepers--;
-      cpu[this_cpu].starved = 1;
       MUTEX_UNLOCK();
       while (sem_trywait(cpu[this_cpu].sem) == 0) { 
 	// Consume all active activations (might have been awakened 
