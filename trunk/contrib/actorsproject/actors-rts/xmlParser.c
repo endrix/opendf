@@ -133,7 +133,8 @@ TagID bmDistributionsTag[] ={
 AffinityID    instanceAfinity[MAX_ACTOR_NUM];
 ConnectID     connects[MAX_CONNECTS];
 ScheduleID    schedule;
-RMInterface   rmInterface={"caltest",3,0,21,1,{0,100,25000,100,1,1,{0,100}}};
+RMInterface   rmInterface={"caltest",3,0,21,1,{0,100,25000,200,1,1,{0,80}}};
+int			  numPartitions=0;
 
 static int _numInstances;
 static int _numConnects;
@@ -142,7 +143,8 @@ void printout()
 {
   int i,j;
 
-  printf("Schedule type: %s\n",schedule.type);
+  printf("Schedule type:       %s\n",schedule.type);
+  printf("Number of partition: %d\n",numPartitions);
   printf("partition InstanceName\n");
   for(i=0; i<_numInstances; i++)
     printf("%d  %s\n",instanceAfinity[i].affinity,
@@ -240,6 +242,7 @@ void parsePartition(xmlNode *node)
       _numInstances++;
     }
   }
+  numPartitions++;
   xmlFree(id);
 }
 
