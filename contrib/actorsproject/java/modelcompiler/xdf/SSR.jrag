@@ -23,14 +23,21 @@ aspect Classification {
 
 	public String Instance.classification(String dir) {
 		if (!name().startsWith("art_")) {
+			// Ugly hack to cache directory for later use in merging, AndersN
+			cwd = dir;
+
 			// No need trying to analyze system actors
 			// System.out.println("Trying to analyze: "+name());
 			ActorClassifier ac = new ActorClassifier();
 			ac.initSession(null);
+			System.out.println("XlimDesign xlim = ac.read(new File(dir+name()+\".xlim\"))");
 			XlimDesign xlim = ac.read(new File(dir+name()+".xlim"));
 			// ModeScheduler modeScheduler = new ModeScheduler();
+			System.out.println("Classifier classifier = new Classifier(xlim)");
 			Classifier classifier = new Classifier(xlim);
+			System.out.println("classifier.getActionSchedule()");
 			ActionSchedule actionSchedule = classifier.getActionSchedule();
+			System.out.println("xlimInstance(dir).setActionSchedule(actionSchedule)");
 			xlimInstance(dir).setActionSchedule(actionSchedule);
 			if (actionSchedule.isStatic()) {
 				return "CSDF";
@@ -113,21 +120,25 @@ aspect CSDF {
 		xlimInstance = inst;
 	}
 	public xlimAST.Start Instance.xlimInstance() {
-		if (xlimInstance != null) {
-			return xlimInstance;
+		if (cwd == null) {
+			cwd = "./";
 		}
-		try {
- 			System.out.println("Trying to open: "+name()+" "+getIndex());
-			xlimAST.XmlParser parser = new xlimAST.XmlParser(new FileReader(cwd+name()+".xlim"));
-			xlimInstance = parser.Start();
-			return xlimInstance;
-		} catch (FileNotFoundException e) {
-			System.out.println(cwd+ name()+".xlim not found");
- 			// e.printStackTrace();
-		} catch (Exception e) {
- 			e.printStackTrace();			
-		}
-		return new xlimAST.EmptyStart();
+		return xlimInstance(cwd);
+		// if (xlimInstance != null) {
+		// 	return xlimInstance;
+		// }
+		// try {
+ 		// 	System.out.println("Trying to open: "+name()+" "+getIndex());
+		// 	xlimAST.XmlParser parser = new xlimAST.XmlParser(new FileReader(cwd+name()+".xlim"));
+		// 	xlimInstance = parser.Start();
+		// 	return xlimInstance;
+		// } catch (FileNotFoundException e) {
+		// 	System.out.println(cwd+ name()+".xlim not found");
+ 		// 	// e.printStackTrace();
+		// } catch (Exception e) {
+ 		// 	e.printStackTrace();			
+		// }
+		// return new xlimAST.EmptyStart();
 	}
 
 	syn lazy xlimAST.Start Instance.xlimInstance(String directory) {
