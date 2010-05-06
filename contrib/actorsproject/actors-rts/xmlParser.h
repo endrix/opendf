@@ -87,6 +87,7 @@ typedef struct _RMInterface {
 extern AffinityID  instanceAfinity[];
 extern ConnectID   connects[];
 extern RMInterface rmInterface;
+extern int         numPartitions;
 extern int         xmlParser(char*, int);
 
 #endif /* xmlParser_H_INCLUDED */

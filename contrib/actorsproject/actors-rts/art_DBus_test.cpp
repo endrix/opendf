@@ -475,7 +475,7 @@ void SystemActorDBusHandler::handleRegisterClient(const Message* registerClientM
    fprintf(stderr, "dbus_connection_send registerApp\n");
 
    //create thread group
-   for(int i=0; i<rmInterface.numServiceLevels; i++)
+   for(int i=0; i<numPartitions; i++)
    {
 	   unsigned int threadGroup = rmInterface.groupIDBase+i;
 	   methodCallMsg = dbus_message_new_method_call(ACTRM_INTERFACE_NAME,
