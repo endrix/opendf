@@ -37,12 +37,12 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <libxml/parser.h>
 
 #include "xmlParser.h"
+#include "internal.h"
 
-#define MAX_ACTORS                          256
-#define MAX_CONNECTS                        1024
 
 #define CONFIGURATION                       (const xmlChar*)"Configuration"
 #define CONNECTION                          (const xmlChar*)"Connection"
@@ -56,11 +56,33 @@
 #define PARTITION_ID                        (const xmlChar*)"id"
 #define SCHEDULING                          (const xmlChar*)"Scheduling"
 #define SCHEDULING_TYPE                     (const xmlChar*)"type"
+#define CATEGORY_VALUE                      (const xmlChar*)"value"
+#define INTERFACE_NAME                      (const xmlChar*)"name"
+#define CURRENT_SERVICE_INDEX               (const xmlChar*)"index"
+#define GRANULARITY_VALUE                   (const xmlChar*)"value"
+#define GROUPID_BASE                        (const xmlChar*)"base"
+#define SERVICE_LEVEL_INDEX                 (const xmlChar*)"index"
+#define QUALITY_OF_SERVICE                  (const xmlChar*)"quality"
+#define BMDISTRIBUTION_ID                   (const xmlChar*)"id"
+#define BMDISTRIBUTION_VALUE                (const xmlChar*)"value"
+#define TOTALBW_VALUE                       (const xmlChar*)"value"
+#define TOTALBW_MODE                        (const xmlChar*)"mode"
 
 void parseParttioning(xmlNode *node);
 void parseScheduling(xmlNode *node);
 void parsePartition(xmlNode *node);
-void parseConnection(xmlNode *cur_node);
+void parseConnection(xmlNode *node);
+void parsePMInterface(xmlNode *node);
+void parseCategory(xmlNode *node);
+void parseCurrentService(xmlNode *node);
+void parseGranularity(xmlNode *node);
+void parseGroupID(xmlNode *node);
+void parseServiceLevels(xmlNode *node);
+void parseServiceLevel(xmlNode *node);
+void parseQuality(xmlNode *node);
+void parseBWDistribution(xmlNode *node);
+void parseBWDistributions(xmlNode *node);
+void parseTotalBW(xmlNode *node);
 
 typedef void (*HANDLER)(xmlNode *cur_node);
 
@@ -71,24 +93,54 @@ typedef struct _tagID{
 
 TagID configTag[] ={
 {"Partitioning", parseParttioning},
-{"Scheduling",   NULL},
+{"RMInterface",  parsePMInterface},
+{"Scheduling",   parseScheduling},
+{0}
 };
 
 TagID partitioningTag[] ={
 {"Partition",    parsePartition},
 {"Connection",   parseConnection},
+{0}
 };
 
-AffinityID instanceAfinity[MAX_ACTORS];
-ConnectID connects[MAX_CONNECTS];
-ScheduleID schedule;
+TagID pmInterfaceTag[] ={
+{"Category",       parseCategory},
+{"InitialService", parseCurrentService},
+{"GroupID",        parseGroupID},
+{"ServiceLevels",  parseServiceLevels},
+{0}
+};
+
+TagID serviceLevelsTag[] ={
+{"ServiceLevel",     parseServiceLevel},
+{0}
+};
+
+TagID serviceLevelTag[] ={
+{"QualityOfService", parseQuality},
+{"Granularity",      parseGranularity},
+{"TotalBW",          parseTotalBW},
+{"BWDistributions",  parseBWDistributions},
+{0}
+};
+
+TagID bmDistributionsTag[] ={
+{"BWDistribution",  parseBWDistribution},
+{0}
+};
+
+AffinityID    instanceAfinity[MAX_ACTOR_NUM];
+ConnectID     connects[MAX_CONNECTS];
+ScheduleID    schedule;
+RMInterface   rmInterface={"caltest",3,0,21,1,{0,100,25000,100,1,1,{0,100}}};
 
 static int _numInstances;
 static int _numConnects;
 
 void printout()
 {
-  int i;
+  int i,j;
 
   printf("Schedule type: %s\n",schedule.type);
   printf("partition InstanceName\n");
@@ -102,6 +154,50 @@ void printout()
                               connects[i].dst,
                               connects[i].dst_port,
                               connects[i].size);
+
+  printf("RMInterface name   : %s\n",rmInterface.name);
+  printf("Category           : %d\n",rmInterface.categoryValue);
+  printf("CurrentServiceLevel: %d\n",rmInterface.currentServiceIndex);
+  printf("GroupIDBase        : %d\n",rmInterface.groupIDBase);
+  printf("NumServiceLevels   : %d\n",rmInterface.numServiceLevels);
+  for(i=0;i<rmInterface.numServiceLevels;i++)
+  {
+    ServiceLevel *sl=&rmInterface.serviceLevels[i];
+    printf("  ServiceLevelIndex  : %d\n",sl->index);
+    printf("  QualityOfService   : %d\n",sl->quality);
+    printf("  Granularity        : %d\n",sl->granularityValue);
+    printf("  TotalBWValue       : %d\n",sl->totalBW);
+    printf("  TotalBWMODE        : %d\n",sl->mode);
+    printf("  NumBWDistribs      : %d\n",sl->numBMDistributions);
+    for(j=0; j<sl->numBMDistributions; j++)
+    {
+      BWDistribution *bwd = &sl->bwDistributions[j];
+      printf("    id                 : %d\n",bwd->id);  
+      printf("    value              : %d\n",bwd->value);  
+    }
+  }
+}
+
+void parseNode(xmlNode *node,TagID *tagID)
+{
+  xmlNode *cur_node;
+
+  for(cur_node = node->children; cur_node != NULL; cur_node = cur_node->next)
+  {
+    if(cur_node->type == XML_ELEMENT_NODE)
+    {
+      TagID *tag=tagID;
+      for(;tag;tag++)
+      {
+        if(!xmlStrcmp(cur_node->name, (const xmlChar *) tag->name))
+        {    
+          if(tag->handler)
+            tag->handler(cur_node);
+          break;
+        }
+      }
+    }
+  }
 }
 
 void parseConnection(xmlNode *cur_node)
@@ -147,23 +243,176 @@ void parsePartition(xmlNode *node)
   xmlFree(id);
 }
 
+void parseCategory(xmlNode *node)
+{
+  char *value;
+  value = (char*)xmlGetProp(node,CATEGORY_VALUE);
+  if(value){
+    if(!strcmp(value,"High"))
+      rmInterface.categoryValue=3;
+    else if(!strcmp(value,"Medium"))
+      rmInterface.categoryValue=2;
+    else if(!strcmp(value,"Low"))
+      rmInterface.categoryValue=1;
+    else
+      rmInterface.categoryValue=0;  
+  }
+
+  xmlFree(value);
+}
+
+void parseCurrentService(xmlNode *node)
+{
+  char *index;
+  index = (char*)xmlGetProp(node,CURRENT_SERVICE_INDEX);
+  if(index){
+    rmInterface.currentServiceIndex=atoi(index);
+  }
+  xmlFree(index);
+}
+
+void parseGroupID(xmlNode *node)
+{
+  char *base;
+  base = (char*)xmlGetProp(node,GROUPID_BASE);
+  if(base){
+    rmInterface.groupIDBase=atoi(base);
+  }
+  xmlFree(base);
+}
+
+void parseServiceLevel(xmlNode *node)
+{
+  char *index;
+  index = (char*)xmlGetProp(node,SERVICE_LEVEL_INDEX);
+  if(index){
+    ServiceLevel *sl=&rmInterface.serviceLevels[rmInterface.numServiceLevels];
+    sl->index=atoi(index);
+  }
+
+  xmlFree(index);
+
+  parseNode(node,serviceLevelTag);
+
+  rmInterface.numServiceLevels++;
+}  
+
+void parseQuality(xmlNode *node)
+{
+  char *quality;
+  quality = (char*)xmlGetProp(node,QUALITY_OF_SERVICE);
+  if(quality){
+    ServiceLevel *sl=&rmInterface.serviceLevels[rmInterface.numServiceLevels];
+    sl->quality=atoi(quality);
+  }
+  xmlFree(quality);
+}
+
+void parseGranularity(xmlNode *node)
+{
+  char *value;
+  value = (char*)xmlGetProp(node,GRANULARITY_VALUE);
+  if(value){
+    ServiceLevel *sl=&rmInterface.serviceLevels[rmInterface.numServiceLevels];
+    sl->granularityValue=atoi(value);
+  }
+  xmlFree(value);
+}
+
+void parseTotalBW(xmlNode *node)
+{
+  char *value;
+  char *mode;
+
+  value = (char*)xmlGetProp(node,TOTALBW_VALUE);
+  mode = (char*)xmlGetProp(node,TOTALBW_MODE); 
+  if(value){
+    ServiceLevel *sl=&rmInterface.serviceLevels[rmInterface.numServiceLevels];
+    sl->totalBW=atoi(value);
+  }
+  if(mode)
+  {
+     ServiceLevel *sl=&rmInterface.serviceLevels[rmInterface.numServiceLevels];
+	 if(strcmp(mode,"Absolute")==0)
+	 	sl->mode=1;
+	 else if(strcmp(mode,"Relative")==0)
+		sl->mode=2;
+	 else
+        sl->mode=0;
+  }
+  xmlFree(value);
+  xmlFree(mode);
+}
+
+void parseBWDistribution(xmlNode *node)
+{
+  char   *id, *value;
+
+  id    = (char*)xmlGetProp(node,BMDISTRIBUTION_ID);
+  value = (char*)xmlGetProp(node,BMDISTRIBUTION_VALUE);
+/*
+  if(id)
+  {
+	int index = atoi(id);
+	if (index >= MAX_NUM_BMDISTRIBUTIONS)
+	{
+	  printf("Over max BW distributions: %d\n",index);
+	  return;
+	}
+	if(value)
+	{
+	  ServiceLevel   *sl=&rmInterface.serviceLevels[rmInterface.numServiceLevels];
+	  BWDistribution *bwd=&sl->bwDistributions[index];
+	  bwd->value=atoi(value);
+	  bwd->id=index;
+	  sl->numBMDistributions++;
+	}
+  }
+*/  
+	  
+  if(id&&value)
+  {
+    ServiceLevel   *sl=&rmInterface.serviceLevels[rmInterface.numServiceLevels];
+    BWDistribution *bwd=&sl->bwDistributions[sl->numBMDistributions];
+    bwd->id=atoi(id);
+    bwd->value=atoi(value);
+    sl->numBMDistributions++;
+  }
+
+  xmlFree(id);
+  xmlFree(value);
+}
+
+void parseBWDistributions(xmlNode *node)
+{
+  //reset number of BW distributions from default
+  rmInterface.serviceLevels[rmInterface.numServiceLevels].numBMDistributions=0;
+
+  parseNode(node,bmDistributionsTag);
+}
+
+void parseServiceLevels(xmlNode *node)
+{
+  //reset number of service levels from default
+  rmInterface.numServiceLevels=0;
+
+  parseNode(node,serviceLevelsTag);
+}
+
+void parsePMInterface(xmlNode *node)
+{
+  char *name;
+  name = (char*)xmlGetProp(node,INTERFACE_NAME);
+  if(name){
+    rmInterface.name=name;
+  }
+
+  parseNode(node,pmInterfaceTag);
+}
+
 void parseParttioning(xmlNode *node)
 {
-  xmlNode *cur_node;
-  for(cur_node = node->children; cur_node != NULL; cur_node = cur_node->next)
-  {
-    if(cur_node->type == XML_ELEMENT_NODE)
-    {
-      int i,size=sizeof(partitioningTag)/sizeof(TagID);
-      TagID *tag=&partitioningTag[0];
-      for(i=0; i<size; i++,tag++)
-      {
-        if(!xmlStrcmp(cur_node->name, (const xmlChar *) tag->name))
-          if(tag->handler)
-            tag->handler(cur_node);
-      }
-    }
-  }
+  parseNode(node,partitioningTag);
 }
 
 void parseScheduling(xmlNode *node)
@@ -189,8 +438,6 @@ void xmlCleanup(xmlDocPtr doc)
 
 int xmlParser(char *filename, int numInstances)
 {
-  int       retval = 0;
-  xmlNode   *cur_node;
   xmlDocPtr doc;
 
   if(!filename)
@@ -228,20 +475,9 @@ int xmlParser(char *filename, int numInstances)
   // --------------------------------------------------------------------------
   // Configuration children
   // --------------------------------------------------------------------------
-  for(cur_node = root->children; cur_node != NULL; cur_node = cur_node->next)
-  {
-    if(cur_node->type == XML_ELEMENT_NODE)
-    {
-      int i,size=sizeof(configTag)/sizeof(TagID);
-      TagID *tag=&configTag[0];
-      for(i=0; i<size; i++,tag++)
-      {
-        if(!xmlStrcmp(cur_node->name, (const xmlChar *) tag->name))
-          if(tag->handler)
-            tag->handler(cur_node);
-      }
-    }
-  }
+  parseNode(root,configTag);
+
+  printout();  
 
   if(_numInstances != numInstances)
   {

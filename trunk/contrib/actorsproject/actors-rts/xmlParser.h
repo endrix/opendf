@@ -38,6 +38,9 @@
 #ifndef xmlParser_H_INCLUDED
 #define xmlParser_H_INCLUDED
 
+#define MAX_NUM_SERVICE_LEVELS     10
+#define MAX_NUM_BMDISTRIBUTIONS    32
+
 typedef struct _affinityID{
   char *name;
   int   affinity;
@@ -57,8 +60,33 @@ typedef struct _scheduleID
   char *type;
 }ScheduleID;
 
-extern AffinityID instanceAfinity[];
-extern ConnectID connects[];
-extern int xmlParser(char*, int);
+typedef struct _BWDistribution {
+  int            id;
+  unsigned int   value;
+}BWDistribution;
+
+typedef struct _ServiceLevel {
+  int            index;
+  int            quality;
+  unsigned int   granularityValue;
+  int            totalBW;
+  int            mode;
+  unsigned int   numBMDistributions;
+  BWDistribution bwDistributions[MAX_NUM_BMDISTRIBUTIONS];
+}ServiceLevel;
+
+typedef struct _RMInterface {
+  char           *name;
+  int            categoryValue;
+  int            currentServiceIndex;
+  unsigned int   groupIDBase;
+  unsigned int   numServiceLevels;
+  ServiceLevel   serviceLevels[MAX_NUM_SERVICE_LEVELS];
+}RMInterface;
+
+extern AffinityID  instanceAfinity[];
+extern ConnectID   connects[];
+extern RMInterface rmInterface;
+extern int         xmlParser(char*, int);
 
 #endif /* xmlParser_H_INCLUDED */

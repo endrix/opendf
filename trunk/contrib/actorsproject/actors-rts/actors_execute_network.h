@@ -30,7 +30,7 @@ static void *EXECUTE_NETWORK(cpu_runtime_data_t *runtime,
   statistics_t statistics;
 
 #ifdef RM
-  register_thread_id();
+  register_thread_id(this_cpu);
 #endif
 
 //  printf("START#%d %s %s %p\n", this_cpu, __DATE__, __TIME__, runtime);

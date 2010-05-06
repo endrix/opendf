@@ -55,35 +55,11 @@
 #include "internal.h"
 #include "dbus/genericdbushandler.h"
 #include "custommessages.h"
+#include "xmlParser.h"
 
 #define ACTRM_INTERFACE_NAME "eu.actorsproject.ResourceManagerInterface"
 
-#define MAX_LEVELS          10
-#define MAX_DISTRIBUTIONS   10
-
-typedef struct {
-  int     groupID;
-  int     bandwidth;
-}BWDistribution;
-
-typedef struct {
-  int     qualityOfService;
-  int     bwDistributionsCount;	  
-  BWDistribution bwDistributions[MAX_DISTRIBUTIONS];
-  int     granularity;
-} SLevel;
-
-typedef struct {
-  int     currentServiceLevel;	
-  int     granularity;
-  int     serviceLevelsCount;
-  SLevel  levels[MAX_LEVELS];
-} SLevels;
-
 static AbstractActorInstance *dbusInstance;
-static Category category = CategoryHigh;
-static SLevels slevels = {0,2500,1,{100,1,{21,80}}};
-
 
 class SystemActorDBusHandler : public GenericDBusHandler
 {
@@ -92,21 +68,23 @@ class SystemActorDBusHandler : public GenericDBusHandler
       ~SystemActorDBusHandler();
       void registerApp();
       void reportHappiness(int happiness);
-      void announceCPUCategory(Category category);
+      void announceCPUCategory();
       void announceServiceLevels();
-      void addThreadToGroup(int tid);
+	  void commit();
+      void addThreadToGroup(int tid, int index);
 
 
       bool getNextOutgoingValue(int* value);
       void putNextOutgoingValue(int value);
    protected:
+	  void handleCommit(const Message* msg);
       void handleDBusMessage(DBusMessage* message);
       void handleDBusSignal(DBusMessage* message);
       void handleRegisterClient(const Message* msg);
       void handleReportHappiness(const IntMessage* msg);
-      void handleAnnounceCPUCategory(const CategoryMessage *msg);
+      void handleAnnounceCPUCategory(const Message *msg);
       void handleAnnounceServiceLevels(const Message* msg);
-      void handleAddThreadToGroup(const IntMessage* msg);
+      void handleAddThreadToGroup(const AddThreadMessage* msg);
 
       std::string m_name;
       pthread_mutex_t m_outgoingValuesMutex;
@@ -125,6 +103,7 @@ SystemActorDBusHandler::SystemActorDBusHandler(AbstractActorInstance* base, cons
    addMessageHandler(MSG_CPU_CATEGORY, MAKE_MESSAGE_DELEGATE(this, &SystemActorDBusHandler::handleAnnounceCPUCategory));
    addMessageHandler(MSG_SERVICE_LEVELS, MAKE_MESSAGE_DELEGATE(this, &SystemActorDBusHandler::handleAnnounceServiceLevels));
    addMessageHandler(MSG_ADDTO_GROUP, MAKE_MESSAGE_DELEGATE(this, &SystemActorDBusHandler::handleAddThreadToGroup));
+   addMessageHandler(MSG_COMMIT, MAKE_MESSAGE_DELEGATE(this, &SystemActorDBusHandler::handleCommit));
 }
 
 SystemActorDBusHandler::~SystemActorDBusHandler()
@@ -210,6 +189,7 @@ void SystemActorDBusHandler::handleAnnounceServiceLevels(const Message* serviceL
    bool result;
    DBusMessageIter args1;
    DBusMessage* message = 0;
+   DBusPendingCall* pending;
 
    assert(serviceLevelsMsg);
 
@@ -217,36 +197,40 @@ void SystemActorDBusHandler::handleAnnounceServiceLevels(const Message* serviceL
    dbus_message_iter_init_append(message, &args1);
    
    //current service level
-   dbus_message_iter_append_basic(&args1, ((int) 'u'), &slevels.currentServiceLevel);
-   //global granularity
-   dbus_message_iter_append_basic(&args1, ((int) 'u'), &slevels.granularity);
+   dbus_message_iter_append_basic(&args1, ((int) 'u'), &rmInterface.currentServiceIndex);
    //service level count
-   dbus_message_iter_append_basic(&args1, ((int) 'u'), &slevels.serviceLevelsCount);
+   dbus_message_iter_append_basic(&args1, ((int) 'u'), &rmInterface.numServiceLevels);
    //service levels
-
    DBusMessageIter args2;
-   dbus_message_iter_open_container(&args1, DBUS_TYPE_ARRAY, "(uua{uu})", &args2);
-   for(int i=0; i<slevels.serviceLevelsCount;i++)
+   dbus_message_iter_open_container(&args1, DBUS_TYPE_ARRAY, "(uuuuua{uu})", &args2);
+   for(int i=0; i<rmInterface.numServiceLevels;i++)
    {
-	   SLevel *slevel = &slevels.levels[i];
+	   ServiceLevel *slevel = &rmInterface.serviceLevels[i];
 	   DBusMessageIter args3;
 	   dbus_message_iter_open_container(&args2, DBUS_TYPE_STRUCT, NULL, &args3);
 	   //quality of service 
-       dbus_message_iter_append_basic(&args3, ((int) 'u'), &slevel->qualityOfService);
-	   //BW distrinution aount
-	   dbus_message_iter_append_basic(&args3, ((int) 'u'), &slevel->bwDistributionsCount);
+       dbus_message_iter_append_basic(&args3, ((int) 'u'), &slevel->quality);
+	   //total BW 
+       dbus_message_iter_append_basic(&args3, ((int) 'u'), &slevel->totalBW);
+	   //granularity 
+       dbus_message_iter_append_basic(&args3, ((int) 'u'), &slevel->granularityValue);
+	   //specifier (mode) 
+       dbus_message_iter_append_basic(&args3, ((int) 'u'), &slevel->mode);
+	   //BW distrinution count
+	   dbus_message_iter_append_basic(&args3, ((int) 'u'), &slevel->numBMDistributions);
 
 	   DBusMessageIter args4;
 	   dbus_message_iter_open_container(&args3, DBUS_TYPE_ARRAY, "{uu}", &args4);
-	   for (int j=0; j<slevel->bwDistributionsCount; j++)
+	   for (int j=0; j<slevel->numBMDistributions; j++)
 	   {
 		   BWDistribution *bw=&slevel->bwDistributions[j];
+		   int groupID=bw->id + rmInterface.groupIDBase;
            DBusMessageIter args5;
 		   dbus_message_iter_open_container(&args4, DBUS_TYPE_DICT_ENTRY, NULL, &args5);
 		   //group ID
-		   dbus_message_iter_append_basic(&args5, ((int) 'u'), &bw->groupID);
+		   dbus_message_iter_append_basic(&args5, ((int) 'u'), &groupID);
 		   //bandwidth
-		   dbus_message_iter_append_basic(&args5, ((int) 'u'), &bw->bandwidth);
+		   dbus_message_iter_append_basic(&args5, ((int) 'u'), &bw->value);
 		   dbus_message_iter_close_container(&args4, &args5);
 	   }
        dbus_message_iter_close_container(&args3, &args4);
@@ -255,24 +239,68 @@ void SystemActorDBusHandler::handleAnnounceServiceLevels(const Message* serviceL
    dbus_message_iter_close_container(&args1, &args2);
 
    // handle the reply
-   dbus_uint32_t replies = 0; 
-   result = dbus_connection_send(m_connection, message, &replies);
+   //dbus_uint32_t replies = 0; 
+   //result = dbus_connection_send(m_connection, message, &replies);
+   //if(result==false)
+   //   fprintf(stderr, "dbus_connection_send failed\n");
+   //else
+   //   fprintf(stderr, "dbus_connection_send announceServiceLevels\n");
+   //dbus_connection_flush(m_connection);
+   //dbus_message_unref(message);
+   if(!dbus_connection_send_with_reply(m_connection, message, &pending,-1))
+   {
+	  fprintf(stderr, "Out Of Memory!\n");
+	  return;
+   }
+   if (NULL == pending) { 
+	  fprintf(stderr, "Pending Call Null\n"); 
+	  return; 
+   }
+   dbus_connection_flush(m_connection);
+   dbus_message_unref(message);
+   //block until we receive a reply
+   dbus_pending_call_block(pending);
+   fprintf(stderr, "dbus_connection_send announceServiceLevels\n");
+}
+
+void SystemActorDBusHandler::commit()
+{
+   this->postMessage(new Message(MSG_COMMIT));
+}
+
+void SystemActorDBusHandler::handleCommit(const Message* commitMsg)
+{
+   bool result;
+  
+   DBusMessage* methodCallMsg = dbus_message_new_method_call(ACTRM_INTERFACE_NAME,
+                                                             "/",
+                                                             ACTRM_INTERFACE_NAME,
+                                                             "commit");
+   DBusMessageIter args;
+   dbus_message_iter_init_append(methodCallMsg, &args);
+
+   //const char* tmpString = m_name.c_str();
+
+   dbus_uint32_t replies = 0;
+   result = dbus_connection_send(m_connection, methodCallMsg, &replies);
    if(result==false)
       fprintf(stderr, "dbus_connection_send failed\n");
    else
-      fprintf(stderr, "dbus_connection_send announceServiceLevels\n");
+      fprintf(stderr, "dbus_connection_send commit\n");
+
    dbus_connection_flush(m_connection);
-   dbus_message_unref(message);
+   dbus_message_unref(methodCallMsg);
 }
 
-void SystemActorDBusHandler::announceCPUCategory(Category category)
+void SystemActorDBusHandler::announceCPUCategory()
 {
-   this->postMessage(new CategoryMessage(MSG_CPU_CATEGORY, category));
+   this->postMessage(new Message(MSG_CPU_CATEGORY));
 }
 
-void SystemActorDBusHandler::handleAnnounceCPUCategory(const CategoryMessage* categoryMsg)
+void SystemActorDBusHandler::handleAnnounceCPUCategory(const Message* categoryMsg)
 {
    bool result;
+   DBusPendingCall* pending;
    assert(categoryMsg);
    DBusMessage* methodCallMsg = dbus_message_new_method_call(ACTRM_INTERFACE_NAME,
                                                              "/",
@@ -282,44 +310,55 @@ void SystemActorDBusHandler::handleAnnounceCPUCategory(const CategoryMessage* ca
    dbus_message_iter_init_append(methodCallMsg, &args);
 
    const char* tmpString = m_name.c_str();
-   Category value = categoryMsg->getCategory();
+   int value = rmInterface.categoryValue;
    dbus_message_iter_append_basic(&args, DBUS_TYPE_INT32, &value);
 
-   dbus_uint32_t replies = 0;
-   result = dbus_connection_send(m_connection, methodCallMsg, &replies);
-   if(result==false)
-      fprintf(stderr, "dbus_connection_send failed\n");
-   else
-      fprintf(stderr, "dbus_connection_send announceCPUCategory %d\n",value);
+   //dbus_uint32_t replies = 0;
+   //result = dbus_connection_send(m_connection, methodCallMsg, &replies);
+   //if(result==false)
+   //   fprintf(stderr, "dbus_connection_send failed\n");
+   //else
+   //   fprintf(stderr, "dbus_connection_send announceCPUCategory %d\n",value);
+   //dbus_connection_flush(m_connection);
+   //dbus_message_unref(methodCallMsg);
+   if(!dbus_connection_send_with_reply(m_connection, methodCallMsg, &pending,-1))
+   {
+	  fprintf(stderr, "Out Of Memory!\n");
+	  return;
+   }
+   if (NULL == pending) { 
+	  fprintf(stderr, "Pending Call Null\n"); 
+	  return; 
+   }
    dbus_connection_flush(m_connection);
    dbus_message_unref(methodCallMsg);
+   //block until we receive a reply
+   dbus_pending_call_block(pending);
+   fprintf(stderr, "dbus_connection_send announceCPUCategory\n");
 }
 
-void SystemActorDBusHandler::addThreadToGroup(int tid)
+void SystemActorDBusHandler::addThreadToGroup(int tid, int group)
 {
-   this->postMessage(new IntMessage(MSG_ADDTO_GROUP,tid));
+   this->postMessage(new AddThreadMessage(MSG_ADDTO_GROUP,tid,group));
 }
 
-//add thread id to thread groups
-void SystemActorDBusHandler::handleAddThreadToGroup(const IntMessage* addToGroup)
+//add thread id to the thread group
+void SystemActorDBusHandler::handleAddThreadToGroup(const AddThreadMessage* addToGroup)
 {
    DBusMessageIter args;
-   int numberOfThreads = 1;
-   unsigned int threadGroup = 21;
-   DBusMessage* methodCallMsg;
-   dbus_uint32_t replies = 0;
-   pid_t *threadIds;
+   int             numberOfThreads = 1;
+   unsigned int    threadGroup;
+   DBusMessage*    methodCallMsg;
+   dbus_uint32_t   replies = 0;
+   pid_t*          threadIds;
+   DBusPendingCall* pending;
 
    assert(addToGroup);
 
    threadIds = (pid_t*)malloc(numberOfThreads * sizeof(pid_t));
-   threadIds[0] = (pid_t)addToGroup->getValue();
+   threadIds[0] = (pid_t)addToGroup->getTid();
 
-   fprintf(stderr, "******* %d threads are registered\n", numberOfThreads);
-   for (int i = 0; i< numberOfThreads; i++)
-   {
-      fprintf(stderr, "*** thread %d is %d\n", i, threadIds[i]);
-   }
+   threadGroup = rmInterface.groupIDBase + addToGroup->getGroup();
 
    methodCallMsg = dbus_message_new_method_call(ACTRM_INTERFACE_NAME,
                                                 "/",
@@ -337,15 +376,29 @@ void SystemActorDBusHandler::handleAddThreadToGroup(const IntMessage* addToGroup
    dbus_message_iter_append_fixed_array(&subArgs, DBUS_TYPE_UINT32, &threadIds, numberOfThreads);
    dbus_message_iter_close_container(&args, &subArgs);
 
-   replies = 0;
-   dbus_connection_send(m_connection, methodCallMsg, &replies);
+   //replies = 0;
+   //dbus_connection_send(m_connection, methodCallMsg, &replies);
+   //dbus_connection_flush(m_connection);
+   //dbus_message_unref(methodCallMsg);
+   if(!dbus_connection_send_with_reply(m_connection, methodCallMsg, &pending,-1))
+   {
+	  fprintf(stderr, "Out Of Memory!\n");
+	  return;
+   }
+   if (NULL == pending) { 
+	  fprintf(stderr, "Pending Call Null\n"); 
+	  return; 
+   }
    dbus_connection_flush(m_connection);
    dbus_message_unref(methodCallMsg);
+   //block until we receive a reply
+   dbus_pending_call_block(pending);
+ 
+   fprintf(stderr, "Added the thread %d to group %d\n",threadIds[0],threadGroup);
 
    free(threadIds);
 
-   fprintf(stderr, "Sent thread ids\n");
-
+   handleCommit(0);
 }
 
 void SystemActorDBusHandler::reportHappiness(int happiness)
@@ -387,9 +440,9 @@ void SystemActorDBusHandler::registerApp()
 
 void SystemActorDBusHandler::handleRegisterClient(const Message* registerClientMsg)
 {
-   assert(registerClientMsg);
+   DBusPendingCall* pending;
 
-//    register_thread_id();
+   assert(registerClientMsg);
 
    //register application
    DBusMessage* methodCallMsg = dbus_message_new_method_call(ACTRM_INTERFACE_NAME,
@@ -402,61 +455,106 @@ void SystemActorDBusHandler::handleRegisterClient(const Message* registerClientM
    const char* tmpString = m_name.c_str();
    dbus_message_iter_append_basic(&args, DBUS_TYPE_STRING, &tmpString);
    dbus_uint32_t replies = 0;
-   dbus_connection_send(m_connection, methodCallMsg, &replies);
+//   dbus_connection_send(m_connection, methodCallMsg, &replies);
+//   dbus_connection_flush(m_connection);
+//   dbus_message_unref(methodCallMsg);
+   if(!dbus_connection_send_with_reply(m_connection, methodCallMsg, &pending,-1))
+   {
+	  fprintf(stderr, "Out Of Memory!\n");
+	  return;
+   }
+   if (NULL == pending) { 
+      fprintf(stderr, "Pending Call Null\n"); 
+      return; 
+   }
    dbus_connection_flush(m_connection);
    dbus_message_unref(methodCallMsg);
+   //block until we receive a reply
+   dbus_pending_call_block(pending);
+
+   fprintf(stderr, "dbus_connection_send registerApp\n");
 
    //create thread group
-   unsigned int threadGroup = 21;
-   methodCallMsg = dbus_message_new_method_call(ACTRM_INTERFACE_NAME,
-                                                "/",
-                                                 ACTRM_INTERFACE_NAME,
-                                                "createThreadGroup");
-   dbus_message_iter_init_append(methodCallMsg, &args);
-   dbus_message_iter_append_basic(&args, DBUS_TYPE_UINT32, &threadGroup);
+   for(int i=0; i<rmInterface.numServiceLevels; i++)
+   {
+	   unsigned int threadGroup = rmInterface.groupIDBase+i;
+	   methodCallMsg = dbus_message_new_method_call(ACTRM_INTERFACE_NAME,
+													"/",
+													 ACTRM_INTERFACE_NAME,
+													"createThreadGroup");
+	   dbus_message_iter_init_append(methodCallMsg, &args);
+	   dbus_message_iter_append_basic(&args, DBUS_TYPE_UINT32, &threadGroup);
 
-   replies = 0;
-   dbus_connection_send(m_connection, methodCallMsg, &replies);
-   dbus_connection_flush(m_connection);
-   dbus_message_unref(methodCallMsg);
-
+	   //replies = 0;
+	   //dbus_connection_send(m_connection, methodCallMsg, &replies);
+	   //dbus_connection_flush(m_connection);
+	   //dbus_message_unref(methodCallMsg);
+	   if(!dbus_connection_send_with_reply(m_connection, methodCallMsg, &pending,-1))
+	   {
+		  fprintf(stderr, "Out Of Memory!\n");
+		  return;
+	   }
+	   if (NULL == pending) { 
+		  fprintf(stderr, "Pending Call Null\n"); 
+		  return; 
+	   }
+	   dbus_connection_flush(m_connection);
+	   dbus_message_unref(methodCallMsg);
+	   //block until we receive a reply
+	   dbus_pending_call_block(pending);
+		   
+	   fprintf(stderr, "dbus_connection_send createThreadGroup: %d\n",threadGroup);
+   }
+#if 0   
    //register thread groups
-   int numberOfThreads = 0;
-   pid_t* threadIds = 0;
-   get_thread_ids(&numberOfThreads, &threadIds);
+   int      numberOfThreads;
+   ThreadID *theThreadIDs;
+   pid_t    *threadIds;
+
+   numberOfThreads=get_thread_ids(&theThreadIDs);
 
    if(numberOfThreads==0)
       return;
- 
-   fprintf(stderr, "******* %d threads are registered\n", numberOfThreads);
-   for (int i = 0; i< numberOfThreads; i++)
-   {
-      fprintf(stderr, "*** thread %d is %d\n", i, threadIds[i]);
-   }
 
+   threadIds = (pid_t*)malloc(numberOfThreads * sizeof(pid_t));
+
+   int numThreads = 1; 
+   for(int i=0; i< numberOfThreads; i++){
+   unsigned int threadGroup = rmInterface.groupIDBase+theThreadIDs[i].cpu;
+   threadIds[0] = (pid_t)theThreadIDs[i].id;
    methodCallMsg = dbus_message_new_method_call(ACTRM_INTERFACE_NAME,
                                                 "/",
                                                 ACTRM_INTERFACE_NAME,
                                                 "addThreadsToGroup");
    dbus_message_iter_init_append(methodCallMsg, &args);
    dbus_message_iter_append_basic(&args, DBUS_TYPE_UINT32, &threadGroup);
-   dbus_message_iter_append_basic(&args, DBUS_TYPE_UINT32, &numberOfThreads);
+   dbus_message_iter_append_basic(&args, DBUS_TYPE_UINT32, &numThreads);
    DBusMessageIter subArgs;
-
    dbus_message_iter_open_container(&args, DBUS_TYPE_ARRAY, DBUS_TYPE_UINT32_AS_STRING, &subArgs);
-
-   dbus_message_iter_append_fixed_array(&subArgs, DBUS_TYPE_UINT32, &threadIds, numberOfThreads);
+   dbus_message_iter_append_fixed_array(&subArgs, DBUS_TYPE_UINT32, &threadIds, numThreads);
    dbus_message_iter_close_container(&args, &subArgs);
 
-   replies = 0;
-   dbus_connection_send(m_connection, methodCallMsg, &replies);
+   //replies = 0;
+   //dbus_connection_send(m_connection, methodCallMsg, &replies);
+   //dbus_connection_flush(m_connection);
+   //dbus_message_unref(methodCallMsg);
+   if(!dbus_connection_send_with_reply(m_connection, methodCallMsg, &pending,-1))
+   {
+	  fprintf(stderr, "Out Of Memory!\n");
+	  return;
+   }
+   if (NULL == pending) { 
+	  fprintf(stderr, "Pending Call Null\n"); 
+	  return; 
+   }
    dbus_connection_flush(m_connection);
    dbus_message_unref(methodCallMsg);
+   //block until we receive a reply
+   dbus_pending_call_block(pending);
 
-   free(threadIds);
-
-   fprintf(stderr, "Sent thread ids\n");
-
+   fprintf(stderr, "Added the thread %d to group %d\n",threadIds[0],threadGroup);   
+   }
+#endif
 }
 
 typedef struct {
@@ -587,37 +685,14 @@ action_scheduler_exit:
    return exitCode;
 }
 
-
-void set_cpu_category(int cat)
-{
-  switch(cat){
-    case 0:
-      category = CategoryLow;
-      break;
-    case 1:
-      category = CategoryMedium;
-      break;
-    case 2:
-      category = CategoryHigh;
-      break;
-    default:
-      category = CategoryNone;
-      break;
-  }
-}
-
-void reset_service_level()
-{
-  slevels.serviceLevelsCount = 0;
-}
-
 static void constructor(AbstractActorInstance *pBase) {
 
    int i;
    DBusActorInstance* thisActor = (DBusActorInstance*) pBase;
-   thisActor->dbusHandler = new SystemActorDBusHandler(&thisActor->base, "caltest");
+   thisActor->dbusHandler = new SystemActorDBusHandler(&thisActor->base, rmInterface.name);
 
    int result = thisActor->dbusHandler->init();
+
    thisActor->dbusHandler->resumeThread();
 
    fprintf(stderr, "result from dbus init: %d\n", result);
@@ -628,11 +703,14 @@ static void constructor(AbstractActorInstance *pBase) {
    //register app 
    thisActor->dbusHandler->registerApp();
 
-   //announce cpu category
-   thisActor->dbusHandler->announceCPUCategory(category);
-
    //announce service levels;
    thisActor->dbusHandler->announceServiceLevels();
+
+   //announce cpu category
+   thisActor->dbusHandler->announceCPUCategory();
+
+   //commit
+   thisActor->dbusHandler->commit();
 
    dbusInstance = pBase;
 }
@@ -649,11 +727,11 @@ static void destructor(AbstractActorInstance *pBase)
 static void set_param(AbstractActorInstance *pBase,const char *key,const char *value){
 }
 
-void add_thread_to_group(int tid)
+void add_thread_to_group(int tid, int index)
 {
   if(dbusInstance){
     DBusActorInstance *thisActor=(DBusActorInstance*) dbusInstance;
-    thisActor->dbusHandler->addThreadToGroup(tid);
+    thisActor->dbusHandler->addThreadToGroup(tid,index);
   }
 }
 
