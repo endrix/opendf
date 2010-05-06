@@ -90,7 +90,7 @@ typedef struct cpu_runtime_data {
   int physical_id; /* physical index of this cpu */
   sem_t *sem;
   int *sleep; // Odd value indicates thread sleeping
-  int starved; // Does this need to be cache_aligned?
+  int quiescent_at; // Does this need to be cache_aligned?
   SharedContext *shared;
   LocalContext *local;
   int actors;
@@ -274,7 +274,7 @@ int get_thread_ids(ThreadID **theThreadIDs)
 
 static pthread_mutex_t mutex;
 static int sleepers;
-static long long balance;
+static int curr_sleep_event;
 static int terminate;
 
 #define TIMING_PROBES
