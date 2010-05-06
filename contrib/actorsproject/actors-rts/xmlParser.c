@@ -134,7 +134,7 @@ AffinityID    instanceAfinity[MAX_ACTOR_NUM];
 ConnectID     connects[MAX_CONNECTS];
 ScheduleID    schedule;
 RMInterface   rmInterface={"caltest",3,0,21,1,{0,100,25000,200,1,1,{0,80}}};
-int			  numPartitions=0;
+int			  numPartitions=1;
 
 static int _numInstances;
 static int _numConnects;
@@ -208,6 +208,11 @@ void parseConnection(xmlNode *cur_node)
 
   if(!xmlStrcmp(cur_node->name, CONNECTION));
   {
+	if(_numConnects>=MAX_CONNECTS)
+	{
+	  printf("Number of connections over max allowed (%d)\n",MAX_CONNECTS);
+	  return;
+	}
     connects[_numConnects].dst      = (char*)xmlGetProp(cur_node,DST);
     connects[_numConnects].dst_port = (char*)xmlGetProp(cur_node,DST_PORT);
     connects[_numConnects].src      = (char*)xmlGetProp(cur_node,SRC);
@@ -237,6 +242,11 @@ void parsePartition(xmlNode *node)
     if ( child_node->type == XML_ELEMENT_NODE  &&
          !xmlStrcmp(child_node->name, INSTANCE ))
     {
+	  if(_numInstances >= MAX_ACTOR_NUM)
+	  {
+        printf("Number of actor instances over max allowed (%d)\n", MAX_ACTOR_NUM);
+		return;
+	  }
       instanceAfinity[_numInstances].name = (char*)xmlGetProp(child_node,INSTANCE_NAME);
       instanceAfinity[_numInstances].affinity = atoi(id);
       _numInstances++;
@@ -415,6 +425,7 @@ void parsePMInterface(xmlNode *node)
 
 void parseParttioning(xmlNode *node)
 {
+  numPartitions=0;
   parseNode(node,partitioningTag);
 }
 

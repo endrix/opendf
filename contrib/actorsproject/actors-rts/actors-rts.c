@@ -217,6 +217,12 @@ void register_thread_id(int index)
     }
   }
 
+  if(numberOfCreatedThreads >= MAX_ACTOR_NUM)
+  {
+	printf("Number of threads over max allowed (%d)!!\n",MAX_ACTOR_NUM);
+	return;
+  }
+
   threadIDs[numberOfCreatedThreads].id=my_tid;
   threadIDs[numberOfCreatedThreads].cpu=index;
 
