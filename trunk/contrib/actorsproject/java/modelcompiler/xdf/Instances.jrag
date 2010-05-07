@@ -357,7 +357,7 @@ aspect XlimInstance {
 	eq Specification.getXlimInstance(String name) = getElement(0).getXlimInstance(name);
 	eq XDF.getXlimInstance(String name) {
 		for (Instance i : getInstances()) {
-			// System.out.println("  Comparing: "+i.name()+" "+name);
+			System.out.println("  Comparing: "+i.name()+" "+name);
 			if (i.name().equals(name)) {
 				// System.out.println("    Found");
 				return i.xlimInstance();
