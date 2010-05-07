@@ -53,9 +53,10 @@ public class MergeActors extends XdfParser {
 		}
 		System.out.println("Added "+ix+" actors to schedule");
 
-		ast.mergeActors("MergedActor",schedule);
+		ast.mergeActors("MergedActor_1",schedule);
 		try {
-			ast.getXlimInstance("MergedActor").prettyPrint("",new PrintStream("MergedActor.xlim"));
+			ast.getXlimInstance("MergedActor_1").
+				prettyPrint("",new PrintStream("MergedActor_1.xlim"));
 			String name = args[0].substring(0,args[0].indexOf('.'));
 			ast.prettyPrint("",new PrintStream(name+"_new.xdf"));
 		} catch (FileNotFoundException e) {

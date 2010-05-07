@@ -120,13 +120,15 @@ aspect CSDF {
 		xlimInstance = inst;
 	}
 	public xlimAST.Start Instance.xlimInstance() {
-		if (cwd == null) {
-			cwd = "./";
+		if (xlimInstance != null) {
+			return xlimInstance;
+		} else {
+			if (cwd == null) {
+				cwd = "./";
+			}
+			xlimInstance = xlimInstance(cwd);
 		}
-		return xlimInstance(cwd);
-		// if (xlimInstance != null) {
-		// 	return xlimInstance;
-		// }
+		return xlimInstance;
 		// try {
  		// 	System.out.println("Trying to open: "+name()+" "+getIndex());
 		// 	xlimAST.XmlParser parser = new xlimAST.XmlParser(new FileReader(cwd+name()+".xlim"));
@@ -147,7 +149,7 @@ aspect CSDF {
 			xlimAST.XmlParser parser = new xlimAST.XmlParser(new FileReader(directory+name()+".xlim"));
 			return parser.Start();
 		} catch (Exception e) {
-			System.out.println( name()+".xlim not found");
+			System.out.println(directory+ name()+".xlim not found");
  			// e.printStackTrace();
 			return new xlimAST.EmptyStart();
 		}
