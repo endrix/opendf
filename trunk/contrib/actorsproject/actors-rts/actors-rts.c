@@ -1049,7 +1049,7 @@ static void run_threads(cpu_runtime_data_t *runtime,
   }
 #ifdef RM
    /* make sure that all the threads are created before add them to groups */
-  if(numberOfCreatedThreads < runtime->cpu_count+1)
+  while(numberOfCreatedThreads < runtime->cpu_count+1)
 	  usleep(1000);
   add_threads_to_group(); 
 #endif
