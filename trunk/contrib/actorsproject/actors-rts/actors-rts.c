@@ -1067,6 +1067,11 @@ static void show_result(cpu_runtime_data_t *cpu,
   int nonEmptyFifos=0;
 
   if (show_statistics || show_timing) {
+
+	printf("### XML Config ###\n");  
+	printout_config();
+	printf("### XML Config End ###\n\n");
+
     printf("### Statistics ###\n");
     
     if (show_statistics) {

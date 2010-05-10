@@ -139,7 +139,7 @@ int			  numPartitions=1;
 static int _numInstances;
 static int _numConnects;
 
-void printout()
+void printout_config()
 {
   int i,j;
 
@@ -491,7 +491,7 @@ int xmlParser(char *filename, int numInstances)
   // --------------------------------------------------------------------------
   parseNode(root,configTag);
 
-  printout();  
+  //printout_config();  
 
   if(_numInstances != numInstances)
   {
