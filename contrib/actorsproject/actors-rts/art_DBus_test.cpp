@@ -403,8 +403,8 @@ void SystemActorDBusHandler::handleAddThreadsToGroup(const Message* addsToGroup)
    }
 
    free(threadIds);
-   
-   this->commit();
+
+   handleCommit(0);
 }
 
 void SystemActorDBusHandler::addThreadToGroup(int tid, int group)
