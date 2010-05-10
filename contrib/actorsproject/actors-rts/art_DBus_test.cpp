@@ -72,6 +72,7 @@ class SystemActorDBusHandler : public GenericDBusHandler
       void announceServiceLevels();
 	  void commit();
       void addThreadToGroup(int tid, int index);
+      void addThreadsToGroup();
 
 
       bool getNextOutgoingValue(int* value);
@@ -85,6 +86,7 @@ class SystemActorDBusHandler : public GenericDBusHandler
       void handleAnnounceCPUCategory(const Message *msg);
       void handleAnnounceServiceLevels(const Message* msg);
       void handleAddThreadToGroup(const AddThreadMessage* msg);
+      void handleAddThreadsToGroup(const Message* msg);
 
       std::string m_name;
       pthread_mutex_t m_outgoingValuesMutex;
@@ -103,6 +105,7 @@ SystemActorDBusHandler::SystemActorDBusHandler(AbstractActorInstance* base, cons
    addMessageHandler(MSG_CPU_CATEGORY, MAKE_MESSAGE_DELEGATE(this, &SystemActorDBusHandler::handleAnnounceCPUCategory));
    addMessageHandler(MSG_SERVICE_LEVELS, MAKE_MESSAGE_DELEGATE(this, &SystemActorDBusHandler::handleAnnounceServiceLevels));
    addMessageHandler(MSG_ADDTO_GROUP, MAKE_MESSAGE_DELEGATE(this, &SystemActorDBusHandler::handleAddThreadToGroup));
+   addMessageHandler(MSG_ADDSTO_GROUP, MAKE_MESSAGE_DELEGATE(this, &SystemActorDBusHandler::handleAddThreadsToGroup));
    addMessageHandler(MSG_COMMIT, MAKE_MESSAGE_DELEGATE(this, &SystemActorDBusHandler::handleCommit));
 }
 
@@ -272,6 +275,8 @@ void SystemActorDBusHandler::handleCommit(const Message* commitMsg)
 {
    bool result;
   
+   assert(commitMsg);
+
    DBusMessage* methodCallMsg = dbus_message_new_method_call(ACTRM_INTERFACE_NAME,
                                                              "/",
                                                              ACTRM_INTERFACE_NAME,
@@ -337,6 +342,71 @@ void SystemActorDBusHandler::handleAnnounceCPUCategory(const Message* categoryMs
    fprintf(stderr, "dbus_connection_send announceCPUCategory\n");
 }
 
+void SystemActorDBusHandler::addThreadsToGroup()
+{
+   this->postMessage(new Message(MSG_ADDSTO_GROUP));
+}
+
+//add threads to the thread group
+void SystemActorDBusHandler::handleAddThreadsToGroup(const Message* addsToGroup)
+{
+   //register thread groups
+   DBusMessageIter args;
+   int             numberOfThreads;
+   ThreadID        *theThreadIDs;
+   pid_t           *threadIds;
+   DBusMessage*    methodCallMsg;
+   DBusPendingCall *pending;
+
+   numberOfThreads=get_thread_ids(&theThreadIDs);
+
+   if(numberOfThreads==0)
+      return;
+
+   threadIds = (pid_t*)malloc(numberOfThreads * sizeof(pid_t));
+
+   int numThreads = 1; 
+   for(int i=0; i< numberOfThreads; i++){
+   unsigned int threadGroup = rmInterface.groupIDBase+theThreadIDs[i].cpu;
+   threadIds[0] = (pid_t)theThreadIDs[i].id;
+   methodCallMsg = dbus_message_new_method_call(ACTRM_INTERFACE_NAME,
+                                                "/",
+                                                ACTRM_INTERFACE_NAME,
+                                                "addThreadsToGroup");
+   dbus_message_iter_init_append(methodCallMsg, &args);
+   dbus_message_iter_append_basic(&args, DBUS_TYPE_UINT32, &threadGroup);
+   dbus_message_iter_append_basic(&args, DBUS_TYPE_UINT32, &numThreads);
+   DBusMessageIter subArgs;
+   dbus_message_iter_open_container(&args, DBUS_TYPE_ARRAY, DBUS_TYPE_UINT32_AS_STRING, &subArgs);
+   dbus_message_iter_append_fixed_array(&subArgs, DBUS_TYPE_UINT32, &threadIds, numThreads);
+   dbus_message_iter_close_container(&args, &subArgs);
+
+   //replies = 0;
+   //dbus_connection_send(m_connection, methodCallMsg, &replies);
+   //dbus_connection_flush(m_connection);
+   //dbus_message_unref(methodCallMsg);
+   if(!dbus_connection_send_with_reply(m_connection, methodCallMsg, &pending,-1))
+   {
+	  fprintf(stderr, "Out Of Memory!\n");
+	  return;
+   }
+   if (NULL == pending) { 
+	  fprintf(stderr, "Pending Call Null\n"); 
+	  return; 
+   }
+   dbus_connection_flush(m_connection);
+   dbus_message_unref(methodCallMsg);
+   //block until we receive a reply
+   dbus_pending_call_block(pending);
+
+   fprintf(stderr, "Added the thread %d to group %d\n",threadIds[0],threadGroup);   
+   }
+
+   free(threadIds);
+   
+   this->commit();
+}
+
 void SystemActorDBusHandler::addThreadToGroup(int tid, int group)
 {
    this->postMessage(new AddThreadMessage(MSG_ADDTO_GROUP,tid,group));
@@ -345,6 +415,7 @@ void SystemActorDBusHandler::addThreadToGroup(int tid, int group)
 //add thread id to the thread group
 void SystemActorDBusHandler::handleAddThreadToGroup(const AddThreadMessage* addToGroup)
 {
+
    DBusMessageIter args;
    int             numberOfThreads = 1;
    unsigned int    threadGroup;
@@ -505,56 +576,6 @@ void SystemActorDBusHandler::handleRegisterClient(const Message* registerClientM
 		   
 	   fprintf(stderr, "dbus_connection_send createThreadGroup: %d\n",threadGroup);
    }
-#if 0   
-   //register thread groups
-   int      numberOfThreads;
-   ThreadID *theThreadIDs;
-   pid_t    *threadIds;
-
-   numberOfThreads=get_thread_ids(&theThreadIDs);
-
-   if(numberOfThreads==0)
-      return;
-
-   threadIds = (pid_t*)malloc(numberOfThreads * sizeof(pid_t));
-
-   int numThreads = 1; 
-   for(int i=0; i< numberOfThreads; i++){
-   unsigned int threadGroup = rmInterface.groupIDBase+theThreadIDs[i].cpu;
-   threadIds[0] = (pid_t)theThreadIDs[i].id;
-   methodCallMsg = dbus_message_new_method_call(ACTRM_INTERFACE_NAME,
-                                                "/",
-                                                ACTRM_INTERFACE_NAME,
-                                                "addThreadsToGroup");
-   dbus_message_iter_init_append(methodCallMsg, &args);
-   dbus_message_iter_append_basic(&args, DBUS_TYPE_UINT32, &threadGroup);
-   dbus_message_iter_append_basic(&args, DBUS_TYPE_UINT32, &numThreads);
-   DBusMessageIter subArgs;
-   dbus_message_iter_open_container(&args, DBUS_TYPE_ARRAY, DBUS_TYPE_UINT32_AS_STRING, &subArgs);
-   dbus_message_iter_append_fixed_array(&subArgs, DBUS_TYPE_UINT32, &threadIds, numThreads);
-   dbus_message_iter_close_container(&args, &subArgs);
-
-   //replies = 0;
-   //dbus_connection_send(m_connection, methodCallMsg, &replies);
-   //dbus_connection_flush(m_connection);
-   //dbus_message_unref(methodCallMsg);
-   if(!dbus_connection_send_with_reply(m_connection, methodCallMsg, &pending,-1))
-   {
-	  fprintf(stderr, "Out Of Memory!\n");
-	  return;
-   }
-   if (NULL == pending) { 
-	  fprintf(stderr, "Pending Call Null\n"); 
-	  return; 
-   }
-   dbus_connection_flush(m_connection);
-   dbus_message_unref(methodCallMsg);
-   //block until we receive a reply
-   dbus_pending_call_block(pending);
-
-   fprintf(stderr, "Added the thread %d to group %d\n",threadIds[0],threadGroup);   
-   }
-#endif
 }
 
 typedef struct {
@@ -710,7 +731,7 @@ static void constructor(AbstractActorInstance *pBase) {
    thisActor->dbusHandler->announceCPUCategory();
 
    //commit
-   thisActor->dbusHandler->commit();
+   //thisActor->dbusHandler->commit();
 
    dbusInstance = pBase;
 }
@@ -725,6 +746,14 @@ static void destructor(AbstractActorInstance *pBase)
 }
 
 static void set_param(AbstractActorInstance *pBase,const char *key,const char *value){
+}
+
+void add_threads_to_group()
+{
+  if(dbusInstance){
+    DBusActorInstance *thisActor=(DBusActorInstance*) dbusInstance;
+    thisActor->dbusHandler->addThreadsToGroup();
+  }
 }
 
 void add_thread_to_group(int tid, int index)

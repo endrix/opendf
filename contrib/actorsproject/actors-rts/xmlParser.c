@@ -133,7 +133,7 @@ TagID bmDistributionsTag[] ={
 AffinityID    instanceAfinity[MAX_ACTOR_NUM];
 ConnectID     connects[MAX_CONNECTS];
 ScheduleID    schedule;
-RMInterface   rmInterface={"caltest",3,0,21,1,{0,100,25000,200,1,1,{0,80}}};
+RMInterface   rmInterface={"caltest",3,0,0,1,{0,100,25000,200,1,1,{0,80}}};
 int			  numPartitions=1;
 
 static int _numInstances;

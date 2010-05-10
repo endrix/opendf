@@ -48,6 +48,7 @@
 #define MSG_CPU_CATEGORY            (1003)
 #define MSG_SERVICE_LEVELS          (1004)
 #define MSG_ADDTO_GROUP             (1008)
+#define MSG_ADDSTO_GROUP            (1009)
 #define MSG_COMMIT                  (1010)
 //#define MSG_CLIENT_HAPPINESS        (1002)
 //#define MSG_CLIENT_CPU_CATEGORY     (1003)

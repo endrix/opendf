@@ -229,7 +229,7 @@ void register_thread_id(int index)
   numberOfCreatedThreads++;
   pthread_mutex_unlock(&threadIdsMutex);
 
-  add_thread_to_group(my_tid,index); 
+  //add_thread_to_group(my_tid,index); 
 }
 
 void unregister_thread_id(void)
@@ -1047,6 +1047,12 @@ static void run_threads(cpu_runtime_data_t *runtime,
 		   run_with_affinity,
 		   &runtime[i]);
   }
+#ifdef RM
+   /* make sure that all the threads are created before add them to groups */
+  if(numberOfCreatedThreads < runtime->cpu_count+1)
+	  usleep(1000);
+  add_threads_to_group(); 
+#endif
 
   for (i = 0 ; i < runtime->cpu_count ; i++) {
     pthread_join(runtime[i].thread, NULL);
@@ -1358,6 +1364,9 @@ int executeNetwork(int argc,
 
     if (nr_of_cpus(&used_cpus) == 1) {
       flags |= FLAG_SINGLE_CPU;
+#ifdef RM
+      add_threads_to_group(); 
+#endif
     }
     switch (flags) {
       case 0: {
