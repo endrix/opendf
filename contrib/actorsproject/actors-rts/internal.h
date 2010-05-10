@@ -66,6 +66,7 @@ extern int  get_thread_ids(ThreadID **theThreadIDs);
 extern void set_cpu_category(int category);
 extern void reset_quality_level();
 extern void set_quality_levels(int quality, int bandwidth, int granularity);
+extern void printout_config();
 
 #ifdef __cplusplus
 }
