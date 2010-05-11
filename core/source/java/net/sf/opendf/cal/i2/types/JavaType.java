@@ -35,11 +35,11 @@ public class JavaType extends AbstractType {
 	//  Ctor
 	//
 	
-	public JavaType(TheClass typeClass, Class c) {
+	public JavaType(TypeClass typeClass, Class c) {
 		super(typeClass);
 		this.javaClass = c;
 	}
-	
+		
 	public String toString() {
 		return this.getTypeClass().getName() + "(javaClass=\"" + javaClass.getName() + "\")";
 	}
@@ -67,7 +67,20 @@ public class JavaType extends AbstractType {
 			super(name, typeSystem);
 		}
 	}
-
-
+	
+	public static class ThePredefinedNoParamClass extends AbstractTypeClass {
+		
+		@Override
+		public Type createType(TypeExpr te, Evaluator eval) {
+			return type;
+		}
+		
+		public ThePredefinedNoParamClass(String name, TypeSystem typeSystem, Class c) {
+			super (name, typeSystem);
+			type = new JavaType(this, c);
+		}
+		
+		private Type type;
+	}	
 
 }

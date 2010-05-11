@@ -76,6 +76,10 @@ public class DefaultTypeSystem implements TypeSystem {
 		addTypeClass(new TheComplexType.TheClass("complex", this));
 		
 		addTypeClass(new ListType.TheClass("List", this));
+		
+		addTypeClass(new JavaType.ThePredefinedNoParamClass("String", this, String.class));
+
+		addTypeClass(new JavaType.ThePredefinedNoParamClass("char", this, Character.class));
 	}
 	
 	private void addTypeClass(TypeClass tc) {
