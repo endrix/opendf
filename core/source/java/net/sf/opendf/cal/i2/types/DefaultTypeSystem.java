@@ -77,6 +77,7 @@ public class DefaultTypeSystem implements TypeSystem {
 		
 		addTypeClass(new ListType.TheClass("List", this));
 		
+		addTypeClass(new JavaType.ThePredefinedNoParamClass("Object", this, Object.class));
 		addTypeClass(new JavaType.ThePredefinedNoParamClass("String", this, String.class));
 
 		addTypeClass(new JavaType.ThePredefinedNoParamClass("char", this, Character.class));
