@@ -1068,10 +1068,6 @@ static void show_result(cpu_runtime_data_t *cpu,
 
   if (show_statistics || show_timing) {
 
-	printf("### XML Config ###\n");  
-	printout_config();
-	printf("### XML Config End ###\n\n");
-
     printf("### Statistics ###\n");
     
     if (show_statistics) {
@@ -1351,6 +1347,9 @@ int executeNetwork(int argc,
   }
   if (arg_print_info) {
     info_network(instance_1, numInstances, &used_cpus);
+	printf("\n### XML Config ###\n");  
+	printout_config();
+	printf("### XML Config End ###\n\n");
   }
   if (result == 0) {
     runtime_data = allocate_network(instance_1, numInstances, &used_cpus,
