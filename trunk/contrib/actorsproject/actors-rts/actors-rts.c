@@ -56,22 +56,6 @@ static int             numberOfCreatedThreads = 0;
 static ThreadID        threadIDs[MAX_ACTOR_NUM];
 #endif
 
-typedef unsigned long long time_base_t;
-typedef unsigned long long art_timer_t;
-typedef struct {
-  art_timer_t prefire;
-  art_timer_t read_barrier;
-  art_timer_t fire;
-  art_timer_t write_barrier;
-  art_timer_t postfire;
-  art_timer_t sync_unblocked;
-  art_timer_t sync_blocked;
-  art_timer_t sync_sleep;
-  art_timer_t total;
-  long long nsleep;
-  long long nloops;
-} statistics_t;
-
 static struct {
   int num_outputs;
   int num_inputs;
@@ -81,27 +65,6 @@ static struct {
   int buffer_bytes;
 } memory_statistics;
 
-typedef struct cpu_runtime_data {
-  struct cpu_runtime_data *cpu; /* Pointer to first element in this list */
-  int cpu_count;
-  int cpu_index;
-  void *(*main)(struct cpu_runtime_data *, int);
-  pthread_t thread;
-  int physical_id; /* physical index of this cpu */
-  sem_t *sem;
-  int *sleep; // Odd value indicates thread sleeping
-  int quiescent_at; // Does this need to be cache_aligned?
-  SharedContext *shared;
-  LocalContext *local;
-  int actors;
-  AbstractActorInstance **actor; /* Pointer to actors for this cpu */
-  void *actor_data;
-  int *has_affected;
-  statistics_t statistics;
-#ifdef TRACE
-  FILE *file;
-#endif
-} cpu_runtime_data_t;
 
 /*
  * Error reporting
@@ -1064,7 +1027,6 @@ static void show_result(cpu_runtime_data_t *cpu,
 			int show_timing)
 {
   int i;
-  int nonEmptyFifos=0;
 
   if (show_statistics || show_timing) {
 
@@ -1114,47 +1076,6 @@ static void show_result(cpu_runtime_data_t *cpu,
 	         cpu[i].actor[j]->name,
 		 cpu[i].actor[j]->nloops);
 
-      }
-    }
-  }
-  
-  // Report non-empty FIFOs
-  for (i = 0 ; i < cpu->cpu_count ; i++) {
-    int j;
-
-    for (j = 0 ; j < cpu[i].actors ; j++) {
-      AbstractActorInstance *consumer=cpu[i].actor[j];
-      int k;
-
-      for (k=0; k<consumer->inputs; ++k) {
-	InputPort *input=consumer->input + k;
-	const OutputPort *output=input->writer;
-	int balance=atomic_get(&output->shared->count)
-	  - atomic_get(&input->shared->count);
-
-	if (balance!=0) {
-	  AbstractActorInstance *producer=output->actor;
-	  const char *outputPortName="<unknown port>";
-	  const char *inputPortName=
-	    consumer->actor->inputPortDescriptions[k].name;
-	  int s;
-
-	  if (nonEmptyFifos==0)
-	    printf("\nNot all fifos are empty at exit:\n");
-	  ++nonEmptyFifos;
-
-	  for (s=0; s<producer->outputs; ++s) {
-	    if (producer->output +s == output) {
-	      outputPortName=producer->actor->outputPortDescriptions[s].name;
-	      break;
-	    }
-	  }
-
-	  printf("%s.%s to %s.%s contains %u tokens (capacity: %u)\n",
-		 producer->name, outputPortName,
-		 consumer->name, inputPortName,
-		 balance, input->capacity);
-	}
       }
     }
   }
@@ -1249,7 +1170,8 @@ static void show_usage(char *name) {
          "                        configuration file (see --generate)\n"
 	 "--with-bandwidth        Output per-connection bandwidth (#tokens)\n"
          "                        in configuration file (see --generate).\n"
-	 "                        Note: wraps around at 4G tokens\n");
+	 "                        Note: wraps around at 4G tokens\n"
+         "--termination-report    Describe network state at termination\n");
 }
 
 int executeNetwork(int argc, 
@@ -1274,6 +1196,7 @@ int executeNetwork(int argc,
   FILE *generateFile=0;
   int with_complexity=0;
   int with_bandwidth=0;
+  int terminationReport=0;
 
   for (i = 1 ; i < argc ; i++) {
     if (strcmp(argv[i], "--timing") == 0) {
@@ -1299,6 +1222,8 @@ int executeNetwork(int argc,
       with_complexity=1;
     } else if (strcmp(argv[i], "--with-bandwidth") == 0) {
       with_bandwidth=1;
+    } else if (strcmp(argv[i], "--termination-report") == 0) {
+      terminationReport=1;
     } else if (strcmp(argv[i], "--help") == 0) {
       show_usage(argv[0]);
       exit(0);
@@ -1389,11 +1314,11 @@ int executeNetwork(int argc,
   }
   if (result == 0) {
     run_destructors(runtime_data);
-  }
-  if (result == 0) {
     show_result(runtime_data, show_statistics, show_timing);
+    buffer_report(runtime_data);
+    deadlock_report(runtime_data,numInstances,terminationReport);
   }
-
+  
   if (result==0 && generateFile) {
     generate_config(generateFile, 
 		    runtime_data, 
