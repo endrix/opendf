@@ -1174,10 +1174,10 @@ static void generate_config(FILE *f,
     for (j = 0 ; j < cpu[i].actors ; j++) {
       AbstractActorInstance *actor=cpu[i].actor[j];
       if (with_complexity)
-	fprintf(f,"      <Instance name=\"%s\" complexity=\"%Lu\"/>\n",
+	fprintf(f,"      <Instance actor-id=\"%s\" complexity=\"%Lu\"/>\n",
 		actor->name, actor->total);
       else
-	fprintf(f,"      <Instance name=\"%s\"/>\n",actor->name);
+	fprintf(f,"      <Instance actor-id=\"%s\"/>\n",actor->name);
     }
     fprintf(f,"    </Partition>\n");
   }
