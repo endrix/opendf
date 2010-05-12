@@ -557,7 +557,7 @@ static void set_instance_fifo(ActorInstance_1_t **instance,ConnectID *connect,in
   for(i=0; i<numInstances; i++)
   {
     char instanceName[128];
-    sprintf(instanceName,"%s_%d",instance[i]->actorClass->name,instance[i]->index);
+    sprintf(instanceName,"%s/%d",instance[i]->actorClass->name,instance[i]->index);
     if(strcmp(instanceName,connect->dst)==0)
     {
       for (j = 0 ; j < instance[i]->actorClass->numInputPorts ; j++)

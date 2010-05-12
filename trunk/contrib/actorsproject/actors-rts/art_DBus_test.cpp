@@ -165,7 +165,7 @@ void SystemActorDBusHandler::handleDBusSignal(DBusMessage* message)
          fprintf(stderr, "signal for %s, new value is %d my name is %s\n", receiverName, newValue, dbus_bus_get_unique_name(m_connection));
          putNextOutgoingValue(newValue);
       }
-      dbus_message_unref(message);
+      //dbus_message_unref(message);
    }
    else
    {
@@ -660,6 +660,7 @@ ART_ACTION_SCHEDULER(a_action_scheduler){
    bool result;
    int  available;
    static time_t lastHappinessTime = 0;
+
 
    ART_ACTION_SCHEDULER_ENTER(1, 1);
 
