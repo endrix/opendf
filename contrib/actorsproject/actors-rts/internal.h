@@ -38,6 +38,9 @@
 #ifndef _INTERNAL_H
 #define _INTERNAL_H
 
+#include <stdio.h>
+#include <semaphore.h>
+
 /* make the header usable from C++ */
 #ifdef __cplusplus
 extern "C" {
@@ -59,6 +62,44 @@ typedef struct _ThreadID {
 }ThreadID;
 
 
+typedef unsigned long long time_base_t;
+typedef unsigned long long art_timer_t;
+typedef struct {
+  art_timer_t prefire;
+  art_timer_t read_barrier;
+  art_timer_t fire;
+  art_timer_t write_barrier;
+  art_timer_t postfire;
+  art_timer_t sync_unblocked;
+  art_timer_t sync_blocked;
+  art_timer_t sync_sleep;
+  art_timer_t total;
+  long long nsleep;
+  long long nloops;
+} statistics_t;
+
+
+typedef struct cpu_runtime_data {
+  struct cpu_runtime_data *cpu; /* Pointer to first element in this list */
+  int cpu_count;
+  int cpu_index;
+  void *(*main)(struct cpu_runtime_data *, int);
+  pthread_t thread;
+  int physical_id; /* physical index of this cpu */
+  sem_t *sem;
+  int *sleep; // Odd value indicates thread sleeping
+  int quiescent_at; // Does this need to be cache_aligned?
+  struct SharedContext *shared;
+  struct LocalContext *local;
+  int actors;
+  struct AbstractActorInstance **actor; /* Pointer to actors for this cpu */
+  void *actor_data;
+  int *has_affected;
+  statistics_t statistics;
+  FILE *file;
+} cpu_runtime_data_t;
+
+
 extern int log_level;
 // extern void trace(int level, const char*,...);
 extern void register_thread_id(int index);
@@ -68,6 +109,10 @@ extern void reset_quality_level();
 extern void set_quality_levels(int quality, int bandwidth, int granularity);
 extern void printout_config();
 
+extern int buffer_report(cpu_runtime_data_t *cpu);
+extern int deadlock_report(cpu_runtime_data_t *cpu,
+			   int numActors,
+			   int reportAllActors);
 #ifdef __cplusplus
 }
 #endif
