@@ -66,7 +66,7 @@ static void constructor(AbstractActorInstance *pBase)
 static void destructor(AbstractActorInstance *pBase)
 {
   ActorInstance_art_Sink *thisActor=(ActorInstance_art_Sink*) pBase;
-  if (thisActor->file == NULL && thisActor->file != stdout) {
+  if (thisActor->file != NULL && thisActor->file != stdout) {
     fclose(thisActor->file);
   }
 }

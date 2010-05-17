@@ -118,6 +118,7 @@ bool SystemActorDBusHandler::getNextOutgoingValue(int* value)
 {
    assert(value);
    bool result = false;
+
    pthread_mutex_lock(&m_outgoingValuesMutex);
 
    if (!m_outgoingValues.empty())
