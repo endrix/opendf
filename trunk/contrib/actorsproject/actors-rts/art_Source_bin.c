@@ -85,7 +85,7 @@ static void constructor(AbstractActorInstance *pBase)
 static void destructor(AbstractActorInstance *pBase)
 {
   ActorInstance_art_Source *thisActor=(ActorInstance_art_Source*) pBase;
-  if (thisActor->file == NULL && thisActor->file != stdin) {
+  if (thisActor->file != NULL && thisActor->file != stdin) {
     fclose(thisActor->file);
   }
 }

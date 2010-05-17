@@ -1313,10 +1313,10 @@ int executeNetwork(int argc,
     }
   }
   if (result == 0) {
+    deadlock_report(runtime_data,numInstances,terminationReport);
     run_destructors(runtime_data);
     show_result(runtime_data, show_statistics, show_timing);
     buffer_report(runtime_data);
-    deadlock_report(runtime_data,numInstances,terminationReport);
   }
   
   if (result==0 && generateFile) {
