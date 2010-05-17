@@ -528,7 +528,6 @@ static void set_instance_fifo(ActorInstance_1_t **instance,ConnectID *connect,in
         if (strcmp(instance[i]->actorClass->inputPortDescriptions[j].name,
                    connect->dst_port)  == 0) {
           instance[i]->input[j].capacity = connect->size;
-          printf("%s.%s => %d\n",connect->dst,connect->dst_port,connect->size);
           return;
         }
       }
@@ -1143,6 +1142,31 @@ static void generate_config(FILE *f,
     }
   }
   fprintf(f,"  </Partitioning>\n");
+#ifdef RM  
+  fprintf(f,"  <RMInterface name=\"%s\">\n",rmInterface.name);
+  fprintf(f,"    <Category value=\"%s\"/>\n",get_category_string(rmInterface.categoryValue));
+  fprintf(f,"    <InitialService index=\"%d\"/>\n",rmInterface.currentServiceIndex);
+  fprintf(f,"    <GroupID base=\"%d\"/>\n",rmInterface.groupIDBase);
+  fprintf(f,"    <ServiceLevels>\n");
+  for(i=0; i<rmInterface.numServiceLevels; i++)
+  {
+  ServiceLevel   *serviceLevel=&rmInterface.serviceLevels[i];
+  fprintf(f,"      <ServiceLevel index=\"%d\">\n",serviceLevel->index);
+  fprintf(f,"        <QualityOfService quality=\"%d\"/>\n",serviceLevel->quality);
+  fprintf(f,"        <Granularity value=\"%d\"/>\n",serviceLevel->granularityValue);
+  fprintf(f,"        <TotalBW value=\"%d\" mode=\"%s\"/>\n",serviceLevel->totalBW,get_mode_string(serviceLevel->mode));
+  fprintf(f,"        <BWDistributions>\n");
+  for(j=0; j<serviceLevel->numBMDistributions; j++)
+  {
+  BWDistribution *bwDistribution=&serviceLevel->bwDistributions[j];
+  fprintf(f,"          <BWDistribution id=\"%d\" value=\"%d\"/>\n",bwDistribution->id,bwDistribution->value);
+  }
+  fprintf(f,"        </BWDistributions>\n");
+  fprintf(f,"      </ServiceLevel>\n");
+  }
+  fprintf(f,"    </ServiceLevels>\n");
+  fprintf(f,"  </RMInterface>\n");
+#endif
   fprintf(f,"  <Scheduling type=\"RoundRobin\"/>\n");
   fprintf(f,"</Configuration>\n");
 }

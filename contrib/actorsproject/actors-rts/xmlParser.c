@@ -179,6 +179,49 @@ void printout_config()
     }
   }
 }
+char *get_mode_string(int value)
+{
+  switch(value)
+  {
+    case 1: return "Absolute";
+    case 2: return "Relative";
+  }
+  return "None";
+}
+
+int get_mode_value(char *mode)
+{
+  int retval=0;
+  if(strcmp(mode,"Absolute")==0)
+    retval=1;
+  else if(strcmp(mode,"Relative")==0)
+    retval=2;
+  return retval;
+}
+
+char *get_category_string(int value)
+{
+  switch(value)
+  {
+    case 1: return "Low";
+    case 2: return "Medium";
+    case 3: return "High";
+  }
+  return "None";
+}
+
+int get_category_value(char* value)
+{
+  int retval = 0;
+  if(!strcmp(value,"High"))
+    retval=3;
+  else if(!strcmp(value,"Medium"))
+    retval=2;
+  else if(!strcmp(value,"Low"))
+    retval=1;
+
+  return retval;
+}
 
 void parseNode(xmlNode *node,TagID *tagID)
 {
@@ -261,14 +304,7 @@ void parseCategory(xmlNode *node)
   char *value;
   value = (char*)xmlGetProp(node,CATEGORY_VALUE);
   if(value){
-    if(!strcmp(value,"High"))
-      rmInterface.categoryValue=3;
-    else if(!strcmp(value,"Medium"))
-      rmInterface.categoryValue=2;
-    else if(!strcmp(value,"Low"))
-      rmInterface.categoryValue=1;
-    else
-      rmInterface.categoryValue=0;  
+	rmInterface.categoryValue = get_category_value(value);
   }
 
   xmlFree(value);
@@ -346,12 +382,7 @@ void parseTotalBW(xmlNode *node)
   if(mode)
   {
      ServiceLevel *sl=&rmInterface.serviceLevels[rmInterface.numServiceLevels];
-	 if(strcmp(mode,"Absolute")==0)
-	 	sl->mode=1;
-	 else if(strcmp(mode,"Relative")==0)
-		sl->mode=2;
-	 else
-        sl->mode=0;
+	 sl->mode=get_mode_value(mode);
   }
   xmlFree(value);
   xmlFree(mode);
