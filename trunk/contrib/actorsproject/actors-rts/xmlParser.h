@@ -89,5 +89,7 @@ extern ConnectID   connects[];
 extern RMInterface rmInterface;
 extern int         numPartitions;
 extern int         xmlParser(char*, int);
+extern char*       get_category_string(int);
+extern char*       get_mode_string(int);
 
 #endif /* xmlParser_H_INCLUDED */
