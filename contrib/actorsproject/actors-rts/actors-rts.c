@@ -576,8 +576,8 @@ static int check_network(ActorInstance_1_t **instance,
     // Check that we have processor affinity, else force single CPU mode
     if (instance[i]->affinity == -1) {
       if (!(*flags & FLAG_SINGLE_CPU)) {
-	printf("Forcing single CPU mode:%s\n", 
-               affinity_is_set? "" : " no affinity/configuration specified");
+//	printf("Forcing single CPU mode:%s\n", 
+//               affinity_is_set? "" : " no affinity/configuration specified");
 	*flags |= FLAG_SINGLE_CPU;
       }
       if (affinity_is_set)
