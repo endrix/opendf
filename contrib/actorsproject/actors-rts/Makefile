@@ -57,10 +57,6 @@ ifeq ($(RM), y)
 override CFLAGS += -DRM
 endif
 
-ifeq ($(EDF), y)
-override CFLAGS += -DEDF
-endif
-
 ifeq ($(TRACE), y)
 override CFLAGS += -DTRACE
 endif
@@ -79,10 +75,6 @@ OBJECTS=actors-rts.o xmlParser.o termination-report.o \
 	    art_Source_bin.o art_Source_txt.o art_Source_real.o \
         art_DDRModel.o art_Display_yuv.o \
         art_consumer.o art_producer.o
-
-ifeq ($(EDF),y)
-OBJECTS += edf_syscall.o
-endif
 
 ifeq ($(TRACE),y)
 OBJECTS += xmlTrace.o

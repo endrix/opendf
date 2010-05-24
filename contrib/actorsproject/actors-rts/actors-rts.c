@@ -1175,26 +1175,21 @@ static void show_usage(char *name) {
   printf("Usage: %s [OPTION...]\n", name);
   printf("Executes network %s using the ACTORS run-time system\n", name);
   printf("\nOptions:\n"
-         "--affinityN=actorlist   Sets the affinity of specified actors to\n"
-         "                        core number N\n"
          "--cfile=FILE            Sets affinity and/or FIFO capacities as\n"
          "                        specified in the configuration file\n"
-         "--fifosize=N            Sets the default FIFO size (1024 tokens)\n"
-	 "--generate=FILE         Generate configuration file from current\n"
+         "--generate=FILE         Generate configuration file from current\n"
          "                        execution (also see --with_complexity and\n"
-	 "                        --width_bandwidth)\n"
+         "                        --width_bandwidth)\n"
          "--help                  Display this help list\n"
-         "--info                  List actors and their affinity\n"
          "--loopmax=N             Restrict the maximum number of action\n"
          "                        firings per actor\n"
-         "--single_cpu            Execute on a single CPU core\n"
-	 "--statistics            Display run-time statistics\n"
+         "--statistics            Display run-time statistics\n"
          "--timing                Collect and display timing statistics\n"
-	 "--with-complexity       Output per-actor complexity (cycles) in\n"
+         "--with-complexity       Output per-actor complexity (cycles) in\n"
          "                        configuration file (see --generate)\n"
-	 "--with-bandwidth        Output per-connection bandwidth (#tokens)\n"
+         "--with-bandwidth        Output per-connection bandwidth (#tokens)\n"
          "                        in configuration file (see --generate).\n"
-	 "                        Note: wraps around at 4G tokens\n"
+         "                        Note: wraps around at 4G tokens\n"
          "--termination-report    Describe network state at termination\n");
 }
 
@@ -1228,13 +1223,6 @@ int executeNetwork(int argc,
       flags |= FLAG_TIMING;
     } else if (strcmp(argv[i], "--statistics") == 0) {
       show_statistics=1;
-    } else if (strcmp(argv[i], "--single_cpu") == 0) {
-      flags |= FLAG_SINGLE_CPU;
-    } else if (strncmp(argv[i], "--affinity", 10) == 0) {
-    } else if (strcmp(argv[i], "--info") == 0) {
-      arg_print_info = 1;
-    } else if (strncmp(argv[i], "--fifosize=", 11) == 0) {
-      arg_fifo_size = atoi(&argv[i][11]);
     } else if (strncmp(argv[i], "--loopmax=", 10) == 0) {
       arg_loopmax = atoi(&argv[i][10]);
     } else if (strncmp(argv[i], "--cfile=", 8) == 0) {
