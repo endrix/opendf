@@ -853,6 +853,10 @@ static void destructor(AbstractActorInstance *pBase)
 }
 
 static void set_param(AbstractActorInstance *pBase,const char *key,const char *value){
+  DBusActorInstance *thisActor=(DBusActorInstance*) pBase;
+  if (strcmp(key,"activeMode")==0) {
+    pBase->actor->actorExecMode = atoi(value);
+  } 
 }
 
 
