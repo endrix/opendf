@@ -31,9 +31,6 @@ endif
 # Generate debug code
 # DEBUG=Y
 
-# Link statically
-# STATIC=Y
-
 # Enable actor merging (experimental and potentially dangerous)
 #export MERGE=Y
 

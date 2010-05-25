@@ -32,12 +32,7 @@ override CPPFLAGS += -DDEBUG
 endif
 
 override LDLIBS  += -lactors-rts -lpthread
-
-ifdef STATIC
-override LDFLAGS += -static -L$(ACTORS_LIB)
-else
-override LDFLAGS += -L$(ACTORS_LIB) -Wl,-rpath=$(ACTORS_LIB)
-endif
+override LDFLAGS += -L$(ACTORS_LIB)
 
 ifdef PROFILE
 override CFLAGS += -pg -fno-omit-frame-pointer

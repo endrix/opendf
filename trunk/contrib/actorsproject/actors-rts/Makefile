@@ -11,13 +11,7 @@ MINOR_DOT_BUILD=$(MINOR).$(BUILD)
 endif
 
 BASENAME=libactors-rts
-ifeq "$(STATIC)" ""
-LINKER_NAME=$(BASENAME).so
-SONAME=$(LINKER_NAME).$(MAJOR)
-REAL_NAME=$(SONAME).$(MINOR_DOT_BUILD)
-else
 REAL_NAME=$(BASENAME).a
-endif
 
 ifeq ($(ARM),y)
 export CC=arm-none-linux-gnueabi-gcc
@@ -125,12 +119,7 @@ $(REAL_NAME): $(OBJECTS) $(CXXOBJECTS)
 else
 $(REAL_NAME): $(OBJECTS)
 endif
-
-ifeq "$(STATIC)" ""
-	$(LD) -shared -soname=$(SONAME) -o $@ $(LDFLAGS) $^ $(LDLIBS)
-else
 	$(AR) rcs $@ $^
-endif
 
 $(OBJECTS): %.o : $(srcdir)/%.c
 	$(CC) -fPIC -c -Wall $(CFLAGS) -o $@ $<
@@ -143,10 +132,6 @@ install: install-lib install-include install-sysactors
 install-lib:
 	@mkdir -p $(libdir)
 	@cp $(REAL_NAME) $(libdir)/.
-ifeq "$(STATIC)" ""
-	@cd $(libdir) && ln -sf $(REAL_NAME) $(SONAME)
-	@cd $(libdir) && ln -sf $(SONAME) $(LINKER_NAME)
-endif
 
 install-include:
 	@mkdir -p $(includedir)
@@ -157,8 +142,6 @@ install-sysactors:
 	@cp $(INSTALL_SYSACTORS:%=$(srcdir)/sysactors/%) $(datadir)/sysactors/.
 
 INSTALLED_FILES=$(libdir)/$(REAL_NAME) \
-                $(libdir)/$(SONAME) \
-                $(libdir)/$(LINKER_NAME) \
                 $(INSTALL_H:%=$(includedir)/%) \
                 $(INSTALL_SYSACTORS:%=$(datadir)/sysactors/%)
 
