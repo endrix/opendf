@@ -108,6 +108,8 @@ extern void set_cpu_category(int category);
 extern void reset_quality_level();
 extern void set_quality_levels(int quality, int bandwidth, int granularity);
 extern void printout_config();
+extern void (*cb_add_threads)(int);
+extern void (*cb_register_thread)(int);
 
 extern int buffer_report(cpu_runtime_data_t *cpu);
 extern int deadlock_report(cpu_runtime_data_t *cpu,
