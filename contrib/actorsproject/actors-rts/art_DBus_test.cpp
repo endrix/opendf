@@ -653,6 +653,9 @@ ActorClass ActorClass_art_DBus_test = {
 
 extern "C"
 {
+static pthread_mutex_t threadIdsMutex;
+static int             numberOfCreatedThreads = 0;
+static ThreadID        threadIDs[MAX_ACTOR_NUM];
 
 ART_ACTION_SCHEDULER(a_action_scheduler){
    DBusActorInstance* thisActor = (DBusActorInstance*) pBase;
@@ -708,6 +711,103 @@ action_scheduler_exit:
    return exitCode;
 }
 
+// if gettid() is not available in the system headers, but we have
+// __NR_gettid, then create a gettid() ourselves: e.g. on ubuntu 7.10
+#include <linux/unistd.h>
+void register_thread_id(int index)
+{
+  int i;
+  pthread_mutex_lock(&threadIdsMutex);
+  // this is gettid(), which does not exist everywhere
+  pid_t my_tid = syscall(__NR_gettid);
+  // make sure it's not registered before
+  for(i=0; i<numberOfCreatedThreads; i++)
+  {
+	if(my_tid == threadIDs[i].id)  
+    {
+      //printf("Thread ID %d already registered!\n",my_tid);
+      pthread_mutex_unlock(&threadIdsMutex);
+      return;
+    }
+  }
+
+  if(numberOfCreatedThreads >= MAX_ACTOR_NUM)
+  {
+	printf("Number of threads over max allowed (%d)!!\n",MAX_ACTOR_NUM);
+	return;
+  }
+
+  threadIDs[numberOfCreatedThreads].id=my_tid;
+  threadIDs[numberOfCreatedThreads].cpu=index;
+
+  numberOfCreatedThreads++;
+  pthread_mutex_unlock(&threadIdsMutex);
+
+  //add_thread_to_group(my_tid,index); 
+}
+
+void unregister_thread_id(void)
+{
+  int i = 0;
+  // this is gettid(), which does not exist everywhere
+  pid_t my_tid = syscall(__NR_gettid);
+
+  pthread_mutex_lock(&threadIdsMutex);
+
+  for (i=0; i<numberOfCreatedThreads; i++)
+  {
+    if (threadIDs[i].id == my_tid)
+    {
+      if (i<numberOfCreatedThreads-1)
+      {
+		threadIDs[i].id = threadIDs[numberOfCreatedThreads-1].id;
+		threadIDs[i].cpu = threadIDs[numberOfCreatedThreads-1].cpu;
+      }
+      numberOfCreatedThreads--;
+      break;
+    }
+  }
+  pthread_mutex_unlock(&threadIdsMutex);
+}
+
+int get_thread_ids(ThreadID **theThreadIDs)
+{
+  if (theThreadIDs == NULL)
+  {
+    return 0;
+  }
+  *theThreadIDs=threadIDs;
+
+  return numberOfCreatedThreads;
+}
+
+void add_threads_to_group(int numThreads)
+{
+    /* make sure that all the threads are created before add them to groups */
+    while(numberOfCreatedThreads < numThreads)
+	  usleep(1000);
+
+  if(dbusInstance){
+    DBusActorInstance *thisActor=(DBusActorInstance*) dbusInstance;
+    thisActor->dbusHandler->addThreadsToGroup();
+  }
+}
+
+void add_thread_to_group(int tid, int index)
+{
+  if(dbusInstance){
+    DBusActorInstance *thisActor=(DBusActorInstance*) dbusInstance;
+    thisActor->dbusHandler->addThreadToGroup(tid,index);
+  }
+}
+
+void app_init()
+{
+   cb_add_threads = add_threads_to_group;
+   cb_register_thread = register_thread_id;
+   pthread_mutex_init(&threadIdsMutex, 0);
+}
+
 static void constructor(AbstractActorInstance *pBase) {
 
    int i;
@@ -723,6 +823,8 @@ static void constructor(AbstractActorInstance *pBase) {
    {
    }
 
+   app_init();
+
    //register app 
    thisActor->dbusHandler->registerApp();
 
@@ -736,6 +838,7 @@ static void constructor(AbstractActorInstance *pBase) {
    //thisActor->dbusHandler->commit();
 
    dbusInstance = pBase;
+
 }
 
 static void destructor(AbstractActorInstance *pBase)
@@ -745,26 +848,13 @@ static void destructor(AbstractActorInstance *pBase)
    thisActor->dbusHandler->joinThread();
    delete thisActor->dbusHandler;
    thisActor->dbusHandler = 0;
+   
+   pthread_mutex_destroy(&threadIdsMutex);
 }
 
 static void set_param(AbstractActorInstance *pBase,const char *key,const char *value){
 }
 
-void add_threads_to_group()
-{
-  if(dbusInstance){
-    DBusActorInstance *thisActor=(DBusActorInstance*) dbusInstance;
-    thisActor->dbusHandler->addThreadsToGroup();
-  }
-}
-
-void add_thread_to_group(int tid, int index)
-{
-  if(dbusInstance){
-    DBusActorInstance *thisActor=(DBusActorInstance*) dbusInstance;
-    thisActor->dbusHandler->addThreadToGroup(tid,index);
-  }
-}
 
 }
 

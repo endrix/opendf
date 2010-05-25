@@ -50,11 +50,8 @@ static int arg_loopmax = INT_MAX;
 #define FLAG_TIMING      0x01
 #define FLAG_SINGLE_CPU  0x02
 
-#ifdef RM
-static pthread_mutex_t threadIdsMutex;
-static int             numberOfCreatedThreads = 0;
-static ThreadID        threadIDs[MAX_ACTOR_NUM];
-#endif
+void (*cb_add_threads)(int)=0;
+void (*cb_register_thread)(int)=0;
 
 static struct {
   int num_outputs;
@@ -155,79 +152,6 @@ void index_action(cpu_runtime_data_t *runtime, int numInstances, char *name)
   xmlDeclareNetwork(netfile,name,instances,numInstances);
   xmlCloseTrace(netfile);
 
-}
-#endif
-
-#ifdef RM
-// if gettid() is not available in the system headers, but we have
-// __NR_gettid, then create a gettid() ourselves: e.g. on ubuntu 7.10
-#include <linux/unistd.h>
-extern void add_thread_to_group(int tid,int index);
-void register_thread_id(int index)
-{
-  int i;
-  pthread_mutex_lock(&threadIdsMutex);
-  // this is gettid(), which does not exist everywhere
-  pid_t my_tid = syscall(__NR_gettid);
-  // make sure it's not registered before
-  for(i=0; i<numberOfCreatedThreads; i++)
-  {
-	if(my_tid == threadIDs[i].id)  
-    {
-      printf("Thread ID %d already registered!\n",my_tid);
-      pthread_mutex_unlock(&threadIdsMutex);
-      return;
-    }
-  }
-
-  if(numberOfCreatedThreads >= MAX_ACTOR_NUM)
-  {
-	printf("Number of threads over max allowed (%d)!!\n",MAX_ACTOR_NUM);
-	return;
-  }
-
-  threadIDs[numberOfCreatedThreads].id=my_tid;
-  threadIDs[numberOfCreatedThreads].cpu=index;
-
-  numberOfCreatedThreads++;
-  pthread_mutex_unlock(&threadIdsMutex);
-
-  //add_thread_to_group(my_tid,index); 
-}
-
-void unregister_thread_id(void)
-{
-  int i = 0;
-  // this is gettid(), which does not exist everywhere
-  pid_t my_tid = syscall(__NR_gettid);
-
-  pthread_mutex_lock(&threadIdsMutex);
-
-  for (i=0; i<numberOfCreatedThreads; i++)
-  {
-    if (threadIDs[i].id == my_tid)
-    {
-      if (i<numberOfCreatedThreads-1)
-      {
-		threadIDs[i].id = threadIDs[numberOfCreatedThreads-1].id;
-		threadIDs[i].cpu = threadIDs[numberOfCreatedThreads-1].cpu;
-      }
-      numberOfCreatedThreads--;
-      break;
-    }
-  }
-  pthread_mutex_unlock(&threadIdsMutex);
-}
-
-int get_thread_ids(ThreadID **theThreadIDs)
-{
-  if (theThreadIDs == NULL)
-  {
-    return 0;
-  }
-  *theThreadIDs=threadIDs;
-
-  return numberOfCreatedThreads;
 }
 #endif
 
@@ -1009,12 +933,9 @@ static void run_threads(cpu_runtime_data_t *runtime,
 		   run_with_affinity,
 		   &runtime[i]);
   }
-#ifdef RM
-   /* make sure that all the threads are created before add them to groups */
-  while(numberOfCreatedThreads < runtime->cpu_count+1)
-	  usleep(1000);
-  add_threads_to_group(); 
-#endif
+
+  if(cb_add_threads)
+	cb_add_threads(runtime->cpu_count+1);
 
   for (i = 0 ; i < runtime->cpu_count ; i++) {
     pthread_join(runtime[i].thread, NULL);
@@ -1142,7 +1063,7 @@ static void generate_config(FILE *f,
     }
   }
   fprintf(f,"  </Partitioning>\n");
-#ifdef RM  
+//#ifdef RM  
   fprintf(f,"  <RMInterface name=\"%s\">\n",rmInterface.name);
   fprintf(f,"    <Category value=\"%s\"/>\n",get_category_string(rmInterface.categoryValue));
   fprintf(f,"    <InitialService index=\"%d\"/>\n",rmInterface.currentServiceIndex);
@@ -1166,7 +1087,7 @@ static void generate_config(FILE *f,
   }
   fprintf(f,"    </ServiceLevels>\n");
   fprintf(f,"  </RMInterface>\n");
-#endif
+//#endif
   fprintf(f,"  <Scheduling type=\"RoundRobin\"/>\n");
   fprintf(f,"</Configuration>\n");
 }
@@ -1297,17 +1218,13 @@ int executeNetwork(int argc,
     index_action(runtime_data, numInstances, argv[0]);
 #endif
 
-#ifdef RM
-  pthread_mutex_init(&threadIdsMutex, 0);
-  //register this main thread ID on cpu 0
-  register_thread_id(0);
-#endif
+    if(cb_register_thread)
+	  cb_register_thread(0);
 
     if (nr_of_cpus(&used_cpus) == 1) {
       flags |= FLAG_SINGLE_CPU;
-#ifdef RM
-      add_threads_to_group(); 
-#endif
+	  if(cb_add_threads)
+		cb_add_threads(0);  
     }
     switch (flags) {
       case 0: {
@@ -1341,9 +1258,6 @@ int executeNetwork(int argc,
   if (result == 0) {
     deallocate_network(runtime_data);
   }
-#ifdef RM
-  pthread_mutex_destroy(&threadIdsMutex);
-#endif
   exit(result);
 }
 

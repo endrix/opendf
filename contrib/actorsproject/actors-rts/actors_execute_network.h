@@ -28,9 +28,11 @@ static void *EXECUTE_NETWORK(cpu_runtime_data_t *runtime,
   DECLARE_TIMEBASE(t3);
   statistics_t statistics;
 
-#ifdef RM
-  register_thread_id(this_cpu);
-#endif
+//#ifdef RM
+  if(cb_register_thread)
+	cb_register_thread(this_cpu);
+  //register_thread_id(this_cpu);
+//#endif
 
 //  printf("START#%d %s %s %p\n", this_cpu, __DATE__, __TIME__, runtime);
   old_sleep = malloc(runtime->cpu_count * sizeof(*old_sleep));
