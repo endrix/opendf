@@ -28,11 +28,8 @@ static void *EXECUTE_NETWORK(cpu_runtime_data_t *runtime,
   DECLARE_TIMEBASE(t3);
   statistics_t statistics;
 
-//#ifdef RM
   if(cb_register_thread)
 	cb_register_thread(this_cpu);
-  //register_thread_id(this_cpu);
-//#endif
 
 //  printf("START#%d %s %s %p\n", this_cpu, __DATE__, __TIME__, runtime);
   old_sleep = malloc(runtime->cpu_count * sizeof(*old_sleep));
@@ -98,6 +95,9 @@ static void *EXECUTE_NETWORK(cpu_runtime_data_t *runtime,
 	actor[i]->nloops++;
 	if (result == EXITCODE_TERMINATE) {
 	  actor[i]->terminated = 1;
+	  // In case it's active actor, decrement the number of active actors
+	  if(actor[i]->actor->actorExecMode==1)
+		numActiveActors--;
 	}
       }
     }
@@ -228,7 +228,7 @@ static void *EXECUTE_NETWORK(cpu_runtime_data_t *runtime,
 	}
       }
 
-      if (sleep) {
+      if (sleep && numActiveActors==0) {
 	// Termination logic:
 	// In order to not only sleep, but also terminate,
         // we require that:

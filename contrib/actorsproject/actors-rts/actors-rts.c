@@ -50,6 +50,8 @@ static int arg_loopmax = INT_MAX;
 #define FLAG_TIMING      0x01
 #define FLAG_SINGLE_CPU  0x02
 
+int numActiveActors=0;
+
 void (*cb_add_threads)(int)=0;
 void (*cb_register_thread)(int)=0;
 
@@ -369,7 +371,7 @@ static int index_nodes(ActorInstance_1_t **instance,
   int i;
   for (i = 0 ; i < numInstances ; i++) {
     int j;
-    
+	
     for (j =  i - 1 ; j >= 0 ; j--) {
       if (strcmp(instance[i]->actorClass->name,
 		 instance[j]->actorClass->name) == 0) {
@@ -872,6 +874,13 @@ static cpu_runtime_data_t *allocate_network(
       }
     }
   }
+
+  //get the number of active actors
+  for (i = 0 ; i < numInstances ; i++) {
+    if(instance[i]->actorClass->actorExecMode==1)
+      numActiveActors++;
+  }
+    
   return result;
 }
 
@@ -1171,7 +1180,7 @@ int executeNetwork(int argc,
     exit(1);
   }
 
-  result = index_nodes(instance_1, numInstances); 
+  result = index_nodes(instance_1, numInstances);
   if (result == 0) {
     // Assign command line affinity
     for (i = 1 ; i < argc ; i++) {
