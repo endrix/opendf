@@ -59,6 +59,11 @@
 
 #define ACTRM_INTERFACE_NAME "eu.actorsproject.ResourceManagerInterface"
 
+extern "C"
+{
+  extern void wakeup_me(int);
+}
+
 static AbstractActorInstance *dbusInstance;
 
 class SystemActorDBusHandler : public GenericDBusHandler
@@ -165,8 +170,8 @@ void SystemActorDBusHandler::handleDBusSignal(DBusMessage* message)
          dbus_message_iter_get_basic(&args, &newValue);
          fprintf(stderr, "signal for %s, new value is %d my name is %s\n", receiverName, newValue, dbus_bus_get_unique_name(m_connection));
          putNextOutgoingValue(newValue);
+		 wakeup_me(0);
       }
-      //dbus_message_unref(message);
    }
    else
    {
@@ -190,7 +195,6 @@ void SystemActorDBusHandler::announceServiceLevels()
 
 void SystemActorDBusHandler::handleAnnounceServiceLevels(const Message* serviceLevelsMsg)
 {
-   bool result;
    DBusMessageIter args1;
    DBusMessage* message = 0;
    DBusPendingCall* pending;
@@ -207,7 +211,7 @@ void SystemActorDBusHandler::handleAnnounceServiceLevels(const Message* serviceL
    //service levels
    DBusMessageIter args2;
    dbus_message_iter_open_container(&args1, DBUS_TYPE_ARRAY, "(uuuuua{uu})", &args2);
-   for(int i=0; i<rmInterface.numServiceLevels;i++)
+   for(unsigned int i=0; i<rmInterface.numServiceLevels;i++)
    {
 	   ServiceLevel *slevel = &rmInterface.serviceLevels[i];
 	   DBusMessageIter args3;
@@ -225,7 +229,7 @@ void SystemActorDBusHandler::handleAnnounceServiceLevels(const Message* serviceL
 
 	   DBusMessageIter args4;
 	   dbus_message_iter_open_container(&args3, DBUS_TYPE_ARRAY, "{uu}", &args4);
-	   for (int j=0; j<slevel->numBMDistributions; j++)
+	   for (unsigned int j=0; j<slevel->numBMDistributions; j++)
 	   {
 		   BWDistribution *bw=&slevel->bwDistributions[j];
 		   int groupID=bw->id + rmInterface.groupIDBase;
@@ -305,7 +309,7 @@ void SystemActorDBusHandler::announceCPUCategory()
 
 void SystemActorDBusHandler::handleAnnounceCPUCategory(const Message* categoryMsg)
 {
-   bool result;
+   //bool result;
    DBusPendingCall* pending;
    assert(categoryMsg);
    DBusMessage* methodCallMsg = dbus_message_new_method_call(ACTRM_INTERFACE_NAME,
@@ -315,7 +319,6 @@ void SystemActorDBusHandler::handleAnnounceCPUCategory(const Message* categoryMs
    DBusMessageIter args;
    dbus_message_iter_init_append(methodCallMsg, &args);
 
-   const char* tmpString = m_name.c_str();
    int value = rmInterface.categoryValue;
    dbus_message_iter_append_basic(&args, DBUS_TYPE_INT32, &value);
 
@@ -421,7 +424,7 @@ void SystemActorDBusHandler::handleAddThreadToGroup(const AddThreadMessage* addT
    int             numberOfThreads = 1;
    unsigned int    threadGroup;
    DBusMessage*    methodCallMsg;
-   dbus_uint32_t   replies = 0;
+   //dbus_uint32_t   replies = 0;
    pid_t*          threadIds;
    DBusPendingCall* pending;
 
@@ -489,7 +492,7 @@ void SystemActorDBusHandler::handleReportHappiness(const IntMessage* happinessMs
    DBusMessageIter args;
    dbus_message_iter_init_append(methodCallMsg, &args);
 
-   const char* tmpString = m_name.c_str();
+//   const char* tmpString = m_name.c_str();
    int value = happinessMsg->getValue();
 //    dbus_message_iter_append_basic(&args, DBUS_TYPE_STRING, &tmpString);
    dbus_message_iter_append_basic(&args, DBUS_TYPE_INT32, &value);
@@ -526,7 +529,7 @@ void SystemActorDBusHandler::handleRegisterClient(const Message* registerClientM
 
    const char* tmpString = m_name.c_str();
    dbus_message_iter_append_basic(&args, DBUS_TYPE_STRING, &tmpString);
-   dbus_uint32_t replies = 0;
+//   dbus_uint32_t replies = 0;
 //   dbus_connection_send(m_connection, methodCallMsg, &replies);
 //   dbus_connection_flush(m_connection);
 //   dbus_message_unref(methodCallMsg);
@@ -636,7 +639,7 @@ ActorClass ActorClass_art_DBus_test = INIT_ActorClass(
 */
 
 ActorClass ActorClass_art_DBus_test = {
-  "art_DBus_test",
+  (char*)"art_DBus_test",
   1,
   1,
   sizeof(DBusActorInstance),
@@ -810,7 +813,6 @@ void app_init()
 
 static void constructor(AbstractActorInstance *pBase) {
 
-   int i;
    DBusActorInstance* thisActor = (DBusActorInstance*) pBase;
    thisActor->dbusHandler = new SystemActorDBusHandler(&thisActor->base, rmInterface.name);
 
@@ -853,12 +855,22 @@ static void destructor(AbstractActorInstance *pBase)
 }
 
 static void set_param(AbstractActorInstance *pBase,const char *key,const char *value){
-  DBusActorInstance *thisActor=(DBusActorInstance*) pBase;
+  //DBusActorInstance *thisActor=(DBusActorInstance*) pBase;
   if (strcmp(key,"activeMode")==0) {
     pBase->actor->actorExecMode = atoi(value);
   } 
 }
 
+void wakeup_me(int terminate)
+{
+  if(dbusInstance){
+    DBusActorInstance *thisActor=(DBusActorInstance*) dbusInstance;
+	cpu_runtime_data_t *cpu=(cpu_runtime_data_t *)thisActor->base.cpu;
+	// wake me up if sleep
+	if(*cpu->sleep&1)
+      sem_post(cpu->sem);		
+  }
+}
 
 }
 

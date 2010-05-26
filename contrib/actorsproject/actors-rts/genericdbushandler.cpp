@@ -240,12 +240,13 @@ void GenericDBusHandler::addMessageHandler(int messageId, MessageDelegate callba
 
 void GenericDBusHandler::postMessage(const Message* msg)
 {
+   int retval;	
    if (msg!=0)
    {
       pthread_mutex_lock(&m_notificationMutex);
       m_messageQueue.push(msg);
       char dummy = 0;
-      write(m_notificationPipe[1], &dummy, sizeof(dummy));
+      retval=write(m_notificationPipe[1], &dummy, sizeof(dummy));
       pthread_mutex_unlock(&m_notificationMutex);
    }
 }
@@ -270,6 +271,7 @@ void GenericDBusHandler::mainloop()
 {
 //    FILE* f = fopen("/tmp/fibdbuslog", "w+");
    // this is the mainloop
+   int retval;
    while (m_exitMainloop == false)
    {
       const Message* msg = 0;
@@ -296,7 +298,7 @@ void GenericDBusHandler::mainloop()
                if (m_pollFds[m_notificationPipeIndex].revents & POLLIN)
                {
                   char dummy;
-                  read(m_notificationPipe[0], &dummy, 1);
+                  retval=read(m_notificationPipe[0], &dummy, 1);
                   fprintf(f, "pipe POLLIN\n");
                }
                if (m_pollFds[m_notificationPipeIndex].revents & POLLNVAL)
@@ -410,21 +412,23 @@ int GenericDBusHandler::joinThread()
 
 void GenericDBusHandler::suspendThread()
 {
+   int retval;
    pthread_mutex_lock(&m_notificationMutex);
    m_suspended = true;
    // send the signal, so the thread really goes into the non-timeout cond_wait
    char dummy = 0;
-   write(m_notificationPipe[1], &dummy, sizeof(dummy));
+   retval=write(m_notificationPipe[1], &dummy, sizeof(dummy));
    pthread_mutex_unlock(&m_notificationMutex);
 }
 
 
 void GenericDBusHandler::resumeThread()
 {
+   int retval;
    pthread_mutex_lock(&m_notificationMutex);
    m_suspended = false;
    char dummy = 0;
-   write(m_notificationPipe[1], &dummy, sizeof(dummy));
+   retval=write(m_notificationPipe[1], &dummy, sizeof(dummy));
    pthread_mutex_unlock(&m_notificationMutex);
 }
 
@@ -443,11 +447,11 @@ void GenericDBusHandler::setupPollFds()
 
    for (std::vector<DBusWatch*>::const_iterator it = m_dbusWatches.begin(); it != m_dbusWatches.end(); ++it)
    {
-#if (DBUS_VERSION_MAJOR == 1 && DBUS_VERSION_MINOR == 1 && DBUS_VERSION_MICRO >= 1) || (DBUS_VERSION_MAJOR == 1 && DBUS_VERSION_MAJOR > 1) || (DBUS_VERSION_MAJOR > 1)
+//#if (DBUS_VERSION_MAJOR == 1 && DBUS_VERSION_MINOR == 1 && DBUS_VERSION_MICRO >= 1) || (DBUS_VERSION_MAJOR == 1 && DBUS_VERSION_MAJOR > 1) || (DBUS_VERSION_MAJOR > 1)
 	  m_pollFds[m_pollFdCount].fd=dbus_watch_get_unix_fd(*it);
-#else
-	  m_pollFds[m_pollFdCount].fd=dbus_watch_get_fd(*it);
-#endif
+//#else
+//	  m_pollFds[m_pollFdCount].fd=dbus_watch_get_fd(*it);
+//#endif
       //m_pollFds[m_pollFdCount].fd = dbus_watch_get_unix_fd(*it);
       m_pollFds[m_pollFdCount].events = POLLIN;
       m_pollFds[m_pollFdCount].revents = 0;

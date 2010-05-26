@@ -840,6 +840,7 @@ static cpu_runtime_data_t *allocate_network(
 	  actor->firstActionIndex=0;
 	  actor->file=0;
 #endif
+	  actor->cpu=(int*)&result[cpu];
 	  for (k = 0 ; k < actor->outputs ; k++) {
 	    OutputPort *output = &actor->output[k];
 
@@ -877,8 +878,9 @@ static cpu_runtime_data_t *allocate_network(
 
   //get the number of active actors
   for (i = 0 ; i < numInstances ; i++) {
-    if(instance[i]->actorClass->actorExecMode==1)
+    if(instance[i]->actorClass->actorExecMode==1){
       numActiveActors++;
+	}
   }
     
   return result;
