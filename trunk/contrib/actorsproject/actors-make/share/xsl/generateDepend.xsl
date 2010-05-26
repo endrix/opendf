@@ -51,6 +51,12 @@
       <xsl:value-of select="substring-after(base-uri(.), 'file:')"/>
       <xsl:text>&#xa; &#xa;</xsl:text>
       -->
+
+	  <xsl:if test="//ERROR">
+	    <xsl:message terminate="yes">
+	  		<xsl:value-of select="//ERROR"/>
+	  	</xsl:message>        
+	  </xsl:if>
       
       <xsl:text>SUB_NETWORKS=</xsl:text>
       <xsl:value-of select="./Note[@kind='filepath']/@value"/>         
