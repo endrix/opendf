@@ -68,6 +68,16 @@ ifdef TRACE
 override CFLAGS += -DTRACE
 endif
 
+ifeq ($(RM), y)
+ifeq ($(ARM),y)
+override LDLIBS += -lpthread -lc -L$(ARMDIR)/lib -ldbus-1 $(ARMDIR)/lib/libgcc_s.so.1 $(ARMDIR)/lib/libstdc++.so.6
+else
+override LDLIBS += -lpthread -lc -ldbus-1 /lib/libgcc_s.so.1 /usr/lib/libstdc++.so.6
+endif
+else
+override LDLIBS += -lpthread -lc
+endif
+
 #
 # We get the actor instances from the CALML-files 
 # (we have to do elaboration first, to get *.calml).
