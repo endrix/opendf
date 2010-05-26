@@ -161,6 +161,7 @@ struct AbstractActorInstance {
   unsigned long long total;
   int firstActionIndex;
   FILE *file;
+  int *cpu;            // For active actor to wakeup the sleeping thread
 };
 
 typedef struct {

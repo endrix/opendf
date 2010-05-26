@@ -95,7 +95,7 @@ static void *EXECUTE_NETWORK(cpu_runtime_data_t *runtime,
 	actor[i]->nloops++;
 	if (result == EXITCODE_TERMINATE) {
 	  actor[i]->terminated = 1;
-	  // In case it's active actor, decrement the number of active actors
+	  // In case it's an active actor, decrement the number of active actors
 	  if(actor[i]->actor->actorExecMode==1)
 		numActiveActors--;
 	}
