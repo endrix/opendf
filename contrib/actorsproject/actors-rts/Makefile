@@ -25,22 +25,6 @@ ifneq "$(PROFILE)" ""
 override CFLAGS += -pg -fno-omit-frame-pointer
 endif
 
-ifeq ($(FB), y)
-override CFLAGS += -DFB
-endif
-
-ifeq ($(GTK), y)
-override CFLAGS += `gtk-config --cflags` -DGTK
-endif
-
-ifeq ($(SDL), y)
-ifeq ($(ARM), y)
-override CFLAGS += -I$(ARMDIR)/include/SDL -D_GNU_SOURCE=1 -D_REENTRANT -DSDL
-else
-override CFLAGS += `sdl-config --cflags` -DSDL
-endif
-endif
-
 ifeq ($(ARM), y)
 override CFLAGS += -I$(ARMDIR)/include/libxml2
 else
@@ -59,15 +43,18 @@ override CFLAGS += -O3
 #override CFLAGS += -g
 
 INSTALL_H=actors-rts.h actors-fifo.h actors-config.h dll.h
+
 INSTALL_SYSACTORS=art_DDRModel.cal art_Display_yuv.cal art_Sink_yuv.cal \
                   art_Sink_bin.cal art_Sink_txt.cal art_Sink_real.cal \
                   art_Source_bin.cal art_Source_txt.cal art_Source_real.cal \
                   art_DBus_test.cal art_consumer.cal art_producer.cal
 
+INSTALL_C_SRC=display.h display-fb.c display-sdl.c display-gtk.c display-null.c
+
 OBJECTS=actors-rts.o xmlParser.o termination-report.o \
         art_Sink_bin.o art_Sink_txt.o art_Sink_real.o \
 	    art_Source_bin.o art_Source_txt.o art_Source_real.o \
-        art_DDRModel.o art_Display_yuv.o \
+        art_DDRModel.o art_Display_yuv.o display.o \
         art_consumer.o art_producer.o
 
 ifeq ($(TRACE),y)
@@ -138,12 +125,15 @@ install-include:
 	@cp $(INSTALL_H:%=$(srcdir)/%) $(includedir)/.
 
 install-sysactors:
-	@mkdir -p $(datadir)/sysactors
-	@cp $(INSTALL_SYSACTORS:%=$(srcdir)/sysactors/%) $(datadir)/sysactors/.
+	@mkdir -p $(datadir)/sysactors/cal
+	@mkdir -p $(datadir)/sysactors/c
+	@cp $(INSTALL_SYSACTORS:%=$(srcdir)/sysactors/%) $(datadir)/sysactors/cal/.
+	@cp $(INSTALL_C_SRC:%=$(srcdir)/%) $(datadir)/sysactors/c/.
 
 INSTALLED_FILES=$(libdir)/$(REAL_NAME) \
                 $(INSTALL_H:%=$(includedir)/%) \
-                $(INSTALL_SYSACTORS:%=$(datadir)/sysactors/%)
+                $(INSTALL_SYSACTORS:%=$(datadir)/sysactors/cal/%) \
+                $(INSTALL_C_SRC:%=$(datadir)/sysactors/c/%)
 
 uninstall:
 	@rm -f $(INSTALLED_FILES)

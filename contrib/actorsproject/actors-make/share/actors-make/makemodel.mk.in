@@ -11,6 +11,8 @@ endif
 EXE?=$(MODEL)
 srcdir?=.
 
+MODEL_PATH=$(srcdir):@datadir@/sysactors/cal
+
 .PHONY: all
 all: $(EXE)
 
@@ -39,10 +41,10 @@ override CFLAGS += -pg -fno-omit-frame-pointer
 override LDFLAGS += -pg
 endif
 
-ifdef GTK
-override LDLIBS += `gtk-config --libs`
-endif
 
+#
+# Staging directory for ARM
+#
 ifdef ARM
 ARMDIR=$(HOME)/work/actor/arm/usr/local
 override  LDLIBS += -L$(ARMDIR)/lib -lxml2 -lz
@@ -50,12 +52,64 @@ else
 override  LDLIBS += `xml2-config --libs`
 endif
 
-ifdef SDL
-ifdef ARM
-override LDLIBS  += -L$(ARMDIR)/lib -lSDL -lts
-else
-override LDLIBS  += `sdl-config --libs`
+#
+# Additional C file for "null" display (no display)
+#
+ifdef NULL_DISPLAY
+
+override SYS_OBJECTS += display-null.o
+
+display-null.o: @datadir@/sysactors/c/display-null.c
+	$(CC) -c -O3 -Wall $(CPPFLAGS) $(CFLAGS)  -o $@ $<
+
 endif
+
+#
+# Additional C file for frame-buffer display
+#
+ifdef FB_DISPLAY
+override SYS_OBJECTS += display-fb.o
+
+display-fb.o: @datadir@/sysactors/c/display-fb.c
+	$(CC) -c -O3 -Wall $(CPPFLAGS) $(CFLAGS)  -o $@ $<
+
+endif
+
+#
+# Additional C files, compiler flags and libraries when using GTK display
+#
+ifdef GTK_DISPLAY
+override SYS_OBJECTS += display-gtk.o
+override LDLIBS += `pkg-config --libs gtk+-2.0`
+GTK_CFLAGS = $(CFLAGS) `pkg-config --cflags gtk+-2.0`
+
+display-gtk.o: @datadir@/sysactors/c/display-gtk.c
+	$(CC) -c -O3 -Wall $(CPPFLAGS) $(GTK_CFLAGS)  -o $@ $<
+
+endif
+
+#
+# Additional C files, compiler flags and libraries when using SDL display
+#
+ifdef SDL_DISPLAY
+
+override SYS_OBJECTS += display-sdl.o
+
+ifdef ARM
+
+override LDLIBS  += -L$(ARMDIR)/lib -lSDL -lts
+SDL_CFLAGS = -I$(ARMDIR)/include/SDL -D_GNU_SOURCE=1 -D_REENTRANT -DSDL
+
+else
+
+override LDLIBS  += `sdl-config --libs`
+SDL_CFLAGS += `sdl-config --cflags`
+
+endif
+
+display-sdl.o: @datadir@/sysactors/c/display-sdl.c
+	$(CC) -c -O3 -Wall $(CPPFLAGS) $(SDL_CFLAGS) -o $@ $<
+
 endif
 
 ifdef MERGE
@@ -85,8 +139,8 @@ endif
 
 ACTOR_C_FILES=$(XLIM_FILES:.xlim=.c)
 PAR_FILES=$(XLIM_FILES:.xlim=.par)
-EXTRA_OBJECTS=$(C_FILES:.c=.o)
-OBJECTS=$(ACTOR_C_FILES:.c=.o) $(EXTRA_OBJECTS) $(MODEL).o
+EXTRA_OBJECTS=$(notdir $(C_FILES:.c=.o))
+OBJECTS=$(ACTOR_C_FILES:.c=.o) $(EXTRA_OBJECTS) $(SYS_OBJECTS) $(MODEL).o
 
 $(EXE): $(OBJECTS)
 	$(CC) -g $^ $(LDFLAGS) $(LDLIBS) -o $@
@@ -98,13 +152,13 @@ $(EXE): $(OBJECTS)
 $(EXTRA_OBJECTS) : %.o : $(srcdir)/%.c
 	$(CC) -c -O3 -Wall $(CPPFLAGS) $(CFLAGS) -o $@ $<
 
-
 #
 # Implicit rules .xlim -> .c -> .o
 #
 
 %.o : %.c
 	$(CC) -c -O3 -Wall $(CPPFLAGS) $(CFLAGS) -o $@ $<
+
 
 # Preserve generated C files (make otherwise considers them temporary files)
 .SECONDARY: $(ACTOR_C_FILES)
@@ -159,7 +213,7 @@ $(MODEL).depend: $(MODEL).xdf
 #  given in $(MODEL).depend). 
 #
 $(MODEL).xdf: $(srcdir)/$(MODEL).nl $(SUB_NETWORKS)
-	$(ELABORATOR) -mp $(srcdir) $(MODEL)
+	$(ELABORATOR) -mp $(MODEL_PATH) $(MODEL)
 
 .PHONY: clean
 
