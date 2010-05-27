@@ -1,0 +1,29 @@
+How to use the Display Actor (art_Display_yuv)
+=============================================
+
+1. Quickstart
+The system actor art_Display_yuv is used to display video output in
+the MPEG decoders that are provided as sample code (e.g. see
+cal-examples/rvcdemo). Not to make the run-time system (libactors-rts)
+dependent on windowing system etc, such code is compiled with the
+application. Using the provided Makefiles
+(e.g. cal-examples/rvcdemo/Makefile) you define one of the following
+variables to select display "back end":
+
+FB_DISPLAY   for output on /dev/fb0
+GTK_DISPLAY  to use gtk+2.0
+SDL_DISPLAY  to use SDL
+NULL_DISPLAY to sink the yuv data without RGB-conversion and display
+
+For instance to use SDL:
+
+make SDL_DISPLAY=1 rvcDemo
+
+
+2. Requirements
+
+FB_DISPLAY   requires the frame-buffer device /dev/fb0
+GTK_DISPLAY  depends on the libgtk-2.0 and libgtk-2.0dev packages
+SDL_DISPLAY  depends on the libsdl1.2 and libsdl1.2-dev packages
+
+
