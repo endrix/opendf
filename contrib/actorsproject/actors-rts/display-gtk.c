@@ -87,21 +87,19 @@ int allocate_display(int width,
   fb->pixelsPerLine = width;
 
   if (*littleEndian) {
-    fb->Rshift = 0;
-    fb->Rmask = 0x000000FF;
-    fb->Gshift = 8;
-    fb->Gmask = 0x0000FF00;
-    fb->Bshift = 16;
-    fb->Bmask = 0x00FF0000;
+    fb->Roffset = 0;
+    fb->Goffset = 8;
+    fb->Boffset = 16;
   }
   else {
-    fb->Rshift = 24;
-    fb->Rmask = 0xFF000000;
-    fb->Gshift = 16;
-    fb->Gmask = 0x00FF0000;
-    fb->Bshift = 8;
-    fb->Bmask = 0x0000FF00;
+    fb->Roffset = 24;
+    fb->Goffset = 16;
+    fb->Boffset = 8;
+    
   }
+  fb->Rwidth = 8;
+  fb->Gwidth = 8;
+  fb->Bwidth = 8;
 
   fb->displaySpecific = disp;
 
