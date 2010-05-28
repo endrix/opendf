@@ -23,7 +23,7 @@ entities
 
 	sourceBits = art_Source_bin(fileName="@datadir@/actors-test/RVC_MPEG4_SP_Decoder/input/decoderDemo/foreman_qcif_30.bit");
 
-	display = art_Display_yuv(title="Foreman QCIF",
+	display = art_Display_yuv_rm(title="Foreman QCIF",
                                   width=176,
 			          height=144);
 
