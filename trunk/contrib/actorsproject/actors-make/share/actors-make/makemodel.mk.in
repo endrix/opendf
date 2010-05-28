@@ -112,6 +112,28 @@ display-sdl.o: @datadir@/sysactors/c/display-sdl.c
 
 endif
 
+#
+# Additional C files, compiler flags and libraries when using dBus system actor 
+#
+ifdef RM
+ifdef ARM
+override CXX_INCLUDES += -I$(ARMDIR)/include/dbus-1.0 -I$(ARMDIR)/lib/dbus-1.0/include
+override LDLIBS += -L$(ARMDIR)/lib -ldbus-1 $(ARMDIR)/lib/libgcc_s.so.1 $(ARMDIR)/lib/libstdc++.so.6
+else
+override CXX_INCLUDES += -I/usr/include/dbus-1.0 -I/usr/lib/dbus-1.0/include
+override LDLIBS += -ldbus-1 /lib/libgcc_s.so.1 /usr/lib/libstdc++.so.6
+endif
+override SYS_OBJECTS += art_DBus_test.o genericdbushandler.o
+
+rt_DBus_test.o: @datadir@/sysactors/c/art_DBus_test.cpp
+	$(CXX) -c -O3 -Wall $(CFLAGS) $(CXX_INCLUDES) -o $@ $<
+
+genericdbushandler.o: @datadir@/sysactors/c/genericdbushandler.cpp
+	$(CXX) -c -O3 -Wall $(CFLAGS) $(CXX_INCLUDES)  -o $@ $<
+endif
+
+override LDLIBS += -lpthread -lc
+
 ifdef MERGE
 override MODEL_DEPEND = $(MODEL)_new.xdf 
 else
@@ -120,16 +142,6 @@ endif
 
 ifdef TRACE
 override CFLAGS += -DTRACE
-endif
-
-ifeq ($(RM), y)
-ifeq ($(ARM),y)
-override LDLIBS += -lpthread -lc -L$(ARMDIR)/lib -ldbus-1 $(ARMDIR)/lib/libgcc_s.so.1 $(ARMDIR)/lib/libstdc++.so.6
-else
-override LDLIBS += -lpthread -lc -ldbus-1 /lib/libgcc_s.so.1 /usr/lib/libstdc++.so.6
-endif
-else
-override LDLIBS += -lpthread -lc
 endif
 
 #
