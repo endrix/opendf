@@ -59,12 +59,12 @@ typedef struct FrameBuffer {
   void *framePtr;          // pointer to frame origin (upper left corner)
   int   bytesPerPixel;     // size of pixel in bytes (2 or 4 supported)
   int   pixelsPerLine;     // line width in pixels (scale factor for y)
-  int   Rshift;            // Position of R component (e.g. 16)
-  int   Rmask;             // Mask of R component (e.g. 0xFF0000)
-  int   Gshift;            // Position of G component (e.g 8)
-  int   Gmask;             // Mask of G component (e.g. 0x00FF00)
-  int   Bshift;            // Position of B component (e.g 0)
-  int   Bmask;             // Mask of B component (e.g. 0x0000FF)
+  int   Roffset;           // Position of R component (e.g. 11 in RGB565)
+  int   Rwidth;            // Width of R component (e.g. 5 in RGB565)
+  int   Goffset;           // Position of G component (e.g 5 in RGB 565)
+  int   Gwidth;            // Width of R component (e.g. 6 in RGB565)
+  int   Boffset;           // Position of B component (e.g 0)
+  int   Bwidth;            // Width of B component (e.g. 5 in RGB565)
 
   void *displaySpecific; // Additional stuff if needed
 

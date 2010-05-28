@@ -40,9 +40,7 @@
 typedef short int16bpp_t;
 typedef int   int32bpp_t;
 
-/*To make sure that you are bounding your inputs in the range of 0 & 255*/
-#define SATURATE8(x) ((unsigned int) x <= 255 ? x : (x < 0 ? 0: 255))
-
+#define CLIP(x,max) ((unsigned int) ((x)<=(max))? (x) : ((x)<0? 0: (max)))
 
 
 void display_yuv_16bpp(int x, int y,
@@ -52,12 +50,15 @@ void display_yuv_16bpp(int x, int y,
   yuv_sample_t *vptr=macroBlock + START_V;
   int lineLength=format->pixelsPerLine;
   int16bpp_t *fbp=format->framePtr;
-  int Rshift=format->Rshift;
-  int Rmask=format->Rmask;
-  int Gshift=format->Gshift;
-  int Gmask=format->Gmask;
-  int Bshift=format->Bshift;
-  int Bmask=format->Bmask;
+  int Roffset=format->Roffset;
+  int Rloss=16-format->Rwidth; // starting out with 16 bits, need Rwidth
+  int Rmax=(1<<format->Rwidth)-1;
+  int Goffset=format->Goffset;
+  int Gloss=16-format->Gwidth;
+  int Gmax=(1<<format->Gwidth)-1;
+  int Boffset=format->Boffset;
+  int Bloss=16-format->Bwidth;
+  int Bmax=(1<<format->Bwidth)-1;
   int j,k,yStartOfLine;
 	
 
@@ -79,10 +80,12 @@ void display_yuv_16bpp(int x, int y,
 	for(dj=0; dj<2; dj++){
 	  int y = yptr[8*dj];
 	  int t = (y-16)*298;
-	  int r = ((SATURATE8((t+ruv)>>8) << Rshift) & Rmask);
-	  int g = ((SATURATE8((t+guv)>>8) << Gshift) & Gmask);
-	  int b = ((SATURATE8((t+buv)>>8) << Bshift) & Bmask);
-	  fbp[lineLength*dj] = r | g | b;
+	  int r = (t+ruv)>>Rloss;
+	  int g = (t+guv)>>Gloss;
+	  int b = (t+buv)>>Bloss;
+	  fbp[lineLength*dj] = (CLIP(r,Rmax) << Roffset) 
+	                     | (CLIP(g,Gmax) << Goffset) 
+	                     | (CLIP(b,Bmax) << Boffset);
 	}
       }
       // yStartOfQuad = 0, 2, 4, 6, 64, 66, 68, 70
@@ -113,12 +116,15 @@ void display_yuv_32bpp(int x, int y,
   yuv_sample_t *vptr=macroBlock + START_V;
   int lineLength=format->pixelsPerLine;
   int32bpp_t *fbp=format->framePtr;
-  int Rshift=format->Rshift;
-  int Rmask=format->Rmask;
-  int Gshift=format->Gshift;
-  int Gmask=format->Gmask;
-  int Bshift=format->Bshift;
-  int Bmask=format->Bmask;
+  int Roffset=format->Roffset;
+  int Rloss=16-format->Rwidth; // starting out with 16 bits, need Rwidth
+  int Rmax=(1<<format->Rwidth)-1;
+  int Goffset=format->Goffset;
+  int Gloss=16-format->Gwidth;
+  int Gmax=(1<<format->Gwidth)-1;
+  int Boffset=format->Boffset;
+  int Bloss=16-format->Bwidth;
+  int Bmax=(1<<format->Bwidth)-1;
   int j,k,yStartOfLine;
 	
 
@@ -140,10 +146,12 @@ void display_yuv_32bpp(int x, int y,
 	for(dj=0; dj<2; dj++){
 	  int y = yptr[8*dj];
 	  int t = (y-16)*298;
-	  int r = ((SATURATE8((t+ruv)>>8) << Rshift) & Rmask);
-	  int g = ((SATURATE8((t+guv)>>8) << Gshift) & Gmask);
-	  int b = ((SATURATE8((t+buv)>>8) << Bshift) & Bmask);
-	  fbp[lineLength*dj] = r | g | b;
+	  int r = (t+ruv)>>Rloss;
+	  int g = (t+guv)>>Gloss;
+	  int b = (t+buv)>>Bloss;
+	  fbp[lineLength*dj] = (CLIP(r,Rmax) << Roffset) 
+	                     | (CLIP(g,Gmax) << Goffset) 
+	                     | (CLIP(b,Bmax) << Boffset);
 	}
       }
       // yStartOfQuad = 0, 2, 4, 6, 64, 66, 68, 70

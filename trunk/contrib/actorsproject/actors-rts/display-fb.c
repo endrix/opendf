@@ -56,9 +56,6 @@ typedef struct {
 static void free_display(const struct FrameBuffer *format);
 static void frame_done(const struct FrameBuffer *format);
 
-// Bit mask for R/G/B components
-#define MASK(width, offset) (((1<<(width))-1)<<(offset))
-
 int allocate_display(int width,
 	              int height,
 		      const char *title,
@@ -117,12 +114,12 @@ int allocate_display(int width,
   fb->bytesPerPixel = bytesPerPixel;
   fb->pixelsPerLine = pixelsPerLine;
 
-  fb->Rshift = vinfo.red.offset;
-  fb->Rmask = MASK(vinfo.red.length, vinfo.red.offset);
-  fb->Gshift = vinfo.green.offset;
-  fb->Gmask = MASK(vinfo.green.length, vinfo.green.offset);
-  fb->Bshift = vinfo.blue.offset;
-  fb->Bmask = MASK(vinfo.blue.length, vinfo.blue.offset);
+  fb->Roffset = vinfo.red.offset;
+  fb->Rwidth = vinfo.red.length;
+  fb->Goffset = vinfo.green.offset;
+  fb->Gwidth = vinfo.green.length;
+  fb->Boffset = vinfo.blue.offset;
+  fb->Bwidth = vinfo.blue.length;
 
   /*
    * Fill-in FB specific stuff

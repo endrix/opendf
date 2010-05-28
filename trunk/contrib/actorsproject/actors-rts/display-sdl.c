@@ -85,12 +85,12 @@ int allocate_display(int width,
   fb->framePtr = disp->image->pixels;
   fb->bytesPerPixel = bytesPerPixel;
   fb->pixelsPerLine = disp->image->pitch/bytesPerPixel;
-  fb->Rshift = disp->image->format->Rshift;
-  fb->Rmask = disp->image->format->Rmask;
-  fb->Gshift = disp->image->format->Gshift;
-  fb->Gmask = disp->image->format->Gmask;
-  fb->Bshift = disp->image->format->Bshift;
-  fb->Bmask = disp->image->format->Bmask;
+  fb->Roffset = disp->image->format->Rshift;
+  fb->Rwidth = 8-disp->image->format->Rloss;
+  fb->Goffset = disp->image->format->Gshift;
+  fb->Gwidth = 8-disp->image->format->Gloss;
+  fb->Boffset = disp->image->format->Bshift;
+  fb->Bwidth = 8-disp->image->format->Bloss;
   fb->displaySpecific = disp;
 
   switch (bytesPerPixel) {
