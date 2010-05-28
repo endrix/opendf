@@ -47,15 +47,17 @@ INSTALL_H=actors-rts.h actors-fifo.h actors-config.h dll.h
 INSTALL_SYSACTORS=art_DDRModel.cal art_Display_yuv.cal art_Sink_yuv.cal \
                   art_Sink_bin.cal art_Sink_txt.cal art_Sink_real.cal \
                   art_Source_bin.cal art_Source_txt.cal art_Source_real.cal \
-                  art_DBus_test.cal art_consumer.cal art_producer.cal
+                  art_DBus_test.cal art_consumer.cal art_producer.cal art_Display_yuv_rm.cal
 
-INSTALL_C_SRC=display.h display-fb.c display-sdl.c display-gtk.c display-null.c
+INSTALL_C_SRC=display.h display-fb.c display-sdl.c display-gtk.c display-null.c \
+              art_DBus_test.cpp genericdbushandler.cpp dbus/custommessages.h \
+			  dbus/FastDelegate.h dbus/genericdbushandler.h dbus/message.h 
 
 OBJECTS=actors-rts.o xmlParser.o termination-report.o \
         art_Sink_bin.o art_Sink_txt.o art_Sink_real.o \
 	    art_Source_bin.o art_Source_txt.o art_Source_real.o \
         art_DDRModel.o art_Display_yuv.o display.o \
-        art_consumer.o art_producer.o
+        art_consumer.o art_producer.o art_Display_yuv_rm.o
 
 ifeq ($(TRACE),y)
 OBJECTS += xmlTrace.o

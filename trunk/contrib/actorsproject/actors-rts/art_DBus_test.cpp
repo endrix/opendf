@@ -53,7 +53,7 @@
 #include <string>
 #include "actors-rts.h"
 #include "internal.h"
-#include "dbus/genericdbushandler.h"
+#include "genericdbushandler.h"
 #include "custommessages.h"
 #include "xmlParser.h"
 
