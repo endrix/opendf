@@ -48,7 +48,6 @@ typedef int   int32bpp_t;
 void display_yuv_16bpp(int x, int y,
 		       yuv_sample_t macroBlock[MB_SIZE],
 		       const struct FrameBuffer *format) {
-  yuv_sample_t *yptr=macroBlock + START_Y;
   yuv_sample_t *uptr=macroBlock + START_U;
   yuv_sample_t *vptr=macroBlock + START_V;
   int lineLength=format->pixelsPerLine;
@@ -59,12 +58,16 @@ void display_yuv_16bpp(int x, int y,
   int Gmask=format->Gmask;
   int Bshift=format->Bshift;
   int Bmask=format->Bmask;
-  int j,k;
+  int j,k,yStartOfLine;
 	
 
   fbp += x + y*lineLength;
+  yStartOfLine=0;
   for(j=0; j<8; j++){
+    int yStartOfQuad=0;
+
     for(k=0; k<8; k++){
+      yuv_sample_t *yptr=macroBlock + yStartOfLine + yStartOfQuad;
       int tu = *uptr++ - 128;
       int tv = *vptr++ - 128;
       int ruv = 409*tv + 128;
@@ -74,7 +77,7 @@ void display_yuv_16bpp(int x, int y,
       
       for(dk=0; dk<2; dk++, yptr++, fbp++){
 	for(dj=0; dj<2; dj++){
-	  int y = yptr[16*dj];
+	  int y = yptr[8*dj];
 	  int t = (y-16)*298;
 	  int r = ((SATURATE8((t+ruv)>>8) << Rshift) & Rmask);
 	  int g = ((SATURATE8((t+guv)>>8) << Gshift) & Gmask);
@@ -82,9 +85,20 @@ void display_yuv_16bpp(int x, int y,
 	  fbp[lineLength*dj] = r | g | b;
 	}
       }
+      // yStartOfQuad = 0, 2, 4, 6, 64, 66, 68, 70
+      // that is the index of the upper left corner of a 2x2 quad pixel
+      // (relative to the start of the line)
+      // 58 = 0111010 in binary
+      // 70 = 1000110
+      // which is why we get the step from 6 to 64
+      yStartOfQuad=(yStartOfQuad + 58) & 70;
     }
-    // Skip odd lines of Y-samples (inner loop takes care of them)
-    yptr += 16;
+    // yStartOfLine = 0, 16, 32, 48, 128, 144, 160, 176
+    // that is the start of the Y0/Y2 comonent's lines in macroBlock
+    //  80 = 01010000 in binary
+    // 176 = 10110000
+    // which is why we get the step from 48 to 128 
+    yStartOfLine=(yStartOfLine + 80) & 176;
 
     // Skip odd lines of frame buffer
     fbp += 2*lineLength - 16;
@@ -95,7 +109,6 @@ void display_yuv_16bpp(int x, int y,
 void display_yuv_32bpp(int x, int y,
 		       yuv_sample_t macroBlock[MB_SIZE],
 		       const struct FrameBuffer *format) {
-  yuv_sample_t *yptr=macroBlock + START_Y;
   yuv_sample_t *uptr=macroBlock + START_U;
   yuv_sample_t *vptr=macroBlock + START_V;
   int lineLength=format->pixelsPerLine;
@@ -106,12 +119,16 @@ void display_yuv_32bpp(int x, int y,
   int Gmask=format->Gmask;
   int Bshift=format->Bshift;
   int Bmask=format->Bmask;
-  int j,k;
+  int j,k,yStartOfLine;
 	
 
   fbp += x + y*lineLength;
+  yStartOfLine=0;
   for(j=0; j<8; j++){
+    int yStartOfQuad=0;
+
     for(k=0; k<8; k++){
+      yuv_sample_t *yptr=macroBlock + yStartOfLine + yStartOfQuad;
       int tu = *uptr++ - 128;
       int tv = *vptr++ - 128;
       int ruv = 409*tv + 128;
@@ -121,7 +138,7 @@ void display_yuv_32bpp(int x, int y,
       
       for(dk=0; dk<2; dk++, yptr++, fbp++){
 	for(dj=0; dj<2; dj++){
-	  int y = yptr[16*dj];
+	  int y = yptr[8*dj];
 	  int t = (y-16)*298;
 	  int r = ((SATURATE8((t+ruv)>>8) << Rshift) & Rmask);
 	  int g = ((SATURATE8((t+guv)>>8) << Gshift) & Gmask);
@@ -129,9 +146,20 @@ void display_yuv_32bpp(int x, int y,
 	  fbp[lineLength*dj] = r | g | b;
 	}
       }
+      // yStartOfQuad = 0, 2, 4, 6, 64, 66, 68, 70
+      // that is the index of the upper left corner of a 2x2 quad pixel
+      // (relative to the start of the line)
+      // 58 = 0111010 in binary
+      // 70 = 1000110
+      // which is why we get the step from 6 to 64
+      yStartOfQuad=(yStartOfQuad + 58) & 70;
     }
-    // Skip odd lines of Y-samples (inner loop takes care of them)
-    yptr += 16;
+    // yStartOfLine = 0, 16, 32, 48, 128, 144, 160, 176
+    // that is the start of the Y0/Y2 comonent's lines in macroBlock
+    //  80 = 01010000 in binary
+    // 176 = 10110000
+    // which is why we get the step from 48 to 128 
+    yStartOfLine=(yStartOfLine + 80) & 176;
 
     // Skip odd lines of frame buffer
     fbp += 2*lineLength - 16;
