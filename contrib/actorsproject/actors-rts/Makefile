@@ -51,7 +51,8 @@ INSTALL_SYSACTORS=art_DDRModel.cal art_Display_yuv.cal art_Sink_yuv.cal \
 
 INSTALL_C_SRC=display.h display-fb.c display-sdl.c display-gtk.c display-null.c \
               art_DBus_test.cpp genericdbushandler.cpp dbus/custommessages.h \
-			  dbus/FastDelegate.h dbus/genericdbushandler.h dbus/message.h 
+			  dbus/FastDelegate.h dbus/genericdbushandler.h dbus/message.h \
+			  internal.h xmlParser.h
 
 OBJECTS=actors-rts.o xmlParser.o termination-report.o \
         art_Sink_bin.o art_Sink_txt.o art_Sink_real.o \
