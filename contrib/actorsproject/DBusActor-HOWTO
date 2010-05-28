@@ -1,0 +1,16 @@
+How to use the DBus system actor (art_DBus_test)
+=============================================
+
+1. Quickstart
+The system actor art_DBus_test is used to interface with the 
+resource manager via dbus system. To make the run-time system 
+(libactors-rts) independent on system dbus librariesng , the code 
+is compiled with the application. Using the provided Makefiles
+(e.g. cal-examples/rvcdemo/Makefile) you define the following:
+
+make RM=y
+
+2. Requirements
+Requires the libdbus-1, libgcc_s.so.1 and libstdc++.so.6 packages
+
+
