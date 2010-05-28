@@ -40,7 +40,7 @@
 typedef short int16bpp_t;
 typedef int   int32bpp_t;
 
-#define CLIP(x,max) ((unsigned int) ((x)<=(max))? (x) : ((x)<0? 0: (max)))
+#define CLIP(x,max) (((unsigned int) (x)<=(max))? (x) : ((x)<0? 0: (max)))
 
 
 void display_yuv_16bpp(int x, int y,
