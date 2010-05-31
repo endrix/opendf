@@ -27,7 +27,7 @@ include @datadir@/actors-make/definitions.mk
 #
 
 # Include path goes into CPPFLAGS (C pre-processor)
-override CPPFLAGS += "-I$(ACTORS_INCLUDE)"
+override CPPFLAGS += -I$(ACTORS_INCLUDE)
 
 ifdef DEBUG
 override CPPFLAGS += -DDEBUG
@@ -115,7 +115,8 @@ endif
 #
 # Additional C files, compiler flags and libraries when using dBus system actor 
 #
-ifeq ($(RM), 1)
+ifdef RM_CLIENT
+override SYS_OBJECTS += art_DBus_test.o genericdbushandler.o
 ifdef ARM
 override CXX_INCLUDES += -I$(ARMDIR)/include/dbus-1.0 -I$(ARMDIR)/lib/dbus-1.0/include
 override LDLIBS += -L$(ARMDIR)/lib -ldbus-1 $(ARMDIR)/lib/libgcc_s.so.1 $(ARMDIR)/lib/libstdc++.so.6
@@ -123,7 +124,6 @@ else
 override CXX_INCLUDES += -I/usr/include/dbus-1.0 -I/usr/lib/dbus-1.0/include
 override LDLIBS += -ldbus-1 /lib/libgcc_s.so.1 /usr/lib/libstdc++.so.6
 endif
-override SYS_OBJECTS += art_DBus_test.o genericdbushandler.o
 
 art_DBus_test.o: @datadir@/sysactors/c/art_DBus_test.cpp
 	$(CXX) -c -O3 -Wall $(CFLAGS) $(CXX_INCLUDES) -o $@ $<
