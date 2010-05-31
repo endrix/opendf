@@ -9,9 +9,7 @@
 #include <semaphore.h>
 #include <pthread.h>
 #include <limits.h>
-#ifdef TRACE
 #include "xmlTrace.h"
-#endif
 #include "xmlParser.h"
 #include "internal.h"
 
@@ -106,13 +104,13 @@ static void add_timer(art_timer_t *timer,
   *tb = tmp;
 }
 
-#ifdef TRACE
 void actionTrace(AbstractActorInstance *instance,
                  int localActionIndex,
                  char *actionName)
 {
-  if (instance->file)
-    xmlTraceAction(instance->file,instance->firstActionIndex + localActionIndex);
+  if (instance->traceFile)
+    xmlTraceAction(instance->traceFile,
+		   instance->firstActionIndex + localActionIndex);
 }
 
 unsigned int timestamp()
@@ -128,7 +126,9 @@ unsigned int timestamp()
   return (unsigned int)now;
 }
 
-void index_action(cpu_runtime_data_t *runtime, int numInstances, char *name)
+void enable_tracing(cpu_runtime_data_t *runtime, 
+		    int numInstances, 
+		    char *networkName)
 {
   int i,j,k=0;
   FILE *netfile;
@@ -139,23 +139,23 @@ void index_action(cpu_runtime_data_t *runtime, int numInstances, char *name)
     char filename[32];
     cpu_runtime_data_t *cpu = &runtime[i];
     sprintf(filename,"trace_%d.xml",i);
-    cpu->file=xmlCreateTrace(filename);
+    cpu->traceFile=xmlCreateTrace(filename);
     for(j=0; j<cpu->actors; j++)
     {
       AbstractActorInstance *pInstance=cpu->actor[j];
       pInstance->firstActionIndex=firstActionIndex;
       firstActionIndex += pInstance->actor->numActions;
-      pInstance->file=cpu->file;
+      pInstance->traceFile=cpu->traceFile;
       instances[k++]=pInstance;
     }
   }
 
   netfile=xmlCreateTrace("net_trace.xml");
-  xmlDeclareNetwork(netfile,name,instances,numInstances);
+  xmlDeclareNetwork(netfile,networkName,instances,numInstances);
   xmlCloseTrace(netfile);
 
 }
-#endif
+
 
 /*
  * Create runtime instances for all needed special cases
@@ -811,6 +811,7 @@ static cpu_runtime_data_t *allocate_network(
       result[cpu].actor_data = cpu_actor_data;
       result[cpu].has_affected = cpu_local_p;
       cpu_local_p += (nr_of_cpus(used_cpus) * sizeof(*result[0].has_affected));
+      result[cpu].traceFile=0;
 
       for (j = 0 ; j < numInstances ; j++) {
 	if (instance[j]->affinity == result[cpu].physical_id) {
@@ -836,10 +837,9 @@ static cpu_runtime_data_t *allocate_network(
 	  actor->terminated=0;
 	  actor->nloops=0;
 	  actor->total=0;
-#ifdef TRACE
 	  actor->firstActionIndex=0;
-	  actor->file=0;
-#endif
+	  actor->traceFile=0;
+
 	  actor->cpu=(int*)&result[cpu];
 	  for (k = 0 ; k < actor->outputs ; k++) {
 	    OutputPort *output = &actor->output[k];
@@ -891,11 +891,10 @@ static void run_destructors(cpu_runtime_data_t *runtime)
   int i, j;
 
   for (i = 0 ; i < runtime[0].cpu_count ; i++) {
-#ifdef TRACE
-  cpu_runtime_data_t *cpu = &runtime[i];
-  if(cpu->file)
-    xmlCloseTrace(cpu->file);
-#endif
+    cpu_runtime_data_t *cpu = &runtime[i];
+    if(cpu->traceFile)
+      xmlCloseTrace(cpu->traceFile);
+
     for (j = 0 ; j < runtime[i].actors ; j++) {
       AbstractActorInstance *actor = runtime[i].actor[j];
 
@@ -1117,6 +1116,9 @@ static void show_usage(char *name) {
          "                        firings per actor\n"
          "--statistics            Display run-time statistics\n"
          "--timing                Collect and display timing statistics\n"
+         "--trace                 Generate execution trace:\n"
+         "                        Action trace generated if actors are\n" 
+         "                        compiled with CFLAGS=-DTRACE\n"
          "--with-complexity       Output per-actor complexity (cycles) in\n"
          "                        configuration file (see --generate)\n"
          "--with-bandwidth        Output per-connection bandwidth (#tokens)\n"
@@ -1143,6 +1145,7 @@ int executeNetwork(int argc,
   int show_statistics=0;
   int affinity_is_set=0;
   int show_timing=0;
+  int generate_trace=0;
   const char *generateFileName=0;
   FILE *generateFile=0;
   int with_complexity=0;
@@ -1166,6 +1169,8 @@ int executeNetwork(int argc,
       with_complexity=1;
     } else if (strcmp(argv[i], "--with-bandwidth") == 0) {
       with_bandwidth=1;
+    } else if (strcmp(argv[i], "--trace") == 0) {
+      generate_trace=1;
     } else if (strcmp(argv[i], "--termination-report") == 0) {
       terminationReport=1;
     } else if (strcmp(argv[i], "--help") == 0) {
@@ -1225,9 +1230,8 @@ int executeNetwork(int argc,
 				    arg_fifo_size);
   }
   if (result == 0) {
-#ifdef TRACE
-    index_action(runtime_data, numInstances, argv[0]);
-#endif
+    if (generate_trace)
+      enable_tracing(runtime_data, numInstances, argv[0]);
 
     if(cb_register_thread)
 	  cb_register_thread(0);

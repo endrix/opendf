@@ -140,10 +140,6 @@ else
 override MODEL_DEPEND = $(MODEL).xdf
 endif
 
-ifdef TRACE
-override CFLAGS += -DTRACE
-endif
-
 #
 # We get the actor instances from the CALML-files 
 # (we have to do elaboration first, to get *.calml).
