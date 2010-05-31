@@ -8,7 +8,7 @@ resource manager via dbus system. To make the run-time system
 is compiled with the application. Using the provided Makefiles
 (e.g. cal-examples/rvcdemo/Makefile) you define the following:
 
-make RM=1
+make RM_CLIENT=1
 
 2. Requirements
 Requires the libdbus-1, libgcc_s.so.1 and libstdc++.so.6 packages
