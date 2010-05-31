@@ -126,10 +126,10 @@ override LDLIBS += -ldbus-1 /lib/libgcc_s.so.1 /usr/lib/libstdc++.so.6
 endif
 
 art_DBus_test.o: @datadir@/sysactors/c/art_DBus_test.cpp
-	$(CXX) -c -O3 -Wall $(CFLAGS) $(CXX_INCLUDES) -o $@ $<
+	$(CXX) -c -O3 -Wall $(CPPFLAGS) $(CXX_INCLUDES) -o $@ $<
 
 genericdbushandler.o: @datadir@/sysactors/c/genericdbushandler.cpp
-	$(CXX) -c -O3 -Wall $(CFLAGS) $(CXX_INCLUDES)  -o $@ $<
+	$(CXX) -c -O3 -Wall $(CPPFLAGS) $(CXX_INCLUDES)  -o $@ $<
 endif
 
 override LDLIBS += -lpthread -lc
