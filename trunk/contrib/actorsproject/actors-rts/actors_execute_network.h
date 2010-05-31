@@ -163,9 +163,9 @@ static void *EXECUTE_NETWORK(cpu_runtime_data_t *runtime,
 		// Only wake it once for each sleep
 		cpu[this_cpu].has_affected[i] = 0;
 		old_sleep[i] = current_sleep;
-#ifdef TRACE
-    xmlTraceWakeup(cpu[this_cpu].file,i);
-#endif
+		if (cpu[this_cpu].traceFile) {
+		  xmlTraceWakeup(cpu[this_cpu].traceFile,i);
+		}
 	      }
 	    }
 	  }
@@ -266,9 +266,10 @@ static void *EXECUTE_NETWORK(cpu_runtime_data_t *runtime,
 	ADD_TIMER(&statistics.sync_blocked, &t1);
 
 	if (terminate) { goto done; }
-#ifdef TRACE
-   xmlTraceStatus(cpu[this_cpu].file,0);
-#endif
+
+	if (cpu[this_cpu].traceFile) {
+	  xmlTraceStatus(cpu[this_cpu].traceFile,0);
+	}
         sem_wait(cpu[this_cpu].sem);
 	statistics.nsleep++;
 	
@@ -279,9 +280,9 @@ static void *EXECUTE_NETWORK(cpu_runtime_data_t *runtime,
 	(*cpu[this_cpu].sleep)++;
 	sleepers--;
       }
-#ifdef TRACE
-      xmlTraceStatus(cpu[this_cpu].file,1);
-#endif
+      if (cpu[this_cpu].traceFile) {
+	xmlTraceStatus(cpu[this_cpu].traceFile,1);
+      }
       MUTEX_UNLOCK();
       while (sem_trywait(cpu[this_cpu].sem) == 0) { 
 	// Consume all active activations (might have been awakened 

@@ -31,12 +31,11 @@ else
 override CFLAGS += `xml2-config --cflags`
 endif
 
+# Enable action tracing in the system actors
+override CFLAGS += -DTRACE
+
 ifeq ($(RM), y)
 override CFLAGS += -DRM
-endif
-
-ifeq ($(TRACE), y)
-override CFLAGS += -DTRACE
 endif
 
 override CFLAGS += -O3
@@ -54,15 +53,11 @@ INSTALL_C_SRC=display.h display-fb.c display-sdl.c display-gtk.c display-null.c 
 			  dbus/FastDelegate.h dbus/genericdbushandler.h dbus/message.h \
 			  internal.h xmlParser.h
 
-OBJECTS=actors-rts.o xmlParser.o termination-report.o \
+OBJECTS=actors-rts.o xmlParser.o xmlTrace.o termination-report.o \
         art_Sink_bin.o art_Sink_txt.o art_Sink_real.o \
 	    art_Source_bin.o art_Source_txt.o art_Source_real.o \
         art_DDRModel.o art_Display_yuv.o display.o \
         art_consumer.o art_producer.o art_Display_yuv_rm.o
-
-ifeq ($(TRACE),y)
-OBJECTS += xmlTrace.o
-endif
 
 ifeq ($(RM), y)
 CXXOBJECTS =  art_DBus_test.o genericdbushandler.o

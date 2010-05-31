@@ -160,7 +160,7 @@ struct AbstractActorInstance {
   long long nloops;
   unsigned long long total;
   int firstActionIndex;
-  FILE *file;
+  FILE *traceFile;
   int *cpu;            // For active actor to wakeup the sleeping thread
 };
 

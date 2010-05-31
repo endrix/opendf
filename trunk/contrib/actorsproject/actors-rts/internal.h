@@ -96,7 +96,7 @@ typedef struct cpu_runtime_data {
   void *actor_data;
   int *has_affected;
   statistics_t statistics;
-  FILE *file;
+  FILE *traceFile;
 } cpu_runtime_data_t;
 
 
