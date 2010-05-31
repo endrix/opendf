@@ -59,6 +59,7 @@
   </xsl:function>
   
   <xsl:template match="/">  
+    <xsl:text>#include &lt;stdlib.h&gt;&#xa;&#xa;</xsl:text>
     <xsl:text>#include "actors-config.h"&#xa;&#xa;</xsl:text>
     <xsl:text>static void initNetwork(AbstractActorInstance ***pInstances, int *pNumberOfInstances) {&#xa;&#xa;</xsl:text>
     <xsl:text>  int numberOfInstances = </xsl:text>
