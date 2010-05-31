@@ -26,4 +26,9 @@ FB_DISPLAY   requires the frame-buffer device /dev/fb0
 GTK_DISPLAY  depends on the libgtk-2.0 and libgtk-2.0dev packages
 SDL_DISPLAY  depends on the libsdl1.2 and libsdl1.2-dev packages
 
+3. Performance
 
+Not very systematic benchmarking seems to indicate that FB_DISPLAY is
+slightly faster than SDL_DISPLAY and a lot faster than GTK_DISPLAY.
+Skipping RGB-conversion and display entirely (i.e. NULL_DISPLAY) is of
+course the fastest. 
