@@ -24,7 +24,7 @@ export LDLIBS
 export C_FILES
 
 # Target architecture prefix of gcc and binutils (default is none)
-ifeq ($(ARM),y)
+ifdef ARM
 export target=arm-none-linux-gnueabi-
 endif
 
