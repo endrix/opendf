@@ -272,6 +272,7 @@
         <xs:element minOccurs="0" ref="Entry"/>
       </xs:sequence>
       <xs:attribute name="name" use="required" type="xs:NCName"/>
+      <xs:attribute name="infer" type="xs:NCName"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="Entry">
@@ -290,4 +291,5 @@
       </xs:sequence>
     </xs:complexType>
   </xs:element>
+  <xs:element name="Generator"/>
 </xs:schema>

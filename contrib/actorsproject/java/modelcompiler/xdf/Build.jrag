@@ -1,0 +1,53 @@
+/* -*-Java-*- */                                         
+
+/*
+ * Copyright (C) 2009  Anders Nilsson <anders.nilsson@cs.lth.se>
+ *                                                              
+ * This file is part of Actors model compiler.                      
+ */                                                             
+
+/* Code to automatically generate a script to run later build stages
+after having performed actor merging. */
+
+aspect Build {
+	public StringBuffer Start.genBuild() {
+		return genBuild(new StringBuffer());
+	}
+	syn StringBuffer ASTNode.genBuild(StringBuffer b) = b;
+	eq Start.genBuild(StringBuffer b) = getXDF().genBuild(b);
+	eq XDF.genBuild(StringBuffer b) {
+		b.append("#!/bin/sh\n\n");
+		b.append("FLAGS=\" -O3 \"\n\n\n");
+		b.append("NETWORK=\"").append(name()).append("\"\n\n");
+		b.append("ACTORS=\"");
+		for (Instance i : getInstances()) {
+			if (!i.name().startsWith("art_")) {
+				b.append(i.name());
+				b.append(" ");
+			}
+		}
+		b.append("\"\n\n");
+		b.append("echo \"***** GenerateDepend *****\"\n");
+		b.append("$ACTORSHOME/bin/saxon8 -o ${NETWORK}_new.depend ${NETWORK}_new.xdf $ACTORSHOME/share/xsl/generateDepend.xsl\n\n");
+
+		b.append("echo \"***** XDF -> c *****\"\n");
+		b.append("$ACTORSHOME/bin/saxon8 -o ${NETWORK}_new.c ${NETWORK}_new.xdf $ACTORSHOME/share/xsl/generateConfig.xsl\n\n");
+
+		b.append("echo \"***** xlim2c *****\"\n");
+		b.append("$ACTORSHOME/bin/xlim2c MergedActor_1.xlim MergedActor_1.c\n\n");
+
+		b.append("for i in $ACTORS; do\n");
+		b.append("  echo \"***** gcc $i.c *****\"\n");
+		b.append("  gcc $FLAGS -c  -Wall \"-I$ACTORSHOME/include\"  -o $i.o $i.c \ndone\n\n");
+ 
+		b.append("echo \"***** gcc $NETWORK_new.xdf *****\"\n");
+		b.append("gcc -c  $FLAGS -Wall \"-I$ACTORSHOME/include\"  -o ${NETWORK}_new.o ${NETWORK}_new.c \n\n");
+
+		b.append("echo \"***** link $FLAGS *****\"\n");
+		b.append("for i in $ACTORS; do\n");
+		b.append("  OBJECTS+=$i.o' '\n");
+		b.append("done\n");
+		b.append("gcc $FLAGS $OBJECTS idct1dTest_new.o -L$ACTORSHOME/lib -Wl,-rpath=$ACTORSHOME/lib -lactors-rts -lpthread `xml2-config --libs` -o $NETWORK\n");
+		return b;
+	}
+}

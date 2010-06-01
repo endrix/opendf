@@ -296,6 +296,7 @@ aspect misc {
 	eq Instance.name() = getUIDNote().value();
 	eq Port.name() = fix(getName());
 	eq Class.name() = fix(getName());
+	eq XDF.name() = fix(getName());
 
 	Note Instance.getUIDNote() {
 		for (Element e : getElements()) {
@@ -381,6 +382,26 @@ aspect misc {
 		}
 		System.out.println(cwd);
 	}
+
+	syn XDF ASTNode.getXDF() = null;
+	eq Start.getXDF() = getSpecification().getXDF();
+	eq Specification.getXDF() {
+		for (Element e : getElements()) {
+			if (e.getXDF() != null) {
+				return  e.getXDF();
+			}
+		}
+		return null;
+	}
+	eq ComplexElement.getXDF() {
+		for (Element e : getElements()) {
+			if (e.getXDF() != null) {
+				return  e.getXDF();
+			}
+		}
+		return null;
+	}
+	eq XDF.getXDF() = this;
 }
 
 

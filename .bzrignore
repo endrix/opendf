@@ -7,3 +7,4 @@ contrib/actorsproject/actors-make/opendf.jar
 contrib/actorsproject/actors-rts/libactors-rts.so.1.0
 contrib/actorsproject/java/actorsproject.jar
 contrib/actorsproject/java/classifierAST
+*semantic.cache
