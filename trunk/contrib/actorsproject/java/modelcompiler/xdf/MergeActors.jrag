@@ -18,6 +18,11 @@ import java.io.PrintStream;
 aspect MergeActors {
 	public void Start.mergeActors(String name, int[] schedule) {
 		getSpecification().mergeActors(name,schedule);
+		// Q&D, generate build script to compile/link merged network
+		// File script = new File(dir+"build.sh");
+		// script.setExecutable(true,false); // a+x
+		// new PrintStream(script).print(genBuild());
+		System.out.println(genBuild());
 	}
 
 	public void Specification.mergeActors(String name, int[] schedule) {

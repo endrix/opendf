@@ -65,6 +65,14 @@ extern "C" {
 #define rmb()   asm volatile("lfence":::"memory")
 #define wmb()   asm volatile("sfence" ::: "memory")
 
+#elif defined(__x86_64__)
+
+#define CACHE_LINE_SIZE 128
+
+#define mb()    asm volatile("mfence":::"memory")
+#define rmb()   asm volatile("lfence":::"memory")
+#define wmb()   asm volatile("sfence" ::: "memory")
+
 #elif defined(__arm__)
 
 #define CACHE_LINE_SIZE 64

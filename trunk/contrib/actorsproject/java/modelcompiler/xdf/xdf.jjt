@@ -66,10 +66,12 @@ PARSER_END(XmlParser)
  | <xmlnssch		: "xmlns:sch" >
  | <Instance		: "Instance" >
  | <horizontalScrollBar		: "horizontalScrollBar" >
+ | <Generator		: "Generator" >
  | <Entry		: "Entry" >
  | <dst_port		: "dst-port" >
  | <Guards		: "Guards" >
  | <src		: "src" >
+ | <infer		: "infer" >
  | <_ID		: "ID" >
  | <Action		: "Action" >
  | <color		: "color" >
@@ -316,7 +318,8 @@ void XmlnsXsi() #XmlnsXsi : {}
 void Element()  : {}
 {
  ( <LT> (
-  ActionTags()
+  Generator()
+  | ActionTags()
   | Stmt()
   | _Attribute()
   | Action()
@@ -408,6 +411,7 @@ void Attribute()  : {}
   | _port()
   | x()
   | dst_port()
+  | infer()
   | initial_state()
   | boundsWidth()
   | id()
@@ -525,6 +529,11 @@ void horizontalScrollBar() #horizontalScrollBar : {}
 {
   <horizontalScrollBar> "=" AttrValue()
 }
+void Generator() #Generator : {}
+{
+   <Generator> AttributeList()
+  ( <GT> ElementList()  "</" <Generator>  ">" | ElementList() "/>" )
+}
 void Entry() #Entry : {}
 {
    <Entry> AttributeList()
@@ -542,6 +551,10 @@ void Guards() #Guards : {}
 void src() #src : {}
 {
   <src> "=" AttrValue()
+}
+void infer() #infer : {}
+{
+  <infer> "=" AttrValue()
 }
 void _ID() #_ID : {}
 {

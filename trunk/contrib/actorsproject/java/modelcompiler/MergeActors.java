@@ -62,6 +62,10 @@ public class MergeActors extends XdfParser {
 		} catch (FileNotFoundException e) {
 			System.out.println("Could not read Merged xlim file");
 		}
+
+		// Genereate build script
+		System.out.println(ast.genBuild());
+
 	}
 }
 

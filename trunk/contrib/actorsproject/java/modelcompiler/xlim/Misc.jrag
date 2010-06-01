@@ -12,6 +12,16 @@ aspect Misc {
 
 	public void EmptyStart.prettyPrint(String indent, PrintStream pStream) {}
 
+	syn String Element.value() = "";
+	eq ComplexElement.value() {
+		for (Attribute a : getAttributes()) {
+			if (a instanceof _value) {
+				return a.value();
+			}
+		}
+		return "";
+	}
+
 	syn String Attribute.value() = fix(getAttrValue().getLITERAL());
 
 	syn actor_port ASTNode.getPort(String portName) = null;
@@ -50,4 +60,74 @@ aspect Misc {
 		return "0";
 	}
 
+	syn Start ASTNode.root() = getParent().root();
+	eq Start.root() = this;
+
+	// int operation.numElements() {
+	// 	return root().numElements(lastPort().name());
+	// }
+	// syn lazy int ASTNode.numElements(String name) = 0;
+	// eq Start.numElements(String name) = getSpecification().numElements(name);
+	// eq Specification.numElements(String name) {
+	// 	for (Element e : getElements()) {
+	// 		if (e.numElements(name) > 0) {
+	// 			return e.numElements(name);
+	// 		}
+	// 	}
+	// 	return 0;
+	// }
+	// eq ComplexElement.numElements(String name) {
+	// 	for (Element e : getElements()) {
+	// 		if (e.numElements(name) > 0) {
+	// 			return e.numElements(name);
+	// 		}
+	// 	}
+	// 	return 0;
+	// }
+	// eq port.numElements(String name) {
+	// 	if (isOutPort()
+	// }
+
+	syn int Element.consumptionRate(String pName) = 0;
+	eq module.consumptionRate(String pName) {
+		Element note = null;
+		for (Element e : getElements()) {
+			if (note != null) {
+				if (e.kind().equals("pinRead")) {
+					System.out.println("  "+Integer.valueOf(note.value()));
+					return Integer.valueOf(note.value());
+				} else {
+					System.out.println("** Error. Element: "+e.kind()+
+									   " should be consumptionRates");
+				}
+			}
+			if (e.kind().equals("consumptionRates")) {
+				System.out.println("Found Element");
+				note = e;
+			}
+		}
+		return 0;
+	}
+
+	syn int Element.productionRate(String pName) = 0;
+	eq module.productionRate(String pName) {
+		boolean portFound = false;
+		for (Element e : getElements()) {
+			if (portFound) {
+				if (e.kind().equals("productionRates")) {
+					System.out.println("  "+Integer.valueOf(e.value()));
+					return Integer.valueOf(e.value());
+				} else {
+					System.out.println("** Error. Element: "+e.kind()+
+									   " should be productionRates");
+				}
+			}
+			if (e.kind().equals("pinWrite")) {
+				System.out.println("Found Element");
+				portFound = true;
+			}
+		}
+		return 0;
+	}
+	
 }

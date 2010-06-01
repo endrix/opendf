@@ -246,6 +246,23 @@ aspect PrettyPrinter {
        getAttrValue().prettyPrint(indent,pStream);
   }
 
+  public void Generator.prettyPrint(String ind, PrintStream pStream) {
+    pStream.print(ind+"<Generator ");
+    for (int i=0; i<getNumAttribute(); i++) {
+      getAttribute(i).prettyPrint(ind,pStream);
+    }
+    if (getNumElement() == 0) {
+       pStream.println("/> ");
+    } else {
+       pStream.println("> ");
+       String newInd = ind+"  ";
+       for (int i=0; i<getNumElement(); i++) {
+          getElement(i).prettyPrint(newInd,pStream);
+       }
+       pStream.println(ind+"</Generator> ");
+    }
+  }
+
   public void Entry.prettyPrint(String ind, PrintStream pStream) {
     pStream.print(ind+"<Entry ");
     for (int i=0; i<getNumAttribute(); i++) {
@@ -287,6 +304,11 @@ aspect PrettyPrinter {
 
   public void src.prettyPrint(String indent, PrintStream pStream) {
     pStream.print(" src=");
+       getAttrValue().prettyPrint(indent,pStream);
+  }
+
+  public void infer.prettyPrint(String indent, PrintStream pStream) {
+    pStream.print(" infer=");
        getAttrValue().prettyPrint(indent,pStream);
   }
 

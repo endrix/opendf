@@ -339,6 +339,15 @@ aspect KarlErik {
     return "";
   }
 
+  public String XDF.getName() {
+    for (Attribute a: getAttributes()) {
+      if (a instanceof _name) {
+	return a.getAttrValue().getLITERAL();
+      }
+    }
+    return "";
+  }
+
   public String Instance.getId() {
     for (Attribute a: getAttributes()) {
       if (a instanceof id) {

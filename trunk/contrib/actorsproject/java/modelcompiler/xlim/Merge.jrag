@@ -60,10 +60,12 @@ aspect Merge {
 									int ix, int bufSize) {
 		System.out.println("Replacing "+src.name()+":"+srcPort+"->"+dst.name()+":"+dstPort);
 		for (module m : src.getActions(new HashSet<module>())) {
-			m.setOutVar(ix,srcPort,bufSize);
+			System.out.println("  Out: "+m.productionRate(srcPort));
+			m.setOutVar(ix,srcPort,bufSize,m.productionRate(srcPort));
 		}		
 		for (module m : dst.getActions(new HashSet<module>())) {
-			m.setInVar(ix,dstPort,bufSize);
+			System.out.println("  In: "+m.productionRate(srcPort));
+			m.setInVar(ix,dstPort,bufSize,m.consumptionRate(srcPort));
 		}		
 		src.getSpecification().getDesign().removePort(fix(srcPort),ix);
 		dst.getSpecification().getDesign().removePort(fix(dstPort),ix);
@@ -410,26 +412,151 @@ aspect Actions {
 							 add(new target(new AttrValue(varName))));
 		}
 	}
-	List<Element> module.setOutVar(int ix,String srcPort, int bufSize) {
+	List<Element> module.setOutVar(int ix,String srcPort, int bufSize, int pRate) {
 		List<Element> eList = new List<Element>();
 		for (Element e : getElements()) {
 			eList.add(e);
 			// e.prettyPrint(" ",System.out);
 			// System.out.println(e);
-			for (Element ee : e.setOutVar(ix, srcPort, bufSize)) {
+			for (Element ee : e.setOutVar(ix, srcPort, bufSize, pRate)) {
 				eList.add(ee);
 			}
 		}
 		setElementList(eList);
 		return new List<Element>();
 	}
-	List<Element> Element.setOutVar(int ix, String srcPort, int bufSize) {return new List<Element>();}
-	List<Element> operation.setOutVar(int ix, String srcPort, int bufSize) {
+	List<Element> Element.setOutVar(int ix, String srcPort, int bufSize, int pRate) {
+		return new List<Element>();
+	}
+	List<Element> operation.setOutVar(int ix, String srcPort, int bufSize, int pRate) {
 		if (kind().equals("pinWrite") && portName().equals(srcPort)) {
 			setAttributeList(new List().add(new _kind(new AttrValue("\"assign\""))).
 							 add(new target("buf_"+ix)));
-			if (bufSize > 1) {
-				// Scalar buffers does not need this
+			if (pRate > 1) {
+				List<Element> eList = new List<Element>();
+				module loop = new module();
+				eList.add(loop);
+				loop.setAttributeList(new List<Attribute>().add(new _kind("loop")));		
+				// PHI module
+				PHI phi = new PHI();
+				loop.addElement(phi);
+				port p = new port();
+				phi.addElement(p);
+				p.setAttributeList(new List<Attribute>().
+								   add(new _dir("in")).
+								   add(new source("in1")));
+				p = new port();
+				phi.addElement(p);
+				p.setAttributeList(new List<Attribute>().
+								   add(new _dir("in")).
+								   add(new source("in2")));
+				p = new port();
+				phi.addElement(p);
+				p.setAttributeList(new List<Attribute>().
+								   add(new _dir("out")).
+								   add(new _size("32")).
+								   add(new source("i")).
+								   add(new _typeName("int")));
+				// module decision
+				module deci = new module();
+				loop.addElement(deci);
+				deci.setAttributeList(new List<Attribute>().add(new decision("deci_0")).
+								   add(new _kind("test")));
+				deci.addElement(new operation(new List<Attribute>().add(new _kind("$literal_Integer")).
+											  add(new _value(Integer.toString(pRate))),
+											  new List<Element>().add(new port(new List<Attribute>().
+																			   add(new _dir("out")).
+																			   add(new _size("32")).
+																			   add(new source("p_rate")).
+																			   add(new _typeName("int")),
+																			   new List<Element>()))));
+				operation o = new operation(new List<Attribute>().add(new _kind("$lt")),
+											new List<Element>());
+				loop.addElement(o);
+				o.addElement(new port(new List<Attribute>().add(new _dir("in")).
+									  add(new source("i")),new List<Element>()));
+				o.addElement(new port(new List<Attribute>().add(new _dir("in")).
+									  add(new source("p_rate")),new List<Element>()));
+				o.addElement(new port(new List<Attribute>().add(new _dir("out")).
+									  add(new source("test")).add(new _typeName("bool")),
+									  new List<Element>()));
+				// module body
+				module body = new module(new List<Attribute>().add(new _kind("body")),
+										 new List<Element>());
+				loop.addElement(body);
+				// x[i]
+				operation vref = new operation(new List<Attribute>().add(new _kind("var_ref")).
+											   add(new _name(((ComplexElement)getElement(0)).getAttribute(1).value())),
+											   new List<Element>());
+				body.addElement(vref);
+				vref.addElement(new port(new List<Attribute>().add(new _dir("in")).
+										 add(new source("out1")),
+										 new List<Element>()));
+				vref.addElement(new port(new List<Attribute>().add(new _dir("out")).
+										 add(new _size("32")).
+										 add(new source("tmp_0")).
+										 add(new _typeName("int")),
+										 new List<Element>()));
+				// ix+i
+				// operation add = new operation(new List<Attribute>().add(new _kind("$add")),
+				// 							  new List<Element>());
+				// body.addElement(add);
+				// add.addElement(new port(new List<Attribute>().add(new _dir("in")).
+				// 						 add(new source("i")),
+				// 						 new List<Element>()));
+				// add.addElement(new port(new List<Attribute>().add(new _dir("in")).
+				// 						 add(new source("outIx_"+ix)),
+				// 						 new List<Element>()));
+				// add.addElement(new port(new List<Attribute>().add(new _dir("out")).
+				// 						 add(new _size("32")).
+				// 						 add(new source("tmp_0")).
+				// 						 add(new _typeName("int")),
+				// 						 new List<Element>()));
+				// buf[ix] = x[i]
+				operation assign = new operation(new List<Attribute>().add(new _kind("assign")).
+												 add(new target("buf_"+ix)),
+												 new List<Element>());
+				body.addElement(assign);
+				assign.addElement(new port(new List<Attribute>().add(new _dir("in")).
+										   add(new source("outIx_"+ix)),
+										   new List<Element>()));
+				assign.addElement(new port(new List<Attribute>().add(new _dir("in")).
+										   add(new source("tmp_0")),
+										   new List<Element>()));
+				operation oneLit = new operation();
+				body.addElement(oneLit);
+				oneLit.setAttributeList(new List<Attribute>().add(new _kind("$literal_Integer")).
+										add(new _value("1")));
+				List<Element> litList = new List<Element>();
+				oneLit.setElementList(litList);
+				port litPort = new port();
+				litPort.setElementList(new List<Element>());
+				litPort.setAttributeList(new List<Attribute>().add(new _dir("out")).
+										 add(new _size("32")).add(new source("one_"+tmpIndex)).
+										 add(new _typeName("int")));
+				litList.add(litPort);
+				//***********************
+				// First, increase buffer out index
+				//***********************
+				operation addOp = new operation();
+				body.addElement(addOp);
+				addOp.setAttributeList(new List<Attribute>().add(new _kind("$add")));
+				List<Element> addElements = new List<Element>();
+				addOp.setElementList(addElements);
+				addElements.add(new port(new List<Attribute>().add(new _dir("in")).
+										 add(new source("one_"+tmpIndex)),new List<Element>())).
+					add(new port(new List<Attribute>().add(new _dir("in")).
+								 add(new source("outIx"+ix)),new List<Element>())).
+					add(new port(new List<Attribute>().add(new _dir("out")).
+								 add(new _size("32")).add(new source("outIx"+ix+"_add")).
+								 add(new _typeName("int")),
+								 new List<Element>()));
+				for (Element e : increaseBufferIx(ix,bufSize,"outIx_")) {
+					body.addElement(e);
+				}
+				return eList;
+			} else if (bufSize > 1) {
+				// Scalar buffers does not need this			  
 				port indexPort = new port();
 				indexPort.setAttributeList(new List().add(new _dir(new AttrValue("\"in\""))).
 										   add(new source("outIx_"+ix)));
@@ -470,11 +597,11 @@ aspect Actions {
 		}
 	}
 
-	List<Element> module.setInVar(int ix,String srcPort, int bufSize) {
+	List<Element> module.setInVar(int ix,String srcPort, int bufSize, int cRate) {
 		List<Element> eList = new List<Element>();
 		for (Element e : getElements()) {
 			eList.add(e);
-			List<Element> tmpList = e.setInVar(ix, srcPort, bufSize);
+			List<Element> tmpList = e.setInVar(ix, srcPort, bufSize, cRate);
 			// System.out.print("module.setInvar "+e.getClass().getName()+" ");
 			// System.out.println(tmpList.getNumChild());
 			// for (Element ee : e.setInVar(ix, srcPort, bufSize)) {
@@ -485,30 +612,34 @@ aspect Actions {
 		setElementList(eList);
 		return new List<Element>();
 	}
-	List<Element> Element.setInVar(int ix, String srcPort, int bufSize) {
+	List<Element> Element.setInVar(int ix, String srcPort, int bufSize, int cRate) {
 		// System.out.println("Element.setInvar");
 		return new List<Element>();
 	}
-	List<Element> operation.setInVar(int ix, String srcPort, int bufSize) {
+	List<Element> operation.setInVar(int ix, String srcPort, int bufSize, int cRate) {
 		// System.out.println("operation.setInvar");
 		if (kind().equals("pinRead") && portName().equals(srcPort)) {
 			if (bufSize > 1) {
 				setAttributeList(new List().add(new _kind("var_ref")).
 								 add(new _name("buf_"+ix)));
-				// Scalar buffers does not need this
-				port indexPort = new port();
-				indexPort.setAttributeList(new List().add(new _dir("in")).
-										   add(new source("inIx_"+ix)));
-				getElements().insertChild(indexPort,0);
-				// prettyPrint("",System.out);
-				// OK, so then add operations to increase buffer index,
-				// mod size.
-				return increaseBufferIx(ix,bufSize,"inIx_");
+				// if (cRate > 1) {
+				// 	return new List<Element>();
+				// } else {
+					// Scalar buffers does not need this
+					port indexPort = new port();
+					indexPort.setAttributeList(new List().add(new _dir("in")).
+											   add(new source("inIx_"+ix)));
+					getElements().insertChild(indexPort,0);
+					// prettyPrint("",System.out);
+					// OK, so then add operations to increase buffer index,
+					// mod size.
+					return increaseBufferIx(ix,bufSize,"inIx_");
+				// }
 			} else {
 				setAttributeList(new List().add(new _kind("noop")));
 				port inPort = new port();
 				inPort.setAttributeList(new List().add(new _dir("in")).
-										   add(new source("buf_"+ix)));
+										add(new source("buf_"+ix)));
 				getElements().insertChild(inPort,0);
 				return new List<Element>();
 			}
@@ -597,8 +728,9 @@ aspect ActionScheduler {
 		}
 	}
 	void note.removePort(String portName, int ix) {
-		// System.out.println("Looking for: "+portName+" found "+name());
+		System.out.println("Looking for: "+portName+" found "+name());
 		if (name().equals(portName)) {
+			System.out.println("  Removing port: "+portName);
 			remove_me = true;
 			is$Final(false);
 		}
@@ -965,6 +1097,16 @@ aspect Misc {
 		nameMap().put(origName,newName);
 		getAttrValue().setLITERAL(unfix(newName));
 	}
+	void _typeName.mangleNames(String prefix) {
+		// System.out.println("* Mangling name");
+		String origName = fix(getAttrValue().getLITERAL());
+		if (origName.endsWith("typedef")) {
+			String newName = prefix+origName;
+			// System.out.println("Adding mapping: "+origName+" -> "+newName);
+			nameMap().put(origName,newName);
+			getAttrValue().setLITERAL(unfix(newName));
+		}
+	}
 	void portName.mangleNames(String prefix) {
 		// System.out.println("* Mangling portName");
 		String origName = fix(getAttrValue().getLITERAL());
@@ -1011,6 +1153,8 @@ aspect Misc {
 			// getAttrValue().setLITERAL(unfix(prefix+fix(getAttrValue().getLITERAL())));
 		}
 	}
+	void valuePar.mangleNames(String prefix) {}
+	void typePar.mangleNames(String prefix) {}
 
 	// void Element.manglePinAvail(String portName, String actorName) {}
 	// void Attribute.manglePinAvail(String portName, String actorName) {}
