@@ -1,38 +1,105 @@
-# rvc-profile Makefile
-MODEL1=test1
-MODEL2=test2
-MODEL3=test3
-MODEL4=test4
-
+# Generic Makefile for CAL actor networks, via C, to executable
+#
+# Use 'make help' to view available make targets
 
 # delete the built-in suffixes to avoid surprises
 .SUFFIXES:   
 
-# $(MODEL) is "PHONY" to force sub-make
-.PHONY: all clean $(MODEL1) $(MODEL2) $(MODEL3) $(MODEL4)
-  
-  all: $(MODEL1) $(MODEL2) $(MODEL3) $(MODEL4)
+# Default definitions of tools and directories
+include @datadir@/actors-make/definitions.mk
 
-# The path to the installed ACTOR-specific tools
-MAKEMODEL=@datadir@/actors-make/makemodel.mk
+#
+# This is a good place for project-specific definitions:
+# ------------------------------------------------------
 
-# Model-specific options
-export CFLAGS=-O3 -std=c99
-export srcdir=@datadir@/cal-examples/pipelineDemo
+# Source directory (default is current directory)
+# export srcdir=/home/me/MPEG4_SP_Decoder
 
-$(MODEL1): 
-	$(MAKE) -f $(MAKEMODEL) MODEL=$(MODEL1) PRESERVE_C=Y $@
+# Additional libraries
+# override LDLIBS += -lmylib1 -mylib2
+export LDLIBS
 
-$(MODEL2): 
-	$(MAKE) -f $(MAKEMODEL) MODEL=$(MODEL2) PRESERVE_C=Y $@
+# Additional C-files to be compiled (and included in linking)
+# override C_FILES += foo.c bar.c
+export C_FILES
 
-$(MODEL3): 
-	$(MAKE) -f $(MAKEMODEL) MODEL=$(MODEL3) PRESERVE_C=Y $@
+# Target architecture prefix of gcc and binutils (default is none)
+ifdef ARM
+export target=arm-none-linux-gnueabi-
+endif
 
-$(MODEL4): 
-	$(MAKE) -f $(MAKEMODEL) MODEL=$(MODEL4) PRESERVE_C=Y $@
+# Generate debug code
+# DEBUG=Y
 
-clean:
-	@rm -f $(MODEL1) $(MODEL2) $(MODEL3) $(MODEL4) *.o *.c *.xlim
-	@rm -f *.timestamp *.par *.depend $(MODEL).xdf
-	@rm -fr cache
+# Enable actor merging (experimental and potentially dangerous)
+#export MERGE=Y
+
+
+# ------------------------------------------------------
+# Make-rules start here
+#
+
+.PHONY: all clean cleaner cleanest help
+
+
+#
+# Available CAL networks and those already elaborated/built
+#
+srcdir?=.
+CAL_NETWORKS=$(wildcard $(srcdir)/*.nl)
+AVAILABLE_MODELS=$(patsubst %.nl, %, $(notdir $(CAL_NETWORKS)))
+CLEAN_TARGETS=$(patsubst compiled/%, clean-%, $(wildcard compiled/*))
+
+#
+# all: display help
+#
+
+all: help
+
+#
+# Make executable from CAL model/network
+#
+
+SRCDIR_ABS=$(abspath $(srcdir))
+MAKEMODEL=$(MAKE) -f $(ACTORS_MAKE)/makemodel.mk srcdir=$(SRCDIR_ABS)
+
+# Let makemodel.mk check if executable is up-to-date
+.PHONY: $(AVAILABLE_MODELS)
+
+$(AVAILABLE_MODELS) : % :
+	@mkdir -p compiled/$*
+	@$(MAKEMODEL) -C compiled/$* MODEL=$* EXE=../../$* all
+
+#
+# clean: Clean all build files
+#
+
+.PHONY: $(CLEAN_TARGETS)
+
+clean: $(CLEAN_TARGETS)
+
+$(CLEAN_TARGETS) : clean-% :
+	@$(MAKEMODEL) -C compiled/$* MODEL=$* EXE=../../$* clean
+
+clean-%:
+	@echo "No build files for model $*"
+
+#
+# help: print usage
+#
+
+ifeq ("$(AVAILABLE_MODELS)", "")
+  HELP_AVAILABLE="No models available in $(srcdir)/ use srcdir=directory"
+else
+  HELP_AVAILABLE=Available models: $(AVAILABLE_MODELS)
+endif
+
+help:
+	@echo
+	@echo 'Usage: make [srcdir=<source-directory>] <target>'
+	@echo
+	@echo '"make <model>" elaborates and builds a CAL model' 
+	@echo $(HELP_AVAILABLE) 
+	@echo
+	@echo '"make clean-<model>" cleans build files'
+	@echo
