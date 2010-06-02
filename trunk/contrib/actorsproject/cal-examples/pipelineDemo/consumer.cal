@@ -1,0 +1,6 @@
+actor consumer(int affinity) int In ==> :
+
+      action In:[i] ==>
+      end
+
+end

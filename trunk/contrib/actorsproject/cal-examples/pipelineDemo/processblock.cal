@@ -1,0 +1,19 @@
+actor processblock(int affinity) int In, bool Toggle  ==> int Out:
+
+      bool enabled := true;
+
+      Enable: action Toggle:[x] ==>
+      do
+       enabled := x;
+      end
+
+
+      Normal: action In:[i] ==> Out:[i]
+      guard
+        enabled
+      end
+
+      priority
+        Enable > Normal;
+      end
+end

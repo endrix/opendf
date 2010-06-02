@@ -1,0 +1,20 @@
+actor servicelevel(int affinity) int In ==> bool Out1, bool Out2, bool Out3, bool Out4:
+
+
+      action In:[x] ==> Out1:[true],Out2:[true],Out3:[true],Out4:[true]
+      guard x = 0 end
+
+      action In:[x] ==> Out1:[true],Out2:[true],Out3:[true],Out4:[false]
+      guard x = 1 end
+
+      action In:[x] ==> Out1:[true],Out2:[true],Out3:[false],Out4:[false]
+      guard x = 2 end
+
+      action In:[x] ==> Out1:[true],Out2:[false],Out3:[false],Out4:[false]
+      guard x = 3 end
+
+      action In:[x] ==>
+      guard x > 3 end
+
+
+end
