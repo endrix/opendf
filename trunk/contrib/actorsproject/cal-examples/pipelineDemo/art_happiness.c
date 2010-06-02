@@ -13,6 +13,7 @@
 
 #define OUT0_Out ART_OUTPUT(0)
 #define OUT1_Out ART_OUTPUT(1)
+
 typedef struct {
   AbstractActorInstance base;
 } ActorInstance_happiness_0;
@@ -21,12 +22,13 @@ typedef struct {
 ART_ACTION_CONTEXT(0,2)
 
 ART_ACTION(happiness_0_a0_actionAtLine_5,ActorInstance_happiness_0);
+ART_ACTION(happiness_quit,ActorInstance_happiness_0);
 ART_ACTION_SCHEDULER(happiness_0_action_scheduler);
+
 static void happiness_0_constructor(AbstractActorInstance*);
 
-
 static const PortDescription outputPortDescriptions[]={
-  {"Out", sizeof(int32_t)},
+  {"Out",  sizeof(int32_t)},
   {"Quit", sizeof(int32_t)},
 };
 
@@ -35,7 +37,8 @@ static const int portRate_1[] = {
 };
 
 static const ActionDescription actionDescriptions[] = {
-  {"actionAtLine_5", 0, portRate_1}
+  {"actionAtLine_5",    0, portRate_1},
+  {"actionAtLine_quit", 0, portRate_1}
 };
 
 ActorClass ActorClass_art_happiness = INIT_ActorClass(
@@ -52,52 +55,57 @@ ActorClass ActorClass_art_happiness = INIT_ActorClass(
 
 int kbhit(void)
 {
-	struct termios oldt, newt;
-	int ch;
-	int oldf;
+  struct termios oldt, newt;
+  int            ch;
+  int            oldf;
 
-	tcgetattr(STDIN_FILENO, &oldt);
-	newt = oldt;
-	newt.c_lflag &= ~(ICANON | ECHO);
-	tcsetattr(STDIN_FILENO, TCSANOW, &newt);
-	oldf = fcntl(STDIN_FILENO, F_GETFL, 0);
-	fcntl(STDIN_FILENO, F_SETFL, oldf | O_NONBLOCK);
+  tcgetattr(STDIN_FILENO, &oldt);
+  newt = oldt;
+  newt.c_lflag &= ~(ICANON | ECHO);
+  tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+  oldf = fcntl(STDIN_FILENO, F_GETFL, 0);
+  fcntl(STDIN_FILENO, F_SETFL, oldf | O_NONBLOCK);
 
-	ch = getchar();
-    tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
-	fcntl(STDIN_FILENO, F_SETFL, oldf);
+  ch = getchar();
+  tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+  fcntl(STDIN_FILENO, F_SETFL, oldf);
 
-	if(ch != EOF)
-	{
-		ungetc(ch, stdin);
-		return 1;
-	}
-	return 0;
+  if(ch != EOF)
+  {
+    ungetc(ch, stdin);
+    return 1;
+  }
+
+  return 0;
 }
 
 int32_t get_happiness_value()
 {
-	char        ch;
-	int         retval=-1;
-	if(kbhit()){
-		ch=getchar();
-		if(ch=='y')
-			retval=1;		
-		else if(ch=='n')
-			retval=0;
-		else if (ch=='q')
-		  retval=2;
-		else{
-			printf("\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b");
-			printf("Are you happy? ");
-		}
-	}
-	if(retval>=0)
-		printf("\n");
+  char        ch;
+  int         retval=-1;
+  if(kbhit())
+  {
+    ch=getchar();
+    if(ch=='y')
+      retval=1;    
+    else if(ch=='n')
+      retval=0;
+    else if (ch=='q')
+      retval=2;
+    else
+	{
+      printf("\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b");
+      printf("Are you happy? ");
+    }
+  }
+  if(retval>=0)
+    printf("\n");
 
-	return retval;
+  return retval;
 }
+
 static int terminate;
+
 ART_ACTION(happiness_0_a0_actionAtLine_5,ActorInstance_happiness_0) {
   ART_ACTION_ENTER(happiness_0_a0_actionAtLine_5,0);
   int32_t happiness;
@@ -105,11 +113,16 @@ ART_ACTION(happiness_0_a0_actionAtLine_5,ActorInstance_happiness_0) {
   if(happiness==2)
     terminate=1;
   else if(happiness>=0){
-  	pinWrite_int32_t(OUT0_Out, happiness);
+    pinWrite_int32_t(OUT0_Out, happiness);
   }
   ART_ACTION_EXIT(happiness_0_a0_actionAtLine_5,0);
 }
 
+ART_ACTION(happiness_quit,ActorInstance_happiness_0) {
+  ART_ACTION_ENTER(happiness_quit,1);
+  pinWrite_int32_t(OUT1_Out, 1);
+  ART_ACTION_EXIT(happiness_quit,1);
+}
 static const int exitcode_block_Out_1[] = {
   EXITCODE_BLOCK(1), 0, 1
 };
@@ -126,13 +139,14 @@ ART_ACTION_SCHEDULER(happiness_0_action_scheduler) {
       if ((t6>=(1))) {
         ART_FIRE_ACTION(happiness_0_a0_actionAtLine_5);
       }
-  if(terminate){
-    pinWrite_int32_t(OUT1_Out, 1);
-    exitCode=EXITCODE_TERMINATE; goto action_scheduler_exit;
-  }
-      //else {
-        exitCode=exitcode_block_Out_1; goto action_scheduler_exit;
-      //}
+      if(terminate){
+        int32_t t7;
+        t7=pinAvailOut_int32_t(OUT1_Out);
+        if(t7>=1)
+          ART_FIRE_ACTION(happiness_quit);
+        exitCode=EXITCODE_TERMINATE; goto action_scheduler_exit;
+      }
+      exitCode=exitcode_block_Out_1; goto action_scheduler_exit;
     }
     else {
       exitCode=EXITCODE_TERMINATE; goto action_scheduler_exit;
