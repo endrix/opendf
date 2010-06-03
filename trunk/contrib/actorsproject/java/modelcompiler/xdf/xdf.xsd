@@ -258,6 +258,7 @@
         <xs:element minOccurs="0" ref="Expr"/>
       </xs:sequence>
       <xs:attribute name="assignable" type="xs:NCName"/>
+      <xs:attribute name="mutable" type="xs:NCName"/>
       <xs:attribute name="kind" use="required" type="xs:NCName"/>
       <xs:attribute name="name" use="required"/>
       <xs:attribute name="text-begin-col"/>
@@ -282,6 +283,7 @@
       </xs:sequence>
       <xs:attribute name="kind" use="required" type="xs:NCName"/>
       <xs:attribute name="name" use="required" type="xs:NCName"/>
+      <xs:attribute name="old" type="xs:NCName"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="Args">
