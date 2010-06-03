@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Configuration>
+  <Partitioning>
+    <Partition id="0">
+      <Instance actor-id="producer/0" />
+      <Instance actor-id="producer/1" />
+      <Instance actor-id="happiness/0" />
+      <Instance actor-id="producer/2" />
+      <Instance actor-id="producer/3" />
+      <Instance actor-id="art_DBus_test/0" />
+      <Instance actor-id="servicelevel/0" />
+    </Partition>
+    <Partition id="1">
+      <Instance actor-id="processblock/2" />
+      <Instance actor-id="processblock/1" />
+      <Instance actor-id="processblock/3" />
+      <Instance actor-id="processblock/0" />
+    </Partition>
+    <Partition id="2">
+      <Instance actor-id="process/0" />
+      <Instance actor-id="process/2" />
+      <Instance actor-id="process/3" />
+      <Instance actor-id="process/1" />
+    </Partition>
+    <Partition id="3">
+      <Instance actor-id="consumer/2" />
+      <Instance actor-id="consumer/1" />
+      <Instance actor-id="consumer/0" />
+      <Instance actor-id="consumer/3" />
+    </Partition>
+  </Partitioning>
+  <Connection dst="art_DBus_test/0" dst-port="In" src="happiness/0" src-port="Out" size="0" />
+  <Connection dst="servicelevel/0" dst-port="In" src="art_DBus_test/0" src-port="Out" size="0" />
+  <Connection dst="processblock/3" dst-port="Toggle" src="servicelevel/0" src-port="Out4" size="0" />
+  <Connection dst="consumer/3" dst-port="In" src="process/3" src-port="Out" size="0" />
+  <Connection dst="process/3" dst-port="In" src="processblock/3" src-port="Out" size="0" />
+  <Connection dst="processblock/3" dst-port="In" src="producer/3" src-port="Out" size="0" />
+  <Connection dst="processblock/2" dst-port="Toggle" src="servicelevel/0" src-port="Out3" size="0" />
+  <Connection dst="consumer/2" dst-port="In" src="process/2" src-port="Out" size="0" />
+  <Connection dst="process/2" dst-port="In" src="processblock/2" src-port="Out" size="0" />
+  <Connection dst="processblock/2" dst-port="In" src="producer/2" src-port="Out" size="0" />
+  <Connection dst="processblock/1" dst-port="Toggle" src="servicelevel/0" src-port="Out2" size="0" />
+  <Connection dst="consumer/1" dst-port="In" src="process/1" src-port="Out" size="0" />
+  <Connection dst="process/1" dst-port="In" src="processblock/1" src-port="Out" size="0" />
+  <Connection dst="processblock/1" dst-port="In" src="producer/1" src-port="Out" size="0" />
+  <Connection dst="processblock/0" dst-port="Toggle" src="servicelevel/0" src-port="Out1" size="0" />
+  <Connection dst="consumer/0" dst-port="In" src="process/0" src-port="Out" size="0" />
+  <Connection dst="process/0" dst-port="In" src="processblock/0" src-port="Out" size="0" />
+  <Connection dst="processblock/0" dst-port="In" src="producer/0" src-port="Out" size="0" />
+  <RMInterface name="test1">
+    <Category value="High" />
+    <InitialService index="0" />
+    <GroupID base="0" />
+    <ServiceLevels>
+      <ServiceLevel index="0">
+        <QualityOfService quality="90" />
+        <Granularity value="100000" />
+        <TotalBW value="200" mode="Absolute" />
+        <BWDistributions>
+          <BWDistribution id="0" value="50" />
+          <BWDistribution id="1" value="50" />
+          <BWDistribution id="2" value="50" />
+          <BWDistribution id="3" value="50" />
+        </BWDistributions>
+      </ServiceLevel>
+      <ServiceLevel index="1">
+        <QualityOfService quality="70" />
+        <Granularity value="100000" />
+        <TotalBW value="120" mode="Absolute" />
+        <BWDistributions>
+          <BWDistribution id="0" value="30" />
+          <BWDistribution id="1" value="30" />
+          <BWDistribution id="2" value="30" />
+          <BWDistribution id="3" value="30" />
+        </BWDistributions>
+      </ServiceLevel>
+      <ServiceLevel index="2">
+        <QualityOfService quality="60" />
+        <Granularity value="100000" />
+        <TotalBW value="100" mode="Absolute" />
+        <BWDistributions>
+          <BWDistribution id="0" value="25" />
+          <BWDistribution id="1" value="25" />
+          <BWDistribution id="2" value="25" />
+          <BWDistribution id="3" value="25" />
+        </BWDistributions>
+      </ServiceLevel>
+    </ServiceLevels>
+  </RMInterface>
+</Configuration>
+
