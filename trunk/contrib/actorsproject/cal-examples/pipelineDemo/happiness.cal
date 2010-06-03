@@ -1,0 +1,10 @@
+actor happiness(int affinity) ==> int Out:
+
+   bool enabled := false;
+
+   action ==> Out:[1]
+   guard
+     enabled
+   end
+
+end
