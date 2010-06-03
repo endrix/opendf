@@ -23,8 +23,8 @@ entities
         consumer3 = consumer(affinity=3);
 
         service_level = servicelevel(affinity=0);
-        dbus = art_DBus_test(affinity=0);
-        happy = art_happiness(affinity=0,activeMode=1);
+        dbus = art_DBus_test(affinity=0,activeMode=1);
+        happy = happiness(affinity=0);
 
 structure
         producer0.Out --> process0_0.In;
@@ -50,8 +50,5 @@ structure
         dbus.Out --> service_level.In;
         happy.Out  --> dbus.In;
 
-        happy.Quit --> producer0.Quit;
-        happy.Quit --> producer1.Quit;
-        happy.Quit --> producer2.Quit;
-        happy.Quit --> producer3.Quit;
+
 end
