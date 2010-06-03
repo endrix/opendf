@@ -434,6 +434,17 @@ aspect Actions {
 							 add(new target("buf_"+ix)));
 			if (pRate > 1) {
 				List<Element> eList = new List<Element>();
+				// First, declare loop variable initial value (0)
+				eList.add(new operation(new List<Attribute>().add(new _kind("$literal_Integer")).
+										add(new _value("0")),
+										new List<Element>().
+										add(new port(new List<Attribute>().
+													 add(new _dir("out")).
+													 add(new _size("32")).
+													 add(new source("loop_init")).
+													 add(new _typeName("int")),
+													 new List<Element>()))));
+				
 				module loop = new module();
 				eList.add(loop);
 				loop.setAttributeList(new List<Attribute>().add(new _kind("loop")));		
@@ -444,12 +455,12 @@ aspect Actions {
 				phi.addElement(p);
 				p.setAttributeList(new List<Attribute>().
 								   add(new _dir("in")).
-								   add(new source("in1")));
+								   add(new source("loop_init")));
 				p = new port();
 				phi.addElement(p);
 				p.setAttributeList(new List<Attribute>().
 								   add(new _dir("in")).
-								   add(new source("in2")));
+								   add(new source("i_new")));
 				p = new port();
 				phi.addElement(p);
 				p.setAttributeList(new List<Attribute>().
@@ -472,13 +483,13 @@ aspect Actions {
 																			   new List<Element>()))));
 				operation o = new operation(new List<Attribute>().add(new _kind("$lt")),
 											new List<Element>());
-				loop.addElement(o);
+				deci.addElement(o);
 				o.addElement(new port(new List<Attribute>().add(new _dir("in")).
 									  add(new source("i")),new List<Element>()));
 				o.addElement(new port(new List<Attribute>().add(new _dir("in")).
 									  add(new source("p_rate")),new List<Element>()));
 				o.addElement(new port(new List<Attribute>().add(new _dir("out")).
-									  add(new source("test")).add(new _typeName("bool")),
+									  add(new source("deci_0")).add(new _typeName("bool")),
 									  new List<Element>()));
 				// module body
 				module body = new module(new List<Attribute>().add(new _kind("body")),
@@ -490,7 +501,7 @@ aspect Actions {
 											   new List<Element>());
 				body.addElement(vref);
 				vref.addElement(new port(new List<Attribute>().add(new _dir("in")).
-										 add(new source("out1")),
+										 add(new source("i")),
 										 new List<Element>()));
 				vref.addElement(new port(new List<Attribute>().add(new _dir("out")).
 										 add(new _size("32")).
@@ -523,6 +534,7 @@ aspect Actions {
 				assign.addElement(new port(new List<Attribute>().add(new _dir("in")).
 										   add(new source("tmp_0")),
 										   new List<Element>()));
+				// i+1
 				operation oneLit = new operation();
 				body.addElement(oneLit);
 				oneLit.setAttributeList(new List<Attribute>().add(new _kind("$literal_Integer")).
@@ -535,6 +547,30 @@ aspect Actions {
 										 add(new _size("32")).add(new source("one_"+tmpIndex)).
 										 add(new _typeName("int")));
 				litList.add(litPort);
+				operation add = new operation(new List<Attribute>().add(new _kind("$add")),new List<Element>());
+				body.addElement(add);
+				add.addElement(new port(new List<Attribute>().add(new _dir("in")).
+										add(new source("i")),
+										new List<Element>()));
+				add.addElement(new port(new List<Attribute>().add(new _dir("in")).
+										add(new source("one_"+tmpIndex)),
+										new List<Element>()));
+				add.addElement(new port(new List<Attribute>().add(new _dir("out")).
+										add(new _size("32")).
+										add(new source("i_tmp")).
+										add(new _typeName("int")),
+										new List<Element>()));
+				// i:=i+1
+				operation noop = new operation(new List<Attribute>().add(new _kind("noop")),new List<Element>());
+				body.addElement(noop);
+				noop.addElement(new port(new List<Attribute>().add(new _dir("in")).
+										add(new source("i_tmp")),
+										new List<Element>()));
+				noop.addElement(new port(new List<Attribute>().add(new _dir("out")).
+										add(new _size("32")).
+										add(new source("i_new")).
+										add(new _typeName("int")),
+										new List<Element>()));
 				//***********************
 				// First, increase buffer out index
 				//***********************

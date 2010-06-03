@@ -77,11 +77,6 @@ aspect PrettyPrinter {
        getAttrValue().prettyPrint(indent,pStream);
   }
 
-  public void viewPositionX.prettyPrint(String indent, PrintStream pStream) {
-    pStream.print(" viewPositionX=");
-       getAttrValue().prettyPrint(indent,pStream);
-  }
-
   public void Class.prettyPrint(String ind, PrintStream pStream) {
     pStream.print(ind+"<Class ");
     for (int i=0; i<getNumAttribute(); i++) {
@@ -97,6 +92,11 @@ aspect PrettyPrinter {
        }
        pStream.println(ind+"</Class> ");
     }
+  }
+
+  public void viewPositionX.prettyPrint(String indent, PrintStream pStream) {
+    pStream.print(" viewPositionX=");
+       getAttrValue().prettyPrint(indent,pStream);
   }
 
   public void Op.prettyPrint(String ind, PrintStream pStream) {
@@ -131,6 +131,11 @@ aspect PrettyPrinter {
        }
        pStream.println(ind+"</Parameter> ");
     }
+  }
+
+  public void mutable.prettyPrint(String indent, PrintStream pStream) {
+    pStream.print(" mutable=");
+       getAttrValue().prettyPrint(indent,pStream);
   }
 
   public void boundsHeight.prettyPrint(String indent, PrintStream pStream) {
@@ -219,6 +224,11 @@ aspect PrettyPrinter {
        getAttrValue().prettyPrint(indent,pStream);
   }
 
+  public void horizontalScrollBar.prettyPrint(String indent, PrintStream pStream) {
+    pStream.print(" horizontalScrollBar=");
+       getAttrValue().prettyPrint(indent,pStream);
+  }
+
   public void xmlnssch.prettyPrint(String indent, PrintStream pStream) {
     pStream.print(" xmlns:sch=");
        getAttrValue().prettyPrint(indent,pStream);
@@ -239,11 +249,6 @@ aspect PrettyPrinter {
        }
        pStream.println(ind+"</Instance> ");
     }
-  }
-
-  public void horizontalScrollBar.prettyPrint(String indent, PrintStream pStream) {
-    pStream.print(" horizontalScrollBar=");
-       getAttrValue().prettyPrint(indent,pStream);
   }
 
   public void Generator.prettyPrint(String ind, PrintStream pStream) {
@@ -412,13 +417,13 @@ aspect PrettyPrinter {
     }
   }
 
-  public void assignable.prettyPrint(String indent, PrintStream pStream) {
-    pStream.print(" assignable=");
+  public void initial_state.prettyPrint(String indent, PrintStream pStream) {
+    pStream.print(" initial-state=");
        getAttrValue().prettyPrint(indent,pStream);
   }
 
-  public void initial_state.prettyPrint(String indent, PrintStream pStream) {
-    pStream.print(" initial-state=");
+  public void assignable.prettyPrint(String indent, PrintStream pStream) {
+    pStream.print(" assignable=");
        getAttrValue().prettyPrint(indent,pStream);
   }
 
@@ -461,13 +466,13 @@ aspect PrettyPrinter {
     }
   }
 
-  public void dst.prettyPrint(String indent, PrintStream pStream) {
-    pStream.print(" dst=");
+  public void boundsWidth.prettyPrint(String indent, PrintStream pStream) {
+    pStream.print(" boundsWidth=");
        getAttrValue().prettyPrint(indent,pStream);
   }
 
-  public void boundsWidth.prettyPrint(String indent, PrintStream pStream) {
-    pStream.print(" boundsWidth=");
+  public void dst.prettyPrint(String indent, PrintStream pStream) {
+    pStream.print(" dst=");
        getAttrValue().prettyPrint(indent,pStream);
   }
 
@@ -523,6 +528,11 @@ aspect PrettyPrinter {
        getAttrValue().prettyPrint(indent,pStream);
   }
 
+  public void xmlnscal.prettyPrint(String indent, PrintStream pStream) {
+    pStream.print(" xmlns:cal=");
+       getAttrValue().prettyPrint(indent,pStream);
+  }
+
   public void _value.prettyPrint(String indent, PrintStream pStream) {
     pStream.print(" value=");
        getAttrValue().prettyPrint(indent,pStream);
@@ -545,11 +555,6 @@ aspect PrettyPrinter {
     }
   }
 
-  public void xmlnscal.prettyPrint(String indent, PrintStream pStream) {
-    pStream.print(" xmlns:cal=");
-       getAttrValue().prettyPrint(indent,pStream);
-  }
-
   public void Input.prettyPrint(String ind, PrintStream pStream) {
     pStream.print(ind+"<Input ");
     for (int i=0; i<getNumAttribute(); i++) {
@@ -569,6 +574,11 @@ aspect PrettyPrinter {
 
   public void _kind.prettyPrint(String indent, PrintStream pStream) {
     pStream.print(" kind=");
+       getAttrValue().prettyPrint(indent,pStream);
+  }
+
+  public void old.prettyPrint(String indent, PrintStream pStream) {
+    pStream.print(" old=");
        getAttrValue().prettyPrint(indent,pStream);
   }
 
