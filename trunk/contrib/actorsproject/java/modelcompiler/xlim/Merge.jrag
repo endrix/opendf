@@ -430,9 +430,8 @@ aspect Actions {
 	}
 	List<Element> operation.setOutVar(int ix, String srcPort, int bufSize, int pRate) {
 		if (kind().equals("pinWrite") && portName().equals(srcPort)) {
-			setAttributeList(new List().add(new _kind(new AttrValue("\"assign\""))).
-							 add(new target("buf_"+ix)));
 			if (pRate > 1) {
+				setAttributeList(new List().add(new _kind("noop")));
 				List<Element> eList = new List<Element>();
 				// First, declare loop variable initial value (0)
 				eList.add(new operation(new List<Attribute>().add(new _kind("$literal_Integer")).
@@ -544,7 +543,7 @@ aspect Actions {
 				port litPort = new port();
 				litPort.setElementList(new List<Element>());
 				litPort.setAttributeList(new List<Attribute>().add(new _dir("out")).
-										 add(new _size("32")).add(new source("one_"+tmpIndex)).
+										 add(new _size("32")).add(new source("one__"+tmpIndex)).
 										 add(new _typeName("int")));
 				litList.add(litPort);
 				operation add = new operation(new List<Attribute>().add(new _kind("$add")),new List<Element>());
@@ -553,7 +552,7 @@ aspect Actions {
 										add(new source("i")),
 										new List<Element>()));
 				add.addElement(new port(new List<Attribute>().add(new _dir("in")).
-										add(new source("one_"+tmpIndex)),
+										add(new source("one__"+tmpIndex)),
 										new List<Element>()));
 				add.addElement(new port(new List<Attribute>().add(new _dir("out")).
 										add(new _size("32")).
@@ -574,36 +573,40 @@ aspect Actions {
 				//***********************
 				// First, increase buffer out index
 				//***********************
-				operation addOp = new operation();
-				body.addElement(addOp);
-				addOp.setAttributeList(new List<Attribute>().add(new _kind("$add")));
-				List<Element> addElements = new List<Element>();
-				addOp.setElementList(addElements);
-				addElements.add(new port(new List<Attribute>().add(new _dir("in")).
-										 add(new source("one_"+tmpIndex)),new List<Element>())).
-					add(new port(new List<Attribute>().add(new _dir("in")).
-								 add(new source("outIx"+ix)),new List<Element>())).
-					add(new port(new List<Attribute>().add(new _dir("out")).
-								 add(new _size("32")).add(new source("outIx"+ix+"_add")).
-								 add(new _typeName("int")),
-								 new List<Element>()));
+				// operation addOp = new operation();
+				// body.addElement(addOp);
+				// addOp.setAttributeList(new List<Attribute>().add(new _kind("$add")));
+				// List<Element> addElements = new List<Element>();
+				// addOp.setElementList(addElements);
+				// addElements.add(new port(new List<Attribute>().add(new _dir("in")).
+				// 						 add(new source("one_"+tmpIndex)),new List<Element>())).
+				// 	add(new port(new List<Attribute>().add(new _dir("in")).
+				// 				 add(new source("outIx_"+ix)),new List<Element>())).
+				// 	add(new port(new List<Attribute>().add(new _dir("out")).
+				// 				 add(new _size("32")).add(new source("outIx"+ix+"_add")).
+				// 				 add(new _typeName("int")),
+				// 				 new List<Element>()));
 				for (Element e : increaseBufferIx(ix,bufSize,"outIx_")) {
 					body.addElement(e);
 				}
 				return eList;
-			} else if (bufSize > 1) {
-				// Scalar buffers does not need this			  
-				port indexPort = new port();
-				indexPort.setAttributeList(new List().add(new _dir(new AttrValue("\"in\""))).
-										   add(new source("outIx_"+ix)));
-				getElements().insertChild(indexPort,0);
-				// prettyPrint("",System.out);
-				// OK, so then add operations to increase buffer index,
-				// mod size.
-				System.out.println("** replaced pinWrite");
-				return increaseBufferIx(ix,bufSize,"outIx_");
 			} else {
-				return new List<Element>();
+				setAttributeList(new List().add(new _kind(new AttrValue("\"assign\""))).
+								 add(new target("buf_"+ix)));
+				if (bufSize > 1) {
+					// Scalar buffers does not need this			  
+					port indexPort = new port();
+					indexPort.setAttributeList(new List().add(new _dir(new AttrValue("\"in\""))).
+											   add(new source("outIx_"+ix)));
+					getElements().insertChild(indexPort,0);
+					// prettyPrint("",System.out);
+					// OK, so then add operations to increase buffer index,
+					// mod size.
+					System.out.println("** replaced pinWrite");
+					return increaseBufferIx(ix,bufSize,"outIx_");
+				} else {
+					return new List<Element>();
+				}
 			}
 		}
 		// Not done anything so return empty list
