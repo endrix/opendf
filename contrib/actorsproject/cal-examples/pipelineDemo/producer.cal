@@ -1,11 +1,6 @@
-actor producer(int affinity) int Quit ==> int Out:
+actor producer(int affinity)  ==> int Out:
 
       bool enabled := true;
-
-      action Quit:[i] ==>
-      do
-        enabled := false;
-      end
 
       action ==> Out:[55]
       guard
