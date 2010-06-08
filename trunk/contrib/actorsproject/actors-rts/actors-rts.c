@@ -422,21 +422,57 @@ static int set_affinity(ActorInstance_1_t **instance,
   return result;
 }
 
-static void set_instance_affinity(ActorInstance_1_t *instance,int numInstances)
+static int set_instance_affinity(ActorInstance_1_t *instance,
+				 AffinityID *config,
+				 int numInstances)
 {
   int i;
   char instanceName[128];
   sprintf(instanceName,"%s/%d",instance->actorClass->name,instance->index);
   for(i=0; i<numInstances; i++)
   {
-    if(!instanceAfinity[i].flag)
-    if(strcmp(instanceName,instanceAfinity[i].name)==0)
+    if(!config[i].flag
+       && strcmp(instanceName,config[i].name)==0)
     {
-      instance->affinity = instanceAfinity[i].affinity;
-      instanceAfinity[i].flag=1;
-      break;
+      instance->affinity = config[i].affinity;
+      config[i].flag=1;  // We don't need to compare/check this one again
+      return i;
     }
   }
+  return -1; // not found
+}
+
+/*
+ * Sort the instances in the same order as they appear in the configuration
+ * file and set their affinities
+ */
+
+static ActorInstance_1_t **sort_instances(ActorInstance_1_t **unsorted,
+					  AffinityID *config,
+                                          int numInstances) {
+  ActorInstance_1_t **sorted=calloc(numInstances,sizeof(ActorInstance_1_t*));
+  int i;
+
+  for (i=0; i<numInstances; ++i) {
+    int iSorted=set_instance_affinity(unsorted[i],config,numInstances);
+
+    if (iSorted<0 || iSorted>=numInstances) {
+      runtimeError(NULL,"sort_instances: not mentioned in config file: %s/%d\n",
+		   unsorted[i]->actorClass->name,
+		   unsorted[i]->index);
+    }
+    
+    sorted[iSorted]=unsorted[i];
+  }
+
+  for (i=0; i<numInstances; ++i) {
+    if (sorted[i]==NULL) {
+      runtimeError(NULL,"sort_instances: instance not found: %s\n",
+		   config[i].name);
+    }
+  }
+
+  return sorted;
 }
 
 static void set_instance_fifo(ActorInstance_1_t **instance,ConnectID *connect,int numInstances)
@@ -461,30 +497,27 @@ static void set_instance_fifo(ActorInstance_1_t **instance,ConnectID *connect,in
   }
 }
 
-static int set_config(ActorInstance_1_t **instance,
-      int numInstances,
-      char *filename)
+static ActorInstance_1_t **set_config(ActorInstance_1_t **instances,
+				      int numInstances,
+				      char *filename)
 {
-  int result = 1;
   int numConnects;
+  ActorInstance_1_t **sortedInstances=NULL;
 
   numConnects = xmlParser(filename, numInstances);
   if(numConnects >= 0)
   {
     int i;
     // Set actor instance infinity
-    for(i=0; i<numInstances; i++)
-      set_instance_affinity(instance[i],numInstances);
+    sortedInstances=
+      sort_instances(instances,instanceAfinity,numInstances);
 
     //Set input ports fifo size
     for(i=0; i<numConnects; i++)
-      set_instance_fifo(instance,&connects[i],numInstances);
+      set_instance_fifo(instances,&connects[i],numInstances);
   }
 
-  if(numConnects>=0)
-    result = 0;
-
-  return result;
+  return sortedInstances;
 }
 
 static int check_network(ActorInstance_1_t **instance,
@@ -1141,7 +1174,7 @@ int executeNetwork(int argc,
   cpu_runtime_data_t *runtime_data;
   int arg_print_info = 0;
   int arg_fifo_size = DEFAULT_FIFO_LENGTH;
-  char *filename=0;
+  char *configFilename=0;
   int show_statistics=0;
   int affinity_is_set=0;
   int show_timing=0;
@@ -1161,7 +1194,7 @@ int executeNetwork(int argc,
     } else if (strncmp(argv[i], "--loopmax=", 10) == 0) {
       arg_loopmax = atoi(&argv[i][10]);
     } else if (strncmp(argv[i], "--cfile=", 8) == 0) {
-      filename = &argv[i][8];
+      configFilename = &argv[i][8];
     } else if (strncmp(argv[i], "--generate=", 11) == 0) {
       generateFileName = &argv[i][11];    
     } else if (strcmp(argv[i], "--with-complexity") == 0) {
@@ -1200,8 +1233,8 @@ int executeNetwork(int argc,
 
   if (result == 0) {
     // Assign affinity and other params from config file
-    if (filename) {
-      set_config(instance_1, numInstances, filename);
+    if (configFilename) {
+      instance_1=set_config(instance_1, numInstances, configFilename);
       affinity_is_set=1;
     }
   }
