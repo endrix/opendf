@@ -110,6 +110,7 @@ public class Operation2c implements OperationGenerator {
 		for (BasicGenerator generator: sGenerators)
 			register(generator);
 		registerEtsiApi();
+		registerMathApi();
 	}
 		
 	protected void register(BasicGenerator generator) {
@@ -162,6 +163,17 @@ public class Operation2c implements OperationGenerator {
 			String functionName=opName;
 			register(new ApiCallGenerator(opName, functionName, true /* has generate expression */));
 		}
+	}
+	
+	private void registerMathApi() {
+		String mathApi[]={"acos",  "asin",  "atan",  "atan2", "ceil",  "cos",   "cosh",  "exp",
+				          "floor",  "log",  "log10", "sin",   "sinh",  "sqrt",  "tan",   "tanh"};
+		for (String opName: mathApi) {
+			String functionName=opName;
+			register(new ApiCallGenerator(opName, functionName, true /* has generate expression */));
+		}
+		register(new ModOperationGenerator());  // $mod (becomes % or fmod)
+		register(new AbsOperationGenerator());  // abs (becomes abs, llabs or fabs)
 	}
 }
 
@@ -379,6 +391,25 @@ class ApiCallGenerator extends BasicGenerator {
 				gen.print(", ");
 			gen.translateSubTree(op.getInputPort(i));
 		}
+	}
+}
+
+class AbsOperationGenerator extends ApiCallGenerator {
+	
+	public AbsOperationGenerator() {
+		super("abs", "fabs", true);
+	}
+	
+	@Override
+	protected String getFunctionName(XlimOperation op, ExpressionTreeGenerator gen) {
+		XlimType type=op.getOutputPort(0).getType();
+		if (type.isInteger())
+			if (type.getSize()<=32)
+				return "abs";
+			else
+				return "llabs";
+		else
+			return "fabs";
 	}
 }
 
@@ -918,6 +949,26 @@ class UrshiftGenerator extends DivAndShiftGenerator {
 		gen.translateSubTree(op.getInputPort(1));
 		gen.print(")");
 	}
+}
+
+class ModOperationGenerator extends OperatorGenerator {
+	
+	public ModOperationGenerator() {
+		super("$mod", "%");
+	}
+	
+	public void generateExpression(XlimOperation op, XlimType opType, ExpressionTreeGenerator gen) {
+		if (op.getOutputPort(0).getType().isInteger()) {
+			super.generateExpression(op,opType,gen);
+		}
+		else {
+			gen.print("fmod(");
+			gen.translateSubTree(op.getInputPort(0));
+			gen.print(",");
+			gen.translateSubTree(op.getInputPort(1));
+			gen.print(")");
+		}
+	}	
 }
 
 class PrefixOperatorGenerator extends OperatorGenerator {
