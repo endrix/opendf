@@ -29,7 +29,8 @@ C_FILES  = $(shell cd $(srcdir); find $(EXAMPLES) -name *.c)
 CAL_FILES  = $(shell cd $(srcdir); find $(EXAMPLES) -name *.cal)
 NL_FILES   = $(shell cd $(srcdir); find $(EXAMPLES) -name *.nl)
 XDF_FILES  = $(shell cd $(srcdir); find $(EXAMPLES) -name *.xdf)
-COPY_FILES = $(CAL_FILES) $(NL_FILES) $(XDF_FILES) $(C_FILES)
+XCF_FILES  = $(shell cd $(srcdir); find $(EXAMPLES) -name *.xcf)
+COPY_FILES = $(CAL_FILES) $(NL_FILES) $(XDF_FILES) $(C_FILES) $(XCF_FILES)
 
 IN_FILES  = $(basename $(shell cd $(srcdir); find $(EXAMPLES) -name *.in ) )
 
