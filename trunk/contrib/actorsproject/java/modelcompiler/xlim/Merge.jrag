@@ -64,7 +64,7 @@ aspect Merge {
 			m.setOutVar(ix,srcPort,bufSize,m.productionRate(srcPort));
 		}		
 		for (module m : dst.getActions(new HashSet<module>())) {
-			System.out.println("  In: "+m.productionRate(srcPort));
+			System.out.println("  In: "+m.consumptionRate(srcPort));
 			m.setInVar(ix,dstPort,bufSize,m.consumptionRate(srcPort));
 		}		
 		src.getSpecification().getDesign().removePort(fix(srcPort),ix);
@@ -431,18 +431,28 @@ aspect Actions {
 	List<Element> operation.setOutVar(int ix, String srcPort, int bufSize, int pRate) {
 		if (kind().equals("pinWrite") && portName().equals(srcPort)) {
 			if (pRate > 1) {
-				setAttributeList(new List().add(new _kind("noop")));
+				String outVar = ((ComplexElement)getElement(0)).getAttribute(1).value();
+				setAttributeList(new List().
+								 add(new _kind("$literal_Integer")).
+								 add(new _value("0")));
+				setElementList(new List<Element>().
+							   add(new port(new List<Attribute>().
+											add(new _dir("out")).
+											add(new _size("32")).
+											add(new source("outLoopInit_"+ix)).
+											add(new _typeName("int")),
+											new List<Element>())));
 				List<Element> eList = new List<Element>();
 				// First, declare loop variable initial value (0)
-				eList.add(new operation(new List<Attribute>().add(new _kind("$literal_Integer")).
-										add(new _value("0")),
-										new List<Element>().
-										add(new port(new List<Attribute>().
-													 add(new _dir("out")).
-													 add(new _size("32")).
-													 add(new source("loop_init")).
-													 add(new _typeName("int")),
-													 new List<Element>()))));
+				// eList.add(new operation(new List<Attribute>().add(new _kind("$literal_Integer")).
+				// 						add(new _value("0")),
+				// 						new List<Element>().
+				// 						add(new port(new List<Attribute>().
+				// 									 add(new _dir("out")).
+				// 									 add(new _size("32")).
+				// 									 add(new source("loop_init")).
+				// 									 add(new _typeName("int")),
+				// 									 new List<Element>()))));
 				
 				module loop = new module();
 				eList.add(loop);
@@ -454,23 +464,23 @@ aspect Actions {
 				phi.addElement(p);
 				p.setAttributeList(new List<Attribute>().
 								   add(new _dir("in")).
-								   add(new source("loop_init")));
+								   add(new source("outLoopInit_"+ix)));
 				p = new port();
 				phi.addElement(p);
 				p.setAttributeList(new List<Attribute>().
 								   add(new _dir("in")).
-								   add(new source("i_new")));
+								   add(new source("out_i_new_"+ix)));
 				p = new port();
 				phi.addElement(p);
 				p.setAttributeList(new List<Attribute>().
 								   add(new _dir("out")).
 								   add(new _size("32")).
-								   add(new source("i")).
+								   add(new source("out_i_"+ix)).
 								   add(new _typeName("int")));
 				// module decision
 				module deci = new module();
 				loop.addElement(deci);
-				deci.setAttributeList(new List<Attribute>().add(new decision("deci_0")).
+				deci.setAttributeList(new List<Attribute>().add(new decision("outDeci_"+ix)).
 								   add(new _kind("test")));
 				deci.addElement(new operation(new List<Attribute>().add(new _kind("$literal_Integer")).
 											  add(new _value(Integer.toString(pRate))),
@@ -484,11 +494,11 @@ aspect Actions {
 											new List<Element>());
 				deci.addElement(o);
 				o.addElement(new port(new List<Attribute>().add(new _dir("in")).
-									  add(new source("i")),new List<Element>()));
+									  add(new source("out_i_"+ix)),new List<Element>()));
 				o.addElement(new port(new List<Attribute>().add(new _dir("in")).
 									  add(new source("p_rate")),new List<Element>()));
 				o.addElement(new port(new List<Attribute>().add(new _dir("out")).
-									  add(new source("deci_0")).add(new _typeName("bool")),
+									  add(new source("outDeci_"+ix)).add(new _typeName("bool")),
 									  new List<Element>()));
 				// module body
 				module body = new module(new List<Attribute>().add(new _kind("body")),
@@ -496,15 +506,15 @@ aspect Actions {
 				loop.addElement(body);
 				// x[i]
 				operation vref = new operation(new List<Attribute>().add(new _kind("var_ref")).
-											   add(new _name(((ComplexElement)getElement(0)).getAttribute(1).value())),
+											   add(new _name(outVar)),
 											   new List<Element>());
 				body.addElement(vref);
 				vref.addElement(new port(new List<Attribute>().add(new _dir("in")).
-										 add(new source("i")),
+										 add(new source("out_i_"+ix)),
 										 new List<Element>()));
 				vref.addElement(new port(new List<Attribute>().add(new _dir("out")).
 										 add(new _size("32")).
-										 add(new source("tmp_0")).
+										 add(new source("outTmp_"+ix)).
 										 add(new _typeName("int")),
 										 new List<Element>()));
 				// ix+i
@@ -531,7 +541,7 @@ aspect Actions {
 										   add(new source("outIx_"+ix)),
 										   new List<Element>()));
 				assign.addElement(new port(new List<Attribute>().add(new _dir("in")).
-										   add(new source("tmp_0")),
+										   add(new source("outTmp_"+ix)),
 										   new List<Element>()));
 				// i+1
 				operation oneLit = new operation();
@@ -549,25 +559,25 @@ aspect Actions {
 				operation add = new operation(new List<Attribute>().add(new _kind("$add")),new List<Element>());
 				body.addElement(add);
 				add.addElement(new port(new List<Attribute>().add(new _dir("in")).
-										add(new source("i")),
+										add(new source("out_i_"+ix)),
 										new List<Element>()));
 				add.addElement(new port(new List<Attribute>().add(new _dir("in")).
 										add(new source("one__"+tmpIndex)),
 										new List<Element>()));
 				add.addElement(new port(new List<Attribute>().add(new _dir("out")).
 										add(new _size("32")).
-										add(new source("i_tmp")).
+										add(new source("out_i_tmp_"+ix)).
 										add(new _typeName("int")),
 										new List<Element>()));
 				// i:=i+1
 				operation noop = new operation(new List<Attribute>().add(new _kind("noop")),new List<Element>());
 				body.addElement(noop);
 				noop.addElement(new port(new List<Attribute>().add(new _dir("in")).
-										add(new source("i_tmp")),
+										add(new source("out_i_tmp_"+ix)),
 										new List<Element>()));
 				noop.addElement(new port(new List<Attribute>().add(new _dir("out")).
 										add(new _size("32")).
-										add(new source("i_new")).
+										add(new source("out_i_new_"+ix)).
 										add(new _typeName("int")),
 										new List<Element>()));
 				//***********************
@@ -658,12 +668,185 @@ aspect Actions {
 	List<Element> operation.setInVar(int ix, String srcPort, int bufSize, int cRate) {
 		// System.out.println("operation.setInvar");
 		if (kind().equals("pinRead") && portName().equals(srcPort)) {
-			if (bufSize > 1) {
-				setAttributeList(new List().add(new _kind("var_ref")).
-								 add(new _name("buf_"+ix)));
-				// if (cRate > 1) {
-				// 	return new List<Element>();
-				// } else {
+			if (cRate > 1) {
+				String inVar = ((ComplexElement)getElement(0)).getAttribute(1).value();
+				// setAttributeList(new List<Attribute>().
+				// 				 add(new _kind("$literal_Integer")).
+				// 				 add(new _value("0")));
+				// setElementList(new List<Element>().
+				// 			   add(new port(new List<Attribute>().
+				// 							add(new _dir("out")).
+				// 							add(new _size("32")).
+				// 							add(new source("loop_init")).
+				// 							add(new _typeName("int")),
+				// 							new List<Element>())));
+				setAttributeList(new List<Attribute>().
+								 add(new _kind("$valloc")));
+				List<Element> eList = new List<Element>();
+				// First, declare loop variable initial value (0)
+				eList.add(new operation(new List<Attribute>().add(new _kind("$literal_Integer")).
+										add(new _value("0")),
+										new List<Element>().
+										add(new port(new List<Attribute>().
+													 add(new _dir("out")).
+													 add(new _size("32")).
+													 add(new source("loop_init")).
+													 add(new _typeName("int")),
+													 new List<Element>()))));
+				
+				module loop = new module();
+				eList.add(loop);
+				loop.setAttributeList(new List<Attribute>().add(new _kind("loop")));		
+				// PHI module
+				PHI phi = new PHI();
+				loop.addElement(phi);
+				port p = new port();
+				phi.addElement(p);
+				p.setAttributeList(new List<Attribute>().
+								   add(new _dir("in")).
+								   add(new source("loop_init")));
+				p = new port();
+				phi.addElement(p);
+				p.setAttributeList(new List<Attribute>().
+								   add(new _dir("in")).
+								   add(new source("i_new")));
+				p = new port();
+				phi.addElement(p);
+				p.setAttributeList(new List<Attribute>().
+								   add(new _dir("out")).
+								   add(new _size("32")).
+								   add(new source("i")).
+								   add(new _typeName("int")));
+				// module decision
+				module deci = new module();
+				loop.addElement(deci);
+				deci.setAttributeList(new List<Attribute>().add(new decision("deci_0")).
+								   add(new _kind("test")));
+				deci.addElement(new operation(new List<Attribute>().add(new _kind("$literal_Integer")).
+											  add(new _value(Integer.toString(cRate))),
+											  new List<Element>().add(new port(new List<Attribute>().
+																			   add(new _dir("out")).
+																			   add(new _size("32")).
+																			   add(new source("c_rate")).
+																			   add(new _typeName("int")),
+																			   new List<Element>()))));
+				operation o = new operation(new List<Attribute>().add(new _kind("$lt")),
+											new List<Element>());
+				deci.addElement(o);
+				o.addElement(new port(new List<Attribute>().add(new _dir("in")).
+									  add(new source("i")),new List<Element>()));
+				o.addElement(new port(new List<Attribute>().add(new _dir("in")).
+									  add(new source("c_rate")),new List<Element>()));
+				o.addElement(new port(new List<Attribute>().add(new _dir("out")).
+									  add(new source("deci_0")).add(new _typeName("bool")),
+									  new List<Element>()));
+				// module body
+				module body = new module(new List<Attribute>().add(new _kind("body")),
+										 new List<Element>());
+				loop.addElement(body);
+				// buf[i]
+				operation vref = new operation(new List<Attribute>().add(new _kind("var_ref")).
+											   add(new _name("buf_"+ix)),
+											   new List<Element>());
+				body.addElement(vref);
+				vref.addElement(new port(new List<Attribute>().add(new _dir("in")).
+										 add(new source("inIx_"+ix)),
+										 new List<Element>()));
+				vref.addElement(new port(new List<Attribute>().add(new _dir("out")).
+										 add(new _size("32")).
+										 add(new source("tmp_0")).
+										 add(new _typeName("int")),
+										 new List<Element>()));
+				// ix+i
+				// operation add = new operation(new List<Attribute>().add(new _kind("$add")),
+				// 							  new List<Element>());
+				// body.addElement(add);
+				// add.addElement(new port(new List<Attribute>().add(new _dir("in")).
+				// 						 add(new source("i")),
+				// 						 new List<Element>()));
+				// add.addElement(new port(new List<Attribute>().add(new _dir("in")).
+				// 						 add(new source("outIx_"+ix)),
+				// 						 new List<Element>()));
+				// add.addElement(new port(new List<Attribute>().add(new _dir("out")).
+				// 						 add(new _size("32")).
+				// 						 add(new source("tmp_0")).
+				// 						 add(new _typeName("int")),
+				// 						 new List<Element>()));
+				// buf[ix] = x[i]
+				operation assign = new operation(new List<Attribute>().add(new _kind("assign")).
+												 add(new target(inVar)),
+												 new List<Element>());
+				body.addElement(assign);
+				assign.addElement(new port(new List<Attribute>().add(new _dir("in")).
+										   add(new source("i")),
+										   new List<Element>()));
+				assign.addElement(new port(new List<Attribute>().add(new _dir("in")).
+										   add(new source("tmp_0")),
+										   new List<Element>()));
+				// i+1
+				operation oneLit = new operation();
+				body.addElement(oneLit);
+				oneLit.setAttributeList(new List<Attribute>().add(new _kind("$literal_Integer")).
+										add(new _value("1")));
+				List<Element> litList = new List<Element>();
+				oneLit.setElementList(litList);
+				port litPort = new port();
+				litPort.setElementList(new List<Element>());
+				litPort.setAttributeList(new List<Attribute>().add(new _dir("out")).
+										 add(new _size("32")).add(new source("one__"+tmpIndex)).
+										 add(new _typeName("int")));
+				litList.add(litPort);
+				operation add = new operation(new List<Attribute>().add(new _kind("$add")),new List<Element>());
+				body.addElement(add);
+				add.addElement(new port(new List<Attribute>().add(new _dir("in")).
+										add(new source("i")),
+										new List<Element>()));
+				add.addElement(new port(new List<Attribute>().add(new _dir("in")).
+										add(new source("one__"+tmpIndex)),
+										new List<Element>()));
+				add.addElement(new port(new List<Attribute>().add(new _dir("out")).
+										add(new _size("32")).
+										add(new source("i_tmp")).
+										add(new _typeName("int")),
+										new List<Element>()));
+				// i:=i+1
+				operation noop = new operation(new List<Attribute>().add(new _kind("noop")),new List<Element>());
+				body.addElement(noop);
+				noop.addElement(new port(new List<Attribute>().add(new _dir("in")).
+										add(new source("i_tmp")),
+										new List<Element>()));
+				noop.addElement(new port(new List<Attribute>().add(new _dir("out")).
+										add(new _size("32")).
+										add(new source("i_new")).
+										add(new _typeName("int")),
+										new List<Element>()));
+				//***********************
+				// First, increase buffer out index
+				//***********************
+				// operation addOp = new operation();
+				// body.addElement(addOp);
+				// addOp.setAttributeList(new List<Attribute>().add(new _kind("$add")));
+				// List<Element> addElements = new List<Element>();
+				// addOp.setElementList(addElements);
+				// addElements.add(new port(new List<Attribute>().add(new _dir("in")).
+				// 						 add(new source("one_"+tmpIndex)),new List<Element>())).
+				// 	add(new port(new List<Attribute>().add(new _dir("in")).
+				// 				 add(new source("outIx_"+ix)),new List<Element>())).
+				// 	add(new port(new List<Attribute>().add(new _dir("out")).
+				// 				 add(new _size("32")).add(new source("outIx"+ix+"_add")).
+				// 				 add(new _typeName("int")),
+				// 				 new List<Element>()));
+				for (Element e : increaseBufferIx(ix,bufSize,"outIx_")) {
+					body.addElement(e);
+				}
+				return eList;
+			} else {
+				if (bufSize > 1) {
+					setAttributeList(new List().add(new _kind("var_ref")).
+									 add(new _name("buf_"+ix)));
+					// if (cRate > 1) {
+					// 	return new List<Element>();
+					// } else {
 					// Scalar buffers does not need this
 					port indexPort = new port();
 					indexPort.setAttributeList(new List().add(new _dir("in")).
@@ -673,14 +856,15 @@ aspect Actions {
 					// OK, so then add operations to increase buffer index,
 					// mod size.
 					return increaseBufferIx(ix,bufSize,"inIx_");
-				// }
-			} else {
-				setAttributeList(new List().add(new _kind("noop")));
-				port inPort = new port();
-				inPort.setAttributeList(new List().add(new _dir("in")).
-										add(new source("buf_"+ix)));
-				getElements().insertChild(inPort,0);
-				return new List<Element>();
+					// }
+				} else {
+					setAttributeList(new List().add(new _kind("noop")));
+					port inPort = new port();
+					inPort.setAttributeList(new List().add(new _dir("in")).
+											add(new source("buf_"+ix)));
+					getElements().insertChild(inPort,0);
+					return new List<Element>();
+				}
 			}
 		}
 		// Not done anything so return empty list
