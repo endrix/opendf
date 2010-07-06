@@ -37,6 +37,10 @@
 
 package eu.actorsproject.cli;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintStream;
+
 import eu.actorsproject.util.XmlPrinter;
 import eu.actorsproject.xlim.XlimDesign;
 import eu.actorsproject.xlim.schedule.ActionSchedule;
@@ -63,8 +67,20 @@ public class ActorClassifier extends CheckXlim {
 	private CopyPropagation mCopyPropagation;
 	private DeadCodeAnalysis mDeadCodeAnalysis;
 	private DeadCodeRemoval mDeadCodeRemoval;
-	private XmlPrinter mPrinter=new XmlPrinter(System.out);
-	
+	private XmlPrinter mPrinter ; 
+
+	public ActorClassifier (String outdir){
+		try {
+			mPrinter=new XmlPrinter(new PrintStream(new File(outdir)));
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public ActorClassifier(){
+		mPrinter=new XmlPrinter(System.out);
+	}
+
 	@Override
 	public void initSession(String args[]) {
 		super.initSession(args);
@@ -72,7 +88,7 @@ public class ActorClassifier extends CheckXlim {
 		mDeadCodeAnalysis=new DeadCodeAnalysis();
 		mDeadCodeRemoval=new DeadCodeRemoval();
 	}
-	
+
 	@Override
 	protected XlimDesign read() {
 		XlimDesign design=super.read();
@@ -91,28 +107,43 @@ public class ActorClassifier extends CheckXlim {
 			System.out.println();
 		}
 		return design;
-    }
-	
+	}
+
 	protected void copyPropagate(XlimDesign design) {
 		mCopyPropagation.copyPropagate(design);
 	}
-	
+
 	protected void deadCodeElimination(XlimDesign design) {
 		DeadCodePlugIn deadCode=mDeadCodeAnalysis.findDeadCode(design);
 		mDeadCodeRemoval.deadCodeRemoval(design, deadCode);
 	}
-	
+
 	@Override
 	protected void printHelp() {
 		String myName=getClass().getSimpleName();
-		System.out.println("\nUsage: "+myName+" input-files...");
+		System.out.println("\nUsage: " + myName + " [-o output file] input-files" );
 		System.out.println("\nClassifies the behavior of an actor (specified in XLIM)\n");
+		System.out.println("\n [Options] \n");
+		System.out.println("\n -o : specifies the output file \n");
 	}
-	
+
 	public static void main(String[] args) {
-		ActorClassifier compilerSession=new ActorClassifier();
-		compilerSession.runFromCommandLine(args);
+		ActorClassifier compilerSession ; 		 
+		if(args.length != 0 && args[0].equals("-o")){
+			String[] argswo =  new String[args.length-2];
+			for (int i=0; i < args.length-2; i++){
+				argswo[i] = args[i+2];
+			}
+			compilerSession=new ActorClassifier(args[1]);
+			compilerSession.runFromCommandLine(argswo);
+		}
+		else {
+			compilerSession=new ActorClassifier();
+			compilerSession.runFromCommandLine(args);
+		}
+
 		if (compilerSession.mHasErrors)
 			System.exit(1);
+
 	}
 }
