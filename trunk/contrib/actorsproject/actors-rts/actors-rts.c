@@ -333,7 +333,9 @@ void setParameter(AbstractActorInstance *pInstance,
   
   if (strcmp(key, "affinity") == 0) {
     instance->affinity = atoi(value);
-  } else {
+  } else if (strcmp(key, "activeMode") == 0){
+		instance->actorClass->actorExecMode=1;	
+	}else {
     Parameter_1_t *parameter = malloc(sizeof(*parameter));
 
     parameter->next = instance->parameter;
