@@ -41,7 +41,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 /**
- *  @author Jörn W. Janneck <janneck@eecs.berkeley.edu>
+ *  @author Jï¿½rn W. Janneck <janneck@eecs.berkeley.edu>
  */
 
 public class TypedPlatform implements Platform {
@@ -722,7 +722,7 @@ public class TypedPlatform implements Platform {
         		}
         	}
         }));
-
+/*
         env.bind("$mod", context().createFunction(new Function() {
             public Object apply(Object[] args) {
                 try {
@@ -748,6 +748,56 @@ public class TypedPlatform implements Platform {
                 return 2;
             }
         }));
+*/
+ env.bind("$mod", context().createFunction(new AbstractBinarySBFunction() {
+
+    	    protected TypedObject  doValueFunction(TypedObject a, TypedObject b) {
+    	    	if (context().isInteger(a)) {
+    	    		if (context().isInteger(b)) {
+    	    			BigInteger n = context().asBigInteger(a).mod(context().asBigInteger(b));
+    	    			return (TypedObject)context().createInteger(n, n.bitLength() + 1, true);
+    	    		} else if (context().isReal(b)) {
+    	    			return (TypedObject)context().createReal(context().asBigInteger(a).doubleValue() % context().realValue(b));
+    	    		} else
+    	    			throw new RuntimeException("Cannot mod.");
+    	    	} else if (context().isReal(a)) {
+    	    		if (context().isInteger(b)) {
+    	    			return (TypedObject)context().createReal(context().realValue(a) % context().asBigInteger(b).doubleValue());
+    	    		} else if (context().isReal(b)) {
+    	    			return (TypedObject)context().createReal(context().realValue(a) % context().realValue(b));
+    	    		} else
+    	    			throw new RuntimeException("Cannot mod.");
+    	    	} else
+    	    		throw new RuntimeException("Cannot mod.");
+    	    }
+
+        	protected Type doTypeFunction(Type a, Type b) {
+        		if (Type.nameInt.equals(a.getName())) {
+        			if (Type.nameInt.equals(b.getName())) {
+        				int bitLength = a.getBitLength(32);
+        				
+        				return Type.create(Type.nameInt, 
+        						Collections.EMPTY_MAP, 
+        						Collections.singletonMap(Type.vparSize, new Integer(bitLength)));
+        			} else if (Type.nameReal.equals(b.getName())) {
+        				return Type.typeReal;
+        			} else {
+        				throw new RuntimeException("Cannot mod types.");
+        			}
+        		} else if (Type.nameReal.equals(a.getName())) {
+        			if (Type.nameInt.equals(b.getName()) || Type.nameReal.equals(b.getName())) {
+        				return Type.typeReal;
+        			} else {
+            			throw new RuntimeException("Cannot mod types: " + a + ", " + b + ".");
+        			}	
+        		} else {
+        			throw new RuntimeException("Cannot mod types: " + a + ", " + b + ".");
+        		}
+        	}
+        }));
+
+
+
 
         env.bind("$size", context().createFunction(new Function() {
             public Object apply(Object[] args) {
@@ -1094,9 +1144,430 @@ public class TypedPlatform implements Platform {
           		return 2;
           	}
           }));
+	      
+	      
+	// ------------------------------------------ ETSI Hack starts ------------------------------------------
+	     
+	      env.bind("ETSI_negate", context().createFunction(new AbstractUnarySBFunction() {
+	          public TypedObject doValueFunction (TypedObject a) {
+	        	  return new TypedObject(doTypeFunction(a.getType()), TypedContext.UNDEFINED);
+	          }
+	          protected Type doTypeFunction(Type a) {
+        		int bitLength = 16;
+        		return Type.create(Type.nameInt, 
+					   Collections.EMPTY_MAP, 
+					   Collections.singletonMap(Type.vparSize, new Integer(bitLength)));	        		
+	    	    }
+	          
+	      }));
+	      
+	      env.bind("ETSI_L_negate", context().createFunction(new AbstractUnarySBFunction() {
+	          public TypedObject doValueFunction (TypedObject a) {
+	        	  return new TypedObject(doTypeFunction(a.getType()), TypedContext.UNDEFINED);
+	          }
+	          protected Type doTypeFunction(Type a) {
+	        		int bitLength = 32;
+	        		return Type.create(Type.nameInt, 
+	        				   Collections.EMPTY_MAP, 
+	        				   Collections.singletonMap(Type.vparSize, new Integer(bitLength)));	        		
+	    	    }
+	          
+	      }));
+	      
+	      env.bind("ETSI_add", context().createFunction(new AbstractBinarySBFunction() {
+	          public TypedObject doValueFunction (TypedObject a, TypedObject b) {
+	        	  return new TypedObject(doTypeFunction(a.getType(), b.getType()), TypedContext.UNDEFINED);
+	          }
+	          
+	          protected Type doTypeFunction(Type a, Type b) {
+	        	int bitLength = 16;
+	        	return Type.create(Type.nameInt, 
+	        			   Collections.EMPTY_MAP, 
+	        			   Collections.singletonMap(Type.vparSize, new Integer(bitLength)));	        		
+	    	    }	          
+	      }));
+	      
+	      env.bind("ETSI_sub", context().createFunction(new AbstractBinarySBFunction() {
+	          public TypedObject doValueFunction (TypedObject a, TypedObject b) {
+	        	  return new TypedObject(doTypeFunction(a.getType(), b.getType()), TypedContext.UNDEFINED);
+	          }
+	          
+	          protected Type doTypeFunction(Type a, Type b) {
+        		int bitLength = 16;
+	        	return Type.create(Type.nameInt, 
+	        			   Collections.EMPTY_MAP, 
+	        			   Collections.singletonMap(Type.vparSize, new Integer(bitLength)));	        		
+	    	    }	          
+	      }));
+	      
+	      env.bind("ETSI_L_add", context().createFunction(new AbstractBinarySBFunction() {
+	          public TypedObject doValueFunction (TypedObject a, TypedObject b) {
+	        	  return new TypedObject(doTypeFunction(a.getType(), b.getType()), TypedContext.UNDEFINED);
+	          }
+	          
+	          protected Type doTypeFunction(Type a, Type b) {
+        		int bitLength = 32;
+        		return Type.create(Type.nameInt, 
+					   Collections.EMPTY_MAP, 
+					   Collections.singletonMap(Type.vparSize, new Integer(bitLength)));	        		
+	    	    }	          
+	      }));
+	      
+	      env.bind("ETSI_L_sub", context().createFunction(new AbstractBinarySBFunction() {
+	          public TypedObject doValueFunction (TypedObject a, TypedObject b) {
+	        	return new TypedObject(doTypeFunction(a.getType(), b.getType()), TypedContext.UNDEFINED);
+	          }
+	          
+	          protected Type doTypeFunction(Type a, Type b) {
+        		int bitLength = 32;
+        		return Type.create(Type.nameInt, 
+					   Collections.EMPTY_MAP, 
+					   Collections.singletonMap(Type.vparSize, new Integer(bitLength)));	        		
+	    	    }	          
+	      }));
+	      
+	      env.bind("ETSI_saturate", context().createFunction(new AbstractUnarySBFunction() {
+	          public TypedObject doValueFunction (TypedObject a) {
+	        	return new TypedObject(doTypeFunction(a.getType()), TypedContext.UNDEFINED);
+	          }
+	          protected Type doTypeFunction(Type a) {
+        		int bitLength = 16;
+        		return Type.create(Type.nameInt, 
+					   Collections.EMPTY_MAP, 
+					   Collections.singletonMap(Type.vparSize, new Integer(bitLength)));	        		
+	    	    }
+	          
+	      }));
+	      
+	      env.bind("ETSI_shr", context().createFunction(new AbstractBinarySBFunction() {
+	          public TypedObject doValueFunction (TypedObject a, TypedObject b) {
+	        	return new TypedObject(doTypeFunction(a.getType(), b.getType()), TypedContext.UNDEFINED);
+	          }
+	          
+	          protected Type doTypeFunction(Type a, Type b) {
+       			int bitLength = 16;
+	        	return Type.create(Type.nameInt, 
+	        			   Collections.EMPTY_MAP, 
+	        		   	   Collections.singletonMap(Type.vparSize, new Integer(bitLength)));	        		
+	    	    }	          
+	      }));
+	      
+	      env.bind("ETSI_shl", context().createFunction(new AbstractBinarySBFunction() {
+	          public TypedObject doValueFunction (TypedObject a, TypedObject b) {
+	        	  return new TypedObject(doTypeFunction(a.getType(), b.getType()), TypedContext.UNDEFINED);
+	          }
+	          
+	          protected Type doTypeFunction(Type a, Type b) {
+        		int bitLength = 16;
+        		return Type.create(Type.nameInt, 
+					   Collections.EMPTY_MAP, 
+					   Collections.singletonMap(Type.vparSize, new Integer(bitLength)));	        		
+	    	    }	          
+	      }));
+	      
+	      env.bind("ETSI_L_shr", context().createFunction(new AbstractBinarySBFunction() {
+	          public TypedObject doValueFunction (TypedObject a, TypedObject b) {
+	        	  return new TypedObject(doTypeFunction(a.getType(), b.getType()), TypedContext.UNDEFINED);
+	          }
+	          
+	          protected Type doTypeFunction(Type a, Type b) {
+        		int bitLength = 32;
+        		return Type.create(Type.nameInt, 
+	        			   Collections.EMPTY_MAP, 
+	        			   Collections.singletonMap(Type.vparSize, new Integer(bitLength)));	        		
+	    	    }	          
+	      }));
+	      
+	      env.bind("ETSI_L_shl", context().createFunction(new AbstractBinarySBFunction() {
+	          public TypedObject doValueFunction (TypedObject a, TypedObject b) {
+	        	  return new TypedObject(doTypeFunction(a.getType(), b.getType()), TypedContext.UNDEFINED);
+	          }
+	          
+	          protected Type doTypeFunction(Type a, Type b) {
+	        	int bitLength = 32;
+	        	return Type.create(Type.nameInt, 
+	        			   Collections.EMPTY_MAP, 
+	        			   Collections.singletonMap(Type.vparSize, new Integer(bitLength)));	        		
+	    	    }	          
+	      }));
+	      
+	      env.bind("ETSI_L_mult", context().createFunction(new AbstractBinarySBFunction() {
+	          public TypedObject doValueFunction (TypedObject a, TypedObject b) {
+	        	  return new TypedObject(doTypeFunction(a.getType(), b.getType()), TypedContext.UNDEFINED);
+	          }
+	          
+	          protected Type doTypeFunction(Type a, Type b) {
+        		int bitLength = 32;
+        		return Type.create(Type.nameInt, 
+	        			   Collections.EMPTY_MAP, 
+	        			   Collections.singletonMap(Type.vparSize, new Integer(bitLength)));	        		
+	    	    }	          
+	      }));
+	      
+	      env.bind("ETSI_mult", context().createFunction(new AbstractBinarySBFunction() {
+	          public TypedObject doValueFunction (TypedObject a, TypedObject b) {
+	        	  return new TypedObject(doTypeFunction(a.getType(), b.getType()), TypedContext.UNDEFINED);
+	          }
+	          
+	          protected Type doTypeFunction(Type a, Type b) {
+        		int bitLength = 16;
+        		return Type.create(Type.nameInt, 
+        				   Collections.EMPTY_MAP, 
+	        			   Collections.singletonMap(Type.vparSize, new Integer(bitLength)));	        		
+	    	    }	          
+	      }));
+	      
+	      env.bind("ETSI_extract_h", context().createFunction(new AbstractUnarySBFunction() {
+	          public TypedObject doValueFunction (TypedObject a) {
+	        	  return new TypedObject(doTypeFunction(a.getType()), TypedContext.UNDEFINED);
+	          }
+	          protected Type doTypeFunction(Type a) {
+	        	int bitLength = 16;
+	        	return Type.create(Type.nameInt, 
+	        			   Collections.EMPTY_MAP, 
+	        			   Collections.singletonMap(Type.vparSize, new Integer(bitLength)));	        		
+	    	    }
+	          
+	      }));
+	      
+	      env.bind("ETSI_extract_l", context().createFunction(new AbstractUnarySBFunction() {
+	          public TypedObject doValueFunction (TypedObject a) {
+	        	  return new TypedObject(doTypeFunction(a.getType()), TypedContext.UNDEFINED);
+	          }
+	          protected Type doTypeFunction(Type a) {
+	        		int bitLength = 16;
+	        		return Type.create(Type.nameInt, 
+	        				   Collections.EMPTY_MAP, 
+	        				   Collections.singletonMap(Type.vparSize, new Integer(bitLength)));	        		
+	    	    }
+	          
+	      }));
+	      
+	      env.bind("ETSI_round", context().createFunction(new AbstractUnarySBFunction() {
+	          public TypedObject doValueFunction (TypedObject a) {	 
+	        	  return new TypedObject(doTypeFunction(a.getType()), TypedContext.UNDEFINED);
+	          }
+	          protected Type doTypeFunction(Type a) {
+	        		int bitLength = 32;
+	        		return Type.create(Type.nameInt, 
+	        				   Collections.EMPTY_MAP, 
+	        				   Collections.singletonMap(Type.vparSize, new Integer(bitLength)));	        		
+	    	    }
+	          
+	      }));
+	      
+	      env.bind("ETSI_L_mac", context().createFunction(new AbstractTernarySBFunction() {
+	          public TypedObject doValueFunction (TypedObject a, TypedObject b, TypedObject c) {
+	              return new TypedObject(doTypeFunction(a.getType(), b.getType(), c.getType()), TypedContext.UNDEFINED);
+	          }
+	          
+	          protected Type doTypeFunction(Type a, Type b, Type c) {
+	        	int bitLength = 32;
+	        	return Type.create(Type.nameInt, 
+	        			   Collections.EMPTY_MAP, 
+	        			   Collections.singletonMap(Type.vparSize, new Integer(bitLength)));	        		
+	    	    }	          
+	      }));
+	      
+	      env.bind("ETSI_L_msu", context().createFunction(new AbstractTernarySBFunction() {
+	          public TypedObject doValueFunction (TypedObject a, TypedObject b, TypedObject c) {
+	        	  return new TypedObject(doTypeFunction(a.getType(), b.getType(), c.getType()), TypedContext.UNDEFINED);
+	          }
+	          
+	          protected Type doTypeFunction(Type a, Type b, Type c) {
+	        		int bitLength = 32;
+	        		return Type.create(Type.nameInt, 
+	        						   Collections.EMPTY_MAP, 
+	        						   Collections.singletonMap(Type.vparSize, new Integer(bitLength)));	        		
+	    	    }	          
+	      }));
+	      
+	      env.bind("ETSI_L_abs", context().createFunction(new AbstractUnarySBFunction() {
+	          public TypedObject doValueFunction (TypedObject a) {
+	        	  return new TypedObject(doTypeFunction(a.getType()), TypedContext.UNDEFINED);
+	          }
+	          protected Type doTypeFunction(Type a) {
+	        	int bitLength = 32;
+	        	return Type.create(Type.nameInt, 
+	        			   Collections.EMPTY_MAP, 
+	        			   Collections.singletonMap(Type.vparSize, new Integer(bitLength)));	        		
+	    	    }
+	          
+	      }));
+	      
+	      env.bind("ETSI_L_deposit_h", context().createFunction(new AbstractUnarySBFunction() {
+	          public TypedObject doValueFunction (TypedObject a) {
+	        	  return new TypedObject(doTypeFunction(a.getType()), TypedContext.UNDEFINED);
+	          }
+	          protected Type doTypeFunction(Type a) {
+	        	int bitLength = 32;
+	        	return Type.create(Type.nameInt, 
+	        			   Collections.EMPTY_MAP, 
+	        			   Collections.singletonMap(Type.vparSize, new Integer(bitLength)));	        		
+	    	    }
+	          
+	      }));
+	      
+	      env.bind("ETSI_L_deposit_l", context().createFunction(new AbstractUnarySBFunction() {
+	          public TypedObject doValueFunction (TypedObject a) {
+	        	  return new TypedObject(doTypeFunction(a.getType()), TypedContext.UNDEFINED);
+	          }
+	          protected Type doTypeFunction(Type a) {
+	        	int bitLength = 32;
+	        	return Type.create(Type.nameInt, 
+	        			   Collections.EMPTY_MAP, 
+	        			   Collections.singletonMap(Type.vparSize, new Integer(bitLength)));	        		
+	    	    }
+	          
+	      }));
+	      
+	      env.bind("ETSI_norm_s", context().createFunction(new AbstractUnarySBFunction() {
+	          public TypedObject doValueFunction (TypedObject a) {
+	        	  return new TypedObject(doTypeFunction(a.getType()), TypedContext.UNDEFINED);
+	          }
+	          protected Type doTypeFunction(Type a) {
+        		int bitLength = 16;
+        		return Type.create(Type.nameInt, 
+	        			   Collections.EMPTY_MAP, 
+	        			   Collections.singletonMap(Type.vparSize, new Integer(bitLength)));	        		
+	    	    }
+	          
+	      }));
+	      
+	      env.bind("ETSI_abs_s", context().createFunction(new AbstractUnarySBFunction() {
+	          public TypedObject doValueFunction (TypedObject a) {
+	        	  return new TypedObject(doTypeFunction(a.getType()), TypedContext.UNDEFINED);
+	          }
+	          protected Type doTypeFunction(Type a) {
+	        	int bitLength = 32;
+	        	return Type.create(Type.nameInt, 
+	        			   Collections.EMPTY_MAP, 
+	        			   Collections.singletonMap(Type.vparSize, new Integer(bitLength)));	        		
+	    	    }
+	          
+	      }));
+	      
+	      env.bind("ETSI_div_s", context().createFunction(new AbstractBinarySBFunction() {
+	          public TypedObject doValueFunction (TypedObject a, TypedObject b) {
+	        	  return new TypedObject(doTypeFunction(a.getType(), b.getType()), TypedContext.UNDEFINED);
+	          }
+	          
+	          protected Type doTypeFunction(Type a, Type b) {
+        		int bitLength = 16;
+        		return Type.create(Type.nameInt, 
+      					   Collections.EMPTY_MAP, 
+	        			   Collections.singletonMap(Type.vparSize, new Integer(bitLength)));	        		
+	    	    }	          
+	      }));
+	      
+	      env.bind("ETSI_norm_l", context().createFunction(new AbstractUnarySBFunction() {
+	          public TypedObject doValueFunction (TypedObject a) {
+	        	  return new TypedObject(doTypeFunction(a.getType()), TypedContext.UNDEFINED);
+	          }
+	          protected Type doTypeFunction(Type a) {
+	        	int bitLength = 16;
+	        	return Type.create(Type.nameInt, 
+	        			   Collections.EMPTY_MAP, 
+	        			   Collections.singletonMap(Type.vparSize, new Integer(bitLength)));	        		
+	    	    }
+	          
+	      }));
+	      
+	      env.bind("ETSI_mult_r", context().createFunction(new AbstractBinarySBFunction() {
+	          public TypedObject doValueFunction (TypedObject a, TypedObject b) {
+	        	  return new TypedObject(doTypeFunction(a.getType(), b.getType()), TypedContext.UNDEFINED);
+	          }
+	          
+	          protected Type doTypeFunction(Type a, Type b) {
+			int bitLength = 16;
+        		return Type.create(Type.nameInt, 
+	        			   Collections.EMPTY_MAP, 
+	        			   Collections.singletonMap(Type.vparSize, new Integer(bitLength)));	        		
+	    	    }	          
+	      }));
+	      
+	      env.bind("ETSI_shr_r", context().createFunction(new AbstractBinarySBFunction() {
+	          public TypedObject doValueFunction (TypedObject a, TypedObject b) {
+	        	  return new TypedObject(doTypeFunction(a.getType(), b.getType()), TypedContext.UNDEFINED);
+	          }
+	          
+	          protected Type doTypeFunction(Type a, Type b) {
+	        	int bitLength = 16;
+	        	return Type.create(Type.nameInt, 
+	        			   Collections.EMPTY_MAP, 
+	        			   Collections.singletonMap(Type.vparSize, new Integer(bitLength)));	        		
+	    	    }	          
+	      }));
+	      
+	      env.bind("ETSI_L_Comp", context().createFunction(new AbstractBinarySBFunction() {
+	          public TypedObject doValueFunction (TypedObject a, TypedObject b) {
+	        	  return new TypedObject(doTypeFunction(a.getType(), b.getType()), TypedContext.UNDEFINED);
+	          }
+	          
+	          protected Type doTypeFunction(Type a, Type b) {
+	        	int bitLength = 32;
+	        	return Type.create(Type.nameInt, 
+	        			   Collections.EMPTY_MAP, 
+	        			   Collections.singletonMap(Type.vparSize, new Integer(bitLength)));	        		
+	    	    }	          
+	      }));
+	      
+	      env.bind("ETSI_L_shr_r", context().createFunction(new AbstractBinarySBFunction() {
+	          public TypedObject doValueFunction (TypedObject a, TypedObject b) {
+	        	  return new TypedObject(doTypeFunction(a.getType(), b.getType()), TypedContext.UNDEFINED);
+	          }
+	          
+	          protected Type doTypeFunction(Type a, Type b) {
+	        	int bitLength = 32;
+	        	return Type.create(Type.nameInt, 
+	        			   Collections.EMPTY_MAP, 
+	        			   Collections.singletonMap(Type.vparSize, new Integer(bitLength)));	        		
+	    	    }	          
+	      }));
+	      
+	      env.bind("ETSI_Mpy_32", context().createFunction(new AbstractQuaternarySBFunction() {
+	          public TypedObject doValueFunction (TypedObject a, TypedObject b, TypedObject c, TypedObject d) {
+	        	  return new TypedObject(doTypeFunction(a.getType(), b.getType(), c.getType(), d.getType()), TypedContext.UNDEFINED);
+	          }
+	          
+	          protected Type doTypeFunction(Type a, Type b, Type c, Type d) {
+	        	int bitLength = 32;
+	        	return Type.create(Type.nameInt, 
+	        			   Collections.EMPTY_MAP, 
+	        			   Collections.singletonMap(Type.vparSize, new Integer(bitLength)));	        		
+	    	    }	          
+	      }));
+	      
+	      env.bind("ETSI_Mpy_32_16", context().createFunction(new AbstractTernarySBFunction() {
+	          public TypedObject doValueFunction (TypedObject a, TypedObject b, TypedObject c) {
+	        	  return new TypedObject(doTypeFunction(a.getType(), b.getType(), c.getType()), TypedContext.UNDEFINED);
+	          }
+	          
+	          protected Type doTypeFunction(Type a, Type b, Type c) {
+	        	int bitLength = 32;
+	        	return Type.create(Type.nameInt, 
+	        			   Collections.EMPTY_MAP, 
+	        			   Collections.singletonMap(Type.vparSize, new Integer(bitLength)));	        		
+	    	    }	          
+	      }));
+	      
+	      env.bind("ETSI_Div_32", context().createFunction(new AbstractTernarySBFunction() {
+	          public TypedObject doValueFunction (TypedObject a, TypedObject b, TypedObject c) {
+	        	  return new TypedObject(doTypeFunction(a.getType(), b.getType(), c.getType()), TypedContext.UNDEFINED);
+	          }
+	          
+	          protected Type doTypeFunction(Type a, Type b, Type c) {
+	        	int bitLength = 32;
+	        	return Type.create(Type.nameInt, 
+	        			   Collections.EMPTY_MAP, 
+	        			   Collections.singletonMap(Type.vparSize, new Integer(bitLength)));	        		
+	    	    }	          
+	      }));
+	      // ------------------------------------------ ETSI Hack ends ------------------------------------------
 
-        return env;
+	      return env;
     }
+
 
     public static class FunctionComposition implements Function {
         public Object apply(Object[] args) {
