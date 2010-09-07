@@ -59,7 +59,16 @@ aspect Misc {
 		return "";
 	}
 
-	syn String actor_port.dir() {
+	syn String Element.dir() = null;
+	eq ComplexElement.dir() {
+		for (Element e: getElements()) {
+			if (e.dir() != null) {
+				return e.dir();
+			}
+		}
+		return null;
+	}
+	eq actor_port.dir() {
 		for (int i=0; i<getNumAttribute(); i++) {
 			Attribute a = getAttribute(i);
 			if (a instanceof _dir) {

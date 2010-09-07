@@ -432,6 +432,15 @@ aspect Actions {
 		if (kind().equals("pinWrite") && portName().equals(srcPort)) {
 			if (pRate > 1) {
 				String outVar = ((ComplexElement)getElement(0)).getAttribute(1).value();
+				typeDef elementType = getElement(0).typeDef();
+				String eTypeName = "int";
+				String eTypeSize = "32";
+				if (elementType == null) {
+					System.out.println("Could not find element type for: "+outVar);
+				} else {
+					eTypeName = elementType.elementTypeName();
+					eTypeSize = elementType.elementTypeSize();
+				}
 				setAttributeList(new List().
 								 add(new _kind("$literal_Integer")).
 								 add(new _value("0")));
@@ -513,9 +522,9 @@ aspect Actions {
 										 add(new source("out_i_"+ix)),
 										 new List<Element>()));
 				vref.addElement(new port(new List<Attribute>().add(new _dir("out")).
-										 add(new _size("32")).
+										 add(new _size(eTypeSize)).
 										 add(new source("outTmp_"+ix)).
-										 add(new _typeName("int")),
+										 add(new _typeName(eTypeName)),
 										 new List<Element>()));
 				// ix+i
 				// operation add = new operation(new List<Attribute>().add(new _kind("$add")),
@@ -670,6 +679,15 @@ aspect Actions {
 		if (kind().equals("pinRead") && portName().equals(srcPort)) {
 			if (cRate > 1) {
 				String inVar = ((ComplexElement)getElement(0)).getAttribute(1).value();
+				typeDef elementType = getElement(0).typeDef();
+				String eTypeName = "unknown";
+				String eTypeSize = "unknown";
+				if (elementType == null) {
+					System.out.println("Could not find element type for: "+inVar);
+				}
+				eTypeName = elementType.elementTypeName();
+				eTypeSize = elementType.elementTypeSize();
+				
 				// setAttributeList(new List<Attribute>().
 				// 				 add(new _kind("$literal_Integer")).
 				// 				 add(new _value("0")));
@@ -753,9 +771,9 @@ aspect Actions {
 										 add(new source("inIx_"+ix)),
 										 new List<Element>()));
 				vref.addElement(new port(new List<Attribute>().add(new _dir("out")).
-										 add(new _size("32")).
+										 add(new _size(eTypeSize)).
 										 add(new source("tmp_0")).
-										 add(new _typeName("int")),
+										 add(new _typeName(eTypeName)),
 										 new List<Element>()));
 				// ix+i
 				// operation add = new operation(new List<Attribute>().add(new _kind("$add")),
@@ -836,7 +854,7 @@ aspect Actions {
 				// 				 add(new _size("32")).add(new source("outIx"+ix+"_add")).
 				// 				 add(new _typeName("int")),
 				// 				 new List<Element>()));
-				for (Element e : increaseBufferIx(ix,bufSize,"outIx_")) {
+				for (Element e : increaseBufferIx(ix,bufSize,"inIx_")) {
 					body.addElement(e);
 				}
 				return eList;

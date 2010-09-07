@@ -7,6 +7,42 @@
  */                                                             
 
 aspect Misc {
+	design ASTNode.rootNode;
+	public void Start.setRoot() {
+		System.out.println("* Start.setRoot()");
+		getSpecification().setRoot();
+	}
+	void Specification.setRoot() {
+		System.out.println("* Specification.setRoot()");
+		getElement(0).setRoot();
+	}
+	void Element.setRoot(){}
+	void design.setRoot() {
+		System.out.println("* design.setRoot()");
+		rootNode = this;
+		for (Element e : getElements()) {
+			e.setRoot(this);
+		}
+	}
+	void Element.setRoot(design root) {}
+	void ComplexElement.setRoot(design root) {
+		rootNode = root;
+		for (Element e : getElements()) {
+			e.setRoot(root);
+		}
+	}
+
+	syn design ASTNode.root() = rootNode;
+	eq Start.root() = getSpecification().getElement(0).root();
+
+	// syn ASTNode ASTNode.root() {
+	// 	System.out.println("root() in "+this+":"+name());
+	// 	prettyPrint(" ",System.out);
+	// 	return getParent().root();
+	// }
+	// eq design.root() = this;
+	// eq Start.root() = getSpecification().getElement(0).root();
+
 	syn design Start.getDesign() = (design) getSpecification().getElement(0);
 	eq EmptyStart.getDesign() = new design(new List<Attribute>(),new List<Element>());
 
@@ -42,14 +78,6 @@ aspect Misc {
 		return null;
 	}
 
-	syn String actor_port.typeName() {
-		for (Attribute a : getAttributes()) {
-			if (a instanceof _typeName) {
-				return a.value();
-			}
-		}
-		return "";
-	}
 
 	syn String actor_port.size() {
 		for (Attribute a : getAttributes()) {
@@ -60,8 +88,6 @@ aspect Misc {
 		return "0";
 	}
 
-	syn Start ASTNode.root() = getParent().root();
-	eq Start.root() = this;
 
 	// int operation.numElements() {
 	// 	return root().numElements(lastPort().name());
