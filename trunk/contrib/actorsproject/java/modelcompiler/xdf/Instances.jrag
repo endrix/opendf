@@ -160,16 +160,16 @@ aspect Misc {
 	eq Instance.connection(String actor, String port) = 
 		getParent().connection(name(),port);
 	eq XDF.connection(String actor, String port) {
-		System.out.println("Looking for "+actor+":"+port);
+		// System.out.println("Looking for "+actor+":"+port);
 		for (Connection c : getConnections()) {			
-			System.out.println("   Checking "+c.getDestination()+":"+
-							   c.getDestinationPort());
-			System.out.println("   Checking "+c.getSrc()+":"+c.getSourcePort());
+			// System.out.println("   Checking "+c.getDestination()+":"+
+			// 				   c.getDestinationPort());
+			// System.out.println("   Checking "+c.getSrc()+":"+c.getSourcePort());
 			if (c.getDestination().equals(actor) && 
 				c.getDestinationPort().equals(port) ||
 				c.getSrc().equals(actor) && 
 				c.getSourcePort().equals(port)) {
-				System.out.println("    Found it!");
+				// System.out.println("    Found it!");
 				return c;
 			}
 		}

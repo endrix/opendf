@@ -43,12 +43,14 @@ aspect Build {
  
 		b.append("echo \"***** gcc $NETWORK.xdf *****\"\n");
 		b.append("gcc -c  $FLAGS -Wall \"-I$ACTORSHOME/include\"  -o ${NETWORK}.o ${NETWORK}.c \n\n");
+		b.append("gcc -c  $FLAGS -Wall \"-I$ACTORSHOME/include\"  `sdl-config --cflags` -o display-sdl.o $ACTORSHOME/share/sysactors/c/display-sdl.c\n\n");
 
 		b.append("echo \"***** link $FLAGS *****\"\n");
 		b.append("for i in $ACTORS; do\n");
 		b.append("  OBJECTS+=$i.o' '\n");
 		b.append("done\n");
-		b.append("gcc $FLAGS $OBJECTS  ${NETWORK}.o -L$ACTORSHOME/lib -Wl,-rpath=$ACTORSHOME/lib -lactors-rts -lpthread `xml2-config --libs` -o $NETWORK\n");
+		b.append("OBJECTS+=display-sdl.o\n\n");
+		b.append("gcc $FLAGS $OBJECTS  ${NETWORK}.o -L$ACTORSHOME/lib -Wl,-rpath=$ACTORSHOME/lib -lactors-rts -lpthread `xml2-config --libs` `sdl-config --libs` -o $NETWORK\n");
 		return b;
 	}
 }

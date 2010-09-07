@@ -1,0 +1,104 @@
+/* -*-Java-*- */                                         
+
+/*
+ * Copyright (C) 2009  Anders Nilsson <anders.nilsson@cs.lth.se>
+ *                                                              
+ * This file is part of Actors model compiler.                      
+ */                                                             
+
+aspect TypeLookup {
+	syn port Element.findDecl() = null;
+	eq ComplexElement.findDecl() {
+		if (source() != null) {
+			return root().findDecl(source());
+		} else {
+			return null;
+		}
+	}
+	
+	syn port ASTNode.findDecl(String name) = null;
+	eq ComplexElement.findDecl(String name) {
+		for (Element e: getElements()) {
+			if (e.findDecl(name) != null) {
+				return e.findDecl(name);
+			}
+		}
+		return null;
+	}
+	eq port.findDecl(String name) {
+		if (dir().equals("out") && source().equals(name)) {
+			return this;
+		} else {
+			return null;
+		}
+	}
+
+	// syn String Element.type() = "unknownType";
+	// eq port.type() = typeName().value();
+
+	// syn Attribute ASTNode.typeName() = null;
+	// eq ComplexElement.typeName() {
+	// 	for (Attribute a : getAttributes()) {
+	// 		if (a.typeName() != null) {
+	// 			return a.typeName();
+	// 		}
+	// 	}
+	// 	return null;
+	// }
+	// eq _typeName.typeName() = this;
+
+	syn String ComplexElement.typeName() {
+		for (Attribute a : getAttributes()) {
+			if (a instanceof _typeName) {
+				return a.value();
+			}
+		}
+		return "";
+	}
+
+	syn typeDef Element.typeDef() = null;
+	eq port.typeDef() {
+		System.out.println("Looking for typedef. of: "+typeName());
+		return root().findTypeDef(typeName());
+	}
+
+	syn typeDef ASTNode.findTypeDef(String typeName) = null;
+	eq ComplexElement.findTypeDef(String typeName) {
+		for (Element e : getElements()) {
+			if (e.findTypeDef(typeName) != null) {
+				return e.findTypeDef(typeName);
+			}
+		}
+		return super.findTypeDef(typeName);
+	}
+	eq typeDef.findTypeDef(String typeName) {
+		System.out.println("  Checking: "+name());
+		if (name().equals(typeName)) {
+			return this;
+		}
+		return null;
+	}
+
+	syn String Element.elementTypeName() = null;
+	eq ComplexElement.elementTypeName() {
+		for (Element e : getElements()) {
+			if (e.elementTypeName() != null) {
+				return e.elementTypeName();
+			}
+		}
+		return null;
+	}
+	eq typePar.elementTypeName() = getElement(0).name();
+
+	syn String Element.elementTypeSize() = null;
+	eq ComplexElement.elementTypeSize() {
+		for (Element e : getElements()) {
+			if (e.elementTypeSize() != null) {
+				return e.elementTypeSize();
+			}
+		}
+		return null;
+	}
+	eq typePar.elementTypeSize() = ((ComplexElement) getElement(0)).getElement(0).value();
+
+}

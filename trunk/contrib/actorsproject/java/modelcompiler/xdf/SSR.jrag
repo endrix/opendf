@@ -121,12 +121,15 @@ aspect CSDF {
 	}
 	public xlimAST.Start Instance.xlimInstance() {
 		if (xlimInstance != null) {
+			System.out.println("********** Root is: "+xlimInstance.root());
 			return xlimInstance;
 		} else {
 			if (cwd == null) {
 				cwd = "./";
 			}
 			xlimInstance = xlimInstance(cwd);
+			xlimInstance.setRoot();
+			System.out.println("********** Setting root to: "+xlimInstance.root());
 		}
 		return xlimInstance;
 		// try {
@@ -145,7 +148,7 @@ aspect CSDF {
 
 	syn lazy xlimAST.Start Instance.xlimInstance(String directory) {
 		try {
-// 			System.out.println("Trying to open: "+name());
+ 			// System.out.println("Trying to open: "+name());
 			xlimAST.XmlParser parser = new xlimAST.XmlParser(new FileReader(directory+name()+".xlim"));
 			return parser.Start();
 		} catch (Exception e) {
