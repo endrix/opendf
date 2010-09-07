@@ -113,6 +113,10 @@ ENDCOPYRIGHT
     <attr name="typeName" value="bool"/>
   </xsl:template>
   
+  <xsl:template match="Type[@name='real']">
+    <attr name="typeName" value="real"/>
+  </xsl:template>
+  
   <xsl:template match="Type[@name='List']">
     <attr name="typeName" value="{concat(@id, '$typedef')}"/>
   </xsl:template>
