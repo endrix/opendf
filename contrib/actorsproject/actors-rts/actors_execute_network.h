@@ -228,7 +228,8 @@ static void *EXECUTE_NETWORK(cpu_runtime_data_t *runtime,
 	}
       }
 
-      if (sleep && numActiveActors==0) {
+      //if (sleep && numActiveActors==0) {
+      if (sleep) {
 	// Termination logic:
 	// In order to not only sleep, but also terminate,
         // we require that:
@@ -246,6 +247,7 @@ static void *EXECUTE_NETWORK(cpu_runtime_data_t *runtime,
 	
 	cpu[this_cpu].quiescent_at=curr_sleep_event;
 
+        if (numActiveActors==0) {
 	if (sleepers == runtime->cpu_count) { 
 	  // Only terminate when all threads are starved
 	  int do_terminate = 1;
@@ -258,6 +260,7 @@ static void *EXECUTE_NETWORK(cpu_runtime_data_t *runtime,
 	  if (do_terminate) {
 	    terminate = 1; 
 	  }
+	}
 	}
 
 	// Here we go to sleep (possibly even terminate)
