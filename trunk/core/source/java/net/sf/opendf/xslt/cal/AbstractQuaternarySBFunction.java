@@ -18,7 +18,7 @@ public abstract class AbstractQuaternarySBFunction implements Function {
 	
 	protected TypedObject    doFunction(TypedObject a, TypedObject b, TypedObject c, TypedObject d) {
 		if (a.getValue() == TypedContext.UNDEFINED || b.getValue() == TypedContext.UNDEFINED || c.getValue() == TypedContext.UNDEFINED || d.getValue() == TypedContext.UNDEFINED) {
-			return new TypedObject(doTypeFunction(a.getType(), b.getType()), TypedContext.UNDEFINED);
+			return new TypedObject(doTypeFunction(a.getType(), b.getType(), c.getType(), d.getType()), TypedContext.UNDEFINED);
 		} else {
 			return doValueFunction(a, b, c, d);
 		}
@@ -26,8 +26,10 @@ public abstract class AbstractQuaternarySBFunction implements Function {
 	
 	abstract protected TypedObject  doValueFunction(TypedObject a, TypedObject b, TypedObject c, TypedObject d);
 
-	protected Type         doTypeFunction(Type t1, Type t2) {
-		return Type.lub(t1, t2); // default behavior	
+	protected Type         doTypeFunction(Type t1, Type t2, Type t3, Type t4) {
+		assert true;
+		return null; //no default behavior
+		// return Type.lub(t1, t2); // default behavior	
 	}
 	
 }

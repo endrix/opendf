@@ -17,7 +17,7 @@ public abstract class AbstractTernarySBFunction implements Function {
 	
 	protected TypedObject    doFunction(TypedObject a, TypedObject b, TypedObject c) {
 		if (a.getValue() == TypedContext.UNDEFINED || b.getValue() == TypedContext.UNDEFINED || c.getValue() == TypedContext.UNDEFINED) {
-			return new TypedObject(doTypeFunction(a.getType(), b.getType()), TypedContext.UNDEFINED);
+			return new TypedObject(doTypeFunction(a.getType(), b.getType(), c.getType()), TypedContext.UNDEFINED);
 		} else {
 			return doValueFunction(a, b, c);
 		}
@@ -25,8 +25,10 @@ public abstract class AbstractTernarySBFunction implements Function {
 	
 	abstract protected TypedObject  doValueFunction(TypedObject a, TypedObject b, TypedObject c);
 
-	protected Type         doTypeFunction(Type t1, Type t2) {
-		return Type.lub(t1, t2); // default behavior	
+	protected Type         doTypeFunction(Type t1, Type t2, Type t3) {
+		assert true;
+		return null; 
+		// return Type.lub(t1, t2); // default behavior	
 	}
 	
 }
