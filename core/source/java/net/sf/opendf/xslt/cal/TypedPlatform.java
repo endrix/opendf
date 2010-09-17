@@ -99,19 +99,114 @@ public class TypedPlatform implements Platform {
                     return 1;
                 }
             }));
+        
+        // Some math.h functions
 
-        env.bind("sin", context().createFunction(new AbstractUnarySBFunction() {
+        env.bind("acos", context().createFunction(new AbstractUnarySBFunction() {
             public TypedObject doValueFunction (TypedObject a) {
-                return (TypedObject)context().createReal( java.lang.Math.sin( context().realValue(a) ) );
+                return (TypedObject)context().createReal( java.lang.Math.acos( context().realValue(a) ) );
             }
         }));
 
+        env.bind("asin", context().createFunction(new AbstractUnarySBFunction() {
+            public TypedObject doValueFunction (TypedObject a) {
+                return (TypedObject)context().createReal( java.lang.Math.asin( context().realValue(a) ) );
+            }
+        }));
+        
+        env.bind("atan", context().createFunction(new AbstractUnarySBFunction() {
+            public TypedObject doValueFunction (TypedObject a) {
+                return (TypedObject)context().createReal( java.lang.Math.atan( context().realValue(a) ) );
+            }
+        }));
+
+        env.bind("atan2", context().createFunction(new AbstractBinarySBFunction() {
+            public TypedObject doValueFunction (TypedObject a, TypedObject b) {
+                return (TypedObject)context().createReal( java.lang.Math.atan2( context().realValue(a), context().realValue(b) ) );
+            }
+        }));
+        
+        env.bind("ceil", context().createFunction(new AbstractUnarySBFunction() {
+            public TypedObject doValueFunction (TypedObject a) {            	            	
+                return (TypedObject)context().createInteger(BigInteger.valueOf(Math.round(java.lang.Math.ceil( context().realValue(a) ))), 32, true );
+            }
+        }));
+        
         env.bind("cos", context().createFunction(new AbstractUnarySBFunction() {
             public TypedObject doValueFunction (TypedObject a) {
                 return (TypedObject)context().createReal( java.lang.Math.cos( context().realValue(a) ) );
             }
         }));
 
+        env.bind("cosh", context().createFunction(new AbstractUnarySBFunction() {
+            public TypedObject doValueFunction (TypedObject a) {
+                return (TypedObject)context().createReal( java.lang.Math.cosh( context().realValue(a) ) );
+            }
+        }));
+
+        env.bind("exp", context().createFunction(new AbstractUnarySBFunction() {
+            public TypedObject doValueFunction (TypedObject a) {
+                return (TypedObject)context().createReal( java.lang.Math.exp( context().realValue(a) ) );
+            }
+        }));
+        
+        env.bind("floor", context().createFunction(new AbstractUnarySBFunction() {
+            public TypedObject doValueFunction (TypedObject a) {
+                return (TypedObject)context().createReal( java.lang.Math.floor( context().realValue(a) ) );
+            }
+        }));
+        
+        env.bind("log", context().createFunction(new AbstractUnarySBFunction() {
+            public TypedObject doValueFunction (TypedObject a) {
+                return (TypedObject)context().createReal( java.lang.Math.log(context().realValue(a)) );
+            }
+        }));
+
+        env.bind("log10", context().createFunction(new AbstractUnarySBFunction() {
+            public TypedObject doValueFunction (TypedObject a) {
+                return (TypedObject)context().createReal( java.lang.Math.log10(context().realValue(a)) );
+            }
+        }));
+        
+        env.bind("pow", context().createFunction(new AbstractBinarySBFunction() {
+            public TypedObject doValueFunction (TypedObject a, TypedObject b) {
+                return (TypedObject)context().createReal( java.lang.Math.pow( context().realValue(a), context().realValue(b) ) );
+            }
+        }));
+        
+        env.bind("sin", context().createFunction(new AbstractUnarySBFunction() {
+            public TypedObject doValueFunction (TypedObject a) {
+                return (TypedObject)context().createReal( java.lang.Math.sin( context().realValue(a) ) );
+            }
+        }));
+
+        env.bind("sinh", context().createFunction(new AbstractUnarySBFunction() {
+            public TypedObject doValueFunction (TypedObject a) {
+                return (TypedObject)context().createReal( java.lang.Math.sinh( context().realValue(a) ) );
+            }
+        }));
+        
+        env.bind("sqrt", context().createFunction(new AbstractUnarySBFunction() {
+            public TypedObject doValueFunction (TypedObject a) {
+                return (TypedObject)context().createReal( java.lang.Math.sqrt( context().realValue(a) ) );
+            }
+        }));
+        
+        env.bind("tan", context().createFunction(new AbstractUnarySBFunction() {
+            public TypedObject doValueFunction (TypedObject a) {
+                return (TypedObject)context().createReal( java.lang.Math.tan( context().realValue(a) ) );
+            }
+        }));
+
+        env.bind("tanh", context().createFunction(new AbstractUnarySBFunction() {
+            public TypedObject doValueFunction (TypedObject a) {
+                return (TypedObject)context().createReal( java.lang.Math.tan( context().realValue(a) ) );
+            }
+        }));
+
+        // end math.h	
+        
+                
         env.bind("SOP", context().createFunction(new AbstractUnarySBFunction() {
                 public TypedObject doValueFunction(TypedObject a) {
                     try {
@@ -749,7 +844,7 @@ public class TypedPlatform implements Platform {
             }
         }));
 */
- env.bind("$mod", context().createFunction(new AbstractBinarySBFunction() {
+     env.bind("$mod", context().createFunction(new AbstractBinarySBFunction() {
 
     	    protected TypedObject  doValueFunction(TypedObject a, TypedObject b) {
     	    	if (context().isInteger(a)) {
