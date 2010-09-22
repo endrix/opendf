@@ -80,6 +80,13 @@ public class SSAGenerator extends XSLTTransformRunner
 
         "net/sf/opendf/cal/transforms/AddInputTypes.xslt",                  
         "net/sf/opendf/cal/transforms/ReplaceOld.xslt",
+        
+        //Replace simple and constant (compile time) foreach with while-loops
+        //After that we must annotate the introduced decls (and AnnotateDecls
+        //requires VariableAnnotor
+        "net/sf/opendf/cal/transforms/ReplaceForEach.xslt",    
+        "net/sf/opendf/cal/transforms/VariableAnnotator.xslt",
+        "net/sf/opendf/cal/transforms/xlim/AnnotateDecls.xslt",
 
         //Replace Generators        
         "net/sf/opendf/cal/transforms/ReplaceConstantGenerators.xslt",
