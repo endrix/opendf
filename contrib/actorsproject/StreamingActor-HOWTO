@@ -1,0 +1,14 @@
+How to use the Streaming Actor (art_Streaming)
+=============================================
+
+The streaming system actor is used to receive the streaming data from
+network. The current implementation used TCP ptotocol as reliable 
+connection. The TCP socket of the streaming system actor is configured
+as server mode listening on the specific port. The default port is 12345 
+and it is specified in nl file. Normally the streaming system actor 
+should also be specified as active mode:
+
+source = art_Streaming(activeMode=1,port=2000)
+
+The streaming actor consists one output port that relay the streaming byte date 
+as int32_t out.
