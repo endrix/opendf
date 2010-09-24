@@ -441,10 +441,14 @@ public class TypedPlatform implements Platform {
         	}
 
         	protected Type doTypeFunction(Type t) {
-        		int bitLength = t.getBitLength(32);
-				return Type.create(Type.nameInt, 
-						Collections.EMPTY_MAP, 
-						Collections.singletonMap(Type.vparSize, new Integer(bitLength)));
+        		if (Type.isInt(t)) {
+        			int bitLength = t.getBitLength(32);
+        			return Type.create(t.getName(), 
+        					Collections.EMPTY_MAP, 
+        					Collections.singletonMap(Type.vparSize, new Integer(bitLength)));
+        		} else {
+        			throw new RuntimeException("Cannot bitnot non integers.");
+        		}
         	}
         }));
 
@@ -460,11 +464,21 @@ public class TypedPlatform implements Platform {
     	    }
 
     	    protected Type doTypeFunction(Type a, Type b) {
-        		if (Type.nameInt.equals(a.getName()) && Type.nameInt.equals(b.getName())) {
+        		if (Type.isInt(a) && Type.isInt(b)) {
+        			if (Type.nameUint.equals(a.getName()) && Type.nameUint.equals(b.getName())) {
+        				int bitLength = Type.computeBitLength(a, b);
+        				return Type.create(Type.nameUint, 
+        						Collections.EMPTY_MAP, 
+        						Collections.singletonMap(Type.vparSize, new Integer(bitLength)));        				
+        			} else {
+    					a = Type.nameUint.equals(a.getName()) ? Type.promoteUint(a) : a;
+    					b = Type.nameUint.equals(a.getName()) ? Type.promoteUint(b) : b;
+
         				int bitLength = Type.computeBitLength(a, b);
         				return Type.create(Type.nameInt, 
         						Collections.EMPTY_MAP, 
         						Collections.singletonMap(Type.vparSize, new Integer(bitLength)));
+        			}
         		} else {
         			throw new RuntimeException("Cannot bitor types: " + a + ", " + b + ".");
         		}
@@ -483,11 +497,21 @@ public class TypedPlatform implements Platform {
     	    }
 
     	    protected Type doTypeFunction(Type a, Type b) {
-        		if (Type.nameInt.equals(a.getName()) && Type.nameInt.equals(b.getName())) {
-    					int bitLength = Type.computeBitLength(a, b);
+        		if (Type.isInt(a) && Type.isInt(b)) {
+        			if (Type.nameUint.equals(a.getName()) && Type.nameUint.equals(b.getName())) {
+           				int bitLength = Type.computeBitLength(a, b);
+        				return Type.create(Type.nameUint, 
+        						Collections.EMPTY_MAP, 
+        						Collections.singletonMap(Type.vparSize, new Integer(bitLength)));
+        			} else {
+    					a = Type.nameUint.equals(a.getName()) ? Type.promoteUint(a) : a;
+    					b = Type.nameUint.equals(a.getName()) ? Type.promoteUint(b) : b;
+        				
+        				int bitLength = Type.computeBitLength(a, b);
         				return Type.create(Type.nameInt, 
         						Collections.EMPTY_MAP, 
         						Collections.singletonMap(Type.vparSize, new Integer(bitLength)));
+        			}
         		} else {
         			throw new RuntimeException("Cannot bitand types: " + a + ", " + b + ".");
         		}
@@ -506,11 +530,21 @@ public class TypedPlatform implements Platform {
     	    }
 
     	    protected Type doTypeFunction(Type a, Type b) {
-        		if (Type.nameInt.equals(a.getName()) && Type.nameInt.equals(b.getName())) {
+        		if (Type.isInt(a) && Type.isInt(b)) {
+        			if (Type.nameUint.equals(a.getName()) && Type.nameUint.equals(b.getName())) {
+        				int bitLength = Type.computeBitLength(a, b);
+        				return Type.create(Type.nameUint, 
+        						Collections.EMPTY_MAP, 
+        						Collections.singletonMap(Type.vparSize, new Integer(bitLength)));        				
+        			} else {
+        				a = Type.nameUint.equals(a.getName()) ? Type.promoteUint(a) : a;
+        				b = Type.nameUint.equals(a.getName()) ? Type.promoteUint(b) : b;
+        			
         				int bitLength = Type.computeBitLength(a, b);
         				return Type.create(Type.nameInt, 
         						Collections.EMPTY_MAP, 
         						Collections.singletonMap(Type.vparSize, new Integer(bitLength)));
+        			}
         		} else {
         			throw new RuntimeException("Cannot bitxor types: " + a + ", " + b + ".");
         		}
@@ -560,7 +594,7 @@ public class TypedPlatform implements Platform {
     	    				                                   + b + "<" + ((b == null) ? "NULL" : b.getType()) + ">");
     	    }
 
-        	protected Type doTypeFunction(Type a, Type b) {
+        	protected Type doTypeFunction(Type a, Type b) { //?? FIXME Why is the lshift always returning 32 bit signed int?
 				return Type.create(Type.nameInt, 
 						Collections.EMPTY_MAP, 
 						Collections.singletonMap(Type.vparSize, new Integer(32)));
@@ -580,9 +614,9 @@ public class TypedPlatform implements Platform {
     	    }
 
     	    protected Type doTypeFunction(Type a, Type b) {
-        		if (Type.nameInt.equals(a.getName()) && Type.nameInt.equals(b.getName())) {
+        		if (Type.isInt(a) && Type.isInt(b)) {
         			int w = ((Integer)a.getValueParameters().get(Type.vparSize)).intValue();
-					return Type.create(Type.nameInt,
+					return Type.create(a.getName(),
 							Collections.EMPTY_MAP,
 							Collections.singletonMap(Type.vparSize, new Integer(w)));
         		} else {
@@ -646,12 +680,21 @@ public class TypedPlatform implements Platform {
     	    }
 
     	    protected Type doTypeFunction(Type a, Type b) {
-        		if (Type.nameInt.equals(a.getName())) {
-        			if (Type.nameInt.equals(b.getName())) {
-        				int bitLength = Type.computeBitLength(a, b);
-        				return Type.create(Type.nameInt, 
-        						Collections.EMPTY_MAP, 
-        						Collections.singletonMap(Type.vparSize, new Integer(bitLength + 1)));
+        		if (Type.isInt(a)) {
+        			if (Type.isInt(b)) {
+        				if (Type.nameUint.equals(a.getName()) && Type.nameUint.equals(b.getName())) {
+        					int bitLength = Type.computeBitLength(a, b);
+        					return Type.create(Type.nameUint, 
+        										Collections.EMPTY_MAP, 
+        										Collections.singletonMap(Type.vparSize, new Integer(bitLength + 1)));       					
+        				} else {
+        					a = Type.nameUint.equals(a.getName()) ? Type.promoteUint(a) : a;
+        					b = Type.nameUint.equals(a.getName()) ? Type.promoteUint(b) : b;
+        					int bitLength = Type.computeBitLength(a, b);
+        					return Type.create(Type.nameInt, 
+        										Collections.EMPTY_MAP, 
+        										Collections.singletonMap(Type.vparSize, new Integer(bitLength + 1)));        					
+        				}
         			} else if (Type.nameReal.equals(b.getName())) {
         				return Type.typeReal;
         			} else {
@@ -669,6 +712,7 @@ public class TypedPlatform implements Platform {
         			throw new RuntimeException("Cannot add types: " + a + ", " + b + ".");
         		}
     	    }
+    	    
         }));
 
         env.bind("$mul", context().createFunction(new AbstractBinarySBFunction() {
@@ -694,19 +738,37 @@ public class TypedPlatform implements Platform {
     	    }
 
         	protected Type doTypeFunction(Type a, Type b) {
-        		if (Type.nameInt.equals(a.getName())) {
-        			if (Type.nameInt.equals(b.getName())) {
-        				int bitLength1 = a.getBitLength(0);
-        				int bitLength2 = b.getBitLength(0);
-        				int bitLength = bitLength1 + bitLength2;
-        				if (bitLength == 0 || bitLength > 32) {
-        					bitLength = 32;
-        				}
+        		if (Type.isInt(a)) {
+        			if (Type.isInt(b)) {
+        				if (Type.nameUint.equals(a.getName()) && Type.nameUint.equals(b.getName())) {
+        					int bitLength1 = a.getBitLength(0);
+        					int bitLength2 = b.getBitLength(0);
+        					int bitLength = bitLength1 + bitLength2;
+        					if (bitLength == 0 || bitLength > 32) {
+        						bitLength = 32;
+        					}
 
-        				return Type.create(Type.nameInt, 
-        						Collections.EMPTY_MAP, 
-        						Collections.singletonMap(Type.vparSize,
-        								new Integer(bitLength)));
+        					return Type.create(Type.nameUint, 
+        							Collections.EMPTY_MAP, 
+        							Collections.singletonMap(Type.vparSize,
+        									new Integer(bitLength)));
+        					
+        				} else {
+        					a = Type.nameUint.equals(a.getName()) ? Type.promoteUint(a) : a;
+        					b = Type.nameUint.equals(a.getName()) ? Type.promoteUint(b) : b;
+        					
+        					int bitLength1 = a.getBitLength(0);
+        					int bitLength2 = b.getBitLength(0);
+        					int bitLength = bitLength1 + bitLength2;
+        					if (bitLength == 0 || bitLength > 32) {
+        						bitLength = 32;
+        					}
+
+        					return Type.create(Type.nameInt, 
+        							Collections.EMPTY_MAP, 
+        							Collections.singletonMap(Type.vparSize,
+        									new Integer(bitLength)));
+        				}
         			} else if (Type.nameReal.equals(b.getName())) {
         				return Type.typeReal;
         			} else {
@@ -747,20 +809,31 @@ public class TypedPlatform implements Platform {
     	    }
 
     	    protected Type doTypeFunction(Type a, Type b) {
-        		if (Type.nameInt.equals(a.getName())) {
-        			if (Type.nameInt.equals(b.getName())) {
-        				int bitLength = Type.computeBitLength(a, b);
+        		if (Type.isInt(a)) {
+        			if (Type.isInt(b)) {
+        				if (Type.nameUint.equals(a.getName()) && Type.nameUint.equals(b.getName())) {
+        					int bitLength = Type.computeBitLength(a, b);
+            				
+        					return Type.create(Type.nameUint, 
+        								Collections.EMPTY_MAP, 
+        								Collections.singletonMap(Type.vparSize, new Integer(bitLength + 1)));
+        					
+        				} else {
+        					a = Type.nameUint.equals(a.getName()) ? Type.promoteUint(a) : a;
+        					b = Type.nameUint.equals(a.getName()) ? Type.promoteUint(b) : b;
+        					int bitLength = Type.computeBitLength(a, b);
         				
-        				return Type.create(Type.nameInt, 
-        						Collections.EMPTY_MAP, 
-        						Collections.singletonMap(Type.vparSize, new Integer(bitLength + 1)));
+        					return Type.create(Type.nameInt, 
+        								Collections.EMPTY_MAP, 
+        								Collections.singletonMap(Type.vparSize, new Integer(bitLength + 1)));
+        				}
         			} else if (Type.nameReal.equals(b.getName())) {
         				return Type.typeReal;
         			} else {
         				throw new RuntimeException("Cannot add types.");
         			}
         		} else if (Type.nameReal.equals(a.getName())) {
-        			if (Type.nameInt.equals(b.getName()) || Type.nameReal.equals(b.getName())) {
+        			if (Type.isInt(b) || Type.nameReal.equals(b.getName())) {
         				return Type.typeReal;
         			} else {
             			throw new RuntimeException("Cannot subtract types: " + a + ", " + b + ".");
@@ -794,20 +867,26 @@ public class TypedPlatform implements Platform {
     	    }
 
         	protected Type doTypeFunction(Type a, Type b) {
-        		if (Type.nameInt.equals(a.getName())) {
-        			if (Type.nameInt.equals(b.getName())) {
-        				int bitLength = a.getBitLength(32);
-        				
-        				return Type.create(Type.nameInt, 
-        						Collections.EMPTY_MAP, 
-        						Collections.singletonMap(Type.vparSize, new Integer(bitLength)));
+        		if (Type.isInt(a)) {
+        			if (Type.isInt(b)) {
+    					int bitLength = a.getBitLength(32);
+
+        				if (Type.nameUint.equals(a.getName()) && Type.nameUint.equals(b.getName())) {
+        					return Type.create(Type.nameUint, 
+        							Collections.EMPTY_MAP, 
+        							Collections.singletonMap(Type.vparSize, new Integer(bitLength)));        					
+        				} else {        				        				
+        					return Type.create(Type.nameInt, 
+        							Collections.EMPTY_MAP, 
+        							Collections.singletonMap(Type.vparSize, new Integer(bitLength)));
+        				}
         			} else if (Type.nameReal.equals(b.getName())) {
         				return Type.typeReal;
         			} else {
         				throw new RuntimeException("Cannot divide types.");
         			}
         		} else if (Type.nameReal.equals(a.getName())) {
-        			if (Type.nameInt.equals(b.getName()) || Type.nameReal.equals(b.getName())) {
+        			if (Type.isInt(b) || Type.nameReal.equals(b.getName())) {
         				return Type.typeReal;
         			} else {
             			throw new RuntimeException("Cannot divide types: " + a + ", " + b + ".");
@@ -867,20 +946,26 @@ public class TypedPlatform implements Platform {
     	    }
 
         	protected Type doTypeFunction(Type a, Type b) {
-        		if (Type.nameInt.equals(a.getName())) {
-        			if (Type.nameInt.equals(b.getName())) {
+        		if (Type.isInt(a)) {
+        			if (Type.isInt(b)) {
         				int bitLength = a.getBitLength(32);
         				
-        				return Type.create(Type.nameInt, 
-        						Collections.EMPTY_MAP, 
-        						Collections.singletonMap(Type.vparSize, new Integer(bitLength)));
+           				if (Type.nameUint.equals(a.getName()) && Type.nameUint.equals(b.getName())) {
+        					return Type.create(Type.nameUint, 
+        							Collections.EMPTY_MAP, 
+        							Collections.singletonMap(Type.vparSize, new Integer(bitLength)));        					
+        				} else { 
+        					return Type.create(Type.nameInt, 
+        							Collections.EMPTY_MAP, 
+        							Collections.singletonMap(Type.vparSize, new Integer(bitLength)));
+        				}
         			} else if (Type.nameReal.equals(b.getName())) {
         				return Type.typeReal;
         			} else {
         				throw new RuntimeException("Cannot mod types.");
         			}
         		} else if (Type.nameReal.equals(a.getName())) {
-        			if (Type.nameInt.equals(b.getName()) || Type.nameReal.equals(b.getName())) {
+        			if (Type.isInt(b) || Type.nameReal.equals(b.getName())) {
         				return Type.typeReal;
         			} else {
             			throw new RuntimeException("Cannot mod types: " + a + ", " + b + ".");

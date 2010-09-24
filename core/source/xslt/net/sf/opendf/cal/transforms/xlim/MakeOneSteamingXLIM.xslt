@@ -86,6 +86,12 @@ ENDCOPYRIGHT
     </type>    
   </xsl:template>
   
+  <xsl:template match="Type[@name='uint']" mode="definition">      
+    <type name="uint">
+      <valuePar name="size" value="{./Entry/Expr/@value}"/>
+    </type>    
+  </xsl:template>
+  
   <xsl:template match="Type[@name='bool']" mode="definition">
     <type name="bool"/>  
   </xsl:template>
@@ -104,6 +110,13 @@ ENDCOPYRIGHT
   
   <xsl:template match="Type[@name='int']">
     <attr name="typeName" value="int"/>
+    <xsl:for-each select="Entry[@kind='Expr']">
+       <attr name="{@name}" value="{Expr/@value}"/>
+    </xsl:for-each>
+  </xsl:template>
+
+  <xsl:template match="Type[@name='uint']">
+    <attr name="typeName" value="uint"/>
     <xsl:for-each select="Entry[@kind='Expr']">
        <attr name="{@name}" value="{Expr/@value}"/>
     </xsl:for-each>
