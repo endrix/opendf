@@ -185,9 +185,9 @@ static void setParam(AbstractActorInstance *pBase,
 {
   ActorInstance_art_Streaming *thisActor=(ActorInstance_art_Streaming*) pBase;
   if (strcmp(paramName, "port")==0) {
-		thisActor->port=atoi(value);
+	thisActor->port=atoi(value);
   } else {
-    runtimeError(pBase,"No such parameter: %s", paramName);
+    thisActor->port=12345;
   }
 }
 
