@@ -8,13 +8,13 @@
      Transform foreah statements with constant (i.e. compile-time) lists
      to while loop
      
-     original code:
+     ** original code: **
      
      	foreach T i in E do
      		stmts
      	end
      
-     transformed code:
+     ** transformed code: **
      
     	 block begin
      		int $indexer = 0;
@@ -27,7 +27,6 @@
      		end     
      	block end     
    --> 
-
 
     <xsl:template match="Stmt[@kind='Foreach']">
       <Stmt kind="Block">
@@ -74,7 +73,6 @@
                    </Expr>     
              </Expr>         
              <Stmt kind="Block"> 
-                <xsl:apply-templates select="Stmt/Stmt"/>
                 <Stmt kind="Assign" name="{Generator/Decl[@kind='Generator']/@name}">
                      <Expr kind="Let">
                          <Expr kind="Indexer">
@@ -85,7 +83,7 @@
                          </Expr>
                      </Expr>
                  </Stmt>
-                 <Stmt kind="Assign" name="$indexer">
+                <Stmt kind="Assign" name="$indexer">
                      <Expr kind="Let">
                          <Expr kind="Application">
                              <Expr kind="Var" name="$add" old="no"/>
@@ -96,7 +94,8 @@
                          </Expr>
                      </Expr>
                  </Stmt>                 
-              </Stmt>
+                <xsl:apply-templates select="Stmt/Stmt"/>                 
+             </Stmt>
           </Stmt> 
       </Stmt>    
           
