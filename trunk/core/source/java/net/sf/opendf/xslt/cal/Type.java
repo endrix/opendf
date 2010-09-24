@@ -75,6 +75,7 @@ public class Type {
     public final static String nameClass = "_class";
     public final static String nameFunction = "function";
     public final static String nameInt = "int";
+    public final static String nameUint = "uint";
     public final static String nameList = "List";
     public final static String nameMethod = "_method";
     public final static String nameNull = "null";
@@ -168,7 +169,7 @@ public class Type {
 	 * @throws RuntimeException If this type is not an integer.
 	 */
 	public int getBitLength(int defaultSize) {
-		if (nameInt.equals(getName())) {
+		if (isInt(this)) {
 			int bitLength = defaultSize;
 			Object obj = getValueParameters().get(Type.vparSize);
 			if (obj instanceof Integer) {
@@ -178,6 +179,26 @@ public class Type {
 			return bitLength;
 		} else {
 			throw new RuntimeException("Cannot get the bit length of a non-integer type!");
+		}
+	}
+	
+	
+	public static boolean isInt(Type t)  {
+		if (Type.nameInt.equals(t.getName()) || Type.nameUint.equals(t.getName())) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
+	public static Type promoteUint(Type t) {
+		if (Type.nameUint.equals(t.getName())) {
+			int bitLength = t.getBitLength(32);
+			return Type.create(Type.nameInt, 
+								Collections.EMPTY_MAP, 
+								Collections.singletonMap(Type.vparSize, new Integer(bitLength + 1)));  
+		} else {
+			throw new RuntimeException("Cannot promote non-integer type to integer");
 		}
 	}
 
