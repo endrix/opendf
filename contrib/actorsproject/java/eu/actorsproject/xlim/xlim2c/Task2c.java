@@ -222,23 +222,6 @@ public class Task2c extends LocalCodeGenerator {
 		mOutput.println("}");
 	}
 
-	@Override
-	protected void generatePhi(XlimInputPort input, TemporaryVariable dest) {
-		String cName=mTopLevelSymbols.getReference(dest);
-		XlimSource source=input.getSource();
-		XlimOutputPort port=source.asOutputPort();
-		if (port!=null) {
-			// source and destination represented by same temporary?
-			TemporaryVariable temp=mLocalSymbols.getTemporaryVariable(port);
-			if (temp==dest) {
-				mOutput.println("/* "+cName+"=COPY("+cName+"); */");
-			}
-		}
-		
-		mOutput.print(cName+"=COPY(");
-		generateExpression(source);
-		mOutput.println(" /* PHI */);");
-	}
 
 	@Override
 	protected void generateStatement(XlimOperation stmt) {

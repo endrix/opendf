@@ -154,6 +154,7 @@ class IfModule extends PhiContainerModule implements XlimIfModule {
 		
 		// Finally add the new values
 		dominatingContext.setNewValues(getStatePhiOutputs());
+		dominatingContext.setNewValues(getNormalPhiOutputs());
 	}
 
 	/**

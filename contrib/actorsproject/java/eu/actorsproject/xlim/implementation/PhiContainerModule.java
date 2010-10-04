@@ -156,6 +156,7 @@ abstract class PhiContainerModule extends AbstractModule
 	public void resolveExposedUses(FixupContext context) {
 		// Any output is from the phi-nodes (no need to look inside the module)
 		context.resolveExposedUses(getStatePhiOutputs());
+		context.resolveExposedUses(getNormalPhiOutputs());
 	}
 	
 	/**
@@ -214,6 +215,10 @@ abstract class PhiContainerModule extends AbstractModule
 	
 	protected Iterable<ValueUsage> getStatePhiInputs(int path) {
 		return mStatePhis.getInputs(path);
+	}
+	
+	protected Iterable<ValueNode> getNormalPhiOutputs() {
+		return mPhiNodes.getOutputs();
 	}
 	
 	protected Iterable<ValueUsage> getNormalPhiInputs(int path) {
