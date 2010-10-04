@@ -26,8 +26,13 @@
         <Entry kind="Expr" name="size">
           <Expr kind="Literal" literal-kind="Integer" value="32"/>
         </Entry>
-      </Type>      
-    </parameter>
+      </Type> 
+      <Type name="uint">
+        <Entry kind="Expr" name="size">
+          <Expr kind="Literal" literal-kind="Integer" value="32"/>
+        </Entry>
+      </Type>  
+    </parameter>   
     
   </directives>
 

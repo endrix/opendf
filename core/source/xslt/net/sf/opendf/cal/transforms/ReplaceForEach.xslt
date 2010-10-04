@@ -33,7 +33,7 @@
           <Decl kind="Variable" name="{Generator/Decl[@kind='Generator']/@name}">
               <xsl:copy-of select="Generator/Type"/>              
           </Decl>    
-          <Decl kind="Variable" name="$indexer">
+          <Decl kind="Variable" name="{concat(@id, '$indexer')}">
               <Type name="int">
                   <Entry kind="Expr" name="size">
                       <Expr kind="Literal" literal-kind="Integer" value="32"/>
@@ -41,11 +41,11 @@
               </Type>
               <Expr kind="Literal" literal-kind="Integer" value="0"/>
           </Decl>
-          <Decl kind="Variable" name="$data">
+          <Decl kind="Variable" name="{concat(@id, '$data')}">
               <xsl:copy-of select="Generator/Expr/Note[@kind='exprType']/Type"/>
               <xsl:copy-of select="Generator/Expr"/>
           </Decl>       
-          <Decl kind="Variable" name="$iterations">
+          <Decl kind="Variable" name="{concat(@id, '$iterations')}">
               <Type name="int">
                   <Entry kind="Expr" name="size">
                       <Expr kind="Literal" literal-kind="Integer" value="32"/>
@@ -56,9 +56,9 @@
                     
           <Stmt kind="Assign" name="{Generator/Decl/@name}" >
               <Expr kind="Indexer">
-                  <Expr kind="Var" name="$data" />                
+                  <Expr kind="Var" name="{concat(@id, '$data')}" />                
                   <Args>
-                      <Expr kind="Var" name="$indexer"/>            
+                      <Expr kind="Var" name="{concat(@id, '$indexer')}"/>            
                   </Args>                
               </Expr>        
           </Stmt>    
@@ -67,8 +67,8 @@
              	 <Expr kind="Application">
                     <Expr kind="Var" name="$lt" old="no"/>
                      <Args>
-                        <Expr kind="Var" name="$indexer"/>
-                        <Expr kind="Var" name="$iterations"/>
+                        <Expr kind="Var" name="{concat(@id, '$indexer')}"/>
+                        <Expr kind="Var" name="{concat(@id, '$iterations')}"/>
                      </Args>
                    </Expr>     
              </Expr>         
@@ -76,19 +76,19 @@
                 <Stmt kind="Assign" name="{Generator/Decl[@kind='Generator']/@name}">
                      <Expr kind="Let">
                          <Expr kind="Indexer">
-                             <Expr kind="Var" name="$data"/>
+                             <Expr kind="Var" name="{concat(@id, '$data')}"/>
                              <Args>
-                                 <Expr kind="Var" name="$indexer"/>
+                                 <Expr kind="Var" name="{concat(@id, '$indexer')}"/>
                              </Args>
                          </Expr>
                      </Expr>
                  </Stmt>
-                <Stmt kind="Assign" name="$indexer">
+                <Stmt kind="Assign" name="{concat(@id, '$indexer')}">
                      <Expr kind="Let">
                          <Expr kind="Application">
                              <Expr kind="Var" name="$add" old="no"/>
                              <Args>
-                                 <Expr kind="Var" name="$indexer"/>
+                                 <Expr kind="Var" name="{concat(@id, '$indexer')}"/>
                                  <Expr kind="Literal" literal-kind="Integer" value="1"/>
                              </Args>
                          </Expr>
