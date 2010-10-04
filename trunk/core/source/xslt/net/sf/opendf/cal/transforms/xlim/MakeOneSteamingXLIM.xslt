@@ -87,7 +87,7 @@ ENDCOPYRIGHT
   </xsl:template>
   
   <xsl:template match="Type[@name='uint']" mode="definition">      
-    <type name="uint">
+    <type name="int">
       <valuePar name="size" value="{./Entry/Expr/@value}"/>
     </type>    
   </xsl:template>
@@ -116,7 +116,7 @@ ENDCOPYRIGHT
   </xsl:template>
 
   <xsl:template match="Type[@name='uint']">
-    <attr name="typeName" value="uint"/>
+    <attr name="typeName" value="int"/>
     <xsl:for-each select="Entry[@kind='Expr']">
        <attr name="{@name}" value="{Expr/@value}"/>
     </xsl:for-each>
@@ -397,6 +397,19 @@ ENDCOPYRIGHT
           <xsl:apply-templates select="Note[@kind='exprType']/Type"/>      
         </xsl:when>
         
+        <xsl:when test="../Note[@kind='exprType']">
+          <xsl:apply-templates select="../Note[@kind='exprType']/Type/Entry[@kind='Type']/Type"/>
+        </xsl:when>   
+        
+        <xsl:when test="../Type and ancestor::Output">
+          <xsl:apply-templates select="../Type"/>
+        </xsl:when>
+
+        <xsl:when test="../../Type and ancestor::Output">
+          <xsl:apply-templates select="../../Type"/>
+        </xsl:when>
+        
+
         <xsl:when test="@kind='Literal'">
           <xsl:apply-templates select="."  mode="flatten-expr"/>
         </xsl:when>  
@@ -408,7 +421,6 @@ ENDCOPYRIGHT
         </xsl:otherwise>
       </xsl:choose>
     </xsl:variable>
-    
     <!-- Get the flattened version of this expression -->  
     <xsl:variable name="expr">
       <xsl:apply-templates select="." mode="flatten-expr"/>
@@ -463,7 +475,7 @@ ENDCOPYRIGHT
   
   <xsl:template match="Expr[@kind = 'List' ]" mode="flatten-expr">
     <xsl:variable name="type-attrs">
-      <xsl:apply-templates select="ancestor::Decl/Type" mode="init-var"/>
+       <xsl:apply-templates select="ancestor::Decl/Type" mode="init-var"/>
     </xsl:variable>
     
     <attr name="kind" value="$vcons"/>
@@ -651,7 +663,8 @@ ENDCOPYRIGHT
           <xsl:with-param name="branch">THEN</xsl:with-param>
         </xsl:call-template>
       </module>
-      <xsl:if test="Stmt[2] or Note[@kind='var-used'][@mode='write'][@scalar='yes']">
+<!--      <xsl:if test="Stmt[2] or Note[@kind='var-used'][@mode='write'][@scalar='yes']"> -->
+      <xsl:if test="Stmt[2] or Note[@kind='var-used'][@mode='write']">          
         <!-- We need an else block if there is one in the source, or if there are
          writes to scalars in the then block -->
         <module kind="else">
@@ -662,7 +675,47 @@ ENDCOPYRIGHT
           </xsl:call-template>
         </module>
       </xsl:if>
+            
+      <xsl:for-each select="Note[@kind='var-used'][@mode='write']">
+        <xsl:variable name="decl-id" select="@decl-id"/>
+        <xsl:if test="@scalar='yes' or not(//Actor/Decl[@id=$decl-id])">
+          <xsl:variable name="decl-id" select="@decl-id"/>
+          <xsl:variable name="then" select="../Stmt[1]/Note[@kind='var-used'][@mode='write'][@decl-id=$decl-id]"/>
+          <xsl:variable name="else" select="../Stmt[2]/Note[@kind='var-used'][@mode='write'][@decl-id=$decl-id]"/>
+          <PHI>
+            <xsl:choose>
+              <xsl:when test="$then and $else">
+                <port source="{$then/@true-source}" qualifier="then" dir="in"/>
+                <port source="{$else/@true-source}" qualifier="else" dir="in"/>
+              </xsl:when>
+              <xsl:when test="$then">
+                <port source="{$then/@true-source}" qualifier="then" dir="in"/>
+                <port source="{concat($stmt-id,'$ELSE$',$decl-id)}" qualifier="else" dir="in"/>
+              </xsl:when>
+              <xsl:when test="$else">
+                <port source="{concat($stmt-id,'$THEN$',$decl-id)}" qualifier="then" dir="in"/>
+                <port source="{$else/@true-source}" qualifier="else" dir="in"/>
+              </xsl:when>
+              <xsl:otherwise>
+                <xsl:message>
+                  Fatal inconsistency in If block notes
+                </xsl:message>
+              </xsl:otherwise>
+            </xsl:choose>
+            <xsl:variable name="phi" select="concat($stmt-id,'$PHI$',$decl-id)"/>
+            <port source="{$phi}" dir="out">
+              <xsl:variable name="type-attrs">
+                <xsl:apply-templates select="..//Note[@kind='varMod'][@decl-id=$decl-id][1]/Type"/>
+              </xsl:variable>
+              <xsl:for-each select="$type-attrs/attr">
+                <xsl:attribute name="{@name}"><xsl:value-of select="@value"/></xsl:attribute>
+              </xsl:for-each>
+            </port>
+          </PHI>
+        </xsl:if>  
+      </xsl:for-each>
 
+<!--
       <xsl:for-each select="Note[@kind='var-used'][@mode='write'][@scalar='yes']">
         <xsl:variable name="decl-id" select="@decl-id"/>
         <xsl:variable name="then" select="../Stmt[1]/Note[@kind='var-used'][@mode='write'][@decl-id=$decl-id]"/>
@@ -698,6 +751,8 @@ ENDCOPYRIGHT
           </port>
         </PHI>
       </xsl:for-each>
+-->
+      
     </module>
   </xsl:template>
   
@@ -739,21 +794,23 @@ ENDCOPYRIGHT
     <xsl:param name="branch"/>
   
     <xsl:variable name="unbalanced-writes">
-      <xsl:for-each select="$stmt/Note[@kind='var-used'][@mode='write'][@scalar='yes']">
+      <xsl:for-each select="$stmt/Note[@kind='var-used'][@mode='write']">
         <xsl:variable name="decl-id" select="@decl-id"/>
-        <xsl:choose>
-          <xsl:when test="$branch = 'THEN'">
-            <xsl:if test="not( $stmt/Stmt[1]/Note[@kind='var-used'][@mode='write'][@decl-id=$decl-id] )">
-              <xsl:copy-of select="."/>
-            </xsl:if>
-          </xsl:when>
-          <xsl:otherwise>
-            <xsl:if test="not( $stmt/Stmt[2]/Note[@kind='var-used'][@mode='write'][@decl-id=$decl-id] )">
-              <xsl:copy-of select="."/>
-            </xsl:if>          
-          </xsl:otherwise>
-        </xsl:choose>
-      </xsl:for-each>
+        <xsl:if test="@scalar='yes' or not(//Actor/Decl[@id=$decl-id])">          
+          <xsl:choose>
+            <xsl:when test="$branch = 'THEN'">
+              <xsl:if test="not( $stmt/Stmt[1]/Note[@kind='var-used'][@mode='write'][@decl-id=$decl-id] )">
+                <xsl:copy-of select="."/>
+              </xsl:if>
+            </xsl:when>
+            <xsl:otherwise>
+              <xsl:if test="not( $stmt/Stmt[2]/Note[@kind='var-used'][@mode='write'][@decl-id=$decl-id] )">
+                <xsl:copy-of select="."/>
+              </xsl:if>          
+            </xsl:otherwise>      
+          </xsl:choose>
+        </xsl:if>  
+      </xsl:for-each>      
     </xsl:variable>
 
     <xsl:for-each select="$unbalanced-writes/Note">
