@@ -116,7 +116,6 @@ public abstract class LocalCodeGenerator implements ExpressionTreeGenerator {
 	protected abstract void generateIf(XlimIfModule m);
 	protected abstract void generateLoop(XlimLoopModule m);
 	protected abstract void generateStatement(XlimOperation stmt);
-	protected abstract void generatePhi(XlimInputPort input, TemporaryVariable dest);
 
 	
 	@Override
@@ -244,9 +243,15 @@ public abstract class LocalCodeGenerator implements ExpressionTreeGenerator {
 		// Cyclic dependence is also possible, say t1=phi(t0,t2), t2=phi(t0,t1), in which
 		// case we must introduce a temporary (noop).
 		for (XlimInstruction phi: phiNodes) {
-			TemporaryVariable dest=mLocalSymbols.getTemporaryVariable(phi.getOutputPort(0));
-			XlimInputPort input=phi.getInputPort(fromPath);
-			generatePhi(input,dest);
+			XlimSource source=phi.getInputPort(fromPath).getSource();
+			XlimOutputPort srcPort=source.asOutputPort();
+			XlimOutputPort dest=phi.getOutputPort(0);
+			
+			// Check that source and destination are distinct (skip copy otherwise)
+			if (srcPort==null ||
+			    mLocalSymbols.getTemporaryVariable(srcPort)!=mLocalSymbols.getTemporaryVariable(dest)) {
+				mPlugIn.generateCopy(source, dest, this);
+			}
 		}
 	}
 		

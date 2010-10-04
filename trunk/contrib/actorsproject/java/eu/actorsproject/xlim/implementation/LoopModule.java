@@ -129,7 +129,8 @@ class LoopModule extends PhiContainerModule implements XlimLoopModule {
 		createStatePhiOperators(loopContext.getNewValues());
 		Iterable<ValueNode> phiOutputs=getStatePhiOutputs();
 		loopContext.resolveExposedUses(phiOutputs);
-
+		loopContext.resolveExposedUses(getNormalPhiOutputs());
+		
 		// Fixup the (inputs of) the phi-nodes
 		dominatingContext.fixup(getStatePhiInputs(/*path:*/ 0));
 		loopContext.fixup(getStatePhiInputs(/*path:*/ 1));
@@ -141,6 +142,7 @@ class LoopModule extends PhiContainerModule implements XlimLoopModule {
 		// Finally add the exposed uses and the new values to the dominating context
 		dominatingContext.fixup(loopContext);
 		dominatingContext.setNewValues(phiOutputs);
+		dominatingContext.setNewValues(getNormalPhiOutputs());
 	}
 
 	
