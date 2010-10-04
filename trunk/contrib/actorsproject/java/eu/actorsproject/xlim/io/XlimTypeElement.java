@@ -134,7 +134,7 @@ public class XlimTypeElement implements XmlElement {
 		
 			if (typeDef!=null) {
 				if (mTypeArgs.isEmpty())
-					mType=typeDef.createType();
+					mType=typeDef.createType(readerPlugIn,context);
 				else
 					throw new XlimReaderError("Unexpected parameters to typeDef", mLocation);
 			}
