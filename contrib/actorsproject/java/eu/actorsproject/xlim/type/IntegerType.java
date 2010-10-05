@@ -43,11 +43,11 @@ import eu.actorsproject.util.XmlAttributeFormatter;
 import eu.actorsproject.xlim.XlimType;
 
 class IntegerType implements XlimType {
-	private TypeKind mIntegerTypeKind;
+	private IntegerTypeKind mIntegerTypeKind;
 	private int mSize;
 	private String mTypeDefName;
 	
-	IntegerType(TypeKind integerTypeKind, int size) {
+	IntegerType(IntegerTypeKind integerTypeKind, int size) {
 		mIntegerTypeKind=integerTypeKind;
 		mSize=size;
 	}
@@ -64,7 +64,7 @@ class IntegerType implements XlimType {
 	
 	@Override
 	public String getTypeName() { 
-		return "int"; 
+		return mIntegerTypeKind.getTypeName(); 
 	}
 	
 	@Override
@@ -76,22 +76,22 @@ class IntegerType implements XlimType {
 				return  result;
 		}
 		// else: use typeName/size definition
-		return "typeName=\"int\" size=\"" + mSize + "\"";
+		return "typeName=\""+getTypeName()+"\" size=\"" + mSize + "\"";
 	}
 	
 	@Override
 	public String toString() {
-		return "int(size="+mSize+")";
+		return getTypeName()+"(size="+mSize+")";
 	}
 	
 	@Override
 	public long minValue() {
-		return ((long) -1)<<(mSize-1);
+		return mIntegerTypeKind.isSigned()? ((long) -1)<<(mSize-1) : 0;
 	}
 	
 	@Override
 	public long maxValue() {
-		return ~minValue();
+		return mIntegerTypeKind.isSigned()? ~minValue() : ((1L << mSize) - 1);
 	}
 	
 	@Override

@@ -55,16 +55,19 @@ import eu.actorsproject.xlim.XlimSource;
 import eu.actorsproject.xlim.XlimStateVar;
 import eu.actorsproject.xlim.XlimTopLevelPort;
 import eu.actorsproject.xlim.XlimType;
+import eu.actorsproject.xlim.XlimTypeKind;
 
 public class NativeTypeTransformation {
 
 	private boolean mTrace=false;
 	private NativeTypePlugIn mNativeTypePlugIn;
 	private OperationPlugIn<DefaultHandler> mHandlers;
+	private XlimTypeKind mIntTypeKind;
 	
 	public NativeTypeTransformation(NativeTypePlugIn plugIn) {
 		mNativeTypePlugIn=plugIn;
 		mHandlers=new OperationPlugIn<DefaultHandler>(new DefaultHandler());
+		mIntTypeKind=Session.getTypeFactory().getTypeKind("int");
 		
 		// BitwiseHandler: possible zero-extension of input
 		DefaultHandler bitwiseHandler=new BitwiseHandler();
@@ -119,6 +122,10 @@ public class NativeTypeTransformation {
 		}
 	}
 	
+	private boolean isSignedInt(XlimType type) {
+		return type.getTypeKind()==mIntTypeKind;
+	}
+	
 	/**
 	 * Analysis is the first pass of NativeTypeTransformation
 	 * 
@@ -151,12 +158,14 @@ public class NativeTypeTransformation {
 					XlimType inT=input.getSource().getType();
 					int inW=inT.getSize();
 					if (inW>outW) {
-						if (mTrace)
+						if (mTrace) {
+							String extensionType=isSignedInt(nativeT)? " sign-extend " : " zero-extend ";
 							System.out.println("// NativeTypeTransform: " + phi.toString()
-									+ " sign-extend " + input.getSource().getUniqueId()
+									+ extensionType + input.getSource().getUniqueId()
 									+ " from " + outW
 									+ " to " + nativeT.getSize()
 									+ " (was:" + inW + ")");
+						}
 					
 						Transformation t=new PhiTransformation(outW,nativeT);
 						map.put(input, t);
@@ -225,14 +234,80 @@ public class NativeTypeTransformation {
 	 */
 	private class Transformation {
 		
+		/**
+		 * Applies a transformation to input port 'port' of instruction 'instr' 
+		 * and emits the code at 'patchPoint' 
+		 * @param port
+		 * @param instr
+		 * @param patchPoint
+		 */
 		public void apply(XlimInputPort port, 
 				          XlimInstruction instr,
 				          XlimContainerModule patchPoint) {
 			throw new UnsupportedOperationException();
 		}
-		
+
+		/**
+		 * Applies a transformation to output port 'port' of instruction 'instr' 
+		 * and emits the code directly following the given instruction
+		 * @param port
+		 * @param instr
+		 * @param patchPoint
+		 */
+
 		public void apply(XlimOutputPort port, XlimOperation op) {
 			throw new UnsupportedOperationException();
+		}
+		
+		/**
+		 * Sign-extends the integer 'oldSource' from 'fromWidth' to 'toType'
+		 * and emits the code at the patch point in 'inModule'.
+		 * @param oldSource
+		 * @param fromWidth
+		 * @param toType
+		 * @param inModule
+		 * @return output port (result) of sign-extension
+		 */
+		protected XlimOutputPort signExtend(XlimSource oldSource,
+				                            int fromWidth,
+				                            XlimType toType,
+				                            XlimContainerModule inModule) {
+			XlimOperation sex=inModule.addOperation("signExtend", 
+					oldSource, 
+					toType);
+			sex.setIntegerValueAttribute(fromWidth);
+
+			if (mTrace)
+				System.out.println("// NativeTypeTransform: added "+sex.toString());
+
+			return sex.getOutputPort(0);
+		}
+
+		/**
+		 * Zero-extends the integer 'oldSource' from 'fromWidth' to 'toType'
+		 * and emits the code at the patch point in 'inModule'.
+		 * @param oldSource
+		 * @param fromWidth
+		 * @param toType
+		 * @param inModule
+		 * @return output port (result) of zero-extension
+		 */
+		protected XlimOutputPort zeroExtend(XlimSource oldSource,
+				                            int fromWidth,
+				                            XlimType toType,
+				                            XlimContainerModule inModule) {
+			XlimOperation mask=inModule.addLiteral((1L << fromWidth)-1);
+			XlimOutputPort maskOutput=mask.getOutputPort(0);
+			maskOutput.setType(toType);
+
+			XlimOperation and=inModule.addOperation("bitand",oldSource,maskOutput,toType);
+
+			if (mTrace) {
+				System.out.println("// NativeTypeTransform: added "+mask.toString());
+				System.out.println("// NativeTypeTransform: added "+and.toString());
+			}
+
+			return and.getOutputPort(0);
 		}
 	}
 	
@@ -284,15 +359,7 @@ public class NativeTypeTransformation {
 		
 		@Override
 		protected XlimOutputPort apply(XlimSource oldSource, XlimContainerModule inModule) {
-			XlimOperation sex=inModule.addOperation("signExtend", 
-					oldSource, 
-					mExtendToType);
-			sex.setIntegerValueAttribute(mFromWidth);
-			
-			if (mTrace)
-				System.out.println("// NativeTypeTransform: added "+sex.toString());
-			
-			return sex.getOutputPort(0);
+			return signExtend(oldSource,mFromWidth,mExtendToType,inModule);
 		}
 	}
 	
@@ -311,19 +378,7 @@ public class NativeTypeTransformation {
 		
 		@Override
 		protected XlimOutputPort apply(XlimSource oldSource, XlimContainerModule inModule) {
-			XlimOperation mask=inModule.addLiteral((1L << mFromWidth)-1);
-			XlimOutputPort maskOutput=mask.getOutputPort(0);
-			XlimType outT=mNativeTypePlugIn.nativeType(maskOutput.getType());
-			maskOutput.setType(outT);
-			
-			XlimOperation and=inModule.addOperation("bitand",oldSource,maskOutput,mExtendToType);
-			
-			if (mTrace) {
-				System.out.println("// NativeTypeTransform: added "+mask.toString());
-				System.out.println("// NativeTypeTransform: added "+and.toString());
-			}
-			
-			return and.getOutputPort(0);
+			return zeroExtend(oldSource,mFromWidth,mExtendToType,inModule);
 		}
 	}
 	
@@ -332,13 +387,16 @@ public class NativeTypeTransformation {
 	 * their parent module (a Loop or If-module), but in the predecessor that
 	 * corresponds to the respective input port.
 	 */
-	private class PhiTransformation extends SignedInputPortTransformation {
+	private class PhiTransformation extends InputPortTransformation {
 	
-		public PhiTransformation(int fromWidth,
-				                 XlimType toType) {
-			super(fromWidth, toType);
-		}
+		private int mFromWidth;
+		private XlimType mExtendToType;
 		
+		public PhiTransformation(int fromWidth, XlimType toType) {
+			mFromWidth=fromWidth;
+			mExtendToType=toType;
+		}
+				
 		@Override
 		protected void startPatch(XlimInputPort port, 
                 XlimInstruction instr,
@@ -356,6 +414,16 @@ public class NativeTypeTransformation {
 			else {
 				// The other three cases are simple, just patch at end of predecessor
 				module.startPatchAtEnd();
+			}
+		}
+		
+		@Override
+		protected XlimOutputPort apply(XlimSource oldSource, XlimContainerModule inModule) {
+			if (isSignedInt(mExtendToType)) {
+				return signExtend(oldSource,mFromWidth,mExtendToType,inModule);
+			}
+			else {
+				return zeroExtend(oldSource,mFromWidth,mExtendToType,inModule);
 			}
 		}
 	}
@@ -380,18 +448,17 @@ public class NativeTypeTransformation {
 			XlimContainerModule module=op.getParentModule();
 			module.startPatchAfter(op);
 
-			// Generate sign-extension
-			XlimOperation sex=module.addOperation("signExtend", 
-						                             oldOut, 
-						                             mExtendToType);
-			sex.setIntegerValueAttribute(mFromWidth);
-			XlimOutputPort newOut=sex.getOutputPort(0);
+			// Generate sign/zero-extension
+			XlimOutputPort newOut=(isSignedInt(mExtendToType))?
+					signExtend(oldOut,mFromWidth,mExtendToType,module) :
+					zeroExtend(oldOut,mFromWidth,mExtendToType,module);
+			XlimInputPort refToOldOut=newOut.getParent().getInputPort(0);
 			
 			// substitute 'newOut' for 'oldOut' in all uses of 'oldOut'
 			oldOut.substitute(newOut);
 			
 			// yes, we even substituted here (undo)
-			sex.getInputPort(0).setSource(oldOut);
+			refToOldOut.setSource(oldOut);
 			
 			// set new native type
 			XlimType nativeT=mNativeTypePlugIn.nativeType(oldOut.getType());
@@ -399,9 +466,6 @@ public class NativeTypeTransformation {
 			
 			// close patch
 			module.completePatchAndFixup();
-			
-			if (mTrace)
-				System.out.println("// NativeTypeTransform: added "+sex.toString());
 		}
 	}
 	
@@ -588,7 +652,7 @@ public class NativeTypeTransformation {
                                     Map<Object,Transformation> transformations) {
 
 			XlimType inputT=getDataPort(op).getSource().getType();
-			XlimType fromT=signExtendFrom(op);
+			XlimType fromT=extendFromType(op);
 			
 			if (inputT.isList()) {
 				// Make sure the elements in the input matches that of the state variable (or port)
@@ -599,7 +663,7 @@ public class NativeTypeTransformation {
 				assert(fromT==elementT);
 			}
 			else {
-				// Sign-extend input?
+				// Sign/zero-extend input?
 				// This is needed when writing to ports and state variables
 				// that are *shorter* than the input. We then extend from the
 				// width of the port/state variable to the width of the native type
@@ -612,15 +676,20 @@ public class NativeTypeTransformation {
 					int actualW=inputT.getSize();			
 					if (fromW<actualW) {
 						XlimInputPort input=getDataPort(op);
-
-						if (mTrace)
+						boolean signed=isSignedInt(fromT);
+						
+						if (mTrace) {
+							String extensionType=signed? " sign-extend " : " zero-extend ";
 							System.out.println("// NativeTypeTransform: " + op.toString()
-									+ " sign-extend " + input.getSource().getUniqueId()
+									+ extensionType + input.getSource().getUniqueId()
 									+ " from " + fromW
 									+ " to " + nativeT.getSize()
 									+ " (was:" + actualW + ")");
-
-						Transformation t=new SignedInputPortTransformation(fromW,nativeT);
+						}
+						
+						Transformation t=signed?
+								new SignedInputPortTransformation(fromW,nativeT) :
+								new UnsignedInputPortTransformation(fromW,nativeT);
 						transformations.put(input, t);
 					}
 				}
@@ -632,7 +701,7 @@ public class NativeTypeTransformation {
 		
 		protected abstract XlimInputPort getDataPort(XlimOperation op);
 		
-		protected abstract XlimType signExtendFrom(XlimOperation op);
+		protected abstract XlimType extendFromType(XlimOperation op);
 		
 		protected abstract XlimType nativeType(XlimOperation op);
 	}
@@ -645,13 +714,13 @@ public class NativeTypeTransformation {
 		}
 		
 		@Override
-		protected XlimType signExtendFrom(XlimOperation op) {
+		protected XlimType extendFromType(XlimOperation op) {
 			return op.getPortAttribute().getType();
 		}
 
 		@Override
 		protected XlimType nativeType(XlimOperation op) {
-			return mNativeTypePlugIn.nativePortType(signExtendFrom(op));
+			return mNativeTypePlugIn.nativePortType(extendFromType(op));
 		}
 	}
 	
@@ -664,7 +733,7 @@ public class NativeTypeTransformation {
 		}
 
 		@Override
-		protected XlimType signExtendFrom(XlimOperation op) {
+		protected XlimType extendFromType(XlimOperation op) {
 			XlimType elementT=op.getLocation().getType();
 			while (elementT.isList())
 				elementT=elementT.getTypeParameter("type");
@@ -675,7 +744,7 @@ public class NativeTypeTransformation {
 		protected XlimType nativeType(XlimOperation op) {
 			XlimType targetT=op.getLocation().getType();
 			if (targetT.isList())
-				return mNativeTypePlugIn.nativeElementType(signExtendFrom(op));
+				return mNativeTypePlugIn.nativeElementType(extendFromType(op));
 			else
 				return mNativeTypePlugIn.nativeType(targetT);
 		}		

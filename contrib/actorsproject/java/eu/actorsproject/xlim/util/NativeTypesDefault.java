@@ -42,8 +42,9 @@ import eu.actorsproject.xlim.XlimTypeKind;
 import eu.actorsproject.xlim.type.TypeFactory;
 
 public class NativeTypesDefault implements NativeTypePlugIn {
-	protected XlimTypeKind mIntTypeKind;
+	protected XlimTypeKind mIntTypeKind, mUintTypeKind;
 	protected XlimType mInt8, mInt16, mInt32, mInt64;
+	protected XlimType mUint8, mUint16, mUint32, mUint64;
 	protected TypeFactory mTypeFact;
 	
 	public NativeTypesDefault() {
@@ -53,44 +54,54 @@ public class NativeTypesDefault implements NativeTypePlugIn {
 		mInt16=mTypeFact.createInteger(16);
 		mInt32=mTypeFact.createInteger(32);
 		mInt64=mTypeFact.createInteger(64);
+		
+		if (mTypeFact.supportsType("uint")) {
+			mUintTypeKind=mTypeFact.getTypeKind("uint");
+			mUint8=mUintTypeKind.createType(8);
+			mUint16=mUintTypeKind.createType(16);
+			mUint32=mUintTypeKind.createType(32);
+			mUint64=mUintTypeKind.createType(64);
+		}
 	}
 
 	@Override
 	public XlimType nativeType(XlimType type) {
-		return nativeType(type, mInt32);
+		return nativeType(type, 32);
 	}
 
 	@Override
 	public XlimType nativeElementType(XlimType type) {
 		// TODO: Support small integer types for aggregates
-		// return nativeType(type, mInt8);
-		return nativeType(type, mInt32);
+		// return nativeType(type, 8);
+		return nativeType(type, 32);
 	}
 
 	@Override
 	public XlimType nativePortType(XlimType type) {
 		// TODO: Support small integer types for aggregates
-		// return nativeType(type, mInt8);
-		return nativeType(type, mInt32);
+		// return nativeType(type, 8);
+		return nativeType(type, 32);
 	}
 
-	protected XlimType nativeType(XlimType type, XlimType smallestInt) {
+	private XlimType nativeType(XlimType type, int smallestInt) {
 		if (type.isInteger()) {
 			assert(type.isInteger());
 			int width=type.getSize();
 			assert(width<=64);
-
-			if (width<=smallestInt.getSize())
-				return smallestInt;
-			else if (width<=16)
+			boolean signed=(mUintTypeKind==null || type.getTypeKind()==mIntTypeKind);
+			
+			if (width<smallestInt)
+				width=smallestInt;
+			
+			if (width<=16)
 				if (width<=8)
-					return mInt8;
+					return signed? mInt8 : mUint8;
 				else
-					return mInt16;
+					return signed? mInt16 : mUint16;
 			else if (width<=32)
-				return mInt32;
+				return signed? mInt32 : mUint32;
 			else
-				return mInt64;
+				return signed? mInt64 : mUint64;
 		}
 		else if (type.isList()) {
 			XlimType elementT=nativeElementType(type.getTypeParameter("type"));

@@ -46,10 +46,12 @@ import eu.actorsproject.xlim.implementation.ListOperations;
 import eu.actorsproject.xlim.implementation.MathOperations;
 import eu.actorsproject.xlim.implementation.RealOperations;
 import eu.actorsproject.xlim.implementation.SoftwareExtensions;
+import eu.actorsproject.xlim.implementation.UintOperations;
 import eu.actorsproject.xlim.io.IXlimReader;
 import eu.actorsproject.xlim.io.XlimReaderWithDiagnostics;
 import eu.actorsproject.xlim.type.BasicXlimTypes;
 import eu.actorsproject.xlim.type.RealTypeFeature;
+import eu.actorsproject.xlim.type.UintTypeFeature;
 import eu.actorsproject.xlim.util.Session;
 
 /**
@@ -73,6 +75,8 @@ public class CheckXlim extends Session {
 		register(new BasicXlimTypes());
 		register(new BasicXlimOperations());
 		register(new SoftwareExtensions());
+		register(new UintTypeFeature());
+		register(new UintOperations());
 		register(new RealTypeFeature());
 		register(new RealOperations());
 		register(new ListOperations());

@@ -143,6 +143,10 @@ public class TypeSystem implements TypeFactory {
 			throw new RuntimeException("Unsupported typename: "+typeName);
 	}
 	
+	@Override
+	public boolean supportsType(String typeName) {
+		return mTypeMap.containsKey(typeName);
+	}
 	
 	public TypeKind leastUpperBound(XlimTypeKind xlimKind1, XlimTypeKind xlimKind2) {
 		if (xlimKind1 instanceof TypeKind 

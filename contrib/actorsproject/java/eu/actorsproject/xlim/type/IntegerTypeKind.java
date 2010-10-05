@@ -48,10 +48,20 @@ import eu.actorsproject.xlim.XlimTypeArgument;
  */
 class IntegerTypeKind extends ParametricTypeKind {
 	
-	IntegerTypeKind() {
-		super("int");
+	private boolean mIsSigned;
+	
+	IntegerTypeKind(String typeName, boolean isSigned) {
+		super(typeName);
+		mIsSigned=isSigned;
 	}
 	
+	
+	/**
+	 * @return true for signed integers ("int") and false for unsigned integers ("uint")
+	 */
+	public boolean isSigned() {
+		return mIsSigned;
+	}
 	
 	/**
 	 * @param size
@@ -75,7 +85,7 @@ class IntegerTypeKind extends ParametricTypeKind {
 			return new IntegerType(this, size);
 		}
 		else
-			throw new IllegalArgumentException("Type \"int\" requires Integer parameter");
+			throw new IllegalArgumentException("Type \""+getTypeName()+"\" requires Integer parameter");
 	}
 	
 	@Override
@@ -99,6 +109,6 @@ class IntegerTypeKind extends ParametricTypeKind {
 				return Integer.valueOf(size);
 			}
 		}
-		throw new IllegalArgumentException("Type \"int\" requires an Integer \"size\" parameter");
+		throw new IllegalArgumentException("Type \""+getTypeName()+"\" requires an Integer \"size\" parameter");
 	}	
 }

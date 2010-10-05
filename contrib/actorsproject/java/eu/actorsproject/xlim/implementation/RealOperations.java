@@ -63,7 +63,7 @@ import eu.actorsproject.xlim.util.XlimFeature;
 public class RealOperations extends XlimFeature {
 
 	@Override
-	public void initialize(InstructionSet s) {
+	public void addOperations(InstructionSet s) {
 		TypeFactory fact=Session.getTypeFactory();
 		TypeKind realKind=fact.getTypeKind("real");
 		XlimType realType=realKind.createType();

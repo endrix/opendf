@@ -46,6 +46,7 @@ import eu.actorsproject.xlim.XlimStateVar;
 import eu.actorsproject.xlim.XlimTaskModule;
 import eu.actorsproject.xlim.XlimTopLevelPort;
 import eu.actorsproject.xlim.XlimType;
+import eu.actorsproject.xlim.XlimTypeKind;
 import eu.actorsproject.xlim.codegenerator.AbstractSymbolTable;
 import eu.actorsproject.xlim.codegenerator.TemporaryVariable;
 import eu.actorsproject.xlim.type.TypeFactory;
@@ -82,7 +83,18 @@ public class CSymbolTable extends AbstractSymbolTable {
 		mTargetTypeNames.put(fact.createInteger(32), "int32_t");
 		mTargetTypeNames.put(fact.createInteger(64), "int64_t");
 		mTargetTypeNames.put(fact.create("bool"),    "bool_t");
-		mTargetTypeNames.put(fact.create("real"),    "double");
+		
+		if (fact.supportsType("uint")) {
+			XlimTypeKind uintTypeKind=fact.getTypeKind("uint");
+			
+			mTargetTypeNames.put(uintTypeKind.createType(8),  "uint8_t");
+			mTargetTypeNames.put(uintTypeKind.createType(16), "uint16_t");
+			mTargetTypeNames.put(uintTypeKind.createType(32), "uint32_t");
+			mTargetTypeNames.put(uintTypeKind.createType(64), "uint64_t");
+		}
+		if (fact.supportsType("real")) {
+			mTargetTypeNames.put(fact.create("real"),    "double");
+		}
 	}
 	
 	@Override

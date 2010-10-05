@@ -43,10 +43,6 @@ import eu.actorsproject.util.Pair;
 import eu.actorsproject.xlim.XlimType;
 import eu.actorsproject.xlim.XlimTypeArgument;
 
-/**
- * @author ecarvon
- *
- */
 public class ListTypeConstructor extends ParametricTypeKind {
 
 	public ListTypeConstructor() {

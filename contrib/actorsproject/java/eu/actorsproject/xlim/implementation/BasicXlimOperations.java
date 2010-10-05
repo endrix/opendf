@@ -44,6 +44,7 @@ import eu.actorsproject.xlim.XlimOperation;
 import eu.actorsproject.xlim.XlimOutputPort;
 import eu.actorsproject.xlim.XlimSource;
 import eu.actorsproject.xlim.XlimType;
+import eu.actorsproject.xlim.XlimTypeKind;
 import eu.actorsproject.xlim.type.CastTypeRule;
 import eu.actorsproject.xlim.type.FixIntegerTypeRule;
 import eu.actorsproject.xlim.type.FixOutputTypeRule;
@@ -66,7 +67,7 @@ import eu.actorsproject.xlim.util.XlimFeature;
 public class BasicXlimOperations extends XlimFeature {
 
 	@Override
-	public void initialize(InstructionSet instructionSet) {
+	public void addOperations(InstructionSet instructionSet) {
 		addPortOperations(instructionSet);
 		addStateVarOperations(instructionSet);
 		addGenericOperations(instructionSet);
@@ -276,12 +277,12 @@ public class BasicXlimOperations extends XlimFeature {
 		
 		// $literal_Integer: void -> int
 		OperationKind literal=new IntegerAttributeOperationKind("$literal_Integer",
-				new LiteralIntegerTypeRule(),
+				new LiteralIntegerTypeRule(intKind,true /* isSigned */),
 				"value");
 		s.registerOperation(literal);
 		
 		// $add: (int,int) -> int
-		TypeRule addRule=new AddTypeRule(binary, 33);
+		TypeRule addRule=new AddTypeRule(binary,intKind,33);
 		OperationKind add=new OperationKind("$add", addRule);
 		s.registerOperation(add);
 		
@@ -290,41 +291,38 @@ public class BasicXlimOperations extends XlimFeature {
 		s.registerOperation(sub);
 		
 		// $negate: int -> int
-		OperationKind negate=new OperationKind("$negate", new AddTypeRule(unary, 33));
+		OperationKind negate=new OperationKind("$negate", new AddTypeRule(unary,intKind,33));
 		s.registerOperation(negate);
 		
 		// $mul: (int,int) -> int
-		OperationKind mul=new OperationKind("$mul", new MulTypeRule(binary, 33));
+		OperationKind mul=new OperationKind("$mul", new MulTypeRule(binary,intKind,33));
 		s.registerOperation(mul);
 		
 		// $div: (int,int) -> int
+		OperationKind div=new OperationKind("$div", new FirstInputTypeRule(binary,intKind));
+		s.registerOperation(div);
+		
 		// rshift: (int,int) -> int
 		// urshift: (int,int) -> int
-		TypeRule divRShiftRule=new FirstInputTypeRule(binary);
-		String divRShiftOps[]={"$div","rshift","urshift"};
-		for (String name: divRShiftOps) {
-			OperationKind op=new OperationKind(name, divRShiftRule);
-			s.registerOperation(op);
-		}
+		String rShifts[]={"rshift", "urshift"};
+		TypeRule rShiftRule=new FirstInputTypeRule(binary,intKind);
+		registerAll(rShifts, rShiftRule, s);
 		
 		// lshift: (int,int) -> int(33)
 		OperationKind lshift=new OperationKind("lshift", 
-                new FixIntegerTypeRule(binary,33));
+                new FixIntegerTypeRule(binary,intKind,33));
 		s.registerOperation(lshift);
 		
 		// bitand: (int,int) -> int
 		// bitor: (int,int) -> int
 		// bitxor: (int,int) -> int
-		TypeRule bitOpRule=new WidestInputTypeRule(binary);
+		TypeRule bitOpRule=new WidestInputTypeRule(binary,intKind);
 		String bitOps[]={"bitand", "bitor", "bitxor"};
-		for (String name: bitOps) {
-			OperationKind op=new OperationKind(name, bitOpRule);
-			s.registerOperation(op);
-		}
+		registerAll(bitOps, bitOpRule, s);
 		
 		// bitnot: int -> int
 		OperationKind bitnot=new OperationKind("bitnot", 
-				                               new WidestInputTypeRule(unary));
+				                               new WidestInputTypeRule(unary,intKind));
 		s.registerOperation(bitnot);
 		
 		// $eq: (int,int) -> bool
@@ -342,14 +340,21 @@ public class BasicXlimOperations extends XlimFeature {
 
 		// noop: int->int
 		OperationKind noop=new OperationKind("noop", 
-                new FirstInputTypeRule(unary));
+                new FirstInputTypeRule(unary,intKind));
 		s.registerOperation(noop);
 		
 		// $selector: (bool,int,int) -> int
 		Signature ternarySignature=new Signature(boolKind, intKind, intKind);
 		OperationKind selector=new OperationKind("$selector", 
-				new WidestInputTypeRule(ternarySignature));
+				new WidestInputTypeRule(ternarySignature,intKind));
 		s.registerOperation(selector);
+	}
+	
+	private void registerAll(String[] xlimOps, TypeRule typeRule, InstructionSet s) {
+		for (String name: xlimOps) {
+		    OperationKind op=new OperationKind(name, typeRule);
+		    s.registerOperation(op);
+		}
 	}
 }
 
@@ -440,12 +445,26 @@ class GenericSelectorTypeRule extends TypeRule {
 	}	
 }
 
+
+/**
+ * Type rule of $literal_Integer. Note that the TypeKind of output is used when matching
+ * the rule: we have two rules, for "int" and "uint" respectively, but only one of the match
+ * a given output type.
+ */
 class LiteralIntegerTypeRule extends IntegerTypeRule {
 
-	LiteralIntegerTypeRule() {
-		super(null);
+	private boolean mIsSigned;
+	
+	LiteralIntegerTypeRule(XlimTypeKind outputTypeKind, boolean isSigned) {
+		super(null, outputTypeKind);
+		mIsSigned=isSigned;
 	}
 
+	@Override
+	public boolean matchesOutputs(List<? extends XlimOutputPort> outputs) {
+		return outputs.size()==1 && outputs.get(0).getType().getTypeKind()==mOutputTypeKind ;
+	}
+	
 	@Override
 	public XlimType defaultOutputType(List<? extends XlimSource> inputs, int i) {
 		return null; // not possible to deduce ("value" attribute needed)
@@ -458,11 +477,23 @@ class LiteralIntegerTypeRule extends IntegerTypeRule {
 
 	@Override
 	protected int actualWidth(XlimOperation op) {
-		return actualWidth(op.getIntegerValueAttribute());
+		long value=op.getIntegerValueAttribute();
+		int width=actualWidth(value);
+		if (!mIsSigned) {
+			// No need to represent sign-bit for "uint"
+			assert(value>=0);
+			if (width>0)
+				--width;
+		}
+		return width;
 	}
 	
+	/**
+	 * @param value
+	 * @return minimum number of bits (including sign-bit) needed to represent 'value'
+	 */
 	public static int actualWidth(long value) {
-		int width=1;
+		int width=1;		
 		while (value>=256 || value<-256) {
 			width+=8;
 			value>>=8;
@@ -475,18 +506,24 @@ class LiteralIntegerTypeRule extends IntegerTypeRule {
 	}
 }
 
+/**
+ * Type rule that yields the widest of the input types
+ * For mixed signedness uint(w) is promoted to int(w+1)
+ *  
+ * Used for bitand, bitor, bitxor, bitop, $selector
+ */
 class WidestInputTypeRule extends IntegerTypeRule {
 	
-	WidestInputTypeRule(Signature signature) {
-		super(signature);
+	WidestInputTypeRule(Signature signature, XlimTypeKind outputTypeKind) {
+		super(signature, outputTypeKind);
 	}
 	
 	
 	@Override
 	protected int defaultWidth(List<? extends XlimSource> inputs) {
 		int widest=0;
-		for (XlimSource source: inputs) {
-			int w=source.getType().getSize();
+		for (int i=0; i<inputs.size(); ++i) {
+			int w=promotedInputType(inputs.get(i).getType(), i).getSize();
 			if (w>widest)
 				widest=w;
 		}
@@ -496,8 +533,8 @@ class WidestInputTypeRule extends IntegerTypeRule {
 	@Override
 	protected int actualWidth(XlimOperation op) {
 		int widest=0;
-		for (XlimInputPort input: op.getInputPorts()) {
-			int w=input.getSource().getType().getSize();
+		for (int i=0; i<op.getNumInputPorts(); ++i) {
+			int w=promotedInputType(op.getInputPort(i).getSource().getType(), i).getSize();
 			if (w>widest)
 				widest=w;
 		}
@@ -505,12 +542,18 @@ class WidestInputTypeRule extends IntegerTypeRule {
 	}	
 }
 
+/**
+ * Type rule that yields the widest of the input types plus one
+ * For mixed signedness uint(w) is promoted to int(w+1)
+ *
+ * Used for: $add, $sub and $negate
+ */
 class AddTypeRule extends WidestInputTypeRule {
 
 	private int mMaxWidth;
 	
-	AddTypeRule(Signature signature, int maxWidth) {
-		super(signature);
+	AddTypeRule(Signature signature, XlimTypeKind outputTypeKind, int maxWidth) {
+		super(signature, outputTypeKind);
 		mMaxWidth=maxWidth;
 	}
 	
@@ -526,12 +569,24 @@ class AddTypeRule extends WidestInputTypeRule {
 	}
 }
 
+/**
+ * Type rule used for $mul, result has a default bit-width that is the sum of the operands
+ * 
+ * int(w1)  * int(w2)  --> int(w1+w2)
+ * int(w1)  * uint(w2) --> int(w1+w2)
+ * uint(w1) * int(w2)  --> int(w1+w2)
+ * uint(w1) * uint(w2) --> uint(w1+w2)
+ * 
+ * Note that this scheme differs from the other arithmetical type rules in that uint
+ * operands are not promoted to int in the mixed-signedness cases. We would otherwise have
+ * got the bitwidth of w1+w2+1
+ */
 class MulTypeRule extends IntegerTypeRule {
 
 	private int mMaxWidth;
 	
-	MulTypeRule(Signature signature, int maxWidth) {
-		super(signature);
+	MulTypeRule(Signature signature, XlimTypeKind outputTypeKind, int maxWidth) {
+		super(signature, outputTypeKind);
 		mMaxWidth=maxWidth;
 	}
 
@@ -554,36 +609,25 @@ class MulTypeRule extends IntegerTypeRule {
 	}
 }
 
+/**
+ * Type rule that uses (possibly promoted) type of first input as result. 
+ * For mixed signedness uint(w) is promoted to int(w+1)
+ * Used for: $div, rshift, urshift, abs and noop
+ */
+
 class FirstInputTypeRule extends IntegerTypeRule {
-
-	FirstInputTypeRule(Signature signature) {
-		super(signature);
+	
+	FirstInputTypeRule(Signature signature, XlimTypeKind defaultOutputKind) {
+		super(signature, defaultOutputKind);
 	}
-
-	@Override
-	public int defaultNumberOfOutputs() {
-		return 1;
-	}
-
 	
 	@Override
-	public XlimType defaultOutputType(List<? extends XlimSource> inputs, int i) {
-		return inputs.get(0).getType();
-	}
-
-	@Override
 	protected int defaultWidth(List<? extends XlimSource> inputs) {
-		return defaultOutputType(inputs,0).getSize();
-	}
-
-	@Override
-	public XlimType actualOutputType(XlimOperation op, int i) {
-		assert(i==0);
-		return op.getInputPort(0).getSource().getType();
+		return promotedInputType(inputs.get(0).getType(), 0).getSize();
 	}
 
 	@Override
 	protected int actualWidth(XlimOperation op) {
-		return actualOutputType(op,0).getSize();
-	}
+		return promotedInputType(op.getInputPort(0).getSource().getType(),0).getSize();
+	}	
 }

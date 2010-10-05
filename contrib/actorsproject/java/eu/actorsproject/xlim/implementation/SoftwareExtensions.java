@@ -48,6 +48,7 @@ import eu.actorsproject.xlim.XlimOutputPort;
 import eu.actorsproject.xlim.XlimSource;
 import eu.actorsproject.xlim.XlimTopLevelPort;
 import eu.actorsproject.xlim.XlimType;
+import eu.actorsproject.xlim.XlimTypeKind;
 import eu.actorsproject.xlim.decision.PortSignature;
 import eu.actorsproject.xlim.io.ReaderContext;
 import eu.actorsproject.xlim.io.XlimAttributeList;
@@ -66,20 +67,20 @@ import eu.actorsproject.xlim.util.XlimFeature;
  */
 public class SoftwareExtensions extends XlimFeature {
 	@Override
-	public void initialize(InstructionSet s) {
+	public void addOperations(InstructionSet s) {
 		TypeFactory fact=Session.getTypeFactory();
 		TypeKind intKind=fact.getTypeKind("int");
 		Signature unary=new Signature(intKind);
 
 		// signExtend: int->int
 		OperationKind signExtend=new IntegerAttributeOperationKind("signExtend",
-				new SignExtendTypeRule(unary),
+				new SignExtendTypeRule(unary,intKind),
 				"size");
 		s.registerOperation(signExtend);
 
 		// pinAvail: void -> integer(32)
 		OperationKind pinAvail=new PortOperationKind("pinAvail",
-				new FixIntegerTypeRule(null,32),
+				new FixIntegerTypeRule(null,intKind,32),
 				"portName", 
 				false /* doesn't modify port */, 
 				null /* no size */);
@@ -97,8 +98,8 @@ public class SoftwareExtensions extends XlimFeature {
 
 class SignExtendTypeRule extends IntegerTypeRule {
 
-	SignExtendTypeRule(Signature signature) {
-		super(signature);
+	SignExtendTypeRule(Signature signature, XlimTypeKind outputTypeKind) {
+		super(signature, outputTypeKind);
 	}
 	
 	@Override
@@ -115,7 +116,7 @@ class SignExtendTypeRule extends IntegerTypeRule {
 	protected int actualWidth(XlimOperation op) {
 		XlimType t=op.getOutputPort(0).getType();
 		if (t!=null)
-			return t.getSize();
+			return promotedInputType(t,0).getSize();
 		else
 			throw new IllegalArgumentException("signExtend: not possible to deduce width");
 	}

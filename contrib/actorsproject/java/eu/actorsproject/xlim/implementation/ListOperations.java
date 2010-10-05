@@ -64,12 +64,12 @@ public class ListOperations extends XlimFeature {
 
 	
 	@Override
-	public void initialize(TypeSystem typeSystem) {
+	public void addTypes(TypeSystem typeSystem) {
 		typeSystem.addListType();
 	}
 
 	@Override
-	public void initialize(InstructionSet s) {
+	public void addOperations(InstructionSet s) {
 		TypeFactory fact=Session.getTypeFactory();
 		TypeKind intKind=fact.getTypeKind("int");
 		TypeKind listKind=fact.getTypeKind("List");
