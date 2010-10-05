@@ -141,11 +141,7 @@ public class Operation2c implements OperationGenerator {
 		generator.generateStatement(op,treeGenerator);
 	}
 
-	@Override
-	public void generateCopy(XlimSource source, XlimSource dest, ExpressionTreeGenerator gen) {
-		BasicGenerator.generateCopy(source,dest,gen);
-	}
-	
+
 	private void registerEtsiApi() {
 		String etsiApi[]={"ETSI_norm_s",   "ETSI_abs_s",     "ETSI_negate",
 				          "ETSI_saturate", "ETSI_extract_h", "ETSI_extract_l",
@@ -263,8 +259,8 @@ abstract class BasicGenerator implements OperationHandler {
 		}
 	}
 	
-	protected static void generateCopy(XlimSource source, XlimSource dest, ExpressionTreeGenerator gen) {
-		XlimType type=source.getType();
+	protected static void generateCopy(XlimInputPort input, XlimSource dest, ExpressionTreeGenerator gen) {
+		XlimType type=input.getSource().getType();
 		
 		if (type.isList()) {
 			int N=totalNumberOfElements(type);
@@ -272,13 +268,13 @@ abstract class BasicGenerator implements OperationHandler {
 			gen.print("MEMCPY(");
 			generateSource(dest,gen);
 			gen.print(", ");
-			generateSource(source,gen);
+			gen.translateSubTree(input);
 			gen.print(", "+N+"*sizeof("+gen.getTargetTypeName(elementT)+"))");
 		}
 		else {
 			generateSource(dest,gen);
 			gen.print("=");
-			generateSource(source,gen);
+			gen.translateSubTree(input);
 		}
 	}
 	

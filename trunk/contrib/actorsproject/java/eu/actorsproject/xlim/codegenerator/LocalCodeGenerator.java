@@ -237,24 +237,33 @@ public abstract class LocalCodeGenerator implements ExpressionTreeGenerator {
 		return true;
 	}
 	
+	protected abstract void generatePhi(XlimInputPort input, XlimOutputPort output);
+	
 	protected void visitPhiNodes(Iterable<? extends XlimInstruction> phiNodes, int fromPath) {
 		// TODO: phi-nodes should be top-sorted in dependence order
 		// When we start coalescing storage locations, we will be in trouble otherwise.
 		// Cyclic dependence is also possible, say t1=phi(t0,t2), t2=phi(t0,t1), in which
 		// case we must introduce a temporary (noop).
 		for (XlimInstruction phi: phiNodes) {
-			XlimSource source=phi.getInputPort(fromPath).getSource();
+			XlimInputPort input=phi.getInputPort(fromPath);
+			XlimSource source=input.getSource();
 			XlimOutputPort srcPort=source.asOutputPort();
 			XlimOutputPort dest=phi.getOutputPort(0);
 			
 			// Check that source and destination are distinct (skip copy otherwise)
-			if (srcPort==null ||
-			    mLocalSymbols.getTemporaryVariable(srcPort)!=mLocalSymbols.getTemporaryVariable(dest)) {
-				mPlugIn.generateCopy(source, dest, this);
+			if (srcPort!=null &&
+			    mLocalSymbols.getTemporaryVariable(srcPort)==mLocalSymbols.getTemporaryVariable(dest)) {
+				
+				String temp=mActorScope.getReference(mLocalSymbols.getTemporaryVariable(srcPort));
+				mOutput.println("/* "+temp+" = "+temp+" (PHI) */");
+			}
+			else {
+				generatePhi(input, dest);
 			}
 		}
 	}
 		
+	
 	/**
 	 * @param s
 	 * prints a string to the resulting output stream
