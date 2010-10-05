@@ -231,6 +231,12 @@ public class Task2c extends LocalCodeGenerator {
 	}
 
 	@Override
+	protected void generatePhi(XlimInputPort input, XlimOutputPort output) {
+		BasicGenerator.generateCopy(input, output, this);
+		mOutput.println("; /* PHI */");
+	}
+	
+	@Override
 	public void print(XlimTaskModule task) {
 		mOutput.print("ART_FIRE_ACTION("+mTopLevelSymbols.getReference(task)+")");
 	}

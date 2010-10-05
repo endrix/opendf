@@ -37,6 +37,7 @@
 
 package eu.actorsproject.xlim.codegenerator;
 
+import eu.actorsproject.xlim.XlimInputPort;
 import eu.actorsproject.xlim.XlimOperation;
 import eu.actorsproject.xlim.XlimSource;
 
@@ -74,14 +75,4 @@ public interface OperationGenerator {
 	 * thus needs to be overridden for operations with zero or more than one output port
 	 */
 	public void generateStatement(XlimOperation op, ExpressionTreeGenerator gen);
-	
-	
-	/**
-	 * @param source  Source of copy operation
-	 * @param dest    Destination of copy operation
-	 * @param gen     operation generator, which provides the context of the copy
-	 * 
-	 * Generates a copy operation dest := source
-	 */
-	public void generateCopy(XlimSource source, XlimSource dest, ExpressionTreeGenerator gen);
 }
