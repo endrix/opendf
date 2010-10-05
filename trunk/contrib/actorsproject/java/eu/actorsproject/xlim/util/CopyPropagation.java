@@ -123,7 +123,7 @@ public class CopyPropagation extends XlimTraversal<Object,Object> {
 				       && output.getLocation().isModified()==false;
 			}
 			else if (sourceT.isInteger()){
-				// Integer source and result,
+				// Integer source and result with same signedness,
 				// result at least as wide as source
 				// not a reference to a state variable
 				
@@ -135,7 +135,7 @@ public class CopyPropagation extends XlimTraversal<Object,Object> {
 				// Alternatively: check that the result is not used in a bitop.
 				// Or even: add explicit zero-extension operations
 				return source.asOutputPort()!=null
-			       && resultT.isInteger()
+			       && sourceT.getTypeKind()==resultT.getTypeKind()
 			       && sourceT.getSize()<=resultT.getSize();
 			}
 			else {

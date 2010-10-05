@@ -51,6 +51,8 @@ public interface TypeFactory {
 	 */
 	TypeKind getTypeKind(String typeName);
 	
+	boolean supportsType(String typeName);
+	
 	XlimType leastUpperBound(XlimType t1, XlimType t2);
 	
 	// TODO: replace by create via getTypeKind

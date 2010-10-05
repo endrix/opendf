@@ -150,12 +150,14 @@ public class Session {
 	
 	private void initTypeSystem() {
 		for (XlimFeature p: mPlugIns)
-			p.initialize(mTypeSystem);
+			p.addTypes(mTypeSystem);
+		for (XlimFeature p: mPlugIns)
+			p.addTypeConversions(mTypeSystem);
 	}
 	
 	private void initInstructionSet() {
 		for (XlimFeature p: mPlugIns)
-			p.initialize(mInstructionSet);
+			p.addOperations(mInstructionSet);
 	}
 	
 	class DefaultReaderPlugIn implements ReaderPlugIn {

@@ -41,7 +41,7 @@ import eu.actorsproject.xlim.implementation.InstructionSet;
 import eu.actorsproject.xlim.type.TypeSystem;
 
 /**
- * An XlimFeature packages features ("extensions"): types and operations
+ * An XlimFeature packages features ("extensions"): types, type conversions and operations
  * Used by Session to initialize type system and instruction set (in that order).
  * 
  * Override methods as appropriate -default implementation is the
@@ -49,9 +49,12 @@ import eu.actorsproject.xlim.type.TypeSystem;
  */
 public class XlimFeature {
 
-	public void initialize(TypeSystem typeSystem) {
+	public void addTypes(TypeSystem typeSystem) {
 	}
 	
-	public void initialize(InstructionSet instructionSet) {
+	public void addTypeConversions(TypeSystem typeSystem) {
+	}
+	
+	public void addOperations(InstructionSet instructionSet) {
 	}
 }

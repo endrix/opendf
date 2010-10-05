@@ -125,6 +125,25 @@ public abstract class TypeRule {
 	 */
 	public abstract XlimType actualOutputType(XlimOperation op, int i);
 	
+	/**
+	 * @param fromType  type of actual argument
+	 * @param argIndex  index of argument 0,1,2,...
+	 * @return          fromType promoted according to the (given argument of the) signature
+	 */
+	protected XlimType promotedInputType(XlimType fromType, int argIndex) {
+		TypePattern pat=mSignature.getPattern(argIndex);
+		if (pat.match(fromType)==TypePattern.Match.DoesNotMatch)
+			return null;
+		
+		TypeKind toKind=pat.patternTypeKind();
+		if (toKind==null) {
+			// No pattern TypeKind means wildcard
+			return fromType;
+		}
+		else {
+			return toKind.promote(fromType);
+		}
+	}
 	
 	/**
 	 * Completes typechecking when a required attribute (e.g. state variable 

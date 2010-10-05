@@ -46,9 +46,9 @@ import eu.actorsproject.xlim.util.XlimFeature;
 public class BasicXlimTypes extends XlimFeature {
 
 	@Override
-	public void initialize(TypeSystem typeSystem) {
+	public void addTypes(TypeSystem typeSystem) {
 		TypeKind boolKind=new BooleanType();
-		TypeKind intKind=new IntegerTypeKind();
+		TypeKind intKind=new IntegerTypeKind("int",true /*signed*/);
 		
 		typeSystem.addTypeKind(boolKind);
 		typeSystem.addTypeKind(intKind);

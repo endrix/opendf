@@ -56,7 +56,7 @@ import eu.actorsproject.xlim.util.XlimFeature;
 public class EtsiOperations extends XlimFeature {
 
 	@Override
-	public void initialize(InstructionSet s) {
+	public void addOperations(InstructionSet s) {
 		TypeFactory fact=Session.getTypeFactory();
 		TypeKind intKind=fact.getTypeKind("int");
 		Signature unary=new Signature(intKind);
@@ -66,34 +66,34 @@ public class EtsiOperations extends XlimFeature {
 		// Unary operations: int->int16
 		String unaryOps16[]={"ETSI_norm_s", "ETSI_abs_s", "ETSI_negate",
 				             "ETSI_saturate", "ETSI_extract_h", "ETSI_extract_l"};
-		registerAll(unaryOps16, new FixIntegerTypeRule(unary,16), s);
+		registerAll(unaryOps16, new FixIntegerTypeRule(unary,intKind,16), s);
 		
 		// Unary operations: int->int32
 		String unaryOps32[]={"ETSI_norm_l", "ETSI_L_abs", "ETSI_L_negate",
 				             "ETSI_round",  "ETSI_L_deposit_h", "ETSI_L_deposit_l",
 				             "ETSI_typecast16_32"};
-		registerAll(unaryOps32, new FixIntegerTypeRule(unary,32), s);
+		registerAll(unaryOps32, new FixIntegerTypeRule(unary,intKind,32), s);
 		
 		// Binary operations: (int,int)->int16
 		String binaryOps16[]={"ETSI_add", "ETSI_sub", "ETSI_mult", "ETSI_div_s",
 				              "ETSI_shr", "ETSI_shl", "ETSI_shr_r", "ETSI_mult_r"};
-		registerAll(binaryOps16, new FixIntegerTypeRule(binary,16), s);
+		registerAll(binaryOps16, new FixIntegerTypeRule(binary,intKind,16), s);
 		
 		// Binary operations: (int,int)->int32
 		String binaryOps32[]={"ETSI_L_add", "ETSI_L_sub", "ETSI_L_mult", 
 				              "ETSI_L_shr", "ETSI_L_shl", "ETSI_L_shr_r", "ETSI_L_Comp"};
-		registerAll(binaryOps32, new FixIntegerTypeRule(binary,16), s);
+		registerAll(binaryOps32, new FixIntegerTypeRule(binary,intKind,16), s);
 		
 		// Ternary operations: (int,int,int)->int32
 		String ternaryOps32[]={"ETSI_L_mac","ETSI_L_msu","ETSI_Mpy_32_16","ETSI_Div_32"};
-		registerAll(ternaryOps32, new FixIntegerTypeRule(ternary,32), s);
+		registerAll(ternaryOps32, new FixIntegerTypeRule(ternary,intKind,32), s);
 		
 		// Quaternary: (int,int,int,int)->int32
 		List<TypePattern> args4=new ArrayList<TypePattern>();
 		args4.add(intKind); args4.add(intKind); args4.add(intKind); args4.add(intKind); 
 		Signature quaternary=new Signature(args4);
 		s.registerOperation(new OperationKind("ETSI_Mpy_32", 
-				                              new FixIntegerTypeRule(quaternary,32)));
+				                              new FixIntegerTypeRule(quaternary,intKind,32)));
 	}
 	
 	private void registerAll(String[] xlimOps, TypeRule typeRule, InstructionSet s) {

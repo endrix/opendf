@@ -41,18 +41,18 @@ import java.util.List;
 
 import eu.actorsproject.xlim.XlimOperation;
 import eu.actorsproject.xlim.XlimSource;
+import eu.actorsproject.xlim.XlimTypeKind;
 
 /**
- * TypeRule, with a single (scalar) integer, with constant
- * default width, as output
- *
+ * TypeRule, with a single (scalar) integer, with constant default width, as output.
+ * Used for: lshift, pinAvail and ETSI instrinsic functions
  */
 public class FixIntegerTypeRule extends IntegerTypeRule {
 
 	private int mDefaultWidth;
 	
-	public FixIntegerTypeRule(Signature signature, int defaultWidth) {
-		super(signature);
+	public FixIntegerTypeRule(Signature signature, XlimTypeKind defaultKind, int defaultWidth) {
+		super(signature, defaultKind);
 		mDefaultWidth=defaultWidth;
 	}
 
@@ -69,6 +69,6 @@ public class FixIntegerTypeRule extends IntegerTypeRule {
 	
 	@Override
 	protected String outputToString() {
-		return "int(size="+mDefaultWidth+")"; 
+		return mOutputTypeKind.getTypeName()+"(size="+mDefaultWidth+")"; 
 	}
 }

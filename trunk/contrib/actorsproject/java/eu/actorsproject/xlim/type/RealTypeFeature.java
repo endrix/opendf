@@ -47,14 +47,25 @@ import eu.actorsproject.xlim.util.XlimFeature;
 public class RealTypeFeature extends XlimFeature {
 
 	@Override
-	public void initialize(TypeSystem typeSystem) {
-		TypeKind intKind=typeSystem.getTypeKind("int");
-		XlimType int32_t=intKind.createType(32);
+	public void addTypes(TypeSystem typeSystem) {
 		TypeKind realKind=new RealType();
-		
 		typeSystem.addTypeKind(realKind);
+	}
+	
+	@Override
+	public void addTypeConversions(TypeSystem typeSystem) {
+		TypeKind intKind=typeSystem.getTypeKind("int");
+		TypeKind realKind=typeSystem.getTypeKind("real");
+		XlimType int32_t=intKind.createType(32);
+		
 		typeSystem.addSpecificTypePromotion(new TypeConversion(intKind, realKind));
 		typeSystem.addTypeConversion(new RealToIntConversion(realKind, intKind, int32_t));
+		
+		if (typeSystem.supportsType("uint")) {
+			TypeKind uintKind=typeSystem.getTypeKind("uint");
+			XlimType uint32_t=uintKind.createType(32);
+			typeSystem.addTypeConversion(new RealToIntConversion(realKind, uintKind, uint32_t));
+		}
 	}
 }
 

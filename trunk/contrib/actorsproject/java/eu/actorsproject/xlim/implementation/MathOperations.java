@@ -37,19 +37,17 @@
 
 package eu.actorsproject.xlim.implementation;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import eu.actorsproject.xlim.XlimOperation;
 import eu.actorsproject.xlim.XlimSource;
 import eu.actorsproject.xlim.XlimType;
-import eu.actorsproject.xlim.type.FixIntegerTypeRule;
+import eu.actorsproject.xlim.XlimTypeKind;
 import eu.actorsproject.xlim.type.FixOutputTypeRule;
 import eu.actorsproject.xlim.type.IntegerTypeRule;
 import eu.actorsproject.xlim.type.Signature;
 import eu.actorsproject.xlim.type.TypeFactory;
 import eu.actorsproject.xlim.type.TypeKind;
-import eu.actorsproject.xlim.type.TypePattern;
 import eu.actorsproject.xlim.type.TypeRule;
 import eu.actorsproject.xlim.util.Session;
 import eu.actorsproject.xlim.util.XlimFeature;
@@ -57,7 +55,7 @@ import eu.actorsproject.xlim.util.XlimFeature;
 public class MathOperations extends XlimFeature {
 
 	@Override
-	public void initialize(InstructionSet s) {
+	public void addOperations(InstructionSet s) {
 		TypeFactory fact=Session.getTypeFactory();
 		TypeKind intKind=fact.getTypeKind("int");
 		TypeKind realKind=fact.getTypeKind("real");
@@ -76,11 +74,11 @@ public class MathOperations extends XlimFeature {
 		s.registerOperation(new OperationKind("$mod",typeRule));
 		
 		// abs: int -> int (there's also real->real)
-		OperationKind abs=new OperationKind("abs", new FirstInputTypeRule(new Signature(intKind)));
+		OperationKind abs=new OperationKind("abs", new FirstInputTypeRule(new Signature(intKind),intKind));
 		s.registerOperation(abs);
 		
 		// mod: int x int -> int (there's also real x real -> real)
-		OperationKind mod=new OperationKind("$mod", new SecondInputTypeRule(new Signature(intKind, intKind)));
+		OperationKind mod=new OperationKind("$mod", new ModTypeRule(new Signature(intKind, intKind),intKind));
 		s.registerOperation(mod);
 	}
 	
@@ -93,10 +91,18 @@ public class MathOperations extends XlimFeature {
 }
 
 
-class SecondInputTypeRule extends IntegerTypeRule {
+/**
+ * Type rule used for the (integer) $mod operator.
+ * 
+ * int(w1)  % int(w2)  --> int(w2)
+ * int(w1)  % uint(w2) --> int(w2+1)   (second operand first promoted to int)
+ * uint(w1) % int(w2)  --> int(w2) 
+ * uint(w1) % uint(w2) --> uint(w2)
+ */
+class ModTypeRule extends IntegerTypeRule {
 
-	SecondInputTypeRule(Signature signature) {
-		super(signature);
+	ModTypeRule(Signature signature, XlimTypeKind outputTypeKind) {
+		super(signature, outputTypeKind);
 	}
 
 	@Override
@@ -105,23 +111,12 @@ class SecondInputTypeRule extends IntegerTypeRule {
 	}
 
 	@Override
-	public XlimType defaultOutputType(List<? extends XlimSource> inputs, int i) {
-		return inputs.get(1).getType();
-	}
-
-	@Override
 	protected int defaultWidth(List<? extends XlimSource> inputs) {
-		return defaultOutputType(inputs,0).getSize();
-	}
-
-	@Override
-	public XlimType actualOutputType(XlimOperation op, int i) {
-		assert(i==0);
-		return op.getInputPort(1).getSource().getType();
+		return promotedInputType(inputs.get(1).getType(), 1).getSize();
 	}
 
 	@Override
 	protected int actualWidth(XlimOperation op) {
-		return actualOutputType(op,0).getSize();
+		return promotedInputType(op.getInputPort(1).getSource().getType(), 1).getSize();
 	}
 }

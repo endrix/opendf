@@ -43,7 +43,7 @@ import eu.actorsproject.xlim.XlimOperation;
 import eu.actorsproject.xlim.XlimOutputPort;
 import eu.actorsproject.xlim.XlimSource;
 import eu.actorsproject.xlim.XlimType;
-import eu.actorsproject.xlim.util.Session;
+import eu.actorsproject.xlim.XlimTypeKind;
 
 /**
  * TypeRule, with a single, scalar integer as output
@@ -51,12 +51,16 @@ import eu.actorsproject.xlim.util.Session;
  */
 public abstract class IntegerTypeRule extends TypeRule {
 
-	public IntegerTypeRule(Signature signature) {
+	protected XlimTypeKind mOutputTypeKind;
+	
+	public IntegerTypeRule(Signature signature, XlimTypeKind outputTypeKind) {
 		super(signature);
+		mOutputTypeKind=outputTypeKind;
 	}
 	
 	@Override
 	public boolean matchesOutputs(List<? extends XlimOutputPort> outputs) {
+		// FIXME: should we/can we require stringent matching of signedness "int"/"uint" for the output?
 		return outputs.size()==1 && outputs.get(0).getType().isInteger();
 	}
 	
@@ -68,19 +72,15 @@ public abstract class IntegerTypeRule extends TypeRule {
 	@Override
 	public XlimType defaultOutputType(List<? extends XlimSource> inputs, int i) {
 		assert(i==0);
-		TypeFactory fact=Session.getTypeFactory();
-		TypeKind kind=fact.getTypeKind("int");
-		return kind.createType(defaultWidth(inputs));
+		return mOutputTypeKind.createType(defaultWidth(inputs));
 	}
-
+	
 	protected abstract int defaultWidth(List<? extends XlimSource> inputs);
 	
 	@Override
 	public XlimType actualOutputType(XlimOperation op, int i) {
 		assert(i==0);
-		TypeFactory fact=Session.getTypeFactory();
-		TypeKind kind=fact.getTypeKind("int");
-		return kind.createType(actualWidth(op));
+		return mOutputTypeKind.createType(actualWidth(op));
 	}
 
 	protected abstract int actualWidth(XlimOperation op);
@@ -88,6 +88,6 @@ public abstract class IntegerTypeRule extends TypeRule {
 	
 	@Override
 	protected String outputToString() {
-		return "int";
+		return mOutputTypeKind.getTypeName();
 	}
 }
