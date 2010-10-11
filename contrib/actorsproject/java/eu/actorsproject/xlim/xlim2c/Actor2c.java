@@ -405,17 +405,7 @@ public class Actor2c extends OutputGenerator {
 				int length=initValue.totalNumberOfElements();
 				println("static const " + type + " " + name + "[" + length + "] = {");
 				increaseIndentation();
-				
-				String delimiter="";
-				for (XlimInitValue v: initValue.getChildren()) {
-					print(delimiter);
-					delimiter=", ";
-					lineWrap(60);
-					
-					String scalarValue=v.getScalarValue();
-					assert(scalarValue!=null);
-					print(scalarValue);
-				}
+				printInitValue(initValue);
 				println();
 				decreaseIndentation();
 				println("};");
@@ -423,6 +413,22 @@ public class Actor2c extends OutputGenerator {
 		}
 	}
 	
+	private void printInitValue(XlimInitValue initValue) {
+		String scalarValue=initValue.getScalarValue();
+		if (scalarValue!=null) {
+			print(scalarValue);
+		}
+		else {
+			String delimiter="";
+			for (XlimInitValue v: initValue.getChildren()) {
+				print(delimiter);
+				delimiter=", ";
+				lineWrap(60);
+			
+				printInitValue(v);
+			}
+		}
+	}
 	
 	/**
 	 * Initializes state variables (the duty of the actor constructor)
