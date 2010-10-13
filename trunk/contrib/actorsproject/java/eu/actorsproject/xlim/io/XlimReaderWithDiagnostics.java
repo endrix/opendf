@@ -370,14 +370,13 @@ public class XlimReaderWithDiagnostics implements IXlimReader {
                                     MutableReaderContext context,
                                     XlimDesign design) {
 			XlimInitValue initValue=null;
+			String typeName=stateVarElement.getAttributeValue("typeName");
+			XlimType type=(typeName!=null)? getType(stateVarElement, context) : null;
 			
 			if (isEmpty(stateVarElement)) {
 				// <stateVar> with no <initValue>: create a zero initializer
-				String typeName=stateVarElement.getAttributeValue("typeName");
-				if (typeName!=null) {
-					XlimType type=getType(stateVarElement, context);
-					if (type!=null)
-						initValue=createZeroInitializer(type);
+				if (type!=null) {
+					initValue=mInitValueHandler.createZeroInitializer(type);
 				}
 				else {
 					reportError(stateVarElement,
@@ -385,7 +384,7 @@ public class XlimReaderWithDiagnostics implements IXlimReader {
 				}
 			}
 			else
-				initValue=mInitValueHandler.readInitValue(stateVarElement,context);
+				initValue=mInitValueHandler.readInitValue(stateVarElement,context,type);
 			
 			String sourceName=stateVarElement.getAttributeValue("sourceName");
 			String name=getRequiredAttribute("name",stateVarElement);
@@ -396,19 +395,6 @@ public class XlimReaderWithDiagnostics implements IXlimReader {
 				} catch (RuntimeException ex) {
 					reportError(stateVarElement, ex.getMessage());
 				}
-			}
-		}
-
-		protected XlimInitValue createZeroInitializer(XlimType type) {
-		
-			if (type.isList()) {
-				XlimInitValue zeroElement=createZeroInitializer(type.getTypeParameter("type"));
-				int numElements=type.getIntegerParameter("size");
-				return mFactory.createInitValue(zeroElement, numElements);
-			}
-			else {
-				String zeroValue=type.getZero();
-				return mFactory.createInitValue(zeroValue, type);
 			}
 		}
 		
@@ -480,11 +466,17 @@ public class XlimReaderWithDiagnostics implements IXlimReader {
 	/**
 	 * Reads the initializer of a state variable
 	 */
-	protected class InitValueHandler extends ElementHandler<List<XlimInitValue>, Object> {
+	protected class InitValueHandler extends ElementHandler<List<XlimInitValue>, XlimType> {
 		
-		public XlimInitValue readInitValue(XlimElement element, MutableReaderContext context) {
+		/**
+		 * @param element  a stateVar or initValue XLIM element, which encloses initValue element(s)
+		 * @param context  a reader context
+		 * @param type     an optional type of the initValue (may be null)
+		 * @return the XlimInitValue object that corresponds to the read XML element
+		 */
+		public XlimInitValue readInitValue(XlimElement element, MutableReaderContext context, XlimType type) {
 			ArrayList<XlimInitValue> initValues=new ArrayList<XlimInitValue>();
-			processChildren(element,context,initValues,null);
+			processChildren(element,context,initValues,type);
 			if (initValues.size()==1)
 				return initValues.get(0);
 			else if (!initValues.isEmpty())
@@ -496,17 +488,28 @@ public class XlimReaderWithDiagnostics implements IXlimReader {
 		protected void processChild(XlimElement child, 
                                     MutableReaderContext context, 
                                     List<XlimInitValue> initValues, 
-                                    Object dummy) {
+                                    XlimType type) {
 
 			if (getTag(child)==XlimTag.INITVALUE_TAG) {
-				XlimInitValue initValue;
+				XlimInitValue initValue=null;
 				String typeName=getRequiredAttribute("typeName",child);
 				if (typeName!=null) {
 					if (typeName.equals("List")) {
-						initValue=createAggregate(child,context);
+						if (type!=null && type.isList()==false) {
+							reportError(child, "type mismatch: expected "+type.toString()+" found List");
+						}
+						else {
+							initValue=createAggregate(child,context,type);
+						}
 					}
 					else {
-						initValue=createScalar(child,context);
+						XlimType actualType=getType(child,context);
+						if (type!=null && type!=actualType && actualType!=null) {
+							reportError(child, "type mismatch: expected "+type.toString()+" found "+actualType.toString());
+						}
+						else {
+							initValue=createScalar(child,context,actualType);
+						}
 					}
 					if (initValue!=null)
 						initValues.add(initValue);
@@ -516,8 +519,7 @@ public class XlimReaderWithDiagnostics implements IXlimReader {
 				unhandledTag(child);
 		}
 
-		protected XlimInitValue createScalar(XlimElement element, ReaderContext context) {
-			XlimType type=getType(element,context);
+		protected XlimInitValue createScalar(XlimElement element, ReaderContext context, XlimType type) {
 			String value=getRequiredAttribute("value",element);			
 			checkThatEmpty(element);
 			if (value!=null && type!=null)
@@ -527,14 +529,56 @@ public class XlimReaderWithDiagnostics implements IXlimReader {
 		}
 		
 		protected XlimInitValue createAggregate(XlimElement element, 
-				                                MutableReaderContext context) {
+				                                MutableReaderContext context,
+				                                XlimType listType) {
+			assert(listType==null || listType.isList());
+			XlimType elementType=(listType!=null)? listType.getTypeParameter("type") : null;
 			List<XlimInitValue> aggregate=new ArrayList<XlimInitValue>();
-			processChildren(element,context,aggregate,null);
-			if (!aggregate.isEmpty())
+			
+			processChildren(element,context,aggregate,elementType);
+			if (!aggregate.isEmpty()) {
+			
+				if (listType!=null) {
+					// We know the listType, make sure the initializer matches
+					int expectedSize=listType.getIntegerParameter("size");
+					int actualSize=aggregate.size();
+				
+					if (actualSize>expectedSize) {
+						reportError(element,"Too many initializers: expected "+expectedSize+" found "+actualSize);
+						aggregate=aggregate.subList(0, expectedSize);
+					}
+					else if (actualSize<expectedSize) {
+						// Be flexible about the number of elements "fill-in the blanks"
+						// so that triangular structures are transformed int matrices
+						XlimInitValue zero=createZeroInitializer(elementType);
+						while (actualSize++ < expectedSize) {
+							aggregate.add(zero);
+						}
+					}
+				}
 				return mFactory.createInitValue(aggregate);
-			else
-				return null; // Error
+			}
+			else {
+				if (listType!=null)
+					return createZeroInitializer(listType);
+				else
+					return null;
+			}
 		}
+		
+		public XlimInitValue createZeroInitializer(XlimType type) {
+			
+			if (type.isList()) {
+				XlimInitValue zeroElement=createZeroInitializer(type.getTypeParameter("type"));
+				int numElements=type.getIntegerParameter("size");
+				return mFactory.createInitValue(zeroElement, numElements);
+			}
+			else {
+				String zeroValue=type.getZero();
+				return mFactory.createInitValue(zeroValue, type);
+			}
+		}
+
 	}
 
 	protected class TypeHandler extends ElementHandler<XlimTypeElement,Object> {
