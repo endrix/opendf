@@ -35,6 +35,7 @@ ART_ACTION_SCHEDULER(art_Sink_txt_action_scheduler)
       ART_ACTION_ENTER(action1, 0);
       int32_t token=pinRead_int32_t(ART_INPUT(0));
       fprintf(thisActor->file, "%d\n", token);
+	  fflush(thisActor->file);
       ART_ACTION_EXIT(action1, 0);
     } else {
       result = exitcode_block_In_1;
