@@ -89,8 +89,20 @@ static inline void FIFO_NAME(pinReadRepeat)(LocalInputPort *p,
   }
 }
 
-static inline FIFO_TYPE FIFO_NAME(pinPeekFront)(LocalInputPort *p)
+static inline FIFO_TYPE FIFO_NAME(pinPeekFront)(const LocalInputPort *p)
 {
   assert(FIFO_NAME(pinAvailIn)(p) > 0);
   return ((FIFO_TYPE*)p->buffer)[p->pos];
+}
+
+static inline FIFO_TYPE FIFO_NAME(pinPeek)(const LocalInputPort *p, 
+                                           int offset) {
+  assert(offset>=0 && FIFO_NAME(pinAvailIn)(p) >= offset);
+
+  /* p->pos ranges from -capacity to -1, so should offset */
+  offset+=p->pos;
+  if (offset>=0) {
+    offset-=p->capacity; /* wrap-around */
+  }
+  return ((FIFO_TYPE*)p->buffer)[offset];
 }
