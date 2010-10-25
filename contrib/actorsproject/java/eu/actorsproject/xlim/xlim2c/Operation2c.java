@@ -890,16 +890,24 @@ class RelOpGenerator extends OperatorGenerator {
 	@Override
 	public void generateExpression(XlimOperation op, ExpressionTreeGenerator gen) {
 		// Override since we don't want to cast the result (is and should be bool)
-		generateExpression(op, operationType(op), gen);
+		generateExpression(op, null, gen);
 	}
 
+	@Override
+	public void generateExpression(XlimOperation op, XlimType opType, ExpressionTreeGenerator gen) {
+		// Override since we don't want to cast the operands, operationType() is not working
+		XlimInputPort arg1=op.getInputPort(0);
+		XlimInputPort arg2=op.getInputPort(1);
+		
+		translateSubTree(arg1,arg1.getSource().getType(),gen);
+		gen.print(mOperator);
+		translateSubTree(arg2,arg2.getSource().getType(),gen);
+	}
+	
 	// operationSize refers to the inputs
 	@Override
     protected XlimType operationType(XlimOperation op) {
-		TypeFactory fact=Session.getTypeFactory();
-		XlimType t1=op.getInputPort(0).getSource().getType();
-		XlimType t2=op.getInputPort(1).getSource().getType();
-		return fact.leastUpperBound(t1, t2);
+		throw new UnsupportedOperationException();
     }
 }
 
@@ -1035,9 +1043,11 @@ class SignExtendGenerator extends PrefixOperatorGenerator {
 	public void generateExpression(XlimOperation op, XlimType opType, ExpressionTreeGenerator gen) {
 		int fromSize=(int)(long)op.getIntegerValueAttribute();
 		int shifts=opType.getSize()-fromSize;
-		assert(shifts>=0);
-		translateSubTree(op.getInputPort(0), opType, gen);
-		gen.print("<<"+shifts+">>"+shifts);
+		if (shifts>0) {
+			translateSubTree(op.getInputPort(0), opType, gen);
+			gen.print("<<"+shifts+">>"+shifts);
+		}
+		// else: this is a weird kind of noop (sign-extension from a bit beyond the width of the output)
 	}
 }
 
