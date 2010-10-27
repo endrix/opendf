@@ -74,12 +74,8 @@ public class CodeMotion {
 			// Collect all operations that are to be moved to a particular module
 			// Data dependences are preserved by insertion in top-down order
 			XlimModule toModule=arg.insertionPoint(op);
-			// We can't move to the entry of loops/if-modules, so the code
-			// will instead be moved to the pre-header/surrounding container
-			XlimModule toContainer=(toModule instanceof XlimContainerModule)? 
-					toModule : toModule.getParentModule();	
 			// Avoid local code motion 
-			if (toContainer!=op.getParentModule()) {
+			if (toModule!=op.getParentModule()) {
 				List<XlimOperation> operations=mInsert.get(toModule);
 				if (operations==null) {
 					operations=new ArrayList<XlimOperation>();
