@@ -76,13 +76,17 @@ public class NativeTypeTransformation {
 		mHandlers.registerHandler("bitxor", bitwiseHandler);
 		mHandlers.registerHandler("urshift", new URShiftHandler());
 		
-		// PinWriteHandler: no output port, but possible sign-extension of input
+		// PinWriteHandler: no output port, but possible sign/zero-extension of input
 		mHandlers.registerHandler("pinWrite", new PinWriteHandler());
 		
-		// AssignHandler: no output port, but possible sign-extension of input
+		// AssignHandler: no output port, but possible sign/zero-extension of input
 		mHandlers.registerHandler("assign", new AssignHandler());
 		
-		// noop: fix the confusion regarding List-types
+		// cast: a possible sign/zero extension might still be needed 
+		// (although same native type is used for input and output)
+		mHandlers.registerHandler("cast", new CastHandler());
+		
+		// noop: fixes the confusion regarding List-types
 		mHandlers.registerHandler("noop", new NoopHandler());
 	}
 	
@@ -124,6 +128,13 @@ public class NativeTypeTransformation {
 	
 	private boolean isSignedInt(XlimType type) {
 		return type.getTypeKind()==mIntTypeKind;
+	}
+	
+	private XlimType getElementType(XlimType type) {
+		while (type.isList()) {
+			type=type.getTypeParameter("type");
+		}
+		return type;
 	}
 	
 	/**
@@ -500,12 +511,14 @@ public class NativeTypeTransformation {
 						int actualW=output.actualOutputType().getSize();
 
 						if (fromW<actualW) {
-							if (mTrace)
+							if (mTrace) {
+								String extensionType=isSignedInt(nativeT)? " sign-extend " : " zero-extend ";
 								System.out.println("// NativeTypeTransform: " + op.toString()
-										+ " sign-extend " + output.getUniqueId()
+										+ extensionType + output.getUniqueId()
 										+ " from " + fromW
 										+ " to " + nativeT.getSize()
 										+ " (actual:" + actualW + ")");
+							}
 							Transformation t=new OutputPortTransformation(fromW, nativeT);
 							transformations.put(output, t);
 						}
@@ -567,6 +580,65 @@ public class NativeTypeTransformation {
 				super.handleOperation(op, transformations);
 		}
 	}
+	
+	/**
+	 * The DefaultHandler doesn't do the trick for the cast operator
+	 * What could happen is that we end up with a noop-type conversion after promotion to
+	 * native types. If, however, the original (output) type of the cast is narrower then
+	 * a sign- or zero-extension is required.
+	 */
+	protected class CastHandler extends DefaultHandler {
+		
+		public void handleOperation(XlimOperation op, 
+				                    Map<Object,Transformation> transformations) {
+			assert(op.getNumOutputPorts()==1 && op.getNumInputPorts()==1);
+			
+			XlimOutputPort output=op.getOutputPort(0);
+			XlimType declaredT=output.getType();
+			XlimType nativeT=mNativeTypePlugIn.nativeType(declaredT);
+			
+			if (declaredT.isList()) {
+				if (declaredT!=nativeT) {
+					XlimType declaredElementT=getElementType(declaredT);
+					XlimType inT=op.getInputPort(0).getSource().getType();
+					XlimType inElementT=getElementType(inT);
+					
+					int fromW=declaredElementT.getSize();
+					int actualW=inElementT.getSize();
+					assert(fromW>=actualW);
+					if (fromW<actualW) {
+						// FIXME: Here we need to sign-/zero-extend the elements of the list
+						// How to achieve that??? 
+						// throw new UnsupportedOperationException("Cast "+inT+" to "+declaredT);
+					}
+				}
+			}
+			else {
+				// Sign extend output?
+				// This is needed if the declared type is *shorter* than the worst-case
+				// ("actual") width. We then extend up to the width of the native type. 
+					
+				if (declaredT!=nativeT) {
+					int fromW=declaredT.getSize();
+					XlimType inT=op.getInputPort(0).getSource().getType();
+					int actualW=inT.getSize();
+					
+					if (fromW<actualW) {
+						if (mTrace) {
+							String extensionType=isSignedInt(nativeT)? " sign-extend " : " zero-extend ";
+							System.out.println("// NativeTypeTransform: " + op.toString()
+										       + extensionType + output.getUniqueId()
+										       + " from " + fromW
+										       + " to " + nativeT.getSize()
+										       + " (actual:" + actualW + ")");
+						}
+						Transformation t=new OutputPortTransformation(fromW, nativeT);
+						transformations.put(output, t);
+					}
+				}
+			}			
+		}
+	}		
 	
 	/**
 	 * In addition to dealing with the output ports (see DefaultHandler),
