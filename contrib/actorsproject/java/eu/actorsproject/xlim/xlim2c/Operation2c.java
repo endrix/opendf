@@ -93,6 +93,7 @@ public class Operation2c implements OperationGenerator {
 		new PrefixOperatorGenerator("$not","!"),
 		new PrefixOperatorGenerator("bitnot","~"),
 		new UrshiftGenerator("urshift"),
+		new ListCastGenerator("noop"),
 		new NoopGenerator("noop"),
 		new ListCastGenerator("cast"),
 		new NoopGenerator("cast"),
@@ -700,18 +701,44 @@ class VConsGenerator extends BasicGenerator {
 	@Override
 	public void generateStatement(XlimOperation op, ExpressionTreeGenerator gen) {
 		XlimOutputPort output=op.getOutputPort(0);
-		XlimType resultT=output.getType();
 		int N=op.getNumInputPorts();
+		XlimType resultT=output.getType();
+		XlimType argT=op.getInputPort(0).getSource().getType();
 		assert(resultT.isList() && resultT.getIntegerParameter("size")==N);
 		
-		for (int i=0; i<N; ++i) {
-			if (i!=0) {
-				gen.print(";");
-				gen.println();
+		if (argT.isList()) {
+			// The "special" case, in which the arguments are themselves lists
+			XlimType scalarT=elementType(argT);
+			int delta=totalNumberOfElements(argT);
+			
+			for (int i=0; i<N; ++i) {
+				assert(op.getInputPort(i).getSource().getType()==argT);
+				
+				if (i!=0) {
+					gen.print(";");
+					gen.println();
+				}
+				gen.print("MEMCPY(");
+				gen.print(output);
+				gen.print("+"+(i*delta)+", ");
+				gen.translateSubTree(op.getInputPort(i));
+				gen.print(", "+delta+"*sizeof(");
+				gen.print(gen.getTargetTypeName(scalarT));
+				gen.print("))");
 			}
-			gen.print(output);
-			gen.print("["+i+"]=");
-			gen.translateSubTree(op.getInputPort(i));
+		}
+		else {
+			// The "normal" case, in which the arguments are scalar
+			
+			for (int i=0; i<N; ++i) {
+				if (i!=0) {
+					gen.print(";");
+					gen.println();
+				}
+				gen.print(output);
+				gen.print("["+i+"]=");
+				gen.translateSubTree(op.getInputPort(i));
+			}
 		}
 	}
 }
@@ -1013,7 +1040,10 @@ class ListCastGenerator extends BasicGenerator {
 
 	@Override
 	public boolean supports(XlimOperation op) {
-		return op.getNumOutputPorts()==1 && op.getOutputPort(0).getType().isList();
+		XlimType type=op.getOutputPort(0).getType();
+		return op.getNumOutputPorts()==1 
+		       && type.isList()
+		       && type!=op.getInputPort(0).getSource().getType();
 	}
 	
 	@Override
@@ -1043,7 +1073,7 @@ class SignExtendGenerator extends PrefixOperatorGenerator {
 	public void generateExpression(XlimOperation op, XlimType opType, ExpressionTreeGenerator gen) {
 		int fromSize=(int)(long)op.getIntegerValueAttribute();
 		int shifts=opType.getSize()-fromSize;
-
+		
 		translateSubTree(op.getInputPort(0), opType, gen);
 		if (shifts>0) {
 			gen.print("<<"+shifts+">>"+shifts);

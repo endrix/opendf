@@ -379,7 +379,7 @@ class AssignOperation extends LocationOperation {
 	private class AssignmentStateVarUsage extends LocationReference {
 		@Override
 		public void setValue(ValueNode value) {
-			assert(value==null || sameLocation(value));
+			//assert(value==null || sameLocation(value));
 			super.setValue(value);
 		}
 		
