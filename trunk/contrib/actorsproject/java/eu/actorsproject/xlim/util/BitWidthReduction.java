@@ -39,6 +39,7 @@ package eu.actorsproject.xlim.util;
 
 import java.util.HashMap;
 
+import eu.actorsproject.xlim.XlimContainerModule;
 import eu.actorsproject.xlim.XlimDesign;
 import eu.actorsproject.xlim.XlimInputPort;
 import eu.actorsproject.xlim.XlimLoopModule;
@@ -49,6 +50,7 @@ import eu.actorsproject.xlim.XlimSource;
 import eu.actorsproject.xlim.XlimTaskModule;
 import eu.actorsproject.xlim.XlimTestModule;
 import eu.actorsproject.xlim.XlimType;
+import eu.actorsproject.xlim.XlimTypeKind;
 import eu.actorsproject.xlim.dependence.Location;
 import eu.actorsproject.xlim.type.TypeFactory;
 
@@ -101,8 +103,12 @@ public class BitWidthReduction  {
 		register("bitor", prettyUsefulOne);
 		register("bitxor", prettyUsefulOne);
 		register("bitnot", prettyUsefulOne);
-		register("$vcons", prettyUsefulOne);
-		register("$selector", prettyUsefulOne);
+				
+		// List-typed $selector must make sure the (list-typed) arguments are narrowed 
+		register("$selector", new SelectorHandler());
+		
+		// "List-of-list-typed" $vcons must make sure the (list-typed) elements are narrowed
+		register("$vcons", new VConsHandler());
 		
 		// var_ref: propagate a sufficiently wide index type
 		register("var_ref", new VarRefHandler());
@@ -117,6 +123,9 @@ public class BitWidthReduction  {
 		BitWidthHandler rShiftHandler=new RShiftHandler();
 		register("rshift", rShiftHandler);
 		register("urshift", rShiftHandler);
+		
+		// $literal_Integer: restrict type and actual literal
+		register("$literal_Integer", new LiteralHandler());
 	}
 	
 	public void transform(XlimDesign design) {
@@ -249,7 +258,8 @@ public class BitWidthReduction  {
 			}
 			else {
 				assert(oldType.isInteger());
-				return mTypeFact.createInteger(newWidth);
+				XlimTypeKind typeConstructor=oldType.getTypeKind(); // "int" or "uint"
+				return typeConstructor.createType(newWidth);
 			}
 		}
 		
@@ -289,6 +299,29 @@ public class BitWidthReduction  {
 			}
 			
 			return false;
+		}
+		
+		/**
+		 * @param input  an input type
+		 * @param type   exact required type of input
+		 * @param patchPoint  operation, before which a possible cast is inserted
+		 * 
+		 * Adds a cast to input unless its type matches the given type exactly
+		 */
+		public void requireExactType(XlimInputPort input, XlimType type, XlimOperation patchPoint) {
+			if (input.getSource().getType()!=type) {
+				XlimContainerModule module=patchPoint.getParentModule();
+				
+				module.startPatchBefore(patchPoint);
+				
+				XlimOperation cast=module.addOperation("cast", input.getSource(), type);
+				input.setSource(cast.getOutputPort(0));
+				module.completePatchAndFixup();
+				
+				if (mTrace) {
+					System.out.println("// added "+cast);
+				}
+			}
 		}
 		
 		private boolean use(XlimOutputPort output, int usedWidth) {
@@ -373,8 +406,7 @@ public class BitWidthReduction  {
 	
 	/**
 	 * A BitWidth handler that propagates its output width to its inputs
-	 * Applies to: noop, cast, $add, $sub, $mul, $negate, bitand, bitor, bitxor, bitnot, 
-	 * $vcons, $selector
+	 * Applies to: noop, cast, $add, $sub, $mul, $negate, bitand, bitor, bitxor, bitnot 
 	 */
 	protected class PrettyUsefulHandler extends BitWidthHandler {
 		
@@ -417,6 +449,7 @@ public class BitWidthReduction  {
 			}
 		}
 	}	
+	
 	
 	/**
 	 * signExtend: uses at most "fromWidth" bits 
@@ -541,5 +574,71 @@ public class BitWidthReduction  {
 				bw.use(op.getInputPort(dataPort), usedWidth);
 			}
 		}
+	}
+	
+	/**
+	 * When a List-typed $selector(cond, ifTrue, ifFalse), is narrowed
+	 * we must make sure that the ifTrue/ifFalse values are narrowed in the same way
+	 * (add a cast if necessary) 
+	 */
+	protected class SelectorHandler extends PrettyUsefulHandler {
+		
+		@Override
+		public void transform(XlimOperation op, BitWidthContainer bw) {
+			XlimType newType=bw.getNarrowedType(op.getOutputPort(0));
+			if (newType!=null && newType.isList()) {
+				bw.requireExactType(op.getInputPort(1), newType, op);
+				bw.requireExactType(op.getInputPort(2), newType, op);
+			}
+			super.transform(op, bw);
+		}
+	}
+	
+	/**
+	 * When a $vcons(arg1, ..., argN), with List-typed elements is narrowed
+	 * we must make sure that the elements are narrowed in the same way
+	 * (add a cast if necessary) 
+	 */
+	protected class VConsHandler extends PrettyUsefulHandler {
+		
+		@Override
+		public void transform(XlimOperation op, BitWidthContainer bw) {
+			XlimType newType=bw.getNarrowedType(op.getOutputPort(0));
+			if (newType!=null && newType.isList()) {
+				XlimType newElementType=newType.getTypeParameter("type");
+				
+				if (newElementType.isList()) {
+					for (XlimInputPort input: op.getInputPorts()) {
+						bw.requireExactType(input, newElementType, op);
+					}
+				}
+			}
+			super.transform(op, bw);
+		}
+	}
+		
+		
+	protected class LiteralHandler extends BitWidthHandler {
+		@Override
+		public boolean supports(XlimOperation op) {
+			return supportedType(op.getOutputPort(0).getType());
+		}
+
+		@Override
+		public void transform(XlimOperation op, BitWidthContainer bw) {
+			XlimType newType=bw.getNarrowedType(op.getOutputPort(0));
+			if (newType!=null) {
+				long minValue=newType.minValue();
+				long mask=(1L << newType.getSize()) - 1;
+				long newConstant=minValue + ((op.getIntegerValueAttribute() - minValue) & mask);
+				
+				if (mTrace)
+					System.out.println("// reduced biwidth: "+op.getOutputPort(0).getType()+" to "
+							           + newType + " in "+op+" (new value="+newConstant+")");
+				
+				op.getOutputPort(0).setType(newType);
+				op.setIntegerValueAttribute(newConstant);				
+			}
+		}		
 	}
 }

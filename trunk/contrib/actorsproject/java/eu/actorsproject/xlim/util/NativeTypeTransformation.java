@@ -605,7 +605,7 @@ public class NativeTypeTransformation {
 					
 					int fromW=declaredElementT.getSize();
 					int actualW=inElementT.getSize();
-					assert(fromW>=actualW);
+					// assert(fromW>=actualW);
 					if (fromW<actualW) {
 						// FIXME: Here we need to sign-/zero-extend the elements of the list
 						// How to achieve that??? 
