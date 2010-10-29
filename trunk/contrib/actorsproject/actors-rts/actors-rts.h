@@ -358,6 +358,21 @@ extern void setParameter(AbstractActorInstance *pInstance,
 #include "actors-fifo.h"
 #undef FIFO_TYPE 
 
+// Define uint32_t FIFO operations in terms of int32_t operations
+#define pinAvailIn_uint32_t(port)   pinAvailIn_int32_t(port) 
+#define pinAvailOut_uint32_t(port)  pinAvailOut_int32_t(port)
+
+#define pinWrite_uint32_t(port,token) pinWrite_int32_t(port,(int32_t)(token))
+#define pinWriteRepeat_uint32_t(port,buf,n) \
+                                 pinWriteRepeat_int32_t(port,(int32_t*)(buf),n)
+
+#define pinRead_uint32_t(port)        ((uint32_t) pinRead_int32_t(port))
+#define pinReadRepeat_uint32_t(port,buf,n)  \
+                                 pinReadRepeat_int32_t(port,(int32_t*)buf,n)
+
+#define pinPeekFront_uint32_t(port)   ((uint32_t) pinPeekFront_int32_t(port))
+#define pinPeek_uint32_t(port,offset) ((uint32_t) pinPeek_int32_t(port,offset))
+
 #ifdef __cplusplus
 }
 #endif
