@@ -1043,8 +1043,9 @@ class SignExtendGenerator extends PrefixOperatorGenerator {
 	public void generateExpression(XlimOperation op, XlimType opType, ExpressionTreeGenerator gen) {
 		int fromSize=(int)(long)op.getIntegerValueAttribute();
 		int shifts=opType.getSize()-fromSize;
+
+		translateSubTree(op.getInputPort(0), opType, gen);
 		if (shifts>0) {
-			translateSubTree(op.getInputPort(0), opType, gen);
 			gen.print("<<"+shifts+">>"+shifts);
 		}
 		// else: this is a weird kind of noop (sign-extension from a bit beyond the width of the output)
