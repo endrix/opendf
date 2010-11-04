@@ -68,20 +68,23 @@ actor Framebuf_w_Address (
 
   // Removed initializer (otherwise: huge XLIM document results)
   // List(type:int(size=PIX_SZ), size=BUFFER_SIZE) frameBuffer = 
-  // [ 0 : for i in Integers(1,BUFFER_SIZE)]
+  // [ 0 : for i in Integers(1,BUFFER_SIZE)];
   
-  // properties of the VOP
-  int vop_width := 0;             // width in macro blocks
-  int vop_height := 0;            // height in macro blocks
-  int vop_width_in_samples := 0;  // width in samples
-  int vop_height_in_samples := 0; // height in samples
-  int vop_rounding_mode := 0;     // rounding mode: 0,1 
   int max_outstanding_writes :=0; // Maximum number of outstanding
                                   // writes (unit: 8x8 blocks) before
                                   // we risk "read-before-write" 
-  int start_of_frame := -1;       // Origin in current frame 
+  int outstanding_writes := 0;    // number of outstanding block writes
+                                  // (incremented when advancing read ptr,
+                                  // decremented when committing a write)
   
   // reading from the frame buffer
+  int vop_width_read := 0;        // width in macro blocks
+  int vop_height_read := 0;       // height in macro blocks
+  int vop_width_in_samples := 0;  // width in samples
+  int vop_height_in_samples := 0; // height in samples
+  int vop_rounding_mode := 0;     // rounding mode: 0,1 
+  int start_of_frame := 0;        // Origin of current frame 
+  int start_of_prev_frame := 0;   // Origin of previous frame
   int mbx_read := 0;              // Macro-block column:  0,...,MAXW_IN_MB-1
   int mby_read := 0;              // Macro-block row: 0,...,MAXH_IN_MB-1
   int comp_read := 0;             // 8x8-block within MB: 0,...,COMP_PER_MB-1
@@ -89,10 +92,13 @@ actor Framebuf_w_Address (
   int(size=MV_SZ) mvy;            // Motion vector y
  
   // writing to the frame buffer
+  int vop_width_write := 0;       // width in macro blocks
+  int vop_height_write := 0;      // height in macro blocks
+  int next_vop_width_write := 0;  // next frame's width in macro blocks
+  int next_vop_height_write := 0; // next frame's height in macro blocks
   int mb_write_ptr := 0;          // position in frame buffer
-  int outstanding_writes := 0;    // number of outstanding block writes
-                                  // (used to keep in synch with reads)
   int mbx_write := 0;             // Macro-block column: 0,...,MAXW_IN_MB-1
+  int mby_write := 0;             // Macro-block row: 0,...,MAXH_IN_MB-1
   int comp_write := 0;            // 8x8-block within MB: 0,...,COMP_PER_MB-1
 
   // offset of luma blocks
@@ -114,7 +120,7 @@ actor Framebuf_w_Address (
       comp_read := 0;
       mbx_read := mbx_read + 1;
 
-      if (mbx_read=vop_width) then
+      if (mbx_read=vop_width_read) then
         mbx_read := 0;
         mby_read := mby_read + 1;
       end
@@ -134,31 +140,35 @@ actor Framebuf_w_Address (
   end
 
   read_w_h: action BTYPE:[ w, h ] ==>
+  guard
+    // don't read new width and height until write-back of the previous
+    // frame has started (special case: vop_height=0 at first frame)
+    // This is to avoid race condition on next_vop_width/height_write.
+    outstanding_writes<vop_height_read*vop_width_read*COMP_PER_MB
+    or vop_height_read=0 
   var
-    int last_frame_size = vop_height*SAMPLES_PER_MB*MAXW_IN_SAMPLES    
+    int last_frame_size = vop_height_read*SAMPLES_PER_MB*MAXW_IN_SAMPLES    
   do
-    vop_width := w;
-    vop_height := h;
+    vop_width_read := w;
+    vop_height_read := h;
+    next_vop_width_write := w;
+    next_vop_height_write := h;
     vop_width_in_samples := w*SAMPLES_PER_MB;
     vop_height_in_samples := h*SAMPLES_PER_MB;
 
     // Compute the maximum number of writes that can be "outstanding"
     // before we risk reading a block before it is written:
     // the total number of 8x8 blocks in a frame less half the searchwin.
-    max_outstanding_writes := (vop_height - HALF_SEARCH)*vop_width*COMP_PER_MB;
+    max_outstanding_writes := (vop_height_read - HALF_SEARCH)*
+                               vop_width_read*COMP_PER_MB;
 
     // Advance to next frame
     mbx_read := 0;
     mby_read := 0;
     comp_read := 0;
 
-    if (last_frame_size!=0) then
-      start_of_frame := start_of_frame + last_frame_size;
-    else
-      // First VOP
-      start_of_frame := BUFFER_SIZE 
-                        - vop_height*SAMPLES_PER_MB*MAXW_IN_SAMPLES;
-    end;
+    start_of_prev_frame := start_of_frame;
+    start_of_frame := start_of_frame + last_frame_size;
 
     // Handle wrap-around
     if (start_of_frame>=BUFFER_SIZE) then
@@ -178,7 +188,7 @@ actor Framebuf_w_Address (
   end
 
 
-  // Pure motion
+  // Has motion vectors
   cmd.motion: action BTYPE:[ cmd ] ==>
   guard
     bitand( cmd, MOTION ) != 0
@@ -199,7 +209,7 @@ actor Framebuf_w_Address (
     mvy := rshift( y, 1 );
   end
 
-  // No change in the block
+  // Implicit zero motion vectors
   cmd.neither: action BTYPE:[ cmd ] ==> halfpel:[ 0 ]
   do
     mvx := 0;
@@ -245,7 +255,7 @@ actor Framebuf_w_Address (
     end
 
     // Compute start address
-    start_of_row := start_of_frame + clip_y*MAXW_IN_SAMPLES + clip_x;
+    start_of_row := start_of_prev_frame + clip_y*MAXW_IN_SAMPLES + clip_x;
 
     // Handle wrap-around
     if (start_of_row>=BUFFER_SIZE) then
@@ -310,7 +320,16 @@ actor Framebuf_w_Address (
     int i,
     int nextRow
   do
-    
+    if (mby_write=vop_height_write) then
+      // The update of width/height is placed here
+      // rather than when updating mby_write, so that
+      // we know (outstanding_writes>=1) that a new VOP
+      // has been seen (next_vop width/height are set).
+      mby_write := 0;
+      vop_width_write := next_vop_width_write;
+      vop_height_write := next_vop_height_write;
+    end
+
     i:=0;
     while (i<64) do
       nextRow:=i+8;
@@ -332,11 +351,12 @@ actor Framebuf_w_Address (
       mb_write_ptr := mb_write_ptr + SAMPLES_PER_MB;
       comp_write := 0;
 
-      if (mbx_write=vop_width) then
+      if (mbx_write = vop_width_write) then
         // Advance to next row of macro blocks
-        mbx_write:=0;
+        mbx_write := 0;
+	mby_write := mby_write+1;
         mb_write_ptr := mb_write_ptr 
-                      - SAMPLES_PER_MB*vop_width
+                      - SAMPLES_PER_MB*vop_width_write
                       + SAMPLES_PER_MB*MAXW_IN_SAMPLES;
     
         // Check for wrap-around (buffer multiple of MB rows)
