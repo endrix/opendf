@@ -23,20 +23,16 @@ entities
 
 	sourceBits = art_Source_bin(fileName="@datadir@/actors-test/RVC_MPEG4_SP_Decoder/input/decoderDemo/foreman_qcif_30.bit");
 
-	display = art_Display_yuv(title="Foreman QCIF",
-                                  width=176,
-			          height=144);
+	display = art_Display_yuv_width_height(title="Display",
+                                               width=720,
+			                       height=576);
 
         // sinkVID = art_Sink_txt(fileName = "./VID.txt");
 
-	sinkWIDTH = art_Sink_txt(fileName = "./WIDTH.txt");
-
-        sinkHEIGHT = art_Sink_txt(fileName = "./HEIGHT.txt");
-
 structure
 	sourceBits.Out --> decoder.bits;
-	decoder.VID --> display.In;	
+	decoder.VID --> display.In;
+	decoder.WIDTH --> display.WIDTH;
+	decoder.HEIGHT --> display.HEIGHT;	
 	// decoder.VID --> sinkVID.In;
-	decoder.WIDTH --> sinkWIDTH.In;
-	decoder.HEIGHT --> sinkHEIGHT.In;
 end

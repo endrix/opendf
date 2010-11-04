@@ -46,7 +46,8 @@ INSTALL_H=actors-rts.h actors-fifo.h actors-config.h dll.h
 INSTALL_SYSACTORS=art_DDRModel.cal art_Display_yuv.cal art_Sink_yuv.cal \
                   art_Sink_bin.cal art_Sink_txt.cal art_Sink_real.cal \
                   art_Source_bin.cal art_Source_txt.cal art_Source_real.cal \
-                  art_DBus_test.cal art_Display_yuv_rm.cal art_Streaming.cal
+                  art_DBus_test.cal art_Display_yuv_rm.cal art_Streaming.cal \
+                  art_Display_yuv_width_height.cal
 
 INSTALL_C_SRC=display.h display-fb.c display-sdl.c display-gtk.c display-null.c \
               art_DBus_test.cpp genericdbushandler.cpp dbus/custommessages.h \
@@ -57,7 +58,7 @@ OBJECTS=actors-rts.o xmlParser.o xmlTrace.o termination-report.o \
         art_Sink_bin.o art_Sink_txt.o art_Sink_real.o \
 	    art_Source_bin.o art_Source_txt.o art_Source_real.o \
         art_DDRModel.o art_Display_yuv.o display.o art_Display_yuv_rm.o \
-		art_Streaming.o
+		art_Streaming.o art_Display_yuv_width_height.o
 
 ifeq ($(RM), y)
 CXXOBJECTS =  art_DBus_test.o genericdbushandler.o
