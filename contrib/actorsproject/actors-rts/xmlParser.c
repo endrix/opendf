@@ -67,6 +67,10 @@
 #define BMDISTRIBUTION_VALUE                (const xmlChar*)"value"
 #define TOTALBW_VALUE                       (const xmlChar*)"value"
 #define TOTALBW_MODE                        (const xmlChar*)"mode"
+#define RESOLUTION	                        (const xmlChar*)"resolution"
+#define FPS			                        (const xmlChar*)"fps"
+
+
 
 void parseParttioning(xmlNode *node);
 void parseScheduling(xmlNode *node);
@@ -83,6 +87,7 @@ void parseQuality(xmlNode *node);
 void parseBWDistribution(xmlNode *node);
 void parseBWDistributions(xmlNode *node);
 void parseTotalBW(xmlNode *node);
+void parseRTSP(xmlNode *node);
 
 typedef void (*HANDLER)(xmlNode *cur_node);
 
@@ -121,6 +126,7 @@ TagID serviceLevelTag[] ={
 {"QualityOfService", parseQuality},
 {"Granularity",      parseGranularity},
 {"TotalBW",          parseTotalBW},
+{"VIDEO",            parseRTSP},
 {"BWDistributions",  parseBWDistributions},
 {0}
 };
@@ -133,7 +139,7 @@ TagID bmDistributionsTag[] ={
 AffinityID    instanceAfinity[MAX_ACTOR_NUM];
 ConnectID     connects[MAX_CONNECTS];
 ScheduleID    schedule;
-RMInterface   rmInterface={"caltest",3,0,0,1,{0,100,25000,200,1,1,{0,80}}};
+RMInterface   rmInterface={"caltest",3,0,0,1,{0,100,25000,100,1,"176x144",30,1,{0,80}}};
 int			  numPartitions=1;
 
 static int _numInstances;
@@ -170,6 +176,8 @@ void printout_config()
     printf("  Granularity        : %d\n",sl->granularityValue);
     printf("  TotalBWValue       : %d\n",sl->totalBW);
     printf("  TotalBWMODE        : %d\n",sl->mode);
+    printf("  Resolution         : %s\n",sl->resolution);
+    printf("  FPS                : %d\n",sl->fps);
     printf("  NumBWDistribs      : %d\n",sl->numBMDistributions);
     for(j=0; j<sl->numBMDistributions; j++)
     {
@@ -178,6 +186,24 @@ void printout_config()
       printf("    value              : %d\n",bwd->value);  
     }
   }
+}
+
+#define DEFAULT_RESOLUTION "176x144"
+#define DEFAULT_FPS        30
+ 
+char *get_resolution(int serviceLevel)
+{
+	if(serviceLevel<rmInterface.numServiceLevels)
+		return rmInterface.serviceLevels[serviceLevel].resolution;
+	else
+		return DEFAULT_RESOLUTION;
+}
+int get_fps(int serviceLevel)
+{
+	if(serviceLevel<rmInterface.numServiceLevels)
+		return rmInterface.serviceLevels[serviceLevel].fps;
+	else
+		return DEFAULT_FPS;
 }
 char *get_mode_string(int value)
 {
@@ -234,8 +260,10 @@ void parseNode(xmlNode *node,TagID *tagID)
       TagID *tag=tagID;
       for(;tag;tag++)
       {
+        if(!tag->name)
+          break;
         if(!xmlStrcmp(cur_node->name, (const xmlChar *) tag->name))
-        {    
+        {
           if(tag->handler)
             tag->handler(cur_node);
           break;
@@ -388,6 +416,25 @@ void parseTotalBW(xmlNode *node)
   xmlFree(mode);
 }
 
+void parseRTSP(xmlNode *node)
+{
+  char *resolution;
+  char *fps;
+
+  resolution = (char*)xmlGetProp(node,RESOLUTION);
+  fps = (char*)xmlGetProp(node,FPS);
+  if(resolution){
+    ServiceLevel *sl=&rmInterface.serviceLevels[rmInterface.numServiceLevels];
+    sl->resolution=resolution;
+  }
+  if(fps)
+  {
+     ServiceLevel *sl=&rmInterface.serviceLevels[rmInterface.numServiceLevels];
+	 sl->fps=atoi(fps);
+  }
+  xmlFree(fps);
+}
+
 void parseBWDistribution(xmlNode *node)
 {
   char   *id, *value;
@@ -522,7 +569,7 @@ int xmlParser(char *filename, int numInstances)
   // --------------------------------------------------------------------------
   parseNode(root,configTag);
 
-  //printout_config();  
+  printout_config();
 
   if(_numInstances != numInstances)
   {
