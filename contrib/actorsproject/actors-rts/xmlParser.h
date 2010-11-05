@@ -71,6 +71,8 @@ typedef struct _ServiceLevel {
   unsigned int   granularityValue;
   int            totalBW;
   int            mode;
+  char           *resolution;
+  int            fps;
   unsigned int   numBMDistributions;
   BWDistribution bwDistributions[MAX_NUM_BMDISTRIBUTIONS];
 }ServiceLevel;
