@@ -61,6 +61,8 @@ extern int executeNetwork(int argc, char *argv[],AbstractActorInstance **instanc
 extern void setParameter(AbstractActorInstance *pInstance,
                          const char *key,
                          const char *value);
+extern char *get_resolution(int serviceLevel);
+extern int get_fps(int serviceLevel);
 #ifdef __cplusplus
 }
 #endif
