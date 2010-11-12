@@ -978,7 +978,7 @@ class UrshiftGenerator extends DivAndShiftGenerator {
 		gen.translateSubTree(op.getInputPort(0));
 		gen.print(">>");
 		gen.translateSubTree(op.getInputPort(1));
-		gen.print(")");
+		gen.print("))");
 	}
 }
 
