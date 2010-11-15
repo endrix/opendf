@@ -1,0 +1,10 @@
+// Receive streaming tokens (bytes) from network
+
+actor art_Rtsp( int port) int In ==> int Out, int Out2 :
+   bool enabled := false;
+
+   data: action In:[d] ==> Out:[d]
+   guard
+    enabled
+   end
+end
