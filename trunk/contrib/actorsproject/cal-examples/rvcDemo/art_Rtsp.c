@@ -25,7 +25,8 @@ more details.
 #include "rtsp.h"
 #include "bitstream.h"
 
-#define _DEBUG_PRINT
+//#define _DEBUG_PRINT
+//#define RECORDER
 #define _UDP
 
 #define UDP_PORT	20000
@@ -2958,7 +2959,9 @@ ART_ACTION_SCHEDULER(art_Rtsp_action_scheduler)
       n--;
       ART_ACTION_ENTER(streamingOut, 0);
       pinWrite_int32_t(OUT0_Out, head->data[head->pos]);
+#ifdef RECORDER
 	  fputc(head->data[head->pos], thisActor->fp);
+#endif	  
       head->pos++;
       if(head->pos>=head->len){
         pthread_mutex_lock(&vdata->mutex);
@@ -3270,8 +3273,9 @@ static void constructor(AbstractActorInstance *pBase)
   vdata->numBytes = 0;
   vdata->numFrames = 0;
   pthread_mutex_init(&vdata->mutex, 0);
-
+#ifdef RECORDER
   thisActor->fp=fopen("./record.bit","wb");
+#endif
 
 #ifdef _UDP
   rc = pthread_create(&thread,NULL,recvUdpProc,(void*)thisActor);
