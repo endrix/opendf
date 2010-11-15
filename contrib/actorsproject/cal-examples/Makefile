@@ -26,11 +26,12 @@ SEDIFY=$(srcdir)/../install-scripts/sedify.sh
 SEDCMD:=$(shell $(SEDIFY) @datadir@ $(datadir))
 
 C_FILES  = $(shell cd $(srcdir); find $(EXAMPLES) -name *.c)
+H_FILES  = $(shell cd $(srcdir); find $(EXAMPLES) -name *.h)
 CAL_FILES  = $(shell cd $(srcdir); find $(EXAMPLES) -name *.cal)
 NL_FILES   = $(shell cd $(srcdir); find $(EXAMPLES) -name *.nl)
 XDF_FILES  = $(shell cd $(srcdir); find $(EXAMPLES) -name *.xdf)
 XCF_FILES  = $(shell cd $(srcdir); find $(EXAMPLES) -name *.xcf)
-COPY_FILES = $(CAL_FILES) $(NL_FILES) $(XDF_FILES) $(C_FILES) $(XCF_FILES)
+COPY_FILES = $(CAL_FILES) $(NL_FILES) $(XDF_FILES) $(C_FILES) $(H_FILES) $(XCF_FILES)
 
 IN_FILES  = $(basename $(shell cd $(srcdir); find $(EXAMPLES) -name *.in ) )
 
