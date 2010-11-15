@@ -1,5 +1,5 @@
 # rvcDemo/rmDemo Makefile
-MODELS=rvcDemo rmDemo
+MODELS=rvcDemo rmDemo rmRtspDemo
 
 # delete the built-in suffixes to avoid surprises
 .SUFFIXES:   
@@ -13,13 +13,17 @@ all: rvcDemo
 MAKEMODEL=@datadir@/actors-make/makemodel.mk
 
 # Model-specific options
-export CFLAGS=-O3 -std=c99
+#export CFLAGS=-O3 -std=c99
+export CFLAGS=-O3
 export srcdir=@datadir@/cal-examples/rvcDemo
 
 rvcDemo: 
 	$(MAKE) -f $(MAKEMODEL) MODEL=$@ PRESERVE_C=Y $@
 
 rmDemo: 
+	$(MAKE) -f $(MAKEMODEL) MODEL=$@ PRESERVE_C=Y $@
+
+rmRtspDemo: 
 	$(MAKE) -f $(MAKEMODEL) MODEL=$@ PRESERVE_C=Y $@
 
 MODEL_XDFS=$(MODELS:%=%.xdf)
