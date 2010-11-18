@@ -21,7 +21,7 @@ entities
                          SAMPLE_COUNT_SZ=8,
                          SAMPLE_SZ=13);
 
-	sourceBits = art_Rtsp(activeMode=1,url="rtsp://136.225.61.33:554/axis-media/media.amp");
+	sourceBits = art_Rtsp(activeMode=1,url="$URL");
     display = art_Display_yuv_width_height(title="Display",width=720,height=576);
 	dbus = art_DBus_test();
 
