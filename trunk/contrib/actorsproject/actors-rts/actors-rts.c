@@ -334,7 +334,7 @@ void setParameter(AbstractActorInstance *pInstance,
   if (strcmp(key, "affinity") == 0) {
     instance->affinity = atoi(value);
   } else if (strcmp(key, "activeMode") == 0){
-		instance->actorClass->actorExecMode=atoi(value);	
+		instance->actorClass->actorExecMode=atoi(value);
 	}else {
     Parameter_1_t *parameter = malloc(sizeof(*parameter));
 
@@ -1121,6 +1121,7 @@ static void generate_config(FILE *f,
   fprintf(f,"        <QualityOfService quality=\"%d\"/>\n",serviceLevel->quality);
   fprintf(f,"        <Granularity value=\"%d\"/>\n",serviceLevel->granularityValue);
   fprintf(f,"        <TotalBW value=\"%d\" mode=\"%s\"/>\n",serviceLevel->totalBW,get_mode_string(serviceLevel->mode));
+  fprintf(f,"        <VIDEO resolution=\"%s\" fps=\"%d\"/>\n",serviceLevel->resolution,serviceLevel->fps);		 
   fprintf(f,"        <BWDistributions>\n");
   for(j=0; j<serviceLevel->numBMDistributions; j++)
   {
