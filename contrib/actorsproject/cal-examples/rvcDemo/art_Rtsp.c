@@ -186,7 +186,6 @@ void clearup(int socketNum)
 	if(socketNum>=0)
 	{
 		close(socketNum);
-		printf("%s(%d) socketNum closed!!\n",__FILE__,__LINE__);
 	}
 }
 
@@ -3113,10 +3112,9 @@ void *recvUdpProc(void *instance)
 				store(instance,&data);
 			}
 		}
-		else
-			thisActor->size=0;
 	}
 	thisActor->size=0;
+    close(thisActor->udpSock);
 }
 
 static void *recvProc(void *instance)
@@ -3254,8 +3252,7 @@ void switch_service(void *instance)
 	pthread_create(&thread,NULL,recvProc,(void*)thisActor);
 }
 
-static void crash(int sig){
-  printf("program fault: sig=%x pid=%x\n",sig,getpid());
+static void terminate(int sig){
   loop=0;
   signal(SIGINT, SIG_DFL);
 }
@@ -3290,7 +3287,7 @@ static void constructor(AbstractActorInstance *pBase)
 #endif
 
   //catch ctrl-c	
-  signal(SIGINT,crash);
+  signal(SIGINT,terminate);
 
 #ifdef _UDP
   rc = pthread_create(&thread,NULL,recvUdpProc,(void*)thisActor);
