@@ -501,8 +501,8 @@ void SystemActorDBusHandler::handleReportHappiness(const IntMessage* happinessMs
    result = dbus_connection_send(m_connection, methodCallMsg, &replies);
    if(result==false)
       fprintf(stderr, "dbus_connection_send failed\n");
-   else
-      fprintf(stderr, "dbus_connection_send happiness %d\n",value);
+   //else
+   //   fprintf(stderr, "dbus_connection_send happiness %d\n",value);
    dbus_connection_flush(m_connection);
    dbus_message_unref(methodCallMsg);
 
