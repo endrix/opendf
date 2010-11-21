@@ -21,12 +21,13 @@ more details.
 #include <arpa/inet.h>
 #include <stdlib.h> 
 #include <stdio.h>
+#include <signal.h>
 
 #include "rtsp.h"
 #include "bitstream.h"
 
 //#define _DEBUG_PRINT
-//#define RECORDER
+#define RECORDER
 #define _UDP
 
 #define UDP_PORT	20000
@@ -74,6 +75,7 @@ unsigned long VFrameRate = 0;
 uint32_t fixed_vop_rate = 0;
 
 unsigned long vloopNum = 0;
+int loop = 1;
 
 static int rtpNumber;
 
@@ -93,7 +95,7 @@ int init_rtsp(char *url,struct MediaAttribute *Attribute,int serviceLevel)
 
 	if(socketNum<0)
 	{
-		fprintf(stderr,"failed to open the URL\n");
+		fprintf(stderr,"failed to open the URL: %s \n",url);
 		return (-1);
 	}
 	sdpDescription = (char*)malloc(MAX_READBUFSIZE*sizeof(char));
@@ -2917,12 +2919,12 @@ ART_ACTION_SCHEDULER(art_Rtsp_action_scheduler)
   ART_ACTION_SCHEDULER_LOOP {
     ART_ACTION_SCHEDULER_LOOP_TOP;
 
-/*		
+		
     if (thisActor->size == 0) {
       result = EXITCODE_TERMINATE;
 		  goto out;
     }
-*/
+
 
   //Happiness
   ftime(&tb);
@@ -3088,7 +3090,7 @@ void *recvUdpProc(void *instance)
 	data.buffer=buf;
 	ftime(&tb);
 	then=tb.time;
-	while(1)
+	while(loop)
 	{
 		//keep alive
 		if(Timeout)
@@ -3111,7 +3113,10 @@ void *recvUdpProc(void *instance)
 				store(instance,&data);
 			}
 		}
+		else
+			thisActor->size=0;
 	}
+	thisActor->size=0;
 }
 
 static void *recvProc(void *instance)
@@ -3249,6 +3254,12 @@ void switch_service(void *instance)
 	pthread_create(&thread,NULL,recvProc,(void*)thisActor);
 }
 
+static void crash(int sig){
+  printf("program fault: sig=%x pid=%x\n",sig,getpid());
+  loop=0;
+  signal(SIGINT, SIG_DFL);
+}
+
 static void constructor(AbstractActorInstance *pBase) 
 {
   ActorInstance_art_Rtsp *thisActor = (ActorInstance_art_Rtsp*)pBase;
@@ -3256,6 +3267,7 @@ static void constructor(AbstractActorInstance *pBase)
   int       rc=0;
   videodata *vdata = &thisActor->vdata;
   struct timeb tb;
+  char *ip;
 
   ftime(&tb);
   thisActor->now=tb.time*1000+tb.millitm;
@@ -3276,6 +3288,9 @@ static void constructor(AbstractActorInstance *pBase)
 #ifdef RECORDER
   thisActor->fp=fopen("./record.bit","wb");
 #endif
+
+  //catch ctrl-c	
+  signal(SIGINT,crash);
 
 #ifdef _UDP
   rc = pthread_create(&thread,NULL,recvUdpProc,(void*)thisActor);
@@ -3309,7 +3324,7 @@ static void setParam(AbstractActorInstance *pBase,
   if (strcmp(paramName, "url")==0) {
     thisActor->url=(char*)value;
   } else {
-    runtimeError(pBase,"No such parameter: %s", paramName);
+	runtimeError(pBase,"No such parameter: %s", paramName);
   }
 }
 
