@@ -40,7 +40,8 @@ typedef struct _dblist
 	int      len;
 	int      pos;
 	int      mark;
-	char     data[MAX_PACKET_SIZE];
+	unsigned char    *data; //[MAX_PACKET_SIZE];
+	unsigned char    *odata;
 	struct _dblist   *next;
 	struct _dblist   *prior;
 }dblist;
@@ -485,16 +486,16 @@ int RTP_ReadHandler2(struct ResultData* data,int bytesRead)
 
 
 	buffer = data->buffer;
-	bufptr = (unsigned char *)malloc(MAX_PACKET_SIZE*sizeof(unsigned char));
-	if(bufptr == NULL)
-	{
-		fprintf(stderr,"alloc failed\n");
-		return -1;
-	}
-	memset(bufptr,0,MAX_PACKET_SIZE);
+	//bufptr = (unsigned char *)malloc(MAX_PACKET_SIZE*sizeof(unsigned char));
+	//if(bufptr == NULL)
+	//{
+	//	fprintf(stderr,"alloc failed\n");
+	//	return -1;
+	//}
+	//memset(bufptr,0,MAX_PACKET_SIZE);
 	do 
 	{
-		memcpy(bufptr,buffer,bytesRead);
+		//memcpy(bufptr,buffer,bytesRead);
 		datasize = bytesRead;
 		// Check for the 12-byte RTP header:
 		if (datasize < 12) break;
@@ -562,7 +563,8 @@ int RTP_ReadHandler2(struct ResultData* data,int bytesRead)
 				LVrtpTimestamp = rtpTimestamp;
 			}
 				
-			memcpy(data->buffer,buffer,datasize);
+			//memcpy(data->buffer,buffer,datasize);
+			data->buffer=buffer;
 			data->len = datasize;
 			data->fRTPPayloadFormat = payloadType;
 			data->frtpTimestamp = rtpTimestamp;
@@ -624,7 +626,7 @@ int RTP_ReadHandler2(struct ResultData* data,int bytesRead)
 				LArtpTimestamp = rtpTimestamp;
 			}
 
-			datasize -=4;
+			datasize -= 4;
 			memcpy(buffer,buffer+4,datasize);
 			memcpy(data->buffer,buffer,datasize);
 			data->len = datasize;
@@ -634,7 +636,7 @@ int RTP_ReadHandler2(struct ResultData* data,int bytesRead)
 			if(rtpMarkerBit) aloopNum++;
 		}
 	} while (0);
-	free(bufptr);
+	//free(bufptr);
 	return -1;
 }
 
@@ -2899,6 +2901,16 @@ int full_frame(dblist *head)
 	return 0;
 #endif
 }
+
+void free_node(dblist *node)
+{
+	if(node && node->odata)
+	{
+		free(node->odata);
+		free(node);
+	}
+}
+
 ART_ACTION_SCHEDULER(art_Rtsp_action_scheduler)
 {
   const int *result = EXIT_CODE_YIELD;
@@ -2976,7 +2988,7 @@ ART_ACTION_SCHEDULER(art_Rtsp_action_scheduler)
         vdata->numFrames--;
         vdata->numBytes -= head->len;
         pthread_mutex_unlock(&vdata->mutex);
-        free(head);
+        free_node(head);
 		head=vdata->head;
       }
       ART_ACTION_EXIT(streamingOut, 0);
@@ -3036,7 +3048,9 @@ void store(void *instance,struct ResultData *data)
 
 	list = (dblist*)malloc(sizeof(dblist));
 	memset(list,0,sizeof(dblist));
-	memcpy(list->data,data->buffer,data->len);
+	//memcpy(list->data,data->buffer,data->len);
+	list->data=data->buffer;
+	list->odata=data->obuffer;
 	list->mark = data->frtpMarkerBit;
 	list->len = data->len;
 
@@ -3102,8 +3116,9 @@ void *recvUdpProc(void *instance)
 				optionsMediaSession(thisActor->socketNum);
 			}
 		}
-
-		retVal = recvfrom(thisActor->udpSock, buf, MAX_PACKET_SIZE, 0, &server, &slen);
+		data.obuffer=(char*)malloc(MAX_PACKET_SIZE);
+		data.buffer=data.obuffer;
+		retVal = recvfrom(thisActor->udpSock, data.buffer, MAX_PACKET_SIZE, 0, &server, &slen);
 		if(retVal>0)
 		{
 			RTP_ReadHandler2(&data,retVal);
