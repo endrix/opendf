@@ -238,8 +238,11 @@ static void blocking_report(AbstractActorInstance *actor) {
     int N=*exitCode++;
     int nInputPorts=actor->inputs;
     int p;
-    
-    printf("%s blocked on:\n", actor->name);
+
+    if (exitCode==EXIT_CODE_YIELD)
+      printf("%s has yielded\n", actor->name);
+    else
+      printf("%s blocked on:\n", actor->name);
     
     for (p=0; p<N; ++p, exitCode+=2) {
       int portIndex=exitCode[0];
