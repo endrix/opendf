@@ -21,12 +21,17 @@ public class ManageXDF extends XdfParser {
 		LinkedList<Instance> s = ast.getInstances(new LinkedList<Instance>());
  		System.out.println("\n\n");
 
+		System.out.println("Instances:");
 		for (Instance i: s){
-			System.out.println(i.name()+" "+i.id());
+			System.out.println(" "+i.name()+":"+i.id());
+			for (Port p : i.getInports(new HashSet<Port>())) {
+				System.out.println("  "+p.name()+":"+p.kind());
+			}
+			for (Port p : i.getOutports(new HashSet<Port>())) {
+				System.out.println("  "+p.name()+":"+p.kind());
+			}
 		}
-		for (Port p : ast.getPorts(new HashSet<Port>())) {
-			System.out.println("  "+p.name()+" "+p.kind());
-		}
+		// ast.prettyPrint("",System.out);
 	}
 }
 

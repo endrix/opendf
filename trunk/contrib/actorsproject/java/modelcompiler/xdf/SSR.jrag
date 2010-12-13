@@ -121,7 +121,7 @@ aspect CSDF {
 	}
 	public xlimAST.Start Instance.xlimInstance() {
 		if (xlimInstance != null) {
-			System.out.println("********** Root is: "+xlimInstance.root());
+			// System.out.println("********** Root is: "+xlimInstance.root());
 			return xlimInstance;
 		} else {
 			if (cwd == null) {
@@ -129,7 +129,7 @@ aspect CSDF {
 			}
 			xlimInstance = xlimInstance(cwd);
 			xlimInstance.setRoot();
-			System.out.println("********** Setting root to: "+xlimInstance.root());
+			// System.out.println("********** Setting root to: "+xlimInstance.root());
 		}
 		return xlimInstance;
 		// try {
@@ -296,7 +296,13 @@ aspect misc {
 	}
 
 	syn String Element.name() = "";
-	eq Instance.name() = getUIDNote().value();
+	eq Instance.name() { 
+		String name = getUIDNote().value();
+		if (name.equals("")) {
+			return id();
+		}
+		return name;
+	}
 	eq Port.name() = fix(getName());
 	eq Class.name() = fix(getName());
 	eq XDF.name() = fix(getName());
@@ -383,7 +389,7 @@ aspect misc {
 		} else {
 			cwd = "./";
 		}
-		System.out.println(cwd);
+		System.out.println("** CWD = "+cwd);
 	}
 
 	syn XDF ASTNode.getXDF() = null;

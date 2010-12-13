@@ -1,7 +1,7 @@
 /* -*-Java-*- */                                         
 
 /*
- * Copyright (C) 2009  Anders Nilsson <anders.nilsson@cs.lth.se>
+ * Copyright (C) 2009,2010  Anders Nilsson <anders.nilsson@control.lth.se>
  *                                                              
  * This file is part of Actors model compiler.                      
  */                                                             
