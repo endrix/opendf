@@ -11,7 +11,7 @@ import java.util.LinkedList;
 import java.io.File; 
 import java.io.FileNotFoundException; 
 import java.io.PrintStream; 
-
+import xlimAST.actor_port;
 
 aspect Instances {
 	syn LinkedList<Instance> ASTNode.getInstances(LinkedList<Instance> inst) = inst;
@@ -44,30 +44,34 @@ aspect Instances {
 }
 
 aspect Misc {
-	syn HashSet<Port> ASTNode.getPorts(HashSet<Port> inst) = inst;
-	eq Start.getPorts(HashSet<Port> inst) {
+	syn HashSet<xlimAST.actor_port> ASTNode.getPorts(HashSet<xlimAST.actor_port> inst) = inst;
+	eq Start.getPorts(HashSet<xlimAST.actor_port> inst) {
 		Specification sp = getSpecification();
 		if (sp != null) {
 			return sp.getPorts(inst);
 		}
 		return inst;
 	}
-	eq Specification.getPorts(HashSet<Port> inst) {
+	eq Specification.getPorts(HashSet<xlimAST.actor_port> inst) {
 		for (Element e : getElements()) {
 			inst = e.getPorts(inst);
 		}
 		return inst;
 	}
-	eq XDF.getPorts(HashSet<Port> inst) {
+	eq XDF.getPorts(HashSet<xlimAST.actor_port> inst) {
 		for (Element e : getElements()) {
 			inst = e.getPorts(inst);
 		}
 		return inst;
 	}
-	eq Port.getPorts(HashSet<Port> inst) {
-		inst.add(this);
+	eq Instance.getPorts(HashSet<xlimAST.actor_port> inst) {
+		inst.addAll(getPorts());
 		return inst;
 	}
+	// eq Port.getPorts(HashSet<xlimAST.actor_port> inst) {
+	// 	inst.add(this);
+	// 	return inst;
+	// }
 	public HashSet<xlimAST.actor_port>  Instance.getPorts() {
 		HashSet<xlimAST.actor_port> set = new HashSet<xlimAST.actor_port>();
 		return xlimInstance().getPorts(set);
@@ -84,6 +88,7 @@ aspect Misc {
 	// Replaced with getPhases() in xlim.
 
 	syn boolean Port.isInputPort() = kind().equals("Input");
+	syn boolean Port.isOutputPort() = kind().equals("Output");
 
 	syn LinkedList<Connection> ASTNode.getConnections(LinkedList<Connection> set) = set;
 	eq Start.getConnections(LinkedList<Connection> set) = getSpecification().getConnections(set);
@@ -178,184 +183,242 @@ aspect Misc {
 
 	syn int Port.bufSize() = connection().getBufSize();
 
+
+	public HashSet<Port> ASTNode.ports(HashSet<Port> hs) { return hs; }
+	public HashSet<Port> Start.ports(HashSet<Port> hs) { 
+		return getSpecification().ports(hs); 
+	}
+	public HashSet<Port> Specification.ports(HashSet<Port> hs) { 
+		for (Element e : getElements()) {
+			e.ports(hs);
+			// System.out.println(e.name()+":"+hs.size());
+		}
+		return hs;
+	}
+	public HashSet<Port> ComplexElement.ports(HashSet<Port> hs) {
+		for (Element e : getElements()) {
+			e.ports(hs);
+		}
+		// System.out.println(name()+":"+hs.size());
+		return hs;
+	} 
+	public HashSet<Port> Instance.ports(HashSet<Port> hs) {
+		// System.out.println("Checking XDF.Instance");
+		HashSet<Port> ports = super.ports(new HashSet<Port>());
+		if (ports.isEmpty()) {
+			// Actors without ports are pretty rare, so the possibly
+			// unnecessary work done here should be justified.
+			// System.out.println("No ports in XDF.Actor");
+			// HashSet<actor_port> actorPorts = getPorts(new HashSet<actor_port>());
+			// for (actor_port ap : actorPorts) {
+
+			
+			for (Connection c : root().getConnections()) {
+				Port p = new Port();
+				if (c.getSource() == this) {
+					p.addAttribute(new _kind("Output"));
+					p.addAttribute(new _name(c.getSourcePort()));
+					p.addElement(new Type(new List<Attribute>().add(new _name("int")),new List<Element>()));
+					addElement(p);
+					hs.add(p);
+				} else if (c.getDest() == this) {
+					p.addAttribute(new _kind("Input"));
+					p.addAttribute(new _name(c.getDestinationPort()));
+					p.addElement(new Type(new List<Attribute>().add(new _name("int")),new List<Element>()));
+					addElement(p);
+					hs.add(p);
+				}
+
+			}
+		} else {
+			hs.addAll(ports);
+		}
+		return hs;
+	}
+	public HashSet<Port> Port.ports(HashSet<Port> hs) {
+		// System.out.println("** "+name());
+		hs.add(this);
+		return hs;
+	}
+
+
 }
+
 aspect KarlErik {
 
-  public Note ComplexElement.getMCNote() {
-    for (Element e: getElements()) {
-      if (e.kind().equals("MC")) {
-	return (Note)e;
-      }
-    }
-    return null;
-  }
-
-  public void ComplexElement.setMCNote(Note note) {
-    addChild(note);
-  }
-
-  public HashSet<Port> Instance.getInports(HashSet<Port> hs) {
-    for (Element e: getElements()) {
-      if(e instanceof Actor) {
-	Actor act = (Actor)e;
-	for (Element f: act.getElements()) {
-	  if (f instanceof Port) {
-	    Port p = (Port)f;
-//	    System.out.println("Kind = " + p.kind());
-//	    if (p.kind().equals("Input")) {
-	    for (Attribute a: p.getAttributes()) {
-	      // System.out.println("isKind " + a.isKind() + " literal " + a.getAttrValue().getLITERAL());
-	      if ((a.isKind()) && (a.getAttrValue().getLITERAL().equals("\"Input\""))) {
-	      hs.add(p);
-	      }
-	    }
-	  }
+	public Note ComplexElement.getMCNote() {
+		for (Element e: getElements()) {
+			if (e.kind().equals("MC")) {
+				return (Note)e;
+			}
+		}
+		return null;
 	}
-      }
-    }
-    return hs;
-  }
 
-  public HashSet<Port> Instance.getOutports(HashSet<Port> hs ) {
-    for (Element e: getElements()) {
-      if(e instanceof Actor) {
-	Actor act = (Actor)e;
-	for (Element f: act.getElements()) {
-	  if (f instanceof Port) {
-	    Port p = (Port)f;
-//	    System.out.println("Kind = " + p.kind());
-//	    if (p.kind().equals("Output")) {
-	    for (Attribute a: p.getAttributes()) {
-	      // System.out.println("isKind " + a.isKind() + " literal " + a.getAttrValue().getLITERAL());
-	      if ((a.isKind()) && (a.getAttrValue().getLITERAL().equals("\"Output\""))) {
-	      hs.add(p);
-	      }
-	    }
-	  }
+	public void ComplexElement.setMCNote(Note note) {
+		addChild(note);
 	}
-      }
-    }
-    return hs;
-  }
 
-  public HashSet<Parameter> Instance.getParameters(HashSet<Parameter> hs) {
-    for (Element e: getElements()) {
-      if (e instanceof Parameter) {
-	Parameter par = (Parameter)e;
-	hs.add(par);
-      }
-    }
-    return hs;
-  }
-
-  public String Parameter.getName() {
-    for (Attribute a: getAttributes()) {
-      if (a instanceof _name) {
-	return a.getAttrValue().getLITERAL();
-      }
-    }
-    return "";
-  }
-
- public String Parameter.getValue() {
-    for (Element e: getElements()) {
-      if (e instanceof Expr) {
-	Expr exp = (Expr)e;
-	for (Attribute a: exp.getAttributes()) {
-	  if (a instanceof _value) {
-	    return a.getAttrValue().getLITERAL();
-	  }
+	public HashSet<Port> Instance.getInports(HashSet<Port> hs) {
+		HashSet<Port> ports = ports(new HashSet<Port>());
+		// System.out.println(ports.size());
+		for (Port p : ports) {
+			if (p.isInputPort()) {
+				hs.add(p);
+			}
+		}
+		return hs;
 	}
-      }
-    }
-    return "";
- }
 
- public void Parameter.setValue(String val) {
-    for (Element e: getElements()) {
-      if (e instanceof Expr) {
-	Expr exp = (Expr)e;
-	for (Attribute a: exp.getAttributes()) {
-	  if (a instanceof _value) {
-	    a.getAttrValue().setLITERAL(val);
-	  }
+	public HashSet<Port> Instance.getOutports(HashSet<Port> hs ) {
+		HashSet<Port> ports = ports(new HashSet<Port>());
+		// System.out.println(ports.size());
+		for (Port p : ports) {
+			// System.out.print("Check for out: ");
+			if (p.isOutputPort()) {
+				hs.add(p);
+			}
+		}
+		return hs;
+		// for (Element e: getElements()) {
+		// 	if(e instanceof Actor) {
+		// 		Actor act = (Actor)e;
+		// 		for (Element f: act.getElements()) {
+		// 			if (f instanceof Port) {
+		// 				Port p = (Port)f;
+		// 				//	    System.out.println("Kind = " + p.kind());
+		// 				//	    if (p.kind().equals("Output")) {
+		// 				for (Attribute a: p.getAttributes()) {
+		// 					// System.out.println("isKind " + a.isKind() + " literal " + a.getAttrValue().getLITERAL());
+		// 					if ((a.isKind()) && (a.getAttrValue().getLITERAL().equals("\"Output\""))) {
+		// 						hs.add(p);
+		// 					}
+		// 				}
+		// 			}
+		// 		}
+		// 	}
+		// }
+		// return hs;
 	}
-      }
-    }
- }
+
+	public HashSet<Parameter> Instance.getParameters(HashSet<Parameter> hs) {
+		for (Element e: getElements()) {
+			if (e instanceof Parameter) {
+				Parameter par = (Parameter)e;
+				hs.add(par);
+			}
+		}
+		return hs;
+	}
+
+	public String Parameter.getName() {
+		for (Attribute a: getAttributes()) {
+			if (a instanceof _name) {
+				return a.getAttrValue().getLITERAL();
+			}
+		}
+		return "";
+	}
+
+	public String Parameter.getValue() {
+		for (Element e: getElements()) {
+			if (e instanceof Expr) {
+				Expr exp = (Expr)e;
+				for (Attribute a: exp.getAttributes()) {
+					if (a instanceof _value) {
+						return a.getAttrValue().getLITERAL();
+					}
+				}
+			}
+		}
+		return "";
+	}
+
+	public void Parameter.setValue(String val) {
+		for (Element e: getElements()) {
+			if (e instanceof Expr) {
+				Expr exp = (Expr)e;
+				for (Attribute a: exp.getAttributes()) {
+					if (a instanceof _value) {
+						a.getAttrValue().setLITERAL(val);
+					}
+				}
+			}
+		}
+	}
 
 
-  public String Connection.getSourcePort() {
-    for (Attribute a: getAttributes()) {
-      if (a instanceof src_port) {
-		  return fix(a.getAttrValue().getLITERAL());
-      }
-    }
-    return "";
-  }
+	public String Connection.getSourcePort() {
+		for (Attribute a: getAttributes()) {
+			if (a instanceof src_port) {
+				return fix(a.getAttrValue().getLITERAL());
+			}
+		}
+		return "";
+	}
 
-  public String Connection.getDestinationPort() {
-    for (Attribute a: getAttributes()) {
-      if (a instanceof dst_port) {
-		  return fix(a.getAttrValue().getLITERAL());
-      }
-    }
-    return "";
-  }
+	public String Connection.getDestinationPort() {
+		for (Attribute a: getAttributes()) {
+			if (a instanceof dst_port) {
+				return fix(a.getAttrValue().getLITERAL());
+			}
+		}
+		return "";
+	}
 
- public String Connection.getSrc() {
-    for (Attribute a: getAttributes()) {
-      if (a instanceof src) {
-		  return fix(a.getAttrValue().getLITERAL());
-      }
-    }
-    return "";
-  }
+	public String Connection.getSrc() {
+		for (Attribute a: getAttributes()) {
+			if (a instanceof src) {
+				return fix(a.getAttrValue().getLITERAL());
+			}
+		}
+		return "";
+	}
 
-  public String Connection.getDestination() {
-    for (Attribute a: getAttributes()) {
-      if (a instanceof dst) {
-		  return fix(a.getAttrValue().getLITERAL());
-      }
-    }
-    return "";
-  }
+	public String Connection.getDestination() {
+		for (Attribute a: getAttributes()) {
+			if (a instanceof dst) {
+				return fix(a.getAttrValue().getLITERAL());
+			}
+		}
+		return "";
+	}
 
-  public String Port.getName() {
-    for (Attribute a: getAttributes()) {
-      if (a instanceof _name) {
-	return a.getAttrValue().getLITERAL();
-      }
-    }
-    return "";
-  }
+	public String Port.getName() {
+		for (Attribute a: getAttributes()) {
+			if (a instanceof _name) {
+				return a.getAttrValue().getLITERAL();
+			}
+		}
+		return "";
+	}
 
-  public String Class.getName() {
-    for (Attribute a: getAttributes()) {
-      if (a instanceof _name) {
-	return a.getAttrValue().getLITERAL();
-      }
-    }
-    return "";
-  }
+	public String Class.getName() {
+		for (Attribute a: getAttributes()) {
+			if (a instanceof _name) {
+				return a.getAttrValue().getLITERAL();
+			}
+		}
+		return "";
+	}
 
-  public String XDF.getName() {
-    for (Attribute a: getAttributes()) {
-      if (a instanceof _name) {
-	return a.getAttrValue().getLITERAL();
-      }
-    }
-    return "";
-  }
+	public String XDF.getName() {
+		for (Attribute a: getAttributes()) {
+			if (a instanceof _name) {
+				return a.getAttrValue().getLITERAL();
+			}
+		}
+		return "";
+	}
 
-  public String Instance.getId() {
-    for (Attribute a: getAttributes()) {
-      if (a instanceof id) {
-	return a.getAttrValue().getLITERAL();
-      }
-    }
-    return "";
-  }
+	public String Instance.getId() {
+		for (Attribute a: getAttributes()) {
+			if (a instanceof id) {
+				return a.getAttrValue().getLITERAL();
+			}
+		}
+		return "";
+	}
 
 
 }

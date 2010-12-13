@@ -9,7 +9,12 @@ import xdfAST.Start;
 
 public class XdfParser {
 
-	protected static Start parse(String args[]) {
+	public static Start parse(String path) {
+		String[] a = {path,};
+		return parse(a);
+	}
+
+	public static Start parse(String args[]) {
 		Reader r = getReader(args);
 		Start ast = null;
 		try {

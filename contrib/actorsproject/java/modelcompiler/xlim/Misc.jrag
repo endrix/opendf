@@ -9,16 +9,17 @@
 aspect Misc {
 	design ASTNode.rootNode;
 	public void Start.setRoot() {
-		System.out.println("* Start.setRoot()");
+		// System.out.println("* Start.setRoot()");
 		getSpecification().setRoot();
 	}
+	public void EmptyStart.setRoot() {}
 	void Specification.setRoot() {
-		System.out.println("* Specification.setRoot()");
+		// System.out.println("* Specification.setRoot()");
 		getElement(0).setRoot();
 	}
 	void Element.setRoot(){}
 	void design.setRoot() {
-		System.out.println("* design.setRoot()");
+		// System.out.println("* design.setRoot()");
 		rootNode = this;
 		for (Element e : getElements()) {
 			e.setRoot(this);
@@ -34,6 +35,7 @@ aspect Misc {
 
 	syn design ASTNode.root() = rootNode;
 	eq Start.root() = getSpecification().getElement(0).root();
+	eq EmptyStart.root() = null;
 
 	// syn ASTNode ASTNode.root() {
 	// 	System.out.println("root() in "+this+":"+name());
