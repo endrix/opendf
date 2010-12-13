@@ -169,7 +169,7 @@ struct AbstractActorInstance {
   unsigned long long total;
   int firstActionIndex;
   FILE *traceFile;
-  int *cpu;            // For active actor to wakeup the sleeping thread
+  int *cpu; // For active actor to wakeup the sleeping thread
 };
 
 typedef struct {
@@ -230,9 +230,12 @@ struct ActorClass {
 // EXITCODE_BLOCK(n)  = actor blocks on either of n ports
 // EXITCODE_YIELD     = actor yielded, but may be fireable
 
-#define EXITCODE_TERMINATE 0
+extern const int exit_code_terminate[];
+extern const int exit_code_yield[];
+
+#define EXITCODE_TERMINATE exit_code_terminate
 #define EXITCODE_BLOCK(n)  (n)
-#define EXIT_CODE_YIELD     NULL
+#define EXIT_CODE_YIELD    exit_code_yield
 
 
 extern AbstractActorInstance	*actorInstance[];

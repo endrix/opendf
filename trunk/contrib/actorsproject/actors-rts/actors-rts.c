@@ -63,6 +63,9 @@ static struct {
 } memory_statistics;
 
 
+const int exit_code_terminate[1] = {-1};
+const int exit_code_yield[1] = {-2};
+
 /*
  * Error reporting
  */
