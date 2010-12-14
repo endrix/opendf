@@ -99,6 +99,7 @@ public class Evaluator {
 		register("cast", copyAndCast);
 		register("$selector", new SelectorHandler());
 		register("pinAvail", new PinAvailHandler());
+		register("$vcons", new VConsHandler());
 	}
 	
 	/**
@@ -512,12 +513,12 @@ public class Evaluator {
                 AbstractDomain<T> domain) {
 			Location location=op.getLocation();
 			assert(location.hasSource());
-			// TODO: We don't support local vectors yet
-			XlimStateVar stateVar=location.getSource().asStateVar();
-			assert(stateVar!=null);
 			
 			ValueNode newValueNode=findValueNode(location,op.getValueOperator().getOutputValues());
-			XlimType elementType=stateVar.getInitValue().getCommonElementType();
+			XlimType elementType=location.getType();
+			while (elementType.isList()) {
+				elementType = elementType.getTypeParameter("type");
+			}
 			T result;
 			
 			if (op.getNumInputPorts()==1) {
@@ -561,8 +562,6 @@ public class Evaluator {
 			
 			Location location=op.getLocation();
 			assert(location.hasSource());
-			// TODO: We don't support local vectors yet!
-			assert(location.getSource().asStateVar()!=null);
 			ValueNode oldValueNode=findValueNode(location,op.getValueOperator().getInputValues());
 			return context.get(oldValueNode);
 		}		
@@ -658,6 +657,34 @@ public class Evaluator {
 				return maxValue.and(universe);
 			else
 				return null;
+		}
+	}
+	
+	protected class VConsHandler extends ScalarHandler {
+		@Override
+		protected <T extends AbstractValue<T>> AbstractValue<T> 
+		evaluateScalar(XlimOperation op, Context<T> context, AbstractDomain<T> domain) {
+			// Returns a value that is the union of the operands
+			AbstractValue<T> result=null;
+			
+			for (ValueNode node: op.getValueOperator().getInputValues()) {
+				AbstractValue<T> aValue=context.get(node);
+				
+				if (aValue==null) {
+					// if null, that value must have been explicitly set
+					// otherwise, there is a problem with the evaluation order
+					assert(context.hasValue(node));
+					return null;
+				}
+				else if (result!=null) {
+					result = result.union(aValue.getAbstractValue());
+				}
+				else {
+					result = aValue;
+				}
+			}
+			
+			return result;
 		}
 	}
 }

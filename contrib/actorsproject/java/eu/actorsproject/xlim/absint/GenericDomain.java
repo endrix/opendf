@@ -83,10 +83,19 @@ public abstract class GenericDomain<T extends AbstractValue<T>> implements Abstr
 	@Override
 	public T restrict(T aValue, XlimType type) {
 		// TODO: find a nice way of plugging in new types
+		
+		// Get the scalar element type of Lists
+		while (type.isList()) {
+			type = type.getTypeParameter("type");
+		}
+		
 		if (aValue==null)
 			return getUniverse(type);
 		else if (type.isInteger())
-			return aValue.signExtend(type.getSize()-1).getAbstractValue();
+			if (type.minValue()<0)
+				return aValue.signExtend(type.getSize()-1).getAbstractValue();
+			else
+				return aValue.zeroExtend(type.getSize()).getAbstractValue();
 		else
 			return aValue;
 	}
