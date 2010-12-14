@@ -328,42 +328,57 @@ public class ControlFlowGraph implements XmlElement {
 
 		@Override
 		void printPhase(XlimPhasePrinter phasePrinter) {
-			// Evaluate the condition
-			XlimSource source=mDecision.getCondition().getXlimSource();
-			phasePrinter.printSource(source);
+			BasicBlock whenTrue=getNode(mDecision.getChild(true));
+			BasicBlock whenFalse=getNode(mDecision.getChild(false));
 			
-			// Start of if-module <module kind="if">
-			XmlPrinter xmlPrinter=phasePrinter.getPrinter();
-			xmlPrinter.println("<module kind=\"if\">");
-			xmlPrinter.increaseIndentation();
-			
-			// Test-module <module kind="test" decision="$source"/>
-			// TODO: source should be renamed
-			XmlAttributeFormatter formatter=xmlPrinter.getAttributeFormatter();
-			String decisionDef=formatter.getAttributeDefinition("decision", source, source.getUniqueId());
-			xmlPrinter.println("<module kind=\"test\" "+decisionDef+"/>");
-			
-			// Then-module
-			xmlPrinter.println("<module kind=\"then\">");
-			xmlPrinter.increaseIndentation();
-			phasePrinter.enterScope();
-			getNode(mDecision.getChild(true)).printPhase(phasePrinter);
-			phasePrinter.leaveScope();
-			xmlPrinter.decreaseIndentation();
-			xmlPrinter.println("</module>");
-			
-			// Else-module
-			xmlPrinter.println("<module kind=\"else\">");
-			xmlPrinter.increaseIndentation();
-			phasePrinter.enterScope();
-			getNode(mDecision.getChild(false)).printPhase(phasePrinter);
-			phasePrinter.leaveScope();
-			xmlPrinter.decreaseIndentation();
-			xmlPrinter.println("</module>");
-			
-			// End of if-module </module>
-			xmlPrinter.decreaseIndentation();
-			xmlPrinter.println("</module>");
+			if (whenFalse==null) {
+				// No leaves on false branch (this happens when condition is a token-availability test)
+				whenTrue.printPhase(phasePrinter);
+			}
+			else if (whenTrue==null) {
+				// No leaves on true branch (this happens when condition is a token-availability test)
+				whenFalse.printPhase(phasePrinter);
+			}
+			else {
+				// Proper decision node: leaves on both branches
+				
+				// Evaluate the condition
+				XlimSource source=mDecision.getCondition().getXlimSource();
+				phasePrinter.printSource(source);
+
+				// Start of if-module <module kind="if">
+				XmlPrinter xmlPrinter=phasePrinter.getPrinter();
+				xmlPrinter.println("<module kind=\"if\">");
+				xmlPrinter.increaseIndentation();
+
+				// Test-module <module kind="test" decision="$source"/>
+				// TODO: source should be renamed
+				XmlAttributeFormatter formatter=xmlPrinter.getAttributeFormatter();
+				String decisionDef=formatter.getAttributeDefinition("decision", source, source.getUniqueId());
+				xmlPrinter.println("<module kind=\"test\" "+decisionDef+"/>");
+
+				// Then-module
+				xmlPrinter.println("<module kind=\"then\">");
+				xmlPrinter.increaseIndentation();
+				phasePrinter.enterScope();
+				whenTrue.printPhase(phasePrinter);
+				phasePrinter.leaveScope();
+				xmlPrinter.decreaseIndentation();
+				xmlPrinter.println("</module>");
+
+				// Else-module
+				xmlPrinter.println("<module kind=\"else\">");
+				xmlPrinter.increaseIndentation();
+				phasePrinter.enterScope();
+				getNode(mDecision.getChild(false)).printPhase(phasePrinter);
+				phasePrinter.leaveScope();
+				xmlPrinter.decreaseIndentation();
+				xmlPrinter.println("</module>");
+
+				// End of if-module </module>
+				xmlPrinter.decreaseIndentation();
+				xmlPrinter.println("</module>");
+			}
 		}
 	}
 	
