@@ -92,9 +92,10 @@ public class StateSummary<T extends AbstractValue<T>> implements XmlElement {
 	 * 
 	 * @param carrier  a state variable or an actor port
 	 * @param newValue new value (null represents "top")
+	 * @param w        optional widening operator (null if none)
 	 * @return true iff state summary was updated
 	 */
-	public boolean add(StateLocation carrier, T newValue) {
+	public boolean add(StateLocation carrier, T newValue, WideningOperator<T> w) {
 		T oldValue=mValueMap.get(carrier);
 		if (oldValue!=null) {
 			// carrier has a (non-null) value already:
@@ -104,6 +105,15 @@ public class StateSummary<T extends AbstractValue<T>> implements XmlElement {
 			if (newValue!=null && newValue.equals(oldValue))
 				return false; // no change
 			// else: a new value (possibly null/"top")
+			
+			if (w!=null && newValue!=null) {
+				newValue = w.widen(newValue);
+//				T widened = w.widen(newValue);
+//				if (newValue.equals(widened)==false) {
+//					System.out.println(carrier.getDebugName()+": "+newValue+" widened to "+widened);
+//				}
+//				newValue = widened;
+			}
 		}
 		else if (mValueMap.containsKey(carrier))
 			return false; // mValueMap already contains "top" element (null)

@@ -30,6 +30,7 @@ import eu.actorsproject.xlim.dependence.Location;
 import eu.actorsproject.xlim.dependence.ModuleDependenceSlice;
 import eu.actorsproject.xlim.dependence.SliceSorter;
 import eu.actorsproject.xlim.dependence.ValueNode;
+// import eu.actorsproject.xlim.schedule.loop.LoopAnalysis;
 
 /**
  * The Classifier analyzes the behavor of one actor. It produces the following results:
@@ -51,9 +52,11 @@ public class Classifier {
 		new HashMap<CallNode,DependenceSlice>();
 	private HashMap<ActionNode,DependenceSlice> mActionNodeSlices=
 		new HashMap<ActionNode,DependenceSlice>();
+	private WideningGenerator mWideningGenerator;
 	
 	private StateEnumeration<Interval> mStateEnumeration;
 	private ControlFlowGraph mControlFlowGraph;
+	// private LoopAnalysis mLoopAnalysis;
 	private ActionSchedule mActionSchedule;
 	
 	/**
@@ -91,7 +94,6 @@ public class Classifier {
 			
 			// Enumerate state space
 			mStateEnumeration=enumerateStateSpace(decisionTree);
-
 		}
 		return mStateEnumeration;
 	}
@@ -108,6 +110,21 @@ public class Classifier {
 		}
 		return mControlFlowGraph;
 	}
+	
+	/**
+	 * @return the result of loop analysis
+	 */
+//	public LoopAnalysis getLoopAnalysis() {
+//		if (mLoopAnalysis==null) {
+//			// Make sure the decision tree (+slices) and the control-flow graph are created
+//			getDecisionTree();
+//			getControlFlowGraph();
+//			
+//			mLoopAnalysis = new LoopAnalysis(mControlFlowGraph, mActionNodeSlices, mDecisionSlice.getInputValues());
+//			mLoopAnalysis.analyze();
+//		}
+//		return mLoopAnalysis;
+//	}
 	
 	/**
 	 * @return the ActionSchedule, which is computed from the actor's ControlFlowGraph
@@ -171,6 +188,8 @@ public class Classifier {
 		sliceActionNode(schedulingLoopBody,relevantState);
 		
 		// new XmlPrinter(System.out).printDocument(mDecisionTree);
+		mWideningGenerator = new WideningGenerator(mDecisionSlice.getInputValues(), mIntervalDomain);
+		mWideningGenerator.processDecisionSlice(mDecisionSlice);
 	}
 	
 	/**
@@ -313,7 +332,8 @@ public class Classifier {
 					                       actionNodeComponents,
 					                       mDecisionSlice.getInputValues(),
 					                       mIntervalDomain,
-					                       constraintEvaluator);
+					                       constraintEvaluator,
+					                       mWideningGenerator.getWideningOperators());
 		stateEnumeration.enumerateStateSpace();
 		return stateEnumeration;
 	}

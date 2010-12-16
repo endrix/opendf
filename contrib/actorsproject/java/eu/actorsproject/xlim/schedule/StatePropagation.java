@@ -50,7 +50,7 @@ import eu.actorsproject.xlim.decision2.PortSignature;
 
 /**
  * Propagates abstract state from the root to the leaves of a decision tree,
- * while asserting/refuting conditions as differnent paths are taken at decisions
+ * while asserting/refuting conditions as different paths are taken at decisions
  */
 public abstract class StatePropagation<Domain extends AbstractValue<Domain>, Result> 
 	implements DecisionTree.Visitor<Result, DemandContext<Domain>> {
