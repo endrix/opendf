@@ -74,6 +74,10 @@ public abstract class GenericDomain<T extends AbstractValue<T>> implements Abstr
 		mEvaluatorPlugIn=evaluator;
 	}
 	
+	public void setTrace(boolean tracingOn) {
+		mTrace=tracingOn;
+	}
+	
 	@Override
 	public abstract T getUniverse(XlimType type);
 	

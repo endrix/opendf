@@ -48,6 +48,9 @@ public class IntervalWidening implements WideningOperator<Interval> {
 	
 	public IntervalWidening(XlimType type) {
 		mPoints=new TreeSet<Long>();
+		addStartPoint(type.minValue());
+		addStartPoint(0);
+		addEndPoint(type.maxValue());
 	}
 		
 	@Override
@@ -87,29 +90,36 @@ public class IntervalWidening implements WideningOperator<Interval> {
 	 * (-infinity,x-1], [x,x] and [x+1, infinity) are distinguishable after
 	 * widening.
 	 * @param x
+	 * @return true iff this widening operator changed/was updated
 	 */
-	public void addConstant(long x) {
-		addStartPoint(x);
-		addEndPoint(x);
+	public boolean addConstant(long x) {
+		boolean result=addStartPoint(x);
+		if (addEndPoint(x))
+			result=true;
+		return result;
 	}
 	
 	/**
 	 * Adds one point (x) so that at least the intervals (-infinity,x-1] and 
 	 * [x,+infinity) are distinguishable after widening.
 	 * @param x
+	 * @return true iff this widening operator changed/was updated
 	 */
-	public void addStartPoint(long x) {
-		mPoints.add(x);
+	public boolean addStartPoint(long x) {
+		return mPoints.add(x);
 	}
 	
 	/**
 	 * Adds one point (x+1) so that at least the intervals (-infinity,x] and
 	 * [x+1,+infinity) are distinguishable after widening.
 	 * @param x
+	 * @return true iff this widening operator changed/was updated
 	 */
-	public void addEndPoint(long x) {
+	public boolean addEndPoint(long x) {
 		if (x!=Long.MAX_VALUE)
-			mPoints.add(x+1);
+			return mPoints.add(x+1);
+		else
+			return false;
 	}
 	
 	public String toString() {

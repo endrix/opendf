@@ -199,7 +199,7 @@ public class StateEnumeration<T extends AbstractValue<T>> {
 			changed=true;
 		}
 		
-		if (mMappingAtRoot.updateSummary(summary, context, false /* don't include ports */)) {
+		if (mMappingAtRoot.updateSummary(summary, context, false /* don't include ports */, null)) {
 			changed=true;
 			
 			if (mTrace) {

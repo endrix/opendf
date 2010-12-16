@@ -50,8 +50,10 @@ import eu.actorsproject.xlim.absint.BagOfConstraints;
 import eu.actorsproject.xlim.absint.ConstraintEvaluator;
 import eu.actorsproject.xlim.absint.Context;
 import eu.actorsproject.xlim.absint.DemandContext;
+import eu.actorsproject.xlim.absint.IntervalWidening;
 import eu.actorsproject.xlim.absint.StateMapping;
 import eu.actorsproject.xlim.absint.StateSummary;
+import eu.actorsproject.xlim.absint.WideningOperator;
 import eu.actorsproject.xlim.decision2.ActionNode;
 import eu.actorsproject.xlim.decision2.Condition;
 import eu.actorsproject.xlim.decision2.DecisionTree;
@@ -90,18 +92,21 @@ public class StateEnumeration<T extends AbstractValue<T>> {
 	private ArrayDeque<ActionNode> mWorkList=new ArrayDeque<ActionNode>();
 	private HashSet<ActionNode> mOnWorkList=new HashSet<ActionNode>();
 	private Map<ActionNode,DependenceComponent> mActionNodeComponents;
-
+    private Map<ValueNode,? extends WideningOperator<T>> mWideningOperators;
+    
 	public StateEnumeration(DecisionTree decisionTree, 
 			                Map<ActionNode,DependenceComponent> actionNodeComponents,
 			                Set<ValueNode> inputNodes,
 			                AbstractDomain<T> domain,
-			                ConstraintEvaluator<T> constraintEvaluator) {
+			                ConstraintEvaluator<T> constraintEvaluator,
+			                Map<ValueNode,? extends WideningOperator<T>> wideningOperators) {
 		mDecisionTree=decisionTree;
 		mActionNodeComponents=actionNodeComponents;
 		mInputNodes=inputNodes;
 		mMappingAtRoot=new StateMapping(inputNodes);
 		mDomain=domain;
 		mConstraintEvaluator=constraintEvaluator;
+		mWideningOperators=wideningOperators;
 		mInitialState=computeInitialState();
 	}
 	
@@ -240,7 +245,7 @@ public class StateEnumeration<T extends AbstractValue<T>> {
 			changed=true;
 		}
 		
-		if (mMappingAtRoot.updateSummary(summary, context, false /* don't include ports */)) {
+		if (mMappingAtRoot.updateSummary(summary, context, false /* don't include ports */, mWideningOperators)) {
 			changed=true;
 			
 			if (mTrace) {

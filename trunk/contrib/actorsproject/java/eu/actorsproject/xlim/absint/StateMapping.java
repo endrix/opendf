@@ -38,6 +38,8 @@
 package eu.actorsproject.xlim.absint;
 
 
+import java.util.Map;
+
 import eu.actorsproject.xlim.dependence.Location;
 import eu.actorsproject.xlim.dependence.ValueNode;
 import eu.actorsproject.xlim.dependence.StateLocation;
@@ -124,7 +126,7 @@ public class StateMapping {
 	public<T extends AbstractValue<T>> StateSummary<T> createStateSummary(Context<T> context,
                                                                           boolean includePorts) {
 		StateSummary<T> summary=new StateSummary<T>();
-		updateSummary(summary,context,includePorts);
+		updateSummary(summary,context,includePorts,null);
 		return summary;
 	}
 		
@@ -135,11 +137,13 @@ public class StateMapping {
 	 * @param context      a mapping from value nodes to abstract values
 	 * @param updatePorts  if true: include actor ports in summary
 	 *                     if false: include state variables only
+	 * @param wideningOps  optional widening operators (null if none)
 	 * @return true iff state summary was modified
 	 */
 	public<T extends AbstractValue<T>> boolean updateSummary(StateSummary<T> summary,
 			                                                 Context<T> context,
-			                                                 boolean updatePorts) {
+			                                                 boolean updatePorts,
+			                                                 Map<ValueNode, ? extends WideningOperator<T> > wideningOps) {
 		boolean changed=false;
 		
 		for (ValueNode valueNode: getValueNodes()) {
@@ -150,7 +154,9 @@ public class StateMapping {
 			if (updatePorts || location.asStateVar()!=null) {
 				assert(context.hasValue(valueNode));
 				T aValue=context.get(valueNode);
-				if (summary.add(location, aValue))
+				WideningOperator<T> w=(wideningOps!=null)? wideningOps.get(valueNode) : null;
+				
+				if (summary.add(location, aValue, w))
 					changed=true;
 			}
 		}

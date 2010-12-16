@@ -373,10 +373,20 @@ public class Evaluator {
 			int width1=in1.getSource().getType().getSize();
 			T aValue1=context.get(in1.getValue());
 			T aValue2=context.get(op.getInputPort(1).getValue());
-			
-			// zero extend left operand
-			aValue1=aValue1.zeroExtend(width1).getAbstractValue();
-			return evaluate(aValue1,aValue2);
+
+			if (aValue1!=null && aValue2!=null) {
+				// zero extend left operand
+				AbstractValue<T> zeroExt=aValue1.zeroExtend(width1);
+				return (zeroExt!=null)? evaluate(zeroExt.getAbstractValue(),aValue2) : null;
+			}
+			else {
+				// if null, that value must have been explicitly set
+				// otherwise, there is a problem with the evaluation order
+				assert(context.hasValue(in1.getValue()) 
+					   && context.hasValue(op.getInputPort(1).getValue()));
+				return null;
+			}
+
 		}		
 	}
 	
@@ -416,7 +426,15 @@ public class Evaluator {
                                             AbstractDomain<T> domain) {  
 			int fromBit=(int)((long) op.getIntegerValueAttribute())-1;
 			T x=context.get(op.getInputPort(0).getValue());
-			return x.signExtend(fromBit);
+			if (x!=null) {
+				return x.signExtend(fromBit);
+			}
+			else {
+				// if null, that value must have been explicitly set
+				// otherwise, there is a problem with the evaluation order
+				assert(context.hasValue(op.getInputPort(0).getValue()));
+				return null;
+			}
 		}
 	}
 	
@@ -430,7 +448,8 @@ public class Evaluator {
 	protected class NeHandler extends BinaryHandler {
 		@Override
 		protected <T extends AbstractValue<T>> AbstractValue<T> evaluate(T x, T y)	{
-			return x.equalsOperator(y).logicalComplement();
+			AbstractValue<T> equals=x.equalsOperator(y);
+			return equals!=null? equals.logicalComplement() : null;
 		}	
 	}
 
@@ -451,14 +470,17 @@ public class Evaluator {
 	protected class GeHandler extends BinaryHandler {
 		@Override
 		protected <T extends AbstractValue<T>> AbstractValue<T> evaluate(T x, T y)	{
-			return x.lessThanOperator(y).logicalComplement();
+			AbstractValue<T> lt=x.lessThanOperator(y);
+			return lt!=null? lt.logicalComplement() : null;
 		}	
 	}
 	
 	protected class LeHandler extends BinaryHandler {
 		@Override
 		protected <T extends AbstractValue<T>> AbstractValue<T> evaluate(T x, T y)	{
-			return y.lessThanOperator(x).logicalComplement();
+			AbstractValue<T> lt=y.lessThanOperator(x);
+			return lt!=null? lt.logicalComplement() : null;
+
 		}	
 	}
 	
