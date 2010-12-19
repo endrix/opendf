@@ -95,10 +95,18 @@ int allocate_display(int width,
 
   switch (bytesPerPixel) {
   case 2:
-    fb->display_yuv = display_yuv_16bpp;
-    break;
+#ifdef ORCC
+		  fb->display_yuv = Orcc_display_yuv_16bpp;
+#else
+		  fb->display_yuv = display_yuv_16bpp;
+#endif
+	break;
   case 4:
-    fb->display_yuv = display_yuv_32bpp;
+#ifdef ORCC
+		  fb->display_yuv = Orcc_display_yuv_32bpp;
+#else
+		  fb->display_yuv = display_yuv_32bpp;
+#endif
     break;
   default:
     fprintf(stderr,"display-sdl: Unsupported pixel size: %dbpp\n",
