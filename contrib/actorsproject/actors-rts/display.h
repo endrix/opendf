@@ -105,4 +105,11 @@ void display_yuv_32bpp(int x, int y,
 		       yuv_sample_t macroBlock[MB_SIZE],
 		       const struct FrameBuffer *fb);
 
+void Orcc_display_yuv_16bpp(int x, int y,
+					   yuv_sample_t macroBlock[MB_SIZE],
+					   const struct FrameBuffer *fb);
+
+void Orcc_display_yuv_32bpp(int x, int y,
+					   yuv_sample_t macroBlock[MB_SIZE],
+					   const struct FrameBuffer *fb);
 #endif
