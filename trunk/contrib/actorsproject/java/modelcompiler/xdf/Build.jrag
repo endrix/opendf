@@ -34,16 +34,19 @@ aspect Build {
 		b.append("echo \"***** XDF -> c *****\"\n");
 		b.append("$ACTORSHOME/bin/saxon8 -o ${NETWORK}.c ${NETWORK}.xdf $ACTORSHOME/share/xsl/generateConfig.xsl\n\n");
 
-		b.append("echo \"***** xlim2c *****\"\n");
-		b.append("$ACTORSHOME/bin/xlim2c MergedActor_1.xlim MergedActor_1.c\n\n");
+		// b.append("echo \"***** xlim2c *****\"\n");
+		// b.append("for i in $ACTORS; do\n");
+		// b.append("  $ACTORSHOME/bin/xlim2c $i.xlim $i.c \ndone\n\n");
+// b.append("$ACTORSHOME/bin/xlim2c MergedActor_1.xlim MergedActor_1.c\n\n");
 
 		b.append("for i in $ACTORS; do\n");
-		b.append("  echo \"***** gcc $i.c *****\"\n");
+		b.append("  echo \"***** compile $i *****\"\n");
+		b.append("  $ACTORSHOME/bin/xlim2c $i.xlim $i.c\n");
 		b.append("  gcc $FLAGS -c  -Wall \"-I$ACTORSHOME/include\"  -o $i.o $i.c \ndone\n\n");
  
 		b.append("echo \"***** gcc $NETWORK.xdf *****\"\n");
 		b.append("gcc -c  $FLAGS -Wall \"-I$ACTORSHOME/include\"  -o ${NETWORK}.o ${NETWORK}.c \n\n");
-		b.append("gcc -c  $FLAGS -Wall \"-I$ACTORSHOME/include\"  `sdl-config --cflags` -o display-sdl.o $ACTORSHOME/share/sysactors/c/display-sdl.c\n\n");
+		b.append("gcc -c  $FLAGS -Wall \"-I$ACTORSHOME/include\"  `sdl-config --cflags`  -DORCC -o display-sdl.o $ACTORSHOME/share/sysactors/c/display-sdl.c\n\n");
 
 		b.append("echo \"***** link $FLAGS *****\"\n");
 		b.append("for i in $ACTORS; do\n");

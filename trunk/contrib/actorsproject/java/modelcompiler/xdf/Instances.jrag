@@ -214,7 +214,7 @@ aspect Misc {
 
 			
 			for (Connection c : root().getConnections()) {
-				Port p = new Port();
+				TmpPort p = new TmpPort();
 				if (c.getSource() == this) {
 					p.addAttribute(new _kind("Output"));
 					p.addAttribute(new _name(c.getSourcePort()));
