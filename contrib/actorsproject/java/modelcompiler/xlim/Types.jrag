@@ -53,7 +53,34 @@ aspect TypeLookup {
 				return a.value();
 			}
 		}
-		return "";
+		return root().findTypeName(source());
+	}
+
+	syn String ASTNode.findTypeName(String name) = null;
+	eq ComplexElement.findTypeName(String name) {
+		for (Element e : getElements()) {
+			if (e.findTypeName(name) != null) {
+				return e.findTypeName(name);
+			}
+		}
+		return super.findTypeName(name);
+	}
+	eq operation.findTypeName(String name) {
+		System.out.println("  Checking: "+name());
+		if (kind().equals("$valloc")) {
+			return super.findTypeName(name);
+		}
+		return null;
+	}
+	eq port.findTypeName(String name) {
+		if (source().equals(name)) {
+			for (Attribute a : getAttributes()) {
+				if (a instanceof _typeName) {
+					return a.value();
+				}
+			}
+		}
+		return null;
 	}
 
 	syn typeDef Element.typeDef() = null;

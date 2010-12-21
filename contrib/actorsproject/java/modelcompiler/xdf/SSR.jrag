@@ -22,7 +22,10 @@ aspect Classification {
 	}
 
 	public String Instance.classification(String dir) {
-		if (!name().startsWith("art_")) {
+		if (!name().startsWith("art_") &&
+			!name().equals("source") && 
+			!name().equals("ddr") && 
+			!name().equals("display")) {
 			// Ugly hack to cache directory for later use in merging, AndersN
 			cwd = dir;
 
