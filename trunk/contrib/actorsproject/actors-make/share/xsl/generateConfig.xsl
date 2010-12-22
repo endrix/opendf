@@ -44,16 +44,35 @@
   <xsl:output method="text" indent="yes"/>
   <xsl:strip-space elements="*" />
   
-  <xsl:function name="art:getActorType">
-    
+  <xsl:function name="art:getID">
+    <xsl:param name="instance"/>
+      <xsl:choose>
+        <xsl:when test="$instance/Note[@kind='UID']">
+          <xsl:value-of  select="$instance/Note[@kind='UID']/@value"/>            
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:value-of  select="$instance/@id"/>
+        </xsl:otherwise>  
+      </xsl:choose>
+  </xsl:function>
+  
+  <xsl:function name="art:getActorType">    
     <xsl:param name="instance"/>      
-    <xsl:variable name="UID" select="$instance/Note[@kind='UID']/@value"/>            
+    <xsl:variable name='ID' select="art:getID($instance)"/> 
+    
     <xsl:choose>
-      <xsl:when test="contains($UID, 'art_')">
-        <xsl:value-of select="$instance/Note[@kind='className']/@value"/>
+      <xsl:when test="contains($ID, 'art_')">
+        <xsl:choose>
+          <xsl:when test="$instance/Note[@kind='className']">
+            <xsl:value-of select="$instance/Note[@kind='className']/@value"/>            
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:value-of select="$instance/Class/@name"/>                        
+          </xsl:otherwise>
+        </xsl:choose>
       </xsl:when>
       <xsl:otherwise> 
-        <xsl:value-of select="$UID"/> 
+        <xsl:value-of select="$ID"/> 
       </xsl:otherwise>
     </xsl:choose> 
   </xsl:function>
@@ -70,7 +89,8 @@
     <xsl:text>  *pNumberOfInstances=numberOfInstances;&#xa;&#xa;</xsl:text>
     <xsl:for-each select="//Instance"> 
       <xsl:variable name='className' select="art:getActorType(.)"/> 
-      <xsl:variable name='instance' select="concat('p', Note[@kind='UID']/@value)"/> 
+      <xsl:variable name='ID' select="art:getID(.)"/> 
+      <xsl:variable name='instance' select="concat('p', $ID)"/> 
 
       <xsl:text>  extern ActorClass ActorClass_</xsl:text>
       <xsl:value-of select="$className"/>
@@ -78,23 +98,48 @@
       <xsl:text>  AbstractActorInstance *</xsl:text>
       <xsl:value-of select="$instance"/>
       <xsl:text>;&#xa;</xsl:text>
-      <xsl:for-each select=".//Port[@kind='Input']">  
-        <xsl:text>  InputPort *</xsl:text>
-        <xsl:value-of select="concat($instance, '_', @name)"/>
-        <xsl:text>;&#xa;</xsl:text>
-      </xsl:for-each>
-      <xsl:for-each select=".//Port[@kind='Output']">  
-        <xsl:text>  OutputPort *</xsl:text>
-        <xsl:value-of select="concat($instance, '_', @name)"/>
-        <xsl:text>;&#xa;</xsl:text>
-      </xsl:for-each>
+      
+      <xsl:choose>
+        <xsl:when test=".//Port">
+          <xsl:for-each select=".//Port[@kind='Input']">  
+            <xsl:text>  InputPort *</xsl:text>
+            <xsl:value-of select="concat($instance, '_', @name)"/>
+            <xsl:text>;&#xa;</xsl:text>
+          </xsl:for-each>
+          <xsl:for-each select=".//Port[@kind='Output']">  
+            <xsl:text>  OutputPort *</xsl:text>
+            <xsl:value-of select="concat($instance, '_', @name)"/>
+            <xsl:text>;&#xa;</xsl:text>
+          </xsl:for-each>          
+        </xsl:when>
+        <xsl:otherwise> <!-- ORCC -->
+          <xsl:variable name="inputPorts" select="//Connection[@dst=$ID]/@dst-port"/>
+          <xsl:for-each select="$inputPorts">
+            <xsl:text>  InputPort *</xsl:text>
+            <xsl:value-of select="concat($instance, '_', .)"/>
+            <xsl:text>;&#xa;</xsl:text>
+          </xsl:for-each>
+          
+          <xsl:variable name="outputPorts" select="//Connection[@src=$ID]/@src-port"/>
+          <xsl:for-each-group select="$outputPorts" group-by=".">
+            <xsl:text>  OutputPort *</xsl:text>
+            <xsl:value-of select="concat($instance, '_', current-grouping-key())"/>
+            <xsl:text>;&#xa;</xsl:text>
+          </xsl:for-each-group>          
+        </xsl:otherwise>
+      </xsl:choose>
+
       <xsl:text>&#xa;</xsl:text>
-    </xsl:for-each>
+  </xsl:for-each>
+
+      
+      
     <xsl:text>&#xa;</xsl:text>
 
     <xsl:for-each select="//Instance"> 
       <xsl:variable name='className' select="art:getActorType(.)"/> 
-      <xsl:variable name='instance' select="concat('p', Note[@kind='UID']/@value)"/> 
+      <xsl:variable name='ID' select="art:getID(.)"/> 
+      <xsl:variable name='instance' select="concat('p', $ID)"/> 
  
       <xsl:text>  </xsl:text>
       <xsl:value-of select="$instance"/>
@@ -102,45 +147,81 @@
       <xsl:value-of select="$className"/>
       <xsl:text>);&#xa;</xsl:text>
       
-      <xsl:for-each select=".//Port[@kind='Input']">  
-        <xsl:variable name="dstId" select="../../@id"/>
-        <xsl:variable name="dstPort" select="@name"/> 
-        <xsl:variable name="connection" select="//Connection[@dst=$dstId and @dst-port=$dstPort]"/>
-
-        <xsl:text>  </xsl:text>
-        <xsl:value-of select="concat($instance, '_', @name)"/>
-        <xsl:text> = createInputPort(</xsl:text>  
-        <xsl:value-of select="$instance"/>
-        <xsl:text>, "</xsl:text>
-        <xsl:value-of select="@name"/>
-        <xsl:text>", </xsl:text>
-        
-        <xsl:choose>
-          <xsl:when test="$connection/Attribute[@name = 'bufferSize']">
-            <xsl:value-of select="$connection/Attribute[@name = 'bufferSize']/Expr/@value"/>
-          </xsl:when>
-          <xsl:otherwise>
-            <xsl:text>0</xsl:text>
-          </xsl:otherwise>
-        </xsl:choose>
-        <xsl:text>);&#xa;</xsl:text>
-      </xsl:for-each>
+      <xsl:choose>
+        <xsl:when test=".//Port">
+          <xsl:for-each select=".//Port[@kind='Input']">  
+            <xsl:variable name="dstId" select="../../@id"/>
+            <xsl:variable name="dstPort" select="@name"/> 
+            <xsl:variable name="connection" select="//Connection[@dst=$dstId and @dst-port=$dstPort]"/>
+            
+            <xsl:text>  </xsl:text>
+            <xsl:value-of select="concat($instance, '_', @name)"/>
+            <xsl:text> = createInputPort(</xsl:text>  
+            <xsl:value-of select="$instance"/>
+            <xsl:text>, "</xsl:text>
+            <xsl:value-of select="@name"/>
+            <xsl:text>", </xsl:text>
+            
+            <xsl:choose>
+              <xsl:when test="$connection/Attribute[@name = 'bufferSize']">
+                <xsl:value-of select="$connection/Attribute[@name = 'bufferSize']/Expr/@value"/>
+              </xsl:when>
+              <xsl:otherwise>
+                <xsl:text>0</xsl:text>
+              </xsl:otherwise>
+            </xsl:choose>
+            <xsl:text>);&#xa;</xsl:text>
+          </xsl:for-each>          
+        </xsl:when>
+        <xsl:otherwise> <!-- ORCC Style --> 
+          <xsl:variable name="inputPorts" select="//Connection[@dst=$ID]/@dst-port"/>
+          <xsl:for-each select="$inputPorts">   
+            <xsl:text>  </xsl:text>
+            <xsl:value-of select="concat($instance, '_', .)"/>
+            <xsl:text> = createInputPort(</xsl:text>  
+            <xsl:value-of select="$instance"/>
+            <xsl:text>, "</xsl:text>
+            <xsl:value-of select="."/>
+            <xsl:text>", 512);&#xa;</xsl:text>
+          </xsl:for-each>          
+        </xsl:otherwise>
+      </xsl:choose>
       
-      <xsl:for-each select=".//Port[@kind='Output']">
-        <xsl:variable name="srcId" select="../../@id"/>
-        <xsl:variable name="srcPort" select="@name"/> 
-        <xsl:variable name="fanOut" select="count(//Connection[@src=$srcId and @src-port=$srcPort])"/>
-       
-        <xsl:text>  </xsl:text>
-        <xsl:value-of select="concat($instance, '_', @name)"/>
-        <xsl:text> = createOutputPort(</xsl:text>  
-        <xsl:value-of select="$instance"/>
-        <xsl:text>, "</xsl:text>
-        <xsl:value-of select="@name"/>
-        <xsl:text>", </xsl:text>
-        <xsl:value-of select="$fanOut"/>
-        <xsl:text>);&#xa;</xsl:text>
-      </xsl:for-each>
+      <xsl:choose>
+        <xsl:when test=".//Port">
+          <xsl:for-each select=".//Port[@kind='Output']">
+            <xsl:variable name="srcId" select="../../@id"/>
+            <xsl:variable name="srcPort" select="@name"/> 
+            <xsl:variable name="fanOut" select="count(//Connection[@src=$srcId and @src-port=$srcPort])"/>
+            
+            <xsl:text>  </xsl:text>
+            <xsl:value-of select="concat($instance, '_', @name)"/>
+            <xsl:text> = createOutputPort(</xsl:text>  
+            <xsl:value-of select="$instance"/>
+            <xsl:text>, "</xsl:text>
+            <xsl:value-of select="@name"/>
+            <xsl:text>", </xsl:text>
+            <xsl:value-of select="$fanOut"/>
+            <xsl:text>);&#xa;</xsl:text>
+          </xsl:for-each>          
+        </xsl:when> 
+        <xsl:otherwise> <!-- ORCC Style -->
+          <xsl:variable name="outputPorts" select="//Connection[@src=$ID]/@src-port"/>
+          <xsl:for-each-group select="$outputPorts" group-by=".">    
+            <xsl:variable name="fanOut" select="count(current-group())"/>
+            <xsl:text>  </xsl:text>   
+            <xsl:value-of select="concat($instance, '_', current-grouping-key())"/>
+            <xsl:text> = createOutputPort(</xsl:text>  
+            <xsl:value-of select="$instance"/>
+            <xsl:text>, "</xsl:text>
+            <xsl:value-of select="."/>
+            <xsl:text>", </xsl:text>
+            <xsl:value-of select="$fanOut"/>
+            <xsl:text>);&#xa;</xsl:text>
+          </xsl:for-each-group>
+        </xsl:otherwise>
+      </xsl:choose>
+      
       
       <xsl:for-each select="Parameter">
         <xsl:text>  setParameter(</xsl:text>
@@ -162,8 +243,29 @@
       <xsl:variable name="srcPort" select="@src-port"/>     
       <xsl:variable name="dstId" select="@dst"/> 
       <xsl:variable name="dstPort" select="@dst-port"/>
-      <xsl:variable name="srcInstance" select="//Instance[@id=$srcId]/Note[@kind='UID']/@value"/>
-      <xsl:variable name="dstInstance" select="//Instance[@id=$dstId]/Note[@kind='UID']/@value"/>
+     
+      <xsl:variable name="srcInstance">
+        <xsl:choose>
+          <xsl:when test="//Instance[@id=$srcId]/Note[@kind='UID']">
+            <xsl:value-of select="//Instance[@id=$srcId]/Note[@kind='UID']/@value"/>
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:value-of select="$srcId"/>            
+          </xsl:otherwise>
+        </xsl:choose>
+      </xsl:variable>
+     
+      <xsl:variable name="dstInstance">
+        <xsl:choose>
+          <xsl:when test="//Instance[@id=$dstId]/Note[@kind='UID']">
+            <xsl:value-of select="//Instance[@id=$dstId]/Note[@kind='UID']/@value"/>
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:value-of select="$dstId"/>            
+          </xsl:otherwise>
+        </xsl:choose>
+      </xsl:variable>
+      
       <xsl:text>  connectPorts(p</xsl:text>
       <xsl:value-of select="concat($srcInstance, '_', $srcPort)"/>
       <xsl:text>, p</xsl:text>
