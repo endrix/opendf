@@ -1136,5 +1136,8 @@ class VAllocGenerator extends BasicGenerator {
 		// Do nothing!
 		// Since generateExpression() returns false, a temporary variable will
 		// be allocated for the result. We leave that variable uninitialzed!
+		gen.print("/* uninitialized value ($valloc) ");
+		gen.print(op.getOutputPort(0));
+		gen.print(" */ ");
 	}
 }
