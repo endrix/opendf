@@ -179,6 +179,12 @@ class LatestEvaluationArg {
 			m=m.getParentModule();
 		}
 		
+		// Avoid local code motion (that runs the risk of breaking anti-dependece)
+		// TODO: the test could be strengthened by checking that inputs are redefined (locally) on the path to 'latest' 
+		if (inputs!=null && latest.getParentModule()==earliest) {
+			latest=earliest;
+		}
+		
 		if (LatestEvaluationAnalysis.sTrace) {
 		  XlimModule original=op.getParentModule();
 		  String comment=(latest==original)? " (original)" : (" (from: "+original+")");
