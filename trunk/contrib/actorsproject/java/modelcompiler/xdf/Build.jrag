@@ -16,7 +16,7 @@ aspect Build {
 	syn StringBuffer ASTNode.genBuild(StringBuffer b) = b;
 	eq Start.genBuild(StringBuffer b) = getXDF().genBuild(b);
 	eq XDF.genBuild(StringBuffer b) {
-		b.append("#!/bin/sh\n\n");
+		b.append("#!/bin/bash\n\n");
 		b.append("FLAGS=\" -O3 \"\n\n\n");
 		// b.append("NETWORK=\"").append(name()).append("\"\n\n");
 		b.append("NETWORK=\"").append("merged").append("\"\n\n");
