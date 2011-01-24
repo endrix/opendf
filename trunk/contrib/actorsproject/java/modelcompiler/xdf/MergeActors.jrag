@@ -22,7 +22,9 @@ aspect MergeActors {
 		File script = new File(cwd+"build.sh");
 		script.setExecutable(true,false); // a+x
 		try {
-			new PrintStream(script).print(genBuild());
+			PrintStream sStream = new PrintStream(script);
+			sStream.print(genBuild());
+			sStream.close();
 		} catch (FileNotFoundException e) {
 			System.out.println("Could not print script to file");
 		}
