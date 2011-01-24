@@ -16,7 +16,7 @@ aspect Build {
 	syn StringBuffer ASTNode.genBuild(StringBuffer b) = b;
 	eq Start.genBuild(StringBuffer b) = getXDF().genBuild(b);
 	eq XDF.genBuild(StringBuffer b) {
-		b.append("#!/bin/bash\n\n");
+		b.append("#!/bin/sh\n\n");
 		b.append("FLAGS=\" -O3 \"\n\n\n");
 		// b.append("NETWORK=\"").append(name()).append("\"\n\n");
 		b.append("NETWORK=\"").append("merged").append("\"\n\n");
@@ -50,9 +50,9 @@ aspect Build {
 
 		b.append("echo \"***** link $FLAGS *****\"\n");
 		b.append("for i in $ACTORS; do\n");
-		b.append("  OBJECTS+=$i.o' '\n");
+		b.append("  OBJECTS=\"$OBJECTS $i.o\"\n");
 		b.append("done\n");
-		b.append("OBJECTS+=display-sdl.o\n\n");
+		b.append("OBJECTS="$OBJECTS display-sdl.o\"\n\n");
 		b.append("gcc $FLAGS $OBJECTS  ${NETWORK}.o -L$ACTORSHOME/lib -Wl,-rpath=$ACTORSHOME/lib -lactors-rts -lpthread `xml2-config --libs` `sdl-config --libs` -o $NETWORK\n");
 		return b;
 	}
