@@ -52,7 +52,7 @@ aspect Build {
 		b.append("for i in $ACTORS; do\n");
 		b.append("  OBJECTS=\"$OBJECTS $i.o\"\n");
 		b.append("done\n");
-		b.append("OBJECTS="$OBJECTS display-sdl.o\"\n\n");
+		b.append("OBJECTS=\"$OBJECTS display-sdl.o\"\n\n");
 		b.append("gcc $FLAGS $OBJECTS  ${NETWORK}.o -L$ACTORSHOME/lib -Wl,-rpath=$ACTORSHOME/lib -lactors-rts -lpthread `xml2-config --libs` `sdl-config --libs` -o $NETWORK\n");
 		return b;
 	}
