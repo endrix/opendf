@@ -185,8 +185,10 @@ public abstract class GenericDomain<T extends AbstractValue<T>> implements Abstr
 		else if (condition==null || condition.mayContain(1)) {
 			if (condition==null || condition.mayContain(0)) {
 				// either true or false
-				if (aValue1!=null && aValue2!=null)
-					result=aValue1.union(aValue2).getAbstractValue();
+				if (aValue1!=null && aValue2!=null) {
+					AbstractValue<T> temp=aValue1.union(aValue2);
+					result=(temp!=null)? temp.getAbstractValue() : null;
+				}
 				else
 					result=null; // join(x,null)=null "top element"
 			}
