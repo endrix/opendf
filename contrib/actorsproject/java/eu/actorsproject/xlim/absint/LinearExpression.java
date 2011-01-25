@@ -161,6 +161,21 @@ public class LinearExpression implements Cloneable, AbstractValue<LinearExpressi
 	public boolean isEmpty() {
 		return false;
 	}
+	
+	/**
+	 * @return true if this linear expression represents identity (copy of its variable)
+	 */
+	public boolean isIdentity() {
+		if (mVariable!=null 
+		    && mScale==1
+		    && mOffset==0) {
+			
+			XlimType type = mVariable.getType();
+			if (mMin <= type.minValue() && mMax >= type.maxValue())
+				return true;
+		}
+		return false;
+	}
 
 	/**
 	 * @param aValue
