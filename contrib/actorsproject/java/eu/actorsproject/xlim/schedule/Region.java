@@ -34,68 +34,55 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package eu.actorsproject.xlim.schedule;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
+import java.util.Map;
 
 import eu.actorsproject.util.XmlAttributeFormatter;
+import eu.actorsproject.util.XmlElement;
+import eu.actorsproject.xlim.XlimStateVar;
+import eu.actorsproject.xlim.absint.AbstractDomain;
+import eu.actorsproject.xlim.absint.Context;
+import eu.actorsproject.xlim.absint.DemandContext;
+import eu.actorsproject.xlim.absint.Evaluable;
+import eu.actorsproject.xlim.absint.LinearExpression;
+import eu.actorsproject.xlim.decision2.ActionNode;
+import eu.actorsproject.xlim.decision2.DecisionNode;
 import eu.actorsproject.xlim.decision2.DecisionTree;
-import eu.actorsproject.xlim.schedule.Region;
+import eu.actorsproject.xlim.decision2.NullNode;
 
-public abstract class BasicBlock extends Region {
+/**
+ * Common representation for Loops and BasicBlocks
+ *
+ */
+public abstract class Region implements XmlElement {
 
-	private Set<BasicBlock> mPredecessors=new HashSet<BasicBlock>();
-	private int mIdentifier;
+	public boolean isLoop() {
+		return asLoop()!=null;
+	}
 	
-	@Override
+	public boolean isBasicBlock() {
+		return asBasicBlock()!=null;
+	}
+	
+	/**
+	 * @return a Loop if this Region is a loop (null otherwise)
+	 */
+	public Loop asLoop() {
+		return null;
+	}
+	
+	/**
+	 * @return a BasicBlock if this Region is a BasicBlock (null otherwise)
+	 */
 	public BasicBlock asBasicBlock() {
-		return this;
-	}
-
-	@Override
-	public BasicBlock getHeader() {
-		return this;
+		return null;
 	}
 	
-	public abstract DecisionTree getDecisionTree();
-	
-	public Iterable<? extends BasicBlock> getPredecessors() {
-		return mPredecessors;
-	}
-	
-	public abstract Iterable<? extends BasicBlock> getSuccessors();
-	
-	public enum Kind {
-		decisionNode,
-		actionNode,
-		terminalNode
-	}
-	
-	public abstract Kind getKind();
-
-	@Override
-	public String getTagName() {
-		return "basic-block";
-	}
-	
-	public int getIdentifier() {
-		return mIdentifier;
-	}
-	
-	@Override
-	public String getAttributeDefinitions(XmlAttributeFormatter formatter) {
-		return "kind=\""+getKind()+"\" id=\""+mIdentifier+"\"";
-	}
-	
-	void addPredecessor(BasicBlock p) {
-		mPredecessors.add(p);
-	}
-	
-	void setIdentifier(int identifier) {
-		mIdentifier=identifier;
-	}
-	
-	abstract void printPhase(XlimPhasePrinter printer);
+	/**
+	 * @return the BasicBlock that dominates the Region:
+	 * 	       either the header of a loop or the basic block itself (if the Region is a singleton BasicBlock).
+	 */
+	public abstract BasicBlock getHeader();
 }

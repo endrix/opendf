@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import eu.actorsproject.util.XmlPrinter;
 import eu.actorsproject.xlim.XlimDesign;
 import eu.actorsproject.xlim.XlimLoopModule;
 import eu.actorsproject.xlim.XlimModule;
@@ -30,7 +31,6 @@ import eu.actorsproject.xlim.dependence.Location;
 import eu.actorsproject.xlim.dependence.ModuleDependenceSlice;
 import eu.actorsproject.xlim.dependence.SliceSorter;
 import eu.actorsproject.xlim.dependence.ValueNode;
-// import eu.actorsproject.xlim.schedule.loop.LoopAnalysis;
 
 /**
  * The Classifier analyzes the behavor of one actor. It produces the following results:
@@ -52,11 +52,13 @@ public class Classifier {
 		new HashMap<CallNode,DependenceSlice>();
 	private HashMap<ActionNode,DependenceSlice> mActionNodeSlices=
 		new HashMap<ActionNode,DependenceSlice>();
+	private Map<ActionNode,DependenceComponent> mActionNodeComponents;
+
 	private WideningGenerator mWideningGenerator;
 	
 	private StateEnumeration<Interval> mStateEnumeration;
 	private ControlFlowGraph mControlFlowGraph;
-	// private LoopAnalysis mLoopAnalysis;
+	private LoopAnalysis mLoopAnalysis;
 	private ActionSchedule mActionSchedule;
 	
 	/**
@@ -106,6 +108,7 @@ public class Classifier {
 			StateEnumeration<Interval> stateEnum=getStateEnumeration();
 			
 			// Construct the control-flow-graph
+			// mIntervalDomain.setTrace(true);
 			mControlFlowGraph=stateEnum.buildFlowGraph();
 		}
 		return mControlFlowGraph;
@@ -114,17 +117,20 @@ public class Classifier {
 	/**
 	 * @return the result of loop analysis
 	 */
-//	public LoopAnalysis getLoopAnalysis() {
-//		if (mLoopAnalysis==null) {
-//			// Make sure the decision tree (+slices) and the control-flow graph are created
-//			getDecisionTree();
-//			getControlFlowGraph();
-//			
-//			mLoopAnalysis = new LoopAnalysis(mControlFlowGraph, mActionNodeSlices, mDecisionSlice.getInputValues());
-//			mLoopAnalysis.analyze();
-//		}
-//		return mLoopAnalysis;
-//	}
+	public LoopAnalysis getLoopAnalysis() {
+		if (mLoopAnalysis==null) {
+			// Make sure the decision tree (+slices) and the control-flow graph are created
+			getDecisionTree();
+			getControlFlowGraph();
+			
+			XmlPrinter printer=new XmlPrinter(System.out);
+			printer.printElement(mControlFlowGraph);
+			
+			mLoopAnalysis = new LoopAnalysis(mControlFlowGraph, mActionNodeComponents, mDecisionSlice.getInputValues());
+			mLoopAnalysis.analyze();
+		}
+		return mLoopAnalysis;
+	}
 	
 	/**
 	 * @return the ActionSchedule, which is computed from the actor's ControlFlowGraph
@@ -134,11 +140,21 @@ public class Classifier {
 		if (mActionSchedule==null) {
 			ControlFlowGraph cfg=getControlFlowGraph();
 			
-			mActionSchedule=ActionSchedule.create(cfg, mDesign.getSymbolTable());
+			mActionSchedule=ActionScheduleOld.create(cfg, mDesign.getSymbolTable());
 		}
 		return mActionSchedule;
 	}
 	
+	
+	public ActionSchedule createActionScheduleWithLoopAnalysis() {
+		if (mActionSchedule==null) {
+			ControlFlowGraph cfg=getControlFlowGraph();
+			LoopTree loops=getLoopAnalysis().getLoopTree();
+			
+			mActionSchedule=ActionScheduleWithLoops.create(cfg, loops, mDesign.getSymbolTable());
+		}
+		return mActionSchedule;
+	}
 	
 	/**
 	 * Creates the DecisionTree of the actor
@@ -321,15 +337,15 @@ public class Classifier {
 		// Create Evaluatable objects for actions, ActionNodes and the decision tree
 		SliceSorter sliceSorter=new SliceSorter();
 		sortActionSlices(mDesign, sliceSorter);
-		Map<ActionNode,DependenceComponent> actionNodeComponents=
-			sortActionNodeSlices(sliceSorter);
 		IntervalConstraintEvaluator constraintEvaluator=
 			new IntervalConstraintEvaluator();
+		
+		mActionNodeComponents=sortActionNodeSlices(sliceSorter);
 		
 		// do the StateEnumeration
 		StateEnumeration<Interval> stateEnumeration=
 			new StateEnumeration<Interval>(decisionTree,
-					                       actionNodeComponents,
+					                       mActionNodeComponents,
 					                       mDecisionSlice.getInputValues(),
 					                       mIntervalDomain,
 					                       constraintEvaluator,
