@@ -191,17 +191,17 @@ public class IntervalConstraintEvaluator extends ConstraintEvaluator<Interval> {
 			if (x.isEmpty() || y.isEmpty())
 				return false;
 			
-			long yLo=y.getLo();
-			long xHi=x.getHi();
-
-			if (yLo>x.getLo()) {
-				x=new Interval(yLo, x.getHi());
+			long xLo=x.getLo();
+			long yHi=y.getHi();
+			
+			if (yHi<x.getHi()) {
+				x=new Interval(xLo,yHi);
 				if (bag.putConstraint(nodeX,x)==false)
 					return false;
 			}
 			
-			if (xHi<y.getHi()) {
-				y=new Interval(y.getLo(), xHi);
+			if (xLo>y.getLo()) {
+				y=new Interval(xLo, yHi);
 				if (bag.putConstraint(nodeY,y)==false)
 					return false;
 			}
