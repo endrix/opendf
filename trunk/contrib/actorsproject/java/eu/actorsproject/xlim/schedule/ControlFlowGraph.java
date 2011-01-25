@@ -244,7 +244,7 @@ public class ControlFlowGraph implements XmlElement {
 			assert(mLast==0); // All nodes inserted
 			return mRPostOrder;
 		}
-
+		
 		void visit(BasicBlock block) {
 			if (mVisited.add(block)) {
 				// Visit successors
@@ -256,7 +256,7 @@ public class ControlFlowGraph implements XmlElement {
 			}
 		}
 	}
-			
+	
 	@Override
 	public String getTagName() {
 		return "control-flow-graph";
