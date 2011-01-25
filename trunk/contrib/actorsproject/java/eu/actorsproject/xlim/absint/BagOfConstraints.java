@@ -42,6 +42,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import eu.actorsproject.xlim.dependence.Location;
 import eu.actorsproject.xlim.dependence.ValueNode;
 import eu.actorsproject.xlim.dependence.ValueOperator;
 import eu.actorsproject.xlim.dependence.ValueUsage;
@@ -64,6 +65,18 @@ public class BagOfConstraints<T extends AbstractValue<T>> {
 		mInputNodes=inputNodes;
 		mConstraintEvaluator=constraintEvaluator;
 		mInputConstraints=new HashMap<ValueNode,T>();
+	}
+	
+	public void printInputConstraints() {
+		System.out.println("Input Constraints:" + (mInputConstraints.isEmpty()? " (empty)" : ""));
+		for (Map.Entry<ValueNode,T> entry: mInputConstraints.entrySet()) {
+			ValueNode node=entry.getKey();
+			Location loc=node.getLocation();
+			String name=(loc!=null)? loc.getDebugName() : node.getUniqueId();
+			T aValue=entry.getValue();
+			
+			System.out.println(name + "=" + aValue);
+		}
 	}
 	
 	/**
@@ -127,15 +140,18 @@ public class BagOfConstraints<T extends AbstractValue<T>> {
 	 */
 	public boolean putConstraint(ValueNode node, T newValue) {
 		if (newValue!=null) {
+			if (newValue.isEmpty())
+				return false; // Contradiction: no value possible
+			
 			T oldValue=mContext.get(node);
 		
 			// Form intersection?
 			if (oldValue!=null) {
 				newValue=newValue.intersect(oldValue).getAbstractValue();
-				if (newValue==null || newValue.isEmpty())
+				if (newValue==null || newValue.equals(oldValue))
+					return true;  // No further constraint of 'node')
+				else if (newValue.isEmpty())
 					return false; // Contradiction: no value possible
-				if (newValue.equals(oldValue))
-					return true;  // No further constraint of 'node'
 			}
 			
 			// input node?
