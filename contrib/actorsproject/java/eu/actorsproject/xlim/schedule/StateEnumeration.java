@@ -50,7 +50,7 @@ import eu.actorsproject.xlim.absint.BagOfConstraints;
 import eu.actorsproject.xlim.absint.ConstraintEvaluator;
 import eu.actorsproject.xlim.absint.Context;
 import eu.actorsproject.xlim.absint.DemandContext;
-import eu.actorsproject.xlim.absint.IntervalWidening;
+
 import eu.actorsproject.xlim.absint.StateMapping;
 import eu.actorsproject.xlim.absint.StateSummary;
 import eu.actorsproject.xlim.absint.WideningOperator;
@@ -213,7 +213,7 @@ public class StateEnumeration<T extends AbstractValue<T>> {
 		
 			if (mTrace) {
 				mPrinter.println("<!-- successors of "+actionNode.getDescription()+" -->");
-				mPrinter.printElement(successor);
+				mPrinter.printElement(successor.getDecisionTree());
 			}
 		}
 		
@@ -294,8 +294,12 @@ public class StateEnumeration<T extends AbstractValue<T>> {
 			default:
 				// Try asserting/refuting condition		
 				BagOfConstraints<T> bag=new BagOfConstraints<T>(context,mInputNodes,mConstraintEvaluator);
-			if (bag.constrainCondition(cond.getValue(), assertedValue))
+			if (bag.constrainCondition(cond.getValue(), assertedValue)) {
+				if (mTrace) {
+					bag.printInputConstraints();
+				}
 				return bag.createSubContext(); // successful constraint
+			}
 			else
 				return null; // constraint caused inconsistency
 			}	
