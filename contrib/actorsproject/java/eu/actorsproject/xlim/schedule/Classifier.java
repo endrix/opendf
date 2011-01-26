@@ -2,6 +2,8 @@ package eu.actorsproject.xlim.schedule;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -123,8 +125,8 @@ public class Classifier {
 			getDecisionTree();
 			getControlFlowGraph();
 			
-			XmlPrinter printer=new XmlPrinter(System.out);
-			printer.printElement(mControlFlowGraph);
+			// XmlPrinter printer=new XmlPrinter(System.out);
+			// printer.printElement(mControlFlowGraph);
 			
 			mLoopAnalysis = new LoopAnalysis(mControlFlowGraph, mActionNodeComponents, mDecisionSlice.getInputValues());
 			mLoopAnalysis.analyze();
@@ -197,11 +199,11 @@ public class Classifier {
 		
 		// Create the collection of "relevant state", which is tracked
 		Set<XlimStateVar> relevantState=new HashSet<XlimStateVar>();
-		updateRelevantState(relevantState);
+		updateRelevantState(mDecisionSlice.getInputValues(), relevantState);
 		sliceActions(relevantState);		
 		
 		// Create the action-node slices 
-		sliceActionNode(schedulingLoopBody,relevantState);
+		sliceActionNodes(schedulingLoopBody,relevantState);
 		
 		// new XmlPrinter(System.out).printDocument(mDecisionTree);
 		mWideningGenerator = new WideningGenerator(mDecisionSlice.getInputValues(), mIntervalDomain);
@@ -244,31 +246,57 @@ public class Classifier {
 	private void sliceActions(Set<XlimStateVar> relevantState) {
 		XlimTaskModule actionScheduler=mDesign.getActionScheduler();
 		CallGraph callGraph=mDesign.getCallGraph();
+		List<CallNode> callNodes=callGraph.postOrder();
 		
-		for (CallNode callNode: callGraph.postOrder()) {
+		// Create dependence slices for all CallNodes, except the action scheduler (i.e. the actions)
+		for (CallNode callNode: callNodes) {
 			XlimTaskModule action=callNode.getTask();
-			
+		
 			if (action!=actionScheduler) {
 				DependenceSlice actionSlice=new DependenceSlice(action.getName(), 
-						                                        mActionSlices);
-				// Add relevant outputs to slice
-				DataDependenceGraph ddg=callNode.getDataDependenceGraph();
-				Iterable<ValueNode> outputs=ddg.getModifiedOutputValues();
-				addRelevantOutputs(actionSlice, outputs, relevantState);
-				
+					                                            mActionSlices);
 				mActionSlices.put(callNode, actionSlice);
 			}
 		}
 		
-		// TODO: form closure of relevant state (w.r.t. actions)?
-		// Additional state may be needed to compute the updated state...
-		// Not that simple though:
-		// * We need to propagate new relevant state from ActionNodes, via the
-		//   calls in the action nodes, to Actions, back to ActionNodes
-		// * Further propagation in the "per mode" decision trees which we
-		//   currently haven't dealt with (do we need to?), up to the "mode selector"
-		// In a sneaky version we can perhaps assume that ActionNodes are just
-		// action call + fsm state update?
+		// Form the closure of relevant state w.r.t. actions:
+		// * Determine the required inputs, given the required outputs (relevant state)
+		// * Update relevant state if additional state variables are required
+		// * Iterate over all actions until a "stable" round has been made (one in which
+		//   no state variables were added).
+		boolean stable=false;
+		CallNode lastChange=null;
+		int i=0;
+		
+		while (!stable) {
+			if (i<callNodes.size()) {
+				CallNode callNode=callNodes.get(i++);
+				DependenceSlice actionSlice=mActionSlices.get(callNode);
+			
+				if (actionSlice!=null) {
+					// Add relevant outputs to slice
+					DataDependenceGraph ddg=callNode.getDataDependenceGraph();
+					Iterable<ValueNode> outputs=ddg.getModifiedOutputValues();
+					if (addRelevantOutputs(actionSlice, outputs, relevantState)) {
+						// relevantState was updated, at least one more round
+						lastChange=callNode;
+					}
+					else if (lastChange==callNode) {
+						// A complete, stable round has been made
+						stable=true;
+					}
+				}
+				// else: callNode is the action scheduler, which has no action slice
+			}
+			else if (lastChange!=null) { 
+				// restart 
+				i=0;
+			}
+			else {
+				// No updates in first round
+				stable=true;
+			}
+		}
 	}
 	
 	/**
@@ -281,7 +309,7 @@ public class Classifier {
 	 * 
 	 * Resulting slices are put in the mActionNodeSlices map.
 	 */
-	private void sliceActionNode(XlimModule schedulingLoopBody, Set<XlimStateVar> relevantState) {
+	private void sliceActionNodes(XlimModule schedulingLoopBody, Set<XlimStateVar> relevantState) {
 		for (ActionNode actionNode: mDecisionTree.reachableActionNodes()) {
 			String sliceName="ActionNode "+ actionNode.getIdentifier();
 			DependenceSlice slice=new ModuleDependenceSlice(sliceName, 
@@ -291,17 +319,22 @@ public class Classifier {
 			
 			Iterable<ValueNode> outputs=actionNode.getOutputMapping().values();
 			addRelevantOutputs(slice, outputs, relevantState);
+			
+			// Make sure the inputs of each action node is also an input of the decision slice
+			for (ValueNode input: slice.getInputValues())
+				mDecisionSlice.add(input);
 		}
 	}
 
 	/**
+	 * @param inputValues    the input values (state vars and ports) needed by a slice
 	 * @param relevantState  the piece of state needed by the mode-selector
 	 * 
 	 * @return true if new state variables were added to relevantState
 	 */
-	private boolean updateRelevantState(Set<XlimStateVar> relevantState) {
+	private boolean updateRelevantState(Iterable<ValueNode> inputValues, Set<XlimStateVar> relevantState) {
 		boolean changed=false;
-		for (ValueNode input: mDecisionSlice.getInputValues()) {
+		for (ValueNode input: inputValues) {
 			Location location=input.getLocation();
 			// We are in trouble if there is other inputs than state vars/ports
 			assert(location!=null && location.isStateLocation());
@@ -321,16 +354,22 @@ public class Classifier {
 	 * @param slice    a dependence slice
 	 * @param outputs  output values of state carriers (in slice)
 	 * @param relevantState  the piece of state needed by the mode-selector
+	 * @return true if the set of relevant state was updated
 	 */
-	private void addRelevantOutputs(DependenceSlice slice, 
+	private boolean addRelevantOutputs(DependenceSlice slice, 
 			                        Iterable<ValueNode> outputs,
 			                        Set<XlimStateVar> relevantState) {
+		boolean inputAdded=false;
+		
 		for (ValueNode outputValue: outputs) {
 			Location location=outputValue.getLocation();
 			
 			if (location!=null && relevantState.contains(location))
-				slice.add(outputValue);
+				if (slice.add(outputValue))
+					inputAdded=true;
 		}
+		
+		return (inputAdded && updateRelevantState(slice.getInputValues(), relevantState));
 	}
 		
 	private StateEnumeration<Interval> enumerateStateSpace(DecisionTree decisionTree) {

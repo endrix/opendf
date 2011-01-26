@@ -133,9 +133,10 @@ public class DependenceSlice {
 	
 	/**
 	 * @param value  a value node that is to be added to the slice
+	 * @return true iff adding 'value' caused an additional inputValue to be added to the slice
 	 */
-	public void add(ValueNode value) {
-		mSliceExtractor.visitPredecessor(value);
+	public boolean add(ValueNode value) {
+		return mSliceExtractor.visitPredecessor(value);
 	}
 
 	/**
@@ -184,47 +185,63 @@ public class DependenceSlice {
 	 * Provides traversal of predecessors, in particular the (non-trivial)
 	 * traversal over slices of call nodes is implemented.
 	 */
-	private class SliceExtractor implements ValueNode.Visitor<Object,Object> {
+	private class SliceExtractor implements ValueNode.Visitor<Boolean,Object> {
 
-		public void visitPredecessor(ValueNode value) {
+		public boolean visitPredecessor(ValueNode value) {
 			ValueOperator def=value.getDefinition();
-
+            
 			if (includeInSlice(def)) {
+				boolean inputAdded=false;
+				
 				if (mValueOperators.add(def)) {
 					// Visit the predecessors of def
-					value.accept(this, null);
+					if (value.accept(this, null))
+						inputAdded=true;
 				}
+				
+				return inputAdded;
 			}
 			else {
 				// mark as 'input value'
 				addInput(value);
+				return true;
 			}
 		}
 		
 		@Override
-		public Object visitInitial(ValueNode node, CallNode inCallNode, Object dummyArg) {
-			return null;
+		public Boolean visitInitial(ValueNode node, CallNode inCallNode, Object dummyArg) {
+			assert(false); // Should never be called (includeInSlice should be false)
+			addInput(node);
+			return true;
 		}
 		
 		@Override
-		public Object visitAssign(ValueNode node, ValueNode old, boolean killsOld, Object dummyArg) {
+		public Boolean visitAssign(ValueNode node, ValueNode old, boolean killsOld, Object dummyArg) {
 			ValueNode killed=(killsOld)? old : null;
+			boolean inputAdded=false;
+			
 			for (ValueNode pred: node.getDefinition().getInputValues())
 				if (pred!=killed) {
-					visitPredecessor(pred);
+					if (visitPredecessor(pred))
+						inputAdded=true;
 				}
-			return null;
+			return inputAdded;
 		}
 
 		@Override
-		public Object visitOther(ValueNode node, Object dummyArg) {
-			for (ValueNode pred: node.getDefinition().getInputValues())
-				visitPredecessor(pred);
-			return null;
+		public Boolean visitOther(ValueNode node, Object dummyArg) {
+			boolean inputAdded=false;
+			
+			for (ValueNode pred: node.getDefinition().getInputValues()) {
+				if (visitPredecessor(pred))
+					inputAdded=true;
+			}
+			return inputAdded;
 		}
 		
 		@Override
-		public Object visitCall(ValueNode node, CallSite callSite, Object dummyArg) {
+		public Boolean visitCall(ValueNode node, CallSite callSite, Object dummyArg) {
+			boolean inputAdded=false;
 			CallNode callee=callSite.getCallee();
 			DependenceSlice calleeSlice=getCalleeSlice(callee);
 			assert(calleeSlice!=null);
@@ -239,10 +256,11 @@ public class DependenceSlice {
 				ValueNode formalInput=ddg.getInputValue(loc.asStateLocation());
 				
 				if (calleeSliceInputs.contains(formalInput)) {
-					visitPredecessor(actualInput);
+					if (visitPredecessor(actualInput))
+						inputAdded=true;
 				}
 			}
-			return null;
+			return inputAdded;
 		}
 	}
 }

@@ -222,7 +222,7 @@ public class LoopAnalysis {
 				
 				if (location!=null) {
 					XlimStateVar stateVar=location.getSource().asStateVar();
-					if (stateVar!=null) {
+					if (stateVar!=null && mLinExpDomain.supportsType(node.getType())) {
 						linexp = (initialValues)?
 						    mLinExpDomain.initialState(stateVar.asStateLocation())
 						    : new LinearExpression(node);

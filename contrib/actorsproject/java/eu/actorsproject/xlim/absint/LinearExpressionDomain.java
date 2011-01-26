@@ -30,7 +30,7 @@ public class LinearExpressionDomain extends GenericDomain<LinearExpression> {
 		return null;
 	}
 
-	protected boolean supportsType(XlimType type) {
+	public boolean supportsType(XlimType type) {
 		return type.isBoolean() || type.isInteger();
 	}
 }

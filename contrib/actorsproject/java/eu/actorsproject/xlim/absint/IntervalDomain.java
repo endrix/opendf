@@ -63,7 +63,7 @@ public class IntervalDomain extends GenericDomain<Interval> {
 			return null;
 	}
 	
-	protected boolean supportsType(XlimType type) {
+	public boolean supportsType(XlimType type) {
 		return type.isBoolean() || type.isInteger();
 	}
 }
