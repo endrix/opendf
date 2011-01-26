@@ -9,6 +9,7 @@ import java.util.Map;
 import eu.actorsproject.xlim.XlimInputPort;
 import eu.actorsproject.xlim.XlimOperation;
 import eu.actorsproject.xlim.XlimStateVar;
+import eu.actorsproject.xlim.XlimType;
 import eu.actorsproject.xlim.absint.DemandContext;
 import eu.actorsproject.xlim.absint.Evaluator;
 import eu.actorsproject.xlim.absint.Interval;
@@ -48,8 +49,9 @@ public class WideningGenerator {
 		for (ValueNode node: variables) {
 			Location location=node.getLocation();
 			LinearExpression linexp=null;
+			XlimType type=node.getType();
 			
-			if (location==null || location.hasSource()) {
+			if ((location==null || location.hasSource()) && mIntervalDomain.supportsType(type)) {
 				// Not an actor port
 				IntervalWidening w=new IntervalWidening(node.getType());
 

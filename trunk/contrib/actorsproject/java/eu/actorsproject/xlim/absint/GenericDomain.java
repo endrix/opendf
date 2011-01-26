@@ -238,7 +238,7 @@ public abstract class GenericDomain<T extends AbstractValue<T>> implements Abstr
 					result=result.union(getAbstractValue(children.get(i)));
 			}
 			// else: all elements the same as first one
-			return result.getAbstractValue();
+			return (result!=null)? result.getAbstractValue() : null;
 		}
 	}
 
