@@ -134,21 +134,25 @@ public class Classifier {
 		return mLoopAnalysis;
 	}
 	
-	/**
-	 * @return the ActionSchedule, which is computed from the actor's ControlFlowGraph
-	 *         (the action schedule represents all sequences of action firings)
-	 */
+//
+// "Old" schedule commented out, use the "new" one instead
+//
+//	/**
+//	 * @return the ActionSchedule, which is computed from the actor's ControlFlowGraph
+//	 *         (the action schedule represents all sequences of action firings)
+//	 */
+//	public ActionSchedule getActionSchedule() {
+//		if (mActionSchedule==null) {
+//			ControlFlowGraph cfg=getControlFlowGraph();
+//			
+//			mActionSchedule=ActionScheduleOld.create(cfg, mDesign.getSymbolTable());
+//		}
+//		return mActionSchedule;
+//	}
+//	
+//		
+//	public ActionSchedule createActionScheduleWithLoopAnalysis() {
 	public ActionSchedule getActionSchedule() {
-		if (mActionSchedule==null) {
-			ControlFlowGraph cfg=getControlFlowGraph();
-			
-			mActionSchedule=ActionScheduleOld.create(cfg, mDesign.getSymbolTable());
-		}
-		return mActionSchedule;
-	}
-	
-	
-	public ActionSchedule createActionScheduleWithLoopAnalysis() {
 		if (mActionSchedule==null) {
 			ControlFlowGraph cfg=getControlFlowGraph();
 			LoopTree loops=getLoopAnalysis().getLoopTree();
