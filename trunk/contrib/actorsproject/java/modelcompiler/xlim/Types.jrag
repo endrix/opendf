@@ -56,6 +56,15 @@ aspect TypeLookup {
 		return root().findTypeName(source());
 	}
 
+	syn String ComplexElement.typeSize() {
+		for (Attribute a : getAttributes()) {
+			if (a instanceof _size) {
+				return a.value();
+			}
+		}
+		return elementTypeName();
+	}
+
 	syn String ASTNode.findTypeName(String name) = null;
 	eq ComplexElement.findTypeName(String name) {
 		for (Element e : getElements()) {
