@@ -678,15 +678,18 @@ aspect Actions {
 		// System.out.println("operation.setInvar");
 		if (kind().equals("pinRead") && portName().equals(srcPort)) {
 			if (cRate > 1) {
-				String inVar = ((ComplexElement)getElement(0)).getAttribute(1).value();
+				String inVar = ((ComplexElement)getElement(0)).source();
 				typeDef elementType = getElement(0).typeDef();
 				String eTypeName = "unknown";
 				String eTypeSize = "unknown";
 				if (elementType == null) {
 					System.out.println("Could not find element type for: "+inVar);
+					eTypeName = ((ComplexElement) getElement(0)).typeName();
+					eTypeSize = ((ComplexElement) getElement(0)).typeSize();
+				} else {
+					eTypeName = elementType.elementTypeName();
+					eTypeSize = elementType.elementTypeSize();
 				}
-				eTypeName = elementType.elementTypeName();
-				eTypeSize = elementType.elementTypeSize();
 				
 				// setAttributeList(new List<Attribute>().
 				// 				 add(new _kind("$literal_Integer")).

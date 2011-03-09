@@ -731,7 +731,7 @@ public class LoopAnalysis {
 				long lastT = divFloor(denom, scaleDelta);
 				
 				switch (mRelOp) {
-				case LessThan:
+				case LessThanEqual:
 					// scale*x + offset = scale*(x0 + delta*t) + offset <= 0
 					if (scaleDelta<=0)
 						return null; // Unbounded or indeterminate (given valid range of variable)
