@@ -42,10 +42,14 @@ aspect Classification {
 			ActionSchedule actionSchedule = classifier.getActionSchedule();
 			System.out.println("xlimInstance(dir).setActionSchedule(actionSchedule)");
 			xlimInstance(dir).setActionSchedule(actionSchedule);
-			if (actionSchedule.isStatic()) {
-				return "CSDF";
-			} else {
+			if (actionSchedule.isTimingDependent()) {
+				return "non-deterministic";
+			} if (!actionSchedule.isStatic()
+			      || actionSchedule.getStaticSchedule().hasInitialSchedule()) {
+				// initial schedule --> not CSDF
 				return "DDF";
+			} else {
+				return "CSDF";
 			}
 		}
 		return "non-deterministic";
