@@ -194,16 +194,25 @@ public class ActionScheduleOld extends ActionSchedule {
 			// This schedule is repeated indefinitely
 			int loopHeader=phaseMap.get(nextPhase);
 			if (loopHeader!=0) {
-				initialSchedule=new StaticSequence(phases.subList(0, loopHeader), 1);
+				initialSchedule=createStaticSequence(phases.subList(0, loopHeader));
 			}
-			repeatedSchedule=new StaticSequence(phases.subList(loopHeader, phases.size()), 1);
+			repeatedSchedule=createStaticSequence(phases.subList(loopHeader, phases.size()));
 		}
 		else {
 			// This is a finite static schedule
-			initialSchedule=new StaticSequence(phases, 1);
+			initialSchedule=createStaticSequence(phases);
 		}
 		
 		return new StaticActionSchedule(initialSchedule,repeatedSchedule,mOriginalSymbols);
+	}
+	
+	private StaticSubSchedule createStaticSequence(List<StaticSubSchedule> phases) {
+		if (phases.isEmpty())
+			return null;
+		else if (phases.size()==1)
+			return phases.get(0);  // This is a trivial sequence
+		else
+			return new StaticSequence(phases, 1);  // One repeatition of the sequence
 	}
 	
 	private String yesOrNo(boolean p) {

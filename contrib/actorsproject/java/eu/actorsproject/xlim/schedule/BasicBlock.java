@@ -97,5 +97,5 @@ public abstract class BasicBlock extends Region {
 		mIdentifier=identifier;
 	}
 	
-	abstract void printPhase(XlimPhasePrinter printer);
+	abstract void printPhase(XlimPhasePrinterPlugIn printer);
 }
