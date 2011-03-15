@@ -327,27 +327,27 @@ public class ControlFlowGraph implements XmlElement {
 		}
 
 		@Override
-		void printPhase(XlimPhasePrinter phasePrinter) {
+		void printPhase(XlimPhasePrinterPlugIn blockPrinter) {
 			BasicBlock whenTrue=getNode(mDecision.getChild(true));
 			BasicBlock whenFalse=getNode(mDecision.getChild(false));
 			
 			if (whenFalse==null) {
 				// No leaves on false branch (this happens when condition is a token-availability test)
-				whenTrue.printPhase(phasePrinter);
+				whenTrue.printPhase(blockPrinter);
 			}
 			else if (whenTrue==null) {
 				// No leaves on true branch (this happens when condition is a token-availability test)
-				whenFalse.printPhase(phasePrinter);
+				whenFalse.printPhase(blockPrinter);
 			}
 			else {
 				// Proper decision node: leaves on both branches
 				
 				// Evaluate the condition
 				XlimSource source=mDecision.getCondition().getXlimSource();
-				phasePrinter.printSource(source);
+				blockPrinter.printSource(source);
 
 				// Start of if-module <module kind="if">
-				XmlPrinter xmlPrinter=phasePrinter.getPrinter();
+				XmlPrinter xmlPrinter=blockPrinter.getPrinter();
 				xmlPrinter.println("<module kind=\"if\">");
 				xmlPrinter.increaseIndentation();
 
@@ -360,18 +360,18 @@ public class ControlFlowGraph implements XmlElement {
 				// Then-module
 				xmlPrinter.println("<module kind=\"then\">");
 				xmlPrinter.increaseIndentation();
-				phasePrinter.enterScope();
-				whenTrue.printPhase(phasePrinter);
-				phasePrinter.leaveScope();
+				blockPrinter.enterScope();
+				whenTrue.printPhase(blockPrinter);
+				blockPrinter.leaveScope();
 				xmlPrinter.decreaseIndentation();
 				xmlPrinter.println("</module>");
 
 				// Else-module
 				xmlPrinter.println("<module kind=\"else\">");
 				xmlPrinter.increaseIndentation();
-				phasePrinter.enterScope();
-				getNode(mDecision.getChild(false)).printPhase(phasePrinter);
-				phasePrinter.leaveScope();
+				blockPrinter.enterScope();
+				getNode(mDecision.getChild(false)).printPhase(blockPrinter);
+				blockPrinter.leaveScope();
 				xmlPrinter.decreaseIndentation();
 				xmlPrinter.println("</module>");
 
@@ -434,7 +434,7 @@ public class ControlFlowGraph implements XmlElement {
 		}	
 		
 		@Override
-		void printPhase(XlimPhasePrinter printer) {
+		void printPhase(XlimPhasePrinterPlugIn printer) {
 			for (XlimBlockElement element: getChildren()) {
 				printer.printBlockElement(element);
 			}
@@ -469,7 +469,7 @@ public class ControlFlowGraph implements XmlElement {
 		}
 		
 		@Override
-		void printPhase(XlimPhasePrinter printer) {
+		void printPhase(XlimPhasePrinterPlugIn printer) {
 			// TODO: the actual output goes here!
 			printer.getPrinter().printComment("Here should be the XLIM of a TerminalNode");
 		}

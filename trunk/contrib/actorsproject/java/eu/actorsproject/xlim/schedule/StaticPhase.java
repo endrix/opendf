@@ -53,6 +53,7 @@ public class StaticPhase implements StaticSubSchedule {
 	private BasicBlock mActionSelection;
 	
 	public StaticPhase(PortSignature portSignature, BasicBlock actionSelection) {
+		assert(portSignature!=null);
 		mPortSignature=portSignature;
 		mActionSelection=actionSelection;
 	}

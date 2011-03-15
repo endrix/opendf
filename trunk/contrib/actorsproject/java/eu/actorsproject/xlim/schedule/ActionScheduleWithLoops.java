@@ -170,13 +170,13 @@ public class ActionScheduleWithLoops extends ActionSchedule {
 			if (nextPhase<phases.size()) {
 				// The schedule is repeated indefinitely
 				if (nextPhase!=0) {
-					initialSchedule=new StaticSequence(phases.subList(0, nextPhase), 1);
+					initialSchedule=createStaticSequence(phases.subList(0, nextPhase));
 				}
-				repeatedSchedule=new StaticSequence(phases.subList(nextPhase, phases.size()), 1);
+				repeatedSchedule=createStaticSequence(phases.subList(nextPhase, phases.size()));
 			}
 			else {
 				// This is a finite static schedule
-				initialSchedule=new StaticSequence(phases, 1);
+				initialSchedule=createStaticSequence(phases);
 			}
 			
 			mStaticSchedule=new StaticActionSchedule(initialSchedule,repeatedSchedule,mOriginalSymbols);
@@ -184,6 +184,14 @@ public class ActionScheduleWithLoops extends ActionSchedule {
 		return mStaticSchedule;
 	}
 	
+	private StaticSubSchedule createStaticSequence(List<StaticSubSchedule> phases) {
+		if (phases.isEmpty())
+			return null;
+		else if (phases.size()==1)
+			return phases.get(0);  // This is a trivial sequence
+		else
+			return new StaticSequence(phases, 1);  // One repeatition of the sequence
+	}
 	private void partitionLoops() {
 		List<Loop> allLoops=mLoopTree.getAllLoops();
 		
@@ -293,7 +301,8 @@ public class ActionScheduleWithLoops extends ActionSchedule {
 					BasicBlock b=region.asBasicBlock();
 					DecisionTree root=b.getDecisionTree();
 					
-					phases.add(new StaticPhase(root.getMode(), b));
+					if (b!=mControlFlowGraph.getTerminalNode())
+						phases.add(new StaticPhase(root.getMode(), b));
 				}
 				
 				nextPhase=getASuccessor(nextPhase);  // the phase has a static successor

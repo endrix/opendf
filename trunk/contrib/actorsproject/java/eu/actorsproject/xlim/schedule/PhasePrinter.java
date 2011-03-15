@@ -47,19 +47,34 @@ import eu.actorsproject.util.XmlPrinter;
  * Implements iteration over StaticPhases and XLIM print-out
  */
 
-public abstract class PhasePrinter {
+public class PhasePrinter {
 
 	private Iterator<StaticPhase> mPhase;
 	private ByteArrayOutputStream mOutput;
-	protected XmlPrinter mPrinter;
+	private XmlPrinter mPrinter;
+	private PlugIn mPlugIn;
 	
+	public interface PlugIn {
+
+		/**
+		 * @param printer  sets the printer to use for output
+		 */
+		void setPrinter(XmlPrinter printer);
+		
+		/**
+		 * @param phase    the StaticPhase to print
+		 */
+		void printPhase(StaticPhase phase);	
+	}
 	/**
 	 * @param phases the sequence of phase (may be infinite)
 	 */
-	public PhasePrinter(Iterable<StaticPhase> phases) {
+	public PhasePrinter(Iterable<StaticPhase> phases, PlugIn plugIn) {
 		mPhase=phases.iterator();
 		mOutput=new ByteArrayOutputStream();
 		mPrinter=new XmlPrinter(new PrintStream(mOutput));
+		mPlugIn=plugIn;
+		mPlugIn.setPrinter(mPrinter);
 	}
 	
 	/**
@@ -78,7 +93,7 @@ public abstract class PhasePrinter {
 	public String printNextPhase() {
 		StaticPhase phase=mPhase.next();
 		mOutput.reset();
-		printPhase(phase);
+		mPlugIn.printPhase(phase);
 		return mOutput.toString();
 	}
 	
@@ -88,9 +103,4 @@ public abstract class PhasePrinter {
 	public XmlPrinter getPrinter() {
 		return mPrinter;
 	}
-	
-	/**
-	 * @param phase  the StaticPhase to print
-	 */
-	protected abstract void printPhase(StaticPhase phase);
 }

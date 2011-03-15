@@ -141,6 +141,21 @@ public class StaticActionSchedule {
 	 * associate each use with a unique definition that dominates the use.
 	 */
 	public PhasePrinter getPhasePrinter(Map<String,String> idRenaming) {
+		// Create an XlimPhasePrinterPlugIn, which renames multiple appearances of OutputPorts
+		XlimPhasePrinterPlugIn plugIn=new XlimPhasePrinterPlugIn(true /* rename outputs */);
+		
+		return getPhasePrinter(idRenaming, plugIn);
+	}
+	
+	/**
+	 * New variant of getPhasePrinter, which allows for a custom PhasePrinter.PlugIn
+	 * 
+	 * @param idRenaming  mapping from "old" to "new" XLIM identifiers
+	 *                    (if null or empty no renaming will be performed)
+	 * @param plugIn      Plug-in to be used by the phase printer
+	 * @return PhasePrinter of the StaticSchedule
+	 */ 
+	public PhasePrinter getPhasePrinter(Map<String,String> idRenaming, XlimPhasePrinterPlugIn plugIn) {
 		XlimAttributeRenaming attributeRenaming=null;
 		
 		if (mOriginalSymbols!=null) {
@@ -154,9 +169,15 @@ public class StaticActionSchedule {
 			assert(idRenaming==null || idRenaming.isEmpty());
 		}
 		
-		return new XlimPhasePrinter(getPhases(),attributeRenaming,true /* rename outputs */);
+		// Create a PhasePrinter
+		PhasePrinter phasePrinter=new PhasePrinter(getPhases(), plugIn);
+		
+		// Register the attribute renaming with the XmlPrinter of the PhasePrinter
+		if (attributeRenaming!=null)
+			attributeRenaming.registerPlugIns(phasePrinter.getPrinter());
+
+		return phasePrinter;		
 	}
-	
 	
 	/**
 	 * @return the XML representation of the StaticActionSchedule
