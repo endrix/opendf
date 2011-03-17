@@ -176,8 +176,10 @@ aspect MergeActors {
 			// 								xlimInstance().actionScheduler());
 			System.out.println("Adding action schedule for: "+
 							   getInstance(i).xlimInstance().name());
-			body.addActorPhase(getInstance(i).xlimInstance().
-							   getPhasePrinter().printNextPhase());
+			String phase = getInstance(i).xlimInstance().
+				getPhasePrinter().printNextPhase();
+			System.out.println(phase);
+			body.addActorPhase(phase);
 		}
 
 		// Detach superfluous instances from xdf
