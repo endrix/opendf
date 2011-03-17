@@ -12,6 +12,7 @@ import java.util.LinkedList;
 import eu.actorsproject.xlim.XlimTopLevelPort;
 import eu.actorsproject.xlim.decision2.PortSignature;
 import eu.actorsproject.xlim.schedule.ActionSchedule;
+import eu.actorsproject.xlim.schedule.MergePhasePrinterPlugIn;
 import eu.actorsproject.xlim.schedule.PhasePrinter;
 import eu.actorsproject.xlim.schedule.StaticActionSchedule;
 import eu.actorsproject.xlim.schedule.StaticPhase;
@@ -59,6 +60,8 @@ aspect Merge {
 	public void Start.replaceBuffer(Start src, Start dst, String srcPort, String dstPort, 
 									int ix, int bufSize) {
 		System.out.println("Replacing "+src.name()+":"+srcPort+"->"+dst.name()+":"+dstPort);
+		portMap().put(srcPort,"buf_"+ix);
+		portMap().put(dstPort,"buf_"+ix);
 		for (module m : src.getActions(new HashSet<module>())) {
 			System.out.println("  Out: "+m.productionRate(srcPort));
 			m.setOutVar(ix,srcPort,bufSize,m.productionRate(srcPort));
@@ -1223,25 +1226,31 @@ aspect Classification {
 		if (getActionSchedule().isStatic()) {			
 			StaticActionSchedule sas = getActionSchedule().getStaticSchedule();
 			System.out.println("schedules: "+getActionSchedule()+" "+ sas);
+			System.out.println("hasInitialSchedule(): "+sas.hasInitialSchedule()+
+							   "repeatsForever(): "+sas.repeatsForever());
 			if (!sas.hasInitialSchedule() && sas.repeatsForever()) {
-				// try {
+				int n = sas.getRepeatedSchedule().getNumberOfPhases();
+				int i = 0;
 				LinkedList<Integer> pattern = new LinkedList<Integer>();
-				for (StaticSubSchedule sub : sas.getRepeatedSchedule().getSubSchedules()) {
-					for (StaticPhase phase : sub.getPhases()) {
-						PortSignature sig = phase.getPortSignature();
-						boolean inPattern = false;
-						for (XlimTopLevelPort port : sig.getPorts()) {
-							if (port.getName().equals(name())) {
-								inPattern = true;
-								pattern.add(sig.getPortRate(port));
-								System.out.println(name()+": "+sig.getPortRate(port));
-							}
-						}
-						if (!inPattern) {
-							pattern.add(0);
+				for (StaticPhase phase : sas.getPhases()) {
+					PortSignature sig = phase.getPortSignature();
+					boolean inPattern = false;
+					for (XlimTopLevelPort port : sig.getPorts()) {
+						if (port.getName().equals(name())) {
+							inPattern = true;
+							pattern.add(sig.getPortRate(port));
+							System.out.println("portrate for "+name()+": "+
+											   sig.getPortRate(port));
 						}
 					}
+					if (!inPattern) {
+						pattern.add(0);
+					}
+					if (++i == n) {
+						break;
+					}
 				}
+				System.out.println("port pattern: "+pattern);
 				return pattern;
 				// } catch (IllegalArgumentException e) {
 				// 	// System.out.println(nameMap.values());
@@ -1274,7 +1283,11 @@ aspect Classification {
 			System.out.println("schedules: "+getActionSchedule()+" "+ sas);
 			if (!sas.hasInitialSchedule() && sas.repeatsForever()) {
 				try {
-					phasePrinter = sas.getPhasePrinter(nameMap);
+					phasePrinter = 
+						sas.getPhasePrinter(nameMap,
+											new MergePhasePrinterPlugIn(portMap()));
+					// phasePrinter = sas.getPhasePrinter(nameMap);
+					System.out.println("*** portMap="+portMap);
 				} catch (IllegalArgumentException e) {
 					// System.out.println(nameMap.values());
 					System.out.println(nameMap.keySet());
@@ -1298,6 +1311,13 @@ aspect NameMap {
 	
 	syn HashMap<String,String> ASTNode.nameMap() = getParent().nameMap();
 	eq Start.nameMap() = nameMap;
+}
+
+aspect PortMap {
+	HashMap<String,String> Start.portMap = new HashMap<String,String>();
+	
+	syn HashMap<String,String> ASTNode.portMap() = getParent().portMap();
+	eq Start.portMap() = portMap;
 }
 
 aspect Misc {
