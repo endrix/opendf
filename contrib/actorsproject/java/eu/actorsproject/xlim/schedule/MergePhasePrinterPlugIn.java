@@ -28,9 +28,9 @@ public class MergePhasePrinterPlugIn extends XlimPhasePrinterPlugIn {
 	// Though XLIM could express variable index, we always peek at a fixed offset into the FIFO 
 	private InstructionPattern literalPattern=new InstructionPattern("$literal_Integer");
 	private InstructionPattern pinPeekPattern=new InstructionPattern("pinPeek", literalPattern);
-	private HashMap<String,String> portMap;
+	private HashMap<String,BufferInfo> portMap;
 		
-	public MergePhasePrinterPlugIn(HashMap<String,String> portMap) {
+	public MergePhasePrinterPlugIn(HashMap<String,BufferInfo> portMap) {
 		super(true);  // true=byt namn på XlimOutputPorts (resultat av operationerna, inte actorportar)
 		this.portMap = portMap;
 	}
@@ -46,24 +46,39 @@ public class MergePhasePrinterPlugIn extends XlimPhasePrinterPlugIn {
 			// if (port.getName().equals("Reset")) {
 			System.out.println("** portMap="+portMap);
 			if (portMap.containsKey(port.getName())) {
+				BufferInfo bInfo = portMap.get(port.getName());
 				// Så här gör du för att ta reda på index:
 				XlimOperation literal=(XlimOperation) pinPeekPattern.getOperand(0, op);
 				long index=literal.getIntegerValueAttribute();
 
 				// Vi genererar output via XmlPrinter (landar till slut i strängen, som ModelCompiler får)
 				XmlPrinter printer=getPrinter();  
-					
-				// Här skriver jag ut XLIM rakt av som text
-				if (index==0)
-					// printer.println("<operation kind=\"custom-peek-at-front\">");
+	
+
+				if (bInfo.size == 1) {
+					// Simple case with scalar buffer
 					printer.println("<operation kind=\"noop\">");
-				else
-					printer.println("<operation kind=\"custom-peek-with-index\" and-the-index-is=\"" + index +"\">");
+					printer.increaseIndentation(); // Lyxar till det med indentering
+					printer.println("<port dir=\"in\" source=\"buf_"+
+									bInfo.ix+"\"/>");
+				} else {
+				
+					// Här skriver jag ut XLIM rakt av som text
+					if (index==0) {
+						// printer.println("<operation kind=\"custom-peek-at-front\">");
+						printer.println("<operation kind=\"var_ref\" name=\"buf_"+
+										bInfo.ix+"\">");
+						printer.increaseIndentation(); // Lyxar till det med indentering
+						printer.println("<port dir=\"in\" source=\"inIx_"+
+										bInfo.ix+"\"/>");
+					} else
+						printer.println("<operation kind=\"custom-peek-with-index\" and-the-index-is=\"" + index +"\">");
+				}
 					
 				// Här skrivs XlimOutputPort ut, med nytt (rätt!) namn  <port dir="out" source=... />
 				// Någon av de operationer som du genererar ska ha samma ut-port som pinPeek!
 					
-				printer.increaseIndentation(); // Lyxar till det med indentering
+
 				printer.printElement(op.getOutputPort(0));  
 				printer.decreaseIndentation();
 					
