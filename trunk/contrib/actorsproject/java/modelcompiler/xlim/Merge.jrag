@@ -12,6 +12,7 @@ import java.util.LinkedList;
 import eu.actorsproject.xlim.XlimTopLevelPort;
 import eu.actorsproject.xlim.decision2.PortSignature;
 import eu.actorsproject.xlim.schedule.ActionSchedule;
+import eu.actorsproject.xlim.schedule.BufferInfo;
 import eu.actorsproject.xlim.schedule.MergePhasePrinterPlugIn;
 import eu.actorsproject.xlim.schedule.PhasePrinter;
 import eu.actorsproject.xlim.schedule.StaticActionSchedule;
@@ -60,8 +61,8 @@ aspect Merge {
 	public void Start.replaceBuffer(Start src, Start dst, String srcPort, String dstPort, 
 									int ix, int bufSize) {
 		System.out.println("Replacing "+src.name()+":"+srcPort+"->"+dst.name()+":"+dstPort);
-		portMap().put(srcPort,"buf_"+ix);
-		portMap().put(dstPort,"buf_"+ix);
+		src.portMap().put(srcPort,new BufferInfo(ix,bufSize));
+		dst.portMap().put(dstPort,new BufferInfo(ix,bufSize));
 		for (module m : src.getActions(new HashSet<module>())) {
 			System.out.println("  Out: "+m.productionRate(srcPort));
 			m.setOutVar(ix,srcPort,bufSize,m.productionRate(srcPort));
@@ -1287,7 +1288,7 @@ aspect Classification {
 						sas.getPhasePrinter(nameMap,
 											new MergePhasePrinterPlugIn(portMap()));
 					// phasePrinter = sas.getPhasePrinter(nameMap);
-					System.out.println("*** portMap="+portMap);
+					// System.out.println("*** portMap="+portMap);
 				} catch (IllegalArgumentException e) {
 					// System.out.println(nameMap.values());
 					System.out.println(nameMap.keySet());
@@ -1314,9 +1315,9 @@ aspect NameMap {
 }
 
 aspect PortMap {
-	HashMap<String,String> Start.portMap = new HashMap<String,String>();
+	HashMap<String,BufferInfo> Start.portMap = new HashMap<String,BufferInfo>();
 	
-	syn HashMap<String,String> ASTNode.portMap() = getParent().portMap();
+	syn HashMap<String,BufferInfo> ASTNode.portMap() = getParent().portMap();
 	eq Start.portMap() = portMap;
 }
 
