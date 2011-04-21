@@ -16,13 +16,14 @@
                     <xsl:value-of select="."/>
                 </xsl:attribute>
             </xsl:for-each>
-            <xsl:variable name="cname" select="./Note[@kind='className']/@value"/>
+            <xsl:variable name="cname" select="./Note[@kind='className'][1]/@value"/>
             <Note kind="UID" value="{concat($cname,'_',count(preceding::Instance/Note[@kind='className' and @value=$cname]))}"/>
             
             <xsl:apply-templates select="* | text()"/>
         </xsl:copy>
     </xsl:template>
     
+    <xsl:template match="Note[@kind='UID']"/>
     
     <xsl:template match="*">
         <xsl:copy>
