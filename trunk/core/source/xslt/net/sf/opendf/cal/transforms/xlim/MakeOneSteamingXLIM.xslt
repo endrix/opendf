@@ -130,6 +130,10 @@ ENDCOPYRIGHT
     <attr name="typeName" value="real"/>
   </xsl:template>
   
+  <xsl:template match="Type[@name='String']">
+    <attr name="typeName" value="string"/>
+  </xsl:template>
+  
   <xsl:template match="Type[@name='List']">
     <attr name="typeName" value="{concat(@id, '$typedef')}"/>
   </xsl:template>
@@ -837,7 +841,19 @@ ENDCOPYRIGHT
     <xsl:apply-templates select="Decl"/>
     <xsl:apply-templates select="Stmt"/>
   </xsl:template>
-    
+  
+  <xsl:template match="Stmt[ @kind='Call' ]">
+    <expr>
+      <xsl:apply-templates select="Args/Expr"/>
+    </expr>
+ 
+    <operation kind="{Expr[@kind='Let']/Expr[@kind='Var']/@name}">    
+      <xsl:for-each select="Args/Expr">
+        <port source="{@id}" dir="in"/>
+      </xsl:for-each>      
+    </operation>  
+  </xsl:template>
+  
   <xsl:template match="Stmt">
     <xsl:message>
       Unhandled Stmt kind="<xsl:value-of select="@kind"/>", id="<xsl:value-of select="@id"/>
