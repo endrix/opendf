@@ -842,6 +842,7 @@ ENDCOPYRIGHT
     <xsl:apply-templates select="Stmt"/>
   </xsl:template>
   
+  <!--
   <xsl:template match="Stmt[ @kind='Call' ]">
     <expr>
       <xsl:apply-templates select="Args/Expr"/>
@@ -853,7 +854,8 @@ ENDCOPYRIGHT
       </xsl:for-each>      
     </operation>  
   </xsl:template>
-  
+  -->  
+
   <xsl:template match="Stmt">
     <xsl:message>
       Unhandled Stmt kind="<xsl:value-of select="@kind"/>", id="<xsl:value-of select="@id"/>
