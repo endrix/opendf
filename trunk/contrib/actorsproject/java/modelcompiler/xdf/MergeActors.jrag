@@ -86,17 +86,25 @@ aspect MergeActors {
 		// Remove connections between now merged actors. Replace
 		// pinRead/pinWrite with accesses to circular buffer.
 		for (Connection c : getConnections()) {
-			System.out.println("Connection "+c.getDest().name()+
-							   "("+c.getDest().getIndex()+")"+"->"
-							   +c.getSource().name()+"("+c.getSource().getIndex()+")"+
-							   schedule.contains(c.getDest().getIndex())+" "+ 
-							   schedule.contains(c.getSource().getIndex()));
-			if (schedule.contains(c.getDest().getIndex()) &&
+			System.out.println("******************************************");
+			// System.out.print("Connection "+c.getDest().name());
+			// System.out.print("("+c.getDest().getIndex()+")"+"->");
+			// System.out.print(c.getSource().name()+"("+c.getSource().getIndex()+")");
+			// System.out.print(schedule.contains(c.getDest().getIndex())+" ");
+			// System.out.println(schedule.contains(c.getSource().getIndex()));
+			if (c.getDest() != null && c.getSource() != null &&
+				schedule.contains(c.getDest().getIndex()) &&
 				schedule.contains(c.getSource().getIndex())) {
 				System.out.println("    Replace!");
 				// Connection between two mergeable instances, replace with internal buffer
 				// First, create circular buffer to use instead of FIFO
 				xlimAST.Start srcXlim = c.getSource().xlimInstance();
+				if (srcXlim.getPort(c.getSourcePort()) == null) {
+					System.out.println("Could not find sourceport: "+
+									   srcXlim.getPort(c.getSourcePort()));
+					continue;
+				}
+				System.out.println(c.getSourcePort()+" "+srcXlim.getPort(c.getSourcePort()));
 				String typeName = srcXlim.getPort(c.getSourcePort()).typeName();
 				String size = srcXlim.getPort(c.getSourcePort()).size();				
 				// System.out.print(""+varIx+":"+xlimInstance.getDesign().getNumElement());
@@ -118,15 +126,48 @@ aspect MergeActors {
 										   c.getDestinationPort(),
 										   varIx,
 										   c.getBufSize());
+				// Now check for other sources/destinations on thes
+				// connection
+				System.out.println("Now let's search for other ports connected to the removed source or dest");
+				for (Connection cc : getConnections()) {
+					int ccSrcIndex = -1, ccDestIndex = -1;
+					if (cc.getSource() != null) {
+						ccSrcIndex = cc.getSource().getIndex();
+					}
+					if (cc.getDest() != null) {
+						ccDestIndex = cc.getDest().getIndex();
+					}
+					if (schedule.contains(ccSrcIndex) &&
+						schedule.contains(ccDestIndex) &&
+						(ccSrcIndex == c.getSource().getIndex() ^
+						 ccDestIndex == c.getDest().getIndex()) && 
+						(c.getSourcePort().equals(cc.getSourcePort()) ||
+						 c.getDestinationPort().equals(cc.getDestinationPort()))) {
+						System.out.println("Connection "+c.getDest().name()+
+							   "("+c.getDest().getIndex()+")"+"->"
+							   +c.getSource().name()+"("+c.getSource().getIndex()+")"+
+							   schedule.contains(c.getDest().getIndex())+" "+ 
+							   schedule.contains(c.getSource().getIndex()));
+						xlimInstance.replaceBuffer(cc.getSource().xlimInstance(),
+												   cc.getDest().xlimInstance(),
+												   cc.getSourcePort(),
+												   cc.getDestinationPort(),
+												   varIx,
+												   c.getBufSize());					   
+						cc.remove_me = true;
+						cc.is$Final(false);
+					}
+				}
+				System.out.println("No more extra ports to remove\n");
 				varIx++;
 				// xlimInstance.prettyPrint("",System.out);
 				// Remove superfluous connection
 				c.remove_me = true;
 				c.is$Final(false);
-			} else if (schedule.contains(c.getDest().getIndex())) {
+			} else if (c.getDest() != null && schedule.contains(c.getDest().getIndex())) {
 				c.setDestPort(unfix(c.getDest().name()+"_"+c.dstPort()));
 				c.setDest(unfix(name));
-			} else if (schedule.contains(c.getSource().getIndex())) {
+			} else if (c.getSource() != null && schedule.contains(c.getSource().getIndex())) {
 				c.setSourcePort(unfix(c.getSource().name()+"_"+c.srcPort()));
 				c.setSource(unfix(name));
 			}

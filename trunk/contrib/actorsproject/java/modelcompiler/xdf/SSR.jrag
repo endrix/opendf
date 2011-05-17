@@ -233,7 +233,10 @@ aspect ActorLookup {
 		}		
 	}
 
-	syn Instance Connection.getDest() = root().getInstance(dest());
+	syn Instance Connection.getDest() {
+		// System.out.println("   getDest("+dest()+")");
+		return root().getInstance(dest());
+	}
 	
 	String Connection.dest() {
 		for (Attribute a : getAttributes()) {

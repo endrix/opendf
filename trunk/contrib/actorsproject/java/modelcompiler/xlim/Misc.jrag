@@ -74,6 +74,7 @@ aspect Misc {
 	eq Start.getPort(String portName) = getSpecification().getPort(portName);
 	eq Specification.getPort(String portName) = getElement(0).getPort(portName);
 	eq actor_port.getPort(String portName) {
+		System.out.println("actor_port.getPort: "+portName+" == "+name()+"?");
 		if (name().equals(portName)) {
 			return this;
 		}
@@ -122,7 +123,7 @@ aspect Misc {
 		for (Element e : getElements()) {
 			if (note != null) {
 				if (e.kind().equals("pinRead")) {
-					System.out.println("  "+Integer.valueOf(note.value()));
+					// System.out.println("  "+Integer.valueOf(note.value()));
 					return Integer.valueOf(note.value());
 				} else {
 					System.out.println("** Error. Element: "+e.kind()+
@@ -130,7 +131,7 @@ aspect Misc {
 				}
 			}
 			if (e.kind().equals("consumptionRates")) {
-				System.out.println("Found Element");
+				// System.out.println("Found Element");
 				note = e;
 			}
 		}
@@ -143,7 +144,7 @@ aspect Misc {
 		for (Element e : getElements()) {
 			if (portFound) {
 				if (e.kind().equals("productionRates")) {
-					System.out.println("  "+Integer.valueOf(e.value()));
+					// System.out.println("  "+Integer.valueOf(e.value()));
 					return Integer.valueOf(e.value());
 				} else {
 					System.out.println("** Error. Element: "+e.kind()+
@@ -151,7 +152,7 @@ aspect Misc {
 				}
 			}
 			if (e.kind().equals("pinWrite")) {
-				System.out.println("Found Element");
+				// System.out.println("Found Element");
 				portFound = true;
 			}
 		}
