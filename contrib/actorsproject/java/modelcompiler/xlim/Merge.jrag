@@ -64,11 +64,11 @@ aspect Merge {
 		src.portMap().put(srcPort,new BufferInfo(ix,bufSize));
 		dst.portMap().put(dstPort,new BufferInfo(ix,bufSize));
 		for (module m : src.getActions(new HashSet<module>())) {
-			System.out.println("  Out: "+m.productionRate(srcPort));
+			// System.out.println("  Out: "+m.productionRate(srcPort));
 			m.setOutVar(ix,srcPort,bufSize,m.productionRate(srcPort));
 		}		
 		for (module m : dst.getActions(new HashSet<module>())) {
-			System.out.println("  In: "+m.consumptionRate(srcPort));
+			// System.out.println("  In: "+m.consumptionRate(srcPort));
 			m.setInVar(ix,dstPort,bufSize,m.consumptionRate(srcPort));
 		}		
 		src.getSpecification().getDesign().removePort(fix(srcPort),ix);
@@ -976,7 +976,7 @@ aspect ActionScheduler {
 		}
 	}
 	void note.removePort(String portName, int ix) {
-		System.out.println("Looking for: "+portName+" found "+name());
+		// System.out.println("Looking for: "+portName+" found "+name());
 		if (name().equals(portName)) {
 			System.out.println("  Removing port: "+portName);
 			remove_me = true;
@@ -1358,7 +1358,7 @@ aspect Misc {
 		// System.out.println("* Mangling name");
 		String origName = fix(getAttrValue().getLITERAL());
 		String newName = prefix+origName;
-		// System.out.println("Adding mapping: "+origName+" -> "+newName);
+		System.out.println("Adding mapping: "+origName+" -> "+newName);
 		nameMap().put(origName,newName);
 		getAttrValue().setLITERAL(unfix(newName));
 	}
@@ -1384,6 +1384,11 @@ aspect Misc {
 		if (!kind().equals("var_ref")) {
 			super.mangleNames(prefix);
 		} else {
+			if (!name().startsWith("buf_")) {
+				for (Attribute a : getAttributes()) {
+					a.mangleNames(prefix);
+				}
+			}
 			for (Element e : getElements()) {
 				e.mangleNames(prefix);
 			}
@@ -1391,8 +1396,13 @@ aspect Misc {
 	}
 	void source.mangleNames(String prefix) {
 		// System.out.println("* Mangling source");
-		String attr = getAttrValue().getLITERAL();
-		if (attr.contains("pinAvail") || attr.equals("currentState")) {
+		String attr = fix(getAttrValue().getLITERAL());
+		// if (attr.contains("pinAvail") || attr.equals("currentState")) {
+		System.out.println("  Checking mapping: "+attr);
+		// System.out.println("  "+nameMap().keySet());
+		if (nameMap().containsKey(attr)) {
+		// if (!attr.startsWith("buf")) {
+			System.out.println("    Yes! "+"*"+attr+"*");
 			String origName = fix(getAttrValue().getLITERAL());
 			String newName = prefix+origName;
 			// System.out.println("Adding mapping: "+origName+" -> "+newName);
@@ -1401,15 +1411,16 @@ aspect Misc {
 			// getAttrValue().setLITERAL(unfix(prefix+fix(getAttrValue().getLITERAL())));
 		} 
 	}
-	void stateVar.mangleNames(String prefix) {
-		if (name().equals("currentState")) {
-			super.mangleNames(prefix);			
-		}
-	}
+	// void stateVar.mangleNames(String prefix) {
+	// 	if (name().equals("currentState")) {
+	// 		super.mangleNames(prefix);			
+	// 	}
+	// }
 	void target.mangleNames(String prefix) {
 		// System.out.println("* Mangling target");
-		AttrValue attr = getAttrValue();
-		if (attr.getLITERAL().contains("actionAtLine")) {
+		String attr = fix(getAttrValue().getLITERAL());
+		// if (attr.getLITERAL().contains("actionAtLine")) {		
+		if (nameMap().containsKey(attr)) {
 			String origName = fix(getAttrValue().getLITERAL());
 			String newName = prefix+origName;
 			// System.out.println("Adding mapping: "+origName+" -> "+newName);
