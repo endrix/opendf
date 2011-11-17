@@ -106,3 +106,89 @@ static inline FIFO_TYPE FIFO_NAME(pinPeek)(const LocalInputPort *p,
   }
   return ((FIFO_TYPE*)p->buffer)[offset];
 }
+
+#ifdef BYTES
+static inline void* pinRead_bytes(LocalInputPort *p, char *buf, int bytes)
+{
+  int n = bytes;  
+  assert(FIFO_NAME(pinAvailIn)(p) >= n);
+  p->available -= n;
+  if (p->pos + n >= 0) {
+    // Buffer wrap
+    memcpy(buf, &((FIFO_TYPE*)p->buffer)[p->pos], 
+	   -(p->pos * sizeof(FIFO_TYPE)));
+    buf += -(p->pos);
+    n -= -(p->pos);
+    p->pos = -(p->capacity);
+  }
+  if (n) {
+    memcpy(buf, &((FIFO_TYPE*)p->buffer)[p->pos], 
+	   n * sizeof(FIFO_TYPE));
+    p->pos += n;
+  }
+  return 0;
+}
+
+static inline void* pinReadRepeat_bytes(LocalInputPort *p, char *buf, int tokens, int bytes)
+{
+  int n = bytes*tokens;  
+  assert(FIFO_NAME(pinAvailIn)(p) >= n);
+  p->available -= n;
+  if (p->pos + n >= 0) {
+    // Buffer wrap
+    memcpy(buf, &((FIFO_TYPE*)p->buffer)[p->pos], 
+	   -(p->pos * sizeof(FIFO_TYPE)));
+    buf += -(p->pos);
+    n -= -(p->pos);
+    p->pos = -(p->capacity);
+  }
+  if (n) {
+    memcpy(buf, &((FIFO_TYPE*)p->buffer)[p->pos], 
+	   n * sizeof(FIFO_TYPE));
+    p->pos += n;
+  }
+  return 0;
+}
+
+static inline void* pinWrite_bytes(LocalInputPort *p, char *buf, int bytes)
+{
+  int n = bytes;  
+  assert(FIFO_NAME(pinAvailOut)(p) >= n);
+  p->available -= n;
+  if (p->pos + n >= 0) {
+    // Buffer wrap
+    memcpy(&((FIFO_TYPE*)p->buffer)[p->pos], buf, 
+	   -(p->pos * sizeof(FIFO_TYPE)));
+    buf += -(p->pos);
+    n -= -(p->pos);
+    p->pos = -(p->capacity);
+  }
+  if (n) {
+    memcpy(&((FIFO_TYPE*)p->buffer)[p->pos], buf, 
+	   n * sizeof(FIFO_TYPE));
+    p->pos += n;
+  }
+  return 0;
+}
+
+static inline void* pinWriteRepeat_bytes(LocalInputPort *p, char *buf, int tokens, int bytes)
+{
+  int n = bytes*tokens;  
+  assert(FIFO_NAME(pinAvailOut)(p) >= n);
+  p->available -= n;
+  if (p->pos + n >= 0) {
+    // Buffer wrap
+    memcpy(&((FIFO_TYPE*)p->buffer)[p->pos], buf, 
+	   -(p->pos * sizeof(FIFO_TYPE)));
+    buf += -(p->pos);
+    n -= -(p->pos);
+    p->pos = -(p->capacity);
+  }
+  if (n) {
+    memcpy(&((FIFO_TYPE*)p->buffer)[p->pos], buf, 
+	   n * sizeof(FIFO_TYPE));
+    p->pos += n;
+  }
+  return 0;
+}
+#endif
