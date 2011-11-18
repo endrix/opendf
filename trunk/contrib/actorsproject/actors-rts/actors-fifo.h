@@ -107,8 +107,8 @@ static inline FIFO_TYPE FIFO_NAME(pinPeek)(const LocalInputPort *p,
   return ((FIFO_TYPE*)p->buffer)[offset];
 }
 
-#ifdef BYTES
-static inline void* pinRead_bytes(LocalInputPort *p, char *buf, int bytes)
+#ifdef READ_BYTES
+static inline void pinRead_bytes(LocalInputPort *p, void *buf, int bytes)
 {
   int n = bytes;  
   assert(FIFO_NAME(pinAvailIn)(p) >= n);
@@ -126,10 +126,9 @@ static inline void* pinRead_bytes(LocalInputPort *p, char *buf, int bytes)
 	   n * sizeof(FIFO_TYPE));
     p->pos += n;
   }
-  return 0;
 }
 
-static inline void* pinReadRepeat_bytes(LocalInputPort *p, char *buf, int tokens, int bytes)
+static inline void pinReadRepeat_bytes(LocalInputPort *p, void *buf, int tokens, int bytes)
 {
   int n = bytes*tokens;  
   assert(FIFO_NAME(pinAvailIn)(p) >= n);
@@ -147,10 +146,9 @@ static inline void* pinReadRepeat_bytes(LocalInputPort *p, char *buf, int tokens
 	   n * sizeof(FIFO_TYPE));
     p->pos += n;
   }
-  return 0;
 }
 
-static inline void* pinWrite_bytes(LocalInputPort *p, char *buf, int bytes)
+static inline void pinWrite_bytes(LocalInputPort *p, void *buf, int bytes)
 {
   int n = bytes;  
   assert(FIFO_NAME(pinAvailOut)(p) >= n);
@@ -168,10 +166,9 @@ static inline void* pinWrite_bytes(LocalInputPort *p, char *buf, int bytes)
 	   n * sizeof(FIFO_TYPE));
     p->pos += n;
   }
-  return 0;
 }
 
-static inline void* pinWriteRepeat_bytes(LocalInputPort *p, char *buf, int tokens, int bytes)
+static inline void pinWriteRepeat_bytes(LocalInputPort *p, void *buf, int tokens, int bytes)
 {
   int n = bytes*tokens;  
   assert(FIFO_NAME(pinAvailOut)(p) >= n);
@@ -189,6 +186,5 @@ static inline void* pinWriteRepeat_bytes(LocalInputPort *p, char *buf, int token
 	   n * sizeof(FIFO_TYPE));
     p->pos += n;
   }
-  return 0;
 }
 #endif
