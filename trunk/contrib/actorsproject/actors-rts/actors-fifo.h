@@ -205,7 +205,7 @@ static inline FIFO_TYPE pinPeekFront_bytes(const LocalInputPort *p)
 
 static inline FIFO_TYPE pinPeek_bytes(const LocalInputPort *p, int bytes, 
                                            int offset) {
-  int offset2 = bytes*bytes;  
+  int offset2 = bytes*offset;  
   assert(offset2>=0 && FIFO_NAME(pinAvailIn)(p) >= offset2);
 
   /* p->pos ranges from -capacity to -1, so should offset */
