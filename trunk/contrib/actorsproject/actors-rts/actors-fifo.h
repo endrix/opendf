@@ -156,7 +156,7 @@ static inline void pinReadRepeat_bytes(LocalInputPort *p, void *buf, int tokens,
   }
 }
 
-static inline void pinWrite_bytes(LocalInputPort *p, void *buf, int bytes)
+static inline void pinWrite_bytes(LocalOutputPort *p, void *buf, int bytes)
 {
   assert(FIFO_NAME(pinAvailOut)(p) >= bytes);
   p->available -= bytes;
@@ -175,7 +175,7 @@ static inline void pinWrite_bytes(LocalInputPort *p, void *buf, int bytes)
   }
 }
 
-static inline void pinWriteRepeat_bytes(LocalInputPort *p, void *buf, int tokens, int bytes)
+static inline void pinWriteRepeat_bytes(LocalOutputPort *p, void *buf, int tokens, int bytes)
 {
   int n = bytes*tokens;  
   assert(FIFO_NAME(pinAvailOut)(p) >= n);
