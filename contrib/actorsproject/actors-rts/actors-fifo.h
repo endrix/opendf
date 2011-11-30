@@ -119,7 +119,7 @@ static inline unsigned pinAvailOut_bytes(const LocalOutputPort *p, int bytes)
 }
 static inline void pinRead_bytes(LocalInputPort *p, void *buf, int bytes)
 {
-  assert(FIFO_NAME(pinAvailIn)(p) >= bytes);
+  assert(FIFO_NAME(pinAvailIn)(p) > bytes);
   p->available -= bytes;
   if (p->pos + bytes >= 0) {
     // Buffer wrap
@@ -139,7 +139,7 @@ static inline void pinRead_bytes(LocalInputPort *p, void *buf, int bytes)
 static inline void pinReadRepeat_bytes(LocalInputPort *p, void *buf, int tokens, int bytes)
 {
   int n = bytes*tokens;  
-  assert(FIFO_NAME(pinAvailIn)(p) >= n);
+  assert(n>=0 && FIFO_NAME(pinAvailIn)(p) >= n);
   p->available -= n;
   if (p->pos + n >= 0) {
     // Buffer wrap
@@ -178,7 +178,7 @@ static inline void pinWrite_bytes(LocalOutputPort *p, void *buf, int bytes)
 static inline void pinWriteRepeat_bytes(LocalOutputPort *p, void *buf, int tokens, int bytes)
 {
   int n = bytes*tokens;  
-  assert(FIFO_NAME(pinAvailOut)(p) >= n);
+  assert(n>=0 && FIFO_NAME(pinAvailOut)(p) >= n);
   p->available -= n;
   if (p->pos + n >= 0) {
     // Buffer wrap
@@ -195,35 +195,74 @@ static inline void pinWriteRepeat_bytes(LocalOutputPort *p, void *buf, int token
   }
 }
 
-static inline FIFO_TYPE pinPeekFront_bytes(const LocalInputPort *p)
+static inline void pinPeekFront_bytes(const LocalInputPort *p, char *buf, int bytes)
 {
-  assert(FIFO_NAME(pinAvailIn)(p) > 0);
-  return ((FIFO_TYPE*)p->buffer)[p->pos];
+  int start=p->pos;  
+  assert(FIFO_NAME(pinAvailIn)(p) > bytes);
+  if (p->pos + bytes >= 0) {
+    // Buffer wrap
+    memcpy(buf, &((FIFO_TYPE*)p->buffer)[p->pos], 
+	   -(p->pos * sizeof(FIFO_TYPE)));
+    buf += -(p->pos);
+    bytes -= -(p->pos);
+    start = -(p->capacity);
+  }
+  if (bytes) {
+    memcpy(buf, &((FIFO_TYPE*)p->buffer)[start], 
+	   bytes * sizeof(FIFO_TYPE));
+  }
+
 }
 
-static inline FIFO_TYPE pinPeek_bytes(const LocalInputPort *p, int bytes, 
+static inline void pinPeek_bytes(const LocalInputPort *p, char *buf, int bytes, 
                                            int offset) {
-  offset = bytes*offset;  
-  assert(offset>=0 && FIFO_NAME(pinAvailIn)(p) >= offset);
+  
+  offset=offset*bytes; 
+  assert(offset>=0 && FIFO_NAME(pinAvailIn)(p) >= (offset+bytes));
 
   /* p->pos ranges from -capacity to -1, so should offset */
   offset+=p->pos;
   if (offset>=0) {
     offset-=p->capacity; /* wrap-around */
   }
-  return ((FIFO_TYPE*)p->buffer)[offset];
+
+  if (offset+bytes >= 0) {
+    // Buffer wrap
+    memcpy(buf, &((FIFO_TYPE*)p->buffer)[offset], 
+	   -(offset * sizeof(FIFO_TYPE)));
+    buf += -(offset);
+    bytes -= -(offset);
+    offset = -(p->capacity);
+  }
+  if (bytes) {
+    memcpy(buf, &((FIFO_TYPE*)p->buffer)[offset], 
+	   bytes * sizeof(FIFO_TYPE));
+  }
 }
 
-static inline FIFO_TYPE pinPeekRepeat_bytes(const LocalInputPort *p, int tokens, int bytes, 
+static inline void pinPeekRepeat_bytes(const LocalInputPort *p, char *buf, int tokens, int bytes, 
                                            int offset) {
-  offset = bytes*(tokens + offset);  
-  assert(offset>=0 && FIFO_NAME(pinAvailIn)(p) >= offset);
+  offset = bytes*offset;
+  bytes = bytes*tokens;
+  assert(offset>=0 && bytes>=0 && FIFO_NAME(pinAvailIn)(p) >= (offset+bytes));
 
   /* p->pos ranges from -capacity to -1, so should offset */
   offset+=p->pos;
   if (offset>=0) {
     offset-=p->capacity; /* wrap-around */
   }
-  return ((FIFO_TYPE*)p->buffer)[offset];
+
+  if (offset+bytes >= 0) {
+    // Buffer wrap
+    memcpy(buf, &((FIFO_TYPE*)p->buffer)[offset], 
+	   -(offset * sizeof(FIFO_TYPE)));
+    buf += -(offset);
+    bytes -= -(offset);
+    offset = -(p->capacity);
+  }
+  if (bytes) {
+    memcpy(buf, &((FIFO_TYPE*)p->buffer)[offset], 
+	   bytes * sizeof(FIFO_TYPE));
+  }
 }
 #endif
