@@ -18,7 +18,7 @@ export CC=arm-none-linux-gnueabi-gcc
 export LD=arm-none-linux-gnueabi-ld
 export CXX=arm-none-linux-gnueabi-g++
 export AR=arm-none-linux-gnueabi-ar
-ARMDIR=$(HOME)/work/actor/arm/usr/local
+ARMDIR=$(HOME)/work/actors/arm/usr/local
 endif
 
 ifneq "$(PROFILE)" ""
@@ -38,8 +38,8 @@ ifeq ($(RM), y)
 override CFLAGS += -DRM
 endif
 
-override CFLAGS += -O3
-#override CFLAGS += -g
+#override CFLAGS += -O3
+override CFLAGS += -g
 
 INSTALL_H=actors-rts.h actors-fifo.h actors-config.h dll.h
 
