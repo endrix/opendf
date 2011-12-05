@@ -330,9 +330,10 @@ void connectPorts(OutputPort *outputPort, InputPort *inputPort)
 
 void setParameter(AbstractActorInstance *pInstance,
 		  const char *key,
-		  const char *value)
+		  const void *val)
 {
   ActorInstance_1_t *instance = (ActorInstance_1_t*)pInstance;
+  const char *value = (const char*)val;
   
   if (strcmp(key, "affinity") == 0) {
     instance->affinity = atoi(value);
