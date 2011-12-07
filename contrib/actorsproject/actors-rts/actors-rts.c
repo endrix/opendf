@@ -330,10 +330,9 @@ void connectPorts(OutputPort *outputPort, InputPort *inputPort)
 
 void setParameter(AbstractActorInstance *pInstance,
 		  const char *key,
-		  const void *val)
+		  const char *value)
 {
   ActorInstance_1_t *instance = (ActorInstance_1_t*)pInstance;
-  const char *value = (const char*)val;
   
   if (strcmp(key, "affinity") == 0) {
     instance->affinity = atoi(value);
@@ -357,6 +356,28 @@ void setParameter(AbstractActorInstance *pInstance,
 	parameter->value = strdup(tmp);
       }
     }
+    instance->parameter = parameter;
+  }
+}
+void setParameterBytes(AbstractActorInstance *pInstance,
+                 const char *key,
+                 const void *value,
+                 int size)
+{
+  ActorInstance_1_t *instance = (ActorInstance_1_t*)pInstance;
+  int * v;
+  if (strcmp(key, "affinity") == 0) {
+    instance->affinity = atoi(value);
+  } else if (strcmp(key, "activeMode") == 0){
+               instance->actorClass->actorExecMode=atoi(value);
+       }else {
+    Parameter_1_t *parameter = malloc(sizeof(*parameter));
+
+    parameter->next = instance->parameter;
+    parameter->key = key;
+    v=(int*)malloc(size); //FIXME we never free this, but it is not more memory wasted then if const declared
+    memcpy(v,value,size);
+    parameter->value = v;
     instance->parameter = parameter;
   }
 }
