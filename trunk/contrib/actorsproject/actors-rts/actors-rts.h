@@ -191,7 +191,7 @@ struct ActorClass {
   const int* (*action_scheduler)(AbstractActorInstance*, int);
   void (*constructor)(AbstractActorInstance*);
   void (*destructor)(AbstractActorInstance*);
-  void (*set_param)(AbstractActorInstance*,const char*, const void*);
+  void (*set_param)(AbstractActorInstance*,const char*, const char*);
   const PortDescription *inputPortDescriptions;
   const PortDescription *outputPortDescriptions;
   int actorExecMode;
@@ -258,7 +258,13 @@ extern void connectPorts(OutputPort *outputPort, InputPort *inputPort);
 extern int executeNetwork(int argc, char *argv[],AbstractActorInstance **instances, int numInstances);
 extern void setParameter(AbstractActorInstance *pInstance,
                   const char *key,
-                  const void *value);
+                  const char *value);
+
+extern void setParameterBytes(AbstractActorInstance *pInstance,
+                  const char *key,
+                  const void *value,
+                  int size);
+
 
 #define ART_INPUT(index) &(context->input[index])
 #define ART_OUTPUT(index) &(context->output[index])
