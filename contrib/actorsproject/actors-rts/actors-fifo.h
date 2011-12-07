@@ -140,7 +140,7 @@ static inline void pinReadRepeat_bytes(LocalInputPort *p, void *buf, int tokens,
 {
   int n = bytes*tokens; 
   assert(n>=0 && FIFO_NAME(pinAvailIn)(p) >= n);
-  p->available -= tokens;
+  p->available -= n;
   if (p->pos + n >= 0) {
     // Buffer wrap
     memcpy(buf, &((FIFO_TYPE*)p->buffer)[p->pos], 
