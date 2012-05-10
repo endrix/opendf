@@ -2,7 +2,7 @@
 
 actor Split (N) In ==> A, B :
 
-	boolean toA := true;
+	toA := true;
 	n := 0;
 	
 	action In: [v] ==> A: [v]

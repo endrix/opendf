@@ -3,7 +3,7 @@ actor TwiddleGenerator (N) Trigger ==> W :
 
 	n := 0;
 	
-	action Trigger: [_1] ==> W: [twiddles[old n]]
+	action Trigger: [_1, _2] ==> W: [twiddles[old n]]
 	do
 		n := n + 1;
 		if n >= N then
