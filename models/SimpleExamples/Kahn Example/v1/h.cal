@@ -1,0 +1,12 @@
+
+actor h (INIT)  U ==> V :
+
+	A:	action ==> [INIT] end
+
+	B:	action [I] ==> [I] end
+
+	schedule fsm s0 :
+		s0 (A) --> s1;
+		s1 (B) --> s1;
+	end
+end

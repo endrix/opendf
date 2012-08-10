@@ -1,0 +1,8 @@
+
+actor NDMerge () A, B ==> X :
+
+	action A: [v] ==> [v] end
+
+	action B: [v] ==> [v] end
+
+end

@@ -1,0 +1,68 @@
+
+actor Writer () String URL, int Data ==> boolean Opened, boolean Ack :
+
+	Open:	action URL: [url] ==> Opened: [stream != null]
+			require stream = null
+			do
+				stream := create(url);
+			end
+			
+	OK:     action ==>
+	        guard stream != null end
+			
+	Err:    action ==>
+	        guard stream = null end
+			
+	Write:	action Data: [byte] ==>  Ack: [true]
+			require stream != null
+			guard byte >= 0
+			do
+				write(stream, byte);
+			end
+			
+	Close:	action Data: [byte] ==> Ack: [false]
+			require stream != null
+			guard byte < 0
+			do
+				close(stream);
+				stream := null;
+			end
+			
+	NewURL:	action URL: [url] ==> Opened: [stream != null], Ack: [false]
+			require stream != null
+			do
+				close(stream)
+				stream := open(url);
+			end
+	
+	Scan:	action Data: [byte] ==>
+			guard byte >= 0 end
+			
+	ScanC:	action Data: [byte] ==>
+			guard byte < 0 and stream = null end
+			
+	ScanR:	action Data: [byte] ==>
+			guard byte < 0 and stream != null end
+			
+	
+				
+	schedule fsm Closed :
+		Closed (Open) --> PostOpen;
+		PostOpen (OK) --> Write;
+		PostOpen (Err) --> Closed;
+		Writing (Write) --> Writing;
+		Writing (Close) --> Closed;
+		Writing (NewURL) --> Scanning;
+		Scanning (Scan) --> Scanning;
+		Scanning (ScanC) --> Closed;
+		Scanning (ScanR) --> Writing;
+	end
+	
+	priority
+		Done > NewURL; 
+		NewURL > Write;
+		NewURL > Close;
+	end
+
+	stream := null;	
+end

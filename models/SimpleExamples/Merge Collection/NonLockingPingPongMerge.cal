@@ -1,0 +1,24 @@
+
+actor NonLockingPingPongMerge () A, B ==> X :
+
+	AfterARdA: action A: [v] ==> [v] end
+
+	AfterARdB: action B: [v] ==> [v] end
+	
+	AfterBRdA: action A: [v] ==> [v] end
+
+	AfterBRdB: action B: [v] ==> [v] end
+	
+	schedule fsm AfterB:
+		AfterB (AfterBRdA) --> AfterA;
+		AfterB (AfterBRdB) --> AfterB;
+		AfterA (AfterARdA) --> AfterA;
+		AfterA (AfterARdB) --> AfterB;
+	end
+	
+	priority
+		AfterARdB > AfterARdA;
+		AfterBRdA > AfterBRdB;
+	end
+	
+end

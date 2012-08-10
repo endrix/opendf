@@ -1,0 +1,19 @@
+
+actor f () U, V ==> W :
+
+	A:	action U: [I] ==> [I]
+		do
+			println(I);
+		end
+	
+	B:	action V: [I] ==> [I]
+		do
+			println(I);
+		end
+		
+		schedule fsm s0 :
+			s0 (A) --> s1;
+			s1 (B) --> s0;
+		end
+end
+	

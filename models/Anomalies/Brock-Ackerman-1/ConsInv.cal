@@ -1,0 +1,13 @@
+
+actor ConsInv () S ==> H, T :
+
+	A:	action [a] ==> H: [a] end
+	
+	B:	action [a] ==> T: [a] end
+	
+	schedule fsm s0:
+		s0 (A) --> s1;
+		s1 (B) --> s1;
+	end
+end
+

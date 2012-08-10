@@ -1,0 +1,5 @@
+
+actor B () S ==> R :
+
+	action [a, b] ==> [a, b] end
+end

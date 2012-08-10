@@ -1,0 +1,5 @@
+
+actor AddConst(c) A ==> B :
+
+	action [v] ==> [v + c] end
+end

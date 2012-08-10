@@ -1,0 +1,20 @@
+
+actor f () U, V ==> W :
+
+	B := true;
+	
+	action U: [I] ==> [I]
+	guard B
+	do
+		println(I);
+		B := not B;
+	end
+	
+	action V: [I] ==> [I]
+	guard not B
+	do
+		println(I);
+		B := not B;
+	end
+end
+	

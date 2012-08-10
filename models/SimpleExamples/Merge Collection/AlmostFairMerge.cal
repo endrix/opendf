@@ -1,0 +1,14 @@
+
+actor BiasedMerge () A, B ==> X :
+
+	Two: action [v], [w] ==> [v, w] end
+
+	One: action A: [v] ==> [v] end
+
+	One: action B: [v] ==> [v] end
+
+	priority	
+		Two > One;
+	end
+
+end

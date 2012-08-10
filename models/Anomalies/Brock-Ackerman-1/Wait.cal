@@ -1,0 +1,13 @@
+
+actor Wait () S, W ==> R :
+
+	A: action [a], [w] ==> [a] end
+	
+	B: action S: [a] ==> [a] end
+		
+	schedule fsm s0:
+		s0 (A) --> s1;
+		s1 (B) --> s1;
+	end
+end
+

@@ -1,0 +1,42 @@
+
+import java.io.FileInputStream;
+
+actor AsynchronousFileReader () String FileName ==> int Bytes, boolean Opened :
+
+	invariant
+		if done then s = null else true end
+	end
+
+	action FileName: [name] ==> Opened: [s != null]
+	guard done
+	ensure done = false
+	do
+		s := openFile(name);
+		if s != null then
+			nextByte := readByte(s);
+		else
+			nextByte = -1;
+		end
+		done := false;
+	end
+		
+	action ==> Bytes: [nextByte]
+	guard not done
+	do
+		if nextByte < 0 then
+			if s != null then
+				close(s);
+				s := null;
+			end
+			done := true;
+		else
+			nextByte := readByte(s);
+		end
+	end
+				
+	FileInputStream s := null;
+	boolean done := true;
+	int nextByte := 0;
+	
+end
+

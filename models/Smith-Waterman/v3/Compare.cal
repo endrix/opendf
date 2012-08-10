@@ -1,0 +1,5 @@
+
+actor Compare (match, mismatch) A, B ==> V :
+
+	action [a], [b] ==> [if a = b then match else mismatch end] end
+end

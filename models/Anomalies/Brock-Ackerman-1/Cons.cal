@@ -1,0 +1,13 @@
+
+actor Cons () H, T ==> R :
+
+	A:	action H: [a] ==> [a] end
+	
+	B:	action T: [a] ==> [a] end
+	
+	schedule fsm s0:
+		s0 (A) --> s1;
+		s1 (B) --> s1;
+	end
+end
+

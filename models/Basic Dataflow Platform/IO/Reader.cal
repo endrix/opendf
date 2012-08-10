@@ -1,0 +1,76 @@
+
+actor Reader () String URL, boolean Next ==> int Data, boolean Opened :
+
+	Open:	action URL: [url] ==> Opened: [stream != null]
+			require stream = null
+			do
+				stream := open(url);
+				nxtByte := if stream != null then read(stream) else EOS end;
+			end
+			
+	Read:	action Next: [nxt] ==> Data: [byte] 
+			require stream != null
+			guard nxt 
+			var
+				byte = nxtByte;
+			do
+				if nxtByte >= 0 then
+					nxtByte := read(stream)
+				else
+					close(stream)
+					stream := null;
+				end
+			end
+			
+	Close:	action Next: [nxt] ==> Data: [CLOSED]
+			require stream != null
+			guard not nxt 
+			do
+				close(stream);
+				stream := null;
+			end
+			
+	NewURL:	action URL: [url] ==> Data: [CLOSED], Opened: [stream != null]
+			require stream != null
+			do
+				close(stream);
+				stream := open(url);
+				nxtByte := if stream != null then read(stream) else EOS end;
+			end
+	
+	Done:   action ==> 
+			guard stream = null end
+
+	Scan:	action Next: [nxt] ==>
+			guard nxt end
+			
+	ScanC:	action Next: [nxt] ==>
+			guard not nxt and stream = null end
+			
+	ScanR:	action Next: [nxt] ==>
+			guard not nxt and stream != null end
+			
+	
+				
+	schedule fsm Closed :
+		Closed (Open) --> Reading;
+		Reading (Read) --> Reading;
+		Reading (Close) --> Closed;
+		Reading (Done, NewURL) --> Scanning;
+		Scanning (Scan) --> Scanning;
+		Scanning (ScanC) --> Closed;
+		Scanning (ScanR) --> Reading;
+	end
+	
+	priority
+		Done > NewURL; 
+		NewURL > Read;
+		NewURL > Close;
+	end
+
+	stream := null;
+	nxtByte := EOS;
+	
+	EOS = -1;
+	CLOSED = -2;
+end
