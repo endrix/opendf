@@ -1,0 +1,13 @@
+
+actor g () U ==> V, W :
+
+	A:	action [I] ==> V: [I] end
+	
+	B:	action [I] ==> W: [I] end
+	
+		schedule fsm s0 :
+			s0 (A) --> s1;
+			s1 (B) --> s0;
+		end
+end
+	

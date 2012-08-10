@@ -1,0 +1,4 @@
+
+Striping Smith-Waterman, with K cells, computing a W x H matrix of values.
+
+We assume that W mod K = 0, that W, H > K, and that usually W >> H >> K

@@ -1,0 +1,7 @@
+
+actor Merge () A, B ==> X :
+
+	action A: [v] ==> [v] end
+
+	action B: [v] ==> [v] end
+end

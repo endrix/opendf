@@ -1,0 +1,13 @@
+
+actor PingPongMerge () A, B ==> X :
+
+	RdA: action A: [v] ==> [v] end
+
+	RdB: action B: [v] ==> [v] end
+	
+	schedule fsm s0:
+		s0 (RdA) --> s1;
+		s1 (RdB) --> s0;
+	end
+
+end

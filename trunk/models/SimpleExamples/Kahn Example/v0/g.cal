@@ -1,0 +1,17 @@
+
+actor g () U ==> V, W :
+
+	B := true;
+	
+	action [I] ==> V: [I]
+	guard B
+	do
+		B := not B;
+	end
+	
+	action [I] ==> W: [I]
+	guard not B
+	do
+		B := not B;
+	end
+end

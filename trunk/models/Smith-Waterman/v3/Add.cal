@@ -1,0 +1,6 @@
+
+actor Add () A, B ==> C :
+
+	action [a], [b] ==> [a + b] end
+end
+

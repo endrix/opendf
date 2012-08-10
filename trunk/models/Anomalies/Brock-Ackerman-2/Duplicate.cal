@@ -1,0 +1,5 @@
+
+actor Duplicate () A ==> X :
+
+	action [a] ==> [a, a] end
+end

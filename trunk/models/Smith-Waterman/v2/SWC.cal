@@ -1,0 +1,23 @@
+
+/**
+	Smith-Waterman Cell
+	
+	The basic computational unit of the striped Smith-Waterman algorithm.
+*/
+
+
+actor SWC (match, mismatch, gap, width, height, k) A, B, W ==> V :
+
+	action [a], [b], [w] ==> [n]
+	var
+		v1 = nw + if a = b then match else mismatch,
+		v2 = w + gap,
+		v3 = n + gap
+	do
+		n := max(max(v1, 0), max(v2, v3))
+		nw := w;
+	end
+	
+	n := 0;
+	nw := 0;
+end

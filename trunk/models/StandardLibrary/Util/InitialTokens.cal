@@ -1,0 +1,8 @@
+
+actor InitialTokens (tokens) In ==> Out:
+
+	initialize ==> [tokens] repeat #tokens end
+	
+	action [a] ==> [a] end
+
+end
